@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
-import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { resumirCorreo } from "@/lib/resumir";
 
 /**
  * AGENTE DE CORREO — MVP
@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
   });
 
   const mensajes = listResponse.data.messages ?? [];
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
   const resultados = [];
 
   for (const mensajeRef of mensajes) {
@@ -85,29 +84,11 @@ export async function POST(request: NextRequest) {
     const fragmento = mensaje.data.snippet ?? "";
 
     // 4. Generar resumen + acción sugerida con IA
-    const respuestaIA = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 300,
-      messages: [
-        {
-          role: "user",
-          content: `Eres un asistente que ayuda a un negocio pequeño a priorizar su correo.
-Da un resumen de 1-2 líneas y una acción sugerida corta (o "ninguna" si no aplica).
-Responde SOLO en este formato exacto:
-RESUMEN: <resumen>
-ACCION: <acción sugerida>
-
-Asunto: ${asunto}
-De: ${remitente}
-Contenido: ${fragmento}`,
-        },
-      ],
+    const { resumen, accion } = await resumirCorreo({
+      asunto,
+      remitente,
+      contenido: fragmento,
     });
-
-    const textoIA =
-      respuestaIA.content[0].type === "text" ? respuestaIA.content[0].text : "";
-    const resumen = textoIA.match(/RESUMEN:\s*(.+)/)?.[1]?.trim() ?? fragmento;
-    const accion = textoIA.match(/ACCION:\s*(.+)/)?.[1]?.trim() ?? "ninguna";
 
     // 5. Guardar (RLS garantiza que solo se guarda bajo el negocio del usuario)
     const { error: insertError } = await supabase

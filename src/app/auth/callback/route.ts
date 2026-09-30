@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Callback de autenticación de Google. Después de que el usuario inicia
+ * Callback de autenticación (Google o link por correo). Después de que el usuario inicia
  * sesión, Supabase lo redirige aquí con un "code" que se intercambia por
  * su sesión real. También creamos su registro de "negocio" si es la
  * primera vez que entra.
@@ -31,8 +31,11 @@ export async function GET(request: NextRequest) {
           nombre: data.user.email ?? "Mi negocio",
         });
       }
+
+      return NextResponse.redirect(`${origin}/`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  // Si algo falló (link vencido, abierto en otro navegador, etc.)
+  return NextResponse.redirect(`${origin}/?error=login`);
 }

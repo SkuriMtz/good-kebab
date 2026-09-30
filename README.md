@@ -58,6 +58,19 @@ npm run dev
 Abre http://localhost:3000, conecta tu cuenta de Google, y dale a
 "Revisar correo nuevo".
 
+### Modo de prueba (sin Google Cloud)
+
+Si todavía no configuras Google Cloud, puedes probar la app igual:
+
+1. Solo necesitas los pasos 2.1, 2.2, 2.4 (Supabase) y el paso 3.
+2. En la pantalla de inicio escribe tu correo y dale a "Enviarme link de
+   acceso". Abre el link **en el mismo navegador**.
+3. Pega un correo (o usa uno de los ejemplos) y dale a "Resumir con IA".
+   El resultado se guarda y aparece en "Historial guardado".
+
+Nota: el servicio de correo gratuito de Supabase manda pocos emails por
+hora. Si el link no llega, espera unos minutos antes de pedir otro.
+
 ## Qué sigue después de que esto funcione
 
 Una vez que pruebes esto tú mismo (o con 2-3 negocios reales) y confirmes
