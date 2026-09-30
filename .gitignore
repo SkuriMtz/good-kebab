@@ -1,0 +1,18 @@
+# dependencias
+/node_modules
+
+# build de Next.js
+/.next/
+/out/
+/build
+
+# variables de entorno — contienen claves secretas, NUNCA se suben a git
+.env
+.env*.local
+
+# varios
+.DS_Store
+*.pem
+npm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
