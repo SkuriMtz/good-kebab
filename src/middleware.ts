@@ -25,7 +25,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isAllowedOrigin = origin ? ALLOWED_ORIGINS.includes(origin) : true; // same-origin requests (sin header Origin) se permiten
+  // Se permiten: peticiones sin header Origin, peticiones desde la propia
+  // app (su mismo dominio, ej. tu-app.vercel.app) y los orígenes aprobados.
+  const isAllowedOrigin =
+    !origin ||
+    origin === request.nextUrl.origin ||
+    ALLOWED_ORIGINS.includes(origin);
 
   // Preflight request (OPTIONS) — el navegador pregunta antes de la llamada real
   if (request.method === "OPTIONS") {
