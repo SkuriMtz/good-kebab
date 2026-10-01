@@ -71,6 +71,20 @@ Si todavía no configuras Google Cloud, puedes probar la app igual:
 Nota: el servicio de correo gratuito de Supabase manda pocos emails por
 hora. Si el link no llega, espera unos minutos antes de pedir otro.
 
+## Publicar en internet (Vercel)
+
+Si no puedes instalar Node.js (por ejemplo en una computadora de empresa o
+en un iPad), puedes publicar la app directo en Vercel:
+
+1. Entra a https://vercel.com con tu cuenta de GitHub e importa este
+   repositorio.
+2. En "Environment Variables" agrega `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `ANTHROPIC_API_KEY`.
+3. Cada vez que se sube un cambio a GitHub, Vercel publica la app sola.
+4. En Supabase → Authentication → URL Configuration, pon tu link de
+   Vercel como "Site URL" y agrega `https://<tu-link>.vercel.app/auth/callback`
+   en "Redirect URLs".
+
 ## Qué sigue después de que esto funcione
 
 Una vez que pruebes esto tú mismo (o con 2-3 negocios reales) y confirmes
