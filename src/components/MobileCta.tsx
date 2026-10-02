@@ -38,7 +38,7 @@ export function MobileCta({ ocultarEn = "empezar" }: { ocultarEn?: string }) {
       data-visible={visible ? "true" : "false"}
       aria-hidden={!visible}
     >
-      <PillLink href="/entrar" className="shadow-[0_8px_30px_rgba(128,82,255,0.35)]">
+      <PillLink href="/entrar">
         Probar Atendel
       </PillLink>
     </div>

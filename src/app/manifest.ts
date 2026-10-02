@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Agentes de IA para clínicas, consultorios y estéticas.",
     start_url: "/panel",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    background_color: "#000000",
+    theme_color: "#000000",
     lang: "es",
     // Los íconos se agregan cuando el logo esté decidido
     icons: [],

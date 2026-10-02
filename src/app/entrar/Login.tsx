@@ -14,7 +14,7 @@ const SECCIONES = [
   { href: "/#como-funciona", label: "Cómo funciona" },
   { href: "/#seguridad", label: "Seguridad" },
 ];
-const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#f29d0a"];
+const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;
@@ -73,10 +73,10 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
         <div aria-live="polite">
           {estado !== "enviado" ? (
             <div key="formulario">
-              <Reveal as="p" className="eyebrow text-saffron">
+              <Reveal as="p" className="eyebrow">
                 Entrar
               </Reveal>
-              <SplitText as="h1" className="mt-5 text-heading-lg" text="Entra a Atendel." />
+              <SplitText as="h1" className="editorial mt-5 text-heading-lg" text="Entra a Atendel." />
               <Reveal as="p" delay={200} className="mt-6 max-w-[440px] text-body text-silver">
                 Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
               </Reveal>
@@ -131,8 +131,8 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
             </div>
           ) : (
             <div key="enviado" className="swap-in">
-              <p className="eyebrow text-saffron">Link enviado</p>
-              <h1 className="mt-5 text-heading-lg">Revisa tu correo.</h1>
+              <p className="eyebrow">Link enviado</p>
+              <h1 className="editorial mt-5 text-heading-lg">Revisa tu correo.</h1>
               <p className="mt-6 max-w-[460px] text-body text-silver">
                 Te mandamos un link a <span className="font-normal text-bone">{email}</span>. Ábrelo en este mismo
                 navegador para entrar.

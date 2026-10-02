@@ -1,37 +1,44 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Tokens del sistema de diseño de Atendel (ver DESIGN.md):
- * lienzo blanco, un solo violeta para acciones, ámbar para resaltar,
- * titulares enormes de peso 400 y cuerpo ligero (300).
+ * Tokens del sistema de diseño de Atendel (ver DESIGN.md, estilo "título de
+ * cine"): lienzo negro, texto blanco, un solo rojo como signo de puntuación,
+ * titulares itálicos ultraligeros, líneas finas como única estructura y
+ * cero esquinas redondeadas.
  */
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        // Versión clara: "void" es el fondo blanco y "bone" la tinta del texto
-        void: "#ffffff",
-        bone: "#0b0b0f",
-        ash: "#6b6b73",
-        silver: "#44444c",
-        iris: { DEFAULT: "#8052ff", hover: "#6c3cf5" },
-        saffron: "#b4600b",
-        verdant: "#15846e",
-        mint: "#0b8a6f",
+        void: "#000000", // lienzo
+        shale: "#101010", // superficie apenas más clara
+        bone: "#ffffff", // texto principal
+        ash: "#8f8f8f", // texto secundario
+        silver: "#c4c4c4", // texto de párrafos
+        signal: "#ff2936", // acento rojo: máximo uno por pantalla
+        // Alias para componentes existentes
+        iris: { DEFAULT: "#ffffff", hover: "#ffffff" },
+        saffron: "#ff2936",
+        mint: "#ff2936",
+        verdant: "#ffffff",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Space Grotesk", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        cond: ["var(--font-cond)", "Impact", "sans-serif"],
+        hand: ["var(--font-hand)", "cursive"],
       },
       fontSize: {
-        caption: ["0.75rem", { lineHeight: "1.5" }],
-        nav: ["0.875rem", { lineHeight: "1.2", letterSpacing: "0.025em" }],
-        body: ["1.125rem", { lineHeight: "1.5" }],
-        "heading-2xs": ["1.5rem", { lineHeight: "1.25", letterSpacing: "-0.02em" }],
-        "heading-sm": ["clamp(1.875rem, 3.4vw, 2.625rem)", { lineHeight: "1.12", letterSpacing: "-0.04em" }],
-        heading: ["clamp(2.125rem, 4.2vw, 3rem)", { lineHeight: "1.08", letterSpacing: "-0.035em" }],
-        "heading-lg": ["clamp(2.5rem, 6.2vw, 4.875rem)", { lineHeight: "1.02", letterSpacing: "-0.04em" }],
-        display: ["clamp(3rem, 8.8vw, 7.0625rem)", { lineHeight: "0.98", letterSpacing: "-0.04em" }],
+        caption: ["0.75rem", { lineHeight: "1.4" }],
+        nav: ["0.875rem", { lineHeight: "1", letterSpacing: "0.04em" }],
+        body: ["1.0625rem", { lineHeight: "1.55" }],
+        "heading-2xs": ["1.375rem", { lineHeight: "1.3", letterSpacing: "-0.01em" }],
+        "heading-sm": ["clamp(1.75rem, 3.4vw, 2.75rem)", { lineHeight: "1.1", letterSpacing: "-0.01em" }],
+        heading: ["clamp(2.25rem, 5vw, 4rem)", { lineHeight: "1.02", letterSpacing: "-0.01em" }],
+        "heading-lg": ["clamp(2.75rem, 7.4vw, 7rem)", { lineHeight: "0.98", letterSpacing: "-0.015em" }],
+        display: ["clamp(3.5rem, 11vw, 10rem)", { lineHeight: "0.92", letterSpacing: "-0.015em" }],
+        wordmark: ["clamp(5.5rem, 24vw, 24rem)", { lineHeight: "0.85", letterSpacing: "-0.02em" }],
       },
       spacing: {
         "4.5": "1.125rem",
@@ -40,7 +47,7 @@ const config: Config = {
         "30": "7.5rem",
       },
       maxWidth: {
-        page: "80rem",
+        page: "90rem",
       },
       transitionTimingFunction: {
         "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",

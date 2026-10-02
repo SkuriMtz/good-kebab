@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Logo } from "./Logo";
 
 const PRODUCTO = [
+  { href: "/#demo", label: "Ejemplo" },
   { href: "/#agentes", label: "Agentes" },
   { href: "/#como-funciona", label: "Cómo funciona" },
   { href: "/#seguridad", label: "Seguridad" },
@@ -11,35 +11,45 @@ const CUENTA = [
   { href: "/panel", label: "Mi panel" },
 ];
 
+/** Pie como créditos finales: línea fina, columnas y el nombre gigante al final. */
 export function Footer() {
   return (
-    <footer className="mx-auto max-w-page px-6 pb-12 pt-[96px] lg:px-10 lg:pt-[140px]">
-      <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr]">
-        <div>
-          <Logo />
-          <p className="mt-5 max-w-[320px] text-body text-ash">
+    <footer className="mt-[120px] overflow-hidden lg:mt-[200px]">
+      <div className="mx-auto max-w-page border-t hairline px-6 pt-10 lg:px-10">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
+          <p className="max-w-[340px] text-body text-silver">
             Agentes de inteligencia artificial para negocios que atienden personas.
+            <span className="firma mt-3 block">[ hecho para clínicas y estéticas ]</span>
           </p>
+          {[
+            { titulo: "Producto", links: PRODUCTO },
+            { titulo: "Cuenta", links: CUENTA },
+          ].map((grupo) => (
+            <nav key={grupo.titulo} aria-label={grupo.titulo}>
+              <p className="eyebrow-plain">{grupo.titulo}</p>
+              <ul className="mt-2">
+                {grupo.links.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="btn-ghost">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
-        {[
-          { titulo: "Producto", links: PRODUCTO },
-          { titulo: "Cuenta", links: CUENTA },
-        ].map((grupo) => (
-          <nav key={grupo.titulo} aria-label={grupo.titulo}>
-            <p className="text-caption font-semibold uppercase tracking-[0.08em] text-saffron">{grupo.titulo}</p>
-            <ul className="mt-3">
-              {grupo.links.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="btn-ghost">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
+        <div className="mt-12 flex items-center justify-between font-cond text-base tracking-[0.03em] text-ash">
+          <span>© {new Date().getFullYear()} Atendel</span>
+          <span>Agentes de IA</span>
+        </div>
       </div>
-      <p className="mt-[60px] text-caption text-ash">© {new Date().getFullYear()} Atendel</p>
+      <p
+        className="editorial pointer-events-none mt-6 select-none text-center text-[27vw] leading-[0.78] tracking-[-0.03em] text-bone"
+        aria-hidden="true"
+      >
+        atendel
+      </p>
     </footer>
   );
 }

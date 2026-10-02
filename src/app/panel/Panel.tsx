@@ -36,7 +36,7 @@ const SECCIONES = [
   { href: "#historial", label: "Historial" },
 ];
 
-const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#f29d0a", "#1fc7a4"];
+const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];
 
 // Correos de ejemplo para probar sin tener que escribir uno
 const EJEMPLOS = [
@@ -248,10 +248,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
 
       <main className="mx-auto max-w-page px-6 pb-[96px] pt-[128px] lg:px-10 lg:pt-[168px]">
         <header className="max-w-[760px]">
-          <Reveal as="p" className="eyebrow text-saffron">
+          <Reveal as="p" className="eyebrow">
             Tu panel
           </Reveal>
-          <SplitText as="h1" className="mt-5 text-heading-lg" text={saludo} />
+          <SplitText as="h1" className="editorial mt-5 text-heading-lg" text={saludo} />
           <Reveal as="p" delay={200} className="mt-6 max-w-[560px] text-body text-silver">
             Pega un correo o elige un ejemplo. Atendel te dice de qué trata y qué conviene hacer.
           </Reveal>
@@ -263,10 +263,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
           className="mt-[72px] grid grid-cols-1 gap-12 lg:mt-[120px] lg:grid-cols-[1.05fr_0.95fr] lg:gap-20"
         >
           <div>
-            <Reveal as="p" className="eyebrow text-saffron">
+            <Reveal as="p" className="eyebrow">
               Agente de correo
             </Reveal>
-            <Reveal as="h2" delay={80} className="mt-4 text-heading-sm">
+            <Reveal as="h2" delay={80} className="editorial mt-4 text-heading">
               Resume un correo
             </Reveal>
 
@@ -275,7 +275,7 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
               <div className="mt-1 flex flex-wrap gap-x-7">
                 {EJEMPLOS.map((ejemplo) => (
                   <button key={ejemplo.etiqueta} type="button" className="chip" onClick={() => usarEjemplo(ejemplo)}>
-                    <TriIcon className="h-3 w-3 text-iris" />
+                    <TriIcon className="h-3 w-3" />
                     <Roll>{ejemplo.etiqueta}</Roll>
                   </button>
                 ))}
@@ -364,7 +364,7 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
             <div ref={resultadoRef} aria-live="polite" className="mt-4 min-h-[150px]">
               {resultado ? (
                 <div key={vueltaResultado} className="stagger">
-                  <p className="eyebrow text-saffron" style={{ "--i": 0 } as CSSProperties}>
+                  <p className="eyebrow" style={{ "--i": 0 } as CSSProperties}>
                     Resumen
                   </p>
                   <p
@@ -378,10 +378,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
                   </p>
                   {conSugerencia(resultado.accion) ? (
                     <p
-                      className="mt-5 flex items-start gap-3 text-body text-saffron"
+                      className="mt-5 flex items-start gap-3 text-body text-bone"
                       style={{ "--i": 3 } as CSSProperties}
                     >
-                      <Arrow className="mt-1.5 shrink-0" />
+                      <Arrow className="mt-1.5 shrink-0 text-signal" />
                       {resultado.accion}
                     </p>
                   ) : null}
@@ -398,10 +398,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
         {/* ---------- Gmail ---------- */}
         <section id="gmail" className="mt-[96px] grid grid-cols-1 gap-8 lg:mt-[140px] lg:grid-cols-2 lg:gap-20">
           <div>
-            <Reveal as="p" className="eyebrow text-saffron">
+            <Reveal as="p" className="eyebrow">
               Gmail
             </Reveal>
-            <Reveal as="h2" delay={80} className="mt-4 text-heading-sm">
+            <Reveal as="h2" delay={80} className="editorial mt-4 text-heading">
               Tu bandeja de entrada
             </Reveal>
             <Reveal as="p" delay={160} className="mt-5 max-w-[480px] text-body text-silver">
@@ -429,7 +429,7 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
                 <Arrow />
               </button>
             ) : (
-              <p className="eyebrow flex items-center gap-2 text-ash">
+              <p className="eyebrow-plain flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full border border-ash" />
                 Próximamente
               </p>
@@ -446,10 +446,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
         <section id="historial" className="mt-[96px] lg:mt-[140px]">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <Reveal as="p" className="eyebrow text-saffron">
+              <Reveal as="p" className="eyebrow">
                 Historial
               </Reveal>
-              <Reveal as="h2" delay={80} className="mt-4 text-heading-sm">
+              <Reveal as="h2" delay={80} className="editorial mt-4 text-heading">
                 Lo que Atendel ya leyó
               </Reveal>
             </div>
@@ -488,11 +488,11 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
                       <p className="mt-1 break-words">{item.remitente}</p>
                     </div>
                     <div>
-                      <h3 className="text-heading-2xs">{item.asunto}</h3>
+                      <h3 className="editorial text-heading-sm">{item.asunto}</h3>
                       <p className="mt-2 text-body font-light text-silver">{item.resumen}</p>
                       {conSugerencia(item.accion_sugerida) ? (
-                        <p className="mt-3 flex items-start gap-3 text-body text-saffron">
-                          <Arrow className="mt-1.5 shrink-0" />
+                        <p className="mt-3 flex items-start gap-3 text-body text-bone">
+                          <Arrow className="mt-1.5 shrink-0 text-signal" />
                           {item.accion_sugerida}
                         </p>
                       ) : null}

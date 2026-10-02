@@ -24,7 +24,7 @@ export function Steps({ pasos }: { pasos: Paso[] }) {
   }, []);
 
   return (
-    <ol className="space-y-[60px] lg:space-y-[110px] lg:py-[14vh]">
+    <ol className="border-b hairline lg:my-[10vh]">
       {pasos.map((paso, i) => (
         <li
           key={paso.titulo}
@@ -33,16 +33,16 @@ export function Steps({ pasos }: { pasos: Paso[] }) {
           }}
           data-index={i}
           data-active={i === activo ? "true" : "false"}
-          className="step"
+          className="step border-t hairline py-10 lg:py-14"
         >
           <Reveal>
-            <p className="flex items-center gap-3 text-nav font-semibold uppercase text-saffron">
-              <svg className="step__marker h-3 w-3 text-iris" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <p className="eyebrow-plain flex items-center gap-3">
+              <svg className="step__marker h-3 w-3 text-signal" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 2 20.66 17H3.34Z" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" />
               </svg>
               Paso {String(i + 1).padStart(2, "0")}
             </p>
-            <h3 className="mt-4 text-heading-sm">{paso.titulo}</h3>
+            <h3 className="editorial mt-4 text-heading">{paso.titulo}</h3>
             <p className="step__text mt-4 max-w-[460px] text-body">{paso.texto}</p>
           </Reveal>
         </li>

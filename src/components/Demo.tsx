@@ -94,16 +94,16 @@ export function Demo() {
             className={`chip ${i === actual ? "!text-bone" : ""}`}
             onClick={() => resumir(i)}
           >
-            <TriIcon className={`h-3 w-3 ${i === actual ? "text-iris" : "text-ash"}`} />
+            <TriIcon className={`h-3 w-3 ${i === actual ? "text-signal" : "text-ash"}`} />
             {e.etiqueta}
           </button>
         ))}
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className="mt-8 grid grid-cols-1 border hairline lg:grid-cols-2">
         {/* El correo tal como llega */}
-        <div key={`c${actual}`} className="swap-in">
-          <p className="text-caption font-semibold uppercase tracking-[0.08em] text-ash">Correo que llega</p>
+        <div key={`c${actual}`} className="swap-in border-b hairline p-6 lg:border-b-0 lg:border-r lg:p-10">
+          <p className="eyebrow-plain">Correo que llega</p>
           <p className="mt-4 text-caption text-ash">
             De <span className="text-bone">{ej.de}</span>
           </p>
@@ -112,22 +112,22 @@ export function Demo() {
         </div>
 
         {/* Lo que Atendel entrega */}
-        <div aria-live="polite" className="min-h-[220px]">
-          <p className="flex items-center gap-3 text-caption font-semibold uppercase tracking-[0.08em] text-iris">
+        <div aria-live="polite" className="min-h-[260px] p-6 lg:p-10">
+          <p className="eyebrow-plain flex items-center gap-3 !text-bone">
             {estado === "leyendo" ? <TriSpinner className="h-3 w-3" /> : <TriIcon className="h-3 w-3" />}
             {estado === "leyendo" ? "Atendel está leyendo…" : "Lo que te dice Atendel"}
           </p>
           {estado === "listo" ? (
             <div key={vuelta} className="stagger">
-              <p className="mt-5 text-heading-sm" style={{ "--i": 0 } as CSSProperties}>
+              <p className="editorial mt-6 text-heading" style={{ "--i": 0 } as CSSProperties}>
                 {ej.resumen}
               </p>
-              <p className="mt-6 flex items-start gap-3 text-body text-saffron" style={{ "--i": 1 } as CSSProperties}>
-                <Arrow className="mt-1.5 shrink-0" />
+              <p className="mt-6 flex items-start gap-3 text-body text-bone" style={{ "--i": 1 } as CSSProperties}>
+                <Arrow className="mt-1.5 shrink-0 text-signal" />
                 {ej.accion}
               </p>
-              <p className="mt-6 text-caption text-ash" style={{ "--i": 2 } as CSSProperties}>
-                Ejemplo ilustrativo. En tu panel lo hace con tus correos reales.
+              <p className="firma mt-6" style={{ "--i": 2 } as CSSProperties}>
+                [ ejemplo ilustrativo: en tu panel lo hace con tus correos reales ]
               </p>
             </div>
           ) : null}
