@@ -11,8 +11,8 @@ import { createClient } from "@/lib/supabase/client";
 
 const SECCIONES = [
   { href: "/#agentes", label: "Agentes" },
-  { href: "/#como-funciona", label: "Cómo funciona" },
-  { href: "/#seguridad", label: "Seguridad" },
+  { href: "/#seguridad", label: "Tus datos" },
+  { href: "/#preguntas", label: "Preguntas" },
 ];
 const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];
 

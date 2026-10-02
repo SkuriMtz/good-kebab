@@ -1,10 +1,9 @@
 import Link from "next/link";
 
 const PRODUCTO = [
-  { href: "/#demo", label: "Ejemplo" },
   { href: "/#agentes", label: "Agentes" },
-  { href: "/#como-funciona", label: "Cómo funciona" },
-  { href: "/#seguridad", label: "Seguridad" },
+  { href: "/#seguridad", label: "Tus datos" },
+  { href: "/#preguntas", label: "Preguntas" },
 ];
 const CUENTA = [
   { href: "/entrar", label: "Entrar" },
@@ -18,8 +17,8 @@ export function Footer() {
       <div className="mx-auto max-w-page border-t hairline px-6 pt-10 lg:px-10">
         <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
           <p className="max-w-[340px] text-body text-silver">
-            Agentes de inteligencia artificial para negocios que atienden personas.
-            <span className="firma mt-3 block">[ hecho para clínicas y estéticas ]</span>
+            Agentes de inteligencia artificial para negocios que atienden personas: clínicas, consultorios y
+            estéticas.
           </p>
           {[
             { titulo: "Producto", links: PRODUCTO },

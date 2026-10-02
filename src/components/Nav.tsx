@@ -155,6 +155,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
       <header
         className="nav pointer-events-none fixed inset-x-0 top-0 z-50"
         data-hidden={oculta && !abierto ? "true" : "false"}
+        data-fondo={conFondo && !abierto ? "true" : "false"}
       >
         <div className="mx-auto grid h-[72px] max-w-page grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-10">
           <Link href={homeHref} className="nav-hide pointer-events-auto justify-self-start" aria-label="Atendel, inicio">
@@ -168,7 +169,11 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
               </>
             ) : null}
           </p>
-          <span />
+          {desktopRight ? (
+            <div className="nav-hide pointer-events-auto hidden items-center gap-5 justify-self-end pr-[112px] md:flex">{desktopRight}</div>
+          ) : (
+            <span />
+          )}
         </div>
       </header>
 
@@ -176,6 +181,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
         ref={botonRef}
         type="button"
         className="menu-trigger"
+        data-hidden={oculta && !abierto ? "true" : "false"}
         aria-expanded={abierto}
         aria-controls="menu-movil"
         onClick={alternar}

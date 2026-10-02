@@ -17,6 +17,8 @@ const config: Config = {
         ash: "#8f8f8f", // texto secundario
         silver: "#c4c4c4", // texto de párrafos
         signal: "#ff2936", // acento rojo: máximo uno por pantalla
+        // "Papel": lo que entregan los agentes en los ejemplos
+        papel: { DEFAULT: "#f2f1ed", tinta: "#151515", gris: "#66635d", linea: "rgba(21,21,21,0.13)", rojo: "#cc1f2b" },
         // Alias para componentes existentes
         iris: { DEFAULT: "#ffffff", hover: "#ffffff" },
         saffron: "#ff2936",
@@ -38,7 +40,7 @@ const config: Config = {
         heading: ["clamp(2.25rem, 5vw, 4rem)", { lineHeight: "1.02", letterSpacing: "-0.01em" }],
         "heading-lg": ["clamp(2.75rem, 7.4vw, 7rem)", { lineHeight: "0.98", letterSpacing: "-0.015em" }],
         display: ["clamp(3.5rem, 11vw, 10rem)", { lineHeight: "0.92", letterSpacing: "-0.015em" }],
-        wordmark: ["clamp(5.5rem, 24vw, 24rem)", { lineHeight: "0.85", letterSpacing: "-0.02em" }],
+        wordmark: ["clamp(6.5rem, 28vw, 22rem)", { lineHeight: "0.85", letterSpacing: "-0.02em" }],
       },
       spacing: {
         "4.5": "1.125rem",
