@@ -18,7 +18,9 @@ export type Plan = {
   mensajesMes: number;
   /** Agentes que se pueden usar con este plan. */
   agentes: readonly IdAgente[];
-  /** Qué tanto piensa la IA antes de responder (más = respuestas más elaboradas). */
+  /** Modelo de Claude que contesta en este plan. */
+  modelo: "claude-haiku-4-5" | "claude-opus-5-5";
+  /** Qué tanto piensa la IA antes de responder (más = respuestas más elaboradas). Solo aplica a Opus. */
   esfuerzo: "low" | "medium";
 };
 
@@ -31,6 +33,8 @@ export const PLANES: Plan[] = [
     incluye: ["Clara, tu agente de correo", "30 mensajes al mes en el chat", "Resúmenes de correo"],
     mensajesMes: 30,
     agentes: ["clara"],
+    // El plan gratis usa el modelo más económico
+    modelo: "claude-haiku-4-5",
     esfuerzo: "low",
   },
   {
@@ -41,6 +45,7 @@ export const PLANES: Plan[] = [
     incluye: ["Los 6 agentes", "Eliges quién está en tu equipo", "600 mensajes al mes en el chat"],
     mensajesMes: 600,
     agentes: IDS_AGENTES,
+    modelo: "claude-opus-5-5",
     esfuerzo: "low",
   },
   {
@@ -51,6 +56,7 @@ export const PLANES: Plan[] = [
     incluye: ["Todo lo de One", "3,000 mensajes al mes en el chat", "Respuestas más elaboradas"],
     mensajesMes: 3000,
     agentes: IDS_AGENTES,
+    modelo: "claude-opus-5-5",
     esfuerzo: "medium",
   },
 ];

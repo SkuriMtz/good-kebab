@@ -17,7 +17,6 @@ import { cargarCuenta } from "@/lib/cuenta";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MODELO = "claude-opus-5-5";
 const MAX_MENSAJE = 4000;
 const HISTORIAL = 30; // mensajes previos que se le mandan a la IA
 /** Marca que antecede a un error a mitad de la respuesta (el cliente la detecta). */
@@ -130,16 +129,23 @@ export async function POST(request: NextRequest) {
         }
       };
       try {
-        const stream = client.beta.messages.stream({
-          model: MODELO,
+        const base = {
           max_tokens: 8000,
           system: instruccionesDe(agente, cuenta.negocio),
-          output_config: { effort: cuenta.plan.esfuerzo },
-          // Si el modelo declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-          messages: [...historial, { role: "user", content: mensaje }],
-        });
+          messages: [...historial, { role: "user" as const, content: mensaje }],
+        };
+        // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
+        const stream =
+          cuenta.plan.modelo === "claude-haiku-4-5"
+            ? client.beta.messages.stream({ ...base, model: cuenta.plan.modelo })
+            : client.beta.messages.stream({
+                ...base,
+                model: cuenta.plan.modelo,
+                output_config: { effort: cuenta.plan.esfuerzo },
+                // Si el modelo declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
+                betas: ["server-side-fallback-2026-07-01"],
+                fallbacks: "default",
+              });
         flujo = stream;
         for await (const evento of stream) {
           if (evento.type === "content_block_delta" && evento.delta.type === "text_delta") {
