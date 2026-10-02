@@ -2,12 +2,11 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-// Inter es el sustituto recomendado en DESIGN.md para PP Neue Montreal.
-// Se sirve desde nuestro propio dominio (la política de seguridad no permite
+// Space Grotesk, elegida para la marca. Se sirve desde nuestro propio dominio (la política de seguridad no permite
 // cargar fuentes de otros sitios).
 const sans = localFont({
-  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
-  weight: "100 900",
+  src: "../../node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2",
+  weight: "300 700",
   style: "normal",
   display: "swap",
   variable: "--font-sans",
@@ -21,13 +20,13 @@ export const metadata: Metadata = {
   description:
     "Atendel lee tus correos, entiende qué necesita cada cliente y te dice qué hacer. Agentes de inteligencia artificial para clínicas, consultorios y estéticas.",
   applicationName: "Atendel",
-  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "default" },
   icons: { apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
-  colorScheme: "dark",
+  themeColor: "#ffffff",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

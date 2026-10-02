@@ -26,7 +26,7 @@ type Agente = {
 const AGENTES: Agente[] = [
   {
     figura: "mail",
-    colores: ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#ffb829"],
+    colores: ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#f29d0a"],
     nombre: "Agente de correo",
     disponible: true,
     titulo: "Tu bandeja, en una línea.",
@@ -44,7 +44,7 @@ const AGENTES: Agente[] = [
   },
   {
     figura: "chart",
-    colores: ["#ffb829", "#ffb829", "#ff8a3d", "#8052ff", "#ff5fd2"],
+    colores: ["#f29d0a", "#f29d0a", "#ff8a3d", "#8052ff", "#ff5fd2"],
     nombre: "Agente de Excel",
     disponible: false,
     titulo: "Tus números, explicados.",

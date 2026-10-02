@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { ajustarCanvas, bucleVisible, clamp01, easeOutCubic, triangulo } from "./draw";
 
 const TAU = Math.PI * 2;
-const PALETA = ["#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#ffb829", "#ff5fd2"];
-const NIVELES = [0.2, 0.4, 0.66, 0.95];
+const PALETA = ["#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#f29d0a", "#ff5fd2"];
+const NIVELES = [0.38, 0.58, 0.8, 1];
 
 /**
  * La imagen principal de la marca: miles de triangulitos de colores que

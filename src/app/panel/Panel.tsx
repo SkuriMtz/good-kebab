@@ -36,7 +36,7 @@ const SECCIONES = [
   { href: "#historial", label: "Historial" },
 ];
 
-const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#ffb829", "#1fc7a4"];
+const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#f29d0a", "#1fc7a4"];
 
 // Correos de ejemplo para probar sin tener que escribir uno
 const EJEMPLOS = [

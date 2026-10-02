@@ -14,7 +14,7 @@ const SECCIONES = [
   { href: "/#como-funciona", label: "Cómo funciona" },
   { href: "/#seguridad", label: "Seguridad" },
 ];
-const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#ffb829"];
+const COLORES = ["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#f29d0a"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;

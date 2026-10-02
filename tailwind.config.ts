@@ -2,25 +2,26 @@ import type { Config } from "tailwindcss";
 
 /**
  * Tokens del sistema de diseño de Atendel (ver DESIGN.md):
- * lienzo negro puro, un solo violeta para acciones, ámbar para resaltar,
- * titulares enormes de peso 400 y cuerpo ultraligero (200).
+ * lienzo blanco, un solo violeta para acciones, ámbar para resaltar,
+ * titulares enormes de peso 400 y cuerpo ligero (300).
  */
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        void: "#000000",
-        bone: "#ffffff",
-        ash: "#9a9a9a",
-        silver: "#bdbdbd",
-        iris: { DEFAULT: "#8052ff", hover: "#9372ff" },
-        saffron: "#ffb829",
+        // Versión clara: "void" es el fondo blanco y "bone" la tinta del texto
+        void: "#ffffff",
+        bone: "#0b0b0f",
+        ash: "#6b6b73",
+        silver: "#44444c",
+        iris: { DEFAULT: "#8052ff", hover: "#6c3cf5" },
+        saffron: "#b4600b",
         verdant: "#15846e",
-        mint: "#1fc7a4",
+        mint: "#0b8a6f",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Space Grotesk", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       fontSize: {
         caption: ["0.75rem", { lineHeight: "1.5" }],

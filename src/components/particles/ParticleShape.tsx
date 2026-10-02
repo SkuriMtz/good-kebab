@@ -17,7 +17,7 @@ type Props = {
 };
 
 const TAU = Math.PI * 2;
-const NIVELES = [0.3, 0.58, 0.95];
+const NIVELES = [0.5, 0.75, 1];
 const DURACION_MORPH = 1300;
 
 /**

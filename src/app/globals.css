@@ -3,24 +3,25 @@
 @tailwind utilities;
 
 /* ============================================================
-   ATENDEL — Sistema de diseño (basado en DESIGN.md)
-   Negro puro como lienzo, un solo violeta para acciones, ámbar
-   para resaltar, titulares grandes de peso 400 y cuerpo
-   ultraligero. Sin tarjetas, sin bordes decorativos, sin sombras.
+   ATENDEL — Sistema de diseño (basado en DESIGN.md, versión clara)
+   Blanco como lienzo, tinta casi negra para el texto, un solo
+   violeta para acciones, ámbar para resaltar, titulares grandes
+   de peso 400 y cuerpo ligero. Sin tarjetas ni sombras.
    ============================================================ */
 :root {
-  --color-void: #000000;
-  --color-bone-white: #ffffff;
-  --color-ash-gray: #9a9a9a;
-  --color-silver-mist: #bdbdbd;
+  /* "void" es el lienzo (blanco) y "bone" la tinta del texto (casi negro) */
+  --color-void: #ffffff;
+  --color-bone-white: #0b0b0f;
+  --color-ash-gray: #6b6b73;
+  --color-silver-mist: #44444c;
   --color-electric-iris: #8052ff;
-  --color-saffron-spark: #ffb829;
+  --color-saffron-spark: #b4600b;
   --color-deep-verdant: #15846e;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
   --nav-h: 72px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
@@ -33,7 +34,7 @@
     min-height: 100svh;
     background: var(--color-void);
     color: var(--color-bone-white);
-    font-weight: 200;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -68,7 +69,7 @@
 
   /* ---------- Botón principal: píldora violeta (uno por vista) ---------- */
   .btn-pill {
-    @apply relative inline-flex select-none items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-iris px-[22px] text-nav font-semibold uppercase text-bone;
+    @apply relative inline-flex select-none items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-iris px-[22px] text-nav font-semibold uppercase text-white;
     min-height: 46px;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -84,7 +85,7 @@
     scale: 0.96;
   }
   .btn-pill:focus-visible {
-    outline-color: #fff;
+    outline-color: var(--color-bone-white);
     outline-offset: 3px;
     border-radius: 9999px;
   }
@@ -215,7 +216,7 @@
     width: 22px;
     height: 1.5px;
     border-radius: 2px;
-    background: #fff;
+    background: var(--color-bone-white);
     transition: transform 0.55s var(--ease-out);
   }
   .burger > span:nth-child(1) {
@@ -301,7 +302,7 @@
     transition: color 0.3s var(--ease-out);
   }
   .field:focus-within .field__label {
-    color: #fff;
+    color: var(--color-bone-white);
   }
   .field__input {
     display: block;
@@ -310,29 +311,29 @@
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: #fff;
+    color: var(--color-bone-white);
     font-size: 1.125rem;
     font-weight: 300;
     line-height: 1.5;
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.16);
     outline: none;
     resize: none;
     transition: box-shadow 0.3s var(--ease-out);
   }
   .field__input:hover {
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.34);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.34);
   }
   .field__input:focus-visible {
     outline: none;
   }
   .field__input::placeholder {
-    color: rgba(154, 154, 154, 0.55);
+    color: rgba(107, 107, 115, 0.6);
   }
   .field__input:-webkit-autofill {
-    -webkit-text-fill-color: #fff;
+    -webkit-text-fill-color: var(--color-bone-white);
     box-shadow:
-      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
-      inset 0 0 0 1000px #000;
+      inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+      inset 0 0 0 1000px #fff;
   }
   .field__line {
     position: absolute;
@@ -390,7 +391,7 @@
     transition: color 0.6s var(--ease-out);
   }
   .step[data-active="true"] {
-    color: #fff;
+    color: var(--color-bone-white);
   }
   .step__text {
     color: var(--color-ash-gray);
@@ -413,7 +414,7 @@
     width: 1px;
     height: 44px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.12);
   }
   .scroll-cue__line::after {
     content: "";
@@ -422,7 +423,7 @@
     top: 0;
     width: 1px;
     height: 45%;
-    background: #fff;
+    background: var(--color-bone-white);
     animation: cue 2.2s var(--ease-in-out) infinite;
   }
 }
