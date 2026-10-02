@@ -271,9 +271,8 @@ export default function Inicio() {
           </div>
           <div className="relative mx-auto aspect-square w-full max-w-[340px] lg:max-w-[480px]">
             <ParticleShape
-              shape="logo"
-              gradientY
-              colors={["#a98bff", "#8052ff", "#8052ff", "#6a5cff", "#1fc7a4", "#15846e"]}
+              shape="check"
+              colors={["#8052ff", "#8052ff", "#a98bff", "#4d7cff", "#1fc7a4", "#f29d0a"]}
               className="absolute inset-0 h-full w-full"
             />
           </div>

@@ -201,35 +201,131 @@
     transform-origin: left center;
   }
 
-  /* Botón hamburguesa: dos líneas que se vuelven una X */
-  .burger {
-    position: relative;
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    margin-right: -10px;
+  .nav-logo {
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  /* Botón flotante de menú: círculo con anillo que se llena con el scroll */
+  .orb {
+    position: fixed;
+    z-index: 60;
+    top: 14px;
+    right: max(14px, calc((100vw - 80rem) / 2 + 24px));
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    padding: 0;
+    border-radius: 9999px;
+    color: var(--color-bone-white);
+    -webkit-tap-highlight-color: transparent;
+    transition: scale 0.35s var(--ease-out);
+  }
+  .orb:active {
+    scale: 0.94;
+  }
+  .orb:focus-visible {
+    outline-offset: 4px;
     border-radius: 9999px;
   }
-  .burger > span {
+  .orb__core {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex: none;
+  }
+  .orb__ring {
     position: absolute;
-    width: 22px;
+    inset: 0;
+    width: 56px;
+    height: 56px;
+    flex: none;
+    transform: rotate(-90deg);
+    transition: transform 0.9s var(--ease-out);
+  }
+  .orb:hover .orb__ring {
+    transform: rotate(270deg);
+  }
+  .orb__track {
+    fill: var(--color-void);
+    stroke: rgba(0, 0, 0, 0.12);
+    stroke-width: 1.5;
+    transition: fill 0.4s var(--ease-out);
+  }
+  .orb__progress {
+    --avance: 0;
+    fill: none;
+    stroke: var(--color-electric-iris);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 163.4;
+    stroke-dashoffset: calc(163.4 * (1 - var(--avance)));
+    transition: stroke-dashoffset 0.25s linear;
+  }
+  .orb__lines {
+    position: absolute;
+    inset: 0;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+  }
+  .orb__lines > span {
+    position: absolute;
     height: 1.5px;
     border-radius: 2px;
     background: var(--color-bone-white);
-    transition: transform 0.55s var(--ease-out);
+    transition:
+      transform 0.55s var(--ease-out),
+      width 0.45s var(--ease-out);
   }
-  .burger > span:nth-child(1) {
-    transform: translateY(-4px);
+  .orb__lines > span:nth-child(1) {
+    width: 20px;
+    transform: translateY(-3.5px);
   }
-  .burger > span:nth-child(2) {
-    transform: translateY(4px);
+  .orb__lines > span:nth-child(2) {
+    width: 12px;
+    transform: translate(-4px, 3.5px);
   }
-  .burger[aria-expanded="true"] > span:nth-child(1) {
+  .orb:hover .orb__lines > span:nth-child(2) {
+    width: 20px;
+    transform: translate(0, 3.5px);
+  }
+  .orb[aria-expanded="true"] .orb__lines > span:nth-child(1) {
+    width: 20px;
     transform: rotate(45deg);
   }
-  .burger[aria-expanded="true"] > span:nth-child(2) {
+  .orb[aria-expanded="true"] .orb__lines > span:nth-child(2) {
+    width: 20px;
     transform: rotate(-45deg);
+  }
+  .orb[aria-expanded="true"] .orb__track {
+    fill: var(--color-void);
+  }
+  .orb__label {
+    display: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ash-gray);
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+  @media (min-width: 1024px) {
+    .orb__label {
+      display: inline;
+    }
+    .orb[data-scrolled="true"]:not([aria-expanded="true"]) .orb__label {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+    .orb:hover .orb__label {
+      opacity: 1 !important;
+      transform: none !important;
+      color: var(--color-bone-white);
+    }
   }
 
   /* Menú móvil: se abre como un círculo que crece desde el botón */
@@ -271,11 +367,22 @@
     align-items: baseline;
     gap: 16px;
     padding: 10px 0;
-    font-size: clamp(2.25rem, 10vw, 3rem);
+    font-size: clamp(2.25rem, 7vw, 5.5rem);
     line-height: 1.1;
     letter-spacing: -0.04em;
     font-weight: 400;
     transition: color 0.3s var(--ease-out);
+  }
+  .menu-link__text {
+    transition:
+      transform 0.6s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+  @media (hover: hover) {
+    .menu-link:hover .menu-link__text {
+      transform: translateX(18px);
+      color: var(--color-electric-iris);
+    }
   }
   .menu-link:active {
     color: var(--color-ash-gray);

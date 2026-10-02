@@ -21,7 +21,6 @@ export const metadata: Metadata = {
     "Atendel lee tus correos, entiende qué necesita cada cliente y te dice qué hacer. Agentes de inteligencia artificial para clínicas, consultorios y estéticas.",
   applicationName: "Atendel",
   appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "default" },
-  icons: { apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {

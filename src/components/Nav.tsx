@@ -35,6 +35,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
   const [conFondo, setConFondo] = useState(false);
   const botonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const anilloRef = useRef<SVGCircleElement>(null);
   const pathname = usePathname();
 
   // Mostrar/ocultar al hacer scroll
@@ -44,6 +45,9 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
     const actualizar = () => {
       const y = window.scrollY;
       setConFondo(y > 8);
+      // El anillo del botón se llena conforme avanzas en la página
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      anilloRef.current?.style.setProperty("--avance", String(max > 0 ? Math.min(1, y / max) : 0));
       if (Math.abs(y - anterior) > 6) {
         setOculta(y > anterior && y > 180);
         anterior = y;
@@ -124,57 +128,59 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
 
   return (
     <>
+      {/* Sin barra: el logo flota a la izquierda y se esconde al bajar */}
       <header
-        className="nav fixed inset-x-0 top-0 z-50"
+        className="nav pointer-events-none fixed inset-x-0 top-0 z-50"
         data-hidden={oculta && !abierto ? "true" : "false"}
-        data-scrolled={conFondo && !abierto ? "true" : "false"}
       >
-        <div className="mx-auto flex h-[72px] max-w-page items-center justify-between gap-6 px-6 lg:px-10">
-          <Link href={homeHref} className="-m-2 rounded-lg p-2" aria-label="Atendel, inicio">
+        <div className="mx-auto flex h-[84px] max-w-page items-center px-6 lg:px-10">
+          <Link
+            href={homeHref}
+            className="nav-logo pointer-events-auto -m-2 rounded-lg p-2"
+            aria-label="Atendel, inicio"
+          >
             <Logo />
           </Link>
-
-          <nav aria-label="Principal" className="hidden items-center gap-9 md:flex">
-            {items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="nav-link"
-                onClick={(e) => alElegir(e, item.href)}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="hidden items-center gap-6 md:flex">{desktopRight}</div>
-
-          <button
-            ref={botonRef}
-            type="button"
-            className="burger md:hidden"
-            aria-expanded={abierto}
-            aria-controls="menu-movil"
-            aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
-            onClick={alternar}
-          >
-            <span />
-            <span />
-          </button>
         </div>
       </header>
+
+      {/* Botón flotante de menú: siempre visible, con anillo de progreso */}
+      <button
+        ref={botonRef}
+        type="button"
+        className="orb"
+        data-scrolled={conFondo ? "true" : "false"}
+        aria-expanded={abierto}
+        aria-controls="menu-movil"
+        aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
+        onClick={alternar}
+      >
+        <span className="orb__label" aria-hidden="true">
+          {abierto ? "Cerrar" : "Menú"}
+        </span>
+        <span className="orb__core" aria-hidden="true">
+          <svg className="orb__ring" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r="26" className="orb__track" />
+            <circle ref={anilloRef} cx="28" cy="28" r="26" className="orb__progress" />
+          </svg>
+          <span className="orb__lines">
+            <span />
+            <span />
+          </span>
+        </span>
+      </button>
 
       <div
         id="menu-movil"
         ref={menuRef}
-        className="menu md:hidden"
+        className="menu"
         data-open={abierto ? "true" : "false"}
         role="dialog"
         aria-modal="true"
         aria-label="Menú"
         aria-hidden={!abierto}
       >
-        <div className="flex h-full flex-col justify-between px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[112px]">
+        <div className="mx-auto flex h-full max-w-page flex-col justify-between gap-10 px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[120px] lg:flex-row lg:items-end lg:px-10 lg:pb-16">
           <ul>
             {items.map((item, i) => (
               <li key={item.href} className="menu__item" style={{ "--i": i } as CSSProperties}>
@@ -185,14 +191,14 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
                   onClick={(e) => alElegir(e, item.href)}
                 >
                   <span className="menu-link__n">{String(i + 1).padStart(2, "0")}</span>
-                  <span>{item.label}</span>
+                  <span className="menu-link__text">{item.label}</span>
                 </Link>
               </li>
             ))}
           </ul>
-          {mobileBottom ? (
-            <div className="menu__item" style={{ "--i": items.length } as CSSProperties}>
-              {mobileBottom}
+          {mobileBottom || desktopRight ? (
+            <div className="menu__item lg:pb-4" style={{ "--i": items.length } as CSSProperties}>
+              {mobileBottom ?? desktopRight}
             </div>
           ) : null}
         </div>
