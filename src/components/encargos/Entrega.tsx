@@ -264,7 +264,9 @@ export function Entrega({ datos }: { datos: Datos }) {
             ))}
           </dl>
           <p className="mt-3 border-l-2 border-papel-rojo pl-3 font-medium">{datos.sugerencia}</p>
-          <p className="mt-3 text-[0.8125rem] text-papel-gris">También sin volver: {datos.otros.join(" · ")}</p>
+          {datos.otros.length ? (
+            <p className="mt-3 text-[0.8125rem] text-papel-gris">Notas: {datos.otros.join(" · ")}</p>
+          ) : null}
         </div>
       );
 

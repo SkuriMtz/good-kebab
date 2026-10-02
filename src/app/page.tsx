@@ -1,23 +1,36 @@
 import Link from "next/link";
 import { PillLink, Roll } from "@/components/Buttons";
+import { ChatDemo } from "@/components/ChatDemo";
 import { Encargos } from "@/components/encargos/Encargos";
 import { Footer } from "@/components/Footer";
 import { MobileCta } from "@/components/MobileCta";
 import { Nav } from "@/components/Nav";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import { WordmarkHero } from "@/components/particles/WordmarkHero";
+import { Planes } from "@/components/Planes";
 import { Preguntas } from "@/components/Preguntas";
 import { Reveal } from "@/components/Reveal";
+import { AGENTES_INFO } from "@/lib/agentes";
 
 const SECCIONES = [
+  { href: "#que-es", label: "Qué es" },
   { href: "#agentes", label: "Agentes" },
-  { href: "#seguridad", label: "Tus datos" },
+  { href: "#chat", label: "Háblales" },
+  { href: "#planes", label: "Planes" },
   { href: "#preguntas", label: "Preguntas" },
+];
+
+const REPARTO = AGENTES_INFO.map((a) => ({ nombre: a.nombre, papel: a.area, href: "#agentes" }));
+
+const PASOS = [
+  ["Entras con tu correo", "Sin contraseña y sin instalar nada. Desde el celular, la tablet o la computadora."],
+  ["Armas tu equipo", "Eliges qué agentes trabajan contigo: correo, WhatsApp, ventas, operación, clientes o investigación."],
+  ["Les encargas trabajo", "Les escribes como a una persona. Ellos resuelven, y lo importante no sale sin tu visto bueno."],
 ];
 
 const GARANTIAS = [
   ["Solo tu cuenta", "Tus clientes, tus citas y tus números solo los ve tu negocio. Lo controla la base de datos, no una promesa."],
-  ["Con tu permiso", "Los agentes proponen y tú apruebas lo importante. El de Correo solo lee: no envía ni borra nada."],
+  ["Con tu permiso", "Los agentes proponen y tú apruebas lo importante. Clara solo lee tu correo: no envía ni borra nada."],
   ["Cifrado", "Todo viaja cifrado, de tu celular o computadora hasta nuestros servidores."],
 ];
 
@@ -27,12 +40,12 @@ const PREGUNTAS = [
     r: "No. Entras con tu correo, sin contraseña, y lo usas desde el celular, la tablet o la computadora. No hay nada que instalar.",
   },
   {
-    p: "¿Tengo que contratar los 15 agentes?",
-    r: "No. Es una mensualidad: empiezas con los agentes que necesitas y sumas otros cuando quieras.",
+    p: "¿Qué cambia entre Free, One y Max?",
+    r: "Con Free trabajas con Clara, tu agente de correo, y tienes pocos mensajes al mes. One desbloquea a los seis agentes y eliges quién está en tu equipo. Max es todo lo de One, con muchos más mensajes y respuestas más elaboradas.",
   },
   {
-    p: "¿Qué agentes funcionan hoy?",
-    r: "Hoy funciona el de Correo. Los demás van llegando por etapas y aparecen en tu panel conforme están listos.",
+    p: "¿Qué funciona hoy?",
+    r: "Clara ya lee y resume tu correo, y puedes hablar por chat con todo el equipo. Las conexiones directas con WhatsApp, tu agenda y tu inventario van llegando por etapas.",
   },
   {
     p: "¿Mis clientes van a saber que les contesta una inteligencia artificial?",
@@ -40,7 +53,7 @@ const PREGUNTAS = [
   },
   {
     p: "¿Y si se equivoca?",
-    r: "Puede pasar, como con cualquier persona nueva en el equipo. Por eso lo importante no sale sin tu aprobación y todo queda registrado para que lo revises.",
+    r: "Puede pasar, como con cualquier persona nueva en el equipo. Por eso lo importante no sale sin tu aprobación y todo queda guardado para que lo revises.",
   },
   {
     p: "¿Qué pasa con los datos de mis pacientes?",
@@ -48,19 +61,30 @@ const PREGUNTAS = [
   },
 ];
 
+/** Encabezado de sección: una línea fina con dos datos, como la claqueta de una toma. */
+function Claqueta({ izquierda, derecha }: { izquierda: string; derecha: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-t hairline pt-3 font-cond text-base uppercase leading-none tracking-[0.03em] text-ash">
+      <span>{izquierda}</span>
+      <span className="text-right">{derecha}</span>
+    </div>
+  );
+}
+
 export default function Inicio() {
   return (
     <>
       <Nav
         items={SECCIONES}
+        reparto={REPARTO}
         desktopRight={
           <Link href="/entrar" className="btn-ghost !text-bone">
             <Roll>Entrar</Roll>
           </Link>
         }
         mobileBottom={
-          <div className="flex flex-col items-start gap-4">
-            <PillLink href="/entrar">Probar Atendel</PillLink>
+          <div className="flex flex-col items-start gap-3">
+            <PillLink href="/entrar">Empezar gratis</PillLink>
             <p className="text-[0.875rem] text-ash">Entras con tu correo, sin contraseña.</p>
           </div>
         }
@@ -76,14 +100,14 @@ export default function Inicio() {
                   Para clínicas, consultorios
                   <br />y estéticas
                 </p>
-                <p className="max-w-[470px] text-body text-silver md:col-span-5">
-                  Agentes de inteligencia artificial que contestan WhatsApp, acomodan tu agenda, te dicen quién te
-                  debe y te avisan cuando algo se está acabando.
+                <p className="max-w-[480px] text-body text-silver md:col-span-5">
+                  Seis agentes de inteligencia artificial que contestan WhatsApp, ordenan tu correo, van por las ventas,
+                  llevan la operación, cuidan a tus clientes e investigan por ti.
                 </p>
                 <div className="flex flex-wrap items-center gap-x-7 gap-y-2 md:col-span-4 md:justify-end">
-                  <PillLink href="/entrar">Probar Atendel</PillLink>
-                  <a href="#agentes" className="btn-ghost">
-                    <Roll>Ver qué hacen</Roll>
+                  <PillLink href="/entrar">Empezar gratis</PillLink>
+                  <a href="#que-es" className="btn-ghost">
+                    <Roll>Qué es</Roll>
                   </a>
                 </div>
               </div>
@@ -91,23 +115,65 @@ export default function Inicio() {
           </WordmarkHero>
         </section>
 
-        {/* ---------- Los 15 agentes, trabajando ---------- */}
+        {/* ---------- Qué es Atendel ---------- */}
+        <section
+          id="que-es"
+          data-capitulo="Qué es"
+          className="mx-auto max-w-page px-6 pt-[88px] lg:px-10 lg:pt-[140px]"
+        >
+          <Claqueta izquierda="Qué es Atendel" derecha="En 30 segundos" />
+          <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:gap-8">
+            <Reveal as="h2" className="editorial text-heading lg:col-span-8">
+              Un equipo de seis agentes de inteligencia artificial que trabaja para tu clínica.
+            </Reveal>
+            <Reveal as="p" delay={120} className="max-w-[420px] text-body text-silver lg:col-span-4 lg:pt-3">
+              Cada uno lleva un área del negocio y hace varias cosas dentro de ella. Les hablas como a una persona y te
+              entregan el trabajo hecho: mensajes, tablas, reportes, documentos.
+            </Reveal>
+          </div>
+
+          <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
+            <p className="font-cond text-base uppercase tracking-[0.03em] text-ash lg:col-span-3">Cómo funciona</p>
+            <ol className="border-b hairline lg:col-span-9">
+              {PASOS.map(([titulo, texto], i) => (
+                <Reveal
+                  as="li"
+                  key={titulo}
+                  delay={i * 80}
+                  className="grid grid-cols-[36px_minmax(0,1fr)] gap-x-4 gap-y-1 border-t hairline py-5 md:grid-cols-[48px_minmax(0,5fr)_minmax(0,6fr)] md:items-baseline md:gap-x-8"
+                >
+                  <span className="font-cond text-base text-ash">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="editorial text-[clamp(1.625rem,2.6vw,2.375rem)] leading-[1.05]">{titulo}</span>
+                  <span className="col-start-2 text-body text-silver md:col-start-3">{texto}</span>
+                </Reveal>
+              ))}
+            </ol>
+          </div>
+
+          <p className="mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-1 lg:mt-14">
+            <span className="font-cond text-base uppercase tracking-[0.03em] text-ash">Con</span>
+            {AGENTES_INFO.map((a, i) => (
+              <span key={a.id} className="font-cond text-[clamp(1.75rem,3.4vw,3rem)] uppercase leading-none tracking-[0.02em]">
+                {a.nombre}
+                {i < AGENTES_INFO.length - 1 ? <span className="ml-4 text-ash">·</span> : null}
+              </span>
+            ))}
+          </p>
+        </section>
+
+        {/* ---------- Los 6 agentes, trabajando ---------- */}
         <section
           id="agentes"
           data-capitulo="Agentes"
-          className="mx-auto max-w-page px-6 pt-[88px] lg:px-10 lg:pt-[140px]"
+          className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]"
         >
-          <div className="flex items-baseline justify-between gap-4 border-t hairline pt-3 font-cond text-base uppercase leading-none tracking-[0.03em] text-ash">
-            <span>15 agentes</span>
-            <span>Ejemplos con datos ficticios</span>
-          </div>
+          <Claqueta izquierda="6 agentes" derecha="Ejemplos con datos ficticios" />
           <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
               ¿Qué le encargas hoy?
             </Reveal>
             <Reveal as="p" delay={120} className="max-w-[400px] text-body text-silver lg:col-span-4 lg:pb-3">
-              Cada agente se encarga de una parte del trabajo de tu clínica. Elige uno y mira cómo resolvería un pedido
-              de todos los días.
+              Elige un agente y mira cómo resuelve sus tareas de todos los días.
             </Reveal>
           </div>
           <div className="relative mt-12 lg:mt-20">
@@ -124,6 +190,42 @@ export default function Inicio() {
               </svg>
             </p>
             <Encargos />
+          </div>
+        </section>
+
+        {/* ---------- Háblales ---------- */}
+        <section id="chat" data-capitulo="Háblales" className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]">
+          <Claqueta izquierda="El chat" derecha="Dentro de tu panel" />
+          <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
+            <Reveal as="h2" className="editorial text-heading lg:col-span-7">
+              Háblales como le hablas a tu equipo.
+            </Reveal>
+            <Reveal delay={120} className="flex flex-col items-start gap-5 lg:col-span-5 lg:pb-2">
+              <p className="max-w-[440px] text-body text-silver">
+                Escríbeles lo que necesitas, como en cualquier chat. Te contestan al momento, recuerdan la conversación y
+                te dejan los mensajes listos para copiar.
+              </p>
+              <PillLink href="/entrar">Probar el chat</PillLink>
+            </Reveal>
+          </div>
+          <Reveal delay={150} className="mt-12 lg:mt-16">
+            <ChatDemo />
+          </Reveal>
+        </section>
+
+        {/* ---------- Planes ---------- */}
+        <section id="planes" data-capitulo="Planes" className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]">
+          <Claqueta izquierda="Planes" derecha="Free → One → Max" />
+          <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
+            <Reveal as="h2" className="editorial text-heading lg:col-span-7">
+              Empieza gratis. Crece cuando quieras.
+            </Reveal>
+            <Reveal as="p" delay={120} className="max-w-[420px] text-body text-silver lg:col-span-5 lg:pb-2">
+              Free para conocer a Clara. One para tener a todo el equipo. Max para el negocio que no para.
+            </Reveal>
+          </div>
+          <div className="mt-12 lg:mt-16">
+            <Planes />
           </div>
         </section>
 
@@ -186,21 +288,20 @@ export default function Inicio() {
         >
           <div className="grid gap-8 border-t hairline pt-8 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
-              Empieza por tu correo.
+              Empieza gratis con Clara.
             </Reveal>
             <Reveal delay={150} className="flex flex-col items-start gap-4 lg:col-span-4 lg:items-end lg:pb-4">
               <p className="max-w-[340px] text-body text-silver lg:text-right">
-                Es el agente que ya funciona. Entras en un minuto, sin contraseña, y los demás se suman a tu panel
-                cuando estén listos.
+                Entras en un minuto con tu correo. Cuando quieras a todo el equipo, pasas a Atendel One.
               </p>
-              <PillLink href="/entrar">Probar Atendel</PillLink>
+              <PillLink href="/entrar">Empezar gratis</PillLink>
             </Reveal>
           </div>
         </section>
       </main>
 
       <Footer />
-      <MobileCta ocultarEn={["agentes", "empezar"]} />
+      <MobileCta ocultarEn={["agentes", "chat", "empezar"]} />
     </>
   );
 }

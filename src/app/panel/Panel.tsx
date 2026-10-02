@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -11,7 +10,7 @@ import {
   type FormEvent,
 } from "react";
 import { Arrow, Roll, TriIcon, TriSpinner } from "@/components/Buttons";
-import { Nav } from "@/components/Nav";
+import { NavApp } from "@/components/app/NavApp";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import type { ShapeName } from "@/components/particles/shapes";
 import { Reveal, SplitText } from "@/components/Reveal";
@@ -29,12 +28,6 @@ type Guardado = {
   accion_sugerida: string | null;
   creado_en: string;
 };
-
-const SECCIONES = [
-  { href: "#probar", label: "Probar" },
-  { href: "#gmail", label: "Gmail" },
-  { href: "#historial", label: "Historial" },
-];
 
 const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];
 
@@ -74,7 +67,6 @@ const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim()
 
 export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean }) {
   const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
   const googleDisponible = useGoogleDisponible();
 
   const [saludo, setSaludo] = useState("Hola.");
@@ -213,43 +205,16 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
     });
   }
 
-  async function salir() {
-    await supabase.auth.signOut();
-    router.replace("/");
-    router.refresh();
-  }
-
   const hayTexto = Boolean(remitente || asunto || contenido);
 
   return (
     <>
-      <Nav
-        items={SECCIONES}
-        homeHref="/panel"
-        desktopRight={
-          <>
-            <span className="max-w-[220px] truncate text-caption text-ash" title={email}>
-              {email}
-            </span>
-            <button type="button" className="btn-ghost" onClick={salir}>
-              <Roll>Salir</Roll>
-            </button>
-          </>
-        }
-        mobileBottom={
-          <div className="flex flex-col items-start gap-2">
-            <p className="max-w-full truncate text-caption text-ash">{email}</p>
-            <button type="button" className="btn-ghost" onClick={salir}>
-              <Roll>Cerrar sesión</Roll>
-            </button>
-          </div>
-        }
-      />
+      <NavApp email={email} />
 
       <main className="mx-auto max-w-page px-6 pb-[96px] pt-[128px] lg:px-10 lg:pt-[168px]">
         <header className="max-w-[760px]">
           <Reveal as="p" className="eyebrow">
-            Tu panel
+            Clara · Correo
           </Reveal>
           <SplitText as="h1" className="editorial mt-5 text-heading-lg" text={saludo} />
           <Reveal as="p" delay={200} className="mt-6 max-w-[560px] text-body text-silver">

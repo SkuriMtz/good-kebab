@@ -21,6 +21,8 @@ type Props = {
   desktopRight?: ReactNode;
   /** Lo que va abajo del menú en celular. */
   mobileBottom?: ReactNode;
+  /** Los agentes, como el reparto de una película (dentro del menú). */
+  reparto?: { nombre: string; papel: string; href: string }[];
 };
 
 /**
@@ -29,7 +31,7 @@ type Props = {
  * - Se esconde al bajar y reaparece al subir.
  * - En celular, un menú de pantalla completa que se abre como un círculo.
  */
-export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props) {
+export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [oculta, setOculta] = useState(false);
   const [conFondo, setConFondo] = useState(false);
@@ -112,22 +114,16 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
     };
   }, [abierto]);
 
-  const alternar = () => {
-    // El círculo del menú crece desde el centro del botón
-    const boton = botonRef.current;
-    const menu = menuRef.current;
-    if (boton && menu) {
-      const r = boton.getBoundingClientRect();
-      menu.style.setProperty("--mx", `${r.left + r.width / 2}px`);
-      menu.style.setProperty("--my", `${r.top + r.height / 2}px`);
-    }
-    setAbierto((a) => !a);
-  };
+  const alternar = () => setAbierto((a) => !a);
 
   // Enlaces a secciones de esta misma página: cerrar el menú y luego desplazarse suave
   const alElegir = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     const gato = href.indexOf("#");
-    if (gato === -1) return;
+    if (gato === -1) {
+      // Otra página (o la misma con otros datos): solo cerrar el menú
+      setAbierto(false);
+      return;
+    }
     const ruta = href.slice(0, gato) || pathname;
     if (ruta !== pathname) return;
     const destino = document.getElementById(href.slice(gato + 1));
@@ -207,29 +203,74 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom }: Props
         aria-label="Menú"
         aria-hidden={!abierto}
       >
-        <div className="mx-auto flex h-full max-w-page flex-col justify-between gap-10 px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[110px] lg:flex-row lg:items-end lg:gap-20 lg:px-10 lg:pb-16">
-          <ul className="w-full lg:max-w-[64%]">
-            {items.map((item, i) => (
-              <li key={item.href} className="menu__item" style={{ "--i": i } as CSSProperties}>
-                <Link
-                  href={item.href}
-                  className="menu-link"
-                  tabIndex={abierto ? 0 : -1}
-                  onClick={(e) => alElegir(e, item.href)}
-                >
-                  <span className="menu-link__n">{dos(i + 1)}</span>
-                  <span className="menu-link__text">{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {mobileBottom || desktopRight ? (
-            <div className="menu__item lg:pb-3" style={{ "--i": items.length } as CSSProperties}>
-              {mobileBottom ?? desktopRight}
-            </div>
-          ) : null}
+        <div className="mx-auto flex h-full max-w-page flex-col px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[92px] lg:px-10 lg:pb-8 lg:pt-[110px]">
+          <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-10 overflow-y-auto lg:grid-cols-12 lg:content-end lg:gap-8">
+            <nav className="lg:col-span-8" aria-label="Secciones">
+              <p className="menu__label">Índice</p>
+              <ul className="menu__lista mt-3">
+                {items.map((item, i) => (
+                  <li key={item.href} style={{ "--i": i } as CSSProperties}>
+                    <Link
+                      href={item.href}
+                      className="menu-link"
+                      tabIndex={abierto ? 0 : -1}
+                      onClick={(e) => alElegir(e, item.href)}
+                    >
+                      <span className="menu-link__n">{dos(i + 1)}</span>
+                      <span className="menu-link__mask">
+                        <span className="menu-link__text">{item.label}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {reparto?.length ? (
+              <div className="menu__reparto lg:col-span-4" style={{ "--i": items.length } as CSSProperties}>
+                <p className="menu__label">Reparto</p>
+                <ul className="mt-3 grid grid-cols-2 gap-x-6 lg:grid-cols-1">
+                  {reparto.map((r) => (
+                    <li key={r.nombre}>
+                      <Link
+                        href={r.href}
+                        className="reparto-link"
+                        tabIndex={abierto ? 0 : -1}
+                        onClick={(e) => alElegir(e, r.href)}
+                      >
+                        <span className="reparto-link__nombre">{r.nombre}</span>
+                        <span className="reparto-link__papel">como {r.papel}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+          <div className="menu__pie mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-5 border-t hairline pt-5">
+            {mobileBottom ?? desktopRight}
+            <Reloj />
+          </div>
         </div>
       </div>
     </>
+  );
+}
+
+/** Hora de la Ciudad de México en el pie del menú (como el reloj de una sala de edición). */
+function Reloj() {
+  const [hora, setHora] = useState("");
+  useEffect(() => {
+    const poner = () =>
+      setHora(
+        new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", timeZone: "America/Mexico_City" }),
+      );
+    poner();
+    const id = window.setInterval(poner, 20000);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <p className="font-cond text-base uppercase leading-none tracking-[0.03em] text-ash">
+      Ciudad de México <span className="tabular-nums text-bone">{hora || "--:--"}</span>
+    </p>
   );
 }

@@ -1,6 +1,8 @@
+import { AGENTE_POR_ID, type AgenteInfo } from "@/lib/agentes";
+
 /**
- * Los 15 agentes de Atendel y un ejemplo de cómo resuelve cada uno un pedido
- * típico de una clínica. Los nombres, cifras y fechas son de ejemplo.
+ * Ejemplos de cómo resuelve cada agente pedidos típicos de una clínica.
+ * Los nombres, cifras y fechas son de ejemplo.
  */
 
 export type Mensaje = { de: "cliente" | "agente" | "nota"; quien?: string; texto: string; hora?: string };
@@ -69,9 +71,10 @@ export type Agente = {
   entrega: Entrega;
 };
 
-export type Grupo = { nombre: string; agentes: Agente[] };
+type Grupo = { nombre: string; agentes: Agente[] };
 
-export const GRUPOS: Grupo[] = [
+/** Ejemplos sueltos; abajo se reparten entre los 6 agentes. */
+const EJEMPLOS: Grupo[] = [
   {
     nombre: "Atender",
     agentes: [
@@ -133,30 +136,6 @@ export const GRUPOS: Grupo[] = [
             },
           ],
           pie: "No envía ni borra nada: tú decides qué contestar.",
-        },
-      },
-      {
-        nombre: "Redes sociales",
-        descripcion: "Responde comentarios y mensajes, y te sugiere qué publicar.",
-        pedido: "Contesta los comentarios de la publicación del sábado.",
-        pasos: [
-          "Contesté 17 comentarios y 5 mensajes directos",
-          "Te pasé 1 queja para que la veas tú",
-          "Te propongo qué publicar el jueves",
-        ],
-        entrega: {
-          tipo: "chat",
-          titulo: "Instagram · publicación del sábado",
-          mensajes: [
-            { de: "cliente", quien: "ana.lu", texto: "¿Cuánto dura el efecto del botox?" },
-            {
-              de: "agente",
-              texto: "Hola, Ana. Normalmente entre 4 y 6 meses, depende de la zona. ¿Te mandamos horarios por mensaje?",
-            },
-            { de: "cliente", quien: "ro.garza", texto: "¿Atienden sábados?" },
-            { de: "agente", texto: "Sí, de 9:00 a 14:00. ¿Te apartamos un lugar?" },
-            { de: "nota", texto: "Para el jueves a las 19:00: un antes y después de peeling (con permiso de la paciente)" },
-          ],
         },
       },
       {
@@ -297,22 +276,6 @@ export const GRUPOS: Grupo[] = [
         },
       },
       {
-        nombre: "Recordatorios y notas",
-        descripcion: "Tareas pendientes, pagos y renovaciones.",
-        pedido: "¿Qué tengo pendiente esta semana?",
-        pasos: ["Junté tus notas, pagos y vencimientos", "Te aviso un día antes de cada uno"],
-        entrega: {
-          tipo: "filas",
-          titulo: "Esta semana",
-          filas: [
-            { a: "Lunes", b: "Pagar la luz del local", c: "$2,340" },
-            { a: "Miércoles", b: "Renovar la póliza del equipo láser", c: "Vence el 30", alerta: true },
-            { a: "Jueves", b: "Llamar al técnico para el mantenimiento" },
-            { a: "Viernes", b: "Cobrar a Karla Vega la segunda parte", c: "$4,200" },
-          ],
-        },
-      },
-      {
         nombre: "Documentos",
         descripcion: "Contratos, consentimientos y facturas que se hacen solos.",
         pedido: "Prepara el consentimiento de Laura para su peeling del viernes.",
@@ -425,4 +388,106 @@ export const GRUPOS: Grupo[] = [
   },
 ];
 
-export const AGENTES = GRUPOS.flatMap((g) => g.agentes.map((a) => ({ ...a, grupo: g.nombre })));
+const ej = (nombre: string): Omit<Tarea, "titulo"> => {
+  const a = EJEMPLOS.flatMap((g) => g.agentes).find((x) => x.nombre === nombre);
+  if (!a) throw new Error(`Falta el ejemplo ${nombre}`);
+  return { pedido: a.pedido, pasos: a.pasos, entrega: a.entrega };
+};
+
+export type Tarea = { titulo: string; pedido: string; pasos: string[]; entrega: Entrega };
+export type AgenteGaleria = AgenteInfo & { tareas: Tarea[] };
+
+const ficha = ej("Clientes");
+
+export const GALERIA: AgenteGaleria[] = [
+  {
+    ...AGENTE_POR_ID.clara,
+    tareas: [
+      { titulo: "Resumir la bandeja", ...ej("Correo") },
+      { titulo: "Preparar documentos", ...ej("Documentos") },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.lola,
+    tareas: [
+      { titulo: "Contestar y agendar", ...ej("WhatsApp") },
+      {
+        titulo: "Recordar citas",
+        pedido: "Recuérdales su cita a los de mañana.",
+        pasos: ["Encontré 12 citas para mañana", "Mandé 12 recordatorios por WhatsApp", "10 confirmaron; 1 pidió cambiar de hora"],
+        entrega: {
+          tipo: "filas",
+          titulo: "Recordatorios · mañana",
+          marcas: true,
+          filas: [
+            { a: "Fernanda Ríos", b: "11:00 · Botox", etiqueta: "Confirmó" },
+            { a: "Jorge Aguilar", b: "12:30 · Láser, piernas", etiqueta: "Confirmó" },
+            { a: "Carla Díaz", b: "16:00 · Pide pasar a las 17:00", etiqueta: "Te toca", alerta: true },
+            { a: "Rosa Peña", b: "17:00 · Peeling", etiqueta: "Sin respuesta" },
+          ],
+          pie: "Y 8 más confirmadas.",
+        },
+      },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.victor,
+    tareas: [
+      { titulo: "Seguir prospectos", ...ej("Manejo de ventas") },
+      {
+        ...ej("Marketing y promociones"),
+        titulo: "Recuperar clientes",
+        pedido: "Noviembre viene flojo. Trae de regreso a los que dejaron de venir.",
+      },
+      {
+        titulo: "Detectar faltas",
+        pedido: "¿Quién faltó esta semana sin avisar?",
+        pasos: ["Crucé la agenda con las llegadas", "4 personas no llegaron", "Les escribí para reagendar; 2 ya tienen nueva cita"],
+        entrega: {
+          tipo: "filas",
+          titulo: "Faltas sin aviso · esta semana",
+          marcas: true,
+          filas: [
+            { a: "Andrea Solís", b: "Faltó el martes · nueva cita el lunes 10:00", etiqueta: "Reagendada" },
+            { a: "Mónica Salas", b: "Faltó el miércoles · nueva cita el jueves 17:00", etiqueta: "Reagendada" },
+            { a: "Raúl Pineda", b: "Segunda falta del mes", etiqueta: "Te toca", alerta: true },
+            { a: "Elena Cruz", b: "No ha contestado; le escribo mañana", etiqueta: "En espera" },
+          ],
+          pie: "Sugerencia: pedir anticipo a quien falte dos veces.",
+        },
+      },
+      { titulo: "Qué se vendió", ...ej("Revisión de ventas") },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.oscar,
+    tareas: [
+      { titulo: "Acomodar la agenda", ...ej("Agenda y citas") },
+      { titulo: "Cuidar el inventario", ...ej("Inventario") },
+      { titulo: "Llevar las cuentas", ...ej("Finanzas básicas") },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.lucia,
+    tareas: [
+      {
+        ...ficha,
+        titulo: "Historial de cada cliente",
+        pedido: "Cuéntame de Laura antes de su cita del viernes.",
+        pasos: ["Busqué su historial", "Junté visitas, pagos y notas"],
+        entrega:
+          ficha.entrega.tipo === "ficha"
+            ? { ...ficha.entrega, otros: ["piel sensible", "prefiere que le escriban por WhatsApp", "pagó su paquete completo"] }
+            : ficha.entrega,
+      },
+      { titulo: "Después de la cita", ...ej("Atención postventa") },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.iris,
+    tareas: [
+      { titulo: "Investigar precios", ...ej("Investigación") },
+      { titulo: "Reporte de la semana", ...ej("Reportes") },
+    ],
+  },
+];

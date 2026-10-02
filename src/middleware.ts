@@ -102,7 +102,7 @@ async function sesion(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/panel") && !user) return redirigir("/entrar");
-  if (pathname === "/entrar" && user) return redirigir("/panel");
+  if (pathname === "/entrar" && user) return redirigir("/panel/chat");
 
   return response;
 }

@@ -10,8 +10,9 @@ import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { createClient } from "@/lib/supabase/client";
 
 const SECCIONES = [
+  { href: "/#que-es", label: "Qué es" },
   { href: "/#agentes", label: "Agentes" },
-  { href: "/#seguridad", label: "Tus datos" },
+  { href: "/#planes", label: "Planes" },
   { href: "/#preguntas", label: "Preguntas" },
 ];
 const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];

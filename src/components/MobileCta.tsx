@@ -44,7 +44,7 @@ export function MobileCta({ ocultarEn = ["empezar"] }: { ocultarEn?: string[] })
       aria-hidden={!visible}
     >
       <PillLink href="/entrar">
-        Probar Atendel
+        Empezar gratis
       </PillLink>
     </div>
   );

@@ -1,13 +1,14 @@
 import Link from "next/link";
 
 const PRODUCTO = [
+  { href: "/#que-es", label: "Qué es" },
   { href: "/#agentes", label: "Agentes" },
-  { href: "/#seguridad", label: "Tus datos" },
+  { href: "/#planes", label: "Planes" },
   { href: "/#preguntas", label: "Preguntas" },
 ];
 const CUENTA = [
   { href: "/entrar", label: "Entrar" },
-  { href: "/panel", label: "Mi panel" },
+  { href: "/panel/chat", label: "Mi panel" },
 ];
 
 /** Pie como créditos finales: línea fina, columnas y el nombre gigante al final. */
