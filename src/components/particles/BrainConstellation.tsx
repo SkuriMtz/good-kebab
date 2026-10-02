@@ -163,7 +163,9 @@ export function BrainConstellation({ className }: { className?: string }) {
       const angosto = w < 640;
       const scrollY = window.scrollY;
       const vh = window.innerHeight || 1;
-      const cx = w * (angosto ? 0.5 : 0.63);
+      // En tablet y celular el cerebro va debajo del texto: centrado
+      const centrado = angosto || window.innerWidth < 1024;
+      const cx = w * (centrado ? 0.5 : 0.63);
       const cy = h * 0.5 + (quieto ? 0 : scrollY * 0.12);
       const R = Math.min(w, h) * (angosto ? 0.4 : 0.3);
       const desvanecer = quieto ? 1 : 1 - clamp01(scrollY / (vh * 1.1)) * 0.6;

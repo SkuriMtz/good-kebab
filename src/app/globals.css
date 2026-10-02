@@ -473,7 +473,7 @@
   /* Ejemplos: texto con triángulo que gira */
   .chip {
     @apply inline-flex select-none items-center gap-2.5 text-nav font-semibold uppercase text-ash;
-    min-height: 40px;
+    min-height: 44px;
     -webkit-tap-highlight-color: transparent;
     transition:
       color 0.3s var(--ease-out),
@@ -513,6 +513,31 @@
   }
   .step[data-active="true"] .step__marker {
     transform: none;
+  }
+
+  /* Botón fijo abajo en celular */
+  .mobile-cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    transform: translateY(160%);
+    visibility: hidden;
+    transition:
+      transform 0.6s var(--ease-out),
+      visibility 0s linear 0.6s;
+  }
+  .mobile-cta[data-visible="true"] {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .mobile-cta > * {
+    pointer-events: auto;
   }
 
   /* Indicador de "desliza" del inicio */

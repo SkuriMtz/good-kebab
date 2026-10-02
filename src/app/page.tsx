@@ -6,9 +6,12 @@ import { BrainConstellation } from "@/components/particles/BrainConstellation";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import type { ShapeName } from "@/components/particles/shapes";
 import { Reveal, SplitText } from "@/components/Reveal";
+import { Demo } from "@/components/Demo";
+import { MobileCta } from "@/components/MobileCta";
 import { Steps } from "@/components/Steps";
 
 const SECCIONES = [
+  { href: "#demo", label: "Ejemplo" },
   { href: "#agentes", label: "Agentes" },
   { href: "#como-funciona", label: "Cómo funciona" },
   { href: "#seguridad", label: "Seguridad" },
@@ -75,6 +78,12 @@ const PASOS = [
     titulo: "Tú decides.",
     texto: "Ves qué pide cada cliente y qué conviene hacer. Nada se envía sin ti.",
   },
+];
+
+const PROBLEMAS = [
+  "Correos que se quedan sin contestar.",
+  "Las mismas preguntas, todos los días.",
+  "Una recepción apagando fuegos.",
 ];
 
 const GARANTIAS = [
@@ -167,8 +176,8 @@ export default function Inicio() {
               </Reveal>
               <Reveal delay={620} className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
                 <PillLink href="/entrar">Probar Atendel</PillLink>
-                <a href="#como-funciona" className="btn-ghost">
-                  <Roll>Cómo funciona</Roll>
+                <a href="#demo" className="btn-ghost">
+                  <Roll>Ver ejemplo</Roll>
                 </a>
               </Reveal>
             </div>
@@ -184,6 +193,34 @@ export default function Inicio() {
               <span className="text-caption font-semibold uppercase tracking-[0.12em] text-ash">Desliza</span>
             </div>
           </div>
+        </section>
+
+        {/* ---------- El problema ---------- */}
+        <section className="mx-auto max-w-page px-6 pt-[96px] lg:px-10 lg:pt-[160px]">
+          <Reveal as="p" className="eyebrow text-saffron">
+            ¿Te suena?
+          </Reveal>
+          <ul className="mt-8 space-y-4 lg:space-y-6">
+            {PROBLEMAS.map((p, i) => (
+              <li key={p}>
+                <SplitText as="p" delay={i * 120} className="text-heading-lg text-ash" text={p} />
+              </li>
+            ))}
+          </ul>
+          <Reveal as="p" delay={200} className="mt-10 max-w-[560px] text-heading-2xs text-bone">
+            Atendel se encarga de lo repetitivo para que tu equipo atienda a las personas.
+          </Reveal>
+        </section>
+
+        {/* ---------- Demo de ejemplo ---------- */}
+        <section id="demo" className="mx-auto max-w-page px-6 pt-[96px] lg:px-10 lg:pt-[160px]">
+          <Reveal as="p" className="eyebrow text-saffron">
+            Míralo en acción
+          </Reveal>
+          <SplitText as="h2" className="mt-5 max-w-[900px] text-heading-lg" text="Un correo entra. Tú sabes qué hacer." />
+          <Reveal delay={150} className="mt-12">
+            <Demo />
+          </Reveal>
         </section>
 
         {/* ---------- Agentes ---------- */}
@@ -256,7 +293,10 @@ export default function Inicio() {
         </section>
 
         {/* ---------- Cierre ---------- */}
-        <section className="mx-auto grid max-w-page grid-cols-1 items-center gap-10 px-6 pt-[96px] lg:grid-cols-2 lg:gap-20 lg:px-10 lg:pt-[180px]">
+        <section
+          id="empezar"
+          className="mx-auto grid max-w-page grid-cols-1 items-center gap-10 px-6 pt-[96px] lg:grid-cols-2 lg:gap-20 lg:px-10 lg:pt-[180px]"
+        >
           <div>
             <Reveal as="p" className="eyebrow text-saffron">
               Empieza hoy
@@ -280,6 +320,7 @@ export default function Inicio() {
       </main>
 
       <Footer />
+      <MobileCta />
     </>
   );
 }
