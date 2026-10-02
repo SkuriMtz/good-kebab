@@ -32,10 +32,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      return NextResponse.redirect(`${origin}/`);
+      return NextResponse.redirect(`${origin}/panel`);
     }
   }
 
   // Si algo falló (link vencido, abierto en otro navegador, etc.)
-  return NextResponse.redirect(`${origin}/?error=login`);
+  return NextResponse.redirect(`${origin}/entrar?error=login`);
 }

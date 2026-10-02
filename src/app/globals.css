@@ -2,8 +2,575 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #f8f9fb;
-  color: #1a1a2e;
+/* ============================================================
+   ATENDEL — Sistema de diseño (basado en DESIGN.md)
+   Negro puro como lienzo, un solo violeta para acciones, ámbar
+   para resaltar, titulares grandes de peso 400 y cuerpo
+   ultraligero. Sin tarjetas, sin bordes decorativos, sin sombras.
+   ============================================================ */
+:root {
+  --color-void: #000000;
+  --color-bone-white: #ffffff;
+  --color-ash-gray: #9a9a9a;
+  --color-silver-mist: #bdbdbd;
+  --color-electric-iris: #8052ff;
+  --color-saffron-spark: #ffb829;
+  --color-deep-verdant: #15846e;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --nav-h: 72px;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    background: var(--color-void);
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100svh;
+    background: var(--color-void);
+    color: var(--color-bone-white);
+    font-weight: 200;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 400;
+  }
+  ::selection {
+    background: var(--color-electric-iris);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-electric-iris);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  [id] {
+    scroll-margin-top: calc(var(--nav-h) + 24px);
+  }
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-nav font-semibold uppercase;
+  }
+
+  /* ---------- Botón principal: píldora violeta (uno por vista) ---------- */
+  .btn-pill {
+    @apply relative inline-flex select-none items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-iris px-[22px] text-nav font-semibold uppercase text-bone;
+    min-height: 46px;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 0.4s var(--ease-out),
+      translate 0.6s var(--ease-out),
+      scale 0.35s var(--ease-out),
+      opacity 0.3s var(--ease-out);
+  }
+  .btn-pill:hover:not(:disabled) {
+    @apply bg-iris-hover;
+  }
+  .btn-pill:active:not(:disabled) {
+    scale: 0.96;
+  }
+  .btn-pill:focus-visible {
+    outline-color: #fff;
+    outline-offset: 3px;
+    border-radius: 9999px;
+  }
+  .btn-pill:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+
+  /* ---------- Botón fantasma: texto con subrayado que crece ---------- */
+  .btn-ghost {
+    @apply relative inline-flex select-none items-center gap-2 text-nav font-semibold uppercase text-ash;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 0.35s var(--ease-out),
+      scale 0.3s var(--ease-out);
+  }
+  .btn-ghost::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 9px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    @apply text-bone;
+  }
+  .btn-ghost:hover:not(:disabled)::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+  .btn-ghost:active:not(:disabled) {
+    scale: 0.97;
+  }
+  .btn-ghost:disabled {
+    cursor: progress;
+  }
+
+  .arrow {
+    transition: transform 0.5s var(--ease-out);
+  }
+  :is(.btn-pill, .btn-ghost):hover:not(:disabled) .arrow {
+    transform: translateX(3px);
+  }
+
+  /* ---------- Texto que "rueda" al pasar el mouse ---------- */
+  .roll {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    line-height: 1.2;
+  }
+  .roll__a,
+  .roll__b {
+    display: block;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .roll__b {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translateY(110%);
+  }
+  @media (hover: hover) {
+    :is(.btn-pill, .btn-ghost, .chip):hover:not(:disabled) .roll__a {
+      transform: translateY(-110%);
+    }
+    :is(.btn-pill, .btn-ghost, .chip):hover:not(:disabled) .roll__b {
+      transform: translateY(0);
+    }
+  }
+
+  /* ---------- Navegación ---------- */
+  .nav {
+    transition:
+      transform 0.7s var(--ease-out),
+      background-color 0.5s var(--ease-out);
+  }
+  .nav[data-scrolled="true"] {
+    background-color: var(--color-void);
+  }
+  .nav[data-hidden="true"] {
+    transform: translateY(-100%);
+  }
+  .nav-link {
+    @apply relative text-nav font-semibold uppercase text-ash;
+    padding: 12px 0;
+    transition: color 0.3s var(--ease-out);
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .nav-link:hover {
+    @apply text-bone;
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+
+  /* Botón hamburguesa: dos líneas que se vuelven una X */
+  .burger {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    border-radius: 9999px;
+  }
+  .burger > span {
+    position: absolute;
+    width: 22px;
+    height: 1.5px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform 0.55s var(--ease-out);
+  }
+  .burger > span:nth-child(1) {
+    transform: translateY(-4px);
+  }
+  .burger > span:nth-child(2) {
+    transform: translateY(4px);
+  }
+  .burger[aria-expanded="true"] > span:nth-child(1) {
+    transform: rotate(45deg);
+  }
+  .burger[aria-expanded="true"] > span:nth-child(2) {
+    transform: rotate(-45deg);
+  }
+
+  /* Menú móvil: se abre como un círculo que crece desde el botón */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: var(--color-void);
+    clip-path: circle(0px at var(--mx, calc(100% - 34px)) var(--my, 36px));
+    visibility: hidden;
+    transition:
+      clip-path 0.8s var(--ease-in-out),
+      visibility 0s linear 0.8s;
+  }
+  .menu[data-open="true"] {
+    clip-path: circle(150vmax at var(--mx, calc(100% - 34px)) var(--my, 36px));
+    visibility: visible;
+    transition:
+      clip-path 0.8s var(--ease-in-out),
+      visibility 0s;
+  }
+  .menu__item {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.6s var(--ease-out);
+  }
+  .menu[data-open="true"] .menu__item {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.9s var(--ease-out);
+    transition-delay: calc(220ms + var(--i, 0) * 70ms);
+  }
+  .menu-link {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 10px 0;
+    font-size: clamp(2.25rem, 10vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    font-weight: 400;
+    transition: color 0.3s var(--ease-out);
+  }
+  .menu-link:active {
+    color: var(--color-ash-gray);
+  }
+  .menu-link__n {
+    @apply text-caption font-semibold text-saffron;
+    letter-spacing: 0.06em;
+    transform: translateY(-0.9em);
+  }
+
+  /* ---------- Campos de formulario: solo una línea, sin cajas ---------- */
+  .field {
+    position: relative;
+    display: block;
+  }
+  .field__label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ash-gray);
+    transition: color 0.3s var(--ease-out);
+  }
+  .field:focus-within .field__label {
+    color: #fff;
+  }
+  .field__input {
+    display: block;
+    width: 100%;
+    padding: 10px 0 12px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: 300;
+    line-height: 1.5;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+    outline: none;
+    resize: none;
+    transition: box-shadow 0.3s var(--ease-out);
+  }
+  .field__input:hover {
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.34);
+  }
+  .field__input:focus-visible {
+    outline: none;
+  }
+  .field__input::placeholder {
+    color: rgba(154, 154, 154, 0.55);
+  }
+  .field__input:-webkit-autofill {
+    -webkit-text-fill-color: #fff;
+    box-shadow:
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 0 0 1000px #000;
+  }
+  .field__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--color-electric-iris);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.7s var(--ease-out);
+    pointer-events: none;
+  }
+  .field:focus-within .field__line {
+    transform: scaleX(1);
+  }
+  .field__line--flash {
+    animation: field-flash 1.1s var(--ease-out);
+  }
+  .field__meta {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--color-ash-gray);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s var(--ease-out);
+  }
+
+  /* Ejemplos: texto con triángulo que gira */
+  .chip {
+    @apply inline-flex select-none items-center gap-2.5 text-nav font-semibold uppercase text-ash;
+    min-height: 40px;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 0.3s var(--ease-out),
+      scale 0.3s var(--ease-out);
+  }
+  .chip svg {
+    transition: transform 0.8s var(--ease-out);
+  }
+  .chip:hover {
+    @apply text-bone;
+  }
+  .chip:hover svg {
+    transform: rotate(120deg);
+  }
+  .chip:active {
+    scale: 0.96;
+  }
+
+  /* Pasos de "Cómo funciona": el del centro de la pantalla se ilumina */
+  .step {
+    color: var(--color-ash-gray);
+    transition: color 0.6s var(--ease-out);
+  }
+  .step[data-active="true"] {
+    color: #fff;
+  }
+  .step__text {
+    color: var(--color-ash-gray);
+    transition: color 0.6s var(--ease-out);
+  }
+  .step[data-active="true"] .step__text {
+    color: var(--color-silver-mist);
+  }
+  .step__marker {
+    transform: scale(0) rotate(-120deg);
+    transition: transform 0.8s var(--ease-out);
+  }
+  .step[data-active="true"] .step__marker {
+    transform: none;
+  }
+
+  /* Indicador de "desliza" del inicio */
+  .scroll-cue__line {
+    position: relative;
+    width: 1px;
+    height: 44px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .scroll-cue__line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 45%;
+    background: #fff;
+    animation: cue 2.2s var(--ease-in-out) infinite;
+  }
+}
+
+@layer utilities {
+  .tri-spin {
+    animation: tri-spin 1.1s var(--ease-in-out) infinite;
+  }
+  .page-enter {
+    animation: page-in 0.7s var(--ease-out) both;
+  }
+  .swap-in {
+    animation: swap-in 0.8s var(--ease-out) both;
+  }
+  .stagger > * {
+    animation: swap-in 0.8s var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+  .item-in {
+    animation: swap-in 0.8s var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  .shake {
+    animation: shake 0.5s var(--ease-out);
+  }
+}
+
+/* ---------- Animaciones al hacer scroll ---------- */
+/* Solo se esconden si hay JavaScript (la clase "js" la pone layout.tsx). */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  filter: blur(4px);
+  transition:
+    opacity 1s var(--ease-out),
+    transform 1.2s var(--ease-out),
+    filter 1s var(--ease-out);
+  transition-delay: var(--d, 0ms);
+}
+html.js [data-reveal][data-in] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Titulares que aparecen palabra por palabra */
+[data-split] .split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0.12em 0.03em 0.14em;
+  margin: -0.12em -0.03em -0.14em;
+}
+[data-split] .split-inner {
+  display: inline-block;
+}
+html.js [data-split] .split-inner {
+  transform: translate3d(0, 115%, 0);
+  transition: transform 1.1s var(--ease-out);
+  transition-delay: calc(var(--d, 0ms) + var(--i, 0) * 65ms);
+}
+html.js [data-split][data-in] .split-inner {
+  transform: none;
+}
+
+@keyframes tri-spin {
+  to {
+    transform: rotate(120deg);
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  20% {
+    translate: -7px 0;
+  }
+  40% {
+    translate: 6px 0;
+  }
+  60% {
+    translate: -4px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+}
+@keyframes field-flash {
+  0% {
+    transform: scaleX(0);
+    background: var(--color-saffron-spark);
+  }
+  45% {
+    transform: scaleX(1);
+    background: var(--color-saffron-spark);
+  }
+  100% {
+    transform: scaleX(0);
+    background: var(--color-saffron-spark);
+  }
+}
+@keyframes cue {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(230%);
+  }
+}
+
+/* Respeta a quien pidió menos movimiento en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.js [data-reveal],
+  html.js [data-split] .split-inner {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

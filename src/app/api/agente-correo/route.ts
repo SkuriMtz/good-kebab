@@ -35,8 +35,11 @@ export async function POST(request: NextRequest) {
 
   if (!providerToken) {
     return NextResponse.json(
-      { error: "No hay una conexión activa con Gmail. Vuelve a iniciar sesión con Google." },
-      { status: 400 }
+      {
+        error:
+          "No hay una conexión activa con Gmail. Vuelve a iniciar sesión con Google.",
+      },
+      { status: 400 },
     );
   }
 
@@ -50,7 +53,17 @@ export async function POST(request: NextRequest) {
   if (negocioError || !negocio) {
     return NextResponse.json(
       { error: "No se encontró un negocio para este usuario" },
-      { status: 404 }
+      { status: 404 },
+    );
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          "La IA todavía no está configurada: falta agregar la llave de Anthropic (ANTHROPIC_API_KEY) en Vercel.",
+      },
+      { status: 503 },
     );
   }
 
@@ -59,55 +72,84 @@ export async function POST(request: NextRequest) {
   oauth2Client.setCredentials({ access_token: providerToken });
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
-  const listResponse = await gmail.users.messages.list({
-    userId: "me",
-    maxResults: 10,
-    q: "is:unread",
-  });
+  let mensajes;
+  try {
+    const listResponse = await gmail.users.messages.list({
+      userId: "me",
+      maxResults: 10,
+      q: "is:unread",
+    });
+    mensajes = listResponse.data.messages ?? [];
+  } catch {
+    // El permiso de Google dura alrededor de una hora
+    return NextResponse.json(
+      {
+        error:
+          "Tu conexión con Gmail venció. Cierra sesión y vuelve a entrar con Google.",
+      },
+      { status: 401 },
+    );
+  }
 
-  const mensajes = listResponse.data.messages ?? [];
   const resultados = [];
+  let fallidos = 0;
 
   for (const mensajeRef of mensajes) {
     if (!mensajeRef.id) continue;
 
-    const mensaje = await gmail.users.messages.get({
-      userId: "me",
-      id: mensajeRef.id,
-      format: "metadata",
-      metadataHeaders: ["Subject", "From"],
-    });
+    try {
+      const mensaje = await gmail.users.messages.get({
+        userId: "me",
+        id: mensajeRef.id,
+        format: "metadata",
+        metadataHeaders: ["Subject", "From"],
+      });
 
-    const headers = mensaje.data.payload?.headers ?? [];
-    const asunto = headers.find((h) => h.name === "Subject")?.value ?? "(sin asunto)";
-    const remitente = headers.find((h) => h.name === "From")?.value ?? "(desconocido)";
-    const fragmento = mensaje.data.snippet ?? "";
+      const headers = mensaje.data.payload?.headers ?? [];
+      const asunto =
+        headers.find((h) => h.name === "Subject")?.value ?? "(sin asunto)";
+      const remitente =
+        headers.find((h) => h.name === "From")?.value ?? "(desconocido)";
+      const fragmento = mensaje.data.snippet ?? "";
 
-    // 4. Generar resumen + acción sugerida con IA
-    const { resumen, accion } = await resumirCorreo({
-      asunto,
-      remitente,
-      contenido: fragmento,
-    });
+      // 4. Generar resumen + acción sugerida con IA
+      const { resumen, accion } = await resumirCorreo({
+        asunto,
+        remitente,
+        contenido: fragmento,
+      });
 
-    // 5. Guardar (RLS garantiza que solo se guarda bajo el negocio del usuario)
-    const { error: insertError } = await supabase
-      .from("resumenes_correo")
-      .upsert(
-        {
-          negocio_id: negocio.id,
-          remitente,
-          asunto,
-          resumen,
-          accion_sugerida: accion,
-          correo_original_id: mensajeRef.id,
-        },
-        { onConflict: "negocio_id,correo_original_id" }
-      );
+      // 5. Guardar (RLS garantiza que solo se guarda bajo el negocio del usuario)
+      const { error: insertError } = await supabase
+        .from("resumenes_correo")
+        .upsert(
+          {
+            negocio_id: negocio.id,
+            remitente,
+            asunto,
+            resumen,
+            accion_sugerida: accion,
+            correo_original_id: mensajeRef.id,
+          },
+          { onConflict: "negocio_id,correo_original_id" },
+        );
 
-    if (!insertError) {
-      resultados.push({ asunto, remitente, resumen, accion });
+      if (!insertError) {
+        resultados.push({ asunto, remitente, resumen, accion });
+      }
+    } catch {
+      fallidos++;
     }
+  }
+
+  if (fallidos > 0 && resultados.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "No se pudieron resumir tus correos. Intenta de nuevo en un momento.",
+      },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json({ procesados: resultados.length, resultados });

@@ -75,6 +75,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          "La IA todavía no está configurada: falta agregar la llave de Anthropic (ANTHROPIC_API_KEY) en Vercel.",
+      },
+      { status: 503 }
+    );
+  }
+
   // 4. Generar resumen + acción sugerida con IA
   let resultado;
   try {
@@ -84,10 +94,14 @@ export async function POST(request: NextRequest) {
       contenido,
     });
   } catch (e) {
-    const mensaje =
-      e instanceof Anthropic.AuthenticationError
-        ? "La clave de Anthropic no es válida. Revisa ANTHROPIC_API_KEY en tu .env.local."
-        : "No se pudo generar el resumen con la IA. Intenta de nuevo.";
+    let mensaje = "No se pudo generar el resumen con la IA. Intenta de nuevo.";
+    if (e instanceof Anthropic.AuthenticationError) {
+      mensaje = "La llave de Anthropic no es válida. Revisa ANTHROPIC_API_KEY en Vercel.";
+    } else if (e instanceof Anthropic.BadRequestError) {
+      mensaje = "La IA rechazó la petición. Revisa que tu cuenta de Anthropic tenga saldo.";
+    } else if (e instanceof Anthropic.RateLimitError) {
+      mensaje = "La IA está saturada en este momento. Espera unos segundos e intenta de nuevo.";
+    }
     return NextResponse.json({ error: mensaje }, { status: 502 });
   }
 

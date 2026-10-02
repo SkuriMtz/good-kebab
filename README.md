@@ -1,12 +1,26 @@
-# Agente de Correo — MVP
+# Atendel
 
-Este es el primer agente de tu app: lee el correo sin leer de Gmail y genera
-un resumen + acción sugerida con IA. Construido con seguridad desde la base:
+Plataforma de agentes de IA para clínicas, consultorios y estéticas. El
+primer agente lee el correo sin leer de Gmail y genera un resumen + acción
+sugerida con IA. Construido con seguridad desde la base:
 
 - **Row Level Security (RLS)** en la base de datos — cada negocio solo ve sus
   propios datos, garantizado por la base de datos misma, no solo por el código.
 - **Security headers** (CSP, HSTS, X-Frame-Options, etc.) en todas las respuestas.
 - **CORS restringido** — solo los dominios que tú apruebes pueden llamar a la API.
+
+## Estructura
+
+| Ruta | Qué es |
+|------|--------|
+| `/` | Página de presentación de Atendel (pública) |
+| `/entrar` | Inicio de sesión con link al correo (o Google, si está activado) |
+| `/panel` | El panel: modo de prueba, Gmail e historial (requiere sesión) |
+
+El diseño sigue `DESIGN.md` (negro puro, violeta para acciones, ámbar para
+resaltar). Los tokens viven en `tailwind.config.ts` y `src/app/globals.css`;
+las constelaciones de partículas en `src/components/particles/`. Todas las
+animaciones respetan la opción del sistema "reducir movimiento".
 
 ## Qué necesitas antes de empezar
 
@@ -63,10 +77,10 @@ Abre http://localhost:3000, conecta tu cuenta de Google, y dale a
 Si todavía no configuras Google Cloud, puedes probar la app igual:
 
 1. Solo necesitas los pasos 2.1, 2.2, 2.4 (Supabase) y el paso 3.
-2. En la pantalla de inicio escribe tu correo y dale a "Enviarme link de
-   acceso". Abre el link **en el mismo navegador**.
-3. Pega un correo (o usa uno de los ejemplos) y dale a "Resumir con IA".
-   El resultado se guarda y aparece en "Historial guardado".
+2. Entra a `/entrar`, escribe tu correo y dale a "Enviarme el link".
+   Abre el link **en el mismo navegador**.
+3. En tu panel, pega un correo (o usa uno de los ejemplos) y dale a
+   "Resumir con IA". El resultado se guarda y aparece en "Historial".
 
 Nota: el servicio de correo gratuito de Supabase manda pocos emails por
 hora. Si el link no llega, espera unos minutos antes de pedir otro.
