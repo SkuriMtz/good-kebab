@@ -15,17 +15,17 @@ export const PERSONAJES: Record<IdAgente, { color: string; rasgo: string; fase: 
  * La personalidad está en cómo se mueve cada uno:
  * - Lola: inquieta y atenta; respira rápido y sus ojos van directo al cursor.
  * - Clara: tranquila; respira despacio y mira con calma.
- * - Víctor: entusiasta; de vez en cuando da un saltito.
- * - Iris: concentrada; a ratos entrecierra los ojos, como pensando.
+ * - Víctor: entusiasta; sigue al cursor con ganas y se inclina más.
+ * - Iris: concentrada; se mueve poco y con calma.
  */
 const TEMPERAMENTO: Record<
   IdAgente,
-  { ritmo: number; amplitud: number; ojos: number; inclina: number; salta: boolean; piensa: boolean }
+  { ritmo: number; amplitud: number; ojos: number; inclina: number }
 > = {
-  lola: { ritmo: 2.1, amplitud: 0.032, ojos: 0.2, inclina: 6, salta: false, piensa: false },
-  clara: { ritmo: 1.15, amplitud: 0.02, ojos: 0.07, inclina: 3, salta: false, piensa: false },
-  victor: { ritmo: 1.6, amplitud: 0.026, ojos: 0.13, inclina: 4, salta: true, piensa: false },
-  iris: { ritmo: 1.0, amplitud: 0.018, ojos: 0.1, inclina: 2.5, salta: false, piensa: true },
+  lola: { ritmo: 2.1, amplitud: 0.032, ojos: 0.2, inclina: 6 },
+  clara: { ritmo: 1.15, amplitud: 0.02, ojos: 0.07, inclina: 3 },
+  victor: { ritmo: 1.6, amplitud: 0.026, ojos: 0.15, inclina: 5 },
+  iris: { ritmo: 1.0, amplitud: 0.018, ojos: 0.1, inclina: 2.5 },
 };
 
 const TINTA = "#1c1b1f";
@@ -150,12 +150,6 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
     let proximoParpadeo = performance.now() + 1200 + Math.random() * 3500;
     let parpadeo = -1; // inicio del parpadeo en curso
     let doble = false;
-    // Saltito (Víctor) y "pensar" (Iris)
-    let proximoSalto = performance.now() + 2500 + Math.random() * 4000;
-    let salto = -1;
-    let proximoPensar = performance.now() + 4000 + Math.random() * 5000;
-    let pensar = -1;
-    let apertura = 1; // qué tan abiertos están los ojos (sin contar el parpadeo)
 
     const cuadro = (ahora: number) => {
       raf = requestAnimationFrame(cuadro);
@@ -204,40 +198,14 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
 
       // Respira (cada uno a su ritmo) y se inclina hacia donde mira
       const resp = Math.sin(t * temp.ritmo + fase);
-      let sy = 1 + temp.amplitud * resp;
-      let sx = 1 - temp.amplitud * 0.65 * resp;
-      let alto = 0;
-      if (temp.salta) {
-        if (salto < 0 && ahora > proximoSalto) salto = ahora;
-        if (salto >= 0) {
-          const k = (ahora - salto) / 720;
-          if (k >= 1) {
-            salto = -1;
-            proximoSalto = ahora + 4500 + Math.random() * 5000;
-          } else if (k < 0.18) {
-            const q = Math.sin((k / 0.18) * Math.PI); // se agacha
-            sy -= 0.08 * q;
-            sx += 0.06 * q;
-          } else if (k < 0.78) {
-            const q = (k - 0.18) / 0.6; // sube y baja
-            alto = Math.sin(q * Math.PI) * 14;
-            sy += 0.05 * Math.sin(q * Math.PI);
-            sx -= 0.035 * Math.sin(q * Math.PI);
-          } else {
-            const q = Math.sin(((k - 0.78) / 0.22) * Math.PI); // aterriza
-            sy -= 0.06 * q;
-            sx += 0.045 * q;
-          }
-        }
-      }
+      const sy = 1 + temp.amplitud * resp;
+      const sx = 1 - temp.amplitud * 0.65 * resp;
       const giro = cara.x * temp.inclina;
       cuerpoRef.current?.setAttribute(
         "transform",
-        `translate(0 ${(-alto).toFixed(2)}) rotate(${giro.toFixed(2)} ${CX} 172) translate(${CX} 172) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-CX} -172)`,
+        `rotate(${giro.toFixed(2)} ${CX} 172) translate(${CX} 172) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-CX} -172)`,
       );
-      const sombra = 1 - alto / 40;
-      sombraRef.current?.setAttribute("rx", (46 * (1 + 0.04 * -resp) * sombra).toFixed(2));
-      sombraRef.current?.setAttribute("opacity", sombra.toFixed(3));
+      sombraRef.current?.setAttribute("rx", (46 * (1 + 0.04 * -resp)).toFixed(2));
       formaRef.current?.setAttribute("d", contorno(t, fase));
 
       // Parpadeo natural: rápido, a veces doble
@@ -257,18 +225,9 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
           proximoParpadeo = ahora + 2200 + Math.random() * 4200;
         }
       }
-      if (temp.piensa) {
-        if (pensar < 0 && ahora > proximoPensar) pensar = ahora;
-        const meta = pensar >= 0 && ahora - pensar < 1400 ? 0.55 : 1;
-        if (pensar >= 0 && ahora - pensar >= 1400) {
-          pensar = -1;
-          proximoPensar = ahora + 6000 + Math.random() * 6000;
-        }
-        apertura += (meta - apertura) * 0.1;
-      }
       parpadosRef.current?.setAttribute(
         "transform",
-        `translate(0 ${OJO_Y}) scale(1 ${(abierto * apertura).toFixed(3)}) translate(0 ${-OJO_Y})`,
+        `translate(0 ${OJO_Y}) scale(1 ${abierto.toFixed(3)}) translate(0 ${-OJO_Y})`,
       );
     };
 
