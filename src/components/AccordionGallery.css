@@ -182,10 +182,17 @@
   bottom: 22px;
 }
 
+/* En columna (celular): el personaje va a la derecha y el texto a la izquierda */
+.accordion-gallery--vertical .ag-panel__media {
+  justify-content: flex-end;
+  padding-right: 5%;
+}
 .accordion-gallery--vertical .ag-panel__media > svg {
-  width: auto;
-  height: 62%;
-  margin-bottom: 30%;
+  width: 40%;
+  height: auto;
+}
+.accordion-gallery--vertical .ag-panel__text {
+  max-width: 58%;
 }
 
 @media (prefers-reduced-motion: reduce) {
