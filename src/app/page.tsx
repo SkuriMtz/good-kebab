@@ -4,6 +4,7 @@ import { ChatDemo } from "@/components/ChatDemo";
 import { Encargos } from "@/components/encargos/Encargos";
 import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
+import { MenuLateral } from "@/components/MenuLateral";
 import { MobileCta } from "@/components/MobileCta";
 import { Nav } from "@/components/Nav";
 import { ParticleShape } from "@/components/particles/ParticleShape";
@@ -78,6 +79,7 @@ export default function Inicio() {
       <Nav
         items={SECCIONES}
         reparto={REPARTO}
+        menuLateral
         desktopRight={
           <Link href="/entrar" className="btn-ghost !text-bone">
             <Roll>Entrar</Roll>
@@ -296,6 +298,7 @@ export default function Inicio() {
       </main>
 
       <Footer />
+      <MenuLateral />
       <MobileCta ocultarEn={["agentes", "chat", "empezar"]} />
     </>
   );

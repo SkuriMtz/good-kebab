@@ -1035,3 +1035,103 @@ html.js [data-split][data-in] .split-inner {
     }
   }
 }
+
+/* ---------- Menú lateral (computadora) ----------
+   Una pestaña en el borde izquierdo avisa que ahí hay un menú; al acercar
+   el cursor al borde se desliza el panel con el menú de ramas. */
+@layer components {
+  .menu-lateral__borde {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 35;
+    width: 14px;
+  }
+  .menu-lateral__pestana {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    z-index: 36;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 7px 12px;
+    background: var(--color-shale);
+    border: 1px solid var(--hairline);
+    border-left: 0;
+    color: var(--color-bone-white);
+    font-family: var(--font-cond);
+    font-size: 0.9375rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: translate(0, -50%);
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      opacity 0.3s var(--ease-out),
+      transform 0.45s var(--ease-out),
+      background-color 0.2s ease;
+  }
+  .menu-lateral__pestana:hover {
+    background: #1a1a1a;
+  }
+  .menu-lateral__pestana[data-oculta] {
+    opacity: 0;
+    transform: translate(-100%, -50%);
+  }
+  .menu-lateral__pestana svg {
+    animation: menu-lateral-asoma 4s var(--ease-out) 1.5s infinite;
+  }
+  .menu-lateral__texto {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  .menu-lateral__panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    padding: 28px 28px 32px 32px;
+    overflow-y: auto;
+    background: var(--color-void);
+    border-right: 1px solid var(--hairline);
+    box-shadow: 24px 0 60px rgba(0, 0, 0, 0.6);
+    visibility: hidden;
+    transform: translateX(-101%);
+    transition:
+      transform 0.45s var(--ease-out),
+      visibility 0s linear 0.45s;
+  }
+  .menu-lateral__panel[data-open] {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 0.45s var(--ease-out),
+      visibility 0s;
+  }
+  @keyframes menu-lateral-asoma {
+    0%,
+    80%,
+    100% {
+      transform: translateX(0);
+    }
+    88% {
+      transform: translateX(3px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu-lateral__pestana svg {
+      animation: none;
+    }
+    .menu-lateral__panel,
+    .menu-lateral__panel[data-open] {
+      transition: none;
+    }
+  }
+}

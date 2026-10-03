@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Arrow, TriSpinner } from "../Buttons";
+import { EVENTO_AGENTE_ACTIVO, EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
 import { GALERIA, type AgenteGaleria, type Tarea } from "./datos";
 import { Entrega } from "./Entrega";
 
@@ -189,6 +190,20 @@ export function Encargos() {
     elegidoPorToque.current = true;
     setActivo(i);
   };
+
+  // El menú lateral puede pedir un agente; y le avisamos cuál está abierto
+  useEffect(() => {
+    const alPedir = (e: Event) => {
+      const i = GALERIA.findIndex((a) => a.id === (e as CustomEvent).detail);
+      if (i >= 0) setActivo(i);
+    };
+    window.addEventListener(EVENTO_ELEGIR_AGENTE, alPedir);
+    return () => window.removeEventListener(EVENTO_ELEGIR_AGENTE, alPedir);
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(EVENTO_AGENTE_ACTIVO, { detail: GALERIA[activo].id }));
+  }, [activo]);
 
   // En celular, la ventana se abre debajo del agente: lo llevamos a la vista
   useEffect(() => {

@@ -23,6 +23,8 @@ type Props = {
   mobileBottom?: ReactNode;
   /** Los agentes, como el reparto de una película (dentro del menú). */
   reparto?: { nombre: string; papel: string; href: string }[];
+  /** En computadora el menú va de lado (MenuLateral): el botón "Menú" solo en celular. */
+  menuLateral?: boolean;
 };
 
 /**
@@ -31,7 +33,7 @@ type Props = {
  * - Se esconde al bajar y reaparece al subir.
  * - En celular, un menú de pantalla completa que se abre como un círculo.
  */
-export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto }: Props) {
+export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [oculta, setOculta] = useState(false);
   const [conFondo, setConFondo] = useState(false);
@@ -166,7 +168,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
             ) : null}
           </p>
           {desktopRight ? (
-            <div className="nav-hide pointer-events-auto hidden items-center gap-5 justify-self-end pr-[112px] md:flex">{desktopRight}</div>
+            <div className={`nav-hide pointer-events-auto hidden items-center gap-5 justify-self-end pr-[112px] md:flex ${menuLateral ? "lg:pr-0" : ""}`}>{desktopRight}</div>
           ) : (
             <span />
           )}
@@ -176,7 +178,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
       <button
         ref={botonRef}
         type="button"
-        className="menu-trigger"
+        className={`menu-trigger ${menuLateral ? "lg:hidden" : ""}`}
         data-hidden={oculta && !abierto ? "true" : "false"}
         aria-expanded={abierto}
         aria-controls="menu-movil"
