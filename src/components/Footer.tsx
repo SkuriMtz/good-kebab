@@ -14,7 +14,7 @@ const CUENTA = [
 /** Pie como créditos finales: línea fina, columnas y el nombre gigante al final. */
 export function Footer() {
   return (
-    <footer className="mt-[160px] overflow-hidden pb-24 lg:mt-[260px]">
+    <footer className="mt-[160px] overflow-hidden lg:mt-[260px]">
       <div className="mx-auto max-w-page px-6 sm:px-10 lg:px-16">
         <div className="border-t hairline pt-14">
           <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr]">

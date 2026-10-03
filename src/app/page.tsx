@@ -4,8 +4,8 @@ import { ChatDemo } from "@/components/ChatDemo";
 import { AgentesGaleria } from "@/components/agentes/AgentesGaleria";
 import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
+import { MenuLateral } from "@/components/MenuLateral";
 import { Nav } from "@/components/Nav";
-import { NavDock } from "@/components/NavDock";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import { WordmarkHero } from "@/components/particles/WordmarkHero";
 import { Planes } from "@/components/Planes";
@@ -78,7 +78,7 @@ export default function Inicio() {
       <Nav
         items={SECCIONES}
         reparto={REPARTO}
-        sinMenu
+        menuLateral
         desktopRight={
           <Link href="/entrar" className="btn-ghost !text-bone">
             <Roll>Entrar</Roll>
@@ -96,7 +96,7 @@ export default function Inicio() {
         {/* ---------- Portada: la palabra hecha de fragmentos ---------- */}
         <section data-capitulo="Atendel" className="relative overflow-hidden">
           <WordmarkHero texto="atendel">
-            <div className="tras-titulo relative z-10 mx-auto w-full max-w-page px-6 pb-[104px] sm:px-10 lg:px-16 lg:pb-[120px]">
+            <div className="tras-titulo relative z-10 mx-auto w-full max-w-page px-6 pb-10 sm:px-10 lg:px-16 lg:pb-14">
               <div className="grid gap-7 border-t hairline pt-7 md:grid-cols-12 md:items-end md:gap-10">
                 <p className="font-cond text-base uppercase leading-[0.95] tracking-[0.03em] text-ash md:col-span-3">
                   Para clínicas, consultorios
@@ -298,7 +298,7 @@ export default function Inicio() {
       </main>
 
       <Footer />
-      <NavDock />
+      <MenuLateral />
     </>
   );
 }

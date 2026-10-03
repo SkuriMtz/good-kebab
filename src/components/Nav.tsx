@@ -10,12 +10,13 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { BotonTema } from "./BotonTema";
 import { Logo } from "./Logo";
 
 export type NavItem = { href: string; label: string };
 
 type Props = {
-  items?: NavItem[];
+  items: NavItem[];
   homeHref?: string;
   /** Lo que va a la derecha en computadora (ej. el botón "Entrar"). */
   desktopRight?: ReactNode;
@@ -23,8 +24,8 @@ type Props = {
   mobileBottom?: ReactNode;
   /** Los agentes, como el reparto de una película (dentro del menú). */
   reparto?: { nombre: string; papel: string; href: string }[];
-  /** Sin el botón "Menú" ni su telón: la navegación va en el dock (NavDock). */
-  sinMenu?: boolean;
+  /** En computadora el menú va de lado (MenuLateral): el botón "Menú" solo en celular. */
+  menuLateral?: boolean;
 };
 
 /**
@@ -33,7 +34,7 @@ type Props = {
  * - Se esconde al bajar y reaparece al subir.
  * - En celular, un menú de pantalla completa que se abre como un círculo.
  */
-export function Nav({ items = [], homeHref = "/", desktopRight, mobileBottom, reparto, sinMenu }: Props) {
+export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [oculta, setOculta] = useState(false);
   const [conFondo, setConFondo] = useState(false);
@@ -167,97 +168,94 @@ export function Nav({ items = [], homeHref = "/", desktopRight, mobileBottom, re
               </>
             ) : null}
           </p>
-          {desktopRight ? (
-            <div className={`nav-hide pointer-events-auto hidden items-center gap-5 justify-self-end md:flex ${sinMenu ? "" : "pr-[112px]"}`}>{desktopRight}</div>
-          ) : (
-            <span />
-          )}
+          <div
+            className={`nav-hide pointer-events-auto col-start-3 flex items-center gap-5 justify-self-end pr-[104px] ${menuLateral ? "lg:pr-0" : ""}`}
+          >
+            <BotonTema />
+            {desktopRight ? <div className="hidden items-center gap-5 md:flex">{desktopRight}</div> : null}
+          </div>
         </div>
       </header>
 
-      {sinMenu ? null : (
-        <>
-          <button
-            ref={botonRef}
-            type="button"
-            className="menu-trigger"
-            data-hidden={oculta && !abierto ? "true" : "false"}
-            aria-expanded={abierto}
-            aria-controls="menu-movil"
-            onClick={alternar}
-          >
-            <span className="menu-trigger__plus" aria-hidden="true">
-              +
-            </span>
-            <span className="roll">
-              <span className="roll__a">{abierto ? "Cerrar" : "Menú"}</span>
-              <span className="roll__b" aria-hidden="true">
-                {abierto ? "Cerrar" : "Menú"}
-              </span>
-            </span>
-          </button>
+      <button
+        ref={botonRef}
+        type="button"
+        className={`menu-trigger ${menuLateral ? "lg:hidden" : ""}`}
+        data-hidden={oculta && !abierto ? "true" : "false"}
+        aria-expanded={abierto}
+        aria-controls="menu-movil"
+        onClick={alternar}
+      >
+        <span className="menu-trigger__plus" aria-hidden="true">
+          +
+        </span>
+        <span className="roll">
+          <span className="roll__a">{abierto ? "Cerrar" : "Menú"}</span>
+          <span className="roll__b" aria-hidden="true">
+            {abierto ? "Cerrar" : "Menú"}
+          </span>
+        </span>
+      </button>
 
-          <div
-            id="menu-movil"
-            ref={menuRef}
-            className="menu"
-            data-open={abierto ? "true" : "false"}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú"
-            aria-hidden={!abierto}
-          >
-            <div className="mx-auto flex h-full max-w-page flex-col px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[92px] lg:px-10 lg:pb-8 lg:pt-[110px]">
-              <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-10 overflow-y-auto lg:grid-cols-12 lg:content-end lg:gap-8">
-                <nav className="lg:col-span-8" aria-label="Secciones">
-                  <p className="menu__label">Índice</p>
-                  <ul className="menu__lista mt-3">
-                    {items.map((item, i) => (
-                      <li key={item.href} style={{ "--i": i } as CSSProperties}>
-                        <Link
-                          href={item.href}
-                          className="menu-link"
-                          tabIndex={abierto ? 0 : -1}
-                          onClick={(e) => alElegir(e, item.href)}
-                        >
-                          <span className="menu-link__n">{dos(i + 1)}</span>
-                          <span className="menu-link__mask">
-                            <span className="menu-link__text">{item.label}</span>
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-                {reparto?.length ? (
-                  <div className="menu__reparto lg:col-span-4" style={{ "--i": items.length } as CSSProperties}>
-                    <p className="menu__label">Reparto</p>
-                    <ul className="mt-3 grid grid-cols-2 gap-x-6 lg:grid-cols-1">
-                      {reparto.map((r) => (
-                        <li key={r.nombre}>
-                          <Link
-                            href={r.href}
-                            className="reparto-link"
-                            tabIndex={abierto ? 0 : -1}
-                            onClick={(e) => alElegir(e, r.href)}
-                          >
-                            <span className="reparto-link__nombre">{r.nombre}</span>
-                            <span className="reparto-link__papel">como {r.papel}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
+      <div
+        id="menu-movil"
+        ref={menuRef}
+        className="menu"
+        data-open={abierto ? "true" : "false"}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú"
+        aria-hidden={!abierto}
+      >
+        <div className="mx-auto flex h-full max-w-page flex-col px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[92px] lg:px-10 lg:pb-8 lg:pt-[110px]">
+          <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-10 overflow-y-auto lg:grid-cols-12 lg:content-end lg:gap-8">
+            <nav className="lg:col-span-8" aria-label="Secciones">
+              <p className="menu__label">Índice</p>
+              <ul className="menu__lista mt-3">
+                {items.map((item, i) => (
+                  <li key={item.href} style={{ "--i": i } as CSSProperties}>
+                    <Link
+                      href={item.href}
+                      className="menu-link"
+                      tabIndex={abierto ? 0 : -1}
+                      onClick={(e) => alElegir(e, item.href)}
+                    >
+                      <span className="menu-link__n">{dos(i + 1)}</span>
+                      <span className="menu-link__mask">
+                        <span className="menu-link__text">{item.label}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {reparto?.length ? (
+              <div className="menu__reparto lg:col-span-4" style={{ "--i": items.length } as CSSProperties}>
+                <p className="menu__label">Reparto</p>
+                <ul className="mt-3 grid grid-cols-2 gap-x-6 lg:grid-cols-1">
+                  {reparto.map((r) => (
+                    <li key={r.nombre}>
+                      <Link
+                        href={r.href}
+                        className="reparto-link"
+                        tabIndex={abierto ? 0 : -1}
+                        onClick={(e) => alElegir(e, r.href)}
+                      >
+                        <span className="reparto-link__nombre">{r.nombre}</span>
+                        <span className="reparto-link__papel">como {r.papel}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="menu__pie mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-5 border-t hairline pt-5">
-                {mobileBottom ?? desktopRight}
-                <Reloj />
-              </div>
-            </div>
+            ) : null}
           </div>
-        </>
-      )}
+          <div className="menu__pie mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-5 border-t hairline pt-5">
+            {mobileBottom ?? desktopRight}
+            <Reloj />
+          </div>
+        </div>
+      </div>
     </>
   );
 }
