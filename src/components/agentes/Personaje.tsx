@@ -120,7 +120,16 @@ function tono(hex: string, k: number) {
  *   respiran con él, y los lentes usan las mismas medidas que los ojos.
  * Con "reducir movimiento" se queda quieto y mirando al frente.
  */
-export function Personaje({ agente, className = "" }: { agente: IdAgente; className?: string }) {
+export function Personaje({
+  agente,
+  className = "",
+  avatar = false,
+}: {
+  agente: IdAgente;
+  className?: string;
+  /** Recortado al cuerpo y sin sombra, para usarlo chiquito (chat, menús). */
+  avatar?: boolean;
+}) {
   const { color, fase } = PERSONAJES[agente];
   const temp = TEMPERAMENTO[agente];
   const id = useId().replace(/:/g, "");
@@ -246,7 +255,7 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
   const g = (n: string) => `${n}-${id}`;
 
   return (
-    <svg ref={svgRef} viewBox="0 0 200 210" className={className} aria-hidden="true" focusable="false">
+    <svg ref={svgRef} viewBox={avatar ? "28 26 144 154" : "0 0 200 210"} className={className} aria-hidden="true" focusable="false">
       <defs>
         {/* Un solo color con un degradado apenas perceptible para dar volumen */}
         <linearGradient id={g("cuerpo")} x1="0" y1="0" x2="0" y2="1">
@@ -265,7 +274,7 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
       </defs>
 
       {/* Sombra en el piso (respira al revés que el cuerpo) */}
-      <ellipse ref={sombraRef} cx={CX} cy="177" rx="46" ry="7" fill={`url(#${g("sombra")})`} />
+      {avatar ? null : <ellipse ref={sombraRef} cx={CX} cy="177" rx="46" ry="7" fill={`url(#${g("sombra")})`} />}
 
       {/* Todo el personaje: cuerpo, cara y accesorios en el mismo grupo */}
       <g ref={cuerpoRef}>
