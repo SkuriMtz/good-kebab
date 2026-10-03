@@ -577,108 +577,6 @@
     scale: 0.96;
   }
 
-  /* ---------- Índice de agentes ---------- */
-  .agente {
-    display: flex;
-    width: 100%;
-    align-items: flex-start;
-    gap: 18px;
-    padding: 14px 0 15px;
-    text-align: left;
-    color: var(--color-ash-gray);
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.4s var(--ease-out);
-  }
-  .agente:hover {
-    color: var(--color-silver-mist);
-  }
-  .agente[data-active="true"] {
-    color: var(--color-bone-white);
-  }
-  .agente__n {
-    min-width: 2ch;
-    font-family: var(--font-cond);
-    font-size: 1rem;
-    line-height: 2;
-    letter-spacing: 0.03em;
-  }
-  .agente__nombre {
-    display: block;
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 300;
-    font-variation-settings: "opsz" 144;
-    font-size: clamp(1.625rem, 2.4vw, 2.25rem);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    transition: transform 0.7s var(--ease-out);
-  }
-  .agente[data-active="true"] .agente__nombre {
-    transform: translateX(8px);
-  }
-  .agente__desc {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.9375rem;
-    line-height: 1.4;
-    color: var(--color-ash-gray);
-    transition: color 0.4s var(--ease-out);
-  }
-  .agente[data-active="true"] .agente__desc {
-    color: var(--color-silver-mist);
-  }
-  /* Raya roja que marca al agente elegido */
-  .agente[data-active="true"] .agente__n {
-    color: var(--color-signal);
-  }
-
-  /* ---------- Ventana donde trabaja el agente ---------- */
-  .ventana {
-    animation: swap-in 0.6s var(--ease-out) both;
-  }
-  .caret {
-    display: inline-block;
-    width: 1px;
-    height: 0.95em;
-    margin-left: 2px;
-    vertical-align: -0.1em;
-    background: currentColor;
-    animation: caret 1s steps(1) infinite;
-  }
-  html.js .por-escribir {
-    color: transparent;
-  }
-  .paso {
-    transition:
-      opacity 0.45s var(--ease-out),
-      color 0.45s var(--ease-out);
-  }
-  html.js .paso[data-estado="pendiente"] {
-    opacity: 0;
-  }
-  .paso[data-estado="haciendo"] {
-    color: var(--color-bone-white);
-  }
-  html.js .entrega {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-      opacity 0.7s var(--ease-out),
-      transform 0.9s var(--ease-out);
-  }
-  html.js .entrega[data-on] {
-    opacity: 1;
-    transform: none;
-  }
-  html.js .entrega .barra {
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform 1.1s var(--ease-out) 0.25s;
-  }
-  html.js .entrega[data-on] .barra {
-    transform: none;
-  }
-
   /* ---------- Preguntas ---------- */
   .pregunta {
     display: flex;
@@ -966,52 +864,8 @@ html.js [data-split][data-in] .split-inner {
   }
 }
 
-/* ---------- Galería de agentes y demo del chat ---------- */
+/* ---------- Demo del chat ---------- */
 @layer components {
-  .agente__nombre--grande {
-    font-size: clamp(2.25rem, 3.6vw, 3.5rem);
-    line-height: 0.95;
-  }
-  .agente__caps {
-    display: block;
-    margin-top: 8px;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: var(--color-ash-gray);
-  }
-  .tarea-tab {
-    position: relative;
-    flex-shrink: 0;
-    padding: 14px 0 13px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    color: var(--color-ash-gray);
-    transition: color 0.3s var(--ease-out);
-  }
-  .tarea-tab::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 1px;
-    background: var(--color-bone-white);
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform 0.5s var(--ease-out);
-  }
-  .tarea-tab:hover {
-    color: var(--color-silver-mist);
-  }
-  .tarea-tab[aria-selected="true"] {
-    color: var(--color-bone-white);
-  }
-  .tarea-tab[aria-selected="true"]::after {
-    transform: scaleX(1);
-  }
   .demo-agente {
     display: flex;
     min-height: 56px;
@@ -1090,5 +944,91 @@ html.js [data-split][data-in] .split-inner {
     display: flex;
     justify-content: center;
     pointer-events: none;
+  }
+}
+
+/* ---------- Ficha de un agente (modal) ---------- */
+@layer components {
+  /* El <dialog> ocupa toda la pantalla y se desplaza; la caja va centrada */
+  .agente-modal {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-bone-white);
+    overscroll-behavior: contain;
+  }
+  .agente-modal[open] {
+    display: block;
+    overflow-y: auto;
+  }
+  .agente-modal::backdrop {
+    background: rgb(var(--c-void) / 0.72);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .agente-modal__caja {
+    position: relative;
+    min-height: 100%;
+    padding: 24px 24px 56px;
+    background: var(--color-void);
+    animation: modal-in 0.5s var(--ease-out) both;
+  }
+  @media (min-width: 640px) {
+    .agente-modal__caja {
+      width: min(1080px, calc(100% - 48px));
+      min-height: 0;
+      margin: 6vh auto;
+      padding: 40px 56px 64px;
+      border: 1px solid var(--hairline);
+      box-shadow: 0 40px 120px -40px rgb(0 0 0 / 0.6);
+    }
+  }
+  @media (min-width: 1024px) {
+    .agente-modal__caja {
+      padding: 56px 72px 80px;
+    }
+  }
+  /* El botón de cerrar se queda a la vista aunque bajes */
+  .agente-modal__cerrar {
+    position: sticky;
+    top: 16px;
+    z-index: 2;
+    float: right;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    margin: 0 -4px 0 16px;
+    place-items: center;
+    border: 1px solid var(--hairline);
+    background: var(--color-void);
+    color: var(--color-bone-white);
+    transition: border-color 0.3s var(--ease-out);
+  }
+  .agente-modal__cerrar:hover {
+    border-color: var(--color-bone-white);
+  }
+  .agente-modal__titulo {
+    font-family: var(--font-cond);
+    font-size: 1.0625rem;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ash-gray);
+  }
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .agente-modal__caja {
+      animation: none;
+    }
   }
 }

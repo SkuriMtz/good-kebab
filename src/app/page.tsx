@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PillLink, Roll } from "@/components/Buttons";
 import { ChatDemo } from "@/components/ChatDemo";
-import { Encargos } from "@/components/encargos/Encargos";
+import { AgentesGaleria } from "@/components/agentes/AgentesGaleria";
 import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
@@ -157,24 +157,25 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* ---------- Los 4 agentes, trabajando ---------- */}
+        {/* ---------- Los 4 agentes: acordeón con sus personajes ---------- */}
         <section
           id="agentes"
           data-capitulo="Agentes"
           className="seccion"
         >
-          <Claqueta izquierda="4 agentes" derecha="Ejemplos con datos ficticios" />
+          <Claqueta izquierda="4 agentes" derecha="Conócelos" />
           <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
               ¿Qué le encargas hoy?
             </Reveal>
             <Reveal as="p" delay={120} className="max-w-[400px] text-body text-silver lg:col-span-4 lg:pb-3">
-              Elige un agente y mira cómo resuelve sus tareas de todos los días.
+              Pasa el cursor por cada uno para conocerlo. Haz clic para ver todo lo que hace, una conversación de
+              ejemplo y en qué plan está.
             </Reveal>
           </div>
-          <div className="relative mt-16 lg:mt-24">
-            <p className="firma pointer-events-none absolute -top-11 left-[min(30%,240px)] hidden -rotate-3 lg:block" aria-hidden="true">
-              toca uno
+          <div className="relative mt-20 lg:mt-28">
+            <p className="firma pointer-events-none absolute -top-12 right-[8%] hidden rotate-3 lg:block" aria-hidden="true">
+              haz clic
               <svg className="ml-1 inline-block h-8 w-9 align-top" viewBox="0 0 36 32" fill="none">
                 <path
                   d="M2 6c9-4 19-2 24 6 2.5 4 3 9 2.2 15M24 22.5l4.4 5.5 4.6-5.2"
@@ -185,7 +186,7 @@ export default function Inicio() {
                 />
               </svg>
             </p>
-            <Encargos />
+            <AgentesGaleria />
           </div>
         </section>
 
