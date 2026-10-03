@@ -121,6 +121,7 @@ export function NavDock() {
       <Dock
         items={items}
         ariaLabel="Navegación del sitio"
+        fragmentos
         panelHeight={celular ? 58 : 64}
         baseItemSize={celular ? 42 : 46}
         magnification={celular ? 42 : 66}

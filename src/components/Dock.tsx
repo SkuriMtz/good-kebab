@@ -10,6 +10,7 @@ import {
   type SpringOptions,
 } from "motion/react";
 import { Children, cloneElement, isValidElement, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from "react";
+import { DockFragmentos } from "./DockFragmentos";
 import "./Dock.css";
 
 export type DockItemData = {
@@ -133,6 +134,8 @@ type DockProps = {
   baseItemSize?: number;
   /** Nombre del grupo para lectores de pantalla. */
   ariaLabel?: string;
+  /** Agregado para Atendel: bordes de fragmentos que se juntan al acercar el cursor. */
+  fragmentos?: boolean;
 };
 
 /**
@@ -150,7 +153,9 @@ export default function Dock({
   dockHeight = 256,
   baseItemSize = 50,
   ariaLabel = "Navegación",
+  fragmentos = false,
 }: DockProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(Infinity);
   const isHovered = useMotionValue(0);
 
@@ -161,6 +166,8 @@ export default function Dock({
   return (
     <motion.div style={{ height, scrollbarWidth: "none" }} className="dock-outer">
       <motion.div
+        ref={panelRef}
+        data-fragmentos={fragmentos ? "" : undefined}
         onMouseMove={({ clientX }) => {
           isHovered.set(1);
           mouseX.set(clientX);
@@ -192,6 +199,7 @@ export default function Dock({
           </DockItem>
         ))}
       </motion.div>
+      {fragmentos ? <DockFragmentos panelRef={panelRef} /> : null}
     </motion.div>
   );
 }

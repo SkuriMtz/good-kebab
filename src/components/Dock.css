@@ -90,3 +90,37 @@
   transform: translateX(-50%);
   pointer-events: none;
 }
+
+/*
+ * Modo fragmentos: los bordes los dibujan triángulos en un canvas
+ * (DockFragmentos). --unido va de 0 (sueltos) a 1 (juntos); el fondo y
+ * los íconos aparecen al mismo ritmo.
+ */
+.dock-fragmentos {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dock-panel[data-fragmentos] {
+  --unido: 0;
+  border-color: transparent;
+  background-color: rgb(var(--c-shale) / calc(0.92 * var(--unido)));
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / calc(0.45 * var(--unido)));
+  -webkit-backdrop-filter: blur(calc(14px * var(--unido)));
+  backdrop-filter: blur(calc(14px * var(--unido)));
+}
+
+.dock-panel[data-fragmentos] .dock-item {
+  border-color: transparent;
+  background-color: rgb(var(--c-void) / var(--unido));
+  box-shadow: none;
+}
+
+.dock-panel[data-fragmentos] .dock-icon {
+  opacity: calc(0.5 + 0.5 * var(--unido));
+}
