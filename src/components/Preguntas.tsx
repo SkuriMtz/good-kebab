@@ -32,7 +32,7 @@ export function Preguntas({ preguntas }: { preguntas: Pregunta[] }) {
             </h3>
             <div id={id} className="respuesta" data-open={abierto ? "true" : "false"} role="region" aria-label={q.p}>
               <div className="overflow-hidden">
-                <p className="max-w-[620px] pb-7 text-body text-silver">{q.r}</p>
+                <p className="max-w-[620px] pb-9 text-body text-silver">{q.r}</p>
               </div>
             </div>
           </li>

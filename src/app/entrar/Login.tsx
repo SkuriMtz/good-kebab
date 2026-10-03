@@ -3,19 +3,14 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Arrow, Roll, TriSpinner } from "@/components/Buttons";
 import { Nav } from "@/components/Nav";
+import { NavDock } from "@/components/NavDock";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import { Reveal, SplitText } from "@/components/Reveal";
 import { Field } from "@/components/ui/Field";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { createClient } from "@/lib/supabase/client";
 
-const SECCIONES = [
-  { href: "/#que-es", label: "Qué es" },
-  { href: "/#agentes", label: "Agentes" },
-  { href: "/#planes", label: "Planes" },
-  { href: "/#preguntas", label: "Preguntas" },
-];
-const COLORES = ["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"];
+const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;
@@ -69,8 +64,8 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
 
   return (
     <>
-      <Nav items={SECCIONES} />
-      <main className="mx-auto grid min-h-[100svh] max-w-page grid-cols-1 items-center gap-12 px-6 pb-16 pt-[128px] lg:grid-cols-2 lg:gap-20 lg:px-10 lg:pt-[72px]">
+      <Nav sinMenu />
+      <main className="mx-auto grid min-h-[100svh] max-w-page grid-cols-1 items-center gap-14 px-6 pb-32 pt-[136px] sm:px-10 lg:grid-cols-2 lg:gap-24 lg:px-16 lg:pt-[72px]">
         <div aria-live="polite">
           {estado !== "enviado" ? (
             <div key="formulario">
@@ -158,6 +153,7 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
           />
         </div>
       </main>
+      <NavDock />
     </>
   );
 }

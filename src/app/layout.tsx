@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SCRIPT_TEMA } from "@/lib/tema";
 
 // Tipografías (todas servidas desde nuestro propio dominio; la política de
 // seguridad no permite cargar fuentes de otros sitios):
@@ -49,8 +50,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f5f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+  colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -62,8 +66,8 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${sans.variable} ${serif.variable} ${cond.variable} ${hand.variable}`} suppressHydrationWarning>
       <head>
-        {/* Activa las animaciones de entrada solo si hay JavaScript */}
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+        {/* Activa las animaciones de entrada (solo con JavaScript) y pone el modo claro u oscuro antes de pintar */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
       <body className="font-sans">{children}</body>
     </html>

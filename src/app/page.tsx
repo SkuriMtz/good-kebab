@@ -4,9 +4,8 @@ import { ChatDemo } from "@/components/ChatDemo";
 import { Encargos } from "@/components/encargos/Encargos";
 import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
-import { MenuLateral } from "@/components/MenuLateral";
-import { MobileCta } from "@/components/MobileCta";
 import { Nav } from "@/components/Nav";
+import { NavDock } from "@/components/NavDock";
 import { ParticleShape } from "@/components/particles/ParticleShape";
 import { WordmarkHero } from "@/components/particles/WordmarkHero";
 import { Planes } from "@/components/Planes";
@@ -79,7 +78,7 @@ export default function Inicio() {
       <Nav
         items={SECCIONES}
         reparto={REPARTO}
-        menuLateral
+        sinMenu
         desktopRight={
           <Link href="/entrar" className="btn-ghost !text-bone">
             <Roll>Entrar</Roll>
@@ -97,8 +96,8 @@ export default function Inicio() {
         {/* ---------- Portada: la palabra hecha de fragmentos ---------- */}
         <section data-capitulo="Atendel" className="relative overflow-hidden">
           <WordmarkHero texto="atendel">
-            <div className="tras-titulo relative z-10 mx-auto w-full max-w-page px-6 pb-7 lg:px-10 lg:pb-10">
-              <div className="grid gap-5 border-t hairline pt-5 md:grid-cols-12 md:items-end md:gap-8">
+            <div className="tras-titulo relative z-10 mx-auto w-full max-w-page px-6 pb-[104px] sm:px-10 lg:px-16 lg:pb-[120px]">
+              <div className="grid gap-7 border-t hairline pt-7 md:grid-cols-12 md:items-end md:gap-10">
                 <p className="font-cond text-base uppercase leading-[0.95] tracking-[0.03em] text-ash md:col-span-3">
                   Para clínicas, consultorios
                   <br />y estéticas
@@ -122,10 +121,10 @@ export default function Inicio() {
         <section
           id="que-es"
           data-capitulo="Qué es"
-          className="mx-auto max-w-page px-6 pt-[88px] lg:px-10 lg:pt-[140px]"
+          className="seccion seccion--primera"
         >
           <Claqueta izquierda="Qué es Atendel" derecha="En 30 segundos" />
-          <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:gap-8">
+          <div className="mt-12 grid gap-10 lg:mt-20 lg:grid-cols-12 lg:gap-10">
             <Reveal as="h2" className="editorial text-heading lg:col-span-8">
               Un equipo de cuatro agentes de inteligencia artificial que trabaja para tu clínica.
             </Reveal>
@@ -135,7 +134,7 @@ export default function Inicio() {
             </Reveal>
           </div>
 
-          <div className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
+          <div className="mt-20 grid gap-8 lg:mt-32 lg:grid-cols-12 lg:gap-10">
             <p className="font-cond text-base uppercase tracking-[0.03em] text-ash lg:col-span-3">Cómo funciona</p>
             <ol className="border-b hairline lg:col-span-9">
               {PASOS.map(([titulo, texto], i) => (
@@ -143,7 +142,7 @@ export default function Inicio() {
                   as="li"
                   key={titulo}
                   delay={i * 80}
-                  className="grid grid-cols-[36px_minmax(0,1fr)] gap-x-4 gap-y-1 border-t hairline py-5 md:grid-cols-[48px_minmax(0,5fr)_minmax(0,6fr)] md:items-baseline md:gap-x-8"
+                  className="grid grid-cols-[36px_minmax(0,1fr)] gap-x-4 gap-y-2 border-t hairline py-7 md:grid-cols-[48px_minmax(0,5fr)_minmax(0,6fr)] md:items-baseline md:gap-x-8"
                 >
                   <span className="font-cond text-base text-ash">{String(i + 1).padStart(2, "0")}</span>
                   <span className="editorial text-[clamp(1.625rem,2.6vw,2.375rem)] leading-[1.05]">{titulo}</span>
@@ -153,7 +152,7 @@ export default function Inicio() {
             </ol>
           </div>
 
-          <div className="mt-24 lg:mt-36">
+          <div className="mt-32 lg:mt-48">
             <EquipoEnFoco />
           </div>
         </section>
@@ -162,10 +161,10 @@ export default function Inicio() {
         <section
           id="agentes"
           data-capitulo="Agentes"
-          className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]"
+          className="seccion"
         >
           <Claqueta izquierda="4 agentes" derecha="Ejemplos con datos ficticios" />
-          <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
+          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
               ¿Qué le encargas hoy?
             </Reveal>
@@ -173,7 +172,7 @@ export default function Inicio() {
               Elige un agente y mira cómo resuelve sus tareas de todos los días.
             </Reveal>
           </div>
-          <div className="relative mt-12 lg:mt-20">
+          <div className="relative mt-16 lg:mt-24">
             <p className="firma pointer-events-none absolute -top-11 left-[min(30%,240px)] hidden -rotate-3 lg:block" aria-hidden="true">
               toca uno
               <svg className="ml-1 inline-block h-8 w-9 align-top" viewBox="0 0 36 32" fill="none">
@@ -191,9 +190,9 @@ export default function Inicio() {
         </section>
 
         {/* ---------- Háblales ---------- */}
-        <section id="chat" data-capitulo="Háblales" className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]">
+        <section id="chat" data-capitulo="Háblales" className="seccion">
           <Claqueta izquierda="El chat" derecha="Dentro de tu panel" />
-          <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
+          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-heading lg:col-span-7">
               Háblales como le hablas a tu equipo.
             </Reveal>
@@ -205,15 +204,15 @@ export default function Inicio() {
               <PillLink href="/entrar">Probar el chat</PillLink>
             </Reveal>
           </div>
-          <Reveal delay={150} className="mt-12 lg:mt-16">
+          <Reveal delay={150} className="mt-16 lg:mt-24">
             <ChatDemo />
           </Reveal>
         </section>
 
         {/* ---------- Planes ---------- */}
-        <section id="planes" data-capitulo="Planes" className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]">
+        <section id="planes" data-capitulo="Planes" className="seccion">
           <Claqueta izquierda="Planes" derecha="Free → One → Max" />
-          <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
+          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-heading lg:col-span-7">
               Empieza gratis. Crece cuando quieras.
             </Reveal>
@@ -221,7 +220,7 @@ export default function Inicio() {
               Free para conocer a Clara. One para tener a todo el equipo. Max para el negocio que no para.
             </Reveal>
           </div>
-          <div className="mt-12 lg:mt-16">
+          <div className="mt-16 lg:mt-24">
             <Planes />
           </div>
         </section>
@@ -230,13 +229,13 @@ export default function Inicio() {
         <section
           id="seguridad"
           data-capitulo="Tus datos"
-          className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]"
+          className="seccion"
         >
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-20">
+          <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-24">
             <div className="relative mx-auto aspect-square w-full max-w-[280px] lg:order-2 lg:max-w-[460px]">
               <ParticleShape
                 shape="lock"
-                colors={["#ffffff", "#ffffff", "#ffffff", "#d9d9d9", "#ffffff", "#ffffff", "#ffffff", "#ff2936"]}
+                colors={["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"]}
                 className="absolute inset-0 h-full w-full"
               />
             </div>
@@ -244,13 +243,13 @@ export default function Inicio() {
               <Reveal as="h2" className="editorial text-heading-lg">
                 Cada negocio ve solo lo suyo.
               </Reveal>
-              <ul className="mt-10 border-b hairline">
+              <ul className="mt-12 border-b hairline lg:mt-16">
                 {GARANTIAS.map(([titulo, texto], i) => (
                   <Reveal
                     as="li"
                     key={titulo}
                     delay={i * 80}
-                    className="grid grid-cols-1 gap-1 border-t hairline py-5 sm:grid-cols-[160px_1fr] sm:gap-6"
+                    className="grid grid-cols-1 gap-2 border-t hairline py-7 sm:grid-cols-[160px_1fr] sm:gap-8"
                   >
                     <span className="font-cond text-[1.375rem] leading-[1.05] tracking-[0.02em]">{titulo}</span>
                     <span className="text-body text-silver">{texto}</span>
@@ -265,7 +264,7 @@ export default function Inicio() {
         <section
           id="preguntas"
           data-capitulo="Preguntas"
-          className="mx-auto grid max-w-page grid-cols-1 gap-10 px-6 pt-[112px] lg:grid-cols-12 lg:gap-8 lg:px-10 lg:pt-[180px]"
+          className="seccion grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10"
         >
           <div className="lg:col-span-4">
             <Reveal as="h2" className="editorial text-heading-lg lg:sticky lg:top-[110px]">
@@ -281,9 +280,9 @@ export default function Inicio() {
         <section
           id="empezar"
           data-capitulo="Empieza"
-          className="mx-auto max-w-page px-6 pt-[120px] lg:px-10 lg:pt-[200px]"
+          className="seccion"
         >
-          <div className="grid gap-8 border-t hairline pt-8 lg:grid-cols-12 lg:items-end">
+          <div className="grid gap-10 border-t hairline pt-10 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
               Empieza gratis con Clara.
             </Reveal>
@@ -298,8 +297,7 @@ export default function Inicio() {
       </main>
 
       <Footer />
-      <MenuLateral />
-      <MobileCta ocultarEn={["agentes", "chat", "empezar"]} />
+      <NavDock />
     </>
   );
 }

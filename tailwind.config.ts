@@ -11,19 +11,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        void: "#000000", // lienzo
-        shale: "#101010", // superficie apenas más clara
-        bone: "#ffffff", // texto principal
-        ash: "#8f8f8f", // texto secundario
-        silver: "#c4c4c4", // texto de párrafos
-        signal: "#ff2936", // acento rojo: máximo uno por pantalla
-        // "Papel": lo que entregan los agentes en los ejemplos
-        papel: { DEFAULT: "#f2f1ed", tinta: "#151515", gris: "#66635d", linea: "rgba(21,21,21,0.13)", rojo: "#cc1f2b" },
+        // Todos salen de variables CSS (globals.css): así cambian solos entre modo claro y oscuro
+        void: "rgb(var(--c-void) / <alpha-value>)", // lienzo
+        shale: "rgb(var(--c-shale) / <alpha-value>)", // superficie apenas más clara
+        bone: "rgb(var(--c-bone) / <alpha-value>)", // texto principal
+        ash: "rgb(var(--c-ash) / <alpha-value>)", // texto secundario
+        silver: "rgb(var(--c-silver) / <alpha-value>)", // texto de párrafos
+        signal: "rgb(var(--c-signal) / <alpha-value>)", // acento rojo: máximo uno por pantalla
+        // "Papel": lo que entregan los agentes en los ejemplos (igual en ambos modos, salvo el fondo)
+        papel: {
+          DEFAULT: "rgb(var(--c-papel) / <alpha-value>)",
+          tinta: "#151515",
+          gris: "#66635d",
+          linea: "rgba(21,21,21,0.13)",
+          rojo: "#cc1f2b",
+        },
         // Alias para componentes existentes
-        iris: { DEFAULT: "#ffffff", hover: "#ffffff" },
-        saffron: "#ff2936",
-        mint: "#ff2936",
-        verdant: "#ffffff",
+        iris: { DEFAULT: "rgb(var(--c-bone) / <alpha-value>)", hover: "rgb(var(--c-bone) / <alpha-value>)" },
+        saffron: "rgb(var(--c-signal) / <alpha-value>)",
+        mint: "rgb(var(--c-signal) / <alpha-value>)",
+        verdant: "rgb(var(--c-bone) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -34,7 +41,7 @@ const config: Config = {
       fontSize: {
         caption: ["0.75rem", { lineHeight: "1.4" }],
         nav: ["0.875rem", { lineHeight: "1", letterSpacing: "0.04em" }],
-        body: ["1.0625rem", { lineHeight: "1.55" }],
+        body: ["1.0625rem", { lineHeight: "1.7" }],
         "heading-2xs": ["1.375rem", { lineHeight: "1.3", letterSpacing: "-0.01em" }],
         "heading-sm": ["clamp(1.75rem, 3.4vw, 2.75rem)", { lineHeight: "1.1", letterSpacing: "-0.01em" }],
         heading: ["clamp(2.25rem, 5vw, 4rem)", { lineHeight: "1.02", letterSpacing: "-0.01em" }],

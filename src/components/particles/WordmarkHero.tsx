@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { colorCss, EVENTO_TEMA } from "@/lib/tema";
 import { ajustarCanvas, bucleVisible, clamp01, easeOutCubic, triangulo } from "./draw";
 
 const TAU = Math.PI * 2;
-const ROJO = "#ff2936";
 const ALFAS = [0.2, 0.42, 0.68, 0.95];
 /** Grosor con el que se "dibuja" la palabra para muestrearla (más legible que el 200 de los títulos). */
 const PESO = 340;
@@ -62,6 +62,9 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
     }
 
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Colores del modo actual (claro u oscuro); se vuelven a leer si cambia
+    let tinta = colorCss("var(--color-bone-white)");
+    let rojo = colorCss("var(--color-signal)");
     let w = 0;
     let h = 0;
     let P: Particulas | null = null;
@@ -281,7 +284,7 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
           }
           if (!hay) continue;
           ctx.globalAlpha = ALFAS[l];
-          ctx.strokeStyle = pasada ? ROJO : "#ffffff";
+          ctx.strokeStyle = pasada ? rojo : tinta;
           ctx.stroke();
         }
       }
@@ -342,6 +345,13 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
     };
     iniciar().catch(plano);
 
+    const alCambiarTema = () => {
+      tinta = colorCss("var(--color-bone-white)");
+      rojo = colorCss("var(--color-signal)");
+      if (quieto && P) dibujar(performance.now());
+    };
+    window.addEventListener(EVENTO_TEMA, alCambiarTema);
+
     const mover = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
       puntero.x = e.clientX - r.left;
@@ -364,6 +374,7 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
 
     return () => {
       cancelado = true;
+      window.removeEventListener(EVENTO_TEMA, alCambiarTema);
       detener();
       ro?.disconnect();
       window.removeEventListener("pointermove", mover);

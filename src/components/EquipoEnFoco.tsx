@@ -19,8 +19,8 @@ export function EquipoEnFoco() {
         <TrueFocus
           sentence={AGENTES_INFO.map((x) => x.nombre).join(" ")}
           blurAmount={6}
-          borderColor="#ff2936"
-          glowColor="rgba(255, 41, 54, 0.35)"
+          borderColor="var(--color-signal)"
+          glowColor="rgb(var(--c-signal) / 0.35)"
           animationDuration={0.6}
           pauseBetweenAnimations={1.8}
           onFocusChange={setI}

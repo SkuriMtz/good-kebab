@@ -20,7 +20,7 @@ export function Uso({ usados, plan, compacto = false }: { usados: number; plan: 
           </Link>
         ) : null}
       </div>
-      <span className="mt-2 block h-px w-full bg-white/15" aria-hidden="true">
+      <span className="mt-2 block h-px w-full bg-bone/15" aria-hidden="true">
         <span
           className={`block h-px ${casi ? "bg-signal" : "bg-bone"}`}
           style={{ width: `${Math.max(proporcion * 100, usados > 0 ? 2 : 0)}%` }}

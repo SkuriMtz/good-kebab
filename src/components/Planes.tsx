@@ -13,7 +13,7 @@ export function Planes() {
           return (
             <li
               key={p.id}
-              className={`plan relative flex flex-col border-t hairline py-8 md:px-8 md:py-10 ${
+              className={`plan relative flex flex-col border-t hairline py-12 md:px-10 md:py-16 ${
                 i > 0 ? "md:border-l" : "md:pl-0"
               } ${i === PLANES.length - 1 ? "md:pr-0" : ""}`}
             >
@@ -29,7 +29,7 @@ export function Planes() {
               <h3 className="editorial mt-1 text-[clamp(4rem,8vw,7rem)] leading-[0.9]">{NOMBRE_CORTO[p.id]}</h3>
               <p className="mt-5 text-heading-2xs">{p.precio ?? "Precio muy pronto"}</p>
               <p className="mt-2 text-body text-silver">{p.resumen}</p>
-              <ul className="mt-6 flex flex-col gap-2.5 border-t hairline pt-5 text-body">
+              <ul className="mt-8 flex flex-col gap-3.5 border-t hairline pt-7 text-body">
                 {p.incluye.map((x) => (
                   <li key={x} className="flex items-start gap-3">
                     <svg className="mt-[0.45em] h-3 w-3 shrink-0 text-silver" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -39,7 +39,7 @@ export function Planes() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-8">
+              <div className="mt-auto pt-12">
                 {p.id === "free" ? (
                   <PillLink href="/entrar">Empezar gratis</PillLink>
                 ) : (
@@ -52,7 +52,7 @@ export function Planes() {
           );
         })}
       </ol>
-      <p className="mt-6 text-[0.875rem] text-ash">
+      <p className="mt-8 text-[0.875rem] leading-relaxed text-ash">
         Todos los planes: entras con tu correo, sin contraseña · funciona en celular y computadora · cada negocio ve solo
         lo suyo.
       </p>

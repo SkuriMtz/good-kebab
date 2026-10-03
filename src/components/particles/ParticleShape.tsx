@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { colorCss, EVENTO_TEMA } from "@/lib/tema";
 import { ajustarCanvas, bucleVisible, clamp01, easeInOutCubic, triangulo } from "./draw";
 import { shapePoints, type ShapeName } from "./shapes";
 
@@ -50,6 +51,8 @@ export function ParticleShape({
     const ancho = canvas.clientWidth || 400;
     const n = ancho < 340 ? 230 : ancho < 480 ? 310 : 420;
     const nc = op.colors.length;
+    // Los colores pueden venir como "var(--color-x)": se leen del modo actual
+    let colores = op.colors.map(colorCss);
 
     // Datos de cada partícula
     const dispX = new Float32Array(n);
@@ -208,7 +211,7 @@ export function ParticleShape({
           }
           if (!hay) continue;
           ctx.globalAlpha = NIVELES[l];
-          ctx.strokeStyle = op.colors[c];
+          ctx.strokeStyle = colores[c];
           ctx.stroke();
         }
       }
@@ -260,7 +263,14 @@ export function ParticleShape({
       },
     };
 
+    const alCambiarTema = () => {
+      colores = op.colors.map(colorCss);
+      if (quieto) dibujar(performance.now());
+    };
+    window.addEventListener(EVENTO_TEMA, alCambiarTema);
+
     return () => {
+      window.removeEventListener(EVENTO_TEMA, alCambiarTema);
       detenerBucle();
       ro.disconnect();
       canvas.removeEventListener("pointermove", mover);
