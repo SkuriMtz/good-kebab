@@ -22,16 +22,6 @@ const GUIONES: Record<IdAgente, { pregunta: string; respuesta: string }> = {
     respuesta:
       "Un mensaje personal, no una promoción masiva:\n\n“Hola, Laura. Hace tiempo que no te vemos y queríamos saber cómo estás. Este mes tu limpieza facial va con 20% menos. ¿Te aparto un lugar?”\n\n- Mándalo martes o miércoles a media mañana.\n- A quien no conteste, uno más en 5 días y ya.\n- Anota quién regresa para saber si funcionó.",
   },
-  oscar: {
-    pregunta: "Hazme una tabla para llevar ingresos y gastos.",
-    respuesta:
-      "Va, lista para pasar a Excel:\n\n| Fecha | Concepto | Ingreso | Gasto |\n|---|---|---|---|\n| 01/10 | Limpieza facial | $850 | |\n| 01/10 | Insumos | | $1,200 |\n| 02/10 | Botox | $4,500 | |\n\nAl cierre del mes suma cada columna y réstalas: eso es lo que te quedó.",
-  },
-  lucia: {
-    pregunta: "Nos dejaron una reseña de 2 estrellas. ¿Cómo respondo?",
-    respuesta:
-      "Rápido, en público y sin discutir:\n\n“Gracias por escribirnos, Mariana. Lamentamos mucho que tu espera fuera tan larga; no es lo que queremos para nadie. Escríbenos al WhatsApp del consultorio y lo resolvemos contigo.”\n\nDespués llámala tú. Una queja bien atendida muchas veces se vuelve una clienta fiel.",
-  },
   iris: {
     pregunta: "¿Qué reviso antes de comprar un equipo de láser?",
     respuesta:

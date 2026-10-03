@@ -62,25 +62,15 @@ export type Entrega =
       pie: string;
     };
 
-export type Agente = {
-  nombre: string;
-  descripcion: string;
-  disponible?: boolean;
-  pedido: string;
-  pasos: string[];
-  entrega: Entrega;
-};
+export type Tarea = { titulo: string; pedido: string; pasos: string[]; entrega: Entrega };
+export type AgenteGaleria = AgenteInfo & { tareas: Tarea[] };
 
-type Grupo = { nombre: string; agentes: Agente[] };
-
-/** Ejemplos sueltos; abajo se reparten entre los 6 agentes. */
-const EJEMPLOS: Grupo[] = [
+export const GALERIA: AgenteGaleria[] = [
   {
-    nombre: "Atender",
-    agentes: [
+    ...AGENTE_POR_ID.lola,
+    tareas: [
       {
-        nombre: "WhatsApp",
-        descripcion: "Responde, agenda y da seguimiento a tus clientes.",
+        titulo: "Contestar y agendar",
         pedido: "Contesta los mensajes de hoy y agenda a quien quiera cita.",
         pasos: ["Leí 9 mensajes nuevos", "Contesté precios y horarios a 6 personas", "Agendé 2 citas sin encimarlas"],
         entrega: {
@@ -105,44 +95,182 @@ const EJEMPLOS: Grupo[] = [
         },
       },
       {
-        nombre: "Correo",
-        descripcion: "Resume tus correos y te sugiere qué contestar.",
-        disponible: true,
+        titulo: "Confirmar y recordar",
+        pedido: "Confirma las citas de mañana y recuérdaselas.",
+        pasos: ["Encontré 12 citas para mañana", "Mandé 12 recordatorios por WhatsApp", "10 confirmaron; 1 pidió cambiar de hora"],
+        entrega: {
+          tipo: "filas",
+          titulo: "Recordatorios · mañana",
+          marcas: true,
+          filas: [
+            { a: "Fernanda Ríos", b: "11:00 · Botox", etiqueta: "Confirmó" },
+            { a: "Jorge Aguilar", b: "12:30 · Láser, piernas", etiqueta: "Confirmó" },
+            { a: "Carla Díaz", b: "16:00 · Pide pasar a las 17:00", etiqueta: "Te toca", alerta: true },
+            { a: "Rosa Peña", b: "17:00 · Peeling", etiqueta: "Sin respuesta" },
+          ],
+          pie: "Y 8 más confirmadas.",
+        },
+      },
+      {
+        titulo: "Pasarte a una persona",
+        pedido: "Si alguien necesita hablar con una persona, avísame.",
+        pasos: [
+          "Atendí 14 conversaciones",
+          "Una paciente preguntó por una molestia después de su tratamiento",
+          "No le di indicaciones: te avisé a ti y a la doctora",
+        ],
+        entrega: {
+          tipo: "chat",
+          titulo: "WhatsApp · Rosa Peña",
+          mensajes: [
+            {
+              de: "cliente",
+              hora: "9:12",
+              texto: "Buenos días. Ayer me hicieron el peeling y hoy amanecí con la piel muy roja. ¿Es normal?",
+            },
+            {
+              de: "agente",
+              hora: "9:12",
+              texto:
+                "Buenos días, Rosa. Gracias por avisarnos. Eso lo tiene que revisar la Dra. Ruiz: ya le pasé tu mensaje y te escribe ella en unos minutos.",
+            },
+            { de: "nota", texto: "Te avisé: Rosa Peña necesita hablar con la doctora" },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.clara,
+    tareas: [
+      {
+        titulo: "Ordenar por urgencia",
         pedido: "¿Hay algo importante en el correo?",
         pasos: [
           "Revisé 23 correos sin leer",
-          "4 necesitan respuesta; 12 son promociones",
+          "Los ordené por urgencia; 12 son promociones",
           "Te dejé una respuesta sugerida para cada uno",
         ],
         entrega: {
           tipo: "filas",
-          titulo: "Correo · 4 importantes",
+          titulo: "Correo · lo importante primero",
+          marcas: true,
           filas: [
+            {
+              a: "Insumos Médicos del Bajío",
+              b: "Mandó la factura de septiembre; vence el jueves.",
+              c: "Págala antes del jueves para no perder el descuento.",
+              etiqueta: "Urgente",
+              alerta: true,
+            },
             {
               a: "Andrea Solís",
               b: "Quiere cambiar su cita del martes a la tarde.",
               c: "“Claro, Andrea. El martes tengo 17:00 o 18:30, ¿cuál prefieres?”",
-            },
-            {
-              a: "Proveedor de insumos",
-              b: "Mandó la factura de septiembre; vence el día 10.",
-              c: "Págala antes del jueves para no perder el descuento.",
-              alerta: true,
+              etiqueta: "Hoy",
             },
             {
               a: "Dr. Ernesto Vela",
               b: "Te recomienda a una paciente para valoración.",
               c: "“Gracias, doctor. Puedo recibirla el lunes o el miércoles por la mañana.”",
+              etiqueta: "Esta semana",
             },
           ],
           pie: "No envía ni borra nada: tú decides qué contestar.",
         },
       },
       {
-        nombre: "Atención postventa",
-        descripcion: "Encuestas de satisfacción, quejas y reseñas.",
+        titulo: "Detectar facturas y pagos",
+        pedido: "¿Qué facturas o pagos llegaron este mes?",
+        pasos: [
+          "Busqué facturas, recibos y avisos de pago",
+          "Encontré 4; una vence esta semana",
+          "Revisé montos y fechas límite",
+        ],
+        entrega: {
+          tipo: "filas",
+          titulo: "Facturas y pagos · octubre",
+          filas: [
+            { a: "Insumos Médicos del Bajío", b: "Factura F-2291 · vence el jueves", c: "$8,450", alerta: true },
+            { a: "CFE", b: "Recibo de luz · vence el 15", c: "$2,180" },
+            { a: "Software de agenda", b: "Se cobra solo el día 20", c: "$599" },
+            { a: "Karla Vega", b: "Te pagó por transferencia · ya llegó", c: "+$4,200" },
+          ],
+          pie: "Por pagar este mes: $11,229.",
+        },
+      },
+    ],
+  },
+  {
+    ...AGENTE_POR_ID.victor,
+    tareas: [
+      {
+        titulo: "Seguir a quien no agendó",
+        pedido: "Dale seguimiento a quienes preguntaron por botox y no agendaron.",
+        pasos: [
+          "Encontré 12 personas de las últimas dos semanas",
+          "Les escribí a cada una por su nombre",
+          "Contestaron 5; 3 ya tienen cita",
+        ],
+        entrega: {
+          tipo: "filas",
+          titulo: "Seguimiento · botox",
+          marcas: true,
+          filas: [
+            { a: "Paola Guerrero", b: "Cita el viernes a las 12:00", etiqueta: "Agendó" },
+            { a: "Daniel Torres", b: "Cita el sábado a las 10:30", etiqueta: "Agendó" },
+            { a: "Luis Medina", b: "Pregunta si hay pagos a meses", etiqueta: "Te toca", alerta: true },
+            { a: "Sofía Ramírez", b: "No ha contestado; le escribo mañana", etiqueta: "En espera" },
+          ],
+          pie: "Y 8 más en espera.",
+        },
+      },
+      {
+        titulo: "Reactivar inactivos",
+        pedido: "Noviembre viene flojo. Trae de regreso a los que dejaron de venir.",
+        pasos: [
+          "Revisé tus últimos dos años: noviembre baja 22%",
+          "Busqué los servicios que más te dejan",
+          "Armé una promoción y a quién mandársela",
+        ],
+        entrega: {
+          tipo: "propuesta",
+          titulo: "Noviembre de piel",
+          campos: [
+            ["Qué", "Limpieza facial + peeling por $1,290 (normalmente $1,700)"],
+            ["Cuándo", "Del 2 al 30 de noviembre"],
+            ["Para quién", "184 clientes que no vienen desde julio"],
+            ["Dónde", "Por WhatsApp, el 2 de noviembre a las 10:00"],
+          ],
+          nota: "No se manda nada hasta que lo apruebes.",
+          acciones: ["Aprobar", "Cambiar algo"],
+        },
+      },
+      {
+        titulo: "Rescatar faltas",
+        pedido: "¿Quién faltó esta semana sin avisar?",
+        pasos: ["Crucé la agenda con las llegadas", "4 personas no llegaron", "Les escribí para reagendar; 2 ya tienen nueva cita"],
+        entrega: {
+          tipo: "filas",
+          titulo: "Faltas sin aviso · esta semana",
+          marcas: true,
+          filas: [
+            { a: "Andrea Solís", b: "Faltó el martes · nueva cita el lunes 10:00", etiqueta: "Reagendada" },
+            { a: "Mónica Salas", b: "Faltó el miércoles · nueva cita el jueves 17:00", etiqueta: "Reagendada" },
+            { a: "Raúl Pineda", b: "Segunda falta del mes", etiqueta: "Te toca", alerta: true },
+            { a: "Elena Cruz", b: "No ha contestado; le escribo mañana", etiqueta: "En espera" },
+          ],
+          pie: "Sugerencia: pedir anticipo a quien falte dos veces.",
+        },
+      },
+      {
+        titulo: "Pedir reseñas",
         pedido: "Pregunta a los clientes de esta semana cómo les fue.",
-        pasos: ["Mandé 42 encuestas por WhatsApp", "Contestaron 29", "A quienes pusieron 5 les pedí una reseña"],
+        pasos: [
+          "Mandé 42 encuestas por WhatsApp después de su cita",
+          "Contestaron 29",
+          "A quienes pusieron 5 les pedí una reseña en Google",
+        ],
         entrega: {
           tipo: "encuesta",
           calificacion: "4.8",
@@ -161,211 +289,10 @@ const EJEMPLOS: Grupo[] = [
     ],
   },
   {
-    nombre: "Vender",
-    agentes: [
+    ...AGENTE_POR_ID.iris,
+    tareas: [
       {
-        nombre: "Manejo de ventas",
-        descripcion: "Contacta prospectos, les da seguimiento y cierra citas o ventas.",
-        pedido: "Dale seguimiento a quienes preguntaron por botox y no agendaron.",
-        pasos: [
-          "Encontré 12 personas de las últimas dos semanas",
-          "Les escribí a cada una por su nombre",
-          "Contestaron 5; 3 ya tienen cita",
-        ],
-        entrega: {
-          tipo: "filas",
-          titulo: "Seguimiento · botox",
-          marcas: true,
-          filas: [
-            { a: "Paola Guerrero", b: "Cita el viernes a las 12:00", etiqueta: "Cerrada" },
-            { a: "Daniel Torres", b: "Cita el sábado a las 10:30", etiqueta: "Cerrada" },
-            { a: "Luis Medina", b: "Pregunta si hay pagos a meses", etiqueta: "Te toca", alerta: true },
-            { a: "Sofía Ramírez", b: "No ha contestado; le escribo mañana", etiqueta: "En espera" },
-          ],
-          pie: "Y 8 más en espera.",
-        },
-      },
-      {
-        nombre: "Revisión de ventas",
-        descripcion: "Analiza qué se vendió, qué falló y hacia dónde vas.",
-        pedido: "¿Cómo nos fue en septiembre?",
-        pasos: ["Revisé 214 ventas", "Las comparé con agosto", "Encontré 3 cosas que conviene ver"],
-        entrega: {
-          tipo: "barras",
-          titulo: "Septiembre · ventas por servicio",
-          barras: [
-            { a: "Depilación láser", valor: 58200, texto: "$58,200" },
-            { a: "Limpieza facial", valor: 41650, texto: "$41,650" },
-            { a: "Botox", valor: 38400, texto: "$38,400" },
-            { a: "Peeling", valor: 19800, texto: "$19,800" },
-            { a: "Masaje", valor: 8900, texto: "$8,900", alerta: true },
-          ],
-          notas: [
-            "La depilación láser subió 18% contra agosto.",
-            "Los martes vendes la mitad que los viernes.",
-            "Masajes bajó 30%: 7 personas dejaron su paquete a la mitad.",
-          ],
-        },
-      },
-      {
-        nombre: "Marketing y promociones",
-        descripcion: "Te sugiere promociones para la temporada baja y las programa.",
-        pedido: "Noviembre siempre viene flojo. ¿Qué hacemos?",
-        pasos: [
-          "Revisé tus últimos dos años: noviembre baja 22%",
-          "Busqué los servicios que más te dejan",
-          "Armé una promoción y a quién mandársela",
-        ],
-        entrega: {
-          tipo: "propuesta",
-          titulo: "Noviembre de piel",
-          campos: [
-            ["Qué", "Limpieza facial + peeling por $1,290 (normalmente $1,700)"],
-            ["Cuándo", "Del 2 al 30 de noviembre"],
-            ["Para quién", "184 clientes que no vienen desde julio"],
-            ["Dónde", "Instagram y WhatsApp, el 2 de noviembre a las 10:00"],
-          ],
-          nota: "No se publica nada hasta que lo apruebes.",
-          acciones: ["Aprobar", "Cambiar algo"],
-        },
-      },
-    ],
-  },
-  {
-    nombre: "Organizar",
-    agentes: [
-      {
-        nombre: "Agenda y citas",
-        descripcion: "Organiza horarios, evita encimes y manda recordatorios.",
-        pedido: "Mañana la doctora llega a las 11. Acomoda la agenda.",
-        pasos: [
-          "Encontré 2 citas antes de las 11",
-          "Las pasé a la tarde; las dos pacientes dijeron que sí",
-          "Programé recordatorios para las 12 citas de mañana",
-        ],
-        entrega: {
-          tipo: "agenda",
-          titulo: "Mañana",
-          citas: [
-            { hora: "11:00", quien: "Fernanda Ríos", que: "Botox" },
-            { hora: "12:30", quien: "Jorge Aguilar", que: "Láser, piernas" },
-            { hora: "14:00", quien: "Mariana López", que: "Limpieza facial" },
-            { hora: "16:00", antes: "9:00", quien: "Carla Díaz", que: "Valoración" },
-            { hora: "17:00", antes: "10:00", quien: "Rosa Peña", que: "Peeling" },
-          ],
-          pie: "Recordatorios programados para hoy a las 18:00",
-        },
-      },
-      {
-        nombre: "Clientes",
-        descripcion: "El historial de cada cliente y cuándo vino por última vez.",
-        pedido: "¿Quién no ha vuelto en más de tres meses?",
-        pasos: ["Revisé el historial de 640 clientes", "31 no vienen desde junio", "Puse primero a quienes venían seguido"],
-        entrega: {
-          tipo: "ficha",
-          nombre: "Laura Méndez",
-          detalle: "Clienta desde 2023 · 6 visitas",
-          campos: [
-            ["Última visita", "14 de junio, hace 110 días"],
-            ["Último servicio", "Peeling químico"],
-            ["Prefiere", "Las tardes, con la Dra. Ruiz"],
-            ["Cumpleaños", "12 de octubre"],
-          ],
-          sugerencia: "Mándale su promoción de cumpleaños la próxima semana.",
-          otros: ["Patricia Olvera · 98 días", "Mónica Salas · 103 días", "y 28 más"],
-        },
-      },
-      {
-        nombre: "Documentos",
-        descripcion: "Contratos, consentimientos y facturas que se hacen solos.",
-        pedido: "Prepara el consentimiento de Laura para su peeling del viernes.",
-        pasos: [
-          "Usé tu formato de consentimiento",
-          "Llené los datos de la paciente y del tratamiento",
-          "Lo dejé listo para firmar en la tablet",
-        ],
-        entrega: {
-          tipo: "documento",
-          titulo: "Consentimiento informado",
-          subtitulo: "Peeling químico",
-          campos: [
-            ["Paciente", "Laura Méndez Ortiz"],
-            ["Fecha", "Viernes, 10:00"],
-            ["Atiende", "Dra. Ana Ruiz"],
-          ],
-          texto:
-            "Declaro que se me explicó el procedimiento, sus cuidados y sus posibles molestias, y que pude hacer todas mis preguntas.",
-          extra: "También: factura A-1043 por $1,450, enviada a su correo.",
-        },
-      },
-    ],
-  },
-  {
-    nombre: "Números",
-    agentes: [
-      {
-        nombre: "Finanzas básicas",
-        descripcion: "Ingresos, gastos, quién te debe y cómo va tu caja.",
-        pedido: "¿Cómo cerramos septiembre?",
-        pasos: ["Sumé ingresos y gastos del mes", "Revisé quién tiene pagos pendientes", "Calculé si alcanza para la nómina"],
-        entrega: {
-          tipo: "cifras",
-          titulo: "Septiembre",
-          cifras: [
-            { a: "Entró", valor: "$186,400" },
-            { a: "Salió", valor: "$121,900" },
-            { a: "Te quedó", valor: "$64,500" },
-          ],
-          subtitulo: "Te deben $9,800",
-          filas: [
-            { a: "Karla Vega", b: "2 sesiones de láser", c: "$4,200" },
-            { a: "Rosa Peña", b: "Paquete de peeling", c: "$3,000" },
-            { a: "Jorge Aguilar", b: "Valoración y crema", c: "$2,600" },
-          ],
-          pie: "Para la nómina del 15 necesitas $48,000: sí alcanza.",
-        },
-      },
-      {
-        nombre: "Inventario",
-        descripcion: "Te avisa qué se está acabando y qué no se mueve.",
-        pedido: "¿Qué tengo que pedir esta semana?",
-        pasos: ["Revisé 48 productos", "Los crucé con las citas de los próximos 10 días"],
-        entrega: {
-          tipo: "filas",
-          titulo: "Inventario",
-          filas: [
-            { a: "Ácido hialurónico 1 ml", b: "Quedan 3 · se acaba el jueves", c: "Pide 10", nivel: 0.1, alerta: true },
-            { a: "Guantes de nitrilo M", b: "Quedan 2 cajas", c: "Pide 5", nivel: 0.22 },
-            { a: "Gel conductor", b: "Alcanza para 3 semanas", c: "Bien", nivel: 0.68 },
-            { a: "Mascarilla de colágeno", b: "14 piezas sin vender en 60 días", c: "Ponla en promoción", nivel: 0.92 },
-          ],
-        },
-      },
-      {
-        nombre: "Reportes",
-        descripcion: "Un resumen semanal o mensual de tu negocio, de un vistazo.",
-        pedido: "Mándame cada lunes a las 8 un resumen de la semana.",
-        pasos: ["Junté agenda, ventas, inventario y redes", "Listo: te llega cada lunes a las 8:00"],
-        entrega: {
-          tipo: "cifras",
-          titulo: "Semana del 21 al 27 de septiembre",
-          cifras: [
-            { a: "Citas", valor: "86", nota: "9 más que la anterior" },
-            { a: "Ventas", valor: "$72,300" },
-            { a: "Cancelaciones", valor: "6" },
-            { a: "Clientes nuevos", valor: "11" },
-          ],
-          pie: "Lo más importante: el viernes se llenó y 4 personas quedaron en lista de espera.",
-        },
-      },
-    ],
-  },
-  {
-    nombre: "Investigar",
-    agentes: [
-      {
-        nombre: "Investigación",
-        descripcion: "Busca información y te la entrega en Excel o en un documento.",
+        titulo: "Investigar y pasar a Excel",
         pedido: "¿Cuánto cobran otras clínicas de la zona por depilación láser?",
         pasos: ["Revisé 11 sitios y perfiles", "Encontré precios de 4 clínicas cercanas", "Armé la tabla con las fuentes"],
         entrega: {
@@ -384,110 +311,73 @@ const EJEMPLOS: Grupo[] = [
           archivos: ["precios-laser.xlsx", "resumen.docx"],
         },
       },
-    ],
-  },
-];
-
-const ej = (nombre: string): Omit<Tarea, "titulo"> => {
-  const a = EJEMPLOS.flatMap((g) => g.agentes).find((x) => x.nombre === nombre);
-  if (!a) throw new Error(`Falta el ejemplo ${nombre}`);
-  return { pedido: a.pedido, pasos: a.pasos, entrega: a.entrega };
-};
-
-export type Tarea = { titulo: string; pedido: string; pasos: string[]; entrega: Entrega };
-export type AgenteGaleria = AgenteInfo & { tareas: Tarea[] };
-
-const ficha = ej("Clientes");
-
-export const GALERIA: AgenteGaleria[] = [
-  {
-    ...AGENTE_POR_ID.clara,
-    tareas: [
-      { titulo: "Resumir la bandeja", ...ej("Correo") },
-      { titulo: "Preparar documentos", ...ej("Documentos") },
-    ],
-  },
-  {
-    ...AGENTE_POR_ID.lola,
-    tareas: [
-      { titulo: "Contestar y agendar", ...ej("WhatsApp") },
       {
-        titulo: "Recordar citas",
-        pedido: "Recuérdales su cita a los de mañana.",
-        pasos: ["Encontré 12 citas para mañana", "Mandé 12 recordatorios por WhatsApp", "10 confirmaron; 1 pidió cambiar de hora"],
+        titulo: "Resumir un PDF",
+        pedido: "Resúmeme el contrato del proveedor del láser.",
+        pasos: [
+          "Leí el PDF completo: 18 páginas",
+          "Separé lo que pagas y a lo que te obligas",
+          "Marqué una cláusula para revisar con tu abogado",
+        ],
         entrega: {
           tipo: "filas",
-          titulo: "Recordatorios · mañana",
-          marcas: true,
+          titulo: "contrato-laser.pdf · en 4 puntos",
           filas: [
-            { a: "Fernanda Ríos", b: "11:00 · Botox", etiqueta: "Confirmó" },
-            { a: "Jorge Aguilar", b: "12:30 · Láser, piernas", etiqueta: "Confirmó" },
-            { a: "Carla Díaz", b: "16:00 · Pide pasar a las 17:00", etiqueta: "Te toca", alerta: true },
-            { a: "Rosa Peña", b: "17:00 · Peeling", etiqueta: "Sin respuesta" },
+            { a: "Pago", b: "$18,900 al mes durante 36 meses." },
+            { a: "Mantenimiento", b: "2 visitas al año incluidas; las demás cuestan $3,500." },
+            { a: "Si se descompone", b: "Lo reparan en 72 horas o te prestan otro equipo." },
+            {
+              a: "Renovación",
+              b: "Se renueva sola si no avisas con 60 días de anticipación.",
+              c: "Revísala con tu abogado.",
+              alerta: true,
+            },
           ],
-          pie: "Y 8 más confirmadas.",
         },
       },
-    ],
-  },
-  {
-    ...AGENTE_POR_ID.victor,
-    tareas: [
-      { titulo: "Seguir prospectos", ...ej("Manejo de ventas") },
       {
-        ...ej("Marketing y promociones"),
-        titulo: "Recuperar clientes",
-        pedido: "Noviembre viene flojo. Trae de regreso a los que dejaron de venir.",
-      },
-      {
-        titulo: "Detectar faltas",
-        pedido: "¿Quién faltó esta semana sin avisar?",
-        pasos: ["Crucé la agenda con las llegadas", "4 personas no llegaron", "Les escribí para reagendar; 2 ya tienen nueva cita"],
+        titulo: "Reporte del mes",
+        pedido: "Arma el reporte de septiembre: citas y clientes.",
+        pasos: ["Revisé las 342 citas del mes", "Las comparé con agosto", "Lo dejé en Excel y en PDF"],
         entrega: {
-          tipo: "filas",
-          titulo: "Faltas sin aviso · esta semana",
-          marcas: true,
-          filas: [
-            { a: "Andrea Solís", b: "Faltó el martes · nueva cita el lunes 10:00", etiqueta: "Reagendada" },
-            { a: "Mónica Salas", b: "Faltó el miércoles · nueva cita el jueves 17:00", etiqueta: "Reagendada" },
-            { a: "Raúl Pineda", b: "Segunda falta del mes", etiqueta: "Te toca", alerta: true },
-            { a: "Elena Cruz", b: "No ha contestado; le escribo mañana", etiqueta: "En espera" },
+          tipo: "cifras",
+          titulo: "Septiembre · citas y clientes",
+          cifras: [
+            { a: "Citas", valor: "342", nota: "18 más que agosto" },
+            { a: "Clientes nuevos", valor: "47" },
+            { a: "Faltas", valor: "21", nota: "6% de las citas" },
           ],
-          pie: "Sugerencia: pedir anticipo a quien falte dos veces.",
+          subtitulo: "Lo más agendado",
+          filas: [
+            { a: "Depilación láser", c: "96 citas" },
+            { a: "Limpieza facial", c: "71 citas" },
+            { a: "Botox", c: "44 citas" },
+          ],
+          pie: "Te llega el día 1 de cada mes, en Excel y en PDF.",
         },
       },
-      { titulo: "Qué se vendió", ...ej("Revisión de ventas") },
-    ],
-  },
-  {
-    ...AGENTE_POR_ID.oscar,
-    tareas: [
-      { titulo: "Acomodar la agenda", ...ej("Agenda y citas") },
-      { titulo: "Cuidar el inventario", ...ej("Inventario") },
-      { titulo: "Llevar las cuentas", ...ej("Finanzas básicas") },
-    ],
-  },
-  {
-    ...AGENTE_POR_ID.lucia,
-    tareas: [
       {
-        ...ficha,
-        titulo: "Historial de cada cliente",
-        pedido: "Cuéntame de Laura antes de su cita del viernes.",
-        pasos: ["Busqué su historial", "Junté visitas, pagos y notas"],
-        entrega:
-          ficha.entrega.tipo === "ficha"
-            ? { ...ficha.entrega, otros: ["piel sensible", "prefiere que le escriban por WhatsApp", "pagó su paquete completo"] }
-            : ficha.entrega,
+        titulo: "Preparar documentos",
+        pedido: "Prepara el consentimiento de Laura para su peeling del viernes.",
+        pasos: [
+          "Usé tu formato de consentimiento",
+          "Llené los datos de la paciente y del tratamiento",
+          "Lo dejé listo para firmar en la tablet",
+        ],
+        entrega: {
+          tipo: "documento",
+          titulo: "Consentimiento informado",
+          subtitulo: "Peeling químico",
+          campos: [
+            ["Paciente", "Laura Méndez Ortiz"],
+            ["Fecha", "Viernes, 10:00"],
+            ["Atiende", "Dra. Ana Ruiz"],
+          ],
+          texto:
+            "Declaro que se me explicó el procedimiento, sus cuidados y sus posibles molestias, y que pude hacer todas mis preguntas.",
+          extra: "También: su recibo por $1,450, listo para enviar.",
+        },
       },
-      { titulo: "Después de la cita", ...ej("Atención postventa") },
-    ],
-  },
-  {
-    ...AGENTE_POR_ID.iris,
-    tareas: [
-      { titulo: "Investigar precios", ...ej("Investigación") },
-      { titulo: "Reporte de la semana", ...ej("Reportes") },
     ],
   },
 ];

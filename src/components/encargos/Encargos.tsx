@@ -177,7 +177,7 @@ function Ventana({
 }
 
 /**
- * Los 6 agentes. Al elegir uno, su ventana muestra varias de sus tareas
+ * Los 4 agentes. Al elegir uno, su ventana muestra varias de sus tareas
  * (a la derecha en computadora, debajo del agente en celular).
  */
 export function Encargos() {

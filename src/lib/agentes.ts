@@ -1,15 +1,17 @@
 /**
- * Los 6 agentes de Atendel. Cada uno se encarga de un área del negocio
+ * Los 4 agentes de Atendel. Cada uno se encarga de un área del negocio
  * y hace varias cosas dentro de ella.
  */
 
-export const IDS_AGENTES = ["clara", "lola", "victor", "oscar", "lucia", "iris"] as const;
+export const IDS_AGENTES = ["lola", "clara", "victor", "iris"] as const;
 export type IdAgente = (typeof IDS_AGENTES)[number];
 
 export type AgenteInfo = {
   id: IdAgente;
   nombre: string;
   area: string;
+  /** Lo que junta esa área, en corto (p. ej. "WhatsApp y citas"). */
+  abarca: string;
   /** Una línea: qué hace, en palabras de todos los días. */
   lema: string;
   capacidades: string[];
@@ -21,81 +23,71 @@ export type AgenteInfo = {
 
 export const AGENTES_INFO: AgenteInfo[] = [
   {
+    id: "lola",
+    nombre: "Lola",
+    area: "Atención",
+    abarca: "WhatsApp y citas",
+    lema: "Contesta a tus clientes a cualquier hora y lleva tus citas.",
+    capacidades: [
+      "Contesta a tus clientes",
+      "Resuelve preguntas frecuentes",
+      "Agenda, confirma y recuerda citas",
+      "Te avisa cuando alguien quiere hablar con una persona",
+    ],
+    sugerencias: [
+      "Escribe la respuesta para alguien que pregunta precios de limpieza facial",
+      "Hazme un mensaje para confirmar las citas de mañana",
+      "¿Cuándo conviene pasarle la conversación a una persona?",
+    ],
+  },
+  {
     id: "clara",
     nombre: "Clara",
     area: "Correo",
-    lema: "Pone en orden tu bandeja y te deja las respuestas listas.",
-    capacidades: ["Resume tu bandeja", "Sugiere respuestas", "Prepara facturas y contratos desde el correo"],
+    abarca: "Bandeja, facturas y pagos",
+    lema: "Pone en orden tu bandeja: lo urgente primero y las respuestas listas.",
+    capacidades: ["Resume tu bandeja", "La ordena por urgencia", "Sugiere respuestas", "Detecta facturas y pagos"],
     sugerencias: [
-      "Ayúdame a contestar a un paciente que quiere cambiar su cita",
+      "Te pego un correo: dime qué tan urgente es y qué le contesto",
       "Escribe un correo para cobrar una factura atrasada, con tacto",
-      "Hazme una plantilla de contrato de servicios",
+      "¿Cómo organizo mi correo para que no se me pase ningún pago?",
     ],
     conectado: true,
   },
   {
-    id: "lola",
-    nombre: "Lola",
-    area: "WhatsApp",
-    lema: "Contesta a tus clientes a cualquier hora, agenda y les recuerda su cita.",
-    capacidades: ["Responde dudas, precios y horarios", "Agenda citas", "Manda recordatorios"],
-    sugerencias: [
-      "Escribe la respuesta para alguien que pregunta precios de limpieza facial",
-      "Hazme un mensaje de recordatorio de cita amable",
-      "¿Cómo respondo a alguien que dice que está caro?",
-    ],
-  },
-  {
     id: "victor",
     nombre: "Víctor",
-    area: "Ventas",
-    lema: "Va por las ventas: sigue prospectos, recupera clientes y ve qué se vendió.",
-    capacidades: [
-      "Da seguimiento a prospectos",
-      "Recupera clientes que dejaron de venir",
-      "Detecta a quien falta a sus citas",
-      "Reporta qué se vendió y qué no",
-    ],
-    sugerencias: [
-      "Escribe un mensaje para recuperar a clientes que no vienen hace 3 meses",
-      "¿Qué hago con los pacientes que faltan sin avisar?",
-      "Dame ideas para vender más los martes",
-    ],
-  },
-  {
-    id: "oscar",
-    nombre: "Óscar",
-    area: "Operación",
-    lema: "Lleva el día a día: la agenda, el inventario y las cuentas.",
-    capacidades: ["Organiza la agenda general", "Cuida el inventario", "Lleva ingresos y gastos"],
-    sugerencias: [
-      "Ayúdame a organizar la agenda de una semana con dos doctoras",
-      "¿Cómo llevo un inventario simple de insumos?",
-      "Hazme una tabla para anotar ingresos y gastos del mes",
-    ],
-  },
-  {
-    id: "lucia",
-    nombre: "Lucía",
     area: "Clientes",
-    lema: "Se acuerda de cada cliente y cuida que regrese contento.",
-    capacidades: ["Historial de cada cliente", "Atención después de la cita", "Encuestas y reseñas"],
+    abarca: "Ventas y reseñas",
+    lema: "Trae de regreso a tus clientes y se encarga de que te recomienden.",
+    capacidades: [
+      "Sigue a quien preguntó y no agendó",
+      "Reactiva clientes inactivos",
+      "Rescata a quien faltó a su cita",
+      "Pide reseñas después de cada cita",
+    ],
     sugerencias: [
-      "Escribe una encuesta corta de satisfacción por WhatsApp",
-      "¿Cómo respondo a una reseña negativa en Google?",
-      "¿Qué datos de cada cliente me conviene guardar?",
+      "Escribe un mensaje para quien preguntó por botox y no agendó",
+      "Escribe un mensaje para recuperar a clientes que no vienen hace 3 meses",
+      "¿Cómo pido reseñas en Google sin sonar insistente?",
     ],
   },
   {
     id: "iris",
     nombre: "Iris",
-    area: "Investigación",
-    lema: "Investiga por ti y te lo entrega en Excel o en un documento.",
-    capacidades: ["Busca información", "Arma reportes", "Entrega en Excel o documento"],
+    area: "Oficina",
+    abarca: "Investigación, reportes y documentos",
+    lema: "Investiga, resume y te arma los reportes y documentos de la oficina.",
+    capacidades: [
+      "Investiga y lo pone en Excel",
+      "Resume PDFs",
+      "Arma reportes mensuales de citas y clientes",
+      "Prepara documentos",
+    ],
     sugerencias: [
       "¿Qué debo revisar antes de comprar un equipo de láser?",
-      "Explícame qué permisos necesita una clínica estética en México",
-      "Compárame formas de cobrar a meses sin intereses",
+      "Te pego un contrato: resúmemelo en 5 puntos",
+      "Arma una tabla para el reporte mensual de citas, lista para Excel",
     ],
   },
 ];

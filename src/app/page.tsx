@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PillLink, Roll } from "@/components/Buttons";
 import { ChatDemo } from "@/components/ChatDemo";
 import { Encargos } from "@/components/encargos/Encargos";
+import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
 import { MobileCta } from "@/components/MobileCta";
 import { Nav } from "@/components/Nav";
@@ -24,7 +25,7 @@ const REPARTO = AGENTES_INFO.map((a) => ({ nombre: a.nombre, papel: a.area, href
 
 const PASOS = [
   ["Entras con tu correo", "Sin contraseña y sin instalar nada. Desde el celular, la tablet o la computadora."],
-  ["Armas tu equipo", "Eliges qué agentes trabajan contigo: correo, WhatsApp, ventas, operación, clientes o investigación."],
+  ["Armas tu equipo", "Eliges qué agentes trabajan contigo: atención, correo, clientes u oficina."],
   ["Les encargas trabajo", "Les escribes como a una persona. Ellos resuelven, y lo importante no sale sin tu visto bueno."],
 ];
 
@@ -41,15 +42,15 @@ const PREGUNTAS = [
   },
   {
     p: "¿Qué cambia entre Free, One y Max?",
-    r: "Con Free trabajas con Clara, tu agente de correo, y tienes pocos mensajes al mes. One desbloquea a los seis agentes y eliges quién está en tu equipo. Max es todo lo de One, con muchos más mensajes y respuestas más elaboradas.",
+    r: "Con Free trabajas con Clara, tu agente de correo, y tienes pocos mensajes al mes. One desbloquea a los cuatro agentes y eliges quién está en tu equipo. Max es todo lo de One, con muchos más mensajes y respuestas más elaboradas.",
   },
   {
     p: "¿Qué funciona hoy?",
-    r: "Clara ya lee y resume tu correo, y puedes hablar por chat con todo el equipo. Las conexiones directas con WhatsApp, tu agenda y tu inventario van llegando por etapas.",
+    r: "Clara ya lee y resume tu correo, y puedes hablar por chat con todo el equipo. La conexión directa de Lola con tu WhatsApp y tu agenda llega por etapas.",
   },
   {
     p: "¿Mis clientes van a saber que les contesta una inteligencia artificial?",
-    r: "Tú decides cómo se presenta. Te recomendamos decirlo con claridad, y cuando una conversación necesita a una persona, el agente te la pasa.",
+    r: "Tú decides cómo se presenta. Te recomendamos decirlo con claridad, y cuando una conversación necesita a una persona, Lola te avisa y te la pasa.",
   },
   {
     p: "¿Y si se equivoca?",
@@ -101,8 +102,8 @@ export default function Inicio() {
                   <br />y estéticas
                 </p>
                 <p className="max-w-[480px] text-body text-silver md:col-span-5">
-                  Seis agentes de inteligencia artificial que contestan WhatsApp, ordenan tu correo, van por las ventas,
-                  llevan la operación, cuidan a tus clientes e investigan por ti.
+                  Cuatro agentes de inteligencia artificial que atienden tu WhatsApp y tus citas, ordenan tu correo, traen
+                  de regreso a tus clientes y hacen el trabajo de oficina.
                 </p>
                 <div className="flex flex-wrap items-center gap-x-7 gap-y-2 md:col-span-4 md:justify-end">
                   <PillLink href="/entrar">Empezar gratis</PillLink>
@@ -124,7 +125,7 @@ export default function Inicio() {
           <Claqueta izquierda="Qué es Atendel" derecha="En 30 segundos" />
           <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:gap-8">
             <Reveal as="h2" className="editorial text-heading lg:col-span-8">
-              Un equipo de seis agentes de inteligencia artificial que trabaja para tu clínica.
+              Un equipo de cuatro agentes de inteligencia artificial que trabaja para tu clínica.
             </Reveal>
             <Reveal as="p" delay={120} className="max-w-[420px] text-body text-silver lg:col-span-4 lg:pt-3">
               Cada uno lleva un área del negocio y hace varias cosas dentro de ella. Les hablas como a una persona y te
@@ -150,24 +151,18 @@ export default function Inicio() {
             </ol>
           </div>
 
-          <p className="mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-1 lg:mt-14">
-            <span className="font-cond text-base uppercase tracking-[0.03em] text-ash">Con</span>
-            {AGENTES_INFO.map((a, i) => (
-              <span key={a.id} className="font-cond text-[clamp(1.75rem,3.4vw,3rem)] uppercase leading-none tracking-[0.02em]">
-                {a.nombre}
-                {i < AGENTES_INFO.length - 1 ? <span className="ml-4 text-ash">·</span> : null}
-              </span>
-            ))}
-          </p>
+          <div className="mt-24 lg:mt-36">
+            <EquipoEnFoco />
+          </div>
         </section>
 
-        {/* ---------- Los 6 agentes, trabajando ---------- */}
+        {/* ---------- Los 4 agentes, trabajando ---------- */}
         <section
           id="agentes"
           data-capitulo="Agentes"
           className="mx-auto max-w-page px-6 pt-[112px] lg:px-10 lg:pt-[180px]"
         >
-          <Claqueta izquierda="6 agentes" derecha="Ejemplos con datos ficticios" />
+          <Claqueta izquierda="4 agentes" derecha="Ejemplos con datos ficticios" />
           <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
             <Reveal as="h2" className="editorial text-display lg:col-span-8">
               ¿Qué le encargas hoy?

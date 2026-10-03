@@ -147,8 +147,8 @@ export function MisAgentes({
         {!libre ? (
           <div className="mt-12 flex flex-col items-start gap-4 border hairline p-6 md:flex-row md:items-center md:justify-between lg:p-8">
             <p className="max-w-[560px] text-body text-silver">
-              Con <span className="text-bone">Atendel One</span> tienes a los seis: Lola en WhatsApp, Víctor en ventas,
-              Óscar en la operación, Lucía con tus clientes e Iris investigando.
+              Con <span className="text-bone">Atendel One</span> tienes a los cuatro: Lola atiende tu WhatsApp y tus citas,
+              Víctor trae de regreso a tus clientes e Iris se encarga de la oficina.
             </p>
             <Link href="/#planes" className="btn-pill">
               Ver planes
