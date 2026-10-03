@@ -42,7 +42,7 @@ export const PLANES: Plan[] = [
     nombre: "Atendel One",
     precio: null,
     resumen: "Desbloquea a todo el equipo.",
-    incluye: ["Los 4 agentes", "Eliges quién está en tu equipo", "600 mensajes al mes en el chat"],
+    incluye: ["Los 4 agentes", "Eliges quién está en tu equipo", "Chats en grupo con tus agentes", "600 mensajes al mes en el chat"],
     mensajesMes: 600,
     agentes: IDS_AGENTES,
     modelo: "claude-opus-5-5",

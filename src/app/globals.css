@@ -802,7 +802,7 @@ html.js [data-split][data-in] .split-inner {
   .chat-agente {
     display: flex;
     width: 100%;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
@@ -837,6 +837,47 @@ html.js [data-split][data-in] .split-inner {
   .chat-conv[data-active="true"] {
     color: var(--color-bone-white);
     background: rgb(var(--c-bone) / 0.07);
+  }
+  /* Armar un grupo: cada agente es una tarjeta que se marca */
+  .crear-grupo__agente {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--hairline);
+    text-align: left;
+    color: var(--color-bone-white);
+    transition:
+      border-color 0.3s var(--ease-out),
+      background-color 0.3s var(--ease-out);
+  }
+  .crear-grupo__agente:hover:not(:disabled) {
+    border-color: rgb(var(--c-bone) / 0.5);
+  }
+  .crear-grupo__agente[aria-pressed="true"] {
+    border-color: var(--color-bone-white);
+    background: rgb(var(--c-bone) / 0.05);
+  }
+  .crear-grupo__agente:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .crear-grupo__marca {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border: 1px solid var(--hairline);
+    transition:
+      background-color 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out);
+  }
+  .crear-grupo__agente[aria-pressed="true"] .crear-grupo__marca {
+    border-color: var(--color-signal);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.4 4.8 9 10 3' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E")
+        center / 12px no-repeat,
+      var(--color-signal);
   }
   /* Dentro de SwipeRow (deslizar para borrar): la fila ocupa todo el ancho */
   .chat-conv-fila .swipe-row__surface {

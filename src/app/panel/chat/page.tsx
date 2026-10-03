@@ -18,7 +18,7 @@ export default async function ChatPage({ searchParams }: { searchParams: { agent
     cargarCuenta(supabase, user.id),
     supabase
       .from("conversaciones")
-      .select("id, agente, titulo, actualizado_en")
+      .select("id, agente, titulo, actualizado_en, participantes, tema")
       .eq("owner_id", user.id)
       .order("actualizado_en", { ascending: false })
       .limit(60),
