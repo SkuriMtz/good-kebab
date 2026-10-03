@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { TriSpinner } from "@/components/Buttons";
@@ -10,12 +10,24 @@ import SwipeRow from "@/components/SwipeRow";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
 import { Personaje } from "@/components/agentes/Personaje";
+import {
+  Caras,
+  Dia,
+  Escribiendo,
+  IconoCerrar,
+  IconoLista,
+  IconoMas,
+  MensajeAgente,
+  MensajeTuyo,
+  NuevoGrupo,
+  Sistema,
+  nombres,
+} from "@/components/chat/Piezas";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
 import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
-import { Texto } from "@/components/Texto";
 
 export type Conversacion = {
   id: string;
@@ -31,30 +43,44 @@ type Mensaje = {
   rol: "user" | "assistant";
   contenido: string;
   agente?: string | null;
+  creado_en?: string;
   error?: string;
   enCurso?: boolean;
+  /** Escrito en esta visita: entra con animación. */
+  nuevo?: boolean;
+};
+/** Lo que se pinta: cada voz de una respuesta en grupo es su propia burbuja. */
+type Pieza = {
+  key: string;
+  de: "tu" | IdAgente;
+  texto: string;
+  fecha: Date;
+  nuevo?: boolean;
+  enCurso?: boolean;
+  error?: string;
 };
 
 const MARCA_ERROR = "\u0000ERROR:";
 const MAX_MENSAJE = 4000;
 const MAX_TEMA = 120;
 
+const mismoDia = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+
 function cuando(fecha: string) {
   const d = new Date(fecha);
-  const hoy = new Date();
-  if (d.toDateString() === hoy.toDateString()) {
-    return d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
-  }
+  if (mismoDia(d, new Date())) return hora(d);
   return d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
 }
 
-/** "Víctor e Iris", "Lola, Clara y Víctor" */
-function nombres(ids: readonly IdAgente[]) {
-  const n = ids.map((id) => AGENTE_POR_ID[id].nombre);
-  if (n.length < 2) return n.join("");
-  const ultimo = n[n.length - 1];
-  const y = /^[iI]/.test(ultimo) ? "e" : "y";
-  return `${n.slice(0, -1).join(", ")} ${y} ${ultimo}`;
+const hora = (d: Date) => d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+function dia(d: Date) {
+  const hoy = new Date();
+  if (mismoDia(d, hoy)) return "Hoy";
+  const ayer = new Date(hoy);
+  ayer.setDate(hoy.getDate() - 1);
+  if (mismoDia(d, ayer)) return "Ayer";
+  return d.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" });
 }
 
 const integrantes = (c: Conversacion): IdAgente[] | null => {
@@ -65,26 +91,17 @@ const integrantes = (c: Conversacion): IdAgente[] | null => {
 function Candado() {
   return (
     <svg className="h-3 w-3 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" stroke="currentColor" />
+      <rect x="2.5" y="6" width="9" height="6.5" rx="1.5" stroke="currentColor" />
       <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
     </svg>
   );
 }
 
-/** Varios personajes encimados un poquito (para grupos). */
-function Avatares({ ids, className = "h-7 w-7" }: { ids: readonly IdAgente[]; className?: string }) {
-  return (
-    <span className="flex shrink-0 -space-x-1.5" aria-hidden="true">
-      {ids.map((id) => (
-        <Personaje key={id} agente={id} avatar className={className} />
-      ))}
-    </span>
-  );
-}
-
 /**
- * Chat con los agentes, como en ChatGPT o Claude: eliges con quién hablar
- * (uno o un grupo), escribes y la respuesta va apareciendo. Se guarda todo.
+ * Chat con los agentes, como una app de mensajería: a la izquierda tus
+ * agentes, grupos y conversaciones; a la derecha la conversación abierta.
+ * Eliges con quién hablar (uno o un grupo), escribes y la respuesta va
+ * apareciendo. Se guarda todo.
  */
 export function Chat({
   email,
@@ -114,7 +131,7 @@ export function Chat({
   const [cargando, setCargando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [usados, setUsados] = useState(usadosIniciales);
-  const [lista, setLista] = useState(false); // panel de conversaciones en celular
+  const [lista, setLista] = useState(false); // lista de chats en celular
   const [aviso, setAviso] = useState<string | null>(null);
   const [reintentos, setReintentos] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -172,7 +189,7 @@ export function Chat({
     ponerUrl({ c: c.id });
     const { data, error } = await createClient()
       .from("mensajes")
-      .select("id, rol, contenido, agente")
+      .select("id, rol, contenido, agente, creado_en")
       .eq("conversacion_id", c.id)
       .order("creado_en", { ascending: true });
     setCargando(false);
@@ -197,6 +214,14 @@ export function Chat({
     if (el && pegado.current) el.scrollTop = el.scrollHeight;
   }, [mensajes]);
 
+  // Escape cierra la lista de chats en el celular
+  useEffect(() => {
+    if (!lista) return;
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setLista(false);
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [lista]);
+
   /** Con la ✕ pregunta antes; al deslizar la fila hasta el fondo ya es la confirmación. */
   async function borrar(c: Conversacion, preguntar = true) {
     if (preguntar && !window.confirm(`¿Borrar "${c.titulo}"?`)) return;
@@ -220,10 +245,11 @@ export function Chat({
     setAviso(null);
     pegado.current = true;
     const idRespuesta = `r-${Date.now()}`;
+    const ahora = new Date().toISOString();
     setMensajes((m) => [
       ...m,
-      { id: `u-${Date.now()}`, rol: "user", contenido: limpio },
-      { id: idRespuesta, rol: "assistant", contenido: "", enCurso: true },
+      { id: `u-${Date.now()}`, rol: "user", contenido: limpio, creado_en: ahora, nuevo: true },
+      { id: idRespuesta, rol: "assistant", contenido: "", creado_en: ahora, enCurso: true, nuevo: true },
     ]);
     setEnviando(true);
     const control = new AbortController();
@@ -233,10 +259,7 @@ export function Chat({
       setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
 
     // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
-    const cuerpo =
-      grupo && !actual
-        ? { agentes: grupo, tema, mensaje: limpio }
-        : { agente, mensaje: limpio, conversacionId: actual };
+    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio } : { agente, mensaje: limpio, conversacionId: actual };
 
     try {
       const res = await fetch("/api/chat", {
@@ -258,16 +281,15 @@ export function Chat({
       }
       // Subir (o agregar) la conversación al principio de la lista
       if (idConv) {
-        const ahora = new Date().toISOString();
         setConversaciones((l) => {
           const existente = l.find((x) => x.id === idConv);
           const item: Conversacion = existente
-            ? { ...existente, actualizado_en: ahora }
+            ? { ...existente, actualizado_en: new Date().toISOString() }
             : {
                 id: idConv,
                 agente,
                 titulo: (tema ?? limpio).replace(/\s+/g, " ").slice(0, 80),
-                actualizado_en: ahora,
+                actualizado_en: new Date().toISOString(),
                 participantes: grupo,
                 tema,
               };
@@ -306,483 +328,355 @@ export function Chat({
     return [{ agente, texto: m.contenido }];
   };
 
+  const piezas: Pieza[] = mensajes.flatMap((m): Pieza[] => {
+    const fecha = m.creado_en ? new Date(m.creado_en) : new Date();
+    if (m.rol === "user") return [{ key: m.id, de: "tu", texto: m.contenido, fecha, nuevo: m.nuevo }];
+    return voces(m).map((v, i, todas) => {
+      const ultima = i === todas.length - 1;
+      return {
+        key: `${m.id}-${i}`,
+        de: v.agente,
+        texto: v.texto,
+        fecha,
+        nuevo: m.nuevo,
+        enCurso: m.enCurso && ultima,
+        error: ultima ? m.error : undefined,
+      };
+    });
+  });
+  const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
+  // Quién escribe ahora (para los tres puntos y la cabecera)
+  const enCurso = visibles[visibles.length - 1]?.enCurso ? (visibles[visibles.length - 1].de as IdAgente) : null;
+
   const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
     key: id,
     name: AGENTE_POR_ID[id].nombre,
     description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
     icon: <Personaje agente={id} avatar className="h-5 w-5" />,
   }));
-  const sugerencias = grupo
-    ? grupo.slice(0, 3).map((id) => AGENTE_POR_ID[id].sugerencias[0])
-    : info.sugerencias;
+  const sugerencias = grupo ? grupo.slice(0, 3).map((id) => AGENTE_POR_ID[id].sugerencias[0]) : info.sugerencias;
+  const gruposGuardados = conversaciones.filter((c) => integrantes(c));
+  const chatsGuardados = conversaciones.filter((c) => !integrantes(c));
 
-  const lateral = (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-2 px-5 pb-4 pt-5">
-        <button type="button" className="btn-pill w-full" onClick={() => nueva(agente)}>
-          + Nueva conversación
-        </button>
-        {puedeGrupos ? (
-          <button
-            type="button"
-            className="w-full border hairline py-3 text-[0.8125rem] font-medium uppercase tracking-[0.04em] text-silver transition-colors hover:border-bone hover:text-bone"
-            onClick={() => {
-              setCreando(true);
-              setLista(false);
-            }}
-          >
-            + Nuevo grupo
+  const filaConversacion = (c: Conversacion) => {
+    const ids = integrantes(c) ?? [c.agente];
+    return (
+      <li key={c.id} className="group relative">
+        <SwipeRow
+          key={`${c.id}-${reintentos}`}
+          label={c.titulo}
+          actions={[{ id: "borrar", label: "Borrar", icon: <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.8} /> }]}
+          onCommit={() => borrar(c, false)}
+          actionColor="#e5484d"
+          drawerColor="var(--chat-barra)"
+          rowColor="var(--chat-barra)"
+          textColor="var(--color-bone-white)"
+          height={68}
+          radius={16}
+          actionWidth={76}
+          className="chat-app__deslizar"
+        >
+          <button type="button" className="chat-app__conv h-full" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
+            <Caras agentes={ids} tam={44} />
+            <span className="min-w-0 flex-1">
+              <span className="flex items-baseline justify-between gap-3">
+                <span className="truncate text-[0.9375rem] font-medium text-bone">{c.titulo}</span>
+                <span className="shrink-0 text-[0.75rem] tabular-nums text-ash">{cuando(c.actualizado_en)}</span>
+              </span>
+              <span className="mt-0.5 block truncate text-[0.8125rem] text-ash">
+                {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
+              </span>
+            </span>
           </button>
-        ) : (
-          <Link href="/#planes" className="flex items-center justify-center gap-1.5 py-2 text-[0.8125rem] text-ash">
-            <Candado /> Grupos con Atendel One
-          </Link>
-        )}
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
-        <p className="mt-2 font-cond text-base uppercase tracking-[0.03em] text-ash">Tu equipo</p>
-        <ul className="mt-2">
-          {AGENTES_INFO.map((a) => {
-            const activo = activos.includes(a.id);
-            const elegido = a.id === agente && !grupo && !actual && !creando;
-            return (
-              <li key={a.id}>
-                {activo ? (
-                  <button
-                    type="button"
-                    className="chat-agente"
-                    data-active={elegido ? "true" : "false"}
-                    onClick={() => nueva(a.id)}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Personaje agente={a.id} avatar className="h-6 w-6" />
-                      <span className="editorial text-[1.375rem] leading-none">{a.nombre}</span>
-                    </span>
-                    <span className="text-[0.75rem] uppercase tracking-[0.05em] text-ash">{a.area}</span>
-                  </button>
-                ) : (
-                  <Link href="/#planes" className="chat-agente opacity-50" title="Disponible con Atendel One">
-                    <span className="flex items-center gap-2.5">
-                      <Personaje agente={a.id} avatar className="h-6 w-6" />
-                      <span className="editorial text-[1.375rem] leading-none">{a.nombre}</span>
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[0.75rem] uppercase tracking-[0.05em] text-ash">
-                      <Candado />
-                      One
-                    </span>
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-
-        <p className="mt-8 font-cond text-base uppercase tracking-[0.03em] text-ash">Conversaciones</p>
-        {conversaciones.length === 0 ? (
-          <p className="mt-2 text-[0.875rem] text-ash">Aquí aparecerán tus conversaciones.</p>
-        ) : (
-          <ul className="mt-2">
-            {conversaciones.map((c) => {
-              const ids = integrantes(c) ?? [c.agente];
-              return (
-                <li key={c.id} className="group relative -mx-2.5">
-                  <SwipeRow
-                    key={`${c.id}-${reintentos}`}
-                    label={c.titulo}
-                    actions={[
-                      { id: "borrar", label: "Borrar", icon: <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.8} /> },
-                    ]}
-                    onCommit={() => borrar(c, false)}
-                    actionColor="#e5484d"
-                    drawerColor="var(--color-shale)"
-                    rowColor="var(--color-void)"
-                    textColor="var(--color-bone-white)"
-                    height={58}
-                    radius={0}
-                    actionWidth={76}
-                    className="chat-conv-fila"
-                  >
-                    <button
-                      type="button"
-                      className="chat-conv flex items-center gap-2.5"
-                      data-active={c.id === actual ? "true" : "false"}
-                      onClick={() => abrir(c)}
-                    >
-                      <Avatares ids={ids} className="h-6 w-6" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate pr-6 text-[0.9375rem]">{c.titulo}</span>
-                        <span className="mt-0.5 block truncate text-[0.75rem] text-ash">
-                          {ids.length > 1 ? `Grupo · ${nombres(ids)}` : AGENTE_POR_ID[c.agente]?.nombre} ·{" "}
-                          {cuando(c.actualizado_en)}
-                        </span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="absolute right-0 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-ash opacity-100 transition-opacity hover:text-bone lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
-                      aria-label={`Borrar ${c.titulo}`}
-                      onClick={() => borrar(c)}
-                    >
-                      ×
-                    </button>
-                  </SwipeRow>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      <div className="border-t hairline px-5 py-4">
-        <p className="mb-2 text-[0.8125rem] text-silver">{plan.nombre}</p>
-        <Uso usados={usados} plan={plan} compacto />
-      </div>
-    </div>
-  );
+          <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
+            <IconoCerrar />
+          </button>
+        </SwipeRow>
+      </li>
+    );
+  };
 
   return (
     <>
       <NavApp email={email} />
-      <div className="chat fixed inset-x-0 bottom-0 top-[72px] flex border-t hairline">
-        {/* Lateral en computadora */}
-        <aside className="hidden w-[300px] shrink-0 border-r hairline lg:block" aria-label="Equipo y conversaciones">
-          {lateral}
-        </aside>
-
-        {/* Lateral en celular: se abre sobre el chat */}
-        {lista ? (
-          <div className="absolute inset-0 z-20 bg-void lg:hidden" role="dialog" aria-label="Equipo y conversaciones">
-            <button
-              type="button"
-              className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center text-xl"
-              aria-label="Cerrar"
-              onClick={() => setLista(false)}
-            >
-              ×
+      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[72px]">
+        {/* ---------- Agentes, grupos y conversaciones ---------- */}
+        <aside className="chat-app__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
+          <div className="flex items-center justify-between px-5 pb-4 pt-6 sm:px-6">
+            <p className="text-[1.125rem] font-medium tracking-[-0.01em]">Chats</p>
+            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(false)} aria-label="Cerrar la lista">
+              <IconoCerrar />
             </button>
-            {lateral}
           </div>
-        ) : null}
-
-        <section className="flex min-w-0 flex-1 flex-col">
-          {/* Con quién hablas */}
-          <header className="flex min-h-[64px] items-center justify-between gap-4 border-b hairline px-5 lg:px-8">
-            {creando ? (
-              <p className="editorial truncate text-[1.75rem] leading-none">Nuevo grupo</p>
-            ) : grupo ? (
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatares ids={grupo} className="h-8 w-8" />
-                <p className="min-w-0">
-                  <span className="block truncate text-[1rem] font-medium leading-tight">{tema ?? nombres(grupo)}</span>
-                  <span className="block truncate text-[0.75rem] uppercase tracking-[0.05em] text-ash">
-                    Grupo · {nombres(grupo)}
-                  </span>
-                </p>
-              </div>
-            ) : (
-              <div className="flex min-w-0 items-center gap-3">
-                <Personaje agente={agente} avatar className="h-9 w-9 shrink-0" />
-                <p className="flex min-w-0 items-baseline gap-3">
-                  <span className="editorial truncate text-[1.75rem] leading-none">{info.nombre}</span>
-                  <span className="truncate text-[0.75rem] uppercase tracking-[0.05em] text-ash">{info.area}</span>
-                </p>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              {actual ? (
-                <button
-                  type="button"
-                  className="btn-ghost !text-[0.8125rem]"
-                  onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}
-                >
-                  + Nueva
-                </button>
-              ) : null}
-              <button type="button" className="btn-ghost !text-[0.8125rem] lg:hidden" onClick={() => setLista(true)}>
-                Equipo y chats
-              </button>
-            </div>
-          </header>
-
-          {creando ? (
-            <CrearGrupo
-              activos={activos}
-              onCrear={(ids, t) => nuevoGrupo(ids, t)}
-              onCancelar={() => setCreando(false)}
-            />
-          ) : (
-            <>
-              {/* Mensajes */}
-              <div
-                ref={scrollRef}
-                className="min-h-0 flex-1 overflow-y-auto"
-                onScroll={(e) => {
-                  const el = e.currentTarget;
-                  pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+          <div className="px-4 sm:px-5">
+            {puedeGrupos ? (
+              <button
+                type="button"
+                className="chat-app__nuevo"
+                onClick={() => {
+                  setCreando(true);
+                  setLista(false);
                 }}
               >
-                <div className="mx-auto w-full max-w-[800px] px-5 py-10 lg:px-10 lg:py-14">
-                  {cargando ? (
-                    <p className="flex items-center gap-2 text-ash">
-                      <TriSpinner className="h-3 w-3" /> Abriendo conversación…
-                    </p>
-                  ) : mensajes.length === 0 ? (
-                    <div className="page-enter">
-                      {grupo ? (
-                        <>
-                          <Avatares ids={grupo} className="h-14 w-14" />
-                          <p className="editorial mt-6 text-[clamp(2.5rem,5.5vw,4.25rem)] leading-[0.95]">
-                            {tema ?? `Grupo con ${nombres(grupo)}.`}
-                          </p>
-                          <p className="mt-4 max-w-[540px] text-body text-silver">
-                            {tema ? `Con ${nombres(grupo)}. ` : ""}Escribe tu pregunta y contesta quien sepa del tema; se
-                            complementan entre ellos. Usa @ para dirigirte a alguien en particular.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <Personaje agente={agente} className="h-24 w-24" />
-                          <p className="editorial mt-4 text-[clamp(2.75rem,6vw,4.75rem)] leading-[0.95]">
-                            Hola, soy {info.nombre}.
-                          </p>
-                          <p className="mt-4 max-w-[520px] text-body text-silver">{info.lema}</p>
-                        </>
-                      )}
-                      {disponible ? (
-                        <>
-                          <p className="mt-10 font-cond text-base uppercase tracking-[0.03em] text-ash">Para empezar</p>
-                          <ul className="mt-2 border-b hairline">
-                            {sugerencias.map((s) => (
-                              <li key={s} className="border-t hairline">
-                                <button
-                                  type="button"
-                                  className="chat-sugerencia"
-                                  onClick={() => enviar(s)}
-                                  disabled={sinMensajes}
-                                >
-                                  {s}
-                                  <span aria-hidden="true">→</span>
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : (
-                        <p className="mt-8 text-body text-silver">
-                          {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                          <Link
-                            href={planId === "free" ? "/#planes" : "/panel/agentes"}
-                            className="text-bone underline underline-offset-4"
-                          >
-                            {planId === "free" ? "Desbloquéalo con Atendel One" : "Agrégalo en Mis agentes"}
-                          </Link>
-                          .
-                        </p>
-                      )}
+                <span className="chat-app__nuevo-mas" aria-hidden="true">
+                  <IconoMas />
+                </span>
+                Nuevo grupo
+              </button>
+            ) : (
+              <Link href="/#planes" className="chat-app__nuevo chat-app__nuevo--bloqueado">
+                <span className="chat-app__nuevo-mas" aria-hidden="true">
+                  <Candado />
+                </span>
+                Grupos con Atendel One
+              </Link>
+            )}
+          </div>
+
+          <div className="chat-app__listas">
+            <p className="chat-app__seccion">Tu equipo</p>
+            <ul>
+              {AGENTES_INFO.map((a) => {
+                const activo = activos.includes(a.id);
+                const elegido = a.id === agente && !grupo && !actual;
+                const contenido = (
+                  <>
+                    <Caras agentes={[a.id]} tam={44} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.9375rem] font-medium text-bone">{a.nombre}</span>
+                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-ash">
+                        {activo ? (
+                          `${a.area} · ${a.abarca}`
+                        ) : (
+                          <>
+                            <Candado /> Con Atendel One
+                          </>
+                        )}
+                      </span>
+                    </span>
+                  </>
+                );
+                return (
+                  <li key={a.id}>
+                    {activo ? (
+                      <button type="button" className="chat-app__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
+                        {contenido}
+                      </button>
+                    ) : (
+                      <Link href="/#planes" className="chat-app__conv opacity-50" title="Disponible con Atendel One">
+                        {contenido}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            {gruposGuardados.length ? (
+              <>
+                <p className="chat-app__seccion">Grupos</p>
+                <ul>{gruposGuardados.map(filaConversacion)}</ul>
+              </>
+            ) : null}
+
+            <p className="chat-app__seccion">Conversaciones</p>
+            {chatsGuardados.length ? (
+              <ul>{chatsGuardados.map(filaConversacion)}</ul>
+            ) : (
+              <p className="px-3 text-[0.8125rem] text-ash">Aquí aparecerán tus conversaciones.</p>
+            )}
+          </div>
+
+          <div className="chat-app__plan">
+            <p className="mb-2 text-[0.8125rem] font-medium text-bone">{plan.nombre}</p>
+            <Uso usados={usados} plan={plan} compacto />
+          </div>
+        </aside>
+        <button
+          type="button"
+          className="chat-app__velo md:hidden"
+          data-abierta={lista ? "" : undefined}
+          onClick={() => setLista(false)}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+
+        {/* ---------- Conversación abierta ---------- */}
+        <section className="chat-app__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
+          <header className="chat-app__cabeza">
+            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(true)} aria-label="Ver chats">
+              <IconoLista />
+            </button>
+            <Caras agentes={participantes} tam={40} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[1rem] font-medium leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
+              <p className="truncate text-[0.8125rem] leading-snug text-ash" aria-live="polite">
+                {enCurso ? (
+                  <span className="chat-app__escribe">
+                    {grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}
+                  </span>
+                ) : grupo ? (
+                  `Grupo · ${nombres(grupo)}`
+                ) : (
+                  `${info.area} · ${info.abarca}`
+                )}
+              </p>
+            </div>
+            {actual ? (
+              <button type="button" className="chat-app__probar inline-flex" onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
+                <IconoMas />
+                Nueva
+              </button>
+            ) : null}
+          </header>
+
+          <div
+            ref={scrollRef}
+            className="chat-app__mensajes"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+            }}
+          >
+            <div className="mx-auto flex min-h-full w-full max-w-[880px] flex-col">
+              {cargando ? (
+                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-ash">
+                  <TriSpinner className="h-3 w-3" /> Abriendo conversación…
+                </p>
+              ) : mensajes.length === 0 ? (
+                <div className="chat-app__vacio">
+                  {grupo ? <Caras agentes={grupo} tam={92} /> : <Personaje agente={agente} className="h-28 w-28" />}
+                  <p className="mt-6 text-[1.75rem] font-medium leading-tight tracking-[-0.02em] sm:text-[2rem]">
+                    {grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}
+                  </p>
+                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-silver">
+                    {grupo
+                      ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
+                      : info.lema}
+                  </p>
+                  {disponible ? (
+                    <div className="mt-8 flex max-w-[620px] flex-wrap justify-center gap-2">
+                      {sugerencias.map((s) => (
+                        <button key={s} type="button" className="chat-app__sugerencia chat-app__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
+                          {s}
+                        </button>
+                      ))}
                     </div>
                   ) : (
-                    <ol className="flex flex-col gap-9" aria-live="polite">
-                      {mensajes.map((m) =>
-                        m.rol === "user" ? (
-                          <li key={m.id} className="flex justify-end">
-                            <p className="max-w-[85%] whitespace-pre-wrap border hairline bg-shale px-4 py-3 text-[0.9375rem] leading-relaxed sm:max-w-[75%]">
-                              {m.contenido}
-                            </p>
-                          </li>
-                        ) : (
-                          <li key={m.id} className="flex flex-col gap-7">
-                            {voces(m).map((v, i, todas) => (
-                              <Voz
-                                key={i}
-                                agente={v.agente}
-                                texto={v.texto}
-                                escribiendo={!!m.enCurso && i === todas.length - 1}
-                                error={i === todas.length - 1 ? m.error : undefined}
-                              />
-                            ))}
-                          </li>
-                        ),
-                      )}
-                    </ol>
-                  )}
-                  {aviso ? (
-                    <p role="alert" className="mt-6 text-signal">
-                      {aviso}
+                    <p className="mt-8 text-[0.9375rem] text-silver">
+                      {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
+                      <Link href={planId === "free" ? "/#planes" : "/panel/agentes"} className="text-bone underline underline-offset-4">
+                        {planId === "free" ? "Desbloquéalo con Atendel One" : "Agrégalo en Mis agentes"}
+                      </Link>
+                      .
                     </p>
-                  ) : null}
+                  )}
                 </div>
-              </div>
-
-              {/* Escribir */}
-              <div className="mx-auto w-full max-w-[800px] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] lg:px-10 lg:pb-6">
-                {sinMensajes ? (
-                  <p className="mb-3 text-[0.9375rem] text-silver">
-                    Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                    <Link href="/#planes" className="text-bone underline underline-offset-4">
-                      Ver planes
-                    </Link>
-                  </p>
-                ) : null}
-                {disponible && !sinMensajes ? (
-                  <PromptBar
-                    key={grupo ? grupo.join("-") : agente}
-                    placeholder={
-                      grupo
-                        ? "Escríbele al grupo… @ para dirigirte a alguien, / para acciones"
-                        : `Escríbele a ${info.nombre}… / para acciones`
-                    }
-                    sources={fuentes}
-                    commands={comandosDe(participantes)}
-                    models={[]}
-                    efforts={[]}
-                    busy={enviando}
-                    onSend={(t) => enviar(t)}
-                    onStop={() => abortar.current?.abort()}
-                    background="var(--color-shale)"
-                    color="var(--color-bone-white)"
-                    menuBackground="var(--color-void)"
-                    width={4000}
-                    radius={0}
-                    maxRows={8}
-                  />
-                ) : null}
-                <p className="mt-2 text-center text-[0.75rem] text-ash">
-                  {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo
-                  a un cliente.
+              ) : (
+                <div className="chat-app__hilo" role="log" aria-live="polite">
+                  {visibles.map((p, i) => {
+                    const antes = visibles[i - 1];
+                    const despues = visibles[i + 1];
+                    const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
+                    const primero = nuevoDia || antes.de !== p.de;
+                    const ultimo = !despues || despues.de !== p.de || !mismoDia(despues.fecha, p.fecha);
+                    const fila = { primero, ultimo, nueva: p.nuevo, bloque: primero && !nuevoDia, hora: hora(p.fecha) };
+                    let pieza;
+                    if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
+                    else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
+                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error {...fila} />;
+                    else
+                      pieza = (
+                        <MensajeAgente
+                          agente={p.de}
+                          texto={p.texto}
+                          enGrupo={!!grupo}
+                          {...fila}
+                          hora={p.enCurso ? undefined : fila.hora}
+                          pie={
+                            p.error ? (
+                              <p role="alert" className="chat-app__error">
+                                {p.error}
+                              </p>
+                            ) : !p.enCurso && ultimo ? (
+                              <Copiar texto={p.texto} fijo={i === visibles.length - 1} />
+                            ) : null
+                          }
+                        />
+                      );
+                    return (
+                      <Fragment key={p.key}>
+                        {nuevoDia ? <Dia>{dia(p.fecha)}</Dia> : null}
+                        {pieza}
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              )}
+              {aviso ? (
+                <p role="alert" className="chat-app__fila chat-app__sistema chat-app__sistema--error">
+                  <span>{aviso}</span>
                 </p>
-              </div>
-            </>
-          )}
+              ) : null}
+            </div>
+          </div>
+
+          <div className="chat-app__pie mx-auto w-full max-w-[944px] pb-[max(18px,env(safe-area-inset-bottom))]">
+            {sinMensajes ? (
+              <p className="mb-3 text-center text-[0.875rem] text-silver">
+                Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
+                <Link href="/#planes" className="text-bone underline underline-offset-4">
+                  Ver planes
+                </Link>
+              </p>
+            ) : null}
+            {disponible && !sinMensajes ? (
+              <PromptBar
+                key={grupo ? grupo.join("-") : agente}
+                className="prompt-bar--suave"
+                placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
+                sources={fuentes}
+                commands={comandosDe(participantes)}
+                models={[]}
+                efforts={[]}
+                busy={enviando}
+                onSend={(t) => enviar(t)}
+                onStop={() => abortar.current?.abort()}
+                background="var(--chat-campo)"
+                color="var(--color-bone-white)"
+                menuBackground="var(--chat-menu)"
+                width={4000}
+                radius={22}
+                maxRows={8}
+              />
+            ) : null}
+            <p className="mt-3 text-center text-[0.75rem] text-ash">
+              {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
+            </p>
+          </div>
         </section>
+
+        {creando ? (
+          <NuevoGrupo
+            disponibles={activos}
+            nombreObligatorio={false}
+            maxNombre={MAX_TEMA}
+            onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)}
+            onCerrar={() => setCreando(false)}
+          />
+        ) : null}
       </div>
     </>
   );
 }
 
-/** Lo que dice un agente: su personaje, su nombre y el texto. */
-function Voz({ agente, texto, escribiendo, error }: { agente: IdAgente; texto: string; escribiendo?: boolean; error?: string }) {
-  const info = AGENTE_POR_ID[agente];
-  return (
-    <div className="grid grid-cols-[36px_minmax(0,1fr)] gap-x-3 sm:gap-x-4">
-      <Personaje agente={agente} avatar className="h-9 w-9" />
-      <div className="min-w-0">
-        <p className="flex items-baseline gap-2 text-[0.8125rem]">
-          <span className="font-medium text-bone">{info.nombre}</span>
-          <span className="text-ash">{info.area}</span>
-        </p>
-        <div className="mt-2 text-body text-silver">
-          {texto ? (
-            <Texto texto={texto} />
-          ) : escribiendo ? (
-            <p className="flex items-center gap-2 text-ash">
-              <TriSpinner className="h-3 w-3" /> Escribiendo…
-            </p>
-          ) : null}
-        </div>
-        {error ? (
-          <p role="alert" className="mt-3 text-[0.9375rem] text-signal">
-            {error}
-          </p>
-        ) : null}
-        {!escribiendo && texto ? <Copiar texto={texto} /> : null}
-      </div>
-    </div>
-  );
-}
-
-/** Armar un grupo: eliges 2 o más agentes de tu equipo y, si quieres, un tema. */
-function CrearGrupo({
-  activos,
-  onCrear,
-  onCancelar,
-}: {
-  activos: IdAgente[];
-  onCrear: (ids: IdAgente[], tema: string | null) => void;
-  onCancelar: () => void;
-}) {
-  const [elegidos, setElegidos] = useState<IdAgente[]>([]);
-  const [tema, setTema] = useState("");
-  const listo = elegidos.length >= 2;
-  const alternar = (id: IdAgente) =>
-    setElegidos((l) => (l.includes(id) ? l.filter((x) => x !== id) : AGENTES_INFO.map((a) => a.id).filter((x) => x === id || l.includes(x))));
-
-  return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <form
-        className="page-enter mx-auto w-full max-w-[720px] px-5 py-10 lg:px-10 lg:py-14"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (listo) onCrear(elegidos, tema.trim() || null);
-        }}
-      >
-        <h2 className="editorial text-[clamp(2.5rem,5.5vw,4rem)] leading-[0.95]">Arma un grupo.</h2>
-        <p className="mt-4 max-w-[520px] text-body text-silver">
-          Elige con quiénes quieres hablar de un tema. Contesta quien sepa y se complementan entre ellos, en una sola
-          conversación.
-        </p>
-
-        <fieldset className="mt-10">
-          <legend className="font-cond text-base uppercase tracking-[0.03em] text-ash">Integrantes · mínimo 2</legend>
-          <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {AGENTES_INFO.map((a) => {
-              const puede = activos.includes(a.id);
-              const on = elegidos.includes(a.id);
-              return (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    className="crear-grupo__agente"
-                    aria-pressed={on}
-                    disabled={!puede}
-                    onClick={() => alternar(a.id)}
-                  >
-                    <Personaje agente={a.id} avatar className="h-11 w-11 shrink-0" />
-                    <span className="min-w-0 flex-1 text-left">
-                      <span className="block text-[1rem] font-medium">{a.nombre}</span>
-                      <span className="block truncate text-[0.8125rem] text-ash">
-                        {puede ? `${a.area} · ${a.abarca}` : "No está en tu equipo"}
-                      </span>
-                    </span>
-                    <span className="crear-grupo__marca" aria-hidden="true" />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </fieldset>
-
-        <label className="mt-10 block">
-          <span className="font-cond text-base uppercase tracking-[0.03em] text-ash">Tema (opcional)</span>
-          <input
-            type="text"
-            value={tema}
-            maxLength={MAX_TEMA}
-            onChange={(e) => setTema(e.target.value)}
-            placeholder="Por ejemplo: campaña de noviembre"
-            className="mt-3 block w-full border-b hairline bg-transparent py-3 text-body text-bone outline-none placeholder:text-ash focus:border-bone"
-          />
-        </label>
-
-        <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <button type="submit" className="btn-pill" disabled={!listo}>
-            {listo ? `Crear grupo con ${nombres(elegidos)}` : "Elige al menos 2"}
-          </button>
-          <button type="button" className="btn-ghost" onClick={onCancelar}>
-            Cancelar
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function Copiar({ texto }: { texto: string }) {
+/** "Copiar" aparece al pasar el cursor; en pantallas táctiles, solo en la última respuesta (`fijo`). */
+function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
   const [copiado, setCopiado] = useState(false);
   return (
     <button
       type="button"
-      className="btn-ghost mt-2 !min-h-[36px] !text-[0.75rem]"
+      className={`chat-app__copiar${fijo ? " chat-app__copiar--fijo" : ""}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(texto);

@@ -797,128 +797,11 @@ html.js [data-split][data-in] .split-inner {
   }
 }
 
-/* ---------- Chat con los agentes ---------- */
-@layer components {
-  .chat-agente {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--hairline);
-    color: var(--color-silver-mist);
-    text-align: left;
-    transition: color 0.3s var(--ease-out);
-  }
-  .chat-agente:hover {
-    color: var(--color-bone-white);
-  }
-  .chat-agente[data-active="true"] {
-    color: var(--color-bone-white);
-    box-shadow: inset 2px 0 0 var(--color-signal);
-    padding-left: 12px;
-  }
-  .chat-conv {
-    display: block;
-    width: 100%;
-    padding: 9px 10px;
-    margin: 0 -10px;
-    text-align: left;
-    color: var(--color-silver-mist);
-    transition:
-      background-color 0.3s var(--ease-out),
-      color 0.3s var(--ease-out);
-  }
-  .chat-conv:hover {
-    color: var(--color-bone-white);
-    background: rgb(var(--c-bone) / 0.04);
-  }
-  .chat-conv[data-active="true"] {
-    color: var(--color-bone-white);
-    background: rgb(var(--c-bone) / 0.07);
-  }
-  /* Armar un grupo: cada agente es una tarjeta que se marca */
-  .crear-grupo__agente {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border: 1px solid var(--hairline);
-    text-align: left;
-    color: var(--color-bone-white);
-    transition:
-      border-color 0.3s var(--ease-out),
-      background-color 0.3s var(--ease-out);
-  }
-  .crear-grupo__agente:hover:not(:disabled) {
-    border-color: rgb(var(--c-bone) / 0.5);
-  }
-  .crear-grupo__agente[aria-pressed="true"] {
-    border-color: var(--color-bone-white);
-    background: rgb(var(--c-bone) / 0.05);
-  }
-  .crear-grupo__agente:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  .crear-grupo__marca {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    border: 1px solid var(--hairline);
-    transition:
-      background-color 0.25s var(--ease-out),
-      border-color 0.25s var(--ease-out);
-  }
-  .crear-grupo__agente[aria-pressed="true"] .crear-grupo__marca {
-    border-color: var(--color-signal);
-    background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.4 4.8 9 10 3' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E")
-        center / 12px no-repeat,
-      var(--color-signal);
-  }
-  /* Dentro de SwipeRow (deslizar para borrar): la fila ocupa todo el ancho */
-  .chat-conv-fila .swipe-row__surface {
-    padding: 0;
-  }
-  .chat-conv-fila .chat-conv {
-    height: 100%;
-    margin: 0;
-    padding: 9px 10px;
-  }
-  .chat-sugerencia {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 14px 0;
-    text-align: left;
-    font-size: 1rem;
-    color: var(--color-silver-mist);
-    transition: color 0.3s var(--ease-out);
-  }
-  .chat-sugerencia span {
-    transition: transform 0.5s var(--ease-out);
-  }
-  .chat-sugerencia:hover:not(:disabled) {
-    color: var(--color-bone-white);
-  }
-  .chat-sugerencia:hover:not(:disabled) span {
-    transform: translateX(4px);
-  }
-  .chat-campo:focus-within {
-    border-color: rgb(var(--c-bone) / 0.55);
-  }
-}
-
-/* ---------- Chat de ejemplo (página de inicio): una app de mensajería ---------- */
+/* ---------- Chat como app de mensajería (ejemplo de inicio y chat real del panel) ---------- */
 @layer components {
   .chat-app {
     --chat-fondo: rgb(var(--c-shale));
-    --chat-barra: rgb(var(--c-bone) / 0.025);
+    --chat-barra: rgb(22 22 22);
     --chat-burbuja: rgb(var(--c-bone) / 0.08);
     --chat-campo: rgb(var(--c-bone) / 0.06);
     --chat-menu: rgb(30 30 30);
@@ -932,6 +815,7 @@ html.js [data-split][data-in] .split-inner {
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     height: min(86svh, 700px);
     min-height: 560px;
     overflow: hidden;
@@ -942,7 +826,7 @@ html.js [data-split][data-in] .split-inner {
   }
   :root[data-tema="claro"] .chat-app {
     --chat-fondo: rgb(var(--c-papel));
-    --chat-barra: rgb(var(--c-void) / 0.7);
+    --chat-barra: rgb(var(--c-void));
     --chat-burbuja: rgb(var(--c-shale) / 0.85);
     --chat-campo: rgb(var(--c-void));
     --chat-menu: rgb(255 255 255);
@@ -971,7 +855,7 @@ html.js [data-split][data-in] .split-inner {
     display: flex;
     flex-direction: column;
     width: min(88%, 340px);
-    background: var(--chat-fondo);
+    background: var(--chat-barra);
     box-shadow: 20px 0 60px -30px rgb(0 0 0 / 0.5);
     transform: translateX(-104%);
     transition: transform 0.5s var(--ease-out);
@@ -1203,6 +1087,7 @@ html.js [data-split][data-in] .split-inner {
     flex-shrink: 0;
   }
   .chat-app__columna {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -1489,6 +1374,129 @@ html.js [data-split][data-in] .split-inner {
     cursor: default;
   }
 
+  /* Chat real: ocupa toda la pantalla debajo de la barra de arriba */
+  .chat-app.chat-app--pantalla {
+    height: auto;
+    min-height: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .chat-app--pantalla .chat-app__mensajes {
+    padding-top: 8px;
+  }
+  @media (min-width: 1024px) {
+    .chat-app--pantalla .chat-app__cabeza {
+      padding-inline: 40px;
+    }
+  }
+  .chat-app__plan {
+    margin: 4px 12px 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--chat-hover);
+  }
+  .chat-app__nuevo--bloqueado {
+    background: var(--chat-hover);
+    color: var(--color-silver-mist);
+    box-shadow: none;
+  }
+  .chat-app__nuevo--bloqueado:hover {
+    box-shadow: none;
+    color: var(--color-bone-white);
+  }
+  .chat-app__nuevo--bloqueado .chat-app__nuevo-mas {
+    background: var(--chat-hover);
+  }
+  /* Deslizar para borrar: la fila ocupa todo el ancho */
+  .chat-app__deslizar .swipe-row__surface {
+    padding: 0;
+  }
+  .chat-app__borrar {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--chat-activo);
+    color: var(--color-ash-gray);
+    opacity: 0;
+    transform: translateY(-50%);
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease;
+  }
+  .group:hover .chat-app__borrar,
+  .chat-app__borrar:focus-visible {
+    opacity: 1;
+  }
+  .chat-app__borrar:hover {
+    color: var(--color-bone-white);
+  }
+  .chat-app__vacio {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 8px;
+    text-align: center;
+    animation: chat-app-entra 0.6s var(--ease-out) both;
+  }
+  .chat-app__sugerencia--larga {
+    max-width: 100%;
+    padding: 10px 16px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    text-align: left;
+    white-space: normal;
+  }
+  /* Fuera del flujo: no separa el avatar de su burbuja */
+  .chat-app__copiar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 1px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--color-ash-gray);
+    opacity: 0;
+    transition:
+      opacity 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .chat-app__fila:hover .chat-app__copiar,
+  .chat-app__copiar:focus-visible {
+    opacity: 1;
+  }
+  .chat-app__copiar:hover {
+    background: var(--chat-hover);
+    color: var(--color-bone-white);
+  }
+  @media (hover: none) {
+    .chat-app__copiar,
+    .chat-app__borrar {
+      display: none;
+    }
+    .chat-app__copiar--fijo {
+      display: block;
+      opacity: 0.85;
+    }
+  }
+  .chat-app__error {
+    margin: 6px 0 0 4px;
+    font-size: 0.8125rem;
+    color: rgb(var(--c-signal));
+  }
+  .chat-app__sistema--error span {
+    background: rgb(var(--c-signal) / 0.1);
+    color: rgb(var(--c-signal));
+  }
+
   /* PromptBar con esquinas suaves, solo dentro de este chat */
   .prompt-bar--suave .prompt-bar__field {
     border-color: transparent;
@@ -1521,6 +1529,7 @@ html.js [data-split][data-in] .split-inner {
   @media (prefers-reduced-motion: reduce) {
     .chat-app__entra,
     .chat-app__hilo,
+    .chat-app__vacio,
     .chat-app__capa,
     .chat-app__panel,
     .chat-app__puntos i {

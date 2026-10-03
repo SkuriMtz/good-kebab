@@ -7,14 +7,20 @@ import PromptBar, {
   type PromptBarCommand,
   type PromptBarSource,
 } from "./PromptBar";
-import { Texto } from "./Texto";
-import { PERSONAJES, Personaje } from "./agentes/Personaje";
+import { Personaje } from "./agentes/Personaje";
 import {
-  AGENTE_POR_ID,
-  AGENTES_INFO,
-  IDS_AGENTES,
-  type IdAgente,
-} from "@/lib/agentes";
+  Caras,
+  Escribiendo,
+  IconoCerrar,
+  IconoLista,
+  IconoMas,
+  MensajeAgente,
+  MensajeTuyo,
+  NuevoGrupo,
+  Sistema,
+  nombres,
+} from "./chat/Piezas";
+import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 
 /* ---------- Acciones del menú "/" y lo que contesta cada una ---------- */
 
@@ -319,14 +325,6 @@ const ahora = () =>
     minute: "2-digit",
     hour12: false,
   });
-
-/** "Lola", "Lola y Víctor", "Lola, Clara e Iris". */
-function nombres(ids: readonly IdAgente[]) {
-  const n = ids.map((id) => AGENTE_POR_ID[id].nombre);
-  if (n.length < 2) return n.join("");
-  const ultimo = n[n.length - 1];
-  return `${n.slice(0, -1).join(", ")} ${sinAcentos(ultimo).startsWith("i") ? "e" : "y"} ${ultimo}`;
-}
 
 /** Texto plano de un mensaje para la vista previa de la lista. */
 function vistaPrevia(c: Conversacion) {
@@ -639,14 +637,7 @@ export function ChatDemo() {
             onClick={() => setBarra(false)}
             aria-label="Cerrar la lista"
           >
-            <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
-              <path
-                d="M5 5l10 10M15 5L5 15"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
+            <IconoCerrar />
           </button>
         </div>
         <div className="px-4 sm:px-5">
@@ -656,14 +647,7 @@ export function ChatDemo() {
             onClick={() => setCreando(true)}
           >
             <span className="chat-app__nuevo-mas" aria-hidden="true">
-              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5">
-                <path
-                  d="M10 4v12M4 10h12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <IconoMas />
             </span>
             Nuevo grupo
           </button>
@@ -696,18 +680,7 @@ export function ChatDemo() {
             onClick={() => setBarra(true)}
             aria-label="Ver chats"
           >
-            <svg
-              viewBox="0 0 20 20"
-              className="h-[18px] w-[18px]"
-              aria-hidden="true"
-            >
-              <path
-                d="M3 6h14M3 10h14M3 14h9"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
+            <IconoLista />
             {sinLeerTotal ? (
               <span
                 className="chat-app__punto"
@@ -839,85 +812,11 @@ export function ChatDemo() {
 
 const esGrupoConv = (c: Conversacion) => c.agentes.length > 1;
 
-/* ---------- Piezas ---------- */
-
-/** Posición de cada cara en una caja de 46px: encimadas, una sobre otra. */
-const ACOMODO: Record<number, { x: number; y: number; s: number }[]> = {
-  1: [{ x: 0, y: 0, s: 46 }],
-  2: [
-    { x: 0, y: 0, s: 32 },
-    { x: 14, y: 14, s: 32 },
-  ],
-  3: [
-    { x: 0, y: 3, s: 28 },
-    { x: 18, y: 3, s: 28 },
-    { x: 9, y: 18, s: 28 },
-  ],
-  4: [
-    { x: 0, y: 0, s: 26 },
-    { x: 20, y: 0, s: 26 },
-    { x: 0, y: 20, s: 26 },
-    { x: 20, y: 20, s: 26 },
-  ],
-};
-
-/** El personaje (o los personajes encimados de un grupo) en un círculo suave. */
-function Caras({ agentes, tam }: { agentes: IdAgente[]; tam: number }) {
-  const k = tam / 46;
-  const acomodo = ACOMODO[Math.min(agentes.length, 4)];
-  return (
-    <span
-      className="relative block shrink-0"
-      style={{ width: tam, height: tam }}
-      aria-hidden="true"
-    >
-      {agentes.slice(0, 4).map((id, i) => {
-        const p = acomodo[i];
-        return (
-          <span
-            key={id}
-            className="chat-app__cara"
-            data-sola={agentes.length === 1 ? "" : undefined}
-            style={{
-              left: p.x * k,
-              top: p.y * k,
-              width: p.s * k,
-              height: p.s * k,
-            }}
-          >
-            <Personaje agente={id} avatar className="h-[78%] w-[78%]" />
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
-/** Resalta @menciones y /acciones dentro del mensaje de la persona. */
-function TextoTuyo({ texto }: { texto: string }) {
-  return (
-    <>
-      {texto.split(/((?:^|\s)[@/][\wÀ-ÿ-]+)/g).map((p, i) =>
-        /^\s?[@/]/.test(p) ? (
-          <Fragment key={i}>
-            {p.startsWith(" ") ? " " : ""}
-            <strong className="font-semibold">{p.trim()}</strong>
-          </Fragment>
-        ) : (
-          <Fragment key={i}>{p}</Fragment>
-        ),
-      )}
-    </>
-  );
-}
-
+/** Un mensaje de ejemplo con la pieza que le toca. */
 function Burbuja({
   mensaje,
-  primero,
-  ultimo,
-  nueva,
-  enGrupo,
   inicio,
+  ...fila
 }: {
   mensaje: Mensaje;
   primero: boolean;
@@ -926,242 +825,14 @@ function Burbuja({
   enGrupo: boolean;
   inicio: boolean;
 }) {
-  const clases = `chat-app__fila${nueva ? " chat-app__entra" : ""}${primero && !inicio ? " chat-app__fila--bloque" : ""}`;
-  if (mensaje.de === "sistema") {
-    return (
-      <p className={`${clases} chat-app__sistema`}>
-        <span>{mensaje.texto}</span>
-      </p>
-    );
-  }
-  if (mensaje.de === "tu") {
-    return (
-      <div className={`${clases} justify-end`}>
-        <p
-          className="chat-app__burbuja chat-app__burbuja--tu"
-          data-primero={primero ? "" : undefined}
-          data-ultimo={ultimo ? "" : undefined}
-        >
-          <span className="whitespace-pre-wrap">
-            <TextoTuyo texto={mensaje.texto} />
-          </span>
-          <span className="chat-app__hora">{mensaje.hora}</span>
-        </p>
-      </div>
-    );
-  }
-  const info = AGENTE_POR_ID[mensaje.de];
-  return (
-    <div className={clases}>
-      <span className="chat-app__avatar">
-        {ultimo ? (
-          <Personaje agente={mensaje.de} avatar className="h-8 w-8" />
-        ) : null}
-      </span>
-      <div className="chat-app__columna">
-        {primero ? (
-          <p className="chat-app__nombre">
-            <span
-              className="chat-app__marca"
-              style={{ background: PERSONAJES[mensaje.de].color }}
-              aria-hidden="true"
-            />
-            <span className="font-medium text-bone">{info.nombre}</span>
-            {enGrupo ? <span className="text-ash">{info.area}</span> : null}
-          </p>
-        ) : null}
-        <div
-          className="chat-app__burbuja chat-app__burbuja--agente"
-          data-primero={primero ? "" : undefined}
-          data-ultimo={ultimo ? "" : undefined}
-        >
-          <div className="chat-app__texto">
-            <Texto texto={mensaje.texto} />
-          </div>
-          <span className="chat-app__hora">{mensaje.hora}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Los tres puntos de "escribiendo…", con el personaje de quien escribe. */
-function Escribiendo({ agente, sigue }: { agente: IdAgente; sigue: boolean }) {
-  const info = AGENTE_POR_ID[agente];
-  return (
-    <div
-      className={`chat-app__fila chat-app__entra${sigue ? "" : " chat-app__fila--bloque"}`}
-    >
-      <span className="chat-app__avatar">
-        <Personaje agente={agente} avatar className="h-8 w-8" />
-      </span>
-      <div className="chat-app__columna">
-        {sigue ? null : (
-          <p className="chat-app__nombre">
-            <span
-              className="chat-app__marca"
-              style={{ background: PERSONAJES[agente].color }}
-              aria-hidden="true"
-            />
-            <span className="font-medium text-bone">{info.nombre}</span>
-          </p>
-        )}
-        <span
-          className="chat-app__burbuja chat-app__burbuja--agente chat-app__puntos"
-          data-primero={sigue ? undefined : ""}
-          data-ultimo=""
-          role="status"
-          aria-label={`${info.nombre} está escribiendo`}
-        >
-          <i />
-          <i />
-          <i />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/** Panel para armar un grupo: se eligen los personajes y se le pone nombre. */
-function NuevoGrupo({
-  onCrear,
-  onCerrar,
-}: {
-  onCrear: (nombre: string, agentes: IdAgente[]) => void;
-  onCerrar: () => void;
-}) {
-  const [elegidos, setElegidos] = useState<IdAgente[]>([]);
-  const [nombre, setNombre] = useState("");
-  const panelRef = useRef<HTMLDivElement>(null);
-  const listo = elegidos.length >= 2 && nombre.trim().length > 0;
-
-  useEffect(() => {
-    panelRef.current
-      ?.querySelector<HTMLButtonElement>("button[aria-pressed]")
-      ?.focus({ preventScroll: true });
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, [onCerrar]);
-
-  const alternar = (id: IdAgente) =>
-    setElegidos((e) =>
-      e.includes(id)
-        ? e.filter((x) => x !== id)
-        : IDS_AGENTES.filter((x) => x === id || e.includes(x)),
-    );
-
-  return (
-    <div
-      className="chat-app__capa"
-      onClick={(e) => e.target === e.currentTarget && onCerrar()}
-    >
-      <div
-        ref={panelRef}
-        className="chat-app__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="nuevo-grupo-titulo"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p
-              id="nuevo-grupo-titulo"
-              className="text-[1.25rem] font-medium tracking-[-0.01em]"
-            >
-              Nuevo grupo
-            </p>
-            <p className="mt-1 text-[0.875rem] text-ash">
-              Elige a quién incluir (mínimo dos) y ponle nombre.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="chat-app__icono -mr-2 -mt-1"
-            onClick={onCerrar}
-            aria-label="Cerrar"
-          >
-            <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
-              <path
-                d="M5 5l10 10M15 5L5 15"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {AGENTES_INFO.map((a) => {
-            const on = elegidos.includes(a.id);
-            return (
-              <button
-                key={a.id}
-                type="button"
-                className="chat-app__elegir"
-                aria-pressed={on}
-                onClick={() => alternar(a.id)}
-              >
-                <span className="chat-app__check" aria-hidden="true">
-                  <svg viewBox="0 0 20 20" className="h-3 w-3">
-                    <path
-                      d="M5 10.5l3.2 3L15 7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                <Personaje agente={a.id} avatar className="h-14 w-14" />
-                <span className="mt-3 text-[0.9375rem] font-medium text-bone">
-                  {a.nombre}
-                </span>
-                <span className="text-[0.75rem] text-ash">{a.area}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <label className="mt-7 block">
-          <span className="text-[0.8125rem] text-ash">Nombre del grupo</span>
-          <input
-            className="chat-app__campo mt-2"
-            value={nombre}
-            maxLength={40}
-            placeholder="Ej. Promociones de diciembre"
-            onChange={(e) => setNombre(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && listo) onCrear(nombre.trim(), elegidos);
-            }}
-          />
-        </label>
-
-        <div className="mt-8 flex items-center justify-end gap-4 sm:justify-between">
-          <p className="hidden min-w-0 truncate text-[0.8125rem] text-ash sm:block">
-            {elegidos.length ? nombres(elegidos) : "Nadie todavía"}
-          </p>
-          <div className="flex shrink-0 gap-2">
-            <button
-              type="button"
-              className="chat-app__boton"
-              onClick={onCerrar}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="chat-app__boton chat-app__boton--fuerte"
-              disabled={!listo}
-              onClick={() => onCrear(nombre.trim(), elegidos)}
-            >
-              Crear grupo
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const comun = {
+    ...fila,
+    bloque: fila.primero && !inicio,
+    hora: mensaje.hora,
+  };
+  if (mensaje.de === "sistema")
+    return <Sistema texto={mensaje.texto} {...comun} />;
+  if (mensaje.de === "tu")
+    return <MensajeTuyo texto={mensaje.texto} {...comun} />;
+  return <MensajeAgente agente={mensaje.de} texto={mensaje.texto} {...comun} />;
 }
