@@ -45,8 +45,8 @@ export const AGENTES_INFO: AgenteInfo[] = [
     nombre: "Clara",
     area: "Correo",
     abarca: "Bandeja, facturas y pagos",
-    lema: "Pone en orden tu bandeja: lo urgente primero y las respuestas listas.",
-    capacidades: ["Resume tu bandeja", "La ordena por urgencia", "Sugiere respuestas", "Detecta facturas y pagos"],
+    lema: "Recibe y contesta tu correo: lo urgente primero y nada se te pasa.",
+    capacidades: ["Recibe y envía correos", "Resume tu bandeja", "La ordena por urgencia", "Detecta facturas y pagos"],
     sugerencias: [
       "Te pego un correo: dime qué tan urgente es y qué le contesto",
       "Escribe un correo para cobrar una factura atrasada, con tacto",

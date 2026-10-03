@@ -31,7 +31,7 @@ const PASOS = [
 
 const GARANTIAS = [
   ["Solo tu cuenta", "Tus clientes, tus citas y tus números solo los ve tu negocio. Lo controla la base de datos, no una promesa."],
-  ["Con tu permiso", "Los agentes proponen y tú apruebas lo importante. Clara solo lee tu correo: no envía ni borra nada."],
+  ["Con tu permiso", "Tú decides qué hace cada agente por su cuenta y qué te consulta primero. Clara contesta desde tu correo con las reglas que tú le pones."],
   ["Cifrado", "Todo viaja cifrado, de tu celular o computadora hasta nuestros servidores."],
 ];
 

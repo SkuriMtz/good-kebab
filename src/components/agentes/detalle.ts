@@ -41,13 +41,13 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
   },
   clara: {
     descripcion:
-      "Clara pone en orden el correo de tu negocio. Lee lo que llega, te dice qué es urgente y qué puede esperar, te deja respuestas listas para revisar y cuida que no se te pase ninguna factura ni ningún pago.",
+      "Clara se encarga del correo de tu negocio. Recibe y lee lo que llega, te dice qué es urgente y qué puede esperar, contesta desde tu cuenta y cuida que no se te pase ninguna factura ni ningún pago.",
     funciones: [
       { titulo: "Resume tu bandeja", detalle: "Cada correo en una línea: quién escribe y qué necesita." },
       { titulo: "Ordena por urgencia", detalle: "Lo urgente primero, luego lo de hoy y al final las promociones." },
-      { titulo: "Sugiere respuestas", detalle: "Borradores claros y amables; tú decides si se envían." },
+      { titulo: "Envía y recibe correos", detalle: "Contesta desde tu propio correo, con tu nombre y el tono de tu negocio." },
       { titulo: "Detecta facturas y pagos", detalle: "Montos, fechas límite y pagos recibidos, en una sola lista." },
-      { titulo: "Solo lee", detalle: "No envía ni borra nada sin tu permiso." },
+      { titulo: "Tú pones las reglas", detalle: "Decides qué contesta sola y qué te consulta antes de enviarlo." },
     ],
     canal: "Correo",
     conversacion: [
@@ -57,12 +57,10 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
         hora: "9:15",
         texto: "Hola, ¿podría cambiar mi cita del martes a la tarde? En la mañana no alcanzo a llegar.",
       },
-      {
-        de: "agente",
-        hora: "9:16",
-        texto: "Borrador para ti: “Claro, Andrea. El martes tengo 17:00 o 18:30, ¿cuál prefieres? Quedo atenta.”",
-      },
-      { de: "nota", texto: "Marcado como “Hoy”. Se envía cuando tú lo apruebes." },
+      { de: "agente", hora: "9:16", texto: "Claro, Andrea. El martes tengo 17:00 o 18:30, ¿cuál prefieres?" },
+      { de: "otro", quien: "Andrea Solís", hora: "9:40", texto: "A las 17:00, por favor. ¡Gracias!" },
+      { de: "agente", hora: "9:40", texto: "Listo, Andrea: te esperamos el martes a las 17:00. Un día antes te mando un recordatorio." },
+      { de: "nota", texto: "Correos enviados desde tu cuenta · cita cambiada al martes 17:00" },
     ],
   },
   victor: {
