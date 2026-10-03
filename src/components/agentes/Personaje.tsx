@@ -11,6 +11,23 @@ export const PERSONAJES: Record<IdAgente, { color: string; rasgo: string; fase: 
   iris: { color: "#f6c64a", rasgo: "chongo con lápiz", fase: 5.2 },
 };
 
+/**
+ * La personalidad está en cómo se mueve cada uno:
+ * - Lola: inquieta y atenta; respira rápido y sus ojos van directo al cursor.
+ * - Clara: tranquila; respira despacio y mira con calma.
+ * - Víctor: entusiasta; de vez en cuando da un saltito.
+ * - Iris: concentrada; a ratos entrecierra los ojos, como pensando.
+ */
+const TEMPERAMENTO: Record<
+  IdAgente,
+  { ritmo: number; amplitud: number; ojos: number; inclina: number; salta: boolean; piensa: boolean }
+> = {
+  lola: { ritmo: 2.1, amplitud: 0.032, ojos: 0.2, inclina: 6, salta: false, piensa: false },
+  clara: { ritmo: 1.15, amplitud: 0.02, ojos: 0.07, inclina: 3, salta: false, piensa: false },
+  victor: { ritmo: 1.6, amplitud: 0.026, ojos: 0.13, inclina: 4, salta: true, piensa: false },
+  iris: { ritmo: 1.0, amplitud: 0.018, ojos: 0.1, inclina: 2.5, salta: false, piensa: true },
+};
+
 const TINTA = "#1c1b1f";
 
 // Geometría (viewBox 0 0 200 210). Ojos, lentes y boca salen de estas mismas medidas.
@@ -92,8 +109,10 @@ function tono(hex: string, k: number) {
 
 /**
  * Personaje de cada agente: un blob con cara, hecho en SVG.
- * - El cuerpo cambia de forma despacio y respira (se estira y se aplasta).
- * - Volumen con degradado, brillo y una sombra debajo que respira con él.
+ * Minimalista: un color por personaje, tinta para los detalles y nada más.
+ * La calidad está en el movimiento:
+ * - El cuerpo cambia de forma despacio y respira (cada uno a su ritmo), se
+ *   inclina hacia donde mira y tiene una sombra suave que respira con él.
  * - Las pupilas siguen al cursor (o al dedo en celular) sin salirse del ojo,
  *   con un poco de retraso; si nadie interactúa, miran alrededor de vez en cuando.
  * - Parpadea a ratos distintos en cada uno.
@@ -103,6 +122,7 @@ function tono(hex: string, k: number) {
  */
 export function Personaje({ agente, className = "" }: { agente: IdAgente; className?: string }) {
   const { color, fase } = PERSONAJES[agente];
+  const temp = TEMPERAMENTO[agente];
   const id = useId().replace(/:/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const cuerpoRef = useRef<SVGGElement>(null);
@@ -130,22 +150,17 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
     let proximoParpadeo = performance.now() + 1200 + Math.random() * 3500;
     let parpadeo = -1; // inicio del parpadeo en curso
     let doble = false;
+    // Saltito (Víctor) y "pensar" (Iris)
+    let proximoSalto = performance.now() + 2500 + Math.random() * 4000;
+    let salto = -1;
+    let proximoPensar = performance.now() + 4000 + Math.random() * 5000;
+    let pensar = -1;
+    let apertura = 1; // qué tan abiertos están los ojos (sin contar el parpadeo)
 
     const cuadro = (ahora: number) => {
       raf = requestAnimationFrame(cuadro);
       if (!visible) return;
       const t = (ahora - t0) / 1000;
-
-      // Respira: un poco más alto y angosto, luego más bajo y ancho
-      const resp = Math.sin(t * 1.55 + fase);
-      const sy = 1 + 0.028 * resp;
-      const sx = 1 - 0.018 * resp;
-      cuerpoRef.current?.setAttribute(
-        "transform",
-        `translate(${CX} 172) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-CX} -172)`,
-      );
-      sombraRef.current?.setAttribute("rx", (46 * (1 + 0.04 * -resp)).toFixed(2));
-      formaRef.current?.setAttribute("d", contorno(t, fase));
 
       // ¿A dónde mirar?
       let mx = 0;
@@ -169,8 +184,8 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
         mx = curioso.x;
         my = curioso.y;
       }
-      ojo.x += (mx - ojo.x) * 0.12;
-      ojo.y += (my - ojo.y) * 0.12;
+      ojo.x += (mx - ojo.x) * temp.ojos;
+      ojo.y += (my - ojo.y) * temp.ojos;
       cara.x += (mx - cara.x) * 0.06;
       cara.y += (my - cara.y) * 0.06;
 
@@ -186,6 +201,44 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
       for (const p of pupilasRef.current) p?.setAttribute("transform", `translate(${px.toFixed(2)} ${py.toFixed(2)})`);
       // Toda la cara (ojos, boca, lentes) se asoma un poquito hacia donde mira
       caraRef.current?.setAttribute("transform", `translate(${(cara.x * 3.2).toFixed(2)} ${(cara.y * 2.2).toFixed(2)})`);
+
+      // Respira (cada uno a su ritmo) y se inclina hacia donde mira
+      const resp = Math.sin(t * temp.ritmo + fase);
+      let sy = 1 + temp.amplitud * resp;
+      let sx = 1 - temp.amplitud * 0.65 * resp;
+      let alto = 0;
+      if (temp.salta) {
+        if (salto < 0 && ahora > proximoSalto) salto = ahora;
+        if (salto >= 0) {
+          const k = (ahora - salto) / 720;
+          if (k >= 1) {
+            salto = -1;
+            proximoSalto = ahora + 4500 + Math.random() * 5000;
+          } else if (k < 0.18) {
+            const q = Math.sin((k / 0.18) * Math.PI); // se agacha
+            sy -= 0.08 * q;
+            sx += 0.06 * q;
+          } else if (k < 0.78) {
+            const q = (k - 0.18) / 0.6; // sube y baja
+            alto = Math.sin(q * Math.PI) * 14;
+            sy += 0.05 * Math.sin(q * Math.PI);
+            sx -= 0.035 * Math.sin(q * Math.PI);
+          } else {
+            const q = Math.sin(((k - 0.78) / 0.22) * Math.PI); // aterriza
+            sy -= 0.06 * q;
+            sx += 0.045 * q;
+          }
+        }
+      }
+      const giro = cara.x * temp.inclina;
+      cuerpoRef.current?.setAttribute(
+        "transform",
+        `translate(0 ${(-alto).toFixed(2)}) rotate(${giro.toFixed(2)} ${CX} 172) translate(${CX} 172) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-CX} -172)`,
+      );
+      const sombra = 1 - alto / 40;
+      sombraRef.current?.setAttribute("rx", (46 * (1 + 0.04 * -resp) * sombra).toFixed(2));
+      sombraRef.current?.setAttribute("opacity", sombra.toFixed(3));
+      formaRef.current?.setAttribute("d", contorno(t, fase));
 
       // Parpadeo natural: rápido, a veces doble
       if (parpadeo < 0 && ahora > proximoParpadeo) {
@@ -204,9 +257,18 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
           proximoParpadeo = ahora + 2200 + Math.random() * 4200;
         }
       }
+      if (temp.piensa) {
+        if (pensar < 0 && ahora > proximoPensar) pensar = ahora;
+        const meta = pensar >= 0 && ahora - pensar < 1400 ? 0.55 : 1;
+        if (pensar >= 0 && ahora - pensar >= 1400) {
+          pensar = -1;
+          proximoPensar = ahora + 6000 + Math.random() * 6000;
+        }
+        apertura += (meta - apertura) * 0.1;
+      }
       parpadosRef.current?.setAttribute(
         "transform",
-        `translate(0 ${OJO_Y}) scale(1 ${abierto.toFixed(3)}) translate(0 ${-OJO_Y})`,
+        `translate(0 ${OJO_Y}) scale(1 ${(abierto * apertura).toFixed(3)}) translate(0 ${-OJO_Y})`,
       );
     };
 
@@ -220,29 +282,21 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
       io.disconnect();
       dejar();
     };
-  }, [fase]);
+  }, [fase, temp]);
 
   const g = (n: string) => `${n}-${id}`;
 
   return (
     <svg ref={svgRef} viewBox="0 0 200 210" className={className} aria-hidden="true" focusable="false">
       <defs>
-        <radialGradient id={g("cuerpo")} cx="38%" cy="30%" r="78%">
-          <stop offset="0%" stopColor={tono(color, 0.38)} />
-          <stop offset="55%" stopColor={color} />
-          <stop offset="100%" stopColor={tono(color, -0.22)} />
-        </radialGradient>
-        <radialGradient id={g("brillo")} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
+        {/* Un solo color con un degradado apenas perceptible para dar volumen */}
+        <linearGradient id={g("cuerpo")} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={tono(color, 0.12)} />
+          <stop offset="100%" stopColor={tono(color, -0.1)} />
+        </linearGradient>
         <radialGradient id={g("sombra")} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#000" stopOpacity="0.28" />
           <stop offset="100%" stopColor="#000" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={g("mejilla")} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#ff5d73" stopOpacity="0.32" />
-          <stop offset="100%" stopColor="#ff5d73" stopOpacity="0" />
         </radialGradient>
         <clipPath id={g("ojos")}>
           {OJOS.map((x) => (
@@ -259,36 +313,24 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
         {agente === "iris" ? (
           <>
             <circle cx={CX + 6} cy="54" r="19" fill={`url(#${g("cuerpo")})`} />
-            {/* Lápiz atravesado en el chongo */}
-            <g transform={`rotate(-32 ${CX + 6} 54)`}>
-              <rect x={CX - 28} y="50.5" width="58" height="7" rx="1.5" fill="#fff4dc" stroke={TINTA} strokeWidth="1.6" />
-              <rect x={CX + 30} y="50.5" width="8" height="7" rx="2" fill="#ff6b81" stroke={TINTA} strokeWidth="1.6" />
-              <path d={`M${CX - 28} 50.5 L${CX - 38} 54 L${CX - 28} 57.5 Z`} fill="#f2d3a0" stroke={TINTA} strokeWidth="1.6" strokeLinejoin="round" />
-              <path d={`M${CX - 35} 53 L${CX - 38} 54 L${CX - 35} 55`} fill={TINTA} />
-            </g>
+            {/* Lápiz atravesado en el chongo: un solo trazo */}
+            <path d={`M${CX - 16} 70 L${CX + 30} 38`} stroke={TINTA} strokeWidth="4.5" strokeLinecap="round" />
           </>
         ) : null}
 
         <path ref={formaRef} d={contorno(0, fase)} fill={`url(#${g("cuerpo")})`} />
-        {/* Brillo suave arriba a la izquierda */}
-        <ellipse cx="74" cy="76" rx="26" ry="16" transform="rotate(-28 74 76)" fill={`url(#${g("brillo")})`} />
 
         {agente === "lola" ? (
           <g>
             <path d="M44 108 C44 46 156 46 156 108" fill="none" stroke={TINTA} strokeWidth="5" strokeLinecap="round" />
             <rect x="35" y="96" width="15" height="28" rx="7" fill={TINTA} />
             <rect x="150" y="96" width="15" height="28" rx="7" fill={TINTA} />
-            <rect x="38" y="101" width="4" height="12" rx="2" fill="#fff" opacity="0.25" />
             <path d="M43 122 C46 142 62 148 78 146" fill="none" stroke={TINTA} strokeWidth="3" strokeLinecap="round" />
             <circle cx="81" cy="146" r="4.5" fill={TINTA} />
           </g>
         ) : null}
 
         <g ref={caraRef}>
-          {/* Mejillas */}
-          <ellipse cx="66" cy="126" rx="11" ry="7" fill={`url(#${g("mejilla")})`} />
-          <ellipse cx="134" cy="126" rx="11" ry="7" fill={`url(#${g("mejilla")})`} />
-
           {/* Ojos: blanco, pupila que se mueve dentro y párpado al parpadear */}
           <g ref={parpadosRef}>
             {OJOS.map((x) => (
@@ -298,63 +340,41 @@ export function Personaje({ agente, className = "" }: { agente: IdAgente; classN
               {OJOS.map((x, i) => (
                 <g key={x} ref={(el) => void (pupilasRef.current[i] = el)}>
                   <circle cx={x} cy={OJO_Y} r={PUPILA} fill={TINTA} />
-                  <circle cx={x + 2} cy={OJO_Y - 2.4} r="1.7" fill="#fff" />
                 </g>
               ))}
             </g>
           </g>
 
-          {/* Boca y cejas: un gesto distinto para cada uno */}
+          {/* Boca: un trazo, distinto para cada uno */}
           {agente === "lola" ? (
-            <path d="M89 128 Q100 141 111 128 Q100 133 89 128 Z" fill={TINTA} stroke={TINTA} strokeWidth="2.5" strokeLinejoin="round" />
+            <path d="M88 127 Q100 140 112 127" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
           ) : null}
           {agente === "clara" ? (
             <path d="M92 130 Q100 136 108 130" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
           ) : null}
           {agente === "victor" ? (
-            <>
-              <path d="M86 127 Q100 142 114 127" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
-              <path d="M70 86 Q80 81 89 85" fill="none" stroke={TINTA} strokeWidth="3" strokeLinecap="round" />
-              <path d="M111 85 Q120 81 130 86" fill="none" stroke={TINTA} strokeWidth="3" strokeLinecap="round" />
-            </>
+            <path d="M85 126 Q100 143 115 126" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
           ) : null}
           {agente === "iris" ? (
-            <>
-              <path d="M93 131 Q101 135 109 129" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
-              <path d="M70 88 L89 86" fill="none" stroke={TINTA} strokeWidth="3" strokeLinecap="round" />
-              <path d="M111 86 L130 88" fill="none" stroke={TINTA} strokeWidth="3" strokeLinecap="round" />
-            </>
+            <path d="M93 131 Q101 135 109 129" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
           ) : null}
 
           {/* Lentes de Clara: mismas medidas que los ojos, en el mismo grupo que la cara */}
           {agente === "clara" ? (
-            <g>
+            <g fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round">
               {OJOS.map((x) => (
-                <g key={x}>
-                  <circle cx={x} cy={OJO_Y} r="17" fill="#fff" fillOpacity="0.14" stroke={TINTA} strokeWidth="3.6" />
-                  <path
-                    d={`M${x - 9} ${OJO_Y - 8} Q${x - 4} ${OJO_Y - 13} ${x + 2} ${OJO_Y - 12}`}
-                    fill="none"
-                    stroke="#fff"
-                    strokeOpacity="0.7"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </g>
+                <circle key={x} cx={x} cy={OJO_Y} r="16.5" />
               ))}
-              <path d={`M${OJOS[0] + 17} ${OJO_Y - 2} Q100 ${OJO_Y - 7} ${OJOS[1] - 17} ${OJO_Y - 2}`} fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
-              <path d={`M${OJOS[0] - 17} ${OJO_Y - 3} L44 ${OJO_Y - 7}`} stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
-              <path d={`M${OJOS[1] + 17} ${OJO_Y - 3} L156 ${OJO_Y - 7}`} stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
+              <path d={`M${OJOS[0] + 16.5} ${OJO_Y - 2} Q100 ${OJO_Y - 7} ${OJOS[1] - 16.5} ${OJO_Y - 2}`} />
             </g>
           ) : null}
         </g>
 
         {agente === "victor" ? (
-          <g>
-            <path d="M100 158 L80 148 Q76 158 80 168 Z" fill="#e5484d" stroke={TINTA} strokeWidth="2.4" strokeLinejoin="round" />
-            <path d="M100 158 L120 148 Q124 158 120 168 Z" fill="#e5484d" stroke={TINTA} strokeWidth="2.4" strokeLinejoin="round" />
-            <rect x="94" y="152" width="12" height="12" rx="3" fill="#e5484d" stroke={TINTA} strokeWidth="2.4" />
-            <path d="M83 153 L90 156" stroke="#fff" strokeOpacity="0.45" strokeWidth="2" strokeLinecap="round" />
+          <g fill={TINTA} stroke={TINTA} strokeWidth="2" strokeLinejoin="round">
+            <path d="M100 158 L82 149 Q79 158 82 167 Z" />
+            <path d="M100 158 L118 149 Q121 158 118 167 Z" />
+            <circle cx="100" cy="158" r="5" />
           </g>
         ) : null}
       </g>
