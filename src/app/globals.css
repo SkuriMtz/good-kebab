@@ -838,6 +838,15 @@ html.js [data-split][data-in] .split-inner {
     color: var(--color-bone-white);
     background: rgb(var(--c-bone) / 0.07);
   }
+  /* Dentro de SwipeRow (deslizar para borrar): la fila ocupa todo el ancho */
+  .chat-conv-fila .swipe-row__surface {
+    padding: 0;
+  }
+  .chat-conv-fila .chat-conv {
+    height: 100%;
+    margin: 0;
+    padding: 9px 10px;
+  }
   .chat-sugerencia {
     display: flex;
     width: 100%;

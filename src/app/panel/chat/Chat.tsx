@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { TriSpinner } from "@/components/Buttons";
+import SwipeRow from "@/components/SwipeRow";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
 import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
@@ -66,6 +69,7 @@ export function Chat({
   const [texto, setTexto] = useState("");
   const [lista, setLista] = useState(false); // panel de conversaciones en celular
   const [aviso, setAviso] = useState<string | null>(null);
+  const [reintentos, setReintentos] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const campoRef = useRef<HTMLTextAreaElement>(null);
   const abortar = useRef<AbortController | null>(null);
@@ -130,11 +134,13 @@ export function Chat({
     if (el && pegado.current) el.scrollTop = el.scrollHeight;
   }, [mensajes]);
 
-  async function borrar(c: Conversacion) {
-    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return;
+  /** Con la ✕ pregunta antes; al deslizar la fila hasta el fondo ya es la confirmación. */
+  async function borrar(c: Conversacion, preguntar = true) {
+    if (preguntar && !window.confirm(`¿Borrar "${c.titulo}"?`)) return;
     const { error } = await createClient().from("conversaciones").delete().eq("id", c.id);
     if (error) {
       setAviso("No se pudo borrar la conversación.");
+      setReintentos((n) => n + 1); // la fila deslizada vuelve a aparecer
       return;
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
@@ -280,26 +286,41 @@ export function Chat({
         ) : (
           <ul className="mt-2">
             {conversaciones.map((c) => (
-              <li key={c.id} className="group relative">
-                <button
-                  type="button"
-                  className="chat-conv"
-                  data-active={c.id === actual ? "true" : "false"}
-                  onClick={() => abrir(c)}
+              <li key={c.id} className="group relative -mx-2.5">
+                <SwipeRow
+                  key={`${c.id}-${reintentos}`}
+                  label={c.titulo}
+                  actions={[{ id: "borrar", label: "Borrar", icon: <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.8} /> }]}
+                  onCommit={() => borrar(c, false)}
+                  actionColor="#e5484d"
+                  drawerColor="var(--color-shale)"
+                  rowColor="var(--color-void)"
+                  textColor="var(--color-bone-white)"
+                  height={58}
+                  radius={0}
+                  actionWidth={76}
+                  className="chat-conv-fila"
                 >
-                  <span className="block truncate pr-6 text-[0.9375rem]">{c.titulo}</span>
-                  <span className="mt-0.5 block text-[0.75rem] text-ash">
-                    {AGENTE_POR_ID[c.agente]?.nombre} · {cuando(c.actualizado_en)}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="absolute right-0 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-ash opacity-100 transition-opacity hover:text-bone lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
-                  aria-label={`Borrar ${c.titulo}`}
-                  onClick={() => borrar(c)}
-                >
-                  ×
-                </button>
+                  <button
+                    type="button"
+                    className="chat-conv"
+                    data-active={c.id === actual ? "true" : "false"}
+                    onClick={() => abrir(c)}
+                  >
+                    <span className="block truncate pr-6 text-[0.9375rem]">{c.titulo}</span>
+                    <span className="mt-0.5 block text-[0.75rem] text-ash">
+                      {AGENTE_POR_ID[c.agente]?.nombre} · {cuando(c.actualizado_en)}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="absolute right-0 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-ash opacity-100 transition-opacity hover:text-bone lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
+                    aria-label={`Borrar ${c.titulo}`}
+                    onClick={() => borrar(c)}
+                  >
+                    ×
+                  </button>
+                </SwipeRow>
               </li>
             ))}
           </ul>
