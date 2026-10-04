@@ -33,8 +33,19 @@ export function useFichas() {
   return [abierto, setAbierto] as const;
 }
 
-/** La ficha de agente para las páginas que no tienen el acordeón. */
+/** La ficha de los agentes, disponible en todas las páginas del sitio. */
 export function FichasAgentes() {
   const [abierto, setAbierto] = useFichas();
-  return <AgenteModal agente={abierto} onClose={() => setAbierto(null)} />;
+
+  const cerrar = () => {
+    setAbierto(null);
+    // Si se abrió desde la dirección (?ficha=lola), se quita para que no vuelva a abrirse al recargar
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("ficha")) {
+      url.searchParams.delete("ficha");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  };
+
+  return <AgenteModal agente={abierto} onClose={cerrar} />;
 }

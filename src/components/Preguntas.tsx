@@ -10,30 +10,28 @@ export function Preguntas({ preguntas }: { preguntas: Pregunta[] }) {
   const base = useId();
 
   return (
-    <ul className="border-b hairline">
+    <ul className="faq">
       {preguntas.map((q, i) => {
         const abierto = abierta === i;
         const id = `${base}-${i}`;
         return (
-          <li key={q.p} className="border-t hairline">
+          <li key={q.p} className="faq__item">
             <h3>
               <button
                 type="button"
-                className="pregunta"
+                className="faq__boton"
                 aria-expanded={abierto}
                 aria-controls={id}
                 onClick={() => setAbierta(abierto ? null : i)}
               >
-                <span className="pregunta__texto">{q.p}</span>
-                <span className="pregunta__signo" aria-hidden="true">
-                  +
-                </span>
+                {q.p}
+                <svg className="faq__icono h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             </h3>
-            <div id={id} className="respuesta" data-open={abierto ? "true" : "false"} role="region" aria-label={q.p}>
-              <div className="overflow-hidden">
-                <p className="max-w-[620px] pb-9 text-body text-silver">{q.r}</p>
-              </div>
+            <div id={id} role="region" aria-label={q.p} hidden={!abierto}>
+              <p className="faq__respuesta">{q.r}</p>
             </div>
           </li>
         );

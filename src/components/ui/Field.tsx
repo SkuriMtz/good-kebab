@@ -15,13 +15,11 @@ type Props = {
   required?: boolean;
   autoComplete?: string;
   inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
-  /** Cambia este número para que la línea destelle (ej. al llenar con un ejemplo). */
-  flashKey?: number;
 };
 
 /**
- * Campo de texto minimalista: sin caja, solo una línea que se pinta de
- * violeta desde el centro al escribir. Los textos largos crecen solos.
+ * Campo de texto: la etiqueta arriba y una caja blanca con filo fino que se
+ * pinta de azul al escribir. Los textos largos crecen solos.
  */
 export function Field({
   label,
@@ -31,12 +29,11 @@ export function Field({
   type = "text",
   placeholder,
   multiline = false,
-  rows = 4,
+  rows = 5,
   maxLength,
   required,
   autoComplete,
   inputMode,
-  flashKey = 0,
 }: Props) {
   const id = useId();
   const areaRef = useRef<HTMLTextAreaElement>(null);
@@ -45,51 +42,48 @@ export function Field({
     const el = areaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
+    el.style.height = `${el.scrollHeight + 2}px`;
   }, [value]);
 
   const cerca = maxLength ? value.length > maxLength * 0.9 : false;
 
   return (
-    <div className="field">
-      <label htmlFor={id} className="field__label">
+    <div className="campo">
+      <label htmlFor={id} className="campo__etiqueta">
         {label}
       </label>
-      <div className="relative">
-        {multiline ? (
-          <textarea
-            ref={areaRef}
-            id={id}
-            name={name}
-            className="field__input"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            maxLength={maxLength}
-            required={required}
-            rows={rows}
-          />
-        ) : (
-          <input
-            id={id}
-            name={name}
-            type={type}
-            className="field__input"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            maxLength={maxLength}
-            required={required}
-            autoComplete={autoComplete}
-            inputMode={inputMode}
-          />
-        )}
-        <span key={flashKey} className={`field__line${flashKey ? " field__line--flash" : ""}`} aria-hidden="true" />
-      </div>
+      {multiline ? (
+        <textarea
+          ref={areaRef}
+          id={id}
+          name={name}
+          className="campo__entrada"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          required={required}
+          rows={rows}
+        />
+      ) : (
+        <input
+          id={id}
+          name={name}
+          type={type}
+          className="campo__entrada"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          required={required}
+          autoComplete={autoComplete}
+          inputMode={inputMode}
+        />
+      )}
       {multiline && maxLength ? (
-        <span className={`field__meta${cerca ? " text-saffron" : ""}`}>
+        <p className={`campo__ayuda${cerca ? " !text-error" : ""}`}>
           {value.length.toLocaleString("es-MX")} / {maxLength.toLocaleString("es-MX")}
-        </span>
+        </p>
       ) : null}
     </div>
   );

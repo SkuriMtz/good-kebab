@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BotonLink } from "@/components/Buttons";
 import { ChatDemo } from "@/components/ChatDemo";
 import { Sitio } from "@/components/Sitio";
 
@@ -9,25 +9,19 @@ export const metadata: Metadata = { title: "Pruébalo" };
 export default function Pruebalo() {
   return (
     <Sitio>
-      <section data-capitulo="Pruébalo" className="px-[var(--orilla)] pt-[76px]">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-dashed hairline pb-3 pt-1">
-          <h1 className="etiqueta">
-            <span className="etiqueta--brasa">Pruébalo</span>{" "}
-            <span className="etiqueta--suave hidden md:inline">— escríbeles, usa @ para mencionar o / para una acción</span>
-          </h1>
-          <p className="flex items-center gap-4">
-            <span className="etiqueta etiqueta--suave">
-              <span className="sm:hidden">Respuestas de ejemplo</span>
-              <span className="hidden sm:inline">Demostración: las respuestas son de ejemplo</span>
-            </span>
-            <Link href="/entrar" className="etiqueta underline decoration-dashed underline-offset-4 hover:decoration-solid">
-              Probarlo de verdad
-            </Link>
-          </p>
+      <section className="contenedor pb-12 pt-6 sm:pt-8">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div>
+            <h1 className="text-[1.75rem] font-bold leading-tight tracking-[-0.025em]">Pruébalo</h1>
+            <p className="t-chico mt-1">
+              Escríbeles, usa @ para mencionar o / para una acción. Demostración: las respuestas son de ejemplo.
+            </p>
+          </div>
+          <BotonLink href="/entrar" variante="suave" flecha>
+            Probarlo de verdad
+          </BotonLink>
         </div>
-        <div className="pt-3">
-          <ChatDemo completa />
-        </div>
+        <ChatDemo completa />
       </section>
     </Sitio>
   );

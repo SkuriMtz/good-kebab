@@ -1,126 +1,104 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { PillLink } from "@/components/Buttons";
-import { Claqueta, EncabezadoPagina } from "@/components/Encabezado";
-import { EquipoEnFoco } from "@/components/EquipoEnFoco";
-import { Reveal } from "@/components/Reveal";
+import type { CSSProperties } from "react";
+import { BotonLink, Check, claseBoton } from "@/components/Buttons";
+import { EncabezadoPagina } from "@/components/Encabezado";
 import { Sitio } from "@/components/Sitio";
-import { AgentesGaleria } from "@/components/agentes/AgentesGaleria";
 import { BotonFicha } from "@/components/agentes/BotonFicha";
+import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
+import { MarcasAgentes } from "@/components/agentes/MarcasAgentes";
 import { Personaje } from "@/components/agentes/Personaje";
+import { PERSONAJES } from "@/lib/personajes";
+import { TarjetasAgentes } from "@/components/agentes/TarjetasAgentes";
 import { DETALLE } from "@/components/agentes/detalle";
 import { AGENTES_INFO } from "@/lib/agentes";
 
 export const metadata: Metadata = { title: "Agentes" };
 
 /*
- * Agentes: el encabezado, los nombres que se enfocan, el acordeón (con su
- * ficha) y una sala por agente: su nombre a la izquierda, el personaje al
- * centro como pieza de museo y lo que hace a la derecha.
+ * Agentes: el encabezado, las cuatro tarjetas (cada una abre su ficha) y un
+ * bloque por agente: lo que hace a un lado y, en su color, una conversación
+ * de ejemplo. Los bloques alternan de lado.
  */
 export default function Agentes() {
   return (
-    <Sitio fichas={false}>
-      <section data-capitulo="Agentes" className="sala sala--primera">
-        <EncabezadoPagina
-          izquierda="4 agentes"
-          derecha="Atención, Correo, Clientes y Oficina"
-          titulo={
-            <>
-              ¿Qué le encargas <em>hoy?</em>
-            </>
-          }
-          texto="Pasa el cursor por cada uno para conocerlo. Haz clic para ver todo lo que hace, una conversación de ejemplo y en qué plan está."
-          acciones={<PillLink href="/pruebalo">Habla con los agentes</PillLink>}
-        />
+    <Sitio>
+      <EncabezadoPagina
+        arriba={<MarcasAgentes grande />}
+        titulo={
+          <>
+            ¿Qué le <span className="pastilla">encargas</span> hoy?
+          </>
+        }
+        texto="Atención, Correo, Clientes y Oficina. Haz clic en cada uno para ver todo lo que hace, una conversación de ejemplo y en qué plan está."
+        acciones={
+          <BotonLink href="/pruebalo" tam="grande">
+            Habla con los agentes
+          </BotonLink>
+        }
+      />
+
+      <section aria-label="Los cuatro agentes" className="contenedor pb-16 lg:pb-20">
+        <TarjetasAgentes />
       </section>
 
-      {/* Los nombres que se enfocan uno por uno */}
-      <section data-capitulo="El equipo" className="sala sala--completa">
-        <Reveal>
-          <EquipoEnFoco />
-        </Reveal>
-      </section>
-
-      {/* El acordeón con los personajes; cada uno abre su ficha */}
-      <section data-capitulo="Conócelos" className="sala">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <Claqueta n={2} izquierda="Conócelos" derecha="Uno por uno" />
-          <p className="firma pointer-events-none hidden lg:block" aria-hidden="true">
-            Haz clic
-            <svg className="ml-1 inline-block h-6 w-7 align-top" viewBox="0 0 36 32" fill="none">
-              <path
-                d="M2 6c9-4 19-2 24 6 2.5 4 3 9 2.2 15M24 22.5l4.4 5.5 4.6-5.2"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </p>
-        </div>
-        <div className="mt-8 lg:mt-10">
-          <AgentesGaleria />
-        </div>
-      </section>
-
-      {/* Una sala por agente */}
       {AGENTES_INFO.map((a, i) => (
-        <section key={a.id} id={a.id} data-capitulo={a.nombre} className="sala sala--completa">
-          <div className="vitrina">
-            <div>
-              <Claqueta n={i + 3} izquierda={a.area} derecha={a.abarca} />
-              <Reveal as="h2" className="display mt-6 !text-[clamp(3.5rem,9vw,9.5rem)]">
+        <section key={a.id} id={a.id} aria-labelledby={`${a.id}-titulo`} className="seccion border-t border-[var(--linea)]">
+          <div className="contenedor grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className={i % 2 ? "lg:order-2" : undefined}>
+              <p className="pill">
+                {a.area} · {a.abarca}
+              </p>
+              <h2 id={`${a.id}-titulo`} className="t-seccion mt-4">
                 {a.nombre}
-              </Reveal>
-              <Reveal as="p" delay={100} className="cuerpo mt-6 max-w-[460px]">
-                {a.lema}
-              </Reveal>
-            </div>
-            <div className="vitrina__objeto">
-              <Personaje agente={a.id} className="flota h-auto w-[72%] max-w-[380px]" />
-            </div>
-            <Reveal delay={150}>
-              <p className="etiqueta etiqueta--brasa">Lo que hace</p>
-              <ul className="mt-4 border-t border-dashed hairline">
+              </h2>
+              <p className="t-editorial mt-3 max-w-[520px]">{a.lema}</p>
+              <h3 className="t-etiqueta mt-8">Lo que hace</h3>
+              <ul className="lista-check mt-3">
                 {a.capacidades.map((c) => (
-                  <li key={c} className="etiqueta border-b border-dashed hairline py-4">
+                  <li key={c}>
+                    <Check className="h-4 w-4 text-enlace" />
                     {c}
                   </li>
                 ))}
               </ul>
-              <p className="texto-suave mt-6">{DETALLE[a.id].descripcion}</p>
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <BotonFicha agente={a.id}>Ver su ficha</BotonFicha>
-                <Link href="/pruebalo" className="btn-ghost">
+              <p className="t-cuerpo mt-6 max-w-[560px]">{DETALLE[a.id].descripcion}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <BotonFicha agente={a.id} className={claseBoton("suave")}>
+                  Ver su ficha
+                </BotonFicha>
+                <BotonLink href={`/pruebalo?con=${a.id}`} variante="texto" flecha>
                   Háblale a {a.nombre}
-                </Link>
+                </BotonLink>
               </div>
-            </Reveal>
+            </div>
+            <div className="panel-color en-acento" style={{ "--acento": PERSONAJES[a.id].color } as CSSProperties}>
+              <div className="mb-4 flex items-center gap-3">
+                <span className="marca-agente" style={{ "--agente": "rgb(0 0 0 / 0.08)" } as CSSProperties}>
+                  <Personaje agente={a.id} avatar />
+                </span>
+                <p className="font-semibold">Conversación de ejemplo</p>
+              </div>
+              <ConversacionEjemplo agente={a.id} />
+            </div>
           </div>
         </section>
       ))}
 
       {/* Acceso al chat */}
-      <section data-capitulo="Pruébalos" className="sala sala--completa">
-        <Reveal as="p" className="etiqueta etiqueta--brasa">
-          El chat
-        </Reveal>
-        <Reveal as="h2" delay={60} className="display mt-6 max-w-[12ch] !text-[clamp(3.25rem,9vw,9.5rem)]">
-          Pruébalos <em>en el chat.</em>
-        </Reveal>
-        <div className="mt-12 grid gap-8 border-t border-dashed hairline pt-8 lg:grid-cols-12 lg:gap-[18px]">
-          <Reveal as="p" delay={120} className="cuerpo lg:col-span-5">
+      <section className="seccion border-t border-[var(--linea)]">
+        <div className="contenedor flex flex-col items-center text-center">
+          <h2 className="t-seccion">Pruébalos en el chat.</h2>
+          <p className="t-editorial mt-4 max-w-[560px]">
             Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras.
-          </Reveal>
-          <Reveal delay={200} className="flex flex-col items-start gap-4 lg:col-span-5 lg:col-start-8">
-            <PillLink href="/pruebalo" className="btn-pill--ancha">
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <BotonLink href="/pruebalo" tam="grande">
               Habla con los agentes
-            </PillLink>
-            <Link href="/precios" className="btn-ghost">
+            </BotonLink>
+            <BotonLink href="/precios" variante="suave" tam="grande">
               Ver precios
-            </Link>
-          </Reveal>
+            </BotonLink>
+          </div>
         </div>
       </section>
     </Sitio>

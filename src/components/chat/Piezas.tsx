@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Texto } from "@/components/Texto";
 import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
@@ -134,8 +134,8 @@ function Nombre({ agente, area }: { agente: IdAgente; area?: boolean }) {
   return (
     <p className="chat-app__nombre">
       <span className="chat-app__marca" style={{ background: PERSONAJES[agente].color }} aria-hidden="true" />
-      <span className="font-medium text-bone">{info.nombre}</span>
-      {area ? <span className="text-ash">{info.area}</span> : null}
+      <span className="font-semibold text-tinta">{info.nombre}</span>
+      {area ? <span className="text-tenue">{info.area}</span> : null}
     </p>
   );
 }
@@ -257,10 +257,10 @@ export function NuevoGrupo({
       <div ref={panelRef} className="chat-app__panel" role="dialog" aria-modal="true" aria-labelledby="nuevo-grupo-titulo">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p id="nuevo-grupo-titulo" className="text-[1.25rem] font-medium tracking-[-0.01em]">
+            <p id="nuevo-grupo-titulo" className="t-titulo">
               Nuevo grupo
             </p>
-            <p className="mt-1 text-[0.875rem] text-ash">
+            <p className="mt-1 text-[0.875rem] text-tenue">
               Elige a quién incluir (mínimo dos) y ponle nombre{nombreObligatorio ? "" : " o tema"}.
             </p>
           </div>
@@ -269,7 +269,7 @@ export function NuevoGrupo({
           </button>
         </div>
 
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {AGENTES_INFO.map((a) => {
             const puede = disponibles.includes(a.id);
             return (
@@ -287,16 +287,18 @@ export function NuevoGrupo({
                     <path d="M5 10.5l3.2 3L15 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                <Personaje agente={a.id} avatar className="h-14 w-14" />
-                <span className="mt-3 text-[0.9375rem] font-medium text-bone">{a.nombre}</span>
-                <span className="text-[0.75rem] text-ash">{puede ? a.area : "No está en tu equipo"}</span>
+                <span className="marca-agente" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
+                  <Personaje agente={a.id} avatar />
+                </span>
+                <span className="mt-3 text-[0.9375rem] font-semibold text-tinta">{a.nombre}</span>
+                <span className="text-[0.75rem] text-tenue">{puede ? a.area : "No está en tu equipo"}</span>
               </button>
             );
           })}
         </div>
 
-        <label className="mt-7 block">
-          <span className="text-[0.8125rem] text-ash">{nombreObligatorio ? "Nombre del grupo" : "Nombre o tema (opcional)"}</span>
+        <label className="mt-6 block">
+          <span className="text-[0.875rem] font-medium text-tinta">{nombreObligatorio ? "Nombre del grupo" : "Nombre o tema (opcional)"}</span>
           <input
             className="chat-app__campo mt-2"
             value={nombre}
@@ -308,7 +310,7 @@ export function NuevoGrupo({
         </label>
 
         <div className="mt-8 flex items-center justify-end gap-4 sm:justify-between">
-          <p className="hidden min-w-0 truncate text-[0.8125rem] text-ash sm:block">
+          <p className="hidden min-w-0 truncate text-[0.8125rem] text-tenue sm:block">
             {elegidos.length ? nombres(elegidos) : "Nadie todavía"}
           </p>
           <div className="flex shrink-0 gap-2">

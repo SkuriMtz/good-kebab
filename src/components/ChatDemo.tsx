@@ -438,6 +438,14 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
+  // "?con=lola" abre directo el chat con ese agente (desde "Háblale a Lola")
+  useEffect(() => {
+    const con = new URLSearchParams(window.location.search).get("con");
+    if (!con || !INICIO.some((c) => c.id === con)) return;
+    setActiva(con);
+    setConvs((cs) => cs.map((c) => (c.id === con ? { ...c, sinLeer: 0 } : c)));
+  }, []);
+
   const agregar = (id: string, mensaje: Omit<Mensaje, "id">) =>
     setConvs((cs) =>
       cs.map((c) =>
@@ -585,10 +593,10 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
           <Caras agentes={c.agentes} tam={46} />
           <span className="min-w-0 flex-1">
             <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-[0.9375rem] font-medium text-bone">
+              <span className="truncate text-[0.9375rem] font-semibold text-tinta">
                 {c.nombre}
               </span>
-              <span className="shrink-0 text-[0.75rem] tabular-nums text-ash">
+              <span className="shrink-0 text-[0.75rem] tabular-nums text-tenue">
                 {ultimo?.dia ?? ultimo?.hora}
               </span>
             </span>
@@ -600,7 +608,7 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
                     : "Escribiendo…"}
                 </span>
               ) : (
-                <span className="truncate text-[0.8125rem] text-ash">
+                <span className="truncate text-[0.8125rem] text-tenue">
                   {vistaPrevia(c)}
                 </span>
               )}
@@ -620,15 +628,15 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
   };
 
   return (
-    <div className={`chat-app${completa ? " chat-app--completa" : ""}`}>
+    <div className={`chat-app${completa ? " chat-app--completa" : " mockup"}`}>
       {/* ---------- Lista de chats y grupos ---------- */}
       <aside
         className="chat-app__barra"
         data-abierta={barra ? "" : undefined}
         aria-label="Tus chats"
       >
-        <div className="flex items-center justify-between px-5 pb-4 pt-6 sm:px-6">
-          <p className="text-[1.125rem] font-medium tracking-[-0.01em]">
+        <div className="flex items-center justify-between px-5 pb-3 pt-5">
+          <p className="text-[1.0625rem] font-semibold tracking-[-0.01em]">
             Chats
           </p>
           <button
@@ -640,7 +648,7 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
             <IconoCerrar />
           </button>
         </div>
-        <div className="px-4 sm:px-5">
+        <div className="px-3">
           <button
             type="button"
             className="chat-app__nuevo"
@@ -690,11 +698,11 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
           </button>
           <Caras agentes={conv.agentes} tam={40} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[1rem] font-medium leading-tight">
+            <p className="truncate text-[1rem] font-semibold leading-tight">
               {conv.nombre}
             </p>
             <p
-              className="truncate text-[0.8125rem] leading-snug text-ash"
+              className="truncate text-[0.8125rem] leading-snug text-tenue"
               aria-live="polite"
             >
               {escribiendoAqui ? (
@@ -780,7 +788,6 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
           </div>
           <PromptBar
             key={conv.id}
-            className="prompt-bar--suave"
             placeholder={
               esGrupo
                 ? "Escribe al grupo · @ para mencionar"
@@ -794,10 +801,10 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
             onSend={(texto) => enviar(texto)}
             onStop={detener}
             background="var(--chat-campo)"
-            color="var(--color-bone-white)"
+            color="rgb(var(--c-tinta))"
             menuBackground="var(--chat-menu)"
             width={4000}
-            radius={22}
+            radius={12}
             maxRows={5}
           />
         </div>

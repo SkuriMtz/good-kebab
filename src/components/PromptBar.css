@@ -1,6 +1,7 @@
 /*
- * PromptBar (React Bits), con el estilo de Atendel: esquinas rectas, línea
- * fina alrededor y colores del sistema de diseño (claro y oscuro).
+ * PromptBar (React Bits), con el estilo de Atendel: esquinas de 12px, filo
+ * de 1px, el azul de la acción principal en el botón de enviar y los colores
+ * del sistema de diseño (claro y oscuro).
  */
 
 .prompt-bar {
@@ -29,13 +30,11 @@
   bottom: calc(100% + 8px);
   left: 0;
   z-index: 2;
-  padding: 4px;
+  padding: 6px;
   border: 1px solid var(--hairline);
-  border-radius: 0;
+  border-radius: 12px;
   background: var(--pb-menu);
-  box-shadow:
-    0 10px 30px -10px rgba(0, 0, 0, 0.35),
-    0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sombra-mockup, 0 4px 12px rgba(0, 0, 0, 0.1));
   transform-origin: bottom center;
   animation: prompt-bar-pop 180ms var(--pb-ease-out) both;
 }
@@ -56,8 +55,8 @@
 .prompt-bar__glow {
   position: absolute;
   right: 4px;
-  left: 4px;
-  border-radius: 0;
+  left: 6px;
+  border-radius: 8px;
   background: var(--pb-hover);
   opacity: 0;
   pointer-events: none;
@@ -77,7 +76,7 @@
   height: 40px;
   padding: 0 10px;
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -150,11 +149,14 @@
   border-radius: var(--pb-radius);
   background: var(--pb-bg);
   cursor: text;
-  transition: border-color 0.3s ease;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .prompt-bar__field:focus-within {
-  border-color: color-mix(in srgb, var(--pb-ink) 45%, transparent);
+  border-color: rgb(var(--c-accion));
+  box-shadow: 0 0 0 3px rgb(var(--c-accion) / 0.18);
 }
 
 .prompt-bar__field::before {
@@ -195,7 +197,7 @@
   gap: 6px;
   height: 26px;
   padding: 0 4px 0 8px;
-  border-radius: 0;
+  border-radius: 9999px;
   background: var(--pb-hover);
   font-size: 12px;
   animation: prompt-bar-pop 200ms var(--pb-ease-out) both;
@@ -253,6 +255,13 @@
   .prompt-bar__input {
     font-size: 16px;
   }
+
+  /* Con el dedo, botones más grandes */
+  .prompt-bar__tool,
+  .prompt-bar__send {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .prompt-bar__bar {
@@ -282,10 +291,10 @@
 .prompt-bar__tool {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: color-mix(in srgb, var(--pb-ink) 60%, transparent);
   transition:
@@ -304,7 +313,7 @@
   gap: 4px;
   height: 32px;
   padding: 0 8px;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: color-mix(in srgb, var(--pb-ink) 70%, transparent);
   font-size: 12px;
@@ -323,7 +332,7 @@
 .prompt-bar__tool:focus-visible,
 .prompt-bar__send:focus-visible,
 .prompt-bar__row:focus-visible {
-  outline: 1px solid var(--pb-ink);
+  outline: 2px solid rgb(var(--c-accion));
   outline-offset: 2px;
 }
 
@@ -476,12 +485,12 @@
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: 0;
-  background: color-mix(in srgb, var(--pb-ink) 12%, var(--pb-bg));
-  color: color-mix(in srgb, var(--pb-ink) 55%, var(--pb-bg));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--pb-ink) 10%, var(--pb-bg));
+  color: color-mix(in srgb, var(--pb-ink) 50%, var(--pb-bg));
   transition:
     background-color 200ms ease,
     color 200ms ease,
@@ -493,8 +502,8 @@
 }
 
 .prompt-bar__send[data-armed] {
-  background: var(--pb-ink);
-  color: var(--pb-bg);
+  background: rgb(var(--c-accion));
+  color: rgb(var(--c-sobre-accion));
 }
 
 .prompt-bar__send[data-pressed] {
