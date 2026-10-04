@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Arrow, PillLink } from "../Buttons";
+import Link from "next/link";
+import { useEffect, useRef, type CSSProperties } from "react";
+import { Arrow, Check, claseBoton } from "../Buttons";
+import { ConversacionEjemplo } from "./ConversacionEjemplo";
 import { PERSONAJES, Personaje } from "./Personaje";
 import { DETALLE } from "./detalle";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
@@ -34,13 +36,13 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
 
   const info = agente ? AGENTE_POR_ID[agente] : null;
   const detalle = agente ? DETALLE[agente] : null;
-  const planes = agente ? PLANES.filter((p) => p.agentes.includes(agente)) : [];
-  const enFree = planes.some((p) => p.id === "free");
+  const enFree = agente ? PLANES.some((p) => p.id === "free" && p.agentes.includes(agente)) : false;
+  const color = agente ? PERSONAJES[agente].color : undefined;
 
   return (
     <dialog
       ref={ref}
-      className="agente-modal"
+      className="ficha"
       aria-labelledby="agente-modal-titulo"
       onCancel={(e) => {
         e.preventDefault();
@@ -52,47 +54,51 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
       }}
     >
       {info && detalle && agente ? (
-        <div className="agente-modal__caja" key={agente}>
-          <button type="button" className="agente-modal__cerrar" onClick={onClose} aria-label="Cerrar">
+        <div className="ficha__caja" key={agente}>
+          <button type="button" className="ficha__cerrar" onClick={onClose} aria-label="Cerrar">
             <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" aria-hidden="true">
-              <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
 
           {/* Encabezado: personaje, nombre y frase */}
-          <header className="grid items-center gap-6 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-10">
-            <div className="mx-auto w-[132px] sm:mx-0 sm:w-[160px]">
-              <Personaje agente={agente} className="h-auto w-full" />
+          <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
+            <div
+              className="grid h-[104px] w-[104px] shrink-0 place-items-center rounded-tarjeta sm:h-[128px] sm:w-[128px]"
+              style={{ background: color }}
+            >
+              <Personaje agente={agente} avatar className="h-[72%] w-[72%]" />
             </div>
-            <div className="text-center sm:text-left">
-              <p className="font-cond text-base uppercase tracking-[0.04em] text-ash">
+            <div>
+              <p className="pill">
                 {info.area} · {info.abarca}
               </p>
-              <h2 id="agente-modal-titulo" className="titulo titulo--xl mt-3">
+              <h2 id="agente-modal-titulo" className="t-seccion mt-3">
                 {info.nombre}
               </h2>
-              <p className="mt-4 text-body text-silver">{info.lema}</p>
+              <p className="t-editorial mt-2 max-w-[560px]">{info.lema}</p>
             </div>
           </header>
 
-          <div className="mt-14 grid gap-14 lg:grid-cols-2 lg:gap-16">
-            <div className="flex flex-col gap-14">
+          <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
+            <div className="flex flex-col gap-10">
               <section>
-                <h3 className="agente-modal__titulo">Qué es y para qué sirve</h3>
-                <p className="mt-4 text-body text-silver">{detalle.descripcion}</p>
+                <h3 className="t-etiqueta">Qué es y para qué sirve</h3>
+                <p className="t-cuerpo mt-3">{detalle.descripcion}</p>
               </section>
 
               <section>
-                <h3 className="agente-modal__titulo">Todo lo que puede hacer</h3>
-                <ul className="mt-4 border-b hairline">
-                  {detalle.funciones.map((f) => (
-                    <li key={f.titulo} className="grid grid-cols-[18px_minmax(0,1fr)] gap-x-3 border-t hairline py-4">
-                      <svg className="mt-[0.5em] h-3 w-3" style={{ color: PERSONAJES[agente].color }} viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                        <path d="M2 6.4 4.8 9 10 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
-                      </svg>
+                <h3 className="t-etiqueta">Todo lo que puede hacer</h3>
+                <ul className="tarjeta mt-3 !p-0">
+                  {detalle.funciones.map((f, i) => (
+                    <li
+                      key={f.titulo}
+                      className={`grid grid-cols-[20px_minmax(0,1fr)] gap-3 px-5 py-4 ${i ? "border-t border-[var(--linea)]" : ""}`}
+                    >
+                      <Check className="mt-[3px] h-4 w-4 text-enlace" />
                       <span>
-                        <span className="block font-medium text-bone">{f.titulo}</span>
-                        <span className="mt-1 block text-[0.9375rem] leading-relaxed text-silver">{f.detalle}</span>
+                        <span className="block font-semibold">{f.titulo}</span>
+                        <span className="mt-1 block text-[0.9375rem] leading-relaxed text-grafito">{f.detalle}</span>
                       </span>
                     </li>
                   ))}
@@ -100,67 +106,44 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
               </section>
             </div>
 
-            <div className="flex flex-col gap-14">
+            <div className="flex flex-col gap-10">
               <section>
-                <h3 className="agente-modal__titulo">Conversación de ejemplo</h3>
-                <div className="tarjeta mt-4 overflow-hidden">
-                  <p className="flex items-center justify-between px-5 pb-1 pt-4 text-[0.8125rem] text-ash">
-                    <span>{detalle.canal}</span>
-                    <span>Nombres de ejemplo</span>
-                  </p>
-                  <ol className="flex flex-col gap-3 px-5 py-6">
-                    {detalle.conversacion.map((m, i) =>
-                      m.de === "nota" ? (
-                        <li key={i} className="mt-1 flex items-start gap-2 pt-3 text-[0.9375rem] text-bone">
-                          <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: PERSONAJES[agente].color }} aria-hidden="true" />
-                          {m.texto}
-                        </li>
-                      ) : (
-                        <li
-                          key={i}
-                          className={`max-w-[88%] px-4 py-3 text-[0.9375rem] leading-relaxed ${
-                            m.de === "otro"
-                              ? "self-start rounded-[18px] rounded-bl-md bg-void text-bone"
-                              : "self-end rounded-[18px] rounded-br-md bg-bone text-void"
-                          }`}
-                        >
-                          <span className={`mb-1 block text-[0.75rem] font-medium ${m.de === "otro" ? "text-ash" : "opacity-60"}`}>
-                            {m.de === "otro" ? m.quien : info.nombre}
-                            {m.hora ? <span className="ml-2 tabular-nums">{m.hora}</span> : null}
-                          </span>
-                          {m.texto}
-                        </li>
-                      ),
-                    )}
-                  </ol>
+                <h3 className="t-etiqueta">Conversación de ejemplo</h3>
+                <div className="panel-color en-acento mt-3" style={{ "--acento": color } as CSSProperties}>
+                  <ConversacionEjemplo agente={agente} />
                 </div>
               </section>
 
               <section>
-                <h3 className="agente-modal__titulo">En qué plan está</h3>
-                <ul className="mt-4 grid grid-cols-3 gap-2">
+                <h3 className="t-etiqueta">En qué plan está</h3>
+                <ul className="mt-3 grid grid-cols-3 gap-2">
                   {PLANES.map((p) => {
                     const incluido = p.agentes.includes(agente);
                     return (
-                      <li key={p.id} className={`tarjeta !rounded-[20px] px-4 py-5 ${incluido ? "" : "opacity-45"}`}>
-                        <span className="block font-cond text-[0.875rem] uppercase tracking-[0.04em] text-ash">Atendel</span>
-                        <span className="mt-1 block text-[1.5rem] font-semibold leading-none tracking-[-0.04em]">{p.nombre.replace("Atendel ", "")}</span>
-                        <span className={`mt-3 block text-[0.8125rem] ${incluido ? "text-bone" : "text-ash"}`}>
+                      <li key={p.id} className={`tarjeta !p-4 ${incluido ? "" : "opacity-60"}`}>
+                        <span className="block text-[0.75rem] font-medium text-tenue">Atendel</span>
+                        <span className="mt-0.5 block text-[1.375rem] font-bold leading-none tracking-[-0.02em]">
+                          {p.nombre.replace("Atendel ", "")}
+                        </span>
+                        <span className={`mt-3 flex items-center gap-1.5 text-[0.8125rem] ${incluido ? "font-medium text-tinta" : "text-tenue"}`}>
+                          {incluido ? <Check className="h-3.5 w-3.5 text-enlace" /> : null}
                           {incluido ? "Incluido" : "No incluido"}
                         </span>
                       </li>
                     );
                   })}
                 </ul>
-                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-                  <PillLink href="/entrar">{enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}</PillLink>
-                  <a href="/precios" className="btn-ghost">
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <Link href="/entrar" className={claseBoton("primario")} onClick={onClose}>
+                    {enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}
+                  </Link>
+                  <Link href="/precios" className={claseBoton("texto")} onClick={onClose}>
                     Ver precios
                     <Arrow />
-                  </a>
+                  </Link>
                 </div>
                 {!enFree ? (
-                  <p className="mt-4 text-[0.875rem] leading-relaxed text-ash">
+                  <p className="t-chico mt-4">
                     {info.nombre} llega con {planMinimo(agente).nombre}. Mientras, puedes empezar gratis con Clara.
                   </p>
                 ) : null}

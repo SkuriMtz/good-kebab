@@ -3,16 +3,24 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { SCRIPT_TEMA } from "@/lib/tema";
 
-// Tipografía: una sola familia para todo el sitio (servida desde nuestro propio
-// dominio; la política de seguridad no permite cargar fuentes de otros sitios).
-// Inter variable sustituye a Halyard Display: peso 500 en mayúsculas para
-// títulos, menús y botones; peso 400 en minúsculas para los textos que explican.
+// Tipografías servidas desde nuestro propio dominio (la política de seguridad
+// no permite cargar fuentes de otros sitios).
+// Inter: todo el sitio (400 para leer, 500 para menús y botones, 600–700 para títulos).
 const sans = localFont({
   src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
   weight: "100 900",
   style: "normal",
   display: "swap",
   variable: "--font-sans",
+});
+
+// Source Serif: solo para las entradillas (el texto que acompaña a un título).
+const serif = localFont({
+  src: "../../node_modules/@fontsource/source-serif-4/files/source-serif-4-latin-400-normal.woff2",
+  weight: "400",
+  style: "normal",
+  display: "swap",
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -23,15 +31,12 @@ export const metadata: Metadata = {
   description:
     "Atendel lee tus correos, entiende qué necesita cada cliente y te dice qué hacer. Agentes de inteligencia artificial para clínicas, consultorios y estéticas.",
   applicationName: "Atendel",
-  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8ead6" },
-    { media: "(prefers-color-scheme: dark)", color: "#100904" },
-  ],
-  colorScheme: "dark light",
+  themeColor: "#f6f5f4",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -41,9 +46,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={sans.variable} suppressHydrationWarning>
+    <html lang="es" className={`${sans.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
-        {/* Activa las animaciones de entrada (solo con JavaScript) y pone el modo claro u oscuro antes de pintar */}
+        {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
       <body className="font-sans">{children}</body>

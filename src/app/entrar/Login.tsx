@@ -1,17 +1,11 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { Arrow, Roll, TriSpinner } from "@/components/Buttons";
-import { Nav } from "@/components/Nav";
-import { ParticleShape } from "@/components/particles/ParticleShape";
-import { Reveal, SplitText } from "@/components/Reveal";
+import { claseBoton, Spinner } from "@/components/Buttons";
+import { MarcasAgentes } from "@/components/agentes/MarcasAgentes";
 import { Field } from "@/components/ui/Field";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { createClient } from "@/lib/supabase/client";
-import { PAGINAS, PRUEBALO } from "@/lib/contenido";
-
-
-const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-acento)"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;
@@ -24,6 +18,7 @@ function traducirError(error: { message: string; code?: string }) {
   return `No se pudo enviar el link: ${error.message}`;
 }
 
+/** Entrar con un link al correo (sin contraseña) o con Google si está disponible. */
 export function Login({ errorInicial }: { errorInicial: boolean }) {
   const supabase = useMemo(() => createClient(), []);
   const google = useGoogleDisponible();
@@ -32,7 +27,6 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   const [error, setError] = useState<string | null>(
     errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
   );
-  const [intento, setIntento] = useState(0);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -46,7 +40,6 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     if (error) {
       setEstado("idle");
       setError(traducirError(error));
-      setIntento((n) => n + 1);
     } else {
       setEstado("enviado");
     }
@@ -64,96 +57,68 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   }
 
   return (
-    <>
-      <Nav items={PAGINAS} destacado={PRUEBALO} />
-      <main className="mx-auto grid min-h-[100svh] max-w-page grid-cols-1 items-center gap-14 px-6 pb-16 pt-[136px] sm:px-10 lg:grid-cols-2 lg:gap-24 lg:px-16 lg:pt-[72px]">
-        <div aria-live="polite">
-          {estado !== "enviado" ? (
-            <div key="formulario">
-              <Reveal as="p" className="eyebrow">
-                Entrar
-              </Reveal>
-              <SplitText as="h1" className="editorial mt-5 text-heading-lg" text="Entra a Atendel." />
-              <Reveal as="p" delay={200} className="mt-6 max-w-[440px] text-body text-silver">
-                Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
-              </Reveal>
-              <Reveal delay={320}>
-                <form onSubmit={enviar} className="mt-10 max-w-[440px] space-y-8">
-                  <Field
-                    label="Tu correo"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={setEmail}
-                    placeholder="tu@correo.com"
-                    autoComplete="email"
-                    inputMode="email"
-                    required
-                  />
-                  <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-                    <button
-                      key={intento}
-                      type="submit"
-                      className={`btn-pill min-w-[236px] ${intento ? "shake" : ""}`}
-                      disabled={estado === "enviando"}
-                    >
-                      {estado === "enviando" ? (
-                        <>
-                          <TriSpinner />
-                          <span>Enviando</span>
-                        </>
-                      ) : (
-                        <>
-                          <Roll>Enviarme el link</Roll>
-                          <Arrow />
-                        </>
-                      )}
-                    </button>
-                    {google ? (
-                      <button type="button" className="btn-ghost" onClick={entrarConGoogle}>
-                        <Roll>Continuar con Google</Roll>
-                      </button>
-                    ) : null}
-                  </div>
-                  {error ? (
-                    <p key={`e${intento}`} role="alert" className="swap-in flex items-start gap-3 text-body text-saffron">
-                      <svg className="mt-1.5 h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 2 20.66 17H3.34Z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-                      </svg>
-                      {error}
-                    </p>
-                  ) : null}
-                </form>
-              </Reveal>
-            </div>
-          ) : (
-            <div key="enviado" className="swap-in">
-              <p className="eyebrow">Link enviado</p>
-              <h1 className="editorial mt-5 text-heading-lg">Revisa tu correo.</h1>
-              <p className="mt-6 max-w-[460px] text-body text-silver">
-                Te mandamos un link a <span className="font-normal text-bone">{email}</span>. Ábrelo en este mismo
-                navegador para entrar.
-              </p>
-              <p className="mt-4 max-w-[460px] text-body text-ash">
-                ¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.
-              </p>
-              <button type="button" className="btn-ghost mt-8" onClick={() => setEstado("idle")}>
-                <Roll>Usar otro correo</Roll>
+    <section className="contenedor flex justify-center pb-20 pt-12 sm:pt-16 lg:pb-28 lg:pt-20">
+      <div className="w-full max-w-[460px]" aria-live="polite">
+        <MarcasAgentes />
+        {estado !== "enviado" ? (
+          <div key="formulario">
+            <h1 className="t-seccion mt-6 text-center">Entra a Atendel.</h1>
+            <p className="t-editorial mx-auto mt-3 max-w-[400px] text-center">
+              Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
+            </p>
+            <form onSubmit={enviar} className="tarjeta mt-8 flex flex-col gap-4 !p-6 sm:!p-8">
+              <Field
+                label="Tu correo"
+                name="email"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="tu@correo.com"
+                autoComplete="email"
+                inputMode="email"
+                required
+              />
+              <button type="submit" className={`${claseBoton("primario", "grande")} w-full`} disabled={estado === "enviando"}>
+                {estado === "enviando" ? (
+                  <>
+                    <Spinner />
+                    Enviando
+                  </>
+                ) : (
+                  "Enviarme el link"
+                )}
               </button>
-            </div>
-          )}
-        </div>
-
-        <div className="relative mx-auto aspect-square w-full max-w-[300px] lg:max-w-[520px]">
-          <ParticleShape
-            shape={estado === "enviado" ? "check" : "mail"}
-            busy={estado === "enviando"}
-            scrollLinked={false}
-            colors={COLORES}
-            className="absolute inset-0 h-full w-full"
-          />
-        </div>
-      </main>
-    </>
+              {google ? (
+                <button type="button" className={`${claseBoton("suave", "grande")} w-full`} onClick={entrarConGoogle}>
+                  Continuar con Google
+                </button>
+              ) : null}
+              {error ? (
+                <p role="alert" className="flex items-start gap-2 text-[0.9375rem] text-error">
+                  <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M8 4.8v3.6M8 10.9v.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                  {error}
+                </p>
+              ) : null}
+            </form>
+          </div>
+        ) : (
+          <div key="enviado" className="tarjeta mt-6 !p-6 text-center sm:!p-8">
+            <p className="pill pill--azul">Link enviado</p>
+            <h1 className="t-seccion mt-4">Revisa tu correo.</h1>
+            <p className="t-cuerpo mt-4">
+              Te mandamos un link a <span className="font-semibold text-tinta">{email}</span>. Ábrelo en este mismo navegador
+              para entrar.
+            </p>
+            <p className="t-chico mt-3">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
+            <button type="button" className={`${claseBoton("texto")} mt-6`} onClick={() => setEstado("idle")}>
+              Usar otro correo
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

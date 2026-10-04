@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon } from "@hugeicons/core-free-icons";
-import { TriSpinner } from "@/components/Buttons";
+import { Spinner } from "@/components/Buttons";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
-import SwipeRow from "@/components/SwipeRow";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
-import { Personaje } from "@/components/agentes/Personaje";
+import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
 import {
   Caras,
   Dia,
@@ -133,7 +130,6 @@ export function Chat({
   const [usados, setUsados] = useState(usadosIniciales);
   const [lista, setLista] = useState(false); // lista de chats en celular
   const [aviso, setAviso] = useState<string | null>(null);
-  const [reintentos, setReintentos] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortar = useRef<AbortController | null>(null);
   const pegado = useRef(true); // ¿la vista está hasta abajo?
@@ -222,13 +218,12 @@ export function Chat({
     return () => window.removeEventListener("keydown", tecla);
   }, [lista]);
 
-  /** Con la ✕ pregunta antes; al deslizar la fila hasta el fondo ya es la confirmación. */
-  async function borrar(c: Conversacion, preguntar = true) {
-    if (preguntar && !window.confirm(`¿Borrar "${c.titulo}"?`)) return;
+  /** La ✕ de cada conversación: pregunta antes de borrar. */
+  async function borrar(c: Conversacion) {
+    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return;
     const { error } = await createClient().from("conversaciones").delete().eq("id", c.id);
     if (error) {
       setAviso("No se pudo borrar la conversación.");
-      setReintentos((n) => n + 1); // la fila deslizada vuelve a aparecer
       return;
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
@@ -362,36 +357,21 @@ export function Chat({
     const ids = integrantes(c) ?? [c.agente];
     return (
       <li key={c.id} className="group relative">
-        <SwipeRow
-          key={`${c.id}-${reintentos}`}
-          label={c.titulo}
-          actions={[{ id: "borrar", label: "Borrar", icon: <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.8} /> }]}
-          onCommit={() => borrar(c, false)}
-          actionColor="#e5484d"
-          drawerColor="var(--chat-barra)"
-          rowColor="var(--chat-barra)"
-          textColor="var(--color-bone-white)"
-          height={68}
-          radius={16}
-          actionWidth={76}
-          className="chat-app__deslizar"
-        >
-          <button type="button" className="chat-app__conv h-full" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
-            <Caras agentes={ids} tam={44} />
-            <span className="min-w-0 flex-1">
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="truncate text-[0.9375rem] font-medium text-bone">{c.titulo}</span>
-                <span className="shrink-0 text-[0.75rem] tabular-nums text-ash">{cuando(c.actualizado_en)}</span>
-              </span>
-              <span className="mt-0.5 block truncate text-[0.8125rem] text-ash">
-                {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
-              </span>
+        <button type="button" className="chat-app__conv pr-12" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
+          <Caras agentes={ids} tam={44} />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="truncate text-[0.9375rem] font-semibold text-tinta">{c.titulo}</span>
+              <span className="shrink-0 text-[0.75rem] tabular-nums text-tenue">{cuando(c.actualizado_en)}</span>
             </span>
-          </button>
-          <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
-            <IconoCerrar />
-          </button>
-        </SwipeRow>
+            <span className="mt-0.5 block truncate text-[0.8125rem] text-tenue">
+              {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
+            </span>
+          </span>
+        </button>
+        <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
+          <IconoCerrar />
+        </button>
       </li>
     );
   };
@@ -399,16 +379,16 @@ export function Chat({
   return (
     <>
       <NavApp email={email} />
-      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[72px]">
+      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[var(--barra-h)]">
         {/* ---------- Agentes, grupos y conversaciones ---------- */}
         <aside className="chat-app__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
-          <div className="flex items-center justify-between px-5 pb-4 pt-6 sm:px-6">
-            <p className="text-[1.125rem] font-medium tracking-[-0.01em]">Chats</p>
+          <div className="flex items-center justify-between px-5 pb-3 pt-5">
+            <p className="text-[1.0625rem] font-semibold tracking-[-0.01em]">Chats</p>
             <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(false)} aria-label="Cerrar la lista">
               <IconoCerrar />
             </button>
           </div>
-          <div className="px-4 sm:px-5">
+          <div className="px-3">
             {puedeGrupos ? (
               <button
                 type="button"
@@ -443,8 +423,8 @@ export function Chat({
                   <>
                     <Caras agentes={[a.id]} tam={44} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.9375rem] font-medium text-bone">{a.nombre}</span>
-                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-ash">
+                      <span className="block truncate text-[0.9375rem] font-semibold text-tinta">{a.nombre}</span>
+                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-tenue">
                         {activo ? (
                           `${a.area} · ${a.abarca}`
                         ) : (
@@ -483,12 +463,12 @@ export function Chat({
             {chatsGuardados.length ? (
               <ul>{chatsGuardados.map(filaConversacion)}</ul>
             ) : (
-              <p className="px-3 text-[0.8125rem] text-ash">Aquí aparecerán tus conversaciones.</p>
+              <p className="px-3 text-[0.8125rem] text-tenue">Aquí aparecerán tus conversaciones.</p>
             )}
           </div>
 
           <div className="chat-app__plan">
-            <p className="mb-2 text-[0.8125rem] font-medium text-bone">{plan.nombre}</p>
+            <p className="mb-2 text-[0.8125rem] font-semibold text-tinta">{plan.nombre}</p>
             <Uso usados={usados} plan={plan} compacto />
           </div>
         </aside>
@@ -509,8 +489,8 @@ export function Chat({
             </button>
             <Caras agentes={participantes} tam={40} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[1rem] font-medium leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
-              <p className="truncate text-[0.8125rem] leading-snug text-ash" aria-live="polite">
+              <p className="truncate text-[1rem] font-semibold leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
+              <p className="truncate text-[0.8125rem] leading-snug text-tenue" aria-live="polite">
                 {enCurso ? (
                   <span className="chat-app__escribe">
                     {grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}
@@ -540,16 +520,22 @@ export function Chat({
           >
             <div className="mx-auto flex min-h-full w-full max-w-[880px] flex-col">
               {cargando ? (
-                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-ash">
-                  <TriSpinner className="h-3 w-3" /> Abriendo conversación…
+                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-tenue">
+                  <Spinner /> Abriendo conversación…
                 </p>
               ) : mensajes.length === 0 ? (
                 <div className="chat-app__vacio">
-                  {grupo ? <Caras agentes={grupo} tam={92} /> : <Personaje agente={agente} className="h-28 w-28" />}
-                  <p className="mt-6 text-[1.75rem] font-medium leading-tight tracking-[-0.02em] sm:text-[2rem]">
+                  {grupo ? (
+                    <Caras agentes={grupo} tam={92} />
+                  ) : (
+                    <span className="grid h-24 w-24 place-items-center rounded-tarjeta" style={{ background: PERSONAJES[agente].color }}>
+                      <Personaje agente={agente} avatar className="h-[72%] w-[72%]" />
+                    </span>
+                  )}
+                  <p className="mt-6 text-[1.75rem] font-bold leading-tight tracking-[-0.025em] sm:text-[2rem]">
                     {grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}
                   </p>
-                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-silver">
+                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-grafito">
                     {grupo
                       ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
                       : info.lema}
@@ -563,9 +549,9 @@ export function Chat({
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-8 text-[0.9375rem] text-silver">
+                    <p className="mt-8 text-[0.9375rem] text-grafito">
                       {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                      <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="text-bone underline underline-offset-4">
+                      <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="enlace">
                         {!participantes.every((id) => plan.agentes.includes(id))
                           ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
                           : "Agrégalo en Mis agentes"}
@@ -625,9 +611,9 @@ export function Chat({
 
           <div className="chat-app__pie mx-auto w-full max-w-[944px] pb-[max(18px,env(safe-area-inset-bottom))]">
             {sinMensajes ? (
-              <p className="mb-3 text-center text-[0.875rem] text-silver">
+              <p className="mb-3 text-center text-[0.875rem] text-grafito">
                 Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                <Link href="/precios" className="text-bone underline underline-offset-4">
+                <Link href="/precios" className="enlace">
                   Ver planes
                 </Link>
               </p>
@@ -635,7 +621,6 @@ export function Chat({
             {disponible && !sinMensajes ? (
               <PromptBar
                 key={grupo ? grupo.join("-") : agente}
-                className="prompt-bar--suave"
                 placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
                 sources={fuentes}
                 commands={comandosDe(participantes)}
@@ -645,14 +630,14 @@ export function Chat({
                 onSend={(t) => enviar(t)}
                 onStop={() => abortar.current?.abort()}
                 background="var(--chat-campo)"
-                color="var(--color-bone-white)"
+                color="rgb(var(--c-tinta))"
                 menuBackground="var(--chat-menu)"
                 width={4000}
-                radius={22}
+                radius={12}
                 maxRows={8}
               />
             ) : null}
-            <p className="mt-3 text-center text-[0.75rem] text-ash">
+            <p className="mt-3 text-center text-[0.75rem] text-tenue">
               {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
             </p>
           </div>

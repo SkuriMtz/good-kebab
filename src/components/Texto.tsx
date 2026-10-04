@@ -4,7 +4,7 @@ import { Fragment, type ReactNode } from "react";
 function enLinea(texto: string): ReactNode[] {
   return texto.split(/(\*\*[^*]+\*\*)/g).map((parte, i) =>
     parte.startsWith("**") && parte.endsWith("**") && parte.length > 4 ? (
-      <strong key={i} className="font-medium text-bone">
+      <strong key={i} className="font-semibold text-tinta">
         {parte.slice(2, -2)}
       </strong>
     ) : (
@@ -48,9 +48,9 @@ export function Texto({ texto }: { texto: string }) {
           <table className="w-full min-w-[420px] border-collapse text-left text-[0.9375rem]">
             {cabeza ? (
               <thead>
-                <tr className="border-b border-white/40">
+                <tr className="border-b border-[var(--linea-fuerte)]">
                   {cabeza.map((c, j) => (
-                    <th key={j} className="py-2 pr-4 font-cond text-base font-normal uppercase tracking-[0.03em] text-ash">
+                    <th key={j} className="py-2 pr-4 text-[0.8125rem] font-semibold text-tenue">
                       {c}
                     </th>
                   ))}
@@ -59,7 +59,7 @@ export function Texto({ texto }: { texto: string }) {
             ) : null}
             <tbody>
               {resto.map((f, k) => (
-                <tr key={k} className="border-b hairline">
+                <tr key={k} className="border-b border-[var(--linea)]">
                   {f.map((c, j) => (
                     <td key={j} className="py-2 pr-4 align-top">
                       {enLinea(c)}
@@ -86,7 +86,7 @@ export function Texto({ texto }: { texto: string }) {
       bloques.push(
         <Lista key={`l${i}`} className={`flex flex-col gap-1.5 pl-5 ${numerada ? "list-decimal" : "list-[square]"}`}>
           {items.map((it, k) => (
-            <li key={k} className="pl-1 marker:text-ash">
+            <li key={k} className="pl-1 marker:text-tenue">
               {enLinea(it)}
             </li>
           ))}
@@ -97,7 +97,7 @@ export function Texto({ texto }: { texto: string }) {
     // Título corto
     if (/^#{1,4}\s/.test(limpia)) {
       bloques.push(
-        <p key={`h${i}`} className="font-medium text-bone">
+        <p key={`h${i}`} className="font-semibold text-tinta">
           {enLinea(limpia.replace(/^#{1,4}\s/, ""))}
         </p>,
       );

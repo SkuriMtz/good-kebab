@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Roll } from "../Buttons";
+import { claseBoton } from "../Buttons";
 import { Nav } from "../Nav";
 import { AGENTES_INFO } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
@@ -13,7 +13,12 @@ export const NAV_APP = [
   { href: "/panel", label: "Correo con Clara" },
 ];
 
-const REPARTO = AGENTES_INFO.map((a) => ({ nombre: a.nombre, papel: a.area, href: `/panel/chat?agente=${a.id}` }));
+const REPARTO = AGENTES_INFO.map((a) => ({
+  id: a.id,
+  nombre: a.nombre,
+  papel: `${a.area} · ${a.abarca}`,
+  href: `/panel/chat?agente=${a.id}`,
+}));
 
 /** Barra de la app: tu correo y "Salir" a la derecha; lo mismo dentro del menú en celular. */
 export function NavApp({ email }: { email: string }) {
@@ -32,21 +37,21 @@ export function NavApp({ email }: { email: string }) {
       reparto={REPARTO}
       desktopRight={
         <>
-          <span className="max-w-[220px] truncate text-caption text-ash" title={email}>
+          <span className="max-w-[200px] truncate text-[0.8125rem] text-tenue" title={email}>
             {email}
           </span>
-          <button type="button" className="btn-ghost" onClick={salir}>
-            <Roll>Salir</Roll>
+          <button type="button" className={claseBoton("texto")} onClick={salir}>
+            Salir
           </button>
         </>
       }
       mobileBottom={
-        <div className="flex flex-col items-start gap-2">
-          <p className="max-w-full truncate text-caption text-ash">{email}</p>
-          <button type="button" className="btn-ghost" onClick={salir}>
-            <Roll>Cerrar sesión</Roll>
+        <>
+          <p className="truncate text-[0.875rem] text-tenue">{email}</p>
+          <button type="button" className={`${claseBoton("texto", "grande")} w-full !justify-start !px-0`} onClick={salir}>
+            Cerrar sesión
           </button>
-        </div>
+        </>
       }
     />
   );
