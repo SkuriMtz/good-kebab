@@ -2111,15 +2111,6 @@ html.js [data-split][data-in] .split-inner {
     white-space: nowrap;
   }
 
-  /* Sobre el fondo de corrientes, un halo del color de la página para que el texto se lea */
-  .hero-texto::before {
-    content: "";
-    position: absolute;
-    inset: -8% -12% 0;
-    z-index: -1;
-    background: radial-gradient(closest-side, rgb(var(--c-void) / 0.88), rgb(var(--c-void) / 0.55) 60%, transparent);
-    pointer-events: none;
-  }
   /* Portada: el logo hecho de fragmentos */
   .wordmark-logo {
     font-family: var(--font-sans);
