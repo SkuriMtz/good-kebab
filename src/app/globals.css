@@ -428,10 +428,10 @@
     gap: 12px;
   }
   .lista__tetra {
-    width: 50px;
-    height: 50px;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--c) 60%, transparent));
+    filter: drop-shadow(0 0 9px color-mix(in srgb, var(--c) 75%, transparent));
     transition:
       transform 1.8s cubic-bezier(0.16, 1, 0.3, 1),
       opacity 1.2s ease;
@@ -934,14 +934,15 @@
   }
   .barra__enlace {
     padding: var(--spacing-12) var(--spacing-6);
-    font-size: var(--text-nav-label);
+    /* Como en Dala: 11 px en mayúsculas, con aire entre letras */
+    font-size: clamp(11px, 0.6rem + 0.25vw, 13px);
     font-weight: var(--font-weight-semibold);
     line-height: var(--leading-nav-label);
-    letter-spacing: 0.025em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--c-tenue);
     white-space: nowrap;
-    transition: color 150ms ease;
+    transition: color 300ms ease;
   }
   @media (min-width: 1200px) {
     .barra__enlace {
@@ -949,6 +950,7 @@
     }
   }
   .barra__enlace:hover,
+  .barra__enlace[data-activo="true"],
   .barra__enlace[aria-current="page"] {
     color: var(--c-texto);
   }

@@ -284,10 +284,11 @@ function marca(n: number, d: Float32Array) {
     const k = i % 4;
     const [x, y, z] = direccion();
     // Más denso hacia la orilla, con algo de relleno: se ve como una nube
-    const r = 0.41 * (Math.random() < 0.7 ? 0.9 + Math.random() * 0.1 : Math.cbrt(Math.random()));
+    const r = 0.41 * (Math.random() < 0.55 ? 0.88 + Math.random() * 0.12 : Math.cbrt(Math.random()));
     const l = x * luz[0] + y * luz[1] + z * luz[2];
     const c = degradado([[0, mezcla(AGENTES[k], VIOLETA, 0.25)], [0.6, AGENTES[k]], [1, BLANCO]], (l + 1) / 2);
-    poner(d, i, C[k][0] + x * r, C[k][1] + y * r, z * r, c, 0.8, 0.55);
+    // Polvo muy fino (puntitos), como el logo del video
+    poner(d, i, C[k][0] + x * r, C[k][1] + y * r, z * r, c, 1, 0.55);
   }
 }
 
@@ -307,7 +308,7 @@ function polvoArriba(n: number, d: Float32Array) {
     const abajo = Math.random() < 0.12;
     const y = abajo ? Math.random() * 1.9 - 1 : 0.92 - 1.05 * Math.pow(Math.random(), 1.7);
     // Solo una parte se ve: el polvo de Dala es ralo
-    const alfa = Math.random() < 0.1 ? (abajo ? 0.3 : 0.45 + Math.random() * 0.5) : 0;
+    const alfa = Math.random() < 0.08 ? (abajo ? 0.3 : 0.45 + Math.random() * 0.5) : 0;
     poner(d, i, Math.random() * 2.1 - 1.05, y, Math.random() * 2 - 1, colorPolvo(), alfa, 0.75 + Math.random() * 0.6);
   }
 }
@@ -317,9 +318,9 @@ function polvoIzquierda(n: number, d: Float32Array) {
   for (let i = 0; i < n; i++) {
     // Recargado a la izquierda y arriba, y se va haciendo ralo hacia la derecha (sin orillas)
     const banda = Math.random() < 0.3;
-    const x = banda ? Math.random() * 2.1 - 1.05 : -1.05 + 1.9 * Math.pow(Math.random(), 2.2);
+    const x = banda ? Math.random() * 2.1 - 1.05 : -1.05 + 1.9 * Math.pow(Math.random(), 3);
     const y = banda ? 0.9 - 0.45 * Math.pow(Math.random(), 1.5) : 0.92 - 1.8 * Math.pow(Math.random(), 1.3);
-    poner(d, i, x, y, Math.random() * 2 - 1, colorPolvo(), Math.random() < 0.1 ? 0.4 + Math.random() * 0.5 : 0, 0.75 + Math.random() * 0.6);
+    poner(d, i, x, y, Math.random() * 2 - 1, colorPolvo(), Math.random() < 0.065 ? 0.4 + Math.random() * 0.5 : 0, 0.8 + Math.random() * 0.6);
   }
 }
 

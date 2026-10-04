@@ -78,7 +78,7 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
     case "globo":
       return celular
         ? { forma: "esfera", modo: "objeto", cx: 0.66, cy: 0.28, escala: w * 0.55, giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 0.9, tam: 0.8, ocultarAtras: 1 }
-        : { forma: "esfera", modo: "objeto", cx: 0.74, cy: 0.74, escala: Math.min(h * 0.555, w * 0.36), giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 1, tam: 1.15, ocultarAtras: 1 };
+        : { forma: "esfera", modo: "objeto", cx: 0.74, cy: 0.74, escala: Math.min(h * 0.555, w * 0.36), giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 0.82, tam: 1.15, ocultarAtras: 1 };
     case "equipo":
       return polvo("polvoArriba", celular ? 0.7 : 1);
     case "lista":
@@ -86,7 +86,7 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
     case "logo":
       return celular
         ? { forma: "marca", modo: "objeto", cx: 0.5, cy: 0.5, escala: Math.min(w * 0.42, h * 0.26), giro: quieto(-0.42, 0.14, 0, 0.08), alfa: 0.6, tam: 0.8, ocultarAtras: 0.4 }
-        : { forma: "marca", modo: "objeto", cx: 0.5, cy: 0.455, escala: h * 0.38, giro: quieto(-0.42, 0.14, 0, 0.08), alfa: 0.75, tam: 1, ocultarAtras: 0.7 };
+        : { forma: "marca", modo: "objeto", cx: 0.5, cy: 0.455, escala: h * 0.38, giro: quieto(-0.42, 0.14, 0, 0.08), alfa: 1, tam: 1, ocultarAtras: 0.45 };
     case "burbujaDerecha":
     case "globoDerecha":
     case "logoDerecha":

@@ -54,7 +54,7 @@ export default function Inicio() {
       </section>
 
       {/* ---------- 3. Tu equipo (carrusel) ---------- */}
-      <section id="agentes" className="d-escena d-escena--equipo" data-escena="equipo">
+      <section id="agentes" className="d-escena d-escena--equipo" data-escena="equipo" data-nav="/agentes">
         <div className="equipo-zona">
           <Revela className="equipo-zona__texto">
             <h2 className="d-grande">Tu equipo</h2>
@@ -62,7 +62,10 @@ export default function Inicio() {
             <div className="d-parrafos d-parrafos--chico">
               <p>
                 Cada uno lleva un área de tu negocio: atención, correo, clientes y oficina. Toca a cada uno para ver todo lo que hace, una
-                conversación de ejemplo y en qué plan está. <a href="/agentes" className="d-enlace">Conoce a los agentes</a>
+                conversación de ejemplo y en qué plan está.
+              </p>
+              <p>
+                Conoce todo lo que hace cada uno <a href="/agentes" className="d-enlace">aquí</a>
               </p>
             </div>
           </Revela>
@@ -71,7 +74,7 @@ export default function Inicio() {
       </section>
 
       {/* ---------- 4. Para quién es (constelación) ---------- */}
-      <section id="para-quien-es" className="d-escena d-escena--lista" data-escena="lista">
+      <section id="para-quien-es" className="d-escena d-escena--lista" data-escena="lista" data-nav="/para-quien-es">
         <div className="lista-zona">
           <Revela className="lista-zona__texto">
             <h2 className="d-grande">Para quién es</h2>

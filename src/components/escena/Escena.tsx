@@ -71,6 +71,9 @@ void main() {
   float d = tri(p * 1.75);
   float px = 3.5 / max(vTam, 1.0);
   float a = 1.0 - smoothstep(px * 0.6, px * 1.6, abs(d));
+  // Los puntitos muy chicos (el logo de polvo fino) se dibujan como humo: un punto difuminado
+  float humo = exp(-dot(p, p) * 2.6);
+  a = mix(a, humo, smoothstep(6.0, 3.5, vTam));
   a *= vAlfa;
   if (a < 0.01) discard;
   // En modo claro: colores más oscuros y lo blanco se vuelve violeta (si no, no se vería)
@@ -328,7 +331,8 @@ export function Escena() {
           // Lo de atrás se apaga (el globo se ve sólido)
           if (C.ocultarAtras > 0) visible = 1 - C.ocultarAtras * (1 - suave(-0.35, 0.3, z3));
           // En el globo, la orilla se apaga un poco (si no, se ve un anillo muy brillante)
-          if (C.ocultarAtras >= 1) visible *= 0.5 + 0.5 * suave(0, 0.55, z3);
+          // En el globo, la orilla se apaga (como el de Dala, que se oscurece hacia los lados)
+          if (C.ocultarAtras >= 1) visible *= 0.25 + 0.75 * suave(0.05, 0.75, z3);
           // Respira apenas: casi quieta
           if (!quieto) {
             tx += Math.sin(tiempo * 0.7 + fase[i]) * 0.6;

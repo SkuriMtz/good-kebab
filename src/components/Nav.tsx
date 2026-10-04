@@ -126,6 +126,26 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
 
   const actual = (href: string) => (pathname === href ? "page" : undefined);
 
+  // Como en Dala: en una página con secciones (data-nav="/agentes"), el enlace
+  // de la sección que está en pantalla se ilumina mientras la recorres
+  const [seccion, setSeccion] = useState<string | null>(null);
+  useEffect(() => {
+    const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-nav]"));
+    setSeccion(null);
+    if (!secciones.length) return;
+    const revisar = () => {
+      let activa: string | null = null;
+      for (const el of secciones) {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) activa = el.dataset.nav ?? null;
+      }
+      setSeccion(activa);
+    };
+    revisar();
+    window.addEventListener("scroll", revisar, { passive: true });
+    return () => window.removeEventListener("scroll", revisar);
+  }, [pathname]);
+
   return (
     <>
       <header className="barra" data-sombra={sombra ? "true" : "false"} data-abierto={abierto ? "true" : "false"}>
@@ -143,6 +163,7 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
                 href={item.href}
                 className="barra__enlace"
                 aria-current={actual(item.href)}
+                data-activo={seccion === item.href ? "true" : undefined}
                 onClick={(e) => alElegir(e, item.href)}
               >
                 {item.label}
