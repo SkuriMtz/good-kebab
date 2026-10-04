@@ -11,23 +11,34 @@
 :root {
   /* Colores como canales RGB para poder usar transparencias (rgb(var(--c-x) / 0.5)).
      Modo oscuro por defecto; el modo claro los redefine abajo. */
-  --c-void: 17 15 14; /* lienzo: casi negro, cálido */
-  --c-shale: 31 28 26; /* superficie apenas distinta */
-  --c-bone: 246 242 237; /* texto principal */
-  --c-ash: 163 155 148; /* texto secundario: gris cálido */
-  --c-silver: 212 205 198; /* texto de párrafos */
-  --c-signal: 255 84 84; /* rojo: solo para errores y avisos */
-  --c-papel: 242 241 237; /* el "papel" de los ejemplos */
-  --alfa-linea: 0.2;
-  /* Acento de la marca (botones y lo importante): coral en oscuro, terracota en claro */
-  --c-marca: 255 138 107;
-  --c-sobre-marca: 33 18 13;
-  --color-acento: #ff8a6b; /* el coral de Lola, para los destellos de color */
-  /* Pasteles de los personajes, para fondos de sección */
+  --c-void: 16 9 4; /* nogal: el lienzo, casi negro y cálido (nunca negro puro) */
+  --c-shale: 27 18 11; /* un paso arriba del lienzo: tarjetas */
+  --c-bone: 255 237 215; /* crema: todo el texto (nunca blanco puro) */
+  --c-ash: 179 160 138; /* crema apagada: texto secundario */
+  --c-silver: 225 207 185; /* texto de párrafos */
+  --c-signal: 255 112 77; /* solo para errores y avisos */
+  --c-papel: 255 237 215; /* el "papel" de los ejemplos */
+  --alfa-linea: 1;
+  /* La única superficie llena: el botón principal (café corteza con texto crema) */
+  --c-marca: 56 36 22;
+  --c-sobre-marca: 255 237 215;
+  /* Corcho (divisores punteados), madera (estructura apagada) y brasa (acento editorial) */
+  --c-borde: 64 55 46;
+  --c-madera: 108 95 81;
+  --c-brasa: 220 80 0;
+  --color-acento: rgb(var(--c-brasa)); /* destellos de color en los dibujos */
+  /* Restos de la paleta anterior (ya no pintan fondos) */
   --pastel-durazno: 255 138 107;
   --pastel-cielo: 127 178 255;
   --pastel-menta: 95 208 159;
   --pastel-mantequilla: 246 198 74;
+
+  /* Una sola tipografía para todo */
+  --font-serif: var(--font-sans);
+  --font-cond: var(--font-sans);
+  --font-hand: var(--font-sans);
+  /* Márgenes laterales (todo va de borde a borde) */
+  --orilla: 18px;
 
   --color-void: rgb(var(--c-void));
   --color-shale: rgb(var(--c-shale));
@@ -36,7 +47,7 @@
   --color-silver-mist: rgb(var(--c-silver));
   --color-signal: rgb(var(--c-signal));
   --color-saffron-spark: rgb(var(--c-signal));
-  --hairline: rgb(var(--c-bone) / var(--alfa-linea));
+  --hairline: rgb(var(--c-borde));
   --color-marca: rgb(var(--c-marca));
 
   /* Ancho del contenido y de los bloques oscuros */
@@ -48,19 +59,22 @@
   color-scheme: dark;
 }
 
-/* Modo claro: fondo marfil con un tinte cálido, grises cálidos y acento terracota */
+/* Modo claro: "papel crema". La misma casa con la luz encendida: lienzo crema,
+   tinta nogal, el mismo botón café corteza y la brasa un poco más honda. */
 :root[data-tema="claro"],
 :root[data-tema="claro"] .tema-claro-local {
-  --c-void: 250 247 243;
-  --c-shale: 241 236 230;
-  --c-bone: 30 26 23;
-  --c-ash: 122 113 106;
-  --c-silver: 74 67 61;
-  --c-signal: 200 40 40;
-  --c-papel: 255 255 255;
-  --alfa-linea: 0.12;
-  --c-marca: 196 74 47;
-  --c-sobre-marca: 255 255 255;
+  --c-void: 248 234 214;
+  --c-shale: 240 222 198;
+  --c-bone: 16 9 4;
+  --c-ash: 108 95 81;
+  --c-silver: 56 44 34;
+  --c-signal: 176 40 16;
+  --c-papel: 255 248 238;
+  --c-marca: 56 36 22;
+  --c-sobre-marca: 255 237 215;
+  --c-borde: 205 184 156;
+  --c-madera: 160 140 118;
+  --c-brasa: 168 61 0;
   color-scheme: light;
 }
 
@@ -73,7 +87,7 @@
   --color-bone-white: rgb(var(--c-bone));
   --color-ash-gray: rgb(var(--c-ash));
   --color-silver-mist: rgb(var(--c-silver));
-  --hairline: rgb(var(--c-bone) / var(--alfa-linea));
+  --hairline: rgb(var(--c-borde));
   --color-marca: rgb(var(--c-marca));
 }
 /* Un pedazo que conserva el modo claro dentro de un bloque oscuro (el chat de ejemplo) */
@@ -82,27 +96,25 @@
   color-scheme: light;
 }
 .bloque-oscuro {
-  --c-void: 30 26 23;
-  --c-shale: 44 39 35;
-  --c-bone: 248 244 239;
-  --c-ash: 168 159 151;
-  --c-silver: 214 207 200;
-  --c-papel: 242 241 237;
-  --alfa-linea: 0.14;
-  --c-marca: 255 138 107;
-  --c-sobre-marca: 33 18 13;
+  /* Superficie elevada: café corteza con texto crema (igual en claro y oscuro) */
+  --c-void: 56 36 22;
+  --c-shale: 72 48 30;
+  --c-bone: 255 237 215;
+  --c-ash: 222 196 166;
+  --c-silver: 242 226 206;
+  --c-papel: 255 237 215;
+  --c-borde: 104 76 54;
+  --c-brasa: 255 140 80;
+  --c-marca: 255 237 215;
+  --c-sobre-marca: 16 9 4;
   color-scheme: dark;
   position: relative;
-  border-radius: 32px;
+  border-radius: 12px;
   background: rgb(var(--c-void));
   color: rgb(var(--c-bone));
 }
 /* En modo oscuro el bloque es apenas más claro que la página, con un filo sutil */
-:root:not([data-tema="claro"]) .bloque-oscuro {
-  --c-void: 28 25 23;
-  --c-shale: 40 36 33;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
-}
+
 /* Bloque pastel: una sección con el color suave de un personaje */
 .bloque-pastel {
   --pastel: var(--pastel-durazno);
@@ -2087,12 +2099,12 @@ html.js [data-split][data-in] .split-inner {
 
   /* Chat a pantalla completa (página Pruébalo) */
   .chat-app.chat-app--completa {
-    height: calc(100svh - 176px);
+    height: calc(100svh - 150px);
     min-height: 520px;
   }
   @media (min-width: 768px) {
     .chat-app.chat-app--completa {
-      height: calc(100svh - 168px);
+      height: calc(100svh - 136px);
       min-height: 560px;
     }
   }
@@ -2360,4 +2372,980 @@ html.js [data-split][data-in] .split-inner {
   .boton-tema:hover svg {
     transform: rotate(30deg);
   }
+}
+
+/* =====================================================================
+   CASA NUEVA: "CUARTO OSCURO"
+   Cada agente es un objeto de museo flotando en una oscuridad cálida.
+   Una sola tipografía (Inter 500 en MAYÚSCULAS; 400 en minúsculas solo
+   para explicar), texto crema sobre nogal, un solo botón lleno (café
+   corteza), divisores punteados de corcho y la brasa como único acento
+   editorial (nunca en botones). Cero sombras: la profundidad la da el
+   paso de nogal a corteza. Radios: 12 (tarjetas), 36 (botón lleno),
+   22.5 (botón de línea), 0 (campos y enlaces).
+   Estas reglas van al final a propósito: ganan sobre las anteriores.
+   ===================================================================== */
+
+/* ---------- Base ---------- */
+html,
+body {
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+body {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+}
+:focus-visible {
+  outline: 2px solid rgb(var(--c-bone));
+  outline-offset: 3px;
+}
+::selection {
+  background: rgb(var(--c-brasa));
+  color: rgb(var(--c-sobre-marca));
+}
+@media (min-width: 640px) {
+  :root {
+    --orilla: 24px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --orilla: 41px;
+  }
+}
+
+/* Lo que antes era serif itálica o condensada ahora es la misma letra en MAYÚSCULAS */
+.editorial {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  font-variation-settings: normal;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+.font-cond {
+  font-weight: 500;
+  letter-spacing: 0 !important;
+}
+.eyebrow,
+.eyebrow-plain {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: rgb(var(--c-ash));
+}
+.eyebrow::before,
+.eyebrow::after {
+  content: none;
+}
+/* La nota "haz clic": ahora una etiqueta brasa, con su flecha */
+.firma {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--c-brasa));
+}
+
+/* ---------- Escala tipográfica ---------- */
+/* Display: mayúsculas que se apilan como bloque sólido (interlineado 0.9) */
+.display {
+  font-weight: 500;
+  font-size: clamp(2.6rem, 6.4vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.titulo {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(2rem, 3.9vw, 3.9rem);
+  line-height: 0.92;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.titulo--xl {
+  font-size: clamp(2.6rem, 6vw, 6.25rem);
+  line-height: 0.9;
+}
+.titulo--sm {
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+/* La frase destacada de cada título va en brasa, sin itálica */
+.titulo em,
+.display em {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: rgb(var(--c-brasa));
+  padding: 0;
+}
+/* La única voz en minúsculas: explica, grande y conversacional */
+.cuerpo {
+  font-weight: 400;
+  font-size: clamp(1.1875rem, 1.75vw, 1.8125rem);
+  line-height: 1.26;
+  letter-spacing: 0;
+  color: rgb(var(--c-bone));
+  text-transform: none;
+}
+.texto-suave {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgb(var(--c-ash));
+}
+/* Etiqueta: la voz de museo (12px, mayúsculas) */
+.etiqueta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: rgb(var(--c-bone));
+}
+.etiqueta--brasa {
+  color: rgb(var(--c-brasa));
+}
+.etiqueta--suave {
+  color: rgb(var(--c-ash));
+}
+.numero-seccion {
+  gap: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--c-ash));
+}
+.numero-seccion__n {
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: rgb(var(--c-brasa));
+}
+.numero-seccion .font-medium {
+  color: rgb(var(--c-bone));
+}
+.numero-seccion__extra::before {
+  content: "—";
+  margin-right: 10px;
+}
+
+/* ---------- Divisores punteados ---------- */
+.raya {
+  border: 0;
+  border-top: 1px dashed rgb(var(--c-borde));
+}
+.hairline {
+  border-color: rgb(var(--c-borde));
+}
+
+/* ---------- Salas: cada sección es una afirmación de borde a borde ---------- */
+.sala {
+  position: relative;
+  padding: 96px var(--orilla);
+  border-top: 1px dashed rgb(var(--c-borde));
+}
+.sala--completa {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.sala--primera {
+  border-top: 0;
+  padding-top: 132px;
+}
+@media (min-width: 1024px) {
+  .sala {
+    padding-block: 128px;
+  }
+  .sala--primera {
+    padding-top: 168px;
+  }
+}
+/* Tres columnas: texto / objeto / texto, como una vitrina */
+.vitrina {
+  display: grid;
+  gap: 40px;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .vitrina {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+.vitrina__objeto {
+  display: grid;
+  place-items: center;
+}
+/* Flota apenas, como un objeto sobre el pedestal */
+.flota {
+  animation: flota 7s ease-in-out infinite;
+}
+@keyframes flota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ---------- Tarjetas: 12px, un paso arriba del lienzo, filo de corcho ---------- */
+.tarjeta,
+:root:not([data-tema="claro"]) .tarjeta,
+:root[data-tema="claro"] .bloque-pastel .tarjeta,
+:root:not([data-tema="claro"]) .bloque-pastel .tarjeta {
+  border-radius: 12px;
+  background: rgb(var(--c-shale));
+  border: 1px solid rgb(var(--c-borde));
+}
+.bloque-oscuro,
+.bloque-pastel {
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+/* Los antiguos bloques pastel ya no pintan fondo: son salas con filo punteado */
+.bloque-pastel,
+:root:not([data-tema="claro"]) .bloque-pastel {
+  background: transparent;
+}
+
+/* ---------- Botones ---------- */
+/* El botón lleno: café corteza, texto crema, 36px. Al pasar el mouse, la cortina crema sube y el texto se invierte */
+.btn-pill {
+  min-height: 46px;
+  padding: 0 24px;
+  gap: 10px;
+  border-radius: 36px;
+  border: 1px solid rgb(var(--c-marca));
+  background: rgb(var(--c-marca));
+  color: rgb(var(--c-sobre-marca));
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  box-shadow: none !important;
+}
+.btn-pill::before {
+  background: rgb(var(--c-sobre-marca));
+}
+.btn-pill:hover:not(:disabled) {
+  color: rgb(var(--c-marca));
+}
+/* En modo oscuro el botón lleno lleva un filo crema para que se distinga del lienzo */
+:root:not([data-tema="claro"]) .btn-pill:not(.btn-pill--suave) {
+  border-color: rgb(var(--c-bone) / 0.35);
+}
+/* El de línea: transparente, filo crema, 22.5px */
+.btn-pill--suave,
+.btn-pill.btn-pill--suave {
+  border: 1px solid rgb(var(--c-bone));
+  border-radius: 22.5px;
+  background: transparent;
+  color: rgb(var(--c-bone));
+}
+.btn-pill--suave::before {
+  background: rgb(var(--c-bone));
+}
+.btn-pill--suave:hover:not(:disabled) {
+  color: rgb(var(--c-void));
+}
+.btn-pill--chica {
+  min-height: 38px;
+  padding-inline: 16px;
+  font-size: 0.75rem;
+}
+.btn-pill--grande {
+  min-height: 56px;
+  padding-inline: 30px;
+  font-size: 0.875rem;
+}
+.btn-pill--ancha {
+  width: 100%;
+  max-width: 520px;
+  min-height: 58px;
+}
+/* Enlace de texto: mayúsculas con subrayado punteado que se vuelve sólido */
+.btn-ghost {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: rgb(var(--c-bone));
+}
+.btn-ghost::after {
+  bottom: 11px;
+  height: 0;
+  background: none;
+  border-top: 1px dashed currentColor;
+  transform: scaleX(1);
+  opacity: 0.45;
+  transition:
+    opacity 0.3s ease,
+    border-color 0.3s ease;
+}
+.btn-ghost:hover:not(:disabled)::after {
+  border-top-style: solid;
+  opacity: 1;
+}
+.btn-ghost:hover:not(:disabled) {
+  color: rgb(var(--c-bone));
+}
+
+/* ---------- Barra superior: transparente, mayúsculas de 12px ---------- */
+.barra {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  transition:
+    transform 0.6s var(--ease-out),
+    background-color 0.4s ease,
+    border-color 0.4s ease;
+  border-bottom: 1px dashed transparent;
+}
+.barra[data-fondo="true"] {
+  background: rgb(var(--c-void) / 0.9);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom-color: rgb(var(--c-borde));
+}
+.barra[data-abierto="true"] {
+  background: transparent;
+  border-bottom-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.barra[data-hidden="true"] {
+  transform: translateY(-101%);
+}
+.barra__fila {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 64px;
+  padding-inline: var(--orilla);
+}
+.barra__enlaces {
+  display: none;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
+}
+@media (min-width: 1024px) {
+  .barra__enlaces {
+    display: flex;
+  }
+}
+.barra__enlace {
+  position: relative;
+  padding: 6px 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--c-bone));
+  white-space: nowrap;
+  transition: opacity 0.25s ease;
+}
+.barra__enlaces:hover .barra__enlace:not(:hover) {
+  opacity: 0.55;
+}
+/* La página activa: subrayado punteado */
+.barra__enlace::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 1px dashed rgb(var(--c-bone));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s var(--ease-out);
+}
+.barra__enlace[aria-current]::after,
+.barra__enlace:hover::after {
+  transform: scaleX(1);
+}
+.barra__acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+@media (min-width: 1024px) {
+  .barra__acciones {
+    margin-left: 18px;
+  }
+}
+/* "Pruébalo": la única píldora llena de la barra, con un punto que late */
+.barra__pruebalo {
+  min-height: 38px;
+  padding-inline: 16px;
+}
+.barra__pruebalo[aria-current] {
+  outline: 1px dashed rgb(var(--c-bone));
+  outline-offset: 3px;
+}
+.barra .menu-trigger {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--c-bone));
+  border-radius: 22.5px;
+  background: transparent;
+  color: rgb(var(--c-bone));
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.barra .menu-trigger[aria-expanded="true"] {
+  background: rgb(var(--c-bone));
+  color: rgb(var(--c-void));
+}
+@media (max-width: 419px) {
+  .barra .menu-trigger {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .barra .menu-trigger .roll {
+    display: none;
+  }
+  .barra__fila {
+    gap: 10px;
+  }
+}
+.boton-tema {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgb(var(--c-borde));
+  border-radius: 999px;
+  background: transparent;
+}
+.boton-tema:hover {
+  background: transparent;
+  border-color: rgb(var(--c-bone));
+}
+.progress-line {
+  background: rgb(var(--c-brasa));
+  z-index: 70;
+}
+
+/* El logo: los cuatro círculos y ATENDEL en mayúsculas */
+.logo-palabra {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* Riel vertical: la etiqueta de serie en el borde derecho, con el capítulo actual */
+.riel {
+  position: fixed;
+  top: 50%;
+  right: 10px;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--c-ash));
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+@media (min-width: 768px) {
+  .riel {
+    display: flex;
+  }
+}
+.riel__n {
+  color: rgb(var(--c-brasa));
+}
+.riel::before,
+.riel::after {
+  content: "";
+  height: 36px;
+  border-left: 1px dashed rgb(var(--c-borde));
+}
+
+/* ---------- Menú de pantalla completa (celular y panel) ---------- */
+.menu {
+  background: rgb(var(--c-void));
+}
+.menu__label,
+.menu-link__n,
+.reparto-link__papel {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.menu-link__n {
+  color: rgb(var(--c-brasa));
+}
+.menu-link__text {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  font-variation-settings: normal;
+  text-transform: uppercase;
+  font-size: clamp(2.25rem, 8.5vw, 6rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+.menu-link--destacado .menu-link__text {
+  color: rgb(var(--c-brasa));
+}
+.reparto-link {
+  border-bottom: 1px dashed rgb(var(--c-borde));
+}
+.reparto-link__nombre {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  letter-spacing: 0;
+}
+.menu__pie {
+  border-top: 1px dashed rgb(var(--c-borde));
+}
+
+/* ---------- Menú lateral ---------- */
+.menu-lateral__pestana {
+  border-radius: 0 12px 12px 0;
+  background: rgb(var(--c-void));
+  box-shadow: none;
+  border: 1px solid rgb(var(--c-borde));
+  border-left: 0;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.menu-lateral__panel {
+  margin: 12px;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--c-borde));
+  box-shadow: none;
+  background: rgb(var(--c-void));
+}
+.menu-lateral__panel .border-t {
+  border-top-style: dashed;
+}
+
+/* ---------- Portada ---------- */
+.hero-etiqueta {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--c-bone));
+}
+.hero-etiqueta::before {
+  width: 6px;
+  height: 6px;
+  background: rgb(var(--c-brasa));
+}
+/* La palabra de partículas: ATENDEL en mayúsculas, del ancho de la pantalla */
+.wordmark-oscuro {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(3.6rem, min(15.2vw, 25vh), 17.5rem);
+  line-height: 0.8;
+  letter-spacing: 0;
+}
+.marca-portada {
+  width: clamp(2.6rem, 10.6vw, 12.5rem);
+  margin-right: clamp(0.5rem, 1.6vw, 2rem);
+}
+/* Tarjetas sobre la portada (12px, semitransparentes, con divisor punteado) */
+.tarjeta-flotante {
+  border-radius: 12px;
+  border: 1px solid rgb(var(--c-borde));
+  background: rgb(var(--c-shale) / 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+/* La miniatura del chat: la segunda puerta de entrada, sin competir con el botón */
+.miniatura-chat {
+  display: block;
+  padding: 16px;
+  transition: border-color 0.3s ease;
+}
+.miniatura-chat:hover {
+  border-color: rgb(var(--c-bone));
+}
+.miniatura-chat__burbuja {
+  max-width: 88%;
+  padding: 8px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: rgb(var(--c-void));
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.miniatura-chat__burbuja--tu {
+  margin-left: auto;
+  border-radius: 12px 12px 4px 12px;
+  background: rgb(var(--c-marca));
+  color: rgb(var(--c-sobre-marca));
+}
+.miniatura-chat__play {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--c-bone));
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+.miniatura-chat:hover .miniatura-chat__play {
+  background: rgb(var(--c-bone));
+  color: rgb(var(--c-void));
+}
+
+/* ---------- Tarjetas de personajes ---------- */
+.hero-personajes__item:nth-child(even) {
+  transform: none;
+}
+.hero-personajes {
+  max-width: none;
+  padding: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 900px) {
+  .hero-personajes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+.hero-personaje,
+:root:not([data-tema="claro"]) .hero-personaje {
+  rotate: 0deg;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  background: rgb(var(--c-shale));
+  border: 1px solid rgb(var(--c-borde));
+  box-shadow: none;
+}
+.hero-personaje:hover {
+  translate: 0 -4px;
+  border-color: rgb(var(--c-bone));
+  box-shadow: none;
+}
+.hero-personaje__pie {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px dashed rgb(var(--c-borde));
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.hero-personaje__pie .font-semibold {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* ---------- Planes ---------- */
+.plan-tarjeta {
+  border-radius: 12px;
+  padding: 24px;
+}
+@media (min-width: 1024px) {
+  .plan-tarjeta {
+    padding: 31px;
+  }
+}
+.plan-tarjeta.bloque-oscuro,
+:root:not([data-tema="claro"]) .plan-tarjeta.bloque-oscuro {
+  box-shadow: none;
+}
+.plan-insignia {
+  padding: 0;
+  background: none;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: rgb(var(--c-brasa));
+}
+
+/* ---------- Preguntas ---------- */
+.pregunta__texto {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: clamp(1.05rem, 1.6vw, 1.5rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.pregunta__signo {
+  background: transparent;
+  border: 1px solid rgb(var(--c-bone));
+}
+.pregunta[aria-expanded="true"] .pregunta__signo {
+  background: rgb(var(--c-bone));
+  color: rgb(var(--c-void));
+}
+#preguntas ul,
+#preguntas li,
+.lista-punteada > * {
+  border-style: dashed;
+}
+
+/* ---------- Ficha de agente ---------- */
+.agente-modal__caja {
+  border-radius: 0;
+  box-shadow: none !important;
+}
+@media (min-width: 640px) {
+  .agente-modal__caja {
+    border-radius: 12px;
+    border: 1px solid rgb(var(--c-borde));
+  }
+}
+.agente-modal__cerrar {
+  background: transparent;
+  border: 1px solid rgb(var(--c-bone));
+}
+.agente-modal__titulo {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: rgb(var(--c-brasa));
+}
+.agente-modal .border-t,
+.agente-modal .border-b {
+  border-style: dashed;
+}
+
+/* ---------- Acordeón de agentes ---------- */
+.ag-panel {
+  box-shadow: none !important;
+  border-color: rgb(var(--c-borde));
+}
+.ag-panel:focus-visible {
+  outline: 2px solid rgb(var(--c-bone));
+  outline-offset: 3px;
+}
+.ag-panel__name {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 0.9;
+}
+.ag-panel__rail {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* ---------- Chat (ejemplo y real) ---------- */
+.chat-app {
+  --chat-r: 14px;
+  --chat-r-chica: 4px;
+  --chat-sombra: none;
+  border-radius: 12px !important;
+  border: 1px solid rgb(var(--c-borde));
+}
+.chat-app.chat-app--pantalla {
+  border: 0;
+  border-radius: 0 !important;
+}
+.chat-app__burbuja--tu,
+.chat-app__nuevo,
+.chat-app__nuevo:hover,
+.chat-app__cabeza {
+  box-shadow: none !important;
+}
+.chat-app__cabeza {
+  border-bottom: 1px dashed rgb(var(--c-borde));
+}
+.chat-app__nuevo {
+  border-radius: 36px;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+}
+.chat-app__seccion,
+.chat-app__dia,
+.chat-app__sistema span {
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.chat-app__panel,
+.chat-app__elegir,
+.chat-app__campo,
+.chat-app__conv,
+.chat-app__plan {
+  border-radius: 12px;
+  box-shadow: none !important;
+}
+.chat-app__campo {
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid rgb(var(--c-bone));
+}
+.chat-app__elegir[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px rgb(var(--c-bone)) !important;
+  background: rgb(var(--c-bone) / 0.06);
+}
+.prompt-bar--suave .prompt-bar__field {
+  border: 1px solid rgb(var(--c-borde));
+  border-radius: 12px !important;
+  box-shadow: none;
+}
+.prompt-bar--suave .prompt-bar__field:focus-within {
+  border-color: rgb(var(--c-bone));
+  box-shadow: none;
+}
+.prompt-bar__menu {
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  border: 1px solid rgb(var(--c-borde)) !important;
+}
+
+/* ---------- Encabezado de página ---------- */
+.encabezado {
+  display: grid;
+  gap: 36px;
+}
+@media (min-width: 1024px) {
+  .encabezado {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 18px;
+  }
+}
+
+/* ---------- Pie ---------- */
+.pie-palabra {
+  font-weight: 500;
+  font-size: 22vw;
+  line-height: 0.78;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: rgb(var(--c-borde));
+}
+
+/* ---------- Borrador (texto de ejemplo por revisar) ---------- */
+.borrador {
+  border-radius: 22.5px;
+  border-color: rgb(var(--c-brasa));
+  color: rgb(var(--c-brasa));
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+}
+
+/* ---------- Transiciones ---------- */
+/* Entre páginas: sube y aparece */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Al cambiar de modo, la luz se abre en círculo desde el botón (si el navegador lo permite) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  animation: luz-circulo 0.7s var(--ease-in-out);
+}
+@keyframes luz-circulo {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 0%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flota {
+    animation: none;
+  }
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* La portada entra al cargar (no espera al scroll): el botón al chat se ve desde el primer momento */
+.entra-carga {
+  animation: swap-in 0.9s var(--ease-out) both;
+  animation-delay: calc(0.25s + var(--d, 0ms));
+}
+/* El chat nunca lleva sombra (la profundidad la da el filo de corcho) */
+.chat-app,
+:root[data-tema="claro"] .chat-app {
+  box-shadow: none !important;
+}
+/* Portada más compacta en pantallas bajas, para que el botón quepa en la primera vista */
+@media (max-height: 820px) and (min-width: 1024px) {
+  .wordmark-oscuro {
+    font-size: min(15.2vw, 23vh);
+  }
+}
+
+/* El acordeón trae su propia hoja de estilos: aquí se le gana con más especificidad */
+.accordion-gallery .ag-panel__name {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+.accordion-gallery .ag-panel__rail {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.accordion-gallery .ag-panel {
+  box-shadow: none;
+}
+/* La transición entre páginas no deja rastro al terminar: si se quedara un transform,
+   la barra, los menús y el riel dejarían de estar fijos en la pantalla */
+.page-enter {
+  animation-fill-mode: backwards;
+}
+/* Los acentos de las mayúsculas (QUIÉN, PRUÉBALO) no se cortan en el menú */
+.menu-link__mask {
+  padding-top: 0.16em;
+  margin-top: -0.08em;
 }

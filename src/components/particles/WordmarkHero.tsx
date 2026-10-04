@@ -18,6 +18,8 @@ type Props = {
   claseTitulo?: string;
   /** Lo que va junto a la palabra, en la misma línea (el símbolo del logo). */
   marca?: ReactNode;
+  /** Clases de la fila de la palabra (alineación y márgenes); por omisión, centrada. */
+  claseFila?: string;
   /** Lo que va arriba de la palabra (la portada con su título y los personajes). */
   antes?: ReactNode;
   children?: ReactNode;
@@ -61,6 +63,7 @@ export function WordmarkHero({
   peso = PESO,
   claseTitulo = "editorial text-wordmark",
   marca,
+  claseFila,
   antes,
   children,
 }: Props) {
@@ -409,7 +412,9 @@ export function WordmarkHero({
     <div ref={zonaRef} className="wordmark-zone relative flex min-h-[100svh] flex-col">
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
       {antes}
-      <div className={`flex flex-1 items-center justify-center px-4 ${antes ? "pb-4 pt-14 lg:pt-20" : "pt-[72px]"}`}>
+      <div
+        className={`flex flex-1 items-center ${claseFila ?? `justify-center px-4 ${antes ? "pb-4 pt-14 lg:pt-20" : "pt-[72px]"}`}`}
+      >
         {marca}
         <h1 ref={tituloRef} className={`wordmark relative inline-block select-none ${claseTitulo}`}>
           {texto}

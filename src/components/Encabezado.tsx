@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { Reveal } from "./Reveal";
 
 /**
- * Encabezado de sección: el número (01, 02…) en una pastilla, el nombre de
- * la sección y un dato extra, como la claqueta de una toma.
+ * Encabezado de sección: el número (01, 02…) en brasa, el nombre de la
+ * sección y un dato extra, como la etiqueta de una pieza de museo.
  */
 export function Claqueta({ n, izquierda, derecha }: { n: number; izquierda: string; derecha?: string }) {
   return (
@@ -20,7 +20,7 @@ export function Borrador({ children = "Texto de ejemplo · revísalo" }: { child
   return <span className="borrador">{children}</span>;
 }
 
-/** Encabezado de una página: claqueta, título grande, texto y acciones. */
+/** Encabezado de una página: etiqueta, título enorme en mayúsculas a la izquierda; explicación y acciones a la derecha. */
 export function EncabezadoPagina({
   n = 1,
   izquierda,
@@ -37,16 +37,16 @@ export function EncabezadoPagina({
   acciones?: ReactNode;
 }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
-      <div className="lg:col-span-7">
+    <div className="encabezado">
+      <div>
         <Claqueta n={n} izquierda={izquierda} derecha={derecha} />
-        <Reveal as="h1" className="titulo titulo--xl mt-6">
+        <Reveal as="h1" className="display mt-6">
           {titulo}
         </Reveal>
       </div>
       {texto || acciones ? (
-        <Reveal delay={120} className="flex flex-col items-start gap-6 lg:col-span-5 lg:pb-2">
-          {texto ? <p className="texto-suave max-w-[440px]">{texto}</p> : null}
+        <Reveal delay={120} className="flex flex-col items-start gap-7 lg:pb-2">
+          {texto ? <p className="cuerpo max-w-[560px]">{texto}</p> : null}
           {acciones ? <div className="flex flex-wrap items-center gap-x-6 gap-y-3">{acciones}</div> : null}
         </Reveal>
       ) : null}

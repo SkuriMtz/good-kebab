@@ -15,7 +15,7 @@ export function EquipoEnFoco() {
 
   return (
     <div className="text-center">
-      <p className="text-[0.8125rem] font-medium text-ash">Con</p>
+      <p className="etiqueta etiqueta--brasa">Con</p>
       <div aria-hidden="true">
         <TrueFocus
           sentence={AGENTES_INFO.map((x) => x.nombre).join(" ")}
@@ -25,14 +25,14 @@ export function EquipoEnFoco() {
           animationDuration={0.6}
           pauseBetweenAnimations={1.8}
           onFocusChange={setI}
-          className="mt-6 gap-x-[0.42em] gap-y-[0.2em] font-cond text-[clamp(5rem,9.5vw,8.75rem)] font-normal uppercase leading-[0.78] tracking-[0.01em] [&_.focus-word]:pt-[0.08em]"
+          className="mt-8 gap-x-[0.36em] gap-y-[0.2em] text-[clamp(2.6rem,6.4vw,7.5rem)] font-medium uppercase leading-[0.9] [&_.focus-word]:pt-[0.06em]"
         />
-        <div className="mx-auto mt-9 min-h-[96px] max-w-[460px] lg:mt-12">
+        <div className="mx-auto mt-10 min-h-[120px] max-w-[620px] lg:mt-14">
           <p key={a.id} className="swap-in">
-            <span className="font-cond text-[1.375rem] uppercase leading-none tracking-[0.03em]">{a.area}</span>
-            <span className="text-ash"> · {a.abarca}</span>
+            <span className="etiqueta">{a.area}</span>
+            <span className="etiqueta etiqueta--suave"> · {a.abarca}</span>
           </p>
-          <p key={`${a.id}-lema`} className="swap-in mt-2 text-balance text-body text-silver">
+          <p key={`${a.id}-lema`} className="swap-in cuerpo mt-3 text-balance">
             {a.lema}
           </p>
         </div>

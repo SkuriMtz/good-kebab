@@ -8,7 +8,7 @@ const POS = [
 ];
 
 /** La marca: los cuatro agentes como cuatro círculos, uno por color. */
-export function Marca({ className = "h-[22px] w-[22px]" }: { className?: string }) {
+export function Marca({ className = "h-[18px] w-[18px]" }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       {POS.map(([x, y], i) => (
@@ -18,12 +18,12 @@ export function Marca({ className = "h-[22px] w-[22px]" }: { className?: string 
   );
 }
 
-/** Logo: la marca de los cuatro círculos y "atendel" en negritas. */
+/** Logo: la marca de los cuatro círculos y ATENDEL en mayúsculas. */
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <Marca />
-      <span className="text-[1.375rem] font-semibold leading-none tracking-[-0.06em]">atendel</span>
+      <span className="logo-palabra leading-none">Atendel</span>
     </span>
   );
 }

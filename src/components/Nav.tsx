@@ -32,9 +32,10 @@ type Props = {
 };
 
 /**
- * Barra de navegación en forma de píldora flotante:
- * - Logo a la izquierda, secciones al centro y acciones a la derecha.
- * - Se esconde al bajar y reaparece al subir; su sombra crece al bajar.
+ * Barra de navegación transparente, de borde a borde, en mayúsculas:
+ * - Logo a la izquierda; páginas, "Pruébalo" (la única píldora llena) y acciones a la derecha.
+ * - Se esconde al bajar y reaparece al subir; al bajar toma el color del lienzo.
+ * - El capítulo que estás viendo va en un riel vertical en el borde derecho.
  * - En celular (y en el panel), un menú de pantalla completa que baja como telón.
  */
 export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
@@ -161,24 +162,24 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
     <>
       <div ref={progresoRef} className="progress-line" aria-hidden="true" />
 
-      {/* Píldora flotante: logo a la izquierda, secciones al centro, acciones a la derecha */}
+      {/* Barra transparente de borde a borde: logo a la izquierda; páginas, "Pruébalo" y acciones a la derecha */}
       <header
-        className="nav pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5"
+        className="barra"
         data-hidden={oculta && !abierto ? "true" : "false"}
         data-fondo={conFondo && !abierto ? "true" : "false"}
         data-abierto={abierto ? "true" : "false"}
       >
-        <div className="nav__pildora nav-hide pointer-events-auto">
-          <Link href={homeHref} className="nav__logo shrink-0" aria-label="Atendel, inicio">
+        <div className="barra__fila">
+          <Link href={homeHref} className="shrink-0" aria-label="Atendel, inicio">
             <Logo />
           </Link>
 
-          <nav className="nav__enlaces hidden lg:flex" aria-label="Secciones">
+          <nav className="barra__enlaces hidden lg:flex" aria-label="Secciones">
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="nav__enlace"
+                className="barra__enlace"
                 aria-current={pathname === item.href ? "page" : undefined}
                 onClick={(e) => alElegir(e, item.href)}
               >
@@ -187,27 +188,17 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
             ))}
           </nav>
 
-          {/* Contador de "capítulos": en tablet va al centro; en pantallas grandes, junto a las acciones */}
-          <p className="nav-capitulo capitulo hidden md:block" aria-live="off">
-            {capitulo && !abierto ? (
-              <>
-                <span className="capitulo__n">{dos(capitulo.n)}</span> — {capitulo.nombre}
-                <span className="text-ash"> / {dos(capitulo.total)}</span>
-              </>
+          <div className="barra__acciones">
+            {destacado ? (
+              <Link
+                href={destacado.href}
+                className="btn-pill barra__pruebalo"
+                aria-current={pathname === destacado.href ? "page" : undefined}
+              >
+                <span className="punto-vivo" aria-hidden="true" />
+                {destacado.label}
+              </Link>
             ) : null}
-          </p>
-
-          {destacado ? (
-            <Link
-              href={destacado.href}
-              className="nav__destacado max-md:ml-auto"
-              aria-current={pathname === destacado.href ? "page" : undefined}
-            >
-              <span className="punto-vivo" aria-hidden="true" />
-              {destacado.label}
-            </Link>
-          ) : null}
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <BotonTema />
             {desktopRight ? <div className="hidden items-center gap-4 md:flex">{desktopRight}</div> : null}
             <button
@@ -232,6 +223,16 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
           </div>
         </div>
       </header>
+
+      {/* Riel vertical en el borde derecho: la etiqueta de serie con el capítulo que estás viendo */}
+      <p className="riel hidden md:flex" aria-live="off" style={{ opacity: abierto ? 0 : 1 }}>
+        <span>Atendel · 4 agentes</span>
+        {capitulo ? (
+          <span>
+            <span className="riel__n">{dos(capitulo.n)}</span> / {dos(capitulo.total)} — {capitulo.nombre}
+          </span>
+        ) : null}
+      </p>
 
       <div
         id="menu-movil"

@@ -32,7 +32,19 @@ export function BotonTema({ className = "" }: { className?: string }) {
     <button
       type="button"
       className={`boton-tema ${className}`}
-      onClick={() => ponerTema(siguiente)}
+      onClick={(e) => {
+        // Si el navegador puede, la luz se abre en círculo desde el botón (ver globals.css)
+        const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+        const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!doc.startViewTransition || quieto) {
+          ponerTema(siguiente);
+          return;
+        }
+        const r = e.currentTarget.getBoundingClientRect();
+        document.documentElement.style.setProperty("--vt-x", `${r.left + r.width / 2}px`);
+        document.documentElement.style.setProperty("--vt-y", `${r.top + r.height / 2}px`);
+        doc.startViewTransition(() => ponerTema(siguiente, true, false));
+      }}
       aria-label={siguiente === "claro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       title={siguiente === "claro" ? "Modo claro" : "Modo oscuro"}
     >

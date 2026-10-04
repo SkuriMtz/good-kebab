@@ -13,7 +13,7 @@ export function Planes() {
           return (
             <li key={p.id} className={`plan plan-tarjeta relative ${destacado ? "bloque-oscuro" : "tarjeta"}`}>
               <div className="flex min-h-[28px] items-center justify-between gap-4">
-                <p className="text-[0.8125rem] font-medium text-ash">
+                <p className="etiqueta etiqueta--suave">
                   Atendel · <span className="text-bone">{p.nivel}</span>
                 </p>
                 {destacado ? (
@@ -23,10 +23,10 @@ export function Planes() {
                   </p>
                 ) : null}
               </div>
-              <h3 className="mt-2 text-[clamp(3rem,5.2vw,4.5rem)] font-semibold leading-[0.95] tracking-[-0.06em]">
+              <h3 className="display mt-3 !text-[clamp(3rem,5.6vw,5.5rem)]">
                 {NOMBRE_CORTO[p.id]}
               </h3>
-              <p className="mt-5 text-[1.125rem] font-medium tracking-[-0.02em]">{p.precio ?? "Próximamente"}</p>
+              <p className="etiqueta mt-6 border-t border-dashed hairline pt-5">{p.precio ?? "Próximamente"}</p>
               <p className="texto-suave mt-1">{p.resumen}</p>
               <ul className="mt-8 flex flex-col gap-3.5 text-[0.9375rem]">
                 {p.incluye.map((x) => (
@@ -54,7 +54,7 @@ export function Planes() {
           );
         })}
       </ol>
-      <p className="mt-8 text-center text-[0.875rem] leading-relaxed text-ash">
+      <p className="etiqueta etiqueta--suave mt-8 leading-relaxed">
         Todos los planes: entras con tu correo, sin contraseña · funciona en celular y computadora · cada negocio ve solo
         lo suyo.
       </p>

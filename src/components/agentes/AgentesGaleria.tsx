@@ -48,7 +48,7 @@ export function AgentesGaleria() {
         orientation={columna ? "vertical" : "horizontal"}
         height={columna ? 440 : 560}
         gap={columna ? 10 : 14}
-        radius={columna ? 22 : 28}
+        radius={12}
         expandRatio={0.5}
         tilt={columna ? 0 : 6}
         grayscale={false}

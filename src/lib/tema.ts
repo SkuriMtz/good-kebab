@@ -30,10 +30,10 @@ export function temaGuardado(): Tema | null {
 let fin = 0;
 
 /** Cambia el modo con los colores animados. `guardar` lo recuerda para la próxima visita. */
-export function ponerTema(tema: Tema, guardar = true) {
+export function ponerTema(tema: Tema, guardar = true, transicion = true) {
   const html = document.documentElement;
   if (html.dataset.tema === tema) return;
-  const animar = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const animar = transicion && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (animar) {
     html.classList.add("tema-cambiando");
     window.clearTimeout(fin);
