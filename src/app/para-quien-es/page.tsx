@@ -15,6 +15,7 @@ export default function ParaQuienEs() {
   return (
     <Sitio>
       <EncabezadoPagina
+        forma="burbuja"
         etiqueta="Para quién es · Negocios que atienden personas"
         titulo={
           <>

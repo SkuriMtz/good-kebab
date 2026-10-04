@@ -115,6 +115,182 @@
 }
 
 @layer components {
+  /* ---------- La escena: el fondo vivo de triangulitos, detrás de todo ---------- */
+  .escena {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .escena canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .sobre-escena {
+    position: relative;
+    z-index: 1;
+  }
+  /* Una sala: una sección a pantalla completa, con el texto de un lado y la figura del otro */
+  .sala {
+    display: flex;
+    min-height: 100svh;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--spacing-96);
+  }
+  /* En celular la figura va arriba y el texto debajo */
+  @media (max-width: 899px) {
+    .sala[data-forma]:not([data-forma="polvo"]) {
+      justify-content: flex-end;
+      padding-top: 52svh;
+    }
+  }
+  /* Sobre la escena, el texto lleva una sombra suave para leerse encima de los triangulitos */
+  :root:not([data-tema="claro"]) .sala {
+    text-shadow: 0 0 22px rgb(0 0 0 / 0.85);
+  }
+  .t-portada {
+    font-size: clamp(2.5rem, 1.5rem + 3.1vw, 4.25rem);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+    color: var(--c-texto);
+  }
+  .sala__texto {
+    width: 100%;
+    max-width: 440px;
+  }
+  @media (min-width: 900px) {
+    .sala__texto--derecha {
+      margin-left: auto;
+      margin-right: 4%;
+    }
+    .sala__texto--izquierda {
+      margin-left: 4%;
+    }
+  }
+  /* El texto largo de una sala: gris claro, como en el manifiesto */
+  .sala__parrafos > p + p {
+    margin-top: var(--spacing-18);
+  }
+
+  /* ---------- Carrusel del equipo (un agente al frente, los demás atenuados) ---------- */
+  .carrusel__fila {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-24);
+  }
+  .carrusel__fantasma {
+    display: none;
+    width: 170px;
+    flex-shrink: 0;
+    opacity: 0.16;
+    transition: opacity 200ms ease;
+  }
+  .carrusel__fantasma:hover {
+    opacity: 0.3;
+  }
+  @media (min-width: 1100px) {
+    .carrusel__fantasma {
+      display: block;
+    }
+  }
+  .carrusel__actual {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-24);
+    width: 100%;
+    max-width: 340px;
+    animation: entra-carrusel 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @media (min-width: 640px) {
+    .carrusel__actual {
+      flex-direction: row;
+      align-items: center;
+      max-width: none;
+      width: auto;
+    }
+  }
+  .carrusel__foto {
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .carrusel__foto {
+      width: 260px;
+      max-width: none;
+    }
+  }
+  .carrusel__foto .retrato {
+    aspect-ratio: 3 / 4;
+  }
+  .carrusel__nombre {
+    margin-top: var(--spacing-12);
+    font-size: clamp(2.25rem, 1.8rem + 1.6vw, 3rem);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--c-texto);
+  }
+  .carrusel__flechas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-12);
+    margin-top: var(--spacing-36);
+  }
+  .carrusel__flecha {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background: var(--c-accion);
+    color: var(--c-sobre-accion);
+    font-size: 18px;
+    transition: background-color 150ms ease;
+  }
+  .carrusel__flecha:hover {
+    background: color-mix(in srgb, var(--c-accion) 88%, var(--color-bone-white));
+  }
+  @keyframes entra-carrusel {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .carrusel__actual {
+      animation: none;
+    }
+  }
+
+  /* Lista de pasos, cada uno con su tetraedro, escalonada como constelación */
+  .pasos-tetra {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-30);
+  }
+  .pasos-tetra li {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: var(--spacing-18);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .pasos-tetra li:nth-child(2) {
+      margin-left: 18%;
+    }
+    .pasos-tetra li:nth-child(3) {
+      margin-left: 6%;
+    }
+  }
+
   /* ---------- Estructura ---------- */
   .contenedor {
     width: 100%;
@@ -408,7 +584,10 @@
     top: 0;
     z-index: 50;
     height: var(--barra-h);
-    background: var(--c-fondo);
+    /* Casi transparente: la escena se ve detrás, borrosa, y el menú se lee */
+    background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
   }
   .barra__fila {
     display: flex;

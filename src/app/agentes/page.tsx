@@ -22,6 +22,7 @@ export default function Agentes() {
   return (
     <Sitio>
       <EncabezadoPagina
+        forma="marca"
         etiqueta="Atención, Correo, Clientes y Oficina"
         titulo={
           <>

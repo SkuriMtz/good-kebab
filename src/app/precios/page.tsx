@@ -11,6 +11,7 @@ export default function Precios() {
   return (
     <Sitio>
       <EncabezadoPagina
+        forma="esfera"
         etiqueta="Precios · Free → One → Max"
         titulo={
           <>

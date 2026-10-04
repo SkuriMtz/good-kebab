@@ -4,6 +4,7 @@ import { claseBoton } from "./Buttons";
 import { Footer } from "./Footer";
 import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
+import { Escena } from "./escena/Escena";
 import { AGENTES_INFO } from "@/lib/agentes";
 import { PAGINAS, PRUEBALO } from "@/lib/contenido";
 
@@ -15,13 +16,14 @@ const REPARTO = AGENTES_INFO.map((a) => ({
 }));
 
 /**
- * El marco de cada página pública: la barra (con "Pruébalo", el chat, como
- * botón azul), el pie y la ficha de los agentes, que se puede abrir desde
- * cualquier página.
+ * El marco de cada página pública: la escena de triangulitos al fondo, la
+ * barra (con "Pruébalo", el chat, como botón violeta), el pie y la ficha de
+ * los agentes, que se puede abrir desde cualquier página.
  */
 export function Sitio({ children }: { children: ReactNode }) {
   return (
     <>
+      <Escena />
       <Nav
         items={PAGINAS}
         destacado={PRUEBALO}
@@ -48,8 +50,10 @@ export function Sitio({ children }: { children: ReactNode }) {
           </>
         }
       />
-      <main>{children}</main>
-      <Footer />
+      <main className="sobre-escena">{children}</main>
+      <div className="sobre-escena">
+        <Footer />
+      </div>
       <FichasAgentes />
     </>
   );
