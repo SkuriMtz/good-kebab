@@ -15,7 +15,7 @@ export function Uso({ usados, plan, compacto = false }: { usados: number; plan: 
           {plan.mensajesMes.toLocaleString("es-MX")} mensajes este mes
         </span>
         {plan.id !== "max" ? (
-          <Link href="/#planes" className="uppercase tracking-[0.04em] text-silver underline-offset-4 hover:text-bone hover:underline">
+          <Link href="/precios" className="uppercase tracking-[0.04em] text-silver underline-offset-4 hover:text-bone hover:underline">
             Mejorar plan
           </Link>
         ) : null}

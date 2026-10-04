@@ -10,6 +10,8 @@ export type IdPlan = "free" | "one" | "max";
 export type Plan = {
   id: IdPlan;
   nombre: string;
+  /** Qué tan completo es: Gratis, Medio o Completo. */
+  nivel: string;
   /** null = todavía sin precio publicado */
   precio: string | null;
   resumen: string;
@@ -28,8 +30,9 @@ export const PLANES: Plan[] = [
   {
     id: "free",
     nombre: "Atendel Free",
+    nivel: "Gratis",
     precio: "Gratis",
-    resumen: "Para conocer Atendel con tu correo.",
+    resumen: "Para conocer Atendel con tu agente de correo.",
     incluye: ["Clara, tu agente de correo", "30 mensajes al mes en el chat", "Resúmenes de correo"],
     mensajesMes: 30,
     agentes: ["clara"],
@@ -40,20 +43,33 @@ export const PLANES: Plan[] = [
   {
     id: "one",
     nombre: "Atendel One",
+    nivel: "Medio",
     precio: null,
-    resumen: "Desbloquea a todo el equipo.",
-    incluye: ["Los 4 agentes", "Eliges quién está en tu equipo", "Chats en grupo con tus agentes", "600 mensajes al mes en el chat"],
+    resumen: "Tu correo y tu atención a clientes.",
+    incluye: [
+      "Clara, tu agente de correo",
+      "Lola, tu agente de atención: WhatsApp y citas",
+      "Chats en grupo con tus agentes",
+      "600 mensajes al mes en el chat",
+    ],
     mensajesMes: 600,
-    agentes: IDS_AGENTES,
+    agentes: ["clara", "lola"],
     modelo: "claude-opus-5-5",
     esfuerzo: "low",
   },
   {
     id: "max",
     nombre: "Atendel Max",
+    nivel: "Completo",
     precio: null,
-    resumen: "Para el negocio que no para.",
-    incluye: ["Todo lo de One", "3,000 mensajes al mes en el chat", "Respuestas más elaboradas"],
+    resumen: "Todo el equipo, para el negocio que no para.",
+    incluye: [
+      "Los 4 agentes: Atención, Correo, Clientes y Oficina",
+      "Eliges quién está en tu equipo",
+      "Chats en grupo con tus agentes",
+      "3,000 mensajes al mes en el chat",
+      "Respuestas más elaboradas",
+    ],
     mensajesMes: 3000,
     agentes: IDS_AGENTES,
     modelo: "claude-opus-5-5",
@@ -62,6 +78,11 @@ export const PLANES: Plan[] = [
 ];
 
 export const PLAN_POR_ID = Object.fromEntries(PLANES.map((p) => [p.id, p])) as Record<IdPlan, Plan>;
+
+/** El plan más sencillo que incluye a ese agente (para decir "Con Atendel One"). */
+export function planMinimo(agente: IdAgente): Plan {
+  return PLANES.find((p) => p.agentes.includes(agente)) ?? PLAN_POR_ID.max;
+}
 
 export function planDe(valor: unknown): Plan {
   return valor === "one" || valor === "max" ? PLAN_POR_ID[valor] : PLAN_POR_ID.free;

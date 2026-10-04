@@ -26,7 +26,7 @@ import {
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
-import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
+import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 
 export type Conversacion = {
@@ -424,7 +424,7 @@ export function Chat({
                 Nuevo grupo
               </button>
             ) : (
-              <Link href="/#planes" className="chat-app__nuevo chat-app__nuevo--bloqueado">
+              <Link href="/precios" className="chat-app__nuevo chat-app__nuevo--bloqueado">
                 <span className="chat-app__nuevo-mas" aria-hidden="true">
                   <Candado />
                 </span>
@@ -449,7 +449,7 @@ export function Chat({
                           `${a.area} · ${a.abarca}`
                         ) : (
                           <>
-                            <Candado /> Con Atendel One
+                            <Candado /> Con {planMinimo(a.id).nombre}
                           </>
                         )}
                       </span>
@@ -463,7 +463,7 @@ export function Chat({
                         {contenido}
                       </button>
                     ) : (
-                      <Link href="/#planes" className="chat-app__conv opacity-50" title="Disponible con Atendel One">
+                      <Link href="/precios" className="chat-app__conv opacity-50" title={`Disponible con ${planMinimo(a.id).nombre}`}>
                         {contenido}
                       </Link>
                     )}
@@ -565,8 +565,10 @@ export function Chat({
                   ) : (
                     <p className="mt-8 text-[0.9375rem] text-silver">
                       {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                      <Link href={planId === "free" ? "/#planes" : "/panel/agentes"} className="text-bone underline underline-offset-4">
-                        {planId === "free" ? "Desbloquéalo con Atendel One" : "Agrégalo en Mis agentes"}
+                      <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="text-bone underline underline-offset-4">
+                        {!participantes.every((id) => plan.agentes.includes(id))
+                          ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
+                          : "Agrégalo en Mis agentes"}
                       </Link>
                       .
                     </p>
@@ -625,7 +627,7 @@ export function Chat({
             {sinMensajes ? (
               <p className="mb-3 text-center text-[0.875rem] text-silver">
                 Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                <Link href="/#planes" className="text-bone underline underline-offset-4">
+                <Link href="/precios" className="text-bone underline underline-offset-4">
                   Ver planes
                 </Link>
               </p>

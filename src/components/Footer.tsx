@@ -1,11 +1,7 @@
 import Link from "next/link";
+import { PAGINAS, PRUEBALO } from "@/lib/contenido";
 
-const PRODUCTO = [
-  { href: "/#que-es", label: "Qué es" },
-  { href: "/#agentes", label: "Agentes" },
-  { href: "/#planes", label: "Planes" },
-  { href: "/#preguntas", label: "Preguntas" },
-];
+const PRODUCTO = [PAGINAS[0], PRUEBALO, ...PAGINAS.slice(1)];
 const CUENTA = [
   { href: "/entrar", label: "Entrar" },
   { href: "/panel/chat", label: "Mi panel" },

@@ -11,12 +11,15 @@ import {
   type ReactNode,
 } from "react";
 import { BotonTema } from "./BotonTema";
+import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
 import { Logo } from "./Logo";
 
 export type NavItem = { href: string; label: string };
 
 type Props = {
   items: NavItem[];
+  /** El enlace más importante (el chat): va como botón con el color de la marca. */
+  destacado?: NavItem;
   homeHref?: string;
   /** Lo que va a la derecha en computadora (ej. el botón "Entrar"). */
   desktopRight?: ReactNode;
@@ -34,7 +37,7 @@ type Props = {
  * - Se esconde al bajar y reaparece al subir; su sombra crece al bajar.
  * - En celular (y en el panel), un menú de pantalla completa que baja como telón.
  */
-export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
+export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [oculta, setOculta] = useState(false);
   const [conFondo, setConFondo] = useState(false);
@@ -121,6 +124,14 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
 
   // Enlaces a secciones de esta misma página: cerrar el menú y luego desplazarse suave
   const alElegir = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    // La ficha de un agente: si esta página ya puede abrirla, se abre aquí mismo
+    const ficha = href.match(/[?&]ficha=([a-z]+)/)?.[1];
+    if (ficha && document.documentElement.hasAttribute("data-fichas")) {
+      e.preventDefault();
+      setAbierto(false);
+      window.dispatchEvent(new CustomEvent(EVENTO_ELEGIR_AGENTE, { detail: ficha }));
+      return;
+    }
     const gato = href.indexOf("#");
     if (gato === -1) {
       // Otra página (o la misma con otros datos): solo cerrar el menú
@@ -168,7 +179,7 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
                 key={item.href}
                 href={item.href}
                 className="nav__enlace"
-                aria-current={capitulo?.nombre === item.label || pathname === item.href ? "true" : undefined}
+                aria-current={pathname === item.href ? "page" : undefined}
                 onClick={(e) => alElegir(e, item.href)}
               >
                 {item.label}
@@ -186,13 +197,24 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
             ) : null}
           </p>
 
-          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          {destacado ? (
+            <Link
+              href={destacado.href}
+              className="nav__destacado max-md:ml-auto"
+              aria-current={pathname === destacado.href ? "page" : undefined}
+            >
+              <span className="punto-vivo" aria-hidden="true" />
+              {destacado.label}
+            </Link>
+          ) : null}
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <BotonTema />
             {desktopRight ? <div className="hidden items-center gap-4 md:flex">{desktopRight}</div> : null}
             <button
               ref={botonRef}
               type="button"
               className={`menu-trigger ${menuLateral ? "lg:hidden" : ""}`}
+              aria-label={abierto ? "Cerrar menú" : "Menú"}
               aria-expanded={abierto}
               aria-controls="menu-movil"
               onClick={alternar}
@@ -226,12 +248,29 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
             <nav className="lg:col-span-8" aria-label="Secciones">
               <p className="menu__label">Índice</p>
               <ul className="menu__lista mt-3">
+                {destacado ? (
+                  <li style={{ "--i": 0 } as CSSProperties}>
+                    <Link
+                      href={destacado.href}
+                      className="menu-link menu-link--destacado"
+                      tabIndex={abierto ? 0 : -1}
+                      aria-current={pathname === destacado.href ? "page" : undefined}
+                      onClick={(e) => alElegir(e, destacado.href)}
+                    >
+                      <span className="menu-link__n">→</span>
+                      <span className="menu-link__mask">
+                        <span className="menu-link__text">{destacado.label}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ) : null}
                 {items.map((item, i) => (
-                  <li key={item.href} style={{ "--i": i } as CSSProperties}>
+                  <li key={item.href} style={{ "--i": i + (destacado ? 1 : 0) } as CSSProperties}>
                     <Link
                       href={item.href}
                       className="menu-link"
                       tabIndex={abierto ? 0 : -1}
+                      aria-current={pathname === item.href ? "page" : undefined}
                       onClick={(e) => alElegir(e, item.href)}
                     >
                       <span className="menu-link__n">{dos(i + 1)}</span>

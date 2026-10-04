@@ -6,7 +6,7 @@ import { Arrow, TriSpinner } from "@/components/Buttons";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
-import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
+import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 
 const dos = (n: number) => String(n).padStart(2, "0");
@@ -22,7 +22,7 @@ function Candado() {
 
 /**
  * "Mis agentes": la persona arma su equipo. En Free solo trabaja Clara;
- * con One o Max elige a quien quiera (al menos uno).
+ * en One y Max elige entre los agentes de su plan (al menos uno).
  */
 export function MisAgentes({
   email,
@@ -39,7 +39,9 @@ export function MisAgentes({
 }) {
   const plan = PLAN_POR_ID[planId];
   const libre = plan.id !== "free";
-  const [elegidos, setElegidos] = useState<IdAgente[]>(libre ? elegidosIniciales : ["clara"]);
+  // Lo elegido que su plan permite; si ya no queda nada, todo lo que el plan incluye
+  const validos = elegidosIniciales.filter((id) => plan.agentes.includes(id));
+  const [elegidos, setElegidos] = useState<IdAgente[]>(libre ? (validos.length ? validos : [...plan.agentes]) : ["clara"]);
   const [guardando, setGuardando] = useState<IdAgente | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +78,7 @@ export function MisAgentes({
             <p className="mt-5 max-w-[520px] text-body text-silver">
               {libre
                 ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
-                : "Con Atendel Free trabajas con Clara. Con Atendel One desbloqueas a todo el equipo y eliges a quien quieras."}
+                : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."}
             </p>
           </div>
           <div className="lg:col-span-5">
@@ -114,9 +116,9 @@ export function MisAgentes({
                 </div>
                 <div className="flex items-center gap-6 pl-[34px] md:justify-end md:pl-0">
                   {!permitido ? (
-                    <Link href="/#planes" className="btn-ghost">
+                    <Link href="/precios" className="btn-ghost">
                       <Candado />
-                      Con Atendel One
+                      Con {planMinimo(a.id).nombre}
                     </Link>
                   ) : libre ? (
                     <button
@@ -144,14 +146,24 @@ export function MisAgentes({
           })}
         </ul>
 
-        {!libre ? (
+        {plan.id !== "max" ? (
           <div className="mt-12 flex flex-col items-start gap-4 border hairline p-6 md:flex-row md:items-center md:justify-between lg:p-8">
             <p className="max-w-[560px] text-body text-silver">
-              Con <span className="text-bone">Atendel One</span> tienes a los cuatro: Lola atiende tu WhatsApp y tus citas,
-              Víctor trae de regreso a tus clientes e Iris se encarga de la oficina.
+              {plan.id === "free" ? (
+                <>
+                  Con <span className="text-bone">Atendel One</span> se suma Lola, que atiende tu WhatsApp y tus citas. Con{" "}
+                  <span className="text-bone">Atendel Max</span> tienes a los cuatro: Víctor trae de regreso a tus clientes e
+                  Iris se encarga de la oficina.
+                </>
+              ) : (
+                <>
+                  Con <span className="text-bone">Atendel Max</span> tienes a los cuatro: Víctor trae de regreso a tus clientes
+                  e Iris se encarga de la oficina.
+                </>
+              )}
             </p>
-            <Link href="/#planes" className="btn-pill">
-              Ver planes
+            <Link href="/precios" className="btn-pill">
+              Ver precios
               <Arrow />
             </Link>
           </div>

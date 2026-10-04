@@ -5,7 +5,7 @@ import { Arrow, PillLink } from "../Buttons";
 import { PERSONAJES, Personaje } from "./Personaje";
 import { DETALLE } from "./detalle";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
-import { PLANES } from "@/lib/planes";
+import { PLANES, planMinimo } from "@/lib/planes";
 
 /**
  * Ficha de un agente: qué es, todo lo que hace, una conversación de ejemplo
@@ -154,22 +154,14 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
                 </ul>
                 <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
                   <PillLink href="/entrar">{enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}</PillLink>
-                  <a
-                    href="#planes"
-                    className="btn-ghost"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onClose();
-                      window.setTimeout(() => document.getElementById("planes")?.scrollIntoView({ block: "start" }), 50);
-                    }}
-                  >
-                    Ver planes
+                  <a href="/precios" className="btn-ghost">
+                    Ver precios
                     <Arrow />
                   </a>
                 </div>
                 {!enFree ? (
                   <p className="mt-4 text-[0.875rem] leading-relaxed text-ash">
-                    {info.nombre} llega con Atendel One. Mientras, puedes empezar gratis con Clara.
+                    {info.nombre} llega con {planMinimo(agente).nombre}. Mientras, puedes empezar gratis con Clara.
                   </p>
                 ) : null}
               </section>

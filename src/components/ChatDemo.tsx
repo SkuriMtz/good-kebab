@@ -395,7 +395,7 @@ const PRIMER_NUEVO = 1000;
  * barra PromptBar para escribir. Las respuestas son de muestra (no se llama
  * a la IA desde aquí); dentro del panel sí es real.
  */
-export function ChatDemo() {
+export function ChatDemo({ completa = false }: { completa?: boolean }) {
   const [convs, setConvs] = useState<Conversacion[]>(INICIO);
   const [activa, setActiva] = useState("recepcion");
   const [pendiente, setPendiente] = useState<{
@@ -620,7 +620,7 @@ export function ChatDemo() {
   };
 
   return (
-    <div className="chat-app">
+    <div className={`chat-app${completa ? " chat-app--completa" : ""}`}>
       {/* ---------- Lista de chats y grupos ---------- */}
       <aside
         className="chat-app__barra"

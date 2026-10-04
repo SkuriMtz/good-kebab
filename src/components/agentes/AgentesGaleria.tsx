@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import AccordionGallery, { type AccordionItem } from "../AccordionGallery";
 import { AgenteModal } from "./AgenteModal";
 import { Personaje } from "./Personaje";
-import { AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
+import { AGENTES_INFO } from "@/lib/agentes";
+import { useFichas } from "./FichasAgentes";
 
 /**
  * La sección de agentes: un acordeón con un panel por agente. Al pasar el
@@ -14,18 +14,9 @@ import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
  * En celular el acordeón va en columna.
  */
 export function AgentesGaleria() {
-  const [abierto, setAbierto] = useState<IdAgente | null>(null);
+  // El menú, las tarjetas o la dirección (?ficha=lola) pueden pedir la ficha de un agente
+  const [abierto, setAbierto] = useFichas();
   const [columna, setColumna] = useState(false);
-
-  // El menú lateral puede pedir la ficha de un agente
-  useEffect(() => {
-    const alPedir = (e: Event) => {
-      const id = (e as CustomEvent).detail;
-      if (esIdAgente(id)) setAbierto(id);
-    };
-    window.addEventListener(EVENTO_ELEGIR_AGENTE, alPedir);
-    return () => window.removeEventListener(EVENTO_ELEGIR_AGENTE, alPedir);
-  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");

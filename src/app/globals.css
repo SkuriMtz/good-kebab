@@ -11,18 +11,23 @@
 :root {
   /* Colores como canales RGB para poder usar transparencias (rgb(var(--c-x) / 0.5)).
      Modo oscuro por defecto; el modo claro los redefine abajo. */
-  --c-void: 0 0 0; /* lienzo */
-  --c-shale: 16 16 16; /* superficie apenas distinta */
-  --c-bone: 255 255 255; /* texto principal */
-  --c-ash: 143 143 143; /* texto secundario */
-  --c-silver: 196 196 196; /* texto de párrafos */
-  --c-signal: 255 41 54; /* rojo: solo para errores y avisos */
+  --c-void: 17 15 14; /* lienzo: casi negro, cálido */
+  --c-shale: 31 28 26; /* superficie apenas distinta */
+  --c-bone: 246 242 237; /* texto principal */
+  --c-ash: 163 155 148; /* texto secundario: gris cálido */
+  --c-silver: 212 205 198; /* texto de párrafos */
+  --c-signal: 255 84 84; /* rojo: solo para errores y avisos */
   --c-papel: 242 241 237; /* el "papel" de los ejemplos */
-  --alfa-linea: 0.22;
-  /* La marca es tinta (negro en claro, blanco en oscuro); el color lo ponen los personajes */
-  --c-marca: 255 255 255;
-  --c-sobre-marca: 0 0 0;
+  --alfa-linea: 0.2;
+  /* Acento de la marca (botones y lo importante): coral en oscuro, terracota en claro */
+  --c-marca: 255 138 107;
+  --c-sobre-marca: 33 18 13;
   --color-acento: #ff8a6b; /* el coral de Lola, para los destellos de color */
+  /* Pasteles de los personajes, para fondos de sección */
+  --pastel-durazno: 255 138 107;
+  --pastel-cielo: 127 178 255;
+  --pastel-menta: 95 208 159;
+  --pastel-mantequilla: 246 198 74;
 
   --color-void: rgb(var(--c-void));
   --color-shale: rgb(var(--c-shale));
@@ -43,18 +48,18 @@
   color-scheme: dark;
 }
 
-/* Modo claro: blanco, tinta casi negra y grises neutros */
+/* Modo claro: fondo marfil con un tinte cálido, grises cálidos y acento terracota */
 :root[data-tema="claro"],
 :root[data-tema="claro"] .tema-claro-local {
-  --c-void: 255 255 255;
-  --c-shale: 244 244 245;
-  --c-bone: 10 10 11;
-  --c-ash: 113 113 122;
-  --c-silver: 63 63 70;
-  --c-signal: 214 30 42;
+  --c-void: 250 247 243;
+  --c-shale: 241 236 230;
+  --c-bone: 30 26 23;
+  --c-ash: 122 113 106;
+  --c-silver: 74 67 61;
+  --c-signal: 200 40 40;
   --c-papel: 255 255 255;
   --alfa-linea: 0.12;
-  --c-marca: 10 10 11;
+  --c-marca: 196 74 47;
   --c-sobre-marca: 255 255 255;
   color-scheme: light;
 }
@@ -77,37 +82,82 @@
   color-scheme: light;
 }
 .bloque-oscuro {
-  --c-void: 12 12 13;
-  --c-shale: 26 26 28;
-  --c-bone: 255 255 255;
-  --c-ash: 150 150 158;
-  --c-silver: 208 208 214;
+  --c-void: 30 26 23;
+  --c-shale: 44 39 35;
+  --c-bone: 248 244 239;
+  --c-ash: 168 159 151;
+  --c-silver: 214 207 200;
   --c-papel: 242 241 237;
   --alfa-linea: 0.14;
-  --c-marca: 255 255 255;
-  --c-sobre-marca: 10 10 11;
+  --c-marca: 255 138 107;
+  --c-sobre-marca: 33 18 13;
   color-scheme: dark;
   position: relative;
-  margin-inline: 12px;
   border-radius: 32px;
   background: rgb(var(--c-void));
   color: rgb(var(--c-bone));
 }
 /* En modo oscuro el bloque es apenas más claro que la página, con un filo sutil */
 :root:not([data-tema="claro"]) .bloque-oscuro {
-  --c-void: 17 17 19;
-  --c-shale: 30 30 33;
+  --c-void: 28 25 23;
+  --c-shale: 40 36 33;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+}
+/* Bloque pastel: una sección con el color suave de un personaje */
+.bloque-pastel {
+  --pastel: var(--pastel-durazno);
+  position: relative;
+  border-radius: 32px;
+  background: color-mix(in srgb, rgb(var(--pastel)) 13%, rgb(var(--c-void)));
+}
+.bloque-pastel--cielo {
+  --pastel: var(--pastel-cielo);
+}
+.bloque-pastel--menta {
+  --pastel: var(--pastel-menta);
+}
+.bloque-pastel--mantequilla {
+  --pastel: var(--pastel-mantequilla);
+}
+:root:not([data-tema="claro"]) .bloque-pastel {
+  background: color-mix(in srgb, rgb(var(--pastel)) 9%, rgb(var(--c-void)));
+}
+@media (min-width: 640px) {
+  .bloque-pastel {
+    border-radius: 40px;
+  }
+}
+@media (min-width: 1024px) {
+  .bloque-pastel {
+    border-radius: 48px;
+  }
+}
+/* Los bloques (oscuros y pastel) van centrados y separados de los bordes */
+.bloque-oscuro,
+.bloque-pastel {
+  width: calc(100% - 24px);
+  max-width: 96rem;
+  margin-inline: auto;
+}
+@media (min-width: 640px) {
+  .bloque-oscuro,
+  .bloque-pastel {
+    width: calc(100% - 40px);
+  }
+}
+@media (min-width: 1024px) {
+  .bloque-oscuro,
+  .bloque-pastel {
+    width: calc(100% - 48px);
+  }
 }
 @media (min-width: 640px) {
   .bloque-oscuro {
-    margin-inline: 20px;
     border-radius: 40px;
   }
 }
 @media (min-width: 1024px) {
   .bloque-oscuro {
-    margin-inline: 24px;
     border-radius: 48px;
   }
 }
@@ -423,7 +473,7 @@
       background-color 0.5s var(--ease-out);
   }
   :root:not([data-tema="claro"]) .nav__pildora {
-    background: rgb(22 22 24 / 0.78);
+    background: rgb(30 27 25 / 0.8);
     box-shadow:
       0 10px 30px -16px rgb(0 0 0 / 0.6),
       0 0 0 1px rgb(255 255 255 / 0.08);
@@ -487,7 +537,7 @@
       display: none;
     }
   }
-  @media (min-width: 1280px) {
+  @media (min-width: 1440px) {
     .nav-capitulo.capitulo {
       display: block;
       flex: none;
@@ -526,6 +576,25 @@
     transition:
       background-color 0.3s var(--ease-out),
       color 0.3s var(--ease-out);
+  }
+  /* En celulares angostos el botón "Menú" queda solo con el "+" para que quepa "Pruébalo" */
+  @media (max-width: 419px) {
+    .menu-trigger {
+      width: 44px;
+      padding: 0;
+      justify-content: center;
+    }
+    .menu-trigger .roll {
+      display: none;
+    }
+    .nav__pildora {
+      padding-left: 16px;
+      gap: 6px;
+    }
+    .nav__destacado {
+      margin-left: auto;
+      padding-inline: 13px;
+    }
   }
   .menu-trigger[aria-expanded="true"] {
     background: rgb(var(--c-bone) / 0.08);
@@ -1908,6 +1977,8 @@ html.js [data-split][data-in] .split-inner {
     }
   }
   .plan-tarjeta.bloque-oscuro {
+    width: auto;
+    max-width: none;
     margin: 0;
   }
   /* En modo oscuro, la tarjeta destacada se nota con un filo más claro */
@@ -1924,6 +1995,153 @@ html.js [data-split][data-in] .split-inner {
     font-size: 0.75rem;
     font-weight: 500;
     color: rgb(var(--c-bone));
+  }
+}
+
+/* ---------- Ronda 2: páginas, botón destacado, logo de fragmentos ---------- */
+@layer components {
+  /* Dentro de un bloque pastel, las tarjetas son blancas translúcidas */
+  :root[data-tema="claro"] .bloque-pastel .tarjeta {
+    background: rgb(255 255 255 / 0.62);
+  }
+  :root:not([data-tema="claro"]) .bloque-pastel .tarjeta {
+    background: rgb(var(--c-bone) / 0.05);
+  }
+
+  /* Botón secundario en píldora: fondo suave, sin acento */
+  .btn-pill--suave {
+    border-color: transparent;
+    background: rgb(var(--c-bone) / 0.07);
+    color: rgb(var(--c-bone));
+  }
+  .btn-pill--suave::before {
+    background: rgb(var(--c-bone));
+  }
+  .btn-pill--suave:hover:not(:disabled) {
+    color: rgb(var(--c-void));
+  }
+  /* Grande, para la acción principal de la portada */
+  .btn-pill--grande {
+    min-height: 60px;
+    padding-inline: 30px;
+    font-size: 1.0625rem;
+    box-shadow: 0 18px 40px -18px rgb(var(--c-marca) / 0.75);
+  }
+
+  /* Enlace destacado de la barra ("Pruébalo"): una píldora con el acento y un punto que late */
+  .nav__destacado {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 6px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: rgb(var(--c-marca));
+    color: rgb(var(--c-sobre-marca));
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 20px -12px rgb(var(--c-marca) / 0.9);
+    transition:
+      transform 0.35s var(--ease-out),
+      box-shadow 0.35s var(--ease-out);
+  }
+  .nav__destacado:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px -12px rgb(var(--c-marca) / 1);
+  }
+  .nav__destacado[aria-current] {
+    box-shadow:
+      0 0 0 3px rgb(var(--c-void)),
+      0 0 0 5px rgb(var(--c-marca) / 0.45);
+  }
+  .punto-vivo {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .punto-vivo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: currentColor;
+    animation: punto-vivo 1.8s var(--ease-out) infinite;
+  }
+  @keyframes punto-vivo {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+  /* En el menú de pantalla completa, "Pruébalo" va primero y con el acento */
+  .menu-link--destacado .menu-link__text {
+    color: rgb(var(--c-marca));
+  }
+
+  /* Chat a pantalla completa (página Pruébalo) */
+  .chat-app.chat-app--completa {
+    height: calc(100svh - 176px);
+    min-height: 520px;
+  }
+  @media (min-width: 768px) {
+    .chat-app.chat-app--completa {
+      height: calc(100svh - 168px);
+      min-height: 560px;
+    }
+  }
+
+  /* Texto de ejemplo que falta revisar */
+  .borrador {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px dashed rgb(var(--c-marca) / 0.7);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgb(var(--c-marca));
+    white-space: nowrap;
+  }
+
+  /* Portada: el logo hecho de fragmentos */
+  .wordmark-logo {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: clamp(4.25rem, 16.5vw, 13rem);
+    line-height: 0.95;
+    letter-spacing: -0.065em;
+  }
+  .marca-portada {
+    width: clamp(3.4rem, 12.5vw, 9.75rem);
+    height: auto;
+    flex-shrink: 0;
+    margin-right: clamp(0.6rem, 2vw, 1.6rem);
+  }
+  .marca-portada circle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: marca-entra 0.9s var(--ease-out) both;
+    animation-delay: calc(0.35s + var(--i) * 0.12s);
+  }
+  @keyframes marca-entra {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marca-portada circle,
+    .punto-vivo::after {
+      animation: none;
+    }
   }
 }
 

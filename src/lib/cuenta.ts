@@ -26,10 +26,11 @@ export async function cargarCuenta(supabase: SupabaseClient, userId: string): Pr
   ]);
 
   const plan = planDe(sus.data?.plan);
-  // Sin elección guardada: en Free, Clara; en One y Max, todo el equipo
+  // Sin elección guardada: todo lo que su plan incluye
   const elegidos = eleg.data ? (eleg.data.agentes as unknown[]).filter(esIdAgente) : [...plan.agentes];
-  const activos =
-    plan.id === "free" ? [...plan.agentes] : plan.agentes.filter((id) => elegidos.includes(id));
+  const permitidos = plan.agentes.filter((id) => elegidos.includes(id));
+  // Si lo que eligió antes ya no está en su plan, se queda con todo lo que el plan incluye
+  const activos = plan.id === "free" || !permitidos.length ? [...plan.agentes] : permitidos;
 
   return {
     plan,

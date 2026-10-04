@@ -3,17 +3,19 @@ import { PLANES } from "@/lib/planes";
 
 const NOMBRE_CORTO: Record<string, string> = { free: "Free", one: "One", max: "Max" };
 
-/** Free → One → Max, como tres tarjetas; One, la que desbloquea todo, va en un bloque oscuro. */
+/** Free → One → Max (gratis, medio y completo), como tres tarjetas; Max, el completo, va en un bloque oscuro. */
 export function Planes() {
   return (
     <div>
       <ol className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {PLANES.map((p) => {
-          const destacado = p.id === "one";
+          const destacado = p.id === "max";
           return (
             <li key={p.id} className={`plan plan-tarjeta relative ${destacado ? "bloque-oscuro" : "tarjeta"}`}>
               <div className="flex min-h-[28px] items-center justify-between gap-4">
-                <p className="text-[0.8125rem] font-medium text-ash">Atendel</p>
+                <p className="text-[0.8125rem] font-medium text-ash">
+                  Atendel · <span className="text-bone">{p.nivel}</span>
+                </p>
                 {destacado ? (
                   <p className="plan-insignia">
                     <span className="h-1.5 w-1.5 rounded-full bg-bone" aria-hidden="true" />
@@ -24,7 +26,7 @@ export function Planes() {
               <h3 className="mt-2 text-[clamp(3rem,5.2vw,4.5rem)] font-semibold leading-[0.95] tracking-[-0.06em]">
                 {NOMBRE_CORTO[p.id]}
               </h3>
-              <p className="mt-5 text-[1.125rem] font-medium tracking-[-0.02em]">{p.precio ?? "Precio muy pronto"}</p>
+              <p className="mt-5 text-[1.125rem] font-medium tracking-[-0.02em]">{p.precio ?? "Próximamente"}</p>
               <p className="texto-suave mt-1">{p.resumen}</p>
               <ul className="mt-8 flex flex-col gap-3.5 text-[0.9375rem]">
                 {p.incluye.map((x) => (

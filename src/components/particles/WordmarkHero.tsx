@@ -11,6 +11,13 @@ const PESO = 340;
 
 type Props = {
   texto?: string;
+  /** Letra de la palabra: itálica (la de los títulos editoriales) o recta, y su grosor. */
+  italica?: boolean;
+  peso?: number;
+  /** Clases del título (tamaño y letra); por omisión, la itálica gigante. */
+  claseTitulo?: string;
+  /** Lo que va junto a la palabra, en la misma línea (el símbolo del logo). */
+  marca?: ReactNode;
   /** Lo que va arriba de la palabra (la portada con su título y los personajes). */
   antes?: ReactNode;
   children?: ReactNode;
@@ -48,7 +55,15 @@ type Particulas = {
  * apartan del cursor y, al bajar, el viento se los lleva como polvo.
  * El <h1> real sigue ahí (transparente) para lectores de pantalla y buscadores.
  */
-export function WordmarkHero({ texto = "atendel", antes, children }: Props) {
+export function WordmarkHero({
+  texto = "atendel",
+  italica = true,
+  peso = PESO,
+  claseTitulo = "editorial text-wordmark",
+  marca,
+  antes,
+  children,
+}: Props) {
   const zonaRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tituloRef = useRef<HTMLHeadingElement>(null);
@@ -94,7 +109,7 @@ export function WordmarkHero({ texto = "atendel", antes, children }: Props) {
       off.height = oh;
       const o = off.getContext("2d", { willReadFrequently: true });
       if (!o) return [];
-      o.font = `italic ${PESO} ${estilo.fontSize} ${estilo.fontFamily}`;
+      o.font = `${italica ? "italic " : ""}${peso} ${estilo.fontSize} ${estilo.fontFamily}`;
       const conEspaciado = o as CanvasRenderingContext2D & { letterSpacing?: string };
       if ("letterSpacing" in conEspaciado && estilo.letterSpacing !== "normal") {
         conEspaciado.letterSpacing = estilo.letterSpacing;
@@ -303,7 +318,7 @@ export function WordmarkHero({ texto = "atendel", antes, children }: Props) {
     const iniciar = async () => {
       try {
         await document.fonts.ready;
-        await document.fonts.load(`italic ${PESO} 100px ${getComputedStyle(titulo).fontFamily}`);
+        await document.fonts.load(`${italica ? "italic " : ""}${peso} 100px ${getComputedStyle(titulo).fontFamily}`);
       } catch {
         /* si falla la fuente, se usa la de respaldo */
       }
@@ -388,14 +403,15 @@ export function WordmarkHero({ texto = "atendel", antes, children }: Props) {
       window.removeEventListener("pointercancel", soltar);
       document.documentElement.removeEventListener("pointerleave", salir);
     };
-  }, [texto]);
+  }, [texto, italica, peso]);
 
   return (
     <div ref={zonaRef} className="wordmark-zone relative flex min-h-[100svh] flex-col">
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
       {antes}
       <div className={`flex flex-1 items-center justify-center px-4 ${antes ? "pb-4 pt-14 lg:pt-20" : "pt-[72px]"}`}>
-        <h1 ref={tituloRef} className="wordmark editorial relative inline-block select-none text-wordmark">
+        {marca}
+        <h1 ref={tituloRef} className={`wordmark relative inline-block select-none ${claseTitulo}`}>
           {texto}
         </h1>
       </div>

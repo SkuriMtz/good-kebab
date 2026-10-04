@@ -1,15 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Briefcase01Icon,
   BubbleChatIcon,
   HelpCircleIcon,
   Home01Icon,
-  InformationCircleIcon,
   Mail01Icon,
-  SquareLock02Icon,
+  Store01Icon,
   Tag01Icon,
   UserGroupIcon,
   UserMultipleIcon,
@@ -29,18 +28,20 @@ const ICONO_AGENTE: Record<IdAgente, typeof WhatsappIcon> = {
   iris: Briefcase01Icon,
 };
 
+/** Cada página del sitio: su valor en el menú y su dirección. */
+const PAGINAS: { value: string; label: string; href: string; icon: typeof WhatsappIcon }[] = [
+  { value: "inicio", label: "Inicio", href: "/", icon: Home01Icon },
+  { value: "pruebalo", label: "Pruébalo · el chat", href: "/pruebalo", icon: BubbleChatIcon },
+  { value: "agentes", label: "Agentes", href: "/agentes", icon: UserMultipleIcon },
+  { value: "precios", label: "Precios", href: "/precios", icon: Tag01Icon },
+  { value: "para-quien-es", label: "Para quién es", href: "/para-quien-es", icon: Store01Icon },
+  { value: "preguntas", label: "Preguntas", href: "/preguntas", icon: HelpCircleIcon },
+];
+
 const ITEMS: BranchedMenuItem[] = [
   {
     label: "Atendel",
-    children: [
-      { value: "inicio", label: "Inicio", icon: Home01Icon },
-      { value: "que-es", label: "Qué es", icon: InformationCircleIcon },
-      { value: "agentes", label: "Agentes", icon: UserMultipleIcon },
-      { value: "chat", label: "Háblales", icon: BubbleChatIcon },
-      { value: "planes", label: "Planes", icon: Tag01Icon },
-      { value: "seguridad", label: "Tus datos", icon: SquareLock02Icon },
-      { value: "preguntas", label: "Preguntas", icon: HelpCircleIcon },
-    ],
+    children: PAGINAS.map(({ value, label, icon }) => ({ value, label, icon })),
   },
   {
     label: "El equipo",
@@ -53,11 +54,11 @@ const ITEMS: BranchedMenuItem[] = [
 /**
  * Menú lateral (solo computadora y tablet grande): una pestaña en el borde
  * izquierdo avisa que está ahí. Al acercar el cursor al borde, o al tocar la
- * pestaña, se desliza el menú. Marca la sección que estás viendo.
+ * pestaña, se desliza el menú. Marca la página en la que estás.
  */
 export function MenuLateral() {
   const [abierto, setAbierto] = useState(false);
-  const [seccion, setSeccion] = useState("inicio");
+  const pathname = usePathname();
   const panelRef = useRef<HTMLElement>(null);
   const pestanaRef = useRef<HTMLButtonElement>(null);
   const cierre = useRef(0);
@@ -71,23 +72,6 @@ export function MenuLateral() {
     window.clearTimeout(cierre.current);
     cierre.current = window.setTimeout(() => setAbierto(false), 280);
   };
-
-  // Qué sección está en pantalla
-  useEffect(() => {
-    const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-capitulo]"));
-    const io = new IntersectionObserver(
-      (entradas) => {
-        for (const e of entradas) {
-          if (!e.isIntersecting) continue;
-          const id = (e.target as HTMLElement).id || "inicio";
-          if (id !== "empezar") setSeccion(id);
-        }
-      },
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    secciones.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
 
   // Abierto: Escape o tocar fuera lo cierra
   useEffect(() => {
@@ -116,20 +100,24 @@ export function MenuLateral() {
     panelRef.current?.toggleAttribute("inert", !abierto);
   }, [abierto]);
 
-  const activo = seccion;
+  const activo = PAGINAS.find((p) => p.href === pathname)?.value ?? "";
 
   const ir = (value: string) => {
     if (value === "entrar") {
       router.push("/entrar");
       return;
     }
-    const suave = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
     if (esIdAgente(value)) {
-      window.dispatchEvent(new CustomEvent(EVENTO_ELEGIR_AGENTE, { detail: value }));
-    } else if (value === "inicio") {
-      window.scrollTo({ top: 0, behavior: suave });
+      // Cada página puede abrir la ficha; si no, se abre en la de agentes
+      if (document.documentElement.hasAttribute("data-fichas")) {
+        window.dispatchEvent(new CustomEvent(EVENTO_ELEGIR_AGENTE, { detail: value }));
+      } else {
+        router.push(`/agentes?ficha=${value}`);
+      }
     } else {
-      document.getElementById(value)?.scrollIntoView({ behavior: suave, block: "start" });
+      const pagina = PAGINAS.find((p) => p.value === value);
+      if (pagina && pagina.href !== pathname) router.push(pagina.href);
+      else window.scrollTo({ top: 0, behavior: "smooth" });
     }
     setAbierto(false);
   };
