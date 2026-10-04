@@ -15,7 +15,7 @@ const SECCIONES = [
   { href: "/#planes", label: "Planes" },
   { href: "/#preguntas", label: "Preguntas" },
 ];
-const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"];
+const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-acento)"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;

@@ -9,7 +9,12 @@ const ALFAS = [0.2, 0.42, 0.68, 0.95];
 /** Grosor con el que se "dibuja" la palabra para muestrearla (más legible que el 200 de los títulos). */
 const PESO = 340;
 
-type Props = { texto?: string; children?: ReactNode };
+type Props = {
+  texto?: string;
+  /** Lo que va arriba de la palabra (la portada con su título y los personajes). */
+  antes?: ReactNode;
+  children?: ReactNode;
+};
 
 type Particulas = {
   n: number; // fragmentos de la palabra
@@ -43,7 +48,7 @@ type Particulas = {
  * apartan del cursor y, al bajar, el viento se los lleva como polvo.
  * El <h1> real sigue ahí (transparente) para lectores de pantalla y buscadores.
  */
-export function WordmarkHero({ texto = "atendel", children }: Props) {
+export function WordmarkHero({ texto = "atendel", antes, children }: Props) {
   const zonaRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tituloRef = useRef<HTMLHeadingElement>(null);
@@ -64,7 +69,7 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Colores del modo actual (claro u oscuro); se vuelven a leer si cambia
     let tinta = colorCss("var(--color-bone-white)");
-    let rojo = colorCss("var(--color-signal)");
+    let rojo = colorCss("var(--color-acento)");
     let w = 0;
     let h = 0;
     let P: Particulas | null = null;
@@ -347,7 +352,7 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
 
     const alCambiarTema = () => {
       tinta = colorCss("var(--color-bone-white)");
-      rojo = colorCss("var(--color-signal)");
+      rojo = colorCss("var(--color-acento)");
       if (quieto && P) dibujar(performance.now());
     };
     window.addEventListener(EVENTO_TEMA, alCambiarTema);
@@ -388,7 +393,8 @@ export function WordmarkHero({ texto = "atendel", children }: Props) {
   return (
     <div ref={zonaRef} className="wordmark-zone relative flex min-h-[100svh] flex-col">
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
-      <div className="flex flex-1 items-center justify-center px-4 pt-[72px]">
+      {antes}
+      <div className={`flex flex-1 items-center justify-center px-4 ${antes ? "pb-4 pt-14 lg:pt-20" : "pt-[72px]"}`}>
         <h1 ref={tituloRef} className="wordmark editorial relative inline-block select-none text-wordmark">
           {texto}
         </h1>

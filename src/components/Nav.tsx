@@ -24,15 +24,15 @@ type Props = {
   mobileBottom?: ReactNode;
   /** Los agentes, como el reparto de una película (dentro del menú). */
   reparto?: { nombre: string; papel: string; href: string }[];
-  /** En computadora el menú va de lado (MenuLateral): el botón "Menú" solo en celular. */
+  /** En computadora el menú va de lado (MenuLateral): el botón "Menú" solo en celular y tablet. */
   menuLateral?: boolean;
 };
 
 /**
- * Barra de navegación:
- * - Transparente arriba; se vuelve negra al bajar.
- * - Se esconde al bajar y reaparece al subir.
- * - En celular, un menú de pantalla completa que se abre como un círculo.
+ * Barra de navegación en forma de píldora flotante:
+ * - Logo a la izquierda, secciones al centro y acciones a la derecha.
+ * - Se esconde al bajar y reaparece al subir; su sombra crece al bajar.
+ * - En celular (y en el panel), un menú de pantalla completa que baja como telón.
  */
 export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto, menuLateral }: Props) {
   const [abierto, setAbierto] = useState(false);
@@ -150,17 +150,34 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
     <>
       <div ref={progresoRef} className="progress-line" aria-hidden="true" />
 
-      {/* Solo tipografía: nombre a la izquierda, capítulo al centro, menú a la derecha */}
+      {/* Píldora flotante: logo a la izquierda, secciones al centro, acciones a la derecha */}
       <header
-        className="nav pointer-events-none fixed inset-x-0 top-0 z-50"
+        className="nav pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5"
         data-hidden={oculta && !abierto ? "true" : "false"}
         data-fondo={conFondo && !abierto ? "true" : "false"}
+        data-abierto={abierto ? "true" : "false"}
       >
-        <div className="mx-auto grid h-[72px] max-w-page grid-cols-[1fr_auto_1fr] items-center px-6 sm:px-10 lg:px-16">
-          <Link href={homeHref} className="nav-hide pointer-events-auto justify-self-start" aria-label="Atendel, inicio">
+        <div className="nav__pildora nav-hide pointer-events-auto">
+          <Link href={homeHref} className="nav__logo shrink-0" aria-label="Atendel, inicio">
             <Logo />
           </Link>
-          <p className="nav-hide capitulo hidden md:block" aria-live="off">
+
+          <nav className="nav__enlaces hidden lg:flex" aria-label="Secciones">
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="nav__enlace"
+                aria-current={capitulo?.nombre === item.label || pathname === item.href ? "true" : undefined}
+                onClick={(e) => alElegir(e, item.href)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Contador de "capítulos": en tablet va al centro; en pantallas grandes, junto a las acciones */}
+          <p className="nav-capitulo capitulo hidden md:block" aria-live="off">
             {capitulo && !abierto ? (
               <>
                 <span className="capitulo__n">{dos(capitulo.n)}</span> — {capitulo.nombre}
@@ -168,34 +185,31 @@ export function Nav({ items, homeHref = "/", desktopRight, mobileBottom, reparto
               </>
             ) : null}
           </p>
-          <div
-            className={`nav-hide pointer-events-auto col-start-3 flex items-center gap-5 justify-self-end pr-[104px] ${menuLateral ? "lg:pr-0" : ""}`}
-          >
+
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <BotonTema />
-            {desktopRight ? <div className="hidden items-center gap-5 md:flex">{desktopRight}</div> : null}
+            {desktopRight ? <div className="hidden items-center gap-4 md:flex">{desktopRight}</div> : null}
+            <button
+              ref={botonRef}
+              type="button"
+              className={`menu-trigger ${menuLateral ? "lg:hidden" : ""}`}
+              aria-expanded={abierto}
+              aria-controls="menu-movil"
+              onClick={alternar}
+            >
+              <span className="menu-trigger__plus" aria-hidden="true">
+                +
+              </span>
+              <span className="roll">
+                <span className="roll__a">{abierto ? "Cerrar" : "Menú"}</span>
+                <span className="roll__b" aria-hidden="true">
+                  {abierto ? "Cerrar" : "Menú"}
+                </span>
+              </span>
+            </button>
           </div>
         </div>
       </header>
-
-      <button
-        ref={botonRef}
-        type="button"
-        className={`menu-trigger ${menuLateral ? "lg:hidden" : ""}`}
-        data-hidden={oculta && !abierto ? "true" : "false"}
-        aria-expanded={abierto}
-        aria-controls="menu-movil"
-        onClick={alternar}
-      >
-        <span className="menu-trigger__plus" aria-hidden="true">
-          +
-        </span>
-        <span className="roll">
-          <span className="roll__a">{abierto ? "Cerrar" : "Menú"}</span>
-          <span className="roll__b" aria-hidden="true">
-            {abierto ? "Cerrar" : "Menú"}
-          </span>
-        </span>
-      </button>
 
       <div
         id="menu-movil"

@@ -179,7 +179,7 @@ export function MenuLateral() {
             active={activo}
             onSelect={(value) => ir(value)}
             color="var(--color-bone-white)"
-            accentColor="var(--color-signal)"
+            accentColor="var(--color-acento)"
             lineColor="color-mix(in srgb, var(--color-bone-white) 18%, var(--color-void))"
             width={232}
             rowHeight={36}

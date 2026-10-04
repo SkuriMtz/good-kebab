@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PillLink, Roll } from "@/components/Buttons";
 import { ChatDemo } from "@/components/ChatDemo";
 import { AgentesGaleria } from "@/components/agentes/AgentesGaleria";
+import { HeroPersonajes } from "@/components/agentes/HeroPersonajes";
 import { EquipoEnFoco } from "@/components/EquipoEnFoco";
 import { Footer } from "@/components/Footer";
 import { MenuLateral } from "@/components/MenuLateral";
@@ -62,16 +63,29 @@ const PREGUNTAS = [
   },
 ];
 
-/** Encabezado de sección: una línea fina con dos datos, como la claqueta de una toma. */
-function Claqueta({ izquierda, derecha }: { izquierda: string; derecha: string }) {
+/**
+ * Encabezado de sección: el número (01, 02…) en una pastilla, el nombre de
+ * la sección y un dato extra, como la claqueta de una toma.
+ */
+function Claqueta({ n, izquierda, derecha }: { n: number; izquierda: string; derecha?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-t hairline pt-3 font-cond text-base uppercase leading-none tracking-[0.03em] text-ash">
-      <span>{izquierda}</span>
-      <span className="text-right">{derecha}</span>
-    </div>
+    <p className="numero-seccion">
+      <span className="numero-seccion__n">{String(n).padStart(2, "0")}</span>
+      <span className="font-medium text-bone">{izquierda}</span>
+      {derecha ? <span className="numero-seccion__extra">{derecha}</span> : null}
+    </p>
   );
 }
 
+/*
+ * Orden de la página (la historia que cuenta):
+ * 1. Portada: qué es, en una línea, y quiénes son (los personajes).
+ * 2. Qué es y cómo funciona.
+ * 3. El equipo en foco (bloque oscuro) → 4. Conocer a cada agente.
+ * 5. Verlos trabajar: el chat (bloque oscuro grande, la demostración principal).
+ * 6. Planes → 7. Tus datos → 8. Preguntas: lo que hay que saber para decidir.
+ * 9. Llamado final (bloque oscuro) y pie.
+ */
 export default function Inicio() {
   return (
     <>
@@ -80,9 +94,14 @@ export default function Inicio() {
         reparto={REPARTO}
         menuLateral
         desktopRight={
-          <Link href="/entrar" className="btn-ghost !text-bone">
-            <Roll>Entrar</Roll>
-          </Link>
+          <>
+            <Link href="/entrar" className="btn-ghost !text-bone">
+              <Roll>Entrar</Roll>
+            </Link>
+            <PillLink href="/entrar" className="btn-pill--chica" arrow={false}>
+              Empezar gratis
+            </PillLink>
+          </>
         }
         mobileBottom={
           <div className="flex flex-col items-start gap-3">
@@ -93,87 +112,93 @@ export default function Inicio() {
       />
 
       <main>
-        {/* ---------- Portada: la palabra hecha de fragmentos ---------- */}
+        {/* ---------- Portada: título y personajes; abajo, la palabra hecha de fragmentos ---------- */}
         <section data-capitulo="Atendel" className="relative overflow-hidden">
-          <WordmarkHero texto="atendel">
-            <div className="tras-titulo relative z-10 mx-auto w-full max-w-page px-6 pb-10 sm:px-10 lg:px-16 lg:pb-14">
-              <div className="grid gap-7 border-t hairline pt-7 md:grid-cols-12 md:items-end md:gap-10">
-                <p className="font-cond text-base uppercase leading-[0.95] tracking-[0.03em] text-ash md:col-span-3">
-                  Para clínicas, consultorios
-                  <br />y estéticas
-                </p>
-                <p className="max-w-[480px] text-body text-silver md:col-span-5">
-                  Cuatro agentes de inteligencia artificial que atienden tu WhatsApp y tus citas, ordenan tu correo, traen
-                  de regreso a tus clientes y hacen el trabajo de oficina.
-                </p>
-                <div className="flex flex-wrap items-center gap-x-7 gap-y-2 md:col-span-4 md:justify-end">
-                  <PillLink href="/entrar">Empezar gratis</PillLink>
-                  <a href="#que-es" className="btn-ghost">
-                    <Roll>Qué es</Roll>
-                  </a>
+          <WordmarkHero
+            texto="atendel"
+            antes={
+              <div className="relative z-10 mx-auto grid w-full max-w-[calc(var(--ancho)+3rem)] items-center gap-14 px-6 pt-[124px] sm:max-w-[calc(var(--ancho)+5rem)] sm:px-10 sm:pt-[150px] lg:max-w-[calc(var(--ancho)+8rem)] lg:grid-cols-12 lg:gap-12 lg:px-16 lg:pt-[176px]">
+                <div className="lg:col-span-6">
+                  <Reveal as="p" className="hero-etiqueta">
+                    Para clínicas, consultorios y estéticas
+                  </Reveal>
+                  <Reveal as="h2" delay={80} className="titulo titulo--xl mt-6">
+                    Agentes de inteligencia artificial <em>para negocios que atienden personas.</em>
+                  </Reveal>
+                  <Reveal as="p" delay={160} className="texto-suave mt-6 max-w-[460px]">
+                    Cuatro agentes de inteligencia artificial que atienden tu WhatsApp y tus citas, ordenan tu correo, traen
+                    de regreso a tus clientes y hacen el trabajo de oficina.
+                  </Reveal>
+                  <Reveal delay={240} className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <PillLink href="/entrar">Empezar gratis</PillLink>
+                    <a href="#que-es" className="btn-ghost">
+                      <Roll>Qué es</Roll>
+                    </a>
+                  </Reveal>
                 </div>
-              </div>
-            </div>
-          </WordmarkHero>
-        </section>
-
-        {/* ---------- Qué es Atendel ---------- */}
-        <section
-          id="que-es"
-          data-capitulo="Qué es"
-          className="seccion seccion--primera"
-        >
-          <Claqueta izquierda="Qué es Atendel" derecha="En 30 segundos" />
-          <div className="mt-12 grid gap-10 lg:mt-20 lg:grid-cols-12 lg:gap-10">
-            <Reveal as="h2" className="editorial text-heading lg:col-span-8">
-              Un equipo de cuatro agentes de inteligencia artificial que trabaja para tu clínica.
-            </Reveal>
-            <Reveal as="p" delay={120} className="max-w-[420px] text-body text-silver lg:col-span-4 lg:pt-3">
-              Cada uno lleva un área del negocio y hace varias cosas dentro de ella. Les hablas como a una persona y te
-              entregan el trabajo hecho: mensajes, tablas, reportes, documentos.
-            </Reveal>
-          </div>
-
-          <div className="mt-20 grid gap-8 lg:mt-32 lg:grid-cols-12 lg:gap-10">
-            <p className="font-cond text-base uppercase tracking-[0.03em] text-ash lg:col-span-3">Cómo funciona</p>
-            <ol className="border-b hairline lg:col-span-9">
-              {PASOS.map(([titulo, texto], i) => (
-                <Reveal
-                  as="li"
-                  key={titulo}
-                  delay={i * 80}
-                  className="grid grid-cols-[36px_minmax(0,1fr)] gap-x-4 gap-y-2 border-t hairline py-7 md:grid-cols-[48px_minmax(0,5fr)_minmax(0,6fr)] md:items-baseline md:gap-x-8"
-                >
-                  <span className="font-cond text-base text-ash">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="editorial text-[clamp(1.625rem,2.6vw,2.375rem)] leading-[1.05]">{titulo}</span>
-                  <span className="col-start-2 text-body text-silver md:col-start-3">{texto}</span>
+                <Reveal delay={200} className="lg:col-span-6">
+                  <HeroPersonajes />
                 </Reveal>
-              ))}
-            </ol>
-          </div>
+              </div>
+            }
+          />
+        </section>
 
-          <div className="mt-32 lg:mt-48">
-            <EquipoEnFoco />
+        {/* ---------- 01 · Qué es Atendel: texto a un lado, cómo funciona al otro ---------- */}
+        <section id="que-es" data-capitulo="Qué es" className="seccion seccion--primera">
+          <div className="grid gap-14 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-5">
+              <Claqueta n={1} izquierda="Qué es Atendel" derecha="En 30 segundos" />
+              <Reveal as="h2" className="titulo mt-6">
+                Un equipo de cuatro agentes de inteligencia artificial <em>que trabaja para tu clínica.</em>
+              </Reveal>
+              <Reveal as="p" delay={120} className="texto-suave mt-6 max-w-[440px]">
+                Cada uno lleva un área del negocio y hace varias cosas dentro de ella. Les hablas como a una persona y te
+                entregan el trabajo hecho: mensajes, tablas, reportes, documentos.
+              </Reveal>
+            </div>
+            <div className="lg:col-span-7 lg:pt-1">
+              <p className="text-[0.8125rem] font-medium text-ash">Cómo funciona</p>
+              <ol className="mt-4 flex flex-col gap-3">
+                {PASOS.map(([titulo, texto], i) => (
+                  <Reveal
+                    as="li"
+                    key={titulo}
+                    delay={i * 80}
+                    className="tarjeta grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-1.5 p-6 sm:p-8"
+                  >
+                    <span className="numero-seccion__n row-span-2 mt-0.5">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="titulo titulo--sm">{titulo}</span>
+                    <span className="texto-suave">{texto}</span>
+                  </Reveal>
+                ))}
+              </ol>
+            </div>
           </div>
         </section>
 
-        {/* ---------- Los 4 agentes: acordeón con sus personajes ---------- */}
-        <section
-          id="agentes"
-          data-capitulo="Agentes"
-          className="seccion"
-        >
-          <Claqueta izquierda="4 agentes" derecha="Conócelos" />
-          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
-            <Reveal as="h2" className="editorial text-display lg:col-span-8">
-              ¿Qué le encargas hoy?
-            </Reveal>
-            <Reveal as="p" delay={120} className="max-w-[400px] text-body text-silver lg:col-span-4 lg:pb-3">
-              Pasa el cursor por cada uno para conocerlo. Haz clic para ver todo lo que hace, una conversación de
-              ejemplo y en qué plan está.
+        {/* ---------- El equipo en foco: los nombres que se enfocan uno por uno (bloque oscuro) ---------- */}
+        <div className="pt-[120px] lg:pt-[176px]">
+          <Reveal className="bloque-oscuro mx-auto max-w-[96rem] px-6 py-20 sm:px-10 sm:py-24 lg:py-32">
+            <EquipoEnFoco />
+          </Reveal>
+        </div>
+
+        {/* ---------- 02 · Los agentes: acordeón con sus personajes ---------- */}
+        <section id="agentes" data-capitulo="Agentes" className="seccion">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+            <div className="lg:col-span-7">
+              <Claqueta n={2} izquierda="4 agentes" derecha="Conócelos" />
+              <Reveal as="h2" className="titulo titulo--xl mt-6">
+                ¿Qué le encargas <em>hoy?</em>
+              </Reveal>
+            </div>
+            <Reveal as="p" delay={120} className="texto-suave max-w-[400px] lg:col-span-5 lg:pb-2">
+              Pasa el cursor por cada uno para conocerlo. Haz clic para ver todo lo que hace, una conversación de ejemplo
+              y en qué plan está.
             </Reveal>
           </div>
-          <div className="relative mt-20 lg:mt-28">
+          <div className="relative mt-16 lg:mt-20">
             <p className="firma pointer-events-none absolute -top-12 right-[8%] hidden rotate-3 lg:block" aria-hidden="true">
               haz clic
               <svg className="ml-1 inline-block h-8 w-9 align-top" viewBox="0 0 36 32" fill="none">
@@ -190,70 +215,80 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* ---------- Háblales ---------- */}
-        <section id="chat" data-capitulo="Háblales" className="seccion">
-          <Claqueta izquierda="El chat" derecha="Dentro de tu panel" />
-          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
-            <Reveal as="h2" className="editorial text-heading lg:col-span-7">
-              Háblales como le hablas a tu equipo.
-            </Reveal>
-            <Reveal delay={120} className="flex flex-col items-start gap-5 lg:col-span-5 lg:pb-2">
-              <p className="max-w-[440px] text-body text-silver">
-                Escríbeles lo que necesitas, como en cualquier chat. Te contestan al momento, recuerdan la conversación y
-                te dejan los mensajes listos para copiar.
-              </p>
-              <PillLink href="/entrar">Probar el chat</PillLink>
-            </Reveal>
-          </div>
-          <Reveal delay={150} className="mt-16 lg:mt-24">
-            <ChatDemo />
-          </Reveal>
-        </section>
+        {/* ---------- 03 · Háblales: el chat, la demostración principal (bloque oscuro grande) ---------- */}
+        <div className="pt-[120px] lg:pt-[176px]">
+          <section id="chat" data-capitulo="Háblales" className="bloque-oscuro mx-auto max-w-[96rem]">
+            <div className="mx-auto max-w-[calc(var(--ancho)+3rem)] px-5 py-16 sm:max-w-[calc(var(--ancho)+5rem)] sm:px-10 sm:py-24 lg:max-w-[calc(var(--ancho)+8rem)] lg:px-16 lg:py-28">
+              <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+                <div className="lg:col-span-7">
+                  <Claqueta n={3} izquierda="El chat" derecha="Dentro de tu panel" />
+                  <Reveal as="h2" className="titulo titulo--xl mt-6">
+                    Háblales como le hablas <em>a tu equipo.</em>
+                  </Reveal>
+                </div>
+                <Reveal delay={120} className="flex flex-col items-start gap-6 lg:col-span-5 lg:pb-2">
+                  <p className="texto-suave max-w-[440px]">
+                    Escríbeles lo que necesitas, como en cualquier chat. Te contestan al momento, recuerdan la conversación
+                    y te dejan los mensajes listos para copiar.
+                  </p>
+                  <PillLink href="/entrar">Probar el chat</PillLink>
+                </Reveal>
+              </div>
+              {/* El chat conserva el modo de la página (en modo claro se ve claro sobre el bloque) */}
+              <Reveal delay={150} className="tema-claro-local mt-14 lg:mt-20">
+                <ChatDemo />
+              </Reveal>
+            </div>
+          </section>
+        </div>
 
-        {/* ---------- Planes ---------- */}
+        {/* ---------- 04 · Planes ---------- */}
         <section id="planes" data-capitulo="Planes" className="seccion">
-          <Claqueta izquierda="Planes" derecha="Free → One → Max" />
-          <div className="mt-12 grid gap-8 lg:mt-20 lg:grid-cols-12 lg:items-end">
-            <Reveal as="h2" className="editorial text-heading lg:col-span-7">
-              Empieza gratis. Crece cuando quieras.
-            </Reveal>
-            <Reveal as="p" delay={120} className="max-w-[420px] text-body text-silver lg:col-span-5 lg:pb-2">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+            <div className="lg:col-span-7">
+              <Claqueta n={4} izquierda="Planes" derecha="Free → One → Max" />
+              <Reveal as="h2" className="titulo mt-6">
+                Empieza gratis. <em>Crece cuando quieras.</em>
+              </Reveal>
+            </div>
+            <Reveal as="p" delay={120} className="texto-suave max-w-[420px] lg:col-span-5 lg:pb-2">
               Free para conocer a Clara. One para tener a todo el equipo. Max para el negocio que no para.
             </Reveal>
           </div>
-          <div className="mt-16 lg:mt-24">
+          <div className="mt-14 lg:mt-20">
             <Planes />
           </div>
         </section>
 
-        {/* ---------- Tus datos ---------- */}
-        <section
-          id="seguridad"
-          data-capitulo="Tus datos"
-          className="seccion"
-        >
-          <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-24">
-            <div className="relative mx-auto aspect-square w-full max-w-[280px] lg:order-2 lg:max-w-[460px]">
+        {/* ---------- 05 · Tus datos: el candado a un lado, las garantías al otro ---------- */}
+        <section id="seguridad" data-capitulo="Tus datos" className="seccion">
+          <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
+            <div className="tarjeta relative mx-auto aspect-square w-full max-w-[420px] lg:max-w-none">
               <ParticleShape
                 shape="lock"
-                colors={["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"]}
-                className="absolute inset-0 h-full w-full"
+                colors={[
+                  "var(--color-bone-white)",
+                  "var(--color-bone-white)",
+                  "var(--color-bone-white)",
+                  "var(--color-silver-mist)",
+                  "var(--color-bone-white)",
+                  "var(--color-bone-white)",
+                  "var(--color-bone-white)",
+                  "var(--color-acento)",
+                ]}
+                className="absolute inset-[8%] h-[84%] w-[84%]"
               />
             </div>
-            <div className="lg:order-1">
-              <Reveal as="h2" className="editorial text-heading-lg">
-                Cada negocio ve solo lo suyo.
+            <div>
+              <Claqueta n={5} izquierda="Tus datos" />
+              <Reveal as="h2" className="titulo mt-6">
+                Cada negocio <em>ve solo lo suyo.</em>
               </Reveal>
-              <ul className="mt-12 border-b hairline lg:mt-16">
+              <ul className="mt-10 flex flex-col gap-3">
                 {GARANTIAS.map(([titulo, texto], i) => (
-                  <Reveal
-                    as="li"
-                    key={titulo}
-                    delay={i * 80}
-                    className="grid grid-cols-1 gap-2 border-t hairline py-7 sm:grid-cols-[160px_1fr] sm:gap-8"
-                  >
-                    <span className="font-cond text-[1.375rem] leading-[1.05] tracking-[0.02em]">{titulo}</span>
-                    <span className="text-body text-silver">{texto}</span>
+                  <Reveal as="li" key={titulo} delay={i * 80} className="tarjeta p-6 sm:p-7">
+                    <span className="block text-[1.0625rem] font-semibold tracking-[-0.02em]">{titulo}</span>
+                    <span className="texto-suave mt-1.5 block">{texto}</span>
                   </Reveal>
                 ))}
               </ul>
@@ -261,40 +296,39 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* ---------- Preguntas ---------- */}
-        <section
-          id="preguntas"
-          data-capitulo="Preguntas"
-          className="seccion grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10"
-        >
-          <div className="lg:col-span-4">
-            <Reveal as="h2" className="editorial text-heading-lg lg:sticky lg:top-[110px]">
-              Lo que nos preguntan
-            </Reveal>
+        {/* ---------- 06 · Preguntas ---------- */}
+        <section id="preguntas" data-capitulo="Preguntas" className="seccion grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <div className="lg:sticky lg:top-[120px]">
+              <Claqueta n={6} izquierda="Preguntas" />
+              <Reveal as="h2" className="titulo mt-6">
+                Lo que <em>nos preguntan.</em>
+              </Reveal>
+            </div>
           </div>
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-7">
             <Preguntas preguntas={PREGUNTAS} />
           </div>
         </section>
 
-        {/* ---------- Cierre ---------- */}
-        <section
-          id="empezar"
-          data-capitulo="Empieza"
-          className="seccion"
-        >
-          <div className="grid gap-10 border-t hairline pt-10 lg:grid-cols-12 lg:items-end">
-            <Reveal as="h2" className="editorial text-display lg:col-span-8">
-              Empieza gratis con Clara.
-            </Reveal>
-            <Reveal delay={150} className="flex flex-col items-start gap-4 lg:col-span-4 lg:items-end lg:pb-4">
-              <p className="max-w-[340px] text-body text-silver lg:text-right">
+        {/* ---------- Cierre: bloque oscuro con el llamado a la acción ---------- */}
+        <div className="pt-[120px] lg:pt-[176px]">
+          <section id="empezar" data-capitulo="Empieza" className="bloque-oscuro mx-auto max-w-[96rem]">
+            <div className="mx-auto flex max-w-[760px] flex-col items-center px-6 py-20 text-center sm:py-28 lg:py-32">
+              <Reveal as="h2" className="titulo titulo--xl">
+                Empieza gratis <em>con Clara.</em>
+              </Reveal>
+              <Reveal as="p" delay={120} className="texto-suave mt-6 max-w-[380px]">
                 Entras en un minuto con tu correo. Cuando quieras a todo el equipo, pasas a Atendel One.
-              </p>
-              <PillLink href="/entrar">Empezar gratis</PillLink>
-            </Reveal>
-          </div>
-        </section>
+              </Reveal>
+              <Reveal delay={200} className="mt-10 flex w-full justify-center">
+                <PillLink href="/entrar" className="btn-pill--ancha">
+                  Empezar gratis
+                </PillLink>
+              </Reveal>
+            </div>
+          </section>
+        </div>
       </main>
 
       <Footer />

@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { AGENTES_INFO } from "@/lib/agentes";
+import { PERSONAJES } from "./agentes/Personaje";
 import TrueFocus from "./TrueFocus";
 
 /**
  * Los nombres del equipo, como créditos de película: el visor enfoca a uno
- * por uno y abajo se lee qué hace.
+ * por uno y abajo se lee qué hace. El visor toma el color del agente enfocado.
  */
 export function EquipoEnFoco() {
   const [i, setI] = useState(0);
@@ -14,13 +15,13 @@ export function EquipoEnFoco() {
 
   return (
     <div className="text-center">
-      <p className="font-cond text-base uppercase tracking-[0.03em] text-ash">Con</p>
+      <p className="text-[0.8125rem] font-medium text-ash">Con</p>
       <div aria-hidden="true">
         <TrueFocus
           sentence={AGENTES_INFO.map((x) => x.nombre).join(" ")}
           blurAmount={6}
-          borderColor="var(--color-signal)"
-          glowColor="rgb(var(--c-signal) / 0.35)"
+          borderColor={PERSONAJES[a.id].color}
+          glowColor={`${PERSONAJES[a.id].color}59`}
           animationDuration={0.6}
           pauseBetweenAnimations={1.8}
           onFocusChange={setI}

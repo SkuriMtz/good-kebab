@@ -29,7 +29,7 @@ type Guardado = {
   creado_en: string;
 };
 
-const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"];
+const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-acento)"];
 
 // Correos de ejemplo para probar sin tener que escribir uno
 const EJEMPLOS = [

@@ -57,12 +57,12 @@ export function AgentesGaleria() {
         orientation={columna ? "vertical" : "horizontal"}
         height={columna ? 440 : 560}
         gap={columna ? 10 : 14}
-        radius={0}
+        radius={columna ? 22 : 28}
         expandRatio={0.5}
         tilt={columna ? 0 : 6}
         grayscale={false}
         dim={0}
-        accentColor="var(--color-signal)"
+        accentColor="var(--color-acento)"
         overlayColor="var(--color-void)"
         textColor="var(--color-bone-white)"
         ariaLabel="Los agentes de Atendel"

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Arrow, PillLink } from "../Buttons";
-import { Personaje } from "./Personaje";
+import { PERSONAJES, Personaje } from "./Personaje";
 import { DETALLE } from "./detalle";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { PLANES } from "@/lib/planes";
@@ -68,7 +68,7 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
               <p className="font-cond text-base uppercase tracking-[0.04em] text-ash">
                 {info.area} · {info.abarca}
               </p>
-              <h2 id="agente-modal-titulo" className="editorial mt-3 text-[clamp(3rem,7vw,4.75rem)] leading-[0.92]">
+              <h2 id="agente-modal-titulo" className="titulo titulo--xl mt-3">
                 {info.nombre}
               </h2>
               <p className="mt-4 text-body text-silver">{info.lema}</p>
@@ -87,7 +87,7 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
                 <ul className="mt-4 border-b hairline">
                   {detalle.funciones.map((f) => (
                     <li key={f.titulo} className="grid grid-cols-[18px_minmax(0,1fr)] gap-x-3 border-t hairline py-4">
-                      <svg className="mt-[0.5em] h-3 w-3 text-signal" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                      <svg className="mt-[0.5em] h-3 w-3" style={{ color: PERSONAJES[agente].color }} viewBox="0 0 12 12" fill="none" aria-hidden="true">
                         <path d="M2 6.4 4.8 9 10 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
                       </svg>
                       <span>
@@ -103,23 +103,25 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
             <div className="flex flex-col gap-14">
               <section>
                 <h3 className="agente-modal__titulo">Conversación de ejemplo</h3>
-                <div className="mt-4 border hairline bg-void">
-                  <p className="flex items-center justify-between border-b hairline px-5 py-3 text-[0.8125rem] text-ash">
+                <div className="tarjeta mt-4 overflow-hidden">
+                  <p className="flex items-center justify-between px-5 pb-1 pt-4 text-[0.8125rem] text-ash">
                     <span>{detalle.canal}</span>
                     <span>Nombres de ejemplo</span>
                   </p>
                   <ol className="flex flex-col gap-3 px-5 py-6">
                     {detalle.conversacion.map((m, i) =>
                       m.de === "nota" ? (
-                        <li key={i} className="mt-1 flex items-start gap-2 border-t hairline pt-4 text-[0.9375rem] text-bone">
-                          <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 bg-signal" aria-hidden="true" />
+                        <li key={i} className="mt-1 flex items-start gap-2 pt-3 text-[0.9375rem] text-bone">
+                          <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: PERSONAJES[agente].color }} aria-hidden="true" />
                           {m.texto}
                         </li>
                       ) : (
                         <li
                           key={i}
                           className={`max-w-[88%] px-4 py-3 text-[0.9375rem] leading-relaxed ${
-                            m.de === "otro" ? "self-start border hairline bg-shale text-bone" : "self-end bg-bone text-void"
+                            m.de === "otro"
+                              ? "self-start rounded-[18px] rounded-bl-md bg-void text-bone"
+                              : "self-end rounded-[18px] rounded-br-md bg-bone text-void"
                           }`}
                         >
                           <span className={`mb-1 block text-[0.75rem] font-medium ${m.de === "otro" ? "text-ash" : "opacity-60"}`}>
@@ -136,13 +138,13 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
 
               <section>
                 <h3 className="agente-modal__titulo">En qué plan está</h3>
-                <ul className="mt-4 grid grid-cols-3 border hairline">
-                  {PLANES.map((p, i) => {
+                <ul className="mt-4 grid grid-cols-3 gap-2">
+                  {PLANES.map((p) => {
                     const incluido = p.agentes.includes(agente);
                     return (
-                      <li key={p.id} className={`px-4 py-5 ${i > 0 ? "border-l hairline" : ""} ${incluido ? "" : "opacity-45"}`}>
+                      <li key={p.id} className={`tarjeta !rounded-[20px] px-4 py-5 ${incluido ? "" : "opacity-45"}`}>
                         <span className="block font-cond text-[0.875rem] uppercase tracking-[0.04em] text-ash">Atendel</span>
-                        <span className="editorial mt-1 block text-[1.75rem] leading-none">{p.nombre.replace("Atendel ", "")}</span>
+                        <span className="mt-1 block text-[1.5rem] font-semibold leading-none tracking-[-0.04em]">{p.nombre.replace("Atendel ", "")}</span>
                         <span className={`mt-3 block text-[0.8125rem] ${incluido ? "text-bone" : "text-ash"}`}>
                           {incluido ? "Incluido" : "No incluido"}
                         </span>
