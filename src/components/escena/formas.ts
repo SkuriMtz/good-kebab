@@ -3,13 +3,15 @@
  * triangulito). Todas tienen los mismos N puntos para poder pasar de una a
  * otra: el punto i de la burbuja viaja al punto i del globo.
  *
- * Por punto se guardan 8 números: x, y, z (la figura mide más o menos de -1
- * a 1; "y" hacia arriba), r, g, b (de 0 a 1), opacidad y tamaño.
+ * Por punto se guardan 11 números: x, y, z (la figura mide más o menos de -1
+ * a 1; "y" hacia arriba), r, g, b (de 0 a 1), opacidad, tamaño y hacia dónde
+ * mira la superficie en ese punto (la normal: nx, ny, nz), que sirve para
+ * iluminar la figura y que se vea en 3D.
  * Las figuras "de pantalla" (el polvo) usan x y y de -1 a 1 como toda la pantalla.
  */
 
 export type NombreForma = "burbuja" | "esfera" | "candado" | "marca" | "polvo" | "polvoArriba" | "polvoIzquierda";
-export const POR_PUNTO = 8;
+export const POR_PUNTO = 11;
 
 type Color = [number, number, number];
 const hex = (h: string): Color => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as Color;
@@ -81,8 +83,12 @@ function direccion(): [number, number, number] {
   return [r * Math.cos(a), u, r * Math.sin(a)];
 }
 
-function poner(d: Float32Array, i: number, x: number, y: number, z: number, c: Color, alfa: number, tam: number) {
+function poner(d: Float32Array, i: number, x: number, y: number, z: number, c: Color, alfa: number, tam: number, nx = 0, ny = 0, nz = 1) {
   const o = i * POR_PUNTO;
+  const ln = Math.hypot(nx, ny, nz) || 1;
+  d[o + 8] = nx / ln;
+  d[o + 9] = ny / ln;
+  d[o + 10] = nz / ln;
   d[o] = x;
   d[o + 1] = y;
   d[o + 2] = z;
@@ -128,7 +134,7 @@ function burbuja(n: number, d: Float32Array) {
       const k = Math.floor(Math.random() * 3);
       const [dx, dy, dz] = direccion();
       const r = 0.085 * Math.cbrt(Math.random());
-      poner(d, i, (k - 1) * 0.3 + dx * r, 0.08 + dy * r, 0.5 + dz * r, Math.random() < 0.6 ? BLANCO : ROSA, 0.55, 0.7);
+      poner(d, i, (k - 1) * 0.3 + dx * r, 0.08 + dy * r, 0.62 + dz * r, Math.random() < 0.6 ? BLANCO : ROSA, 0.55, 0.7, dx, dy, dz);
     } else if (q < 0.15) {
       // La colita: un cono que sale abajo a la derecha
       const u = Math.pow(Math.random(), 0.75);
@@ -137,19 +143,21 @@ function burbuja(n: number, d: Float32Array) {
       const x = 0.5 + 0.42 * u + Math.cos(a) * radio * 0.8;
       const y = -0.62 - 0.46 * u + Math.sin(a) * radio * 0.5;
       const z = Math.sin(a) * radio * 1.6;
-      poner(d, i, x, y, z, color(x, y, 0.9), 0.7, 0.95);
+      poner(d, i, x, y, z, color(x, y, 0.9), 0.7, 0.95, Math.cos(a), 0, Math.sin(a));
     } else {
       // El cuerpo: un cascarón inflado (los puntos en la superficie, así la orilla se ve nítida)
       const [dx, dy, dz] = direccion();
       const e = 2.6;
-      const f = Math.abs(dx / 1.0) ** e + Math.abs(dy / 0.86) ** e + Math.abs(dz / 0.5) ** e;
+      const f = Math.abs(dx / 1.0) ** e + Math.abs(dy / 0.86) ** e + Math.abs(dz / 0.62) ** e;
       const r = 1 / Math.pow(f, 1 / e);
       const x = dx * r;
       const y = dy * r + 0.06;
       const z = dz * r;
       const rho = Math.min(1, Math.hypot(x, (y - 0.06) / 0.86));
       // Como en el foco de Dala: triangulitos separados, no una nube blanca
-      poner(d, i, x, y, z, color(x, y, rho), Math.random() < 0.3 ? 0 : 0.62, 1.05);
+      // La normal de la superficie (para la luz): el gradiente de la forma
+      const g = (v: number, k: number) => (Math.sign(v) * Math.abs(v / k) ** (e - 1)) / k;
+      poner(d, i, x, y, z, color(x, y, rho), Math.random() < 0.3 ? 0 : 0.62, 1.05, g(x, 1), g(y - 0.06, 0.86), g(z, 0.62));
     }
   }
 }
@@ -175,15 +183,15 @@ function esfera(n: number, d: Float32Array) {
     // Más tierra al frente (donde se ve) que atrás
     const m = manchas(x * 1.7 + 3, y * 1.7, z * 1.7) + z * 0.18;
     const cerca = x * luz[0] + y * luz[1] + z * luz[2];
-    if (cerca > 0.965 && m > 0.4) {
-      poner(d, i, x, y, z, Math.random() < 0.7 ? BLANCO : ROSA, 1, 1.45);
+    if (cerca > 0.982 && m > 0.4) {
+      poner(d, i, x, y, z, Math.random() < 0.7 ? BLANCO : ROSA, 1, 1.45, x, y, z);
     } else if (m > 0.42) {
       const c = Math.random();
       const col = c < 0.47 ? AMBAR : c < 0.82 ? VIOLETA : c < 0.98 ? VERDE : BLANCO;
-      poner(d, i, x, y, z, col, 1, 1.3);
+      poner(d, i, x, y, z, col, 1, 1.3, x, y, z);
     } else {
       // Mar: puntitos tenues
-      poner(d, i, x * 0.99, y * 0.99, z * 0.99, Math.random() < 0.5 ? VIOLETA : AMBAR, 0.28, 0.5);
+      poner(d, i, x * 0.99, y * 0.99, z * 0.99, Math.random() < 0.5 ? VIOLETA : AMBAR, 0.28, 0.5, x, y, z);
     }
   }
 }
@@ -230,12 +238,13 @@ function candado(n: number, d: Float32Array) {
       const x = cx + tx * Math.cos(f) * r;
       const y = cy + ty * Math.cos(f) * r;
       const z = Math.sin(f) * r;
-      poner(d, i, x, y + 0.12, z, degradado([[0, AMBAR], [0.7, ROSA], [1, BLANCO]], (y - top) / 0.9), 1, 0.95);
+      poner(d, i, x, y + 0.12, z, degradado([[0, AMBAR], [0.7, ROSA], [1, BLANCO]], (y - top) / 0.9), 1, 0.95, tx * Math.cos(f), ty * Math.cos(f), Math.sin(f));
       continue;
     }
     let x = 0;
     let y = 0;
     let z = 0;
+    let n: [number, number, number] = [0, 0, 1];
     for (;;) {
       let k = Math.random() * total;
       let cara: (typeof caras)[number][1] = "frente";
@@ -252,6 +261,7 @@ function candado(n: number, d: Float32Array) {
         x = a * W;
         y = top - b * H;
         z = cara === "frente" ? D : -D;
+        n = [0, 0, cara === "frente" ? 1 : -1];
         // El ojo de la llave queda vacío en el frente
         const ojo = Math.hypot(x, y + 0.4) < 0.12 || (Math.abs(x) < 0.05 && y < -0.4 && y > -0.74);
         if (cara === "frente" && ojo) continue;
@@ -259,15 +269,17 @@ function candado(n: number, d: Float32Array) {
         x = cara === "der" ? W : -W;
         y = top - b * H;
         z = a * D;
+        n = [cara === "der" ? 1 : -1, 0, 0];
       } else {
         x = a * W;
         y = cara === "arriba" ? top : top - H;
         z = (Math.random() * 2 - 1) * D;
+        n = [0, cara === "arriba" ? 1 : -1, 0];
       }
       break;
     }
     const c = degradado([[0, VERDE], [0.45, AZUL], [1, VIOLETA]], (y - top + H) / H);
-    poner(d, i, x, y + 0.12, z, Math.random() < 0.06 ? AMBAR : c, 1, 0.9);
+    poner(d, i, x, y + 0.12, z, Math.random() < 0.06 ? AMBAR : c, 1, 0.9, ...n);
   }
 }
 
@@ -287,7 +299,7 @@ function marca(n: number, d: Float32Array) {
     const r = 0.41 * (Math.random() < 0.7 ? 0.9 + Math.random() * 0.1 : Math.cbrt(Math.random()));
     const l = x * luz[0] + y * luz[1] + z * luz[2];
     const c = degradado([[0, mezcla(AGENTES[k], VIOLETA, 0.25)], [0.6, AGENTES[k]], [1, BLANCO]], (l + 1) / 2);
-    poner(d, i, C[k][0] + x * r, C[k][1] + y * r, z * r, c, 0.8, 0.55);
+    poner(d, i, C[k][0] + x * r, C[k][1] + y * r, z * r, c, 0.8, 0.55, x, y, z);
   }
 }
 

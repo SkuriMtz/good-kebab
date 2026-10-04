@@ -73,8 +73,8 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
   switch (escena) {
     case "burbuja":
       return celular
-        ? { forma: "burbuja", modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.4, h * 0.22), giro: quieto(-0.3, 0.1, -0.1), alfa: 0.9, tam: 0.75, ocultarAtras: 0.55 }
-        : { forma: "burbuja", modo: "objeto", cx: 0.29, cy: 0.57, escala: Math.min(h * 0.43, w * 0.25), giro: quieto(-0.38, 0.12, -0.14), alfa: 1, tam: 1, ocultarAtras: 0.55 };
+        ? { forma: "burbuja", modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.4, h * 0.22), giro: quieto(-0.45, 0.15, -0.12, 0.05), alfa: 0.9, tam: 0.75, ocultarAtras: 0.55 }
+        : { forma: "burbuja", modo: "objeto", cx: 0.29, cy: 0.57, escala: Math.min(h * 0.43, w * 0.25), giro: quieto(-0.52, 0.17, -0.16, 0.05), alfa: 1, tam: 1, ocultarAtras: 0.55 };
     case "globo":
       return celular
         ? { forma: "esfera", modo: "objeto", cx: 0.66, cy: 0.28, escala: w * 0.55, giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 0.9, tam: 0.8, ocultarAtras: 1 }

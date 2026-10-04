@@ -73,6 +73,23 @@
     background: var(--c-fondo);
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Sin el destello gris al tocar (celular); cada control tiene su propio :active */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Controles: responden al instante (sin la espera del doble toque) y su texto no se selecciona al dejar el dedo */
+  button,
+  [role="button"],
+  .btn,
+  .equipo__flecha {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  /* Los campos a 16px como mínimo: si no, el iPhone hace zoom al escribir */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
   }
   /* Con el scroll suave (Lenis) activo, él se encarga de deslizar */
   html.lenis,
@@ -264,6 +281,8 @@
     inset: 0;
   }
   .equipo__pista {
+    /* El navegador sigue bajando la página; los deslizamientos de lado son del carrusel */
+    touch-action: pan-y;
     position: absolute;
     inset: 0 0 auto;
     height: var(--th);
@@ -352,10 +371,17 @@
     background: var(--c-accion);
     color: var(--c-sobre-accion);
     font-size: 15px;
-    transition: background-color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  .equipo__flecha:hover {
-    background: color-mix(in srgb, var(--c-accion) 85%, var(--color-bone-white));
+  @media (hover: hover) and (pointer: fine) {
+    .equipo__flecha:hover {
+      background: color-mix(in srgb, var(--c-accion) 85%, var(--color-bone-white));
+    }
+  }
+  .equipo__flecha:active {
+    transform: scale(0.94);
   }
   @keyframes equipo-datos {
     from {

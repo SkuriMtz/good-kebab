@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { BotonFicha } from "./BotonFicha";
 import { Personaje } from "./Personaje";
 import { AGENTES_INFO } from "@/lib/agentes";
@@ -19,6 +19,9 @@ const LUGARES = [-3, -2, -1, 0, 1, 2, 3];
  */
 export function CarruselEquipo() {
   const [centro, setCentro] = useState(0);
+  // Deslizar con el dedo: rápido o más de 50 px hacia un lado cambia de agente
+  const toque = useRef<{ x: number; t: number } | null>(null);
+  const deslizo = useRef(false);
   const a = AGENTES_INFO[mod(centro)];
 
   return (
@@ -32,7 +35,27 @@ export function CarruselEquipo() {
         if (e.key === "ArrowLeft") setCentro((v) => v - 1);
       }}
     >
-      <div className="equipo__pista">
+      <div
+        className="equipo__pista"
+        onPointerDown={(e) => {
+          if (e.pointerType !== "mouse") toque.current = { x: e.clientX, t: performance.now() };
+        }}
+        onPointerUp={(e) => {
+          const t = toque.current;
+          toque.current = null;
+          if (!t) return;
+          const dx = e.clientX - t.x;
+          const rapidez = Math.abs(dx) / Math.max(1, performance.now() - t.t);
+          deslizo.current = Math.abs(dx) > 50 || (Math.abs(dx) > 12 && rapidez > 0.11);
+          if (deslizo.current) setCentro((v) => v + (dx < 0 ? 1 : -1));
+        }}
+        onClickCapture={(e) => {
+          // Si fue un deslizamiento, no abrir la ficha
+          if (deslizo.current) e.stopPropagation();
+          deslizo.current = false;
+        }}
+        onPointerCancel={() => (toque.current = null)}
+      >
         {LUGARES.map((k) => {
           const v = centro + k;
           const ag = AGENTES_INFO[mod(v)];
