@@ -16,7 +16,7 @@ export const EVENTO_TEMA = "atendel:tema";
 const COLOR_BARRA: Record<Tema, string> = { claro: "#ffffff", oscuro: "#000000" };
 
 /** Script que corre antes de pintar la página (evita el parpadeo). */
-export const SCRIPT_TEMA = `(function(){var t;try{t=localStorage.getItem('${CLAVE_TEMA}')}catch(e){}if(t!=='claro'){t='oscuro'}document.documentElement.dataset.tema=t;if(t==='claro'){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content','${COLOR_BARRA.claro}')}}})()`;
+export const SCRIPT_TEMA = `(function(){document.documentElement.classList.add('js');var t;try{t=localStorage.getItem('${CLAVE_TEMA}')}catch(e){}if(t!=='claro'){t='oscuro'}document.documentElement.dataset.tema=t;if(t==='claro'){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content','${COLOR_BARRA.claro}')}}})()`;
 
 export function temaActual(): Tema {
   return document.documentElement.dataset.tema === "claro" ? "claro" : "oscuro";

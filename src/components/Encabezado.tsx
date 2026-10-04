@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Revela } from "./escena/Revela";
 
 /** Marca un texto de ejemplo que falta revisar. */
 export function Borrador({ children = "Texto de ejemplo · revísalo" }: { children?: ReactNode }) {
@@ -8,31 +9,31 @@ export function Borrador({ children = "Texto de ejemplo · revísalo" }: { child
 /**
  * Encabezado de una página: etiqueta en ámbar y título enorme a la
  * izquierda; el texto y las acciones abajo, alineados igual.
- * Con `forma`, ocupa la pantalla completa y la escena del fondo dibuja esa
- * figura a la derecha (burbuja, esfera, candado o marca).
+ * Con `escena`, ocupa casi toda la pantalla y la escena del fondo dibuja esa
+ * figura a la derecha; el texto aparece línea por línea.
  */
 export function EncabezadoPagina({
   etiqueta,
   titulo,
   texto,
   acciones,
-  forma,
+  escena,
 }: {
   etiqueta?: ReactNode;
   titulo: ReactNode;
   texto?: ReactNode;
   acciones?: ReactNode;
-  forma?: "burbuja" | "esfera" | "candado" | "marca";
+  escena?: "burbujaDerecha" | "globoDerecha" | "logoDerecha" | "candadoDerecha";
 }) {
-  if (forma) {
+  if (escena) {
     return (
-      <header className="sala contenedor !min-h-[88svh]" data-forma={forma} data-lado="derecha">
-        <div className="sala__texto sala__texto--izquierda !max-w-[560px]">
+      <header className="encabezado-escena contenedor" data-escena={escena}>
+        <Revela className="encabezado-escena__texto">
           {etiqueta ? <p className="t-etiqueta">{etiqueta}</p> : null}
           <h1 className="t-portada mt-[var(--spacing-18)]">{titulo}</h1>
-          {texto ? <p className="t-cuerpo mt-[var(--spacing-24)] max-w-[460px]">{texto}</p> : null}
+          {texto ? <p className="d-parrafos max-w-[460px]">{texto}</p> : null}
           {acciones ? <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">{acciones}</div> : null}
-        </div>
+        </Revela>
       </header>
     );
   }

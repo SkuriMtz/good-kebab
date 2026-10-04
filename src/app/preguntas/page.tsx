@@ -2,11 +2,18 @@ import type { Metadata } from "next";
 import { BotonLink } from "@/components/Buttons";
 import { Preguntas } from "@/components/Preguntas";
 import { Sitio } from "@/components/Sitio";
-import { PREGUNTAS } from "@/lib/contenido";
+import { Revela } from "@/components/escena/Revela";
+import { Tetra } from "@/components/escena/Tetra";
+import { GARANTIAS, PREGUNTAS } from "@/lib/contenido";
+
+const COLORES = ["#2fd6a8", "#8052ff", "#ffb829"];
 
 export const metadata: Metadata = { title: "Preguntas frecuentes" };
 
-/** Preguntas frecuentes: el título a la izquierda (fijo al bajar en computadora) y las respuestas a la derecha. */
+/**
+ * Preguntas frecuentes: el título a la izquierda (fijo al bajar en computadora) y las respuestas a la derecha.
+ * Abajo, "Tus datos": cómo se cuida la información, con el candado de triangulitos.
+ */
 export default function PreguntasFrecuentes() {
   return (
     <Sitio>
@@ -26,6 +33,24 @@ export default function PreguntasFrecuentes() {
         <div id="preguntas">
           <Preguntas preguntas={PREGUNTAS} />
         </div>
+      </section>
+
+      <section id="seguridad" className="encabezado-escena contenedor" data-escena="candadoDerecha">
+        <Revela className="encabezado-escena__texto">
+          <p className="t-etiqueta">Tus datos</p>
+          <h2 className="d-grande mt-[var(--spacing-18)]">Cada negocio ve solo lo suyo</h2>
+          <ul className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-30)]">
+            {GARANTIAS.map(([titulo, texto], i) => (
+              <li key={titulo} className="grid grid-cols-[44px_minmax(0,1fr)] gap-[var(--spacing-18)]">
+                <Tetra color={COLORES[i]} className="h-11 w-11" />
+                <span>
+                  <span className="t-sub block">{titulo}</span>
+                  <span className="d-parrafos d-parrafos--chico !mt-1 block max-w-[440px]">{texto}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Revela>
       </section>
     </Sitio>
   );

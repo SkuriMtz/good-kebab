@@ -5,6 +5,7 @@ import { Footer } from "./Footer";
 import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
 import { Escena } from "./escena/Escena";
+import { ScrollSuave } from "./escena/ScrollSuave";
 import { AGENTES_INFO } from "@/lib/agentes";
 import { PAGINAS, PRUEBALO } from "@/lib/contenido";
 
@@ -24,19 +25,15 @@ export function Sitio({ children }: { children: ReactNode }) {
   return (
     <>
       <Escena />
+      <ScrollSuave />
       <Nav
         items={PAGINAS}
         destacado={PRUEBALO}
         reparto={REPARTO}
         desktopRight={
-          <>
-            <Link href="/entrar" className={claseBoton("texto")}>
-              Entrar
-            </Link>
-            <Link href="/entrar" className={`${claseBoton("suave")} hidden xl:inline-flex`}>
-              Empezar gratis
-            </Link>
-          </>
+          <Link href="/entrar" className="barra__enlace">
+            Entrar
+          </Link>
         }
         mobileBottom={
           <>

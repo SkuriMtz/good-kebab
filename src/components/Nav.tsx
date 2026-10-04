@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { BotonTema } from "./BotonTema";
-import { Logo } from "./Logo";
+import { Marca } from "./Logo";
 import { PERSONAJES, Personaje } from "./agentes/Personaje";
 import type { IdAgente } from "@/lib/agentes";
 import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
@@ -131,11 +131,13 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
       <header className="barra" data-sombra={sombra ? "true" : "false"} data-abierto={abierto ? "true" : "false"}>
         <div className="barra__fila">
           <Link href={homeHref} className="flex min-h-[44px] shrink-0 items-center" aria-label="Atendel, inicio">
-            <Logo />
+            <Marca className="h-[26px] w-[26px]" />
           </Link>
 
           <nav className="barra__enlaces" aria-label="Principal">
-            {items.map((item) => (
+            {items
+              .filter((item) => item.href !== homeHref)
+              .map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

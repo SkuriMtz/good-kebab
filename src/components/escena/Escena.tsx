@@ -1,55 +1,39 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { crearForma, esForma, POR_PUNTO, type NombreForma } from "./formas";
+import { crearForma, POR_PUNTO, type NombreForma } from "./formas";
+import { colocar, esEscena, type NombreEscena } from "./escenas";
 
 /**
- * El fondo vivo del sitio: una figura en 3D hecha de miles de triangulitos
- * de colores (una burbuja de chat, un globo, un candado, el logo…).
- * - Cada sección de la página dice qué figura va con ella y de qué lado:
- *   <section data-forma="esfera" data-lado="izquierda">. Al bajar, los
- *   triangulitos se sueltan y vuelan a formar la figura de la siguiente.
+ * El fondo vivo del sitio (como el de Dala): una figura en 3D hecha de miles
+ * de triangulitos de colores.
+ * - Cada sección dice qué escena lleva: <section data-escena="globo">.
+ * - Mientras lees una sección, su figura se queda QUIETA (apenas gira).
+ * - Cuando la siguiente sección entra a la pantalla, los triangulitos se
+ *   sueltan, flotan como polvo y vuelan a formar la figura nueva. Cada uno
+ *   es un resorte suave: arranca despacio, acelera y frena sin rebotar.
  * - Alrededor flotan triangulitos sueltos y unos tetraedros grandes.
- * - La figura gira despacio y se inclina un poco hacia el cursor.
- * - Con "reducir movimiento" no se anima: la figura cambia de golpe.
+ * - Con "reducir movimiento" la figura cambia sin animación.
  * - Fuera de la pestaña no dibuja. Si el navegador no tiene WebGL, no hay fondo.
  */
 
-type Lado = "izquierda" | "derecha" | "centro";
+/** La escena cambia cuando la siguiente sección pasa esta línea (fracción de la pantalla desde arriba). */
+const LINEA_CAMBIO = 0.85;
 
 const VERT_FIGURA = `
-attribute vec3 aPosA; attribute vec4 aColA; attribute float aTamA;
-attribute vec3 aPosB; attribute vec4 aColB; attribute float aTamB;
-attribute vec4 aAzar; attribute vec3 aDir;
-uniform float uT, uTiempo, uDpr;
-uniform vec2 uRes, uRotA, uRotB, uOffA, uOffB;
-uniform float uEscA, uEscB, uAlfA, uAlfB;
+attribute vec2 aPos; attribute float aProf; attribute vec4 aCol; attribute float aTam;
+attribute vec2 aAzar;
+uniform vec2 uRes; uniform float uTiempo, uDpr, uCam;
 varying vec3 vCol; varying float vAlfa, vTam, vAng;
-vec3 rotar(vec3 p, vec2 r) {
-  float cy = cos(r.x), sy = sin(r.x);
-  p = vec3(cy * p.x + sy * p.z, p.y, -sy * p.x + cy * p.z);
-  float cx = cos(r.y), sx = sin(r.y);
-  return vec3(p.x, cx * p.y - sx * p.z, sx * p.y + cx * p.z);
-}
 void main() {
-  float e = clamp((uT - aAzar.x * 0.35) / 0.65, 0.0, 1.0);
-  e = e * e * (3.0 - 2.0 * e);
-  float f = aAzar.w * 6.2831;
-  vec3 deriva = vec3(sin(uTiempo * 0.6 + f), cos(uTiempo * 0.5 + f * 1.3), sin(uTiempo * 0.4 + f * 0.7)) * 0.012;
-  vec3 p = mix(rotar(aPosA, uRotA), rotar(aPosB, uRotB), e) + aDir * sin(3.14159 * e) * 0.9 + deriva;
-  float esc = mix(uEscA, uEscB, e);
-  float z = 3.2 - p.z;
-  vec2 q = p.xy * (3.2 / z) * esc;
-  vec2 px = uRes * 0.5 + mix(uOffA, uOffB, e) * uRes + vec2(q.x, -q.y);
+  float f = uCam / (uCam - aProf);
+  vec2 px = uRes * 0.5 + aPos * f;
   gl_Position = vec4(px.x / uRes.x * 2.0 - 1.0, 1.0 - px.y / uRes.y * 2.0, 0.0, 1.0);
-  vec4 col = mix(aColA, aColB, e);
-  float frente = smoothstep(0.3, 1.0, (p.z + 1.1) / 2.2);
-  vCol = col.rgb;
-  vAlfa = col.a * mix(0.1, 1.0, frente) * mix(uAlfA, uAlfB, e);
-  float tam = (3.5 + 6.0 * aAzar.y) * mix(aTamA, aTamB, e) * (3.2 / z) * clamp(esc / 330.0, 0.5, 1.25);
-  gl_PointSize = max(tam * uDpr, 1.0);
+  vCol = aCol.rgb;
+  vAlfa = aCol.a;
+  gl_PointSize = max(aTam * f * uDpr, 1.0);
   vTam = gl_PointSize;
-  vAng = aAzar.z * 6.2831 + uTiempo * (aAzar.y - 0.5) * 0.8;
+  vAng = aAzar.x * 6.2831 + uTiempo * aAzar.y;
 }`;
 
 const VERT_POLVO = `
@@ -65,7 +49,7 @@ void main() {
   vAlfa = (0.12 + 0.5 * prof * prof) * uAlfa;
   gl_PointSize = aP.w * uDpr;
   vTam = gl_PointSize;
-  vAng = aC.w * 6.2831 + uTiempo * (aC.w - 0.5) * 0.5;
+  vAng = aC.w * 6.2831 + uTiempo * (aC.w - 0.5) * 0.4;
 }`;
 
 const FRAG = `
@@ -95,34 +79,6 @@ void main() {
   gl_FragColor = vec4(col * a, a);
 }`;
 
-/** Dónde va la figura y de qué tamaño, según la pantalla. */
-function colocar(forma: NombreForma, lado: Lado, w: number, h: number) {
-  const celular = w < 900;
-  if (forma === "polvo") return { off: [0, 0], esc: Math.min(w, h) * 0.5, alfa: 0.5 };
-  if (celular) return { off: [0, -0.2], esc: Math.min(w * 0.4, h * 0.27) * (forma === "esfera" ? 1.1 : 1), alfa: lado === "centro" ? 0.45 : 0.75 };
-  if (lado === "centro") return { off: [0, 0], esc: Math.min(w * 0.22, h * 0.36), alfa: 0.5 };
-  // El globo va más grande y se sale un poco de la orilla, como un planeta
-  if (forma === "esfera") return { off: [lado === "izquierda" ? -0.27 : 0.3, 0.04], esc: Math.min(w * 0.25, h * 0.44), alfa: 1 };
-  const x = lado === "derecha" ? 0.25 : -0.25;
-  return { off: [x, 0.02], esc: Math.min(w * 0.19, h * 0.36), alfa: 1 };
-}
-
-/** Cómo gira cada figura (vuelta completa el globo; las demás se mecen). */
-function giro(forma: NombreForma, t: number): [number, number] {
-  switch (forma) {
-    case "esfera":
-      return [t * 0.12, 0.38];
-    case "burbuja":
-      return [Math.sin(t * 0.25) * 0.5 - 0.15, 0.12 + Math.sin(t * 0.21) * 0.06];
-    case "candado":
-      return [Math.sin(t * 0.3) * 0.55, 0.16];
-    case "marca":
-      return [Math.sin(t * 0.2) * 0.45, Math.sin(t * 0.17) * 0.2];
-    default:
-      return [t * 0.02, 0];
-  }
-}
-
 /* Los tetraedros grandes (dibujados aparte, con líneas más gruesas) */
 const VERTICES_TETRA = [
   [0, 1, 0],
@@ -139,15 +95,22 @@ const ARISTAS = [
   [3, 1],
 ];
 
+const suave = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
 export function Escena() {
   const ref = useRef<HTMLCanvasElement>(null);
   const refLineas = useRef<HTMLCanvasElement>(null);
+  const refCaja = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = ref.current;
     const lienzo = refLineas.current;
+    const caja = refCaja.current;
     const ctx2 = lienzo?.getContext("2d");
-    if (!canvas || !lienzo || !ctx2) return;
+    if (!canvas || !lienzo || !caja || !ctx2) return;
     const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true });
     if (!gl) return;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -171,34 +134,46 @@ export function Escena() {
     if (!gl.getProgramParameter(progFigura, gl.LINK_STATUS) || !gl.getProgramParameter(progPolvo, gl.LINK_STATUS)) return;
 
     const ancho0 = window.innerWidth;
-    const N = ancho0 < 700 ? 4500 : ancho0 < 1200 ? 7500 : 9500;
-    const NP = ancho0 < 700 ? 140 : 320;
+    const N = ancho0 < 700 ? 6000 : ancho0 < 1200 ? 9000 : 12000;
+    const NP = ancho0 < 700 ? 120 : 260;
 
-    // Una figura por buffer, creada la primera vez que se necesita
-    const buffers = new Map<NombreForma, WebGLBuffer>();
-    const buffer = (forma: NombreForma) => {
-      let b = buffers.get(forma);
-      if (!b) {
-        b = gl.createBuffer()!;
-        gl.bindBuffer(gl.ARRAY_BUFFER, b);
-        gl.bufferData(gl.ARRAY_BUFFER, crearForma(forma, N), gl.STATIC_DRAW);
-        buffers.set(forma, b);
+    // Las figuras, creadas la primera vez que se necesitan
+    const formas = new Map<NombreForma, Float32Array>();
+    const forma = (nombre: NombreForma) => {
+      let f = formas.get(nombre);
+      if (!f) {
+        f = crearForma(nombre, N);
+        formas.set(nombre, f);
       }
-      return b;
+      return f;
     };
 
-    // Lo que cada punto tiene de propio: retraso al volar, tamaño, giro y hacia dónde se dispersa
-    const azar = new Float32Array(N * 7);
+    // Estado de cada triangulito: dónde está, a qué velocidad va, su color, opacidad y tamaño
+    const pos = new Float32Array(N * 3);
+    const vel = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const alfa = new Float32Array(N);
+    const tam = new Float32Array(N);
+    // Lo propio de cada uno: qué tan rápido llega (resorte), su fase y su tamaño
+    const rigidez = new Float32Array(N);
+    const fase = new Float32Array(N);
+    const tamBase = new Float32Array(N);
+    const estatico = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
-      azar.set([Math.random(), Math.random(), Math.random(), Math.random()], i * 7);
-      const u = Math.random() * 2 - 1;
-      const a = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(1 - u * u) * (0.4 + Math.random() * 0.8);
-      azar.set([r * Math.cos(a), u * 0.6, r * Math.sin(a)], i * 7 + 4);
+      rigidez[i] = 7 + Math.random() * 13;
+      fase[i] = Math.random() * Math.PI * 2;
+      tamBase[i] = 3.2 + Math.random() * 5.5;
+      estatico[i * 2] = Math.random();
+      estatico[i * 2 + 1] = (Math.random() - 0.5) * 0.5;
     }
-    const bufAzar = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufAzar);
-    gl.bufferData(gl.ARRAY_BUFFER, azar, gl.STATIC_DRAW);
+    const datos = new Float32Array(N * 8);
+
+    const bufDatos = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufDatos);
+    gl.bufferData(gl.ARRAY_BUFFER, datos.byteLength, gl.DYNAMIC_DRAW);
+    const bufEstatico = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufEstatico);
+    gl.bufferData(gl.ARRAY_BUFFER, estatico, gl.STATIC_DRAW);
 
     // El polvo de fondo: posición en pantalla (0 a 1), profundidad, tamaño, color y fase
     const COLORES_POLVO = [
@@ -212,9 +187,9 @@ export function Escena() {
     for (let i = 0; i < NP; i++) {
       const prof = Math.random();
       const grande = Math.random() < 0.05;
-      const tam = grande ? 12 + Math.random() * 8 : 4 + prof * 6 + Math.random() * 2;
+      const t = grande ? 12 + Math.random() * 8 : 4 + prof * 6 + Math.random() * 2;
       const c = COLORES_POLVO[Math.floor(Math.random() * COLORES_POLVO.length)];
-      polvo.set([Math.random(), Math.random(), prof, tam, c[0], c[1], c[2], Math.random()], i * 8);
+      polvo.set([Math.random(), Math.random(), prof, t, c[0], c[1], c[2], Math.random()], i * 8);
     }
     const bufPolvo = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, bufPolvo);
@@ -223,42 +198,27 @@ export function Escena() {
     const at = (p: WebGLProgram, n: string) => gl.getAttribLocation(p, n);
     const un = (p: WebGLProgram, n: string) => gl.getUniformLocation(p, n);
     const A = {
-      posA: at(progFigura, "aPosA"),
-      colA: at(progFigura, "aColA"),
-      tamA: at(progFigura, "aTamA"),
-      posB: at(progFigura, "aPosB"),
-      colB: at(progFigura, "aColB"),
-      tamB: at(progFigura, "aTamB"),
+      pos: at(progFigura, "aPos"),
+      prof: at(progFigura, "aProf"),
+      col: at(progFigura, "aCol"),
+      tam: at(progFigura, "aTam"),
       azar: at(progFigura, "aAzar"),
-      dir: at(progFigura, "aDir"),
       p: at(progPolvo, "aP"),
       c: at(progPolvo, "aC"),
     };
-    const U = Object.fromEntries(
-      ["uT", "uTiempo", "uDpr", "uRes", "uRotA", "uRotB", "uOffA", "uOffB", "uEscA", "uEscB", "uAlfA", "uAlfB", "uClaro"].map((n) => [n, un(progFigura, n)]),
-    );
+    const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro"].map((n) => [n, un(progFigura, n)]));
     const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro"].map((n) => [n, un(progPolvo, n)]));
 
-    const atarFigura = (loc: { pos: number; col: number; tam: number }, forma: NombreForma) => {
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer(forma));
-      const paso = POR_PUNTO * 4;
-      gl.enableVertexAttribArray(loc.pos);
-      gl.vertexAttribPointer(loc.pos, 3, gl.FLOAT, false, paso, 0);
-      gl.enableVertexAttribArray(loc.col);
-      gl.vertexAttribPointer(loc.col, 4, gl.FLOAT, false, paso, 12);
-      gl.enableVertexAttribArray(loc.tam);
-      gl.vertexAttribPointer(loc.tam, 1, gl.FLOAT, false, paso, 28);
-    };
-
     // Tetraedros grandes que flotan
-    const tetras = Array.from({ length: ancho0 < 700 ? 4 : 7 }, (_, i) => ({
-      x: (i + 0.5) / (ancho0 < 700 ? 4 : 7) + (Math.random() - 0.5) * 0.1,
+    const cuantos = ancho0 < 700 ? 4 : 7;
+    const tetras = Array.from({ length: cuantos }, (_, i) => ({
+      x: (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
       y: Math.random(),
       prof: Math.random(),
       tam: 16 + Math.random() * 22,
-      color: ["#ffb829", "#8052ff", "#2fd6a8", "#e8e4ff", "#ffb829", "#8052ff", "#2fd6a8"][i],
+      color: ["#ffb829", "#d9d4e8", "#8052ff", "#ffb829", "#2fd6a8", "#d9d4e8", "#8052ff"][i],
       giro: [Math.random() * 6, Math.random() * 6],
-      vel: [(Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.4],
+      vel: [(Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.3],
     }));
 
     let w = 0;
@@ -276,57 +236,194 @@ export function Escena() {
     };
     medir();
 
-    // Las secciones con figura
+    // Las secciones con escena
     let secciones: HTMLElement[] = [];
     const buscar = () => {
-      secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-forma]"));
+      secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-escena]"));
     };
     buscar();
     const mo = new MutationObserver(buscar);
     mo.observe(document.body, { childList: true, subtree: true });
 
     let claro = document.documentElement.dataset.tema === "claro";
-    const moTema = new MutationObserver(() => {
-      claro = document.documentElement.dataset.tema === "claro";
-      if (quieto) dibujar(0);
-    });
-    moTema.observe(document.documentElement, { attributes: true, attributeFilter: ["data-tema"] });
 
-    // Inclinación hacia el cursor
+    /** La escena que toca según dónde va la página. */
+    const escenaActual = (): NombreEscena => {
+      let actual: NombreEscena | null = null;
+      let fondo = Infinity;
+      for (const el of secciones) {
+        const nombre = el.dataset.escena;
+        if (!esEscena(nombre)) continue;
+        const r = el.getBoundingClientRect();
+        // La primera figura ya se ve si su sección empieza arriba de la página
+        if (r.top < h * LINEA_CAMBIO || (actual === null && r.top < h * 0.5)) {
+          actual = nombre;
+          fondo = r.bottom;
+        }
+      }
+      if (actual === null) return "polvo";
+      // Después de la última figura, la página sigue con polvo
+      if (fondo < h * 0.35) return "polvo";
+      return actual;
+    };
+
+    // Inclinación hacia el cursor (muy poca)
     const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
     const alMover = (e: PointerEvent) => {
       mouse.x = (e.clientX / w) * 2 - 1;
       mouse.y = (e.clientY / h) * 2 - 1;
     };
 
-    /** Qué dos figuras se ven ahora y cuánto va de una a otra. */
-    const estado = () => {
-      let fondo = 0;
-      const info = secciones.map((el) => {
-        const r = el.getBoundingClientRect();
-        fondo = r.bottom;
-        const forma = esForma(el.dataset.forma) ? el.dataset.forma : "polvo";
-        return { forma, lado: (el.dataset.lado as Lado) || "derecha", c: r.top + r.height / 2 - h / 2 };
-      });
-      // Después de la última figura, la página sigue con polvo
-      const ultima = info[info.length - 1];
-      if (ultima && ultima.forma !== "polvo") info.push({ forma: "polvo", lado: "centro", c: fondo - h / 2 + h * 0.6 });
-      if (!info.length) return { a: { forma: "polvo" as NombreForma, lado: "centro" as Lado }, b: { forma: "polvo" as NombreForma, lado: "centro" as Lado }, t: 0 };
-      let i = -1;
-      for (let k = 0; k < info.length; k++) if (info[k].c <= 0) i = k;
-      if (i < 0) return { a: info[0], b: info[0], t: 0 };
-      if (i >= info.length - 1) return { a: info[i], b: info[i], t: 0 };
-      let t = -info[i].c / (info[i + 1].c - info[i].c);
-      t = Math.min(1, Math.max(0, (t - 0.15) / 0.7));
-      if (quieto) t = t < 0.5 ? 0 : 1;
-      return { a: info[i], b: info[i + 1], t };
+    let activa: NombreEscena = escenaActual();
+    let agitacion = 0;
+    let primera = true;
+    let antes = 0;
+
+    /** Avanza a cada triangulito hacia su lugar en la figura de la escena activa. */
+    const avanzar = (tiempo: number, dt: number, saltar: boolean) => {
+      const C = colocar(activa, w, h);
+      const F = forma(C.forma);
+      let [yaw, pitch] = C.giro(tiempo);
+      const roll = C.giro(tiempo)[2];
+      if (C.modo === "objeto" && !quieto) {
+        yaw += mouse.sx * 0.12;
+        pitch += mouse.sy * 0.07;
+      }
+      // Matriz de giro: de lado (z), hacia los lados (y) y hacia adelante (x)
+      const cz = Math.cos(roll);
+      const sz = Math.sin(roll);
+      const cy = Math.cos(yaw);
+      const sy = Math.sin(yaw);
+      const cx = Math.cos(pitch);
+      const sx = Math.sin(pitch);
+      const ox = (C.cx - 0.5) * w;
+      const oy = (C.cy - 0.5) * h;
+      const S = C.escala;
+      const factorTam = C.modo === "objeto" ? Math.min(1.3, Math.max(0.55, S / 330)) : Math.min(1.1, Math.max(0.7, w / 1400));
+      const kColor = saltar ? 1 : 1 - Math.exp(-dt * 3.2);
+      const fuerza = agitacion * 560;
+      const pasos = Math.max(1, Math.min(5, Math.round(dt * 60)));
+      const h1 = dt / pasos;
+
+      for (let i = 0; i < N; i++) {
+        const o = i * POR_PUNTO;
+        const lx = F[o];
+        const ly = F[o + 1];
+        const lz = F[o + 2];
+        let tx: number;
+        let ty: number;
+        let tz: number;
+        let visible = 1;
+        if (C.modo === "objeto") {
+          // Girar
+          const x1 = lx * cz - ly * sz;
+          const y1 = lx * sz + ly * cz;
+          const x2 = x1 * cy + lz * sy;
+          const z2 = -x1 * sy + lz * cy;
+          const y3 = y1 * cx - z2 * sx;
+          const z3 = y1 * sx + z2 * cx;
+          tx = ox + x2 * S;
+          ty = oy - y3 * S;
+          tz = z3 * S;
+          // Lo de atrás se apaga (el globo se ve sólido)
+          if (C.ocultarAtras > 0) visible = 1 - C.ocultarAtras * (1 - suave(-0.35, 0.3, z3));
+          // En el globo, la orilla se apaga un poco (si no, se ve un anillo muy brillante)
+          if (C.ocultarAtras >= 1) visible *= 0.5 + 0.5 * suave(0, 0.55, z3);
+          // Respira apenas: casi quieta
+          if (!quieto) {
+            tx += Math.sin(tiempo * 0.7 + fase[i]) * 0.6;
+            ty += Math.cos(tiempo * 0.6 + fase[i] * 1.3) * 0.6;
+          }
+        } else {
+          tx = lx * w * 0.5;
+          ty = -ly * h * 0.5;
+          tz = lz * h * 0.25;
+          if (!quieto) {
+            tx += Math.sin(tiempo * 0.12 + fase[i]) * 14;
+            ty += Math.cos(tiempo * 0.1 + fase[i] * 1.7) * 10;
+          }
+        }
+
+        const p = i * 3;
+        if (saltar) {
+          pos[p] = tx;
+          pos[p + 1] = ty;
+          pos[p + 2] = tz;
+          vel[p] = vel[p + 1] = vel[p + 2] = 0;
+        } else {
+          // Resorte con amortiguación crítica: llega suave, sin rebotar
+          const k = rigidez[i];
+          const amort = 2 * Math.sqrt(k);
+          let fx = 0;
+          let fy = 0;
+          let fz = 0;
+          if (fuerza > 1) {
+            // Mientras cambia de figura, una corriente suave revuelve el polvo
+            const px = pos[p];
+            const py = pos[p + 1];
+            const pz = pos[p + 2];
+            fx = (Math.sin(py * 0.0085 + tiempo * 1.1 + fase[i]) + Math.sin(pz * 0.011 - tiempo * 0.8)) * fuerza;
+            fy = (Math.sin(pz * 0.0095 + tiempo * 0.9) + Math.sin(px * 0.0075 + tiempo * 1.3 + fase[i])) * fuerza;
+            fz = (Math.sin(px * 0.009 - tiempo) + Math.sin(py * 0.012 + tiempo * 0.8)) * fuerza;
+          }
+          // En pasos de 1/60 s: se mueve igual de suave aunque la computadora dibuje menos cuadros
+          for (let paso = 0; paso < pasos; paso++) {
+            vel[p] += ((tx - pos[p]) * k - vel[p] * amort + fx) * h1;
+            vel[p + 1] += ((ty - pos[p + 1]) * k - vel[p + 1] * amort + fy) * h1;
+            vel[p + 2] += ((tz - pos[p + 2]) * k - vel[p + 2] * amort + fz) * h1;
+            pos[p] += vel[p] * h1;
+            pos[p + 1] += vel[p + 1] * h1;
+            pos[p + 2] += vel[p + 2] * h1;
+          }
+        }
+        col[p] += (F[o + 3] - col[p]) * kColor;
+        col[p + 1] += (F[o + 4] - col[p + 1]) * kColor;
+        col[p + 2] += (F[o + 5] - col[p + 2]) * kColor;
+        alfa[i] += (F[o + 6] * C.alfa * visible - alfa[i]) * kColor;
+        tam[i] += (tamBase[i] * F[o + 7] * C.tam * factorTam - tam[i]) * kColor;
+
+        const d = i * 8;
+        datos[d] = pos[p];
+        datos[d + 1] = pos[p + 1];
+        datos[d + 2] = pos[p + 2];
+        datos[d + 3] = col[p];
+        datos[d + 4] = col[p + 1];
+        datos[d + 5] = col[p + 2];
+        datos[d + 6] = alfa[i];
+        datos[d + 7] = tam[i];
+      }
     };
 
     const dibujar = (ms: number) => {
       const tiempo = quieto ? 0 : ms / 1000;
-      mouse.sx += (mouse.x - mouse.sx) * 0.04;
-      mouse.sy += (mouse.y - mouse.sy) * 0.04;
-      const { a, b, t } = estado();
+      const dt = antes ? Math.min(1 / 12, Math.max(0, (ms - antes) / 1000)) : 1 / 60;
+      antes = ms;
+      mouse.sx += (mouse.x - mouse.sx) * 0.03;
+      mouse.sy += (mouse.y - mouse.sy) * 0.03;
+
+      const nueva = escenaActual();
+      if (nueva !== activa) {
+        activa = nueva;
+        agitacion = 1;
+      }
+      agitacion *= Math.exp(-dt / 0.7);
+      caja.dataset.escenaActiva = activa;
+
+      if (primera) {
+        // Al abrir la página: los triangulitos llegan de una nube suave y forman la figura
+        avanzar(tiempo, dt, true);
+        if (!quieto) {
+          for (let i = 0; i < N; i++) {
+            pos[i * 3] += (Math.random() - 0.5) * w * 0.12;
+            pos[i * 3 + 1] += (Math.random() - 0.5) * h * 0.12;
+            pos[i * 3 + 2] += (Math.random() - 0.5) * 120;
+            alfa[i] = 0;
+          }
+          agitacion = 0.25;
+        }
+        primera = false;
+      }
+      avanzar(tiempo, dt, quieto);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -354,33 +451,26 @@ export function Escena() {
 
       // La figura
       gl.useProgram(progFigura);
-      atarFigura({ pos: A.posA, col: A.colA, tam: A.tamA }, a.forma);
-      atarFigura({ pos: A.posB, col: A.colB, tam: A.tamB }, b.forma);
-      gl.bindBuffer(gl.ARRAY_BUFFER, bufAzar);
+      gl.bindBuffer(gl.ARRAY_BUFFER, bufDatos);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, datos);
+      gl.enableVertexAttribArray(A.pos);
+      gl.vertexAttribPointer(A.pos, 2, gl.FLOAT, false, 32, 0);
+      gl.enableVertexAttribArray(A.prof);
+      gl.vertexAttribPointer(A.prof, 1, gl.FLOAT, false, 32, 8);
+      gl.enableVertexAttribArray(A.col);
+      gl.vertexAttribPointer(A.col, 4, gl.FLOAT, false, 32, 12);
+      gl.enableVertexAttribArray(A.tam);
+      gl.vertexAttribPointer(A.tam, 1, gl.FLOAT, false, 32, 28);
+      gl.bindBuffer(gl.ARRAY_BUFFER, bufEstatico);
       gl.enableVertexAttribArray(A.azar);
-      gl.vertexAttribPointer(A.azar, 4, gl.FLOAT, false, 28, 0);
-      gl.enableVertexAttribArray(A.dir);
-      gl.vertexAttribPointer(A.dir, 3, gl.FLOAT, false, 28, 16);
-      const ca = colocar(a.forma, a.lado, w, h);
-      const cb = colocar(b.forma, b.lado, w, h);
-      const ra = giro(a.forma, tiempo);
-      const rb = giro(b.forma, tiempo);
-      const ix = quieto ? 0 : mouse.sx * 0.3;
-      const iy = quieto ? 0 : mouse.sy * 0.15;
-      gl.uniform1f(U.uT, t);
+      gl.vertexAttribPointer(A.azar, 2, gl.FLOAT, false, 8, 0);
+      gl.uniform2f(U.uRes, w, h);
       gl.uniform1f(U.uTiempo, tiempo);
       gl.uniform1f(U.uDpr, dpr);
-      gl.uniform2f(U.uRes, w, h);
-      gl.uniform2f(U.uRotA, ra[0] + ix, ra[1] + iy);
-      gl.uniform2f(U.uRotB, rb[0] + ix, rb[1] + iy);
-      gl.uniform2f(U.uOffA, ca.off[0], ca.off[1]);
-      gl.uniform2f(U.uOffB, cb.off[0], cb.off[1]);
-      gl.uniform1f(U.uEscA, ca.esc);
-      gl.uniform1f(U.uEscB, cb.esc);
-      gl.uniform1f(U.uAlfA, ca.alfa * (claro ? 0.9 : 1));
-      gl.uniform1f(U.uAlfB, cb.alfa * (claro ? 0.9 : 1));
+      gl.uniform1f(U.uCam, Math.max(h, 600) * 3);
       gl.uniform1f(U.uClaro, claro ? 1 : 0);
       gl.drawArrays(gl.POINTS, 0, N);
+      for (const l of [A.pos, A.prof, A.col, A.tam, A.azar]) gl.disableVertexAttribArray(l);
 
       // Tetraedros grandes
       ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -404,14 +494,20 @@ export function Escena() {
         ctx2.shadowColor = claro ? "transparent" : te.color;
         ctx2.shadowBlur = claro ? 0 : 10;
         ctx2.beginPath();
-        for (const [p, q] of ARISTAS) {
-          ctx2.moveTo(pts[p][0], pts[p][1]);
-          ctx2.lineTo(pts[q][0], pts[q][1]);
+        for (const [a, b] of ARISTAS) {
+          ctx2.moveTo(pts[a][0], pts[a][1]);
+          ctx2.lineTo(pts[b][0], pts[b][1]);
         }
         ctx2.stroke();
       }
       ctx2.globalAlpha = 1;
     };
+
+    const moTema = new MutationObserver(() => {
+      claro = document.documentElement.dataset.tema === "claro";
+      if (quieto) dibujar(0);
+    });
+    moTema.observe(document.documentElement, { attributes: true, attributeFilter: ["data-tema"] });
 
     let raf = 0;
     let corriendo = false;
@@ -422,6 +518,7 @@ export function Escena() {
     const iniciar = () => {
       if (corriendo) return;
       corriendo = true;
+      antes = 0;
       raf = requestAnimationFrame(cuadro);
     };
     const detener = () => {
@@ -455,8 +552,8 @@ export function Escena() {
       window.removeEventListener("scroll", alBajar);
       window.removeEventListener("pointermove", alMover);
       document.removeEventListener("visibilitychange", alVisibilidad);
-      for (const b of buffers.values()) gl.deleteBuffer(b);
-      gl.deleteBuffer(bufAzar);
+      gl.deleteBuffer(bufDatos);
+      gl.deleteBuffer(bufEstatico);
       gl.deleteBuffer(bufPolvo);
       gl.deleteProgram(progFigura);
       gl.deleteProgram(progPolvo);
@@ -464,7 +561,7 @@ export function Escena() {
   }, []);
 
   return (
-    <div className="escena" aria-hidden="true">
+    <div ref={refCaja} className="escena" aria-hidden="true">
       <canvas ref={ref} />
       <canvas ref={refLineas} />
     </div>
