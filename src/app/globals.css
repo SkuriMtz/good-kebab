@@ -315,6 +315,10 @@
     border-radius: var(--radius-cards);
     background: color-mix(in srgb, var(--agente) 20%, var(--c-fondo));
   }
+  /* El retrato con el color completo del agente (como la foto de una tarjeta de equipo) */
+  .retrato--lleno {
+    background: var(--agente);
+  }
   .retrato > svg {
     width: 62%;
     height: 62%;

@@ -8,8 +8,9 @@ import { SCRIPT_TEMA } from "@/lib/tema";
 // Una sola tipografía, servida desde nuestro propio dominio (la política de
 // seguridad no permite cargar fuentes de otros sitios). Inter sustituye a la
 // del sistema de diseño: 400 para títulos, 200 para párrafos, 600 para menús.
+// Este archivo trae el corte "Display" de Inter, que se usa solo en tamaños grandes.
 const sans = localFont({
-  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2",
   weight: "100 900",
   style: "normal",
   display: "swap",
