@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Arrow, Check, claseBoton } from "../Buttons";
 import { ConversacionEjemplo } from "./ConversacionEjemplo";
-import { PERSONAJES, Personaje } from "./Personaje";
+import { Personaje } from "./Personaje";
+import { PERSONAJES } from "@/lib/personajes";
 import { DETALLE } from "./detalle";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { PLANES, planMinimo } from "@/lib/planes";
@@ -61,89 +62,77 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
             </svg>
           </button>
 
-          {/* Encabezado: personaje, nombre y frase */}
-          <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
-            <div
-              className="grid h-[104px] w-[104px] shrink-0 place-items-center rounded-tarjeta sm:h-[128px] sm:w-[128px]"
-              style={{ background: color }}
-            >
-              <Personaje agente={agente} avatar className="h-[72%] w-[72%]" />
-            </div>
+          {/* Encabezado: retrato, área, nombre y frase */}
+          <header className="dos-columnas !items-end">
             <div>
-              <p className="pill">
+              <p className="t-etiqueta">
                 {info.area} · {info.abarca}
               </p>
-              <h2 id="agente-modal-titulo" className="t-seccion mt-3">
+              <h2 id="agente-modal-titulo" className="t-display mt-[var(--spacing-18)]">
                 {info.nombre}
               </h2>
-              <p className="t-editorial mt-2 max-w-[560px]">{info.lema}</p>
+              <p className="t-editorial mt-[var(--spacing-18)] max-w-[480px]">{info.lema}</p>
+            </div>
+            <div className="w-full max-w-[260px] lg:justify-self-end">
+              <span className="retrato" style={{ "--agente": color } as CSSProperties}>
+                <Personaje agente={agente} avatar />
+              </span>
             </div>
           </header>
 
-          <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
-            <div className="flex flex-col gap-10">
+          <div className="dos-columnas mt-[var(--spacing-60)] !items-start lg:mt-[var(--spacing-96)]">
+            <div className="flex flex-col gap-[var(--spacing-60)]">
               <section>
                 <h3 className="t-etiqueta">Qué es y para qué sirve</h3>
-                <p className="t-cuerpo mt-3">{detalle.descripcion}</p>
+                <p className="t-cuerpo mt-[var(--spacing-12)]">{detalle.descripcion}</p>
               </section>
 
               <section>
                 <h3 className="t-etiqueta">Todo lo que puede hacer</h3>
-                <ul className="tarjeta mt-3 !p-0">
-                  {detalle.funciones.map((f, i) => (
-                    <li
-                      key={f.titulo}
-                      className={`grid grid-cols-[20px_minmax(0,1fr)] gap-3 px-5 py-4 ${i ? "border-t border-[var(--linea)]" : ""}`}
-                    >
-                      <Check className="mt-[3px] h-4 w-4 text-enlace" />
-                      <span>
-                        <span className="block font-semibold">{f.titulo}</span>
-                        <span className="mt-1 block text-[0.9375rem] leading-relaxed text-grafito">{f.detalle}</span>
-                      </span>
+                <ul className="mt-[var(--spacing-18)] flex flex-col gap-[var(--spacing-18)]">
+                  {detalle.funciones.map((f) => (
+                    <li key={f.titulo}>
+                      <p className="t-sub">{f.titulo}</p>
+                      <p className="t-cuerpo mt-1">{f.detalle}</p>
                     </li>
                   ))}
                 </ul>
               </section>
             </div>
 
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-[var(--spacing-60)]">
               <section>
-                <h3 className="t-etiqueta">Conversación de ejemplo</h3>
-                <div className="panel-color en-acento mt-3" style={{ "--acento": color } as CSSProperties}>
-                  <ConversacionEjemplo agente={agente} />
-                </div>
+                <ConversacionEjemplo agente={agente} />
               </section>
 
               <section>
                 <h3 className="t-etiqueta">En qué plan está</h3>
-                <ul className="mt-3 grid grid-cols-3 gap-2">
+                <ul className="mt-[var(--spacing-18)] grid grid-cols-3 gap-[var(--spacing-18)]">
                   {PLANES.map((p) => {
                     const incluido = p.agentes.includes(agente);
                     return (
-                      <li key={p.id} className={`tarjeta !p-4 ${incluido ? "" : "opacity-60"}`}>
-                        <span className="block text-[0.75rem] font-medium text-tenue">Atendel</span>
-                        <span className="mt-0.5 block text-[1.375rem] font-bold leading-none tracking-[-0.02em]">
-                          {p.nombre.replace("Atendel ", "")}
-                        </span>
-                        <span className={`mt-3 flex items-center gap-1.5 text-[0.8125rem] ${incluido ? "font-medium text-tinta" : "text-tenue"}`}>
-                          {incluido ? <Check className="h-3.5 w-3.5 text-enlace" /> : null}
+                      <li key={p.id}>
+                        <span className="t-caption block">Atendel</span>
+                        <span className={`t-titulo block ${incluido ? "" : "!text-[var(--c-tenue)]"}`}>{p.nombre.replace("Atendel ", "")}</span>
+                        <span className={`mt-[var(--spacing-6)] flex items-center gap-1 t-chico ${incluido ? "!text-[var(--c-acento)]" : ""}`}>
+                          {incluido ? <Check className="h-3.5 w-3.5" /> : null}
                           {incluido ? "Incluido" : "No incluido"}
                         </span>
                       </li>
                     );
                   })}
                 </ul>
-                <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">
                   <Link href="/entrar" className={claseBoton("primario")} onClick={onClose}>
                     {enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}
                   </Link>
-                  <Link href="/precios" className={claseBoton("texto")} onClick={onClose}>
+                  <Link href="/precios" className={claseBoton("suave")} onClick={onClose}>
                     Ver precios
                     <Arrow />
                   </Link>
                 </div>
                 {!enFree ? (
-                  <p className="t-chico mt-4">
+                  <p className="t-chico mt-[var(--spacing-18)]">
                     {info.nombre} llega con {planMinimo(agente).nombre}. Mientras, puedes empezar gratis con Clara.
                   </p>
                 ) : null}

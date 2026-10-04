@@ -9,11 +9,11 @@ export const metadata: Metadata = { title: "Pruébalo" };
 export default function Pruebalo() {
   return (
     <Sitio>
-      <section className="contenedor pb-12 pt-6 sm:pt-8">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+      <section className="contenedor pb-[var(--spacing-60)] pt-[var(--spacing-12)]">
+        <div className="mb-[var(--spacing-18)] flex flex-wrap items-end justify-between gap-x-[var(--spacing-24)] gap-y-[var(--spacing-12)]">
           <div>
-            <h1 className="text-[1.75rem] font-bold leading-tight tracking-[-0.025em]">Pruébalo</h1>
-            <p className="t-chico mt-1">
+            <h1 className="t-etiqueta">Pruébalo</h1>
+            <p className="t-chico mt-[var(--spacing-6)]">
               Escríbeles, usa @ para mencionar o / para una acción. Demostración: las respuestas son de ejemplo.
             </p>
           </div>

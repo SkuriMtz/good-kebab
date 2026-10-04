@@ -1,7 +1,7 @@
 /*
- * PromptBar (React Bits), con el estilo de Atendel: esquinas de 12px, filo
- * de 1px, el azul de la acción principal en el botón de enviar y los colores
- * del sistema de diseño (claro y oscuro).
+ * PromptBar (React Bits), con el estilo de Atendel: esquinas de 24px, filo
+ * de 1px, el violeta de la acción principal en el botón de enviar y los
+ * colores del sistema de diseño (claro y oscuro).
  */
 
 .prompt-bar {
@@ -34,7 +34,7 @@
   border: 1px solid var(--hairline);
   border-radius: 12px;
   background: var(--pb-menu);
-  box-shadow: var(--sombra-mockup, 0 4px 12px rgba(0, 0, 0, 0.1));
+  box-shadow: none;
   transform-origin: bottom center;
   animation: prompt-bar-pop 180ms var(--pb-ease-out) both;
 }
@@ -155,8 +155,7 @@
 }
 
 .prompt-bar__field:focus-within {
-  border-color: rgb(var(--c-accion));
-  box-shadow: 0 0 0 3px rgb(var(--c-accion) / 0.18);
+  border-color: var(--c-accion);
 }
 
 .prompt-bar__field::before {
@@ -332,7 +331,7 @@
 .prompt-bar__tool:focus-visible,
 .prompt-bar__send:focus-visible,
 .prompt-bar__row:focus-visible {
-  outline: 2px solid rgb(var(--c-accion));
+  outline: 2px solid var(--c-accion);
   outline-offset: 2px;
 }
 
@@ -502,8 +501,8 @@
 }
 
 .prompt-bar__send[data-armed] {
-  background: rgb(var(--c-accion));
-  color: rgb(var(--c-sobre-accion));
+  background: var(--c-accion);
+  color: var(--c-sobre-accion);
 }
 
 .prompt-bar__send[data-pressed] {

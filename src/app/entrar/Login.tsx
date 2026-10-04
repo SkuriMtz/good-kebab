@@ -57,16 +57,16 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   }
 
   return (
-    <section className="contenedor flex justify-center pb-20 pt-12 sm:pt-16 lg:pb-28 lg:pt-20">
-      <div className="w-full max-w-[460px]" aria-live="polite">
-        <MarcasAgentes />
+    <section className="contenedor dos-columnas pb-[var(--spacing-96)] pt-[var(--spacing-36)] lg:pt-[var(--spacing-96)]">
+      <div className="w-full max-w-[520px]" aria-live="polite">
         {estado !== "enviado" ? (
           <div key="formulario">
-            <h1 className="t-seccion mt-6 text-center">Entra a Atendel.</h1>
-            <p className="t-editorial mx-auto mt-3 max-w-[400px] text-center">
+            <p className="t-etiqueta">Entrar</p>
+            <h1 className="t-display mt-[var(--spacing-18)]">Entra a Atendel.</h1>
+            <p className="t-editorial mt-[var(--spacing-18)] max-w-[420px]">
               Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
             </p>
-            <form onSubmit={enviar} className="tarjeta mt-8 flex flex-col gap-4 !p-6 sm:!p-8">
+            <form onSubmit={enviar} className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-18)]">
               <Field
                 label="Tu correo"
                 name="email"
@@ -105,9 +105,9 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
             </form>
           </div>
         ) : (
-          <div key="enviado" className="tarjeta mt-6 !p-6 text-center sm:!p-8">
-            <p className="pill pill--azul">Link enviado</p>
-            <h1 className="t-seccion mt-4">Revisa tu correo.</h1>
+          <div key="enviado">
+            <p className="t-etiqueta">Link enviado</p>
+            <h1 className="t-display mt-[var(--spacing-18)]">Revisa tu correo.</h1>
             <p className="t-cuerpo mt-4">
               Te mandamos un link a <span className="font-semibold text-tinta">{email}</span>. Ábrelo en este mismo navegador
               para entrar.
@@ -118,6 +118,9 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
             </button>
           </div>
         )}
+      </div>
+      <div className="mx-auto hidden w-full max-w-[420px] lg:mr-0 lg:block">
+        <MarcasAgentes />
       </div>
     </section>
   );

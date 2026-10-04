@@ -28,4 +28,4 @@ Se conecta y se adapta al diseño nuevo.
 A mano: copia el archivo a la ruta de la columna "A dónde regresa", copia su CSS desde
 `estilos-anteriores/globals.css` y vuelve a ponerlo en la página donde se usaba.
 
-La versión completa anterior del sitio sigue intacta en la rama `rediseno-3`.
+La versión completa anterior del sitio sigue intacta en la rama `rediseno-3` (es el respaldo de este rediseño).

@@ -48,7 +48,7 @@ export function Texto({ texto }: { texto: string }) {
           <table className="w-full min-w-[420px] border-collapse text-left text-[0.9375rem]">
             {cabeza ? (
               <thead>
-                <tr className="border-b border-[var(--linea-fuerte)]">
+                <tr className="border-b border-[var(--c-filo-campo)]">
                   {cabeza.map((c, j) => (
                     <th key={j} className="py-2 pr-4 text-[0.8125rem] font-semibold text-tenue">
                       {c}
@@ -59,7 +59,7 @@ export function Texto({ texto }: { texto: string }) {
             ) : null}
             <tbody>
               {resto.map((f, k) => (
-                <tr key={k} className="border-b border-[var(--linea)]">
+                <tr key={k} className="border-b border-[var(--c-velo-fuerte)]">
                   {f.map((c, j) => (
                     <td key={j} className="py-2 pr-4 align-top">
                       {enLinea(c)}

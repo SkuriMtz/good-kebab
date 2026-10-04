@@ -6,51 +6,43 @@ export function Borrador({ children = "Texto de ejemplo · revísalo" }: { child
 }
 
 /**
- * Encabezado de una página, centrado: lo de arriba (p. ej. las marcas de los
- * agentes), el título grande, la entradilla en serif y las acciones.
+ * Encabezado de una página: etiqueta en ámbar y título enorme a la
+ * izquierda; el texto y las acciones abajo, alineados igual.
  */
 export function EncabezadoPagina({
-  arriba,
+  etiqueta,
   titulo,
   texto,
   acciones,
 }: {
-  arriba?: ReactNode;
+  etiqueta?: ReactNode;
   titulo: ReactNode;
   texto?: ReactNode;
   acciones?: ReactNode;
 }) {
   return (
-    <header className="contenedor pb-12 pt-12 text-center sm:pt-16 lg:pb-16 lg:pt-20">
-      {arriba ? <div className="mb-6 flex justify-center">{arriba}</div> : null}
-      <h1 className="t-display mx-auto max-w-[18ch]">{titulo}</h1>
-      {texto ? <p className="t-editorial t-editorial--grande mx-auto mt-5 max-w-[640px]">{texto}</p> : null}
-      {acciones ? <div className="mt-8 flex flex-wrap items-center justify-center gap-3">{acciones}</div> : null}
+    <header className="contenedor pb-[var(--spacing-60)] pt-[var(--spacing-36)] lg:pb-[var(--spacing-96)] lg:pt-[var(--spacing-96)]">
+      {etiqueta ? <p className="t-etiqueta">{etiqueta}</p> : null}
+      <h1 className="t-display mt-[var(--spacing-18)] max-w-[15ch]">{titulo}</h1>
+      {texto || acciones ? (
+        <div className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-24)] lg:flex-row lg:items-end lg:justify-between">
+          {texto ? <p className="t-editorial max-w-[520px]">{texto}</p> : <span />}
+          {acciones ? <div className="flex flex-wrap items-center gap-[var(--spacing-12)]">{acciones}</div> : null}
+        </div>
+      ) : null}
     </header>
   );
 }
 
-/** Encabezado de una sección: etiqueta, título y entradilla. */
-export function EncabezadoSeccion({
-  etiqueta,
-  titulo,
-  texto,
-  centrado = false,
-  id,
-}: {
-  etiqueta?: ReactNode;
-  titulo: ReactNode;
-  texto?: ReactNode;
-  centrado?: boolean;
-  id?: string;
-}) {
+/** Encabezado de una sección: etiqueta en ámbar, título y texto. */
+export function EncabezadoSeccion({ etiqueta, titulo, texto, id }: { etiqueta?: ReactNode; titulo: ReactNode; texto?: ReactNode; id?: string }) {
   return (
-    <div className={centrado ? "mx-auto max-w-[760px] text-center" : "max-w-[760px]"}>
+    <div>
       {etiqueta ? <p className="t-etiqueta">{etiqueta}</p> : null}
-      <h2 id={id} className="t-seccion mt-3">
+      <h2 id={id} className="t-seccion mt-[var(--spacing-18)] max-w-[18ch]">
         {titulo}
       </h2>
-      {texto ? <p className={`t-editorial mt-4 ${centrado ? "mx-auto" : ""} max-w-[620px]`}>{texto}</p> : null}
+      {texto ? <p className="t-cuerpo mt-[var(--spacing-18)] max-w-[520px]">{texto}</p> : null}
     </div>
   );
 }

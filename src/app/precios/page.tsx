@@ -11,31 +11,35 @@ export default function Precios() {
   return (
     <Sitio>
       <EncabezadoPagina
+        etiqueta="Precios · Free → One → Max"
         titulo={
           <>
-            Empieza <span className="pastilla">gratis</span>. Crece cuando quieras.
+            Empieza gratis. <span className="resalta">Crece cuando quieras.</span>
           </>
         }
         texto="Free para conocer a Clara. One para sumar a Lola, tu atención por WhatsApp. Max para tener a todo el equipo."
       />
 
-      <section aria-label="Planes" className="contenedor pb-16 lg:pb-20">
+      <section aria-label="Planes" className="contenedor pb-[var(--spacing-60)] lg:pb-[var(--spacing-96)]">
         <Planes />
       </section>
 
-      <section className="seccion border-t border-[var(--linea)]">
-        <div className="contenedor flex flex-col items-center text-center">
-          <h2 className="t-seccion">Pruébalos antes de decidir.</h2>
-          <p className="t-editorial mt-4 max-w-[560px]">
-            Habla con los cuatro agentes en el chat de demostración, o revisa las preguntas frecuentes.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <BotonLink href="/pruebalo" tam="grande">
-              Habla con los agentes
-            </BotonLink>
-            <BotonLink href="/preguntas" variante="suave" tam="grande">
-              Preguntas frecuentes
-            </BotonLink>
+      <section className="seccion">
+        <div className="contenedor">
+          <p className="t-etiqueta">Antes de decidir</p>
+          <h2 className="t-display mt-[var(--spacing-18)] max-w-[14ch]">
+            Pruébalos antes <span className="resalta">de decidir.</span>
+          </h2>
+          <div className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-24)] lg:flex-row lg:items-end lg:justify-between">
+            <p className="t-editorial max-w-[480px]">
+              Habla con los cuatro agentes en el chat de demostración, o revisa las preguntas frecuentes.
+            </p>
+            <div className="flex flex-wrap items-center gap-[var(--spacing-12)]">
+              <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
+              <BotonLink href="/preguntas" variante="suave" flecha>
+                Preguntas frecuentes
+              </BotonLink>
+            </div>
           </div>
         </div>
       </section>

@@ -72,15 +72,15 @@ export function MisAgentes({
       <main className="contenedor pb-24 pt-10 sm:pt-12 lg:pt-16">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7">
-            <p className="pill">{plan.nombre}</p>
-            <h1 className="t-display mt-4 !text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)]">Tu equipo.</h1>
+            <p className="t-etiqueta">{plan.nombre}</p>
+            <h1 className="t-display mt-[var(--spacing-18)]">Tu equipo.</h1>
             <p className="t-editorial mt-4 max-w-[540px]">
               {libre
                 ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
                 : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."}
             </p>
           </div>
-          <div className="tarjeta lg:col-span-5">
+          <div className="lg:col-span-5">
             <Uso usados={usados} plan={plan} />
           </div>
         </div>
@@ -96,7 +96,7 @@ export function MisAgentes({
             const permitido = plan.agentes.includes(a.id);
             const enEquipo = permitido && elegidos.includes(a.id);
             return (
-              <li key={a.id} className="tarjeta flex flex-col !p-6">
+              <li key={a.id} className="flex flex-col">
                 <div className="flex items-start justify-between gap-4">
                   <span
                     className={`marca-agente marca-agente--grande ${permitido ? "" : "opacity-60"}`}
@@ -150,7 +150,7 @@ export function MisAgentes({
         </ul>
 
         {plan.id !== "max" ? (
-          <div className="tarjeta mt-8 flex flex-col items-start gap-4 !p-6 md:flex-row md:items-center md:justify-between lg:!p-8">
+          <div className="mt-8 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <p className="t-cuerpo max-w-[600px]">
               {plan.id === "free" ? (
                 <>

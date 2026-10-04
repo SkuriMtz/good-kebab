@@ -10,22 +10,20 @@ export const metadata: Metadata = { title: "Preguntas frecuentes" };
 export default function PreguntasFrecuentes() {
   return (
     <Sitio>
-      <section className="contenedor grid gap-10 pb-16 pt-12 sm:pt-16 lg:grid-cols-12 lg:gap-12 lg:pb-24 lg:pt-20">
-        <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-[calc(var(--barra-h)+32px)]">
-            <p className="t-etiqueta">Preguntas frecuentes</p>
-            <h1 className="t-display mt-3 !text-[clamp(2.25rem,1.5rem+3vw,3.75rem)]">
-              Lo que nos <span className="pastilla">preguntan</span>.
-            </h1>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
-              <BotonLink href="/precios" variante="suave">
-                Ver precios
-              </BotonLink>
-            </div>
+      <section className="contenedor dos-columnas !items-start pb-[var(--spacing-96)] pt-[var(--spacing-36)] lg:pb-[var(--spacing-120)] lg:pt-[var(--spacing-96)]">
+        <div className="lg:sticky lg:top-[calc(var(--barra-h)+var(--spacing-36))]">
+          <p className="t-etiqueta">Preguntas frecuentes</p>
+          <h1 className="t-display mt-[var(--spacing-18)]">
+            Lo que <span className="resalta">nos preguntan.</span>
+          </h1>
+          <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">
+            <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
+            <BotonLink href="/precios" variante="suave" flecha>
+              Ver precios
+            </BotonLink>
           </div>
         </div>
-        <div id="preguntas" className="lg:col-span-7">
+        <div id="preguntas">
           <Preguntas preguntas={PREGUNTAS} />
         </div>
       </section>

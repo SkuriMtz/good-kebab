@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Spinner } from "@/components/Buttons";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { NavApp } from "@/components/app/NavApp";
@@ -528,8 +528,8 @@ export function Chat({
                   {grupo ? (
                     <Caras agentes={grupo} tam={92} />
                   ) : (
-                    <span className="grid h-24 w-24 place-items-center rounded-tarjeta" style={{ background: PERSONAJES[agente].color }}>
-                      <Personaje agente={agente} avatar className="h-[72%] w-[72%]" />
+                    <span className="retrato !w-28" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
+                      <Personaje agente={agente} avatar />
                     </span>
                   )}
                   <p className="mt-6 text-[1.75rem] font-bold leading-tight tracking-[-0.025em] sm:text-[2rem]">
@@ -630,10 +630,10 @@ export function Chat({
                 onSend={(t) => enviar(t)}
                 onStop={() => abortar.current?.abort()}
                 background="var(--chat-campo)"
-                color="rgb(var(--c-tinta))"
+                color="var(--c-texto)"
                 menuBackground="var(--chat-menu)"
                 width={4000}
-                radius={12}
+                radius={24}
                 maxRows={8}
               />
             ) : null}

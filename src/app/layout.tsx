@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+// Los valores del sistema de diseño (colores, tipografía, espacios, radios), tal cual vienen
+import "../../diseno/variables.css";
 import "./globals.css";
 import { SCRIPT_TEMA } from "@/lib/tema";
 
-// Tipografías servidas desde nuestro propio dominio (la política de seguridad
-// no permite cargar fuentes de otros sitios).
-// Inter: todo el sitio (400 para leer, 500 para menús y botones, 600–700 para títulos).
+// Una sola tipografía, servida desde nuestro propio dominio (la política de
+// seguridad no permite cargar fuentes de otros sitios). Inter sustituye a la
+// del sistema de diseño: 400 para títulos, 200 para párrafos, 600 para menús.
 const sans = localFont({
   src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
   weight: "100 900",
@@ -14,14 +16,6 @@ const sans = localFont({
   variable: "--font-sans",
 });
 
-// Source Serif: solo para las entradillas (el texto que acompaña a un título).
-const serif = localFont({
-  src: "../../node_modules/@fontsource/source-serif-4/files/source-serif-4-latin-400-normal.woff2",
-  weight: "400",
-  style: "normal",
-  display: "swap",
-  variable: "--font-serif",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -31,12 +25,12 @@ export const metadata: Metadata = {
   description:
     "Atendel lee tus correos, entiende qué necesita cada cliente y te dice qué hacer. Agentes de inteligencia artificial para clínicas, consultorios y estéticas.",
   applicationName: "Atendel",
-  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f5f4",
-  colorScheme: "light",
+  themeColor: "#000000",
+  colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -46,7 +40,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${sans.variable} ${serif.variable}`} suppressHydrationWarning>
+    <html lang="es" className={sans.variable} suppressHydrationWarning>
       <head>
         {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />

@@ -628,7 +628,7 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
   };
 
   return (
-    <div className={`chat-app${completa ? " chat-app--completa" : " mockup"}`}>
+    <div className={`chat-app${completa ? " chat-app--completa" : ""}`}>
       {/* ---------- Lista de chats y grupos ---------- */}
       <aside
         className="chat-app__barra"
@@ -801,10 +801,10 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
             onSend={(texto) => enviar(texto)}
             onStop={detener}
             background="var(--chat-campo)"
-            color="rgb(var(--c-tinta))"
+            color="var(--c-texto)"
             menuBackground="var(--chat-menu)"
             width={4000}
-            radius={12}
+            radius={24}
             maxRows={5}
           />
         </div>

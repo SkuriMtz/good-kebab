@@ -10,7 +10,7 @@ import { EVENTO_TEMA, ponerTema, temaActual, type Tema } from "@/lib/tema";
  * fila con su nombre (para el menú del celular).
  */
 export function BotonTema({ className = "", conTexto = false }: { className?: string; conTexto?: boolean }) {
-  const [tema, setTema] = useState<Tema>("claro");
+  const [tema, setTema] = useState<Tema>("oscuro");
 
   useEffect(() => {
     setTema(temaActual());

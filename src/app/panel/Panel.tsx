@@ -183,8 +183,8 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
 
       <main className="contenedor pb-24 pt-10 sm:pt-12 lg:pt-16">
         <header className="max-w-[760px]">
-          <p className="pill">Clara · Correo</p>
-          <h1 className="t-display mt-4 !text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)]">{saludo}</h1>
+          <p className="t-etiqueta">Clara · Correo</p>
+          <h1 className="t-display mt-[var(--spacing-18)]">{saludo}</h1>
           <p className="t-editorial mt-4 max-w-[560px]">
             Pega un correo o elige un ejemplo. Atendel te dice de qué trata y qué conviene hacer.
           </p>
@@ -192,11 +192,11 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
 
         {/* ---------- Modo de prueba ---------- */}
         <section id="probar" className="mt-10 grid grid-cols-1 gap-6 lg:mt-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
-          <div className="tarjeta !p-6 sm:!p-8">
+          <div className="!p-6 sm:!p-8">
             <p className="t-etiqueta">Agente de correo</p>
-            <h2 className="t-titulo mt-1">Resume un correo</h2>
+            <h2 className="t-seccion mt-[var(--spacing-12)]">Resume un correo</h2>
 
-            <p className="mt-6 text-[0.875rem] font-medium">Ejemplos</p>
+            <p className="campo__etiqueta mt-[var(--spacing-36)]">Ejemplos</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {EJEMPLOS.map((ejemplo) => (
                 <button key={ejemplo.etiqueta} type="button" className="chip" onClick={() => usarEjemplo(ejemplo)}>
@@ -253,10 +253,9 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
             <div
               ref={resultadoRef}
               aria-live="polite"
-              className="panel-color en-acento"
-              style={{ "--acento": "var(--agente-clara)" } as CSSProperties}
+              className="lg:pt-[var(--spacing-36)]"
             >
-              <div className="tarjeta mockup min-h-[240px]">
+              <div className="min-h-[240px]">
                 {resultado ? (
                   <>
                     <p className="t-etiqueta">Resumen</p>
@@ -289,10 +288,10 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
 
         {/* ---------- Gmail ---------- */}
         <section id="gmail" className="mt-6 lg:mt-8">
-          <div className="tarjeta flex flex-col gap-5 !p-6 sm:!p-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="t-etiqueta">Gmail</p>
-              <h2 className="t-titulo mt-1">Tu bandeja de entrada</h2>
+              <h2 className="t-seccion mt-[var(--spacing-12)]">Tu bandeja de entrada</h2>
               <p className="t-cuerpo mt-2 max-w-[480px]">
                 Conecta tu Gmail y Atendel resume tus correos sin leer. Solo lectura: nunca envía ni borra nada.
               </p>
@@ -350,7 +349,7 @@ export function Panel({ email, conGoogle }: { email: string; conGoogle: boolean 
             ) : (
               <ul className="flex flex-col gap-3">
                 {historial.map((item) => (
-                  <li key={item.id} className="tarjeta grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+                  <li key={item.id} className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
                     <div className="t-chico">
                       <p className="flex flex-wrap items-center gap-2 font-medium">
                         {nuevos.has(item.id) ? <span className="pill pill--azul !px-2 !py-0 !text-[0.75rem]">Nuevo</span> : null}

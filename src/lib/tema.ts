@@ -1,7 +1,7 @@
 /**
  * Modo claro / oscuro.
- * - El sitio abre en modo claro (el diseño es de papel claro). Si la persona
- *   eligió el oscuro con el botón, se recuerda para la próxima visita.
+ * - El sitio abre en modo oscuro (el diseño es negro). Si la persona eligió
+ *   el claro con el botón, se recuerda para la próxima visita.
  * - Un script en <head> (layout.tsx) pone data-tema en <html> antes de pintar.
  * - Los colores viven en variables CSS (globals.css), así que todo lo que use
  *   los colores del sistema de diseño se adapta solo.
@@ -9,17 +9,17 @@
 
 export type Tema = "claro" | "oscuro";
 
-export const CLAVE_TEMA = "atendel-tema";
+export const CLAVE_TEMA = "atendel-tema-v5";
 export const EVENTO_TEMA = "atendel:tema";
 
 /** Color de la barra del navegador en cada modo (igual al fondo del sitio). */
-const COLOR_BARRA: Record<Tema, string> = { claro: "#f6f5f4", oscuro: "#191918" };
+const COLOR_BARRA: Record<Tema, string> = { claro: "#ffffff", oscuro: "#000000" };
 
 /** Script que corre antes de pintar la página (evita el parpadeo). */
-export const SCRIPT_TEMA = `(function(){var t;try{t=localStorage.getItem('${CLAVE_TEMA}')}catch(e){}if(t!=='oscuro'){t='claro'}document.documentElement.dataset.tema=t;if(t==='oscuro'){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content','${COLOR_BARRA.oscuro}')}}})()`;
+export const SCRIPT_TEMA = `(function(){var t;try{t=localStorage.getItem('${CLAVE_TEMA}')}catch(e){}if(t!=='claro'){t='oscuro'}document.documentElement.dataset.tema=t;if(t==='claro'){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content','${COLOR_BARRA.claro}')}}})()`;
 
 export function temaActual(): Tema {
-  return document.documentElement.dataset.tema === "oscuro" ? "oscuro" : "claro";
+  return document.documentElement.dataset.tema === "claro" ? "claro" : "oscuro";
 }
 
 /** Cambia el modo y lo recuerda para la próxima visita. */
