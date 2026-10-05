@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- Paso 4 terminado. Siguiente: Paso 5, tanda del Grupo 1 (5 trabajadores).
+- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: tanda del Grupo 1 (5 trabajadores, worktrees `/home/user/wt/g1-t1…t5`, ramas `prop/g1-t1…t5`). Después: Grupo 2.
 
 ## Paso 0 — Archivos y respaldo
 
