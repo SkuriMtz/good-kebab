@@ -50,21 +50,21 @@ const PASOS: [number, Partial<Estado>][] = [
   // 2. Al empezar a bajar: gira hasta quedar de frente y al centro
   [0.08, { x: 0, y: 0, rotX: 0.04, rotY: 0, vida: 0.2 }],
   // 3. Qué es Atendel: el logo se vuelve un cerebro; la cámara se acerca y se va a la izquierda
-  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.25, vida: 0.3 }],
+  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.08, vida: 0.3 }],
   // …y la parte de abajo del cerebro se empieza a deshacer en partículas
   [0.27, { deshacer: 0.8 }],
   // 4. La figura explota y las partículas se dispersan por toda la pantalla
-  [0.36, { forma: 2, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 0.9, pantalla: 1, vida: 0.15, brillo: 0.36 }],
+  [0.36, { forma: 2, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 0.4, pantalla: 1, vida: 0.15, brillo: 0.36 }],
   // 5. El problema: caos flotando
   [0.56, { rotY: 0.12 }],
   // 6. Se juntan poco a poco al centro, con brillo cálido
-  [0.66, { forma: 3, pantalla: 0, dispersa: 0.2, rotY: 0, brillo: 0.22, vida: 0.4 }],
+  [0.66, { forma: 3, pantalla: 0, dispersa: 0.08, rotY: 0, brillo: 0.22, vida: 0.4 }],
   [0.72, { brillo: 0.22 }],
   // 7. La solución: la burbuja de chat, inclinada, a la izquierda
-  [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 0.3, brillo: 0.46, vida: 0.6 }],
+  [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 0.08, brillo: 0.46, vida: 0.6 }],
   [0.88, { rotY: 0.35 }],
   // 8. El final: el calendario a la derecha
-  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 0.3, brillo: 0.5 }],
+  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 0.08, brillo: 0.5 }],
   [1, {}],
 ];
 
@@ -109,7 +109,7 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
 
   // ---------- Tetraedros grandes flotando + polvo fino por toda la pantalla ----------
   const GRANDES = movil ? 12 : 22;
-  const NF = GRANDES + (movil ? 350 : 1200);
+  const NF = GRANDES + (movil ? 70 : 220);
   const coloresF = [PALETA.ambar, PALETA.morado, PALETA.blanco, PALETA.ambar, PALETA.verdeAzul, PALETA.morado];
   const lugarF: Lugar = { pos: new Float32Array(NF * 3), normal: new Float32Array(NF * 3), color: new Float32Array(NF * 3), alfa: new Float32Array(NF) };
   const propioF: Propio = { tam: new Float32Array(NF), giro: new Float32Array(NF * 4), semilla: new Float32Array(NF * 4).map(() => Math.random()), dir: new Float32Array(NF * 3) };
@@ -150,7 +150,7 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
   for (let k = 1; k < PASOS.length; k++) {
     const [p0] = PASOS[k - 1];
     const [p1, valores] = PASOS[k];
-    if (Object.keys(valores).length) linea.to(estado, { ...valores, duration: p1 - p0, ease: "power1.inOut" }, p0);
+    if (Object.keys(valores).length) linea.to(estado, { ...valores, duration: p1 - p0, ease: "power3.out" }, p0); // ≈ --ease-smooth-out
   }
   linea.duration(); // fija la duración total (= 1)
   const historia = document.querySelector<HTMLElement>("[data-historia]");

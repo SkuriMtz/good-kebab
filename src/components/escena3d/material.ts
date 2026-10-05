@@ -53,10 +53,13 @@ vec3 rot(vec3 v, vec3 k, float a) {
 
 void main() {
   // Cada una sale con su propio retraso: no llegan todas al mismo tiempo
-  // En ola (aSeed.z sigue el orden de arriba abajo) y con curva ease-in-out fuerte
-  float t = clamp((uMezcla - aSeed.z * 0.35) / 0.65, 0.0, 1.0);
-  t = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
-  float viaje = sin(3.14159 * t);
+  // Transición al estilo transitions.dev: curva --ease-smooth-out
+  // (cubic-bezier(0.22, 1, 0.36, 1): arranca rápido y se asienta suave),
+  // escalonado mínimo y un "cross-blur": a mitad del cambio la figura se
+  // desenfoca y baja de opacidad, y al llegar vuelve a quedar nítida.
+  float lineal = clamp((uMezcla - aSeed.z * 0.15) / 0.85, 0.0, 1.0);
+  float t = 1.0 - pow(1.0 - lineal, 4.0);
+  float viaje = sin(3.14159 * lineal);
   vec3 p = mix(aPosA, aPosB, t) + aDir * viaje * uDispersa;
   vec3 nrm = mix(aNormA, aNormB, t);
 
@@ -86,7 +89,7 @@ void main() {
   vColor = mix(aColA, aColB, t) * brillo;
 
   // Desenfoque según la distancia al plano de foco
-  float blur = clamp(abs(dist - uFoco) / (uFoco * 0.55), 0.0, 1.0) * uDof;
+  float blur = clamp(clamp(abs(dist - uFoco) / (uFoco * 0.55), 0.0, 1.0) * uDof + viaje * 0.75, 0.0, 1.0);
   float crece = 1.0 + blur * 1.4;
   float px = aSize * uAltoPx / dist; // tamaño en píxeles
 
@@ -108,7 +111,7 @@ void main() {
   float unPx = 2.0 / max(px, 1.0);
   vAncho = mix(0.4 * unPx, 0.04, blur);
   vSuave = mix(0.8 * unPx, 0.16, blur);
-  vAlpha = mix(aAlfaA, aAlfaB, t) * (1.0 - viaje * 0.25) * uOpacidad * visible * (1.0 - abajo * 0.4) * smoothstep(1.5, 4.0, px) / (1.0 + blur * 1.8);
+  vAlpha = mix(aAlfaA, aAlfaB, t) * (1.0 - viaje * 0.45) * uOpacidad * visible * (1.0 - abajo * 0.4) * smoothstep(1.5, 4.0, px) / (1.0 + blur * 1.8);
 }
 `;
 

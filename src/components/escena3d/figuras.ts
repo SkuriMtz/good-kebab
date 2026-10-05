@@ -173,7 +173,8 @@ export function caos(n: number): Nube {
       [(Math.random() * 2 - 1) * 8, (Math.random() * 2 - 1) * 4.8, Math.random() * 9 - 7],
       [0, 0, 0],
       tono(base, 0.05),
-      opacidad() * 0.75,
+      // Solo una parte se ve: dispersas, sin opacar la pantalla
+      Math.random() < 0.3 ? opacidad() * 0.75 : 0,
     );
   }
   return f;
@@ -309,7 +310,7 @@ export function calendario(n: number): Nube {
     if (!enLinea && !cita && Math.random() < 0.82) {
       // La mayoría de los puntos de adentro de cada día se van a las líneas
       const yLinea = franja - 0.1 - Math.round(gy) * celdaH;
-      poner(f, i, [x, Math.max(-H, Math.min(franja, yLinea)), D], [0, 0, 1], tono(mezcla(PALETA.morado, PALETA.blanco, 0.3), 0.05), opacidad());
+      poner(f, i, [x, Math.max(-H, Math.min(franja, yLinea)), D], [0, 0, 1], tono(mezcla(PALETA.morado, PALETA.blanco, 0.15), 0.03), opacidad() * 0.75);
       continue;
     }
     const c = cita ? PALETA.ambar : mezcla(PALETA.morado, PALETA.blanco, 0.3);
