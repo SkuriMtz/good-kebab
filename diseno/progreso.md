@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: tanda del Grupo 1 (worktrees `/home/user/wt/g1-t1…t5`, ramas `prop/g1-t1…t5`). Cortes por límite de uso: ~07:3x UTC (de sesión) y ~13:3x UTC (semanal, avisaba reinicio el 6 oct 18:00 UTC). Reanudados de nuevo el 5 oct 17:55 UTC; G1-T2 tenía `escena3d/campo.ts` y G1-T3 `escena3d/fondo.ts` empezados. Después: revisores G1 y tanda del Grupo 2.
+- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: tanda del Grupo 1 (worktrees `/home/user/wt/g1-t1…t5`, ramas `prop/g1-t1…t5`). **Detenido por el límite semanal de uso hasta el 6 oct 18:00 UTC** (probado de nuevo el 5 oct 20:16 UTC: sigue activo). Avance sin commit: G1-T2 (`escena3d/campo.ts`, `escena3d/CampoMensajes.tsx`, Portada.tsx, portada.css) y G1-T3 (`escena3d/fondo.ts`, Escena3D.tsx, Portada.tsx, portada.css); G1-T1, T4 y T5 sin cambios. Al retomar: reanudar los 5 trabajadores del G1, luego revisores G1 y tanda del Grupo 2.
 
 ## Paso 0 — Archivos y respaldo
 
