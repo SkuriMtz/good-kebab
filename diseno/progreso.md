@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- (se actualiza en cada avance)
+- Paso 4 terminado. Siguiente: Paso 5, tanda del Grupo 1 (5 trabajadores).
 
 ## Paso 0 — Archivos y respaldo
 
@@ -29,14 +29,14 @@ Rama de trabajo principal: `rediseno-11`.
 ## Paso 3 — Plan
 
 - [x] 3.1 `diseno/plan.md`: cada página y sección, mueble, componente, qué la hace de Atendel, cómo evita lo genérico, grupo responsable — **2026-10-05 05:19 UTC** — evidencia: `diseno/plan.md`
-- [ ] 3.2 Resumen del plan mostrado al dueño
+- [x] 3.2 Resumen del plan mostrado al dueño — **2026-10-05 06:27 UTC** — evidencia: resumen enviado al dueño en el chat
 
 ## Paso 4 — Arquitecto (base común)
 
-- [ ] 4.1 Tokens de color, tipografía, espaciado y radios como variables (oscuro y claro)
-- [ ] 4.2 Fuentes Mona Sans y Mona Sans Mono instaladas
-- [ ] 4.3 Componentes base: botones, tarjeta de vidrio, input, pestañas en píldora, etiqueta, marco de navegador, contenedor de sección
-- [ ] 4.4 Commit de la base (hash anotado)
+- [x] 4.1 Tokens de color, tipografía, espaciado y radios como variables (oscuro y claro) — **2026-10-05 06:27 UTC** — evidencia: `src/app/globals.css` (tokens oscuro y claro), `diseno/base.md`
+- [x] 4.2 Fuentes Mona Sans y Mona Sans Mono instaladas — **2026-10-05 06:27 UTC** — evidencia: `src/fonts/MonaSansVF-opsz-wght.woff2`, `src/fonts/MonaSansMonoVF-wght.woff2`, `src/fonts/OFL.txt` (Mona Sans 2.027, OFL 1.1)
+- [x] 4.3 Componentes base: botones, tarjeta de vidrio, input, pestañas en píldora, etiqueta, marco de navegador, contenedor de sección — **2026-10-05 06:27 UTC** — evidencia: `src/components/base/` (10 archivos), `src/components/FormularioLista.tsx`, muestrario `/base`, capturas `diseno/capturas/paso4/` (24)
+- [x] 4.4 Commit de la base (hash anotado) — **2026-10-05 06:27 UTC** — evidencia: commit `d4f4a7c` en `rediseno-11` (en origin)
 
 ## Paso 5 — Grupos de trabajadores (28 propuestas)
 
