@@ -6,6 +6,7 @@ import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
 import { Escena } from "./escena/Escena";
 import { ScrollSuave } from "./escena/ScrollSuave";
+import { Escena3D } from "./escena3d/Escena3D";
 import { AGENTES_INFO } from "@/lib/agentes";
 import { PAGINAS, PRUEBALO } from "@/lib/contenido";
 
@@ -21,10 +22,10 @@ const REPARTO = AGENTES_INFO.map((a) => ({
  * barra (con "Pruébalo", el chat, como botón violeta), el pie y la ficha de
  * los agentes, que se puede abrir desde cualquier página.
  */
-export function Sitio({ children }: { children: ReactNode }) {
+export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" }) {
   return (
     <>
-      <Escena />
+      {fondo === "3d" ? <Escena3D /> : <Escena />}
       <ScrollSuave />
       <Nav
         items={PAGINAS}

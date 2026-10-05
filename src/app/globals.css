@@ -140,6 +140,32 @@
     width: 100%;
     height: 100%;
   }
+  /* ---------- Escena 3D (Three.js): canvas fijo, fondo casi negro y viñeta ---------- */
+  .escena3d {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: #05050a;
+  }
+  .escena3d canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .escena3d canvas[data-lista="true"] {
+    opacity: 1;
+  }
+  /* Viñeta sutil: las orillas se oscurecen */
+  .escena3d::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
+  }
   .sobre-escena {
     position: relative;
     z-index: 1;
