@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: tanda del Grupo 1 (worktrees `/home/user/wt/g1-t1…t5`, ramas `prop/g1-t1…t5`). **Detenido por el límite semanal de uso hasta el 6 oct 18:00 UTC** (probado de nuevo el 5 oct 20:16 UTC: sigue activo). Avance sin commit: G1-T2 (`escena3d/campo.ts`, `escena3d/CampoMensajes.tsx`, Portada.tsx, portada.css) y G1-T3 (`escena3d/fondo.ts`, Escena3D.tsx, Portada.tsx, portada.css); G1-T1, T4 y T5 sin cambios. Al retomar: reanudar los 5 trabajadores del G1, luego revisores G1 y tanda del Grupo 2.
+- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: Grupo 1. G1-T3 entregado. G1-T1, T2, T4 y T5 reanudados el 2026-10-05 20:46 UTC tras el límite de uso. Después: revisores G1 y tanda del Grupo 2.
 
 ## Paso 0 — Archivos y respaldo
 
@@ -46,7 +46,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 - [ ] G1-T1 · rama `prop/g1-t1` · capturas `diseno/capturas/paso5/g1-t1/`
 - [ ] G1-T2 · rama `prop/g1-t2` · capturas `diseno/capturas/paso5/g1-t2/`
-- [ ] G1-T3 · rama `prop/g1-t3` · capturas `diseno/capturas/paso5/g1-t3/`
+- [x] G1-T3 · rama `prop/g1-t3` · capturas `diseno/capturas/paso5/g1-t3/` — **2026-10-05 20:46 UTC** — evidencia: commit `461d575` en `prop/g1-t3` (origin), 9 capturas, `diseno/entregas/g1-t3.md`
 - [ ] G1-T4 · rama `prop/g1-t4` · capturas `diseno/capturas/paso5/g1-t4/`
 - [ ] G1-T5 · rama `prop/g1-t5` · capturas `diseno/capturas/paso5/g1-t5/`
 
