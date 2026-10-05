@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
-import { burbuja, calendario, caos, junta, logo, PALETA, type Nube } from "./figuras";
+import { burbuja, calendario, caos, cerebro, junta, logo, PALETA, type Nube } from "./figuras";
 import { crearGeometria, crearMaterial, type Lugar, type Propio } from "./material";
 
 /**
@@ -28,7 +28,7 @@ function azar(a: number, b: number) {
 
 /** El estado de la escena; el timeline del scroll lo va cambiando. */
 type Estado = {
-  forma: number; // 0 logo · 1 caos · 2 junta · 3 burbuja · 4 calendario (con decimales = en camino)
+  forma: number; // 0 logo · 1 cerebro · 2 caos · 3 junta · 4 burbuja · 5 calendario (con decimales = en camino)
   x: number; // posición de la figura, en fracción de la mitad del ancho (+ = derecha)
   y: number; // en fracción de la mitad del alto (+ = arriba)
   rotX: number;
@@ -49,21 +49,22 @@ const PASOS: [number, Partial<Estado>][] = [
   [0, { forma: 0, x: 0.42, y: -0.02, rotX: 0.18, rotY: -0.35, rotZ: 0, escala: 1, camZ: 10, deshacer: 0, dispersa: 0, vida: 1, pantalla: 0, brillo: 0.9 }],
   // 2. Al empezar a bajar: gira hasta quedar de frente y al centro
   [0.08, { x: 0, y: 0, rotX: 0.04, rotY: 0, vida: 0.2 }],
-  // 3. Qué es Atendel: la cámara se acerca, la figura se va a la izquierda y se deshace por abajo
-  [0.2, { x: -0.62, y: 0.02, camZ: 7, escala: 1.1, rotY: 0.38, rotX: 0.1, deshacer: 0.6, vida: 0.3 }],
+  // 3. Qué es Atendel: el logo se vuelve un cerebro; la cámara se acerca y se va a la izquierda
+  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.8, vida: 0.3 }],
+  // …y la parte de abajo del cerebro se empieza a deshacer en partículas
   [0.27, { deshacer: 0.8 }],
   // 4. La figura explota y las partículas se dispersan por toda la pantalla
-  [0.36, { forma: 1, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 2.6, pantalla: 1, vida: 0.15, brillo: 0.5 }],
+  [0.36, { forma: 2, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 2.6, pantalla: 1, vida: 0.15, brillo: 0.5 }],
   // 5. El problema: caos flotando
   [0.56, { rotY: 0.12 }],
   // 6. Se juntan poco a poco al centro, con brillo cálido
-  [0.66, { forma: 2, pantalla: 0, dispersa: 0.5, rotY: 0, brillo: 0.55, vida: 0.4 }],
+  [0.66, { forma: 3, pantalla: 0, dispersa: 0.5, rotY: 0, brillo: 0.55, vida: 0.4 }],
   [0.72, { brillo: 0.5 }],
   // 7. La solución: la burbuja de chat, inclinada, a la izquierda
-  [0.82, { forma: 3, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 1.2, brillo: 0.62, vida: 0.6 }],
+  [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 1.2, brillo: 0.62, vida: 0.6 }],
   [0.88, { rotY: 0.35 }],
   // 8. El final: el calendario a la derecha
-  [0.97, { forma: 4, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 1, brillo: 0.68 }],
+  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 1, brillo: 0.68 }],
   [1, {}],
 ];
 
@@ -84,7 +85,7 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
 
   // ---------- Las figuras (todas con el mismo número de puntos) ----------
   const N = movil ? 3000 : 14000;
-  const FIGURAS: Nube[] = [logo(N), caos(N), junta(N), burbuja(N), calendario(N)];
+  const FIGURAS: Nube[] = [logo(N), cerebro(N), caos(N), junta(N), burbuja(N), calendario(N)];
   const propio: Propio = {
     tam: new Float32Array(N).map(() => (movil ? azar(0.07, 0.11) : azar(0.055, 0.1))),
     giro: new Float32Array(N * 4),

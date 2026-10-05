@@ -117,6 +117,68 @@ export function logo(n: number): Nube {
   return f;
 }
 
+/**
+ * El cerebro (la inteligencia de Atendel), visto de perfil: dos hemisferios
+ * con pliegues (circunvoluciones), la fisura entre ellos, el cerebelo atrás
+ * abajo y el tronco. Ejes: x = de atrás (-) hacia adelante (+), y = arriba,
+ * z = de un lado al otro.
+ */
+export function cerebro(n: number): Nube {
+  const f = nueva(n);
+  const polvo = Math.floor(n * 0.04);
+  // Los pliegues: ondas que se cruzan sobre la superficie
+  const pliegue = (x: number, y: number, z: number) =>
+    Math.sin(x * 9 + Math.sin(y * 6 + z * 4) * 1.8) * Math.sin(y * 8 + Math.sin(x * 5 - z * 3) * 1.6);
+  const colorDe = (y: number, x: number): Color => {
+    const t = Math.min(1, Math.max(0, (y + 0.7) / 1.5));
+    const c = mezcla(PALETA.morado, mezcla(PALETA.morado, PALETA.blanco, 0.5), t);
+    return mezcla(c, PALETA.ambar, Math.max(0, x - 0.3) * 0.5);
+  };
+  for (let i = 0; i < n; i++) {
+    if (i < polvo) {
+      polvoAlrededor(f, i, 1.6, 2.8);
+      continue;
+    }
+    const q = Math.random();
+    if (q < 0.1) {
+      // Cerebelo: atrás y abajo, con rayas finas
+      const [dx, dy, dz] = direccion();
+      const R: V3 = [0.36, 0.26, 0.5];
+      const raya = 1 + 0.05 * Math.sin(dy * 22);
+      const p: V3 = [-0.72 + dx * R[0] * raya, -0.42 + dy * R[1] * raya, dz * R[2] * raya];
+      poner(f, i, p, [dx / R[0], dy / R[1], dz / R[2]], tono(mezcla(PALETA.morado, PALETA.verdeAzul, 0.35)), opacidad());
+      continue;
+    }
+    if (q < 0.15) {
+      // Tronco: un cilindro que baja
+      const u = Math.random();
+      const a = Math.random() * Math.PI * 2;
+      const r = 0.13 - u * 0.03;
+      const p: V3 = [-0.3 - u * 0.12 + Math.cos(a) * r, -0.48 - u * 0.6, Math.sin(a) * r];
+      poner(f, i, p, [Math.cos(a), 0, Math.sin(a)], tono(mezcla(PALETA.morado, PALETA.ambar, 0.3)), opacidad() * 0.85);
+      continue;
+    }
+    // Hemisferios: un elipsoide de cada lado, con la parte de abajo más plana y la fisura en medio
+    const lado = Math.random() < 0.5 ? -1 : 1;
+    const [dx, dy, dz] = direccion();
+    const R: V3 = [1.02, 0.74, 0.52];
+    let x = dx * R[0];
+    let y = dy * R[1];
+    let z = dz * R[2];
+    if (y < -0.25) y = -0.25 + (y + 0.25) * 0.55; // la base, más plana
+    const fold = pliegue(x, y, z + lado);
+    const k = 1 + 0.085 * fold;
+    x *= k;
+    y *= k;
+    z *= k;
+    const p: V3 = [x, y + 0.08, z + lado * 0.27];
+    const interna = dz * lado < -0.3; // la cara que mira a la fisura se ve menos
+    const c = colorDe(y, x);
+    poner(f, i, p, [dx / R[0], dy / R[1], dz / R[2]], tono(fold > 0.45 ? mezcla(c, PALETA.blanco, 0.45) : fold < -0.4 ? por(c, 0.6) : c), opacidad() * (interna ? 0.45 : 1));
+  }
+  return f;
+}
+
 /** 2. El caos: las partículas dispersas por toda la pantalla, en desorden. */
 export function caos(n: number): Nube {
   const f = nueva(n);
