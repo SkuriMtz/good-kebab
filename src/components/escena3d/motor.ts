@@ -1,24 +1,71 @@
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
-import { logo, PALETA } from "./figuras";
-import { crearGeometria, crearMaterial, type Particulas } from "./material";
+import { burbuja, calendario, caos, junta, logo, PALETA, type Nube } from "./figuras";
+import { crearGeometria, crearMaterial, type Lugar, type Propio } from "./material";
 
 /**
- * La escena 3D (Three.js), un solo canvas fijo detrás de todo el contenido.
- * Fase 1: las partículas forman el logo de Atendel a la derecha, girando
- * lento, y alrededor flotan tetraedros de alambre grandes a distintas
- * profundidades (los más cercanos, desenfocados) con parallax al bajar.
- * Todo corre en el reloj de GSAP (el mismo que usa el scroll suave de Lenis).
+ * La escena 3D (Three.js): un solo canvas FIJO detrás de todo el contenido.
+ * El canvas nunca se mueve; la escena reacciona al progreso del scroll:
+ *   logo → gira de frente y al centro → la cámara se acerca y la figura se va
+ *   a la izquierda deshaciéndose por abajo → explota en caos → las partículas
+ *   se juntan al centro con brillo cálido → burbuja de chat → calendario.
+ * - Todo va ligado al scroll con GSAP ScrollTrigger (scrub de 1.2 s): si el
+ *   usuario sube, todo regresa en reversa.
+ * - Los tetraedros grandes flotantes se mueven con el scroll a distintas
+ *   velocidades según su profundidad (parallax).
+ * - La figura siempre está viva: gira y respira aunque no haya scroll.
+ * Todo corre en el reloj de GSAP (el mismo del scroll suave de Lenis).
  */
 
 export type Motor = { destruir: () => void };
 
 const FONDO = 0x05050a;
-const DIST_CAMARA = 10;
 
 function azar(a: number, b: number) {
   return a + Math.random() * (b - a);
 }
+
+/** El estado de la escena; el timeline del scroll lo va cambiando. */
+type Estado = {
+  forma: number; // 0 logo · 1 caos · 2 junta · 3 burbuja · 4 calendario (con decimales = en camino)
+  x: number; // posición de la figura, en fracción de la mitad del ancho (+ = derecha)
+  y: number; // en fracción de la mitad del alto (+ = arriba)
+  rotX: number;
+  rotY: number;
+  rotZ: number;
+  escala: number;
+  camZ: number; // distancia de la cámara
+  deshacer: number; // la parte de abajo se deshace
+  dispersa: number; // qué tanto se abren las partículas al viajar
+  vida: number; // cuánto gira sola la figura
+  pantalla: number; // 1 = las partículas llenan la pantalla (caos)
+  brillo: number; // opacidad general
+};
+
+/** La historia: cómo está la escena en cada punto del scroll (0 = arriba, 1 = abajo). */
+const PASOS: [number, Partial<Estado>][] = [
+  // 1. Portada: el logo a la derecha, girando lento
+  [0, { forma: 0, x: 0.42, y: -0.02, rotX: 0.18, rotY: -0.35, rotZ: 0, escala: 1, camZ: 10, deshacer: 0, dispersa: 0, vida: 1, pantalla: 0, brillo: 0.9 }],
+  // 2. Al empezar a bajar: gira hasta quedar de frente y al centro
+  [0.08, { x: 0, y: 0, rotX: 0.04, rotY: 0, vida: 0.2 }],
+  // 3. Qué es Atendel: la cámara se acerca, la figura se va a la izquierda y se deshace por abajo
+  [0.2, { x: -0.62, y: 0.02, camZ: 7, escala: 1.1, rotY: 0.38, rotX: 0.1, deshacer: 0.6, vida: 0.3 }],
+  [0.27, { deshacer: 0.8 }],
+  // 4. La figura explota y las partículas se dispersan por toda la pantalla
+  [0.36, { forma: 1, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 2.6, pantalla: 1, vida: 0.15, brillo: 0.5 }],
+  // 5. El problema: caos flotando
+  [0.56, { rotY: 0.12 }],
+  // 6. Se juntan poco a poco al centro, con brillo cálido
+  [0.66, { forma: 2, pantalla: 0, dispersa: 0.5, rotY: 0, brillo: 0.55, vida: 0.4 }],
+  [0.72, { brillo: 0.5 }],
+  // 7. La solución: la burbuja de chat, inclinada, a la izquierda
+  [0.82, { forma: 3, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 1.2, brillo: 0.62, vida: 0.6 }],
+  [0.88, { rotY: 0.35 }],
+  // 8. El final: el calendario a la derecha
+  [0.97, { forma: 4, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 1, brillo: 0.68 }],
+  [1, {}],
+];
 
 export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean; quieto: boolean }): Motor | null {
   const { movil, quieto } = opciones;
@@ -29,93 +76,97 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
     return null;
   }
   renderer.setClearColor(FONDO, 1);
+  gsap.registerPlugin(ScrollTrigger);
 
   const escena = new THREE.Scene();
   const camara = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-  camara.position.set(0, 0, DIST_CAMARA);
+  camara.position.set(0, 0, 10);
 
-  // ---------- La figura: el logo de Atendel ----------
+  // ---------- Las figuras (todas con el mismo número de puntos) ----------
   const N = movil ? 3000 : 14000;
-  const nube = logo(N);
-  const datosFigura: Particulas = {
-    pos: nube.pos,
-    normal: nube.normal,
-    color: nube.color,
-    alfa: nube.alfa,
+  const FIGURAS: Nube[] = [logo(N), caos(N), junta(N), burbuja(N), calendario(N)];
+  const propio: Propio = {
     tam: new Float32Array(N).map(() => (movil ? azar(0.07, 0.11) : azar(0.055, 0.1))),
     giro: new Float32Array(N * 4),
-    semilla: new Float32Array(N * 2).map(() => Math.random()),
+    semilla: new Float32Array(N * 4).map(() => Math.random()),
+    dir: new Float32Array(N * 3),
   };
   for (let i = 0; i < N; i++) {
-    datosFigura.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.3, 1.3) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
+    propio.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.3, 1.3) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
+    const u = azar(-1, 1);
+    const a = azar(0, Math.PI * 2);
+    const r = Math.sqrt(1 - u * u) * azar(0.3, 1);
+    propio.dir.set([r * Math.cos(a), u * azar(0.3, 1), r * Math.sin(a)], i * 3);
   }
   const { material: matFigura, uniforms: uFigura } = crearMaterial({ deriva: 0.006, dof: 0.35 });
-  const geoFigura = crearGeometria(datosFigura, N);
-  const figura = new THREE.Mesh(geoFigura, matFigura);
+  const fig = crearGeometria(FIGURAS[0], FIGURAS[1], propio, N);
+  let tramo = 0; // qué par de figuras está cargado (0 = logo→caos, 1 = caos→junta…)
+  const figura = new THREE.Mesh(fig.geo, matFigura);
   figura.frustumCulled = false;
-  // El grupo coloca la figura en la pantalla; la figura gira dentro de él
-  const soporte = new THREE.Group();
-  soporte.add(figura);
-  escena.add(soporte);
+  escena.add(figura);
 
   // ---------- Tetraedros grandes flotando ----------
   const NF = movil ? 12 : 22;
   const coloresF = [PALETA.ambar, PALETA.morado, PALETA.blanco, PALETA.ambar, PALETA.verdeAzul, PALETA.morado];
-  const datosFlot: Particulas = {
-    pos: new Float32Array(NF * 3),
-    normal: new Float32Array(NF * 3),
-    color: new Float32Array(NF * 3),
-    alfa: new Float32Array(NF),
-    tam: new Float32Array(NF),
-    giro: new Float32Array(NF * 4),
-    semilla: new Float32Array(NF * 2).map(() => Math.random()),
-  };
-  // Su lugar "en el mundo": x, y base y profundidad (z). Algunos muy cerca de la cámara.
+  const lugarF: Lugar = { pos: new Float32Array(NF * 3), normal: new Float32Array(NF * 3), color: new Float32Array(NF * 3), alfa: new Float32Array(NF) };
+  const propioF: Propio = { tam: new Float32Array(NF), giro: new Float32Array(NF * 4), semilla: new Float32Array(NF * 4).map(() => Math.random()), dir: new Float32Array(NF * 3) };
   const flot = Array.from({ length: NF }, (_, i) => {
     const cerca = i % 5 === 0;
     const z = cerca ? azar(4.5, 7) : azar(-7, 2.5);
     const c = coloresF[i % coloresF.length];
-    datosFlot.color.set([c[0] * 0.85, c[1] * 0.85, c[2] * 0.85], i * 3);
-    datosFlot.alfa[i] = cerca ? azar(0.3, 0.45) : azar(0.4, 0.75);
-    datosFlot.tam[i] = cerca ? azar(0.35, 0.55) : azar(0.16, 0.34);
-    datosFlot.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.12, 0.32) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
-    return { x: azar(-1, 1), y: Math.random(), z };
+    lugarF.color.set([c[0] * 0.7, c[1] * 0.7, c[2] * 0.7], i * 3);
+    // Tenues: líneas delgadas y semitransparentes
+    lugarF.alfa[i] = cerca ? azar(0.18, 0.3) : azar(0.25, 0.5);
+    propioF.tam[i] = cerca ? azar(0.35, 0.55) : azar(0.16, 0.34);
+    propioF.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.12, 0.32) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
+    propioF.semilla[i * 4 + 2] = 0;
+    // Velocidad de parallax: los cercanos se mueven más rápido que los lejanos
+    return { x: azar(-1, 1), y: Math.random(), z, vel: 0.15 + ((z + 7) / 14) * 1.1 };
   });
   const { material: matFlot, uniforms: uFlot } = crearMaterial({ deriva: 0, dof: 1 });
-  const geoFlot = crearGeometria(datosFlot, NF, true);
-  const flotantes = new THREE.Mesh(geoFlot, matFlot);
+  const flo = crearGeometria(lugarF, lugarF, propioF, NF, true);
+  const flotantes = new THREE.Mesh(flo.geo, matFlot);
   flotantes.frustumCulled = false;
   escena.add(flotantes);
-  const attrFlot = geoFlot.getAttribute("aPos") as THREE.InstancedBufferAttribute;
+
+  // ---------- La historia, ligada al scroll ----------
+  const estado = { ...(PASOS[0][1] as Estado) };
+  const linea = gsap.timeline({ paused: true });
+  for (let k = 1; k < PASOS.length; k++) {
+    const [p0] = PASOS[k - 1];
+    const [p1, valores] = PASOS[k];
+    if (Object.keys(valores).length) linea.to(estado, { ...valores, duration: p1 - p0, ease: "power1.inOut" }, p0);
+  }
+  linea.duration(); // fija la duración total (= 1)
+  const historia = document.querySelector<HTMLElement>("[data-historia]");
+  const disparador = historia
+    ? ScrollTrigger.create({ trigger: historia, start: "top top", end: "bottom bottom", scrub: 1.2, animation: linea })
+    : null;
 
   // ---------- Medidas ----------
   let w = 1;
   let h = 1;
-  let mitadAlto = 1; // la mitad del alto visible (en unidades del mundo) en el plano de la figura
-  let mitadAncho = 1;
+  let estrecho = false;
+  let escalaBase = 1;
   const medir = () => {
     w = window.innerWidth;
     h = window.innerHeight;
+    estrecho = w < 900;
     const dpr = Math.min(window.devicePixelRatio || 1, movil ? 1.5 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
     camara.aspect = w / h;
     camara.updateProjectionMatrix();
-    mitadAlto = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * DIST_CAMARA;
-    mitadAncho = mitadAlto * camara.aspect;
+    const mitadAlto = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * 10;
+    const mitadAncho = mitadAlto * camara.aspect;
+    escalaBase = estrecho ? Math.min((mitadAncho * 2 * 0.72) / 2.4, (mitadAlto * 2 * 0.36) / 2.4) : (mitadAlto * 2 * 0.62) / 2.3;
     const altoPx = (camara.projectionMatrix.elements[5] * h) / 2;
     uFigura.uAltoPx.value = altoPx;
     uFlot.uAltoPx.value = altoPx;
-    // La figura: a la derecha en computadora; arriba al centro en celular
-    const estrecho = w < 900;
-    const escala = estrecho ? Math.min((mitadAncho * 2 * 0.72) / 2.4, (mitadAlto * 2 * 0.36) / 2.4) : (mitadAlto * 2 * 0.62) / 2.3;
-    figura.scale.setScalar(escala);
-    soporte.userData.x = estrecho ? 0 : mitadAncho * 0.42;
-    soporte.userData.y = estrecho ? mitadAlto * 0.38 : -mitadAlto * 0.02;
   };
   medir();
 
-  // ---------- Movimiento ----------
+  // ---------- Cada cuadro ----------
   const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
   const alMover = (e: PointerEvent) => {
     mouse.x = (e.clientX / w) * 2 - 1;
@@ -127,39 +178,58 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
     const t = quieto ? 0 : (performance.now() - inicio) / 1000;
     mouse.sx += (mouse.x - mouse.sx) * 0.04;
     mouse.sy += (mouse.y - mouse.sy) * 0.04;
+    const e = estado;
+
+    // Qué par de figuras toca y cuánto va de una a otra
+    const nuevo = Math.min(FIGURAS.length - 2, Math.max(0, Math.floor(e.forma)));
+    if (nuevo !== tramo) {
+      tramo = nuevo;
+      fig.ponerFiguras(FIGURAS[tramo], FIGURAS[tramo + 1]);
+    }
+    uFigura.uMezcla.value = Math.min(1, Math.max(0, e.forma - tramo));
+    uFigura.uDispersa.value = e.dispersa;
+    uFigura.uDeshacer.value = e.deshacer;
+    uFigura.uOpacidad.value = e.brillo;
+    uFigura.uDeriva.value = 0.006 + 0.05 * e.pantalla;
     uFigura.uTime.value = t;
     uFlot.uTime.value = t;
 
-    // Al bajar, la cámara baja a media velocidad: lo cercano se mueve más rápido que lo lejano (parallax)
+    // La cámara: solo se acerca o se aleja (el canvas no se mueve con la página)
+    camara.position.set(mouse.sx * 0.12, -mouse.sy * 0.08, e.camZ);
+    camara.lookAt(0, 0, 0);
+    uFigura.uFoco.value = e.camZ;
+    uFlot.uFoco.value = e.camZ;
+
+    // La figura: su lugar en la pantalla, su tamaño y su giro (siempre viva)
+    const mitadAlto = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * 10;
+    const mitadAncho = mitadAlto * camara.aspect;
+    const xs = estrecho ? 0 : e.x * mitadAncho;
+    const ys = estrecho ? e.y * mitadAlto + mitadAlto * 0.32 * (1 - e.pantalla) : e.y * mitadAlto;
+    figura.position.set(xs, ys, 0);
+    figura.scale.setScalar(escalaBase * e.escala * (1 - e.pantalla) + e.pantalla * (estrecho ? 0.75 : 1));
+    figura.rotation.set(
+      e.rotX + Math.sin(t * 0.1) * 0.06 * e.vida + mouse.sy * 0.08,
+      e.rotY + Math.sin(t * 0.13) * 0.4 * e.vida + mouse.sx * 0.15,
+      e.rotZ + Math.sin(t * 0.07) * 0.03,
+    );
+
+    // Tetraedros flotantes: suben con el scroll, cada uno a su velocidad; al salir vuelven por abajo
+    const posF = flo.posicionesA.array as Float32Array;
     const mundoPorPx = (mitadAlto * 2) / h;
-    const camY = -window.scrollY * mundoPorPx * 0.5;
-    camara.position.x = mouse.sx * 0.12;
-    camara.position.y = camY - mouse.sy * 0.08;
-    camara.lookAt(camara.position.x * 0.5, camY, 0);
-
-    // La figura no se va con el scroll: sigue a la cámara. Gira lento, siempre viva.
-    soporte.position.set(soporte.userData.x, camY + soporte.userData.y, 0);
-    // Gira lento sobre sí misma (la luz se queda fija, así se ve que es 3D)
-    figura.rotation.y = -0.35 + Math.sin(t * 0.13) * 0.4 + mouse.sx * 0.15;
-    figura.rotation.x = 0.18 + Math.sin(t * 0.1) * 0.06 + mouse.sy * 0.08;
-    figura.rotation.z = Math.sin(t * 0.07) * 0.04;
-
-    // Tetraedros flotantes: se repiten de arriba abajo para no acabarse nunca
-    const pos = attrFlot.array as Float32Array;
     for (let i = 0; i < NF; i++) {
       const f = flot[i];
-      const prof = DIST_CAMARA - f.z; // distancia a la cámara
-      const mitadA = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * prof;
+      const prof = e.camZ - f.z;
+      const mitadA = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * Math.max(prof, 0.5);
       const alto = mitadA * 2 * 1.3;
-      // Cada uno tiene un lugar fijo en el mundo; como la cámara baja, los cercanos se
-      // mueven más rápido en pantalla que los lejanos. Al salir por arriba vuelven por abajo.
-      const base = (f.y - 0.5) * alto;
-      const yRel = ((((base - camY + alto / 2) % alto) + alto) % alto) - alto / 2;
-      pos[i * 3] = f.x * mitadA * camara.aspect * 1.05 + Math.sin(t * 0.2 + i) * 0.08;
-      pos[i * 3 + 1] = camY + yRel + Math.cos(t * 0.17 + i * 1.7) * 0.06;
-      pos[i * 3 + 2] = f.z;
+      const base = (f.y - 0.5) * alto + window.scrollY * mundoPorPx * f.vel;
+      const yRel = ((((base + alto / 2) % alto) + alto) % alto) - alto / 2;
+      posF[i * 3] = f.x * mitadA * camara.aspect * 1.05 + Math.sin(t * 0.2 + i) * 0.08;
+      posF[i * 3 + 1] = yRel + Math.cos(t * 0.17 + i * 1.7) * 0.06;
+      posF[i * 3 + 2] = f.z;
     }
-    attrFlot.needsUpdate = true;
+    flo.posicionesA.needsUpdate = true;
+    (flo.posicionesB.array as Float32Array).set(posF);
+    flo.posicionesB.needsUpdate = true;
 
     renderer.render(escena, camara);
   };
@@ -181,11 +251,13 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
   return {
     destruir() {
       gsap.ticker.remove(cuadro);
+      disparador?.kill();
+      linea.kill();
       window.removeEventListener("resize", alRedimensionar);
       window.removeEventListener("scroll", alBajar);
       window.removeEventListener("pointermove", alMover);
-      geoFigura.dispose();
-      geoFlot.dispose();
+      fig.geo.dispose();
+      flo.geo.dispose();
       matFigura.dispose();
       matFlot.dispose();
       renderer.dispose();
