@@ -4,4 +4,289 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta G1-T3, "La recepción a las 23:14": el título con el halo es el
+ * único protagonista; la escena 3D es casi silencio; debajo del formulario,
+ * un WhatsApp de noche contestado por Lola abre paso al chat en vivo.
  */
+
+/* ---------- La sección ---------- */
+.portada {
+  /* El recorte hace que el canvas fijo de la escena solo se vea aquí:
+     el fondo se queda quieto y solo sube el contenido (lección 8). */
+  clip-path: inset(0);
+  min-height: calc(100svh - var(--barra-h));
+}
+.portada__cuerpo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--spacing-64) var(--espacio-seccion);
+  text-align: center;
+}
+@media (min-width: 1024px) {
+  .portada__cuerpo {
+    padding-top: var(--spacing-96);
+  }
+}
+
+/* Etiqueta, título e intro: el halo vive detrás de este bloque y no de toda la sección */
+.portada__titulares {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.portada__titulo {
+  max-width: 22ch;
+  margin-top: var(--spacing-24);
+}
+.portada__intro {
+  margin-top: var(--spacing-24);
+}
+.portada__formulario {
+  margin-top: var(--spacing-40);
+}
+.portada__condiciones {
+  margin-top: var(--spacing-16);
+}
+/* En celular la línea se parte antes de "Entras…", nunca a media frase */
+.portada__sin-corte {
+  white-space: nowrap;
+}
+
+/* Abajo, las partículas se apagan antes del borde: nada queda cortado en seco */
+.portada::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 0;
+  height: var(--spacing-96);
+  background: linear-gradient(to bottom, transparent, var(--c-portada));
+  pointer-events: none;
+}
+
+/* ---------- La escena 3D como fondo de la portada ----------
+   La base la dejaba al 45% y oculta en claro (se pintaba sobre negro).
+   El fondo nuevo (escena3d/fondo.ts) es transparente, toma los colores del
+   modo activo y ya trae su brillo bajo, así que aquí solo se enseña. */
+.escena3d--tenue canvas[data-lista="true"] {
+  opacity: 1;
+}
+:root[data-tema="claro"] .escena3d--tenue {
+  visibility: visible;
+  opacity: 1;
+}
+/* Viñeta: las orillas se funden con el fondo de la portada de cada modo */
+.escena3d--tenue::after {
+  background: radial-gradient(ellipse 120% 100% at 50% 40%, transparent 55%, var(--c-portada) 100%);
+}
+
+/* ---------- La muestra: un WhatsApp de las 23:14 ---------- */
+.muestra {
+  width: 100%;
+  max-width: 440px;
+  margin: var(--spacing-64) 0 0;
+}
+.muestra__tarjeta {
+  text-align: left;
+}
+.muestra__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+.muestra__quien {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+.muestra__nombre {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  color: var(--c-texto);
+}
+
+.muestra__hilo {
+  display: grid;
+  gap: var(--spacing-16);
+  margin: var(--spacing-20) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.muestra__hilo li {
+  display: grid;
+  gap: var(--spacing-4);
+}
+.muestra__cliente p {
+  margin: 0;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+/* La respuesta y el "escribiendo" ocupan el mismo lugar: nada brinca al llegar */
+.muestra__turno {
+  display: grid;
+}
+.muestra__turno > * {
+  grid-area: 1 / 1;
+}
+.muestra__respuesta {
+  margin: 0;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.muestra__escribe {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: var(--spacing-4);
+  height: 1.5em;
+  opacity: 0;
+}
+.muestra__escribe span {
+  width: calc(var(--spacing-4) * 1.5);
+  height: calc(var(--spacing-4) * 1.5);
+  border-radius: var(--radio-circulo);
+  background: var(--c-tenue);
+}
+
+.muestra__pie {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-20);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+.muestra__pie span.etiqueta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Leyenda: dice que es un ejemplo, en qué plan está Lola y lleva al chat en vivo */
+.muestra__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: var(--spacing-12);
+  margin-top: var(--spacing-12);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-tenue);
+  text-wrap: balance;
+}
+.muestra__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: var(--spacing-44);
+  color: var(--c-enlace);
+  text-decoration: none;
+  text-underline-offset: 4px;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.muestra__enlace .icono {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .muestra__enlace:hover {
+    text-decoration: underline;
+  }
+  .muestra__enlace:hover .icono {
+    transform: translateY(2px);
+  }
+}
+.muestra__enlace:active {
+  opacity: 0.7;
+}
+
+/* ---------- La muestra se cuenta una sola vez, al entrar en pantalla ----------
+   Llega la tarjeta con el mensaje de Mariana → Lola escribe → su respuesta →
+   la cita apartada. Solo opacity y transform. Sin JavaScript o con movimiento
+   reducido no se esconde nada: se ve completa desde el inicio. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .muestra:not([data-visto]) .muestra__tarjeta {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+    /* Rescate: si el script nunca llega, la muestra aparece igual */
+    animation: muestra-rescate 0.01s 6s forwards;
+  }
+  .js .muestra:not([data-visto]) .muestra__respuesta,
+  .js .muestra:not([data-visto]) .muestra__pie {
+    opacity: 0;
+    animation: muestra-rescate 0.01s 6s forwards;
+  }
+  .muestra[data-visto] .muestra__tarjeta {
+    animation: muestra-entra var(--dur-grande) var(--ease-entrada) both;
+  }
+  .muestra[data-visto] .muestra__escribe {
+    animation: muestra-escribe calc(var(--dur-grande) * 3) var(--ease) calc(var(--dur-grande) * 2) both;
+  }
+  .muestra[data-visto] .muestra__escribe span {
+    animation: muestra-punto calc(var(--dur-grande) * 1.5) var(--ease) calc(var(--dur-grande) * 2) 4 alternate both;
+  }
+  .muestra[data-visto] .muestra__escribe span:nth-child(2) {
+    animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro) * 0.75);
+  }
+  .muestra[data-visto] .muestra__escribe span:nth-child(3) {
+    animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro) * 1.5);
+  }
+  .muestra[data-visto] .muestra__respuesta {
+    animation: muestra-llega var(--dur-grande) var(--ease-entrada) calc(var(--dur-grande) * 5) both;
+  }
+  .muestra[data-visto] .muestra__pie {
+    animation: muestra-llega var(--dur-grande) var(--ease-entrada) calc(var(--dur-grande) * 7) both;
+  }
+}
+@keyframes muestra-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes muestra-llega {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-4));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes muestra-escribe {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes muestra-punto {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes muestra-rescate {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
