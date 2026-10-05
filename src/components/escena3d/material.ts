@@ -53,9 +53,11 @@ vec3 rot(vec3 v, vec3 k, float a) {
 
 void main() {
   // Cada una sale con su propio retraso: no llegan todas al mismo tiempo
-  float t = clamp((uMezcla - aSeed.z * 0.4) / 0.6, 0.0, 1.0);
-  t = t * t * (3.0 - 2.0 * t);
-  vec3 p = mix(aPosA, aPosB, t) + aDir * sin(3.14159 * t) * uDispersa;
+  // En ola (aSeed.z sigue el orden de arriba abajo) y con curva ease-in-out fuerte
+  float t = clamp((uMezcla - aSeed.z * 0.35) / 0.65, 0.0, 1.0);
+  t = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+  float viaje = sin(3.14159 * t);
+  vec3 p = mix(aPosA, aPosB, t) + aDir * viaje * uDispersa;
   vec3 nrm = mix(aNormA, aNormB, t);
 
   // La parte de abajo de la figura se deshace: se suelta y cae flotando
@@ -79,7 +81,7 @@ void main() {
   vec3 L = normalize((viewMatrix * vec4(uLuz, 0.0)).xyz);
   float dif = max(dot(n, L), 0.0);
   float frente = smoothstep(-0.15, 0.65, n.z);
-  float brillo = mix(1.0, 0.3 + 0.8 * dif, tieneN);
+  float brillo = mix(1.0, 0.25 + 0.65 * dif, tieneN);
   float visible = mix(1.0, 0.08 + 0.92 * frente, tieneN);
   vColor = mix(aColA, aColB, t) * brillo;
 
@@ -106,7 +108,7 @@ void main() {
   float unPx = 2.0 / max(px, 1.0);
   vAncho = mix(0.4 * unPx, 0.04, blur);
   vSuave = mix(0.8 * unPx, 0.16, blur);
-  vAlpha = mix(aAlfaA, aAlfaB, t) * uOpacidad * visible * (1.0 - abajo * 0.4) * smoothstep(1.5, 4.0, px) / (1.0 + blur * 1.8);
+  vAlpha = mix(aAlfaA, aAlfaB, t) * (1.0 - viaje * 0.25) * uOpacidad * visible * (1.0 - abajo * 0.4) * smoothstep(1.5, 4.0, px) / (1.0 + blur * 1.8);
 }
 `;
 

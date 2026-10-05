@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
-import { burbuja, calendario, caos, cerebro, junta, logo, PALETA, type Nube } from "./figuras";
+import { burbuja, calendario, caos, cerebro, junta, logo, ordenar, PALETA, type Nube } from "./figuras";
 import { crearGeometria, crearMaterial, type Lugar, type Propio } from "./material";
 
 /**
@@ -46,25 +46,25 @@ type Estado = {
 /** La historia: cómo está la escena en cada punto del scroll (0 = arriba, 1 = abajo). */
 const PASOS: [number, Partial<Estado>][] = [
   // 1. Portada: el logo a la derecha, girando lento
-  [0, { forma: 0, x: 0.42, y: -0.02, rotX: 0.18, rotY: -0.35, rotZ: 0, escala: 1, camZ: 10, deshacer: 0, dispersa: 0, vida: 1, pantalla: 0, brillo: 0.9 }],
+  [0, { forma: 0, x: 0.42, y: -0.02, rotX: 0.18, rotY: -0.35, rotZ: 0, escala: 1, camZ: 10, deshacer: 0, dispersa: 0, vida: 1, pantalla: 0, brillo: 0.62 }],
   // 2. Al empezar a bajar: gira hasta quedar de frente y al centro
   [0.08, { x: 0, y: 0, rotX: 0.04, rotY: 0, vida: 0.2 }],
   // 3. Qué es Atendel: el logo se vuelve un cerebro; la cámara se acerca y se va a la izquierda
-  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.8, vida: 0.3 }],
+  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.25, vida: 0.3 }],
   // …y la parte de abajo del cerebro se empieza a deshacer en partículas
   [0.27, { deshacer: 0.8 }],
   // 4. La figura explota y las partículas se dispersan por toda la pantalla
-  [0.36, { forma: 2, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 2.6, pantalla: 1, vida: 0.15, brillo: 0.5 }],
+  [0.36, { forma: 2, x: 0, y: 0, camZ: 10, escala: 1, rotX: 0, rotY: 0, deshacer: 0, dispersa: 0.9, pantalla: 1, vida: 0.15, brillo: 0.36 }],
   // 5. El problema: caos flotando
   [0.56, { rotY: 0.12 }],
   // 6. Se juntan poco a poco al centro, con brillo cálido
-  [0.66, { forma: 3, pantalla: 0, dispersa: 0.5, rotY: 0, brillo: 0.55, vida: 0.4 }],
-  [0.72, { brillo: 0.5 }],
+  [0.66, { forma: 3, pantalla: 0, dispersa: 0.2, rotY: 0, brillo: 0.22, vida: 0.4 }],
+  [0.72, { brillo: 0.22 }],
   // 7. La solución: la burbuja de chat, inclinada, a la izquierda
-  [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 1.2, brillo: 0.62, vida: 0.6 }],
+  [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 0.3, brillo: 0.46, vida: 0.6 }],
   [0.88, { rotY: 0.35 }],
   // 8. El final: el calendario a la derecha
-  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 1, brillo: 0.68 }],
+  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 0.3, brillo: 0.5 }],
   [1, {}],
 ];
 
@@ -85,14 +85,15 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
 
   // ---------- Las figuras (todas con el mismo número de puntos) ----------
   const N = movil ? 3000 : 14000;
-  const FIGURAS: Nube[] = [logo(N), cerebro(N), caos(N), junta(N), burbuja(N), calendario(N)];
+  const FIGURAS: Nube[] = [logo(N), cerebro(N), caos(N), junta(N), burbuja(N), calendario(N)].map(ordenar);
   const propio: Propio = {
-    tam: new Float32Array(N).map(() => (movil ? azar(0.07, 0.11) : azar(0.055, 0.1))),
+    tam: new Float32Array(N).map(() => (movil ? azar(0.055, 0.085) : azar(0.042, 0.075))),
     giro: new Float32Array(N * 4),
     semilla: new Float32Array(N * 4).map(() => Math.random()),
     dir: new Float32Array(N * 3),
   };
   for (let i = 0; i < N; i++) {
+    propio.semilla[i * 4 + 2] = 0.7 * (i / N) + 0.3 * Math.random();
     propio.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.3, 1.3) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
     const u = azar(-1, 1);
     const a = azar(0, Math.PI * 2);
@@ -106,18 +107,31 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
   figura.frustumCulled = false;
   escena.add(figura);
 
-  // ---------- Tetraedros grandes flotando ----------
-  const NF = movil ? 12 : 22;
+  // ---------- Tetraedros grandes flotando + polvo fino por toda la pantalla ----------
+  const GRANDES = movil ? 12 : 22;
+  const NF = GRANDES + (movil ? 350 : 1200);
   const coloresF = [PALETA.ambar, PALETA.morado, PALETA.blanco, PALETA.ambar, PALETA.verdeAzul, PALETA.morado];
   const lugarF: Lugar = { pos: new Float32Array(NF * 3), normal: new Float32Array(NF * 3), color: new Float32Array(NF * 3), alfa: new Float32Array(NF) };
   const propioF: Propio = { tam: new Float32Array(NF), giro: new Float32Array(NF * 4), semilla: new Float32Array(NF * 4).map(() => Math.random()), dir: new Float32Array(NF * 3) };
   const flot = Array.from({ length: NF }, (_, i) => {
+    if (i >= GRANDES) {
+      // Polvo: triangulitos diminutos y tenues repartidos por todo el espacio
+      const z = azar(-6, 4);
+      const c = coloresF[Math.floor(Math.random() * coloresF.length)];
+      const k = azar(0.45, 0.7);
+      lugarF.color.set([c[0] * k, c[1] * k, c[2] * k], i * 3);
+      lugarF.alfa[i] = azar(0.25, 0.55);
+      propioF.tam[i] = azar(0.03, 0.05);
+      propioF.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.2, 0.8)], i * 4);
+      propioF.semilla[i * 4 + 2] = 0;
+      return { x: azar(-1.1, 1.1), y: Math.random(), z, vel: 0.15 + ((z + 7) / 14) * 1.1 };
+    }
     const cerca = i % 5 === 0;
     const z = cerca ? azar(4.5, 7) : azar(-7, 2.5);
     const c = coloresF[i % coloresF.length];
     lugarF.color.set([c[0] * 0.7, c[1] * 0.7, c[2] * 0.7], i * 3);
     // Tenues: líneas delgadas y semitransparentes
-    lugarF.alfa[i] = cerca ? azar(0.18, 0.3) : azar(0.25, 0.5);
+    lugarF.alfa[i] = cerca ? azar(0.1, 0.16) : azar(0.25, 0.45);
     propioF.tam[i] = cerca ? azar(0.35, 0.55) : azar(0.16, 0.34);
     propioF.giro.set([azar(-1, 1), azar(-1, 1), azar(-1, 1), azar(0.12, 0.32) * (Math.random() < 0.5 ? -1 : 1)], i * 4);
     propioF.semilla[i * 4 + 2] = 0;

@@ -70,13 +70,6 @@ function poner(f: Nube, i: number, p: V3, nrm: V3, c: Color, a: number) {
   f.color.set(c, i * 3);
   f.alfa[i] = a;
 }
-/** Polvo suelto alrededor de una figura (sin luz, más tenue). */
-function polvoAlrededor(f: Nube, i: number, r0: number, r1: number) {
-  const [x, y, z] = direccion();
-  const r = r0 + Math.random() * (r1 - r0);
-  poner(f, i, [x * r, y * r * 0.8, z * r * 0.6], [0, 0, 0], tono(alAzar([PALETA.ambar, PALETA.morado, PALETA.verdeAzul]), 0.15), opacidad() * 0.6);
-}
-
 /**
  * 1. El logo de Atendel: los cuatro círculos (uno por agente) como cuatro
  *    esferas acomodadas dos por dos, con los puntos repartidos parejo sobre
@@ -92,15 +85,10 @@ export function logo(n: number): Nube {
     [-SEP, -SEP],
     [SEP, -SEP],
   ];
-  const polvo = Math.floor(n * 0.05);
-  const porEsfera = Math.floor((n - polvo) / 4);
+  const porEsfera = Math.floor(n / 4);
   const dorado = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < n; i++) {
-    if (i < polvo) {
-      polvoAlrededor(f, i, 1.5, 2.9);
-      continue;
-    }
-    const j = i - polvo;
+    const j = i;
     const k = Math.min(3, Math.floor(j / porEsfera));
     const m = j - k * porEsfera;
     const [cx, cy] = CENTROS[k];
@@ -125,7 +113,6 @@ export function logo(n: number): Nube {
  */
 export function cerebro(n: number): Nube {
   const f = nueva(n);
-  const polvo = Math.floor(n * 0.04);
   // Los pliegues: ondas que se cruzan sobre la superficie
   const pliegue = (x: number, y: number, z: number) =>
     Math.sin(x * 9 + Math.sin(y * 6 + z * 4) * 1.8) * Math.sin(y * 8 + Math.sin(x * 5 - z * 3) * 1.6);
@@ -135,10 +122,6 @@ export function cerebro(n: number): Nube {
     return mezcla(c, PALETA.ambar, Math.max(0, x - 0.3) * 0.5);
   };
   for (let i = 0; i < n; i++) {
-    if (i < polvo) {
-      polvoAlrededor(f, i, 1.6, 2.8);
-      continue;
-    }
     const q = Math.random();
     if (q < 0.1) {
       // Cerebelo: atrás y abajo, con rayas finas
@@ -202,7 +185,8 @@ export function junta(n: number): Nube {
   for (let i = 0; i < n; i++) {
     const [x, y, z] = direccion();
     // Muy denso al centro, se deshilacha hacia afuera
-    const r = 0.45 + Math.pow(Math.random(), 1.6) * 1.2;
+    // Sin hueco: denso al centro y se desvanece hacia afuera, sin orilla marcada
+    const r = 0.22 + Math.abs(campana()) * 1.4 + Math.random() * 0.15;
     const calido = Math.random();
     const base = calido < 0.55 ? PALETA.ambar : calido < 0.8 ? mezcla(PALETA.ambar, PALETA.blanco, 0.5) : PALETA.morado;
     poner(f, i, [x * r, y * r, z * r], [0, 0, 0], tono(base, 0.12), opacidad());
@@ -222,16 +206,11 @@ export function burbuja(n: number): Nube {
     if (t > 0.38) return mezcla(mezcla(PALETA.morado, PALETA.blanco, 0.45), PALETA.blanco, (t - 0.38) / 0.24);
     return mezcla(PALETA.morado, mezcla(PALETA.morado, PALETA.blanco, 0.45), t / 0.38);
   };
-  const polvo = Math.floor(n * 0.04);
   const e = 2.6;
   const SX = 1.15;
   const SY = 0.85;
   const SZ = 0.55;
   for (let i = 0; i < n; i++) {
-    if (i < polvo) {
-      polvoAlrededor(f, i, 1.6, 2.8);
-      continue;
-    }
     if (Math.random() < 0.09) {
       // La colita: un cono que sale abajo a la izquierda
       const u = Math.pow(Math.random(), 0.8);
@@ -272,13 +251,8 @@ export function calendario(n: number): Nube {
   const celdaH = (franja + H - 0.2) / FILAS;
   // Días con cita (columna, fila)
   const citas = new Set(["1,1", "4,1", "2,2", "5,3", "0,3", "3,4", "6,2"]);
-  const polvo = Math.floor(n * 0.04);
 
   for (let i = 0; i < n; i++) {
-    if (i < polvo) {
-      polvoAlrededor(f, i, 1.8, 3);
-      continue;
-    }
     const q = Math.random();
     if (q < 0.08) {
       // Las dos argollas de arriba (medio aro)
@@ -342,4 +316,42 @@ export function calendario(n: number): Nube {
     poner(f, i, [x, y, D], [0, 0, 1], tono(c, cita ? 0.15 : 0.06), opacidad());
   }
   return f;
+}
+
+/**
+ * Ordena los puntos de una figura por lugar: en franjas de arriba abajo y,
+ * dentro de cada franja, alrededor (en zigzag). Si todas las figuras se
+ * ordenan igual, el punto i de una cae cerca del punto i de la siguiente:
+ * al cambiar de figura cada partícula viaja una distancia corta y la nube se
+ * mueve como un solo cuerpo (como en el video de referencia), sin cruzarse.
+ */
+export function ordenar(f: Nube): Nube {
+  const { n } = f;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < n; i++) {
+    const x = f.pos[i * 3], y = f.pos[i * 3 + 1], z = f.pos[i * 3 + 2];
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
+  }
+  const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
+  const sx = (maxX - minX) / 2 || 1, sz = (maxZ - minZ) / 2 || 1;
+  const franjas = Math.max(8, Math.round(Math.sqrt(n) / 2));
+  const clave = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const ny = (f.pos[i * 3 + 1] - minY) / (maxY - minY || 1);
+    const b = Math.min(franjas - 1, Math.floor(ny * franjas));
+    let a = (Math.atan2((f.pos[i * 3 + 2] - cz) / sz, (f.pos[i * 3] - cx) / sx) + Math.PI) / (2 * Math.PI);
+    if (b % 2) a = 1 - a; // zigzag: cada franja sigue donde terminó la anterior
+    clave[i] = b + a * 0.999;
+  }
+  const orden = Array.from({ length: n }, (_, i) => i).sort((p, q) => clave[p] - clave[q]);
+  const g = nueva(n);
+  orden.forEach((src, dst) => {
+    g.pos.set(f.pos.subarray(src * 3, src * 3 + 3), dst * 3);
+    g.normal.set(f.normal.subarray(src * 3, src * 3 + 3), dst * 3);
+    g.color.set(f.color.subarray(src * 3, src * 3 + 3), dst * 3);
+    g.alfa[dst] = f.alfa[src];
+  });
+  return g;
 }

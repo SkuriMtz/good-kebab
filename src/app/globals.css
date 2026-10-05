@@ -164,7 +164,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
+    background: radial-gradient(ellipse 130% 120% at 50% 50%, transparent 45%, rgb(0 0 0 / 0.45) 100%);
   }
   .sobre-escena {
     position: relative;
