@@ -39,6 +39,7 @@ uniform float uOpacidad;   // opacidad general
 uniform vec3 uLuz;         // hacia dónde viene la luz (mundo)
 
 varying vec2 vLocal;
+varying vec2 vCuadro;
 varying vec4 vAB;
 varying vec4 vCD;
 varying vec3 vColor;
@@ -96,6 +97,7 @@ void main() {
   mv.xy += position.xy * aSize * crece;
   gl_Position = projectionMatrix * mv;
   vLocal = position.xy * crece;
+  vCuadro = position.xy;
 
   // Los 4 vértices del tetraedro, girando, proyectados al cuadrito
   vec3 eje = normalize(aSpin.xyz + vec3(1e-4));
@@ -117,6 +119,7 @@ void main() {
 
 const FRAGMENT = /* glsl */ `
 varying vec2 vLocal;
+varying vec2 vCuadro;
 varying vec4 vAB;
 varying vec4 vCD;
 varying vec3 vColor;
@@ -138,7 +141,9 @@ void main() {
   d = min(d, seg(p, vAB.zw, vCD.xy));
   d = min(d, seg(p, vCD.xy, vCD.zw));
   d = min(d, seg(p, vCD.zw, vAB.zw));
-  float a = (1.0 - smoothstep(vAncho, vAncho + vSuave, d)) * vAlpha;
+  // Se apaga antes de la orilla del cuadrito: sin bordes rectos en los desenfocados
+  float orilla = 1.0 - smoothstep(0.7, 1.0, max(abs(vCuadro.x), abs(vCuadro.y)));
+  float a = (1.0 - smoothstep(vAncho, vAncho + vSuave, d)) * vAlpha * orilla;
   if (a < 0.004) discard;
   gl_FragColor = vec4(vColor, a);
 }

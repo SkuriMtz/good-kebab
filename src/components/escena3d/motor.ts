@@ -20,7 +20,7 @@ import { crearGeometria, crearMaterial, type Lugar, type Propio } from "./materi
 
 export type Motor = { destruir: () => void };
 
-const FONDO = 0x05050a;
+const FONDO = 0x000000; // Void #000000 de la guía de estilo
 
 function azar(a: number, b: number) {
   return a + Math.random() * (b - a);
@@ -50,7 +50,7 @@ const PASOS: [number, Partial<Estado>][] = [
   // 2. Al empezar a bajar: gira hasta quedar de frente y al centro
   [0.08, { x: 0, y: 0, rotX: 0.04, rotY: 0, vida: 0.2 }],
   // 3. Qué es Atendel: el logo se vuelve un cerebro; la cámara se acerca y se va a la izquierda
-  [0.18, { forma: 1, x: -0.48, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.08, vida: 0.3 }],
+  [0.18, { forma: 1, x: -0.4, y: 0.04, camZ: 8.2, escala: 0.82, rotY: 0.32, rotX: 0.1, dispersa: 0.08, vida: 0.3 }],
   // …y la parte de abajo del cerebro se empieza a deshacer en partículas
   [0.27, { deshacer: 0.8 }],
   // 4. La figura explota y las partículas se dispersan por toda la pantalla
@@ -64,7 +64,7 @@ const PASOS: [number, Partial<Estado>][] = [
   [0.82, { forma: 4, x: -0.42, y: 0, rotX: 0.15, rotY: 0.45, rotZ: 0.16, dispersa: 0.08, brillo: 0.46, vida: 0.6 }],
   [0.88, { rotY: 0.35 }],
   // 8. El final: el calendario a la derecha
-  [0.97, { forma: 5, x: 0.42, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 0.08, brillo: 0.5 }],
+  [0.97, { forma: 5, x: 0.42, y: -0.07, rotX: 0.12, rotY: -0.45, rotZ: 0, dispersa: 0.08, brillo: 0.5 }],
   [1, {}],
 ];
 
@@ -110,7 +110,7 @@ export function crearMotor(canvas: HTMLCanvasElement, opciones: { movil: boolean
   // ---------- Tetraedros grandes flotando + polvo fino por toda la pantalla ----------
   const GRANDES = movil ? 12 : 22;
   const NF = GRANDES + (movil ? 70 : 220);
-  const coloresF = [PALETA.ambar, PALETA.morado, PALETA.blanco, PALETA.ambar, PALETA.verdeAzul, PALETA.morado];
+  const coloresF = [PALETA.ambar, PALETA.morado, PALETA.morado, PALETA.verdeAzul, PALETA.magenta, PALETA.azul];
   const lugarF: Lugar = { pos: new Float32Array(NF * 3), normal: new Float32Array(NF * 3), color: new Float32Array(NF * 3), alfa: new Float32Array(NF) };
   const propioF: Propio = { tam: new Float32Array(NF), giro: new Float32Array(NF * 4), semilla: new Float32Array(NF * 4).map(() => Math.random()), dir: new Float32Array(NF * 3) };
   const flot = Array.from({ length: NF }, (_, i) => {

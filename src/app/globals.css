@@ -146,7 +146,7 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: #05050a;
+    background: var(--color-void);
   }
   .escena3d canvas {
     position: absolute;
@@ -169,6 +169,88 @@
   .sobre-escena {
     position: relative;
     z-index: 1;
+  }
+  /* ---------- Texts reveal (transitions.dev, 18-texts-reveal.md) ---------- */
+  :root {
+    --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --duration-micro: 80ms;
+    --stagger-dur: 500ms;
+    --stagger-distance: 12px;
+    --stagger-stagger: var(--duration-micro);
+    --stagger-blur: 3px;
+    --stagger-ease: var(--ease-smooth-out);
+  }
+  .t-stagger-line {
+    display: block;
+    opacity: 0;
+    transform: translateY(var(--stagger-distance));
+    filter: blur(var(--stagger-blur));
+    transition:
+      opacity var(--stagger-dur) var(--stagger-ease),
+      transform var(--stagger-dur) var(--stagger-ease),
+      filter var(--stagger-dur) var(--stagger-ease);
+    transition-delay: calc(var(--stagger-stagger) * var(--i, 0));
+    will-change: transform, opacity, filter;
+  }
+  .t-stagger.is-shown .t-stagger-line {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  .t-stagger.is-hiding .t-stagger-line {
+    opacity: 0;
+    transform: translateY(0);
+    filter: blur(0);
+    transition:
+      opacity 200ms ease,
+      transform 0s linear,
+      filter 0s linear;
+    transition-delay: 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .t-stagger-line {
+      transition: none !important;
+    }
+  }
+  /* Bloques de texto de la historia 3D (zigzag de Dala) */
+  .h3d {
+    display: flex;
+    align-items: center;
+  }
+  .h3d__col {
+    width: 100%;
+    max-width: 520px;
+  }
+  .h3d__col--hero {
+    max-width: 640px;
+  }
+  /* En celular la figura va arriba: el texto se acomoda abajo para no taparla */
+  @media (max-width: 1023px) {
+    .h3d {
+      align-items: flex-end;
+      padding-bottom: 10vh;
+    }
+  }
+  @media (min-width: 1024px) {
+    .h3d--derecha .h3d__col {
+      margin-left: auto;
+      margin-right: 4%;
+    }
+    .h3d--izquierda .h3d__col {
+      margin-left: 2%;
+    }
+  }
+  .h3d--centro .h3d__col {
+    margin-inline: auto;
+    text-align: center;
+  }
+  /* Palabras clave en cursiva y ámbar (Saffron Spark) */
+  .h3d em {
+    font-style: italic;
+    color: var(--color-saffron-spark);
+  }
+  .h3d .t-cuerpo {
+    color: var(--color-silver-mist);
   }
   /* ---------- Escenas a pantalla completa (como Dala) ----------
    * Medidas tomadas del video: el texto empieza a 18.5% del alto de la

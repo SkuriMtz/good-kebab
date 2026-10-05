@@ -26,13 +26,22 @@ const hex = (h: string): Color => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2
 const mezcla = (a: Color, b: Color, k: number): Color => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 const por = (a: Color, k: number): Color => [a[0] * k, a[1] * k, a[2] * k];
 
-/** La paleta de la escena: ámbar, morado, blanco y un poco de verde azulado. */
+/**
+ * La paleta de la escena, tomada de la guía de estilo (diseno/design.md):
+ * Electric Iris #8052ff, Saffron Spark #ffb829 y Deep Verdant #15846e
+ * (aclarado, porque sobre negro casi no se vería), más el espectro de la
+ * constelación de Dala: magenta y azul en pocas partículas.
+ */
 export const PALETA = {
-  ambar: hex("#f5a623"),
-  morado: hex("#7b5cff"),
+  ambar: hex("#ffb829"),
+  morado: hex("#8052ff"),
   blanco: hex("#ffffff"),
-  verdeAzul: hex("#2fd6b5"),
+  verdeAzul: mezcla(hex("#15846e"), hex("#3fe0c0"), 0.55),
+  magenta: hex("#d35cff"),
+  azul: hex("#5b7cff"),
 };
+/** El espectro completo, para salpicar color como en la constelación de Dala. */
+const ESPECTRO: Color[] = [PALETA.morado, PALETA.morado, PALETA.ambar, PALETA.verdeAzul, PALETA.magenta, PALETA.azul];
 
 /** Los colores de Lola, Clara, Víctor e Iris (los del logo), llevados hacia la paleta de la escena. */
 const COLORES_LOGO: Color[] = [
@@ -44,9 +53,14 @@ const COLORES_LOGO: Color[] = [
 
 /** La opacidad de cada partícula: entre 0.5 y 0.8, distinta en cada una. */
 const opacidad = () => 0.5 + Math.random() * 0.3;
-/** Color apagado (la mayoría) o, a veces, un blanco brillante. */
+/**
+ * Color vivo pero contenido (como en Dala: saturado, nunca blanco quemado).
+ * Una de cada cuatro se corre hacia otro color del espectro; pocas son blancas.
+ */
 function tono(base: Color, blancos = 0.07): Color {
-  return Math.random() < blancos ? PALETA.blanco : por(base, 0.55 + Math.random() * 0.25);
+  if (Math.random() < blancos * 0.5) return por(PALETA.blanco, 0.85);
+  const c = Math.random() < 0.25 ? mezcla(base, ESPECTRO[Math.floor(Math.random() * ESPECTRO.length)], 0.6) : base;
+  return por(c, 0.65 + Math.random() * 0.25);
 }
 function alAzar<T>(lista: T[]): T {
   return lista[Math.floor(Math.random() * lista.length)];
@@ -116,10 +130,13 @@ export function cerebro(n: number): Nube {
   // Los pliegues: ondas que se cruzan sobre la superficie
   const pliegue = (x: number, y: number, z: number) =>
     Math.sin(x * 9 + Math.sin(y * 6 + z * 4) * 1.8) * Math.sin(y * 8 + Math.sin(x * 5 - z * 3) * 1.6);
+  // Constelación multicolor como la de Dala: atrás verde azulado y azul,
+  // en medio violeta y magenta, adelante ámbar; mezclados, no en franjas.
   const colorDe = (y: number, x: number): Color => {
-    const t = Math.min(1, Math.max(0, (y + 0.7) / 1.5));
-    const c = mezcla(PALETA.morado, mezcla(PALETA.morado, PALETA.blanco, 0.5), t);
-    return mezcla(c, PALETA.ambar, Math.max(0, x - 0.3) * 0.5);
+    const t = Math.min(1, Math.max(0, (x + 1.1) / 2.2 + (Math.random() - 0.5) * 0.5));
+    const zonas: Color[] = [PALETA.verdeAzul, PALETA.azul, PALETA.morado, PALETA.magenta, PALETA.morado, PALETA.ambar];
+    const c = zonas[Math.min(zonas.length - 1, Math.floor(t * zonas.length))];
+    return y > 0.45 ? mezcla(c, PALETA.blanco, 0.2) : c;
   };
   for (let i = 0; i < n; i++) {
     const q = Math.random();
@@ -174,7 +191,7 @@ export function caos(n: number): Nube {
       [0, 0, 0],
       tono(base, 0.05),
       // Solo una parte se ve: dispersas, sin opacar la pantalla
-      Math.random() < 0.3 ? opacidad() * 0.75 : 0,
+      Math.random() < 0.15 ? opacidad() * 0.7 : 0,
     );
   }
   return f;
@@ -265,7 +282,7 @@ export function calendario(n: number): Nube {
       const cx = lado * 0.6 + Math.cos(a) * (R + r * Math.cos(fi)) * 0.3;
       const cy = H - 0.05 + Math.sin(a) * (R + r * Math.cos(fi));
       const cz = Math.cos(a) * (R + r * Math.cos(fi)) * 0.9;
-      poner(f, i, [cx, cy, cz], [0, Math.sin(a), Math.cos(a)], tono(PALETA.blanco, 0.3), opacidad());
+      poner(f, i, [cx, cy, cz], [0, Math.sin(a), Math.cos(a)], tono(mezcla(PALETA.morado, PALETA.blanco, 0.4), 0), opacidad() * 0.6);
       continue;
     }
     if (q < 0.25) {
@@ -310,7 +327,7 @@ export function calendario(n: number): Nube {
     if (!enLinea && !cita && Math.random() < 0.82) {
       // La mayoría de los puntos de adentro de cada día se van a las líneas
       const yLinea = franja - 0.1 - Math.round(gy) * celdaH;
-      poner(f, i, [x, Math.max(-H, Math.min(franja, yLinea)), D], [0, 0, 1], tono(mezcla(PALETA.morado, PALETA.blanco, 0.15), 0.03), opacidad() * 0.75);
+      poner(f, i, [x, Math.max(-H, Math.min(franja, yLinea)), D], [0, 0, 1], tono(PALETA.morado, 0), opacidad() * 0.25);
       continue;
     }
     const c = cita ? PALETA.ambar : mezcla(PALETA.morado, PALETA.blanco, 0.3);
