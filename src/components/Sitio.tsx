@@ -21,11 +21,12 @@ const REPARTO = AGENTES_INFO.map((a) => ({
  * El marco de cada página pública: la escena de triangulitos al fondo, la
  * barra (con "Pruébalo", el chat, como botón violeta), el pie y la ficha de
  * los agentes, que se puede abrir desde cualquier página.
+ * `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
  */
-export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" }) {
+export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" }) {
   return (
     <>
-      {fondo === "3d" ? <Escena3D /> : <Escena />}
+      {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : null}
       <ScrollSuave />
       <Nav
         items={PAGINAS}

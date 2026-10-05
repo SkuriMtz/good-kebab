@@ -22,12 +22,22 @@ export function temaActual(): Tema {
   return document.documentElement.dataset.tema === "claro" ? "claro" : "oscuro";
 }
 
-/** Cambia el modo y lo recuerda para la próxima visita. */
+/**
+ * Cambia el modo y lo recuerda para la próxima visita. El cambio es un
+ * fundido cruzado de toda la página (View Transitions, solo opacidad, 0.4 s;
+ * ver globals.css). Sin soporte o con movimiento reducido, cambia al instante.
+ */
 export function ponerTema(tema: Tema) {
   const html = document.documentElement;
   if (html.dataset.tema === tema) return;
-  html.dataset.tema = tema;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", COLOR_BARRA[tema]);
+  const aplicar = () => {
+    html.dataset.tema = tema;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", COLOR_BARRA[tema]);
+  };
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+  const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (doc.startViewTransition && !quieto) doc.startViewTransition(aplicar);
+  else aplicar();
   try {
     localStorage.setItem(CLAVE_TEMA, tema);
   } catch {

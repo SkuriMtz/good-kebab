@@ -1,0 +1,7 @@
+/*
+ * Ajustes del modo claro que no resuelvan los tokens de globals.css (:root[data-tema="claro"]).
+ * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
+ * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
+ * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
+ * en el ENTREGA.md de la rama y lo agrega el integrador.
+ */
