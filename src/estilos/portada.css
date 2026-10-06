@@ -4,4 +4,313 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta T5 · "Los cuatro te están atendiendo": el título con el halo es
+ * el protagonista; los cuatro personajes lo acompañan como mascotas, a los
+ * lados (computadora) o en fila arriba (celular), sobre un horizonte de
+ * partículas tenue que se queda fijo mientras el contenido sube.
  */
+
+/* ---------- La sección ---------- */
+.portada {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--barra-h));
+  /* La escena es fija (no se mueve con el scroll); el recorte hace que solo
+     se vea detrás de la portada: el contenido sube y el fondo se queda. */
+  clip-path: inset(0);
+}
+.portada__halo {
+  z-index: 0;
+}
+
+/* ---------- Escena 3D: el horizonte (horizonte.ts) ---------- */
+/* Transparente: el fondo es el de la portada en los dos modos */
+.portada .escena3d--tenue {
+  background: var(--c-portada);
+}
+.portada .escena3d--tenue canvas[data-lista="true"] {
+  opacity: 1;
+}
+/* Viñeta: las orillas se funden con el fondo de la portada (no con negro) */
+.portada .escena3d--tenue::after {
+  background: radial-gradient(ellipse 120% 100% at 50% 40%, transparent 55%, var(--c-portada) 100%);
+}
+/* En modo claro también se ve: tinta violeta y azul sobre gris cálido */
+:root[data-tema="claro"] .portada .escena3d--tenue {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ---------- El escenario: texto al centro, personajes a los lados ---------- */
+.portada__escenario {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  /* Celular: 1fr | 4 personajes | 1fr, para que la fila no se estire al ancho del texto */
+  grid-template-columns: 1fr repeat(4, auto) 1fr;
+  align-items: end;
+  column-gap: 0;
+  padding-block: var(--spacing-48) var(--spacing-64);
+}
+.portada__texto {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: var(--spacing-24);
+}
+.portada__titulo {
+  margin-top: var(--spacing-20);
+  max-width: 18ch;
+}
+.portada__intro {
+  margin-top: var(--spacing-24);
+  margin-inline: auto;
+}
+.portada__formulario {
+  width: 100%;
+  margin-top: var(--spacing-40);
+}
+.portada__condiciones {
+  margin-top: var(--spacing-20);
+}
+
+/* ---------- Los personajes ---------- */
+.portada__agente {
+  --tam: var(--spacing-80);
+  position: relative;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-4);
+  /* En la fila del celular se enciman un poco: se leen como un grupo */
+  margin-inline: calc(var(--spacing-8) * -1);
+  border: 0;
+  border-radius: var(--radio-imagen);
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: scale var(--dur-micro) var(--ease);
+  animation: portada-llega var(--dur-grande) var(--ease-entrada) backwards;
+}
+.portada__agente:active {
+  scale: 0.97;
+}
+.portada__flota {
+  display: block;
+  animation: portada-flota 7s var(--ease) infinite alternate;
+}
+.portada__cuerpo {
+  display: block;
+  width: var(--tam);
+  transform-origin: 50% 85%;
+  will-change: transform;
+}
+.portada__personaje {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Las pupilas las mueve Portada.tsx; desde el centro de cada una */
+.portada__personaje g[clip-path] circle {
+  transform-box: fill-box;
+}
+.portada__nombre {
+  position: absolute;
+  /* Justo debajo del cuerpo (el dibujo deja aire abajo) */
+  top: 86%;
+  left: 50%;
+  translate: -50% var(--spacing-4);
+  white-space: nowrap;
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-texto-2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    translate var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .portada__agente:hover {
+    scale: 1.04;
+  }
+  .portada__agente:hover:active {
+    scale: 0.97;
+  }
+  .portada__agente:hover .portada__nombre {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+.portada__agente:focus-visible .portada__nombre {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* Celular y tableta: los cuatro en fila arriba del título, como foto de equipo,
+   cada uno a su altura (el orden del DOM ya es Lola, Clara, Víctor, Iris) */
+.portada__agente--lola {
+  --tam: var(--spacing-80);
+  grid-column: 2;
+  animation-delay: 160ms;
+}
+.portada__agente--clara {
+  --tam: calc(var(--spacing-64) + var(--spacing-8));
+  grid-column: 3;
+  margin-bottom: var(--spacing-16);
+  animation-delay: 220ms;
+}
+.portada__agente--victor {
+  --tam: calc(var(--spacing-64) + var(--spacing-12));
+  grid-column: 4;
+  margin-bottom: var(--spacing-4);
+  animation-delay: 280ms;
+}
+.portada__agente--iris {
+  --tam: calc(var(--spacing-64) + var(--spacing-4));
+  grid-column: 5;
+  margin-bottom: var(--spacing-20);
+  animation-delay: 340ms;
+}
+/* Cada uno flota a su ritmo (nunca al unísono) */
+.portada__agente--clara .portada__flota {
+  animation-duration: 8.5s;
+  animation-delay: -3s;
+}
+.portada__agente--victor .portada__flota {
+  animation-duration: 6.2s;
+  animation-delay: -1.5s;
+}
+.portada__agente--iris .portada__flota {
+  animation-duration: 9s;
+  animation-delay: -5s;
+}
+
+/* Computadora: dos de cada lado, a distintas alturas y tamaños (profundidad) */
+@media (min-width: 1024px) {
+  .portada__escenario {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 720px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: var(--spacing-24);
+    padding-block: var(--spacing-64) var(--spacing-96);
+  }
+  .portada__texto {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+  }
+  .portada__agente--lola {
+    --tam: calc(var(--spacing-96) + var(--spacing-80));
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    align-self: end;
+    margin: 0 var(--spacing-16) var(--spacing-12) 0;
+  }
+  .portada__agente--victor {
+    --tam: calc(var(--spacing-64) + var(--spacing-48));
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    align-self: start;
+    margin: var(--spacing-48) 0 0 var(--spacing-24);
+  }
+  .portada__agente--clara {
+    --tam: calc(var(--spacing-96) + var(--spacing-48));
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+    margin: var(--spacing-24) 0 0 var(--spacing-32);
+  }
+  .portada__agente--iris {
+    --tam: calc(var(--spacing-64) * 2);
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
+    align-self: center;
+    margin: 0 var(--spacing-16) 0 0;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .portada__escenario {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 640px) minmax(0, 1fr);
+    column-gap: var(--spacing-8);
+  }
+  .portada__agente--lola {
+    --tam: calc(var(--spacing-64) + var(--spacing-48));
+    margin-right: 0;
+  }
+  .portada__agente--clara {
+    --tam: calc(var(--spacing-96) + var(--spacing-12));
+    margin-left: var(--spacing-8);
+  }
+  .portada__agente--victor {
+    --tam: var(--spacing-80);
+    margin-left: 0;
+  }
+  .portada__agente--iris {
+    --tam: calc(var(--spacing-80) + var(--spacing-8));
+  }
+}
+
+/* ---------- Entrada (una vez, al cargar): texto y luego personajes ---------- */
+.portada__entra {
+  animation: portada-llega var(--dur-grande) var(--ease-entrada) backwards;
+}
+.portada__titulo {
+  animation-delay: 40ms;
+}
+.portada__intro {
+  animation-delay: 80ms;
+}
+.portada__formulario {
+  animation-delay: 120ms;
+}
+.portada__condiciones {
+  animation-delay: 160ms;
+}
+
+@keyframes portada-llega {
+  from {
+    opacity: 0;
+    translate: 0 var(--spacing-12);
+  }
+}
+@keyframes portada-flota {
+  from {
+    translate: 0 calc(var(--spacing-4) * -1);
+  }
+  to {
+    translate: 0 var(--spacing-4);
+  }
+}
+
+/* Movimiento reducido: el bloque global ya deja solo la opacidad; aquí,
+   además, los personajes no flotan y la entrada es solo un fundido. */
+@media (prefers-reduced-motion: reduce) {
+  .portada__flota {
+    animation: none;
+  }
+  .portada__entra,
+  .portada__agente {
+    animation-name: portada-funde;
+    animation-duration: var(--dur-micro) !important;
+  }
+}
+@keyframes portada-funde {
+  from {
+    opacity: 0;
+  }
+}
