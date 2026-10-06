@@ -47,7 +47,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [ ] G1-T1 · rama `prop/g1-t1` · capturas `diseno/capturas/paso5/g1-t1/`
 - [x] G1-T2 · rama `prop/g1-t2` · capturas `diseno/capturas/paso5/g1-t2/` — **2026-10-06 18:32 UTC** — evidencia: commit `bfbc6f6` en `prop/g1-t2` (origin), 20 capturas, `diseno/entregas/g1-t2.md`
 - [x] G1-T3 · rama `prop/g1-t3` · capturas `diseno/capturas/paso5/g1-t3/` — **2026-10-05 20:46 UTC** — evidencia: commit `461d575` en `prop/g1-t3` (origin), 9 capturas, `diseno/entregas/g1-t3.md`
-- [ ] G1-T4 · rama `prop/g1-t4` · capturas `diseno/capturas/paso5/g1-t4/`
+- [x] G1-T4 · rama `prop/g1-t4` · capturas `diseno/capturas/paso5/g1-t4/` — **2026-10-06 18:34 UTC** — evidencia: commit `bb03e3b` en `prop/g1-t4` (origin), 11 capturas, `diseno/entregas/g1-t4.md`
 - [ ] G1-T5 · rama `prop/g1-t5` · capturas `diseno/capturas/paso5/g1-t5/`
 
 ### Grupo 2 — Chat de los agentes (5 trabajadores): marco de producto bajo la portada y la página del chat con grupos y PromptBar
