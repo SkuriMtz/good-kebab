@@ -90,7 +90,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ## Paso 6 — Elección de los mejores (2 revisores por grupo)
 
-- [ ] G1 revisor A → `diseno/revisiones/paso6/g1-revisor-a.md`
+- [x] G1 revisor A → `diseno/revisiones/paso6/g1-revisor-a.md` — **2026-10-06 19:31 UTC** — evidencia: `diseno/revisiones/paso6/g1-revisor-a.md` (gana G1-T3, 8.17)
 - [ ] G1 revisor B → `diseno/revisiones/paso6/g1-revisor-b.md`
 - [ ] G1 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g1-resultado.md`
 - [ ] G2 revisor A → `diseno/revisiones/paso6/g2-revisor-a.md`
