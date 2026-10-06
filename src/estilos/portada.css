@@ -4,4 +4,168 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta G1-T4 — "el título manda": un solo protagonista (el título),
+ * el halo que respira muy lento y un polvo de estrellas casi imperceptible.
  */
+
+/* ---------- La sección ---------- */
+.portada {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--barra-h));
+}
+/* Al pie, la portada se funde con el fondo de la sección siguiente: sin costura
+   entre el negro de la portada y el #0d1117 de la página (o el gris cálido y el blanco) */
+.portada::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 0;
+  height: var(--spacing-96);
+  background: linear-gradient(to bottom, transparent, var(--c-fondo));
+  pointer-events: none;
+}
+.portada__contenido {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--spacing-96);
+  text-align: center;
+}
+
+/* ---------- El halo: respira muy lento (atmósfera, no adorno que llame) ---------- */
+.portada__respiro {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: portada-respira calc(var(--dur-grande) * 30) var(--ease) infinite alternate both;
+}
+/* El halo de la base va con z-index -1; aquí vive dentro del respiro */
+.portada__respiro .halo {
+  z-index: 0;
+}
+@keyframes portada-respira {
+  from {
+    opacity: 0.78;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* ---------- El título: cortes y tracking a mano ---------- */
+.portada__titulo {
+  margin-top: var(--spacing-24);
+  font-kerning: normal;
+  font-optical-sizing: auto; /* Mona Sans trae eje opsz: el dibujo se afina al tamaño */
+  text-wrap: wrap; /* los cortes los deciden los <br>, no el balanceo */
+}
+.portada__corte--celular {
+  display: none;
+}
+/* Cada palabra entra desde abajo de su propia línea, una sola vez */
+.portada__palabra {
+  display: inline-block;
+  overflow: clip;
+  /* Aire para acentos (ú) y descendentes (q, p) sin cambiar el interlineado */
+  padding-block: 0.12em 0.14em;
+  margin-block: -0.12em -0.14em;
+  vertical-align: top;
+}
+.portada__palabra > span {
+  display: inline-block;
+  animation: portada-sube var(--dur-grande) var(--ease-entrada) both;
+  animation-delay: calc(var(--dur-micro) + var(--i, 0) * var(--dur-micro) / 4);
+}
+@keyframes portada-sube {
+  from {
+    transform: translateY(104%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* El resto llega después del título, sin competir con él */
+.portada__entra {
+  animation: portada-aparece var(--dur-grande) var(--ease-entrada) both;
+  animation-delay: calc(var(--dur-grande) * 2);
+}
+.portada__rotulo {
+  animation-delay: var(--dur-micro);
+}
+.portada__formulario {
+  animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro) / 2);
+}
+.portada__condiciones {
+  animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro));
+}
+@keyframes portada-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Intro, formulario y condiciones ---------- */
+.portada__intro {
+  margin-top: var(--spacing-24);
+  margin-inline: auto;
+  text-wrap: pretty;
+}
+/* Los nombres de los agentes: un paso más de tinta, nunca peso 700 */
+.portada__intro b {
+  font-weight: var(--peso-medio);
+  color: var(--c-texto);
+}
+.portada__formulario {
+  margin-top: var(--spacing-40);
+}
+.portada__condiciones {
+  margin-top: var(--spacing-20);
+  max-width: var(--ancho-texto);
+}
+/* Si la línea no cabe, corta en los puntos, nunca a media condición */
+.portada__condicion {
+  white-space: nowrap;
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 639px) {
+  .portada__contenido {
+    padding-block: var(--spacing-64) var(--spacing-80);
+  }
+  .portada__corte--celular {
+    display: inline;
+  }
+  .portada__corte--ancho {
+    display: none;
+  }
+  /* A 38px el tracking del display (-0.035em) aprieta de más: se usa el de
+     la escala siguiente, como pide la curva de tracking de la guía */
+  .portada__titulo {
+    letter-spacing: var(--tracking-grande);
+  }
+  .portada__intro {
+    margin-top: var(--spacing-20);
+  }
+  .portada__formulario {
+    margin-top: var(--spacing-32);
+  }
+}
+
+/* ---------- La escena 3D como polvo de estrellas ---------- */
+/* La viñeta se funde con el fondo de la portada del modo (negro o gris cálido) */
+.escena3d--polvo::after {
+  background: radial-gradient(ellipse 120% 110% at 50% 45%, transparent 55%, var(--c-portada) 100%);
+}

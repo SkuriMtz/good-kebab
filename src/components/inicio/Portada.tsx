@@ -1,35 +1,78 @@
+import { Fragment, type CSSProperties } from "react";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { FormularioLista } from "@/components/FormularioLista";
 import { Escena3D } from "@/components/escena3d/Escena3D";
+import { AGENTE_POR_ID } from "@/lib/agentes";
+import { PLANES } from "@/lib/planes";
+
+/*
+ * El título, compuesto a mano: cada palabra es una pieza y los cortes de
+ * línea están decididos, no los decide el navegador.
+ *   Computadora (2 líneas):  Que ningún cliente / se quede sin respuesta
+ *   Celular (3 líneas):      Que ningún / cliente se quede / sin respuesta
+ * "|e" corta solo en pantallas anchas; "|c" corta solo en celular.
+ */
+const TITULO = ["Que", "ningún", "|c", "cliente", "|e", "se", "quede", "|c", "sin", "respuesta"] as const;
+
+// La línea en Mono de lo que cuesta empezar: sale de los datos reales del plan Free
+const FREE = PLANES.find((p) => p.id === "free")!;
+const CONDICIONES = [FREE.nombre, FREE.precio ?? "", `${FREE.mensajesMes} mensajes al mes`, "Entras con tu correo"].filter(Boolean);
+
+const { lola, clara, victor, iris } = AGENTE_POR_ID;
 
 /**
- * 1. Portada (Grupo 1). Versión base: fondo #000, la escena 3D de partículas
- * como atmósfera fija detrás (brillo bajo; en modo claro solo el halo), el
- * halo morado detrás del título, título display, intro de 18px, el
- * formulario en línea y la línea en Mono con lo que cuesta empezar.
- * El recorte (clip-path) hace que la escena fija solo se vea dentro de la portada.
+ * 1. Portada (Grupo 1 · propuesta G1-T4: "el título manda").
+ * Un solo protagonista: el título display, con cortes de línea y tracking
+ * trabajados a mano, que entra palabra por palabra una sola vez. Detrás,
+ * el halo respira muy lento y la escena 3D es un polvo de estrellas casi
+ * imperceptible con profundidad (parallax con el mouse), fija mientras el
+ * contenido sube. Con movimiento reducido o sin WebGL: solo el halo.
  */
 export function Portada() {
+  let palabra = 0;
   return (
-    <section
-      aria-labelledby="portada-titulo"
-      className="seccion--portada con-halo relative flex min-h-[calc(100svh-var(--barra-h))] items-center [clip-path:inset(0)]"
-    >
-      <Escena3D tenue />
-      <Halo y="40%" ancho="min(1040px, 150vw)" className="z-0" />
-      <div className="contenedor relative z-[1] flex flex-col items-center py-[var(--spacing-96)] text-center">
-        <Etiqueta tono="cielo">Para clínicas, consultorios y estéticas</Etiqueta>
-        <h1 id="portada-titulo" className="t-display mt-[var(--spacing-24)] max-w-[15ch]">
-          Que ningún cliente se quede sin respuesta
+    <section aria-labelledby="portada-titulo" className="portada seccion--portada con-halo [clip-path:inset(0)]">
+      <Escena3D modo="polvo" />
+      <div className="portada__respiro" aria-hidden="true">
+        <Halo y="44%" ancho="min(1040px, 150vw)" />
+      </div>
+
+      <div className="portada__contenido contenedor">
+        <Etiqueta tono="cielo" className="portada__rotulo portada__entra">
+          Para clínicas, consultorios y estéticas
+        </Etiqueta>
+
+        <h1 id="portada-titulo" className="t-display portada__titulo">
+          {TITULO.map((pieza, i) => {
+            if (pieza === "|e") return <br key={i} className="portada__corte portada__corte--ancho" />;
+            if (pieza === "|c") return <br key={i} className="portada__corte portada__corte--celular" />;
+            const orden = palabra++;
+            return (
+              <Fragment key={i}>
+                <span className="portada__palabra">
+                  <span style={{ "--i": orden } as CSSProperties}>{pieza}</span>
+                </span>{" "}
+              </Fragment>
+            );
+          })}
         </h1>
-        <p className="t-intro mt-[var(--spacing-24)]">
-          Cuatro agentes de IA atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo
-          de oficina. Lo importante no sale sin tu visto bueno.
+
+        <p className="t-intro portada__intro portada__entra">
+          <b>{lola.nombre}</b> contesta tu WhatsApp y agenda citas, <b>{clara.nombre}</b> ordena tu correo,{" "}
+          <b>{victor.nombre}</b> trae de regreso a tus clientes e <b>{iris.nombre}</b> lleva el trabajo de oficina. Lo
+          importante no sale sin tu visto bueno.
         </p>
-        <FormularioLista centrado className="mt-[var(--spacing-40)]" />
-        <Etiqueta tono="tenue" className="mt-[var(--spacing-24)]">
-          Plan Free · Gratis · Entras con tu correo, sin contraseña
+
+        <FormularioLista centrado className="portada__formulario portada__entra" />
+
+        <Etiqueta tono="tenue" className="portada__condiciones portada__entra">
+          {CONDICIONES.map((c, i) => (
+            <span key={c}>
+              {i > 0 ? <span aria-hidden="true"> · </span> : null}
+              <span className="portada__condicion">{c}</span>
+            </span>
+          ))}
         </Etiqueta>
       </div>
     </section>
