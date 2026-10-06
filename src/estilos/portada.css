@@ -1,7 +1,118 @@
 /*
- * Estilos de la portada del inicio (Portada.tsx) y de la escena 3D.
+ * Estilos de la portada del inicio (Portada.tsx) y de su escena
+ * (escena3d/CampoMensajes.tsx + campo.ts).
  * Dueño: Grupo 1 · Portada (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Solo tokens de src/app/globals.css: nada de colores, tamaños, radios ni
+ * tiempos sueltos.
  */
+
+/* ---------- La sección: recorta la capa fija para que solo se vea aquí ---------- */
+.portada {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--barra-h));
+  clip-path: inset(0);
+}
+
+/* ---------- El fondo fijo: la escena y el halo no se mueven; el contenido sí ---------- */
+.portada__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.portada__lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  /* Aparece despacio, sin llamar la atención: es atmósfera, no el protagonista */
+  transition: opacity calc(var(--dur-grande) * 3) var(--ease-entrada);
+}
+.portada__lienzo[data-lista="true"] {
+  opacity: 1;
+}
+/* El halo va ENCIMA de las partículas: los renglones se ordenan detrás de él */
+.portada__halo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  isolation: isolate;
+}
+
+/* ---------- El contenido ---------- */
+.portada__contenido {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--spacing-64);
+  text-align: center;
+}
+/* En celular el contenido llena la pantalla: abajo queda un respiro donde los
+   renglones se ordenan solos, sin pasar detrás del formulario */
+@media (max-width: 767px) {
+  .portada__contenido {
+    padding-bottom: calc(var(--spacing-96) * 2);
+  }
+}
+@media (min-width: 768px) {
+  .portada__contenido {
+    padding-block: var(--spacing-96);
+  }
+}
+.portada__titulo {
+  max-width: 15ch;
+  margin-top: var(--spacing-24);
+}
+.portada__intro {
+  margin-top: var(--spacing-24);
+}
+.portada__formulario {
+  margin-top: var(--spacing-40);
+}
+.portada__condiciones {
+  max-width: var(--ancho-texto);
+  margin-top: var(--spacing-24);
+  text-wrap: balance;
+}
+
+/* ---------- Entrada (una sola vez, al abrir la página) ----------
+   Cada línea sube 8px y aparece, de arriba hacia abajo, con 60ms entre una y
+   otra (0.3 × --dur-micro). 0.4s con la curva de entrada de la guía. */
+.portada__entra {
+  animation: portada-entra var(--dur-grande) var(--ease-entrada) both;
+}
+.portada__contenido > :nth-child(2) {
+  animation-delay: calc(var(--dur-micro) * 0.3);
+}
+.portada__contenido > :nth-child(3) {
+  animation-delay: calc(var(--dur-micro) * 0.6);
+}
+.portada__contenido > :nth-child(4) {
+  animation-delay: calc(var(--dur-micro) * 0.9);
+}
+.portada__contenido > :nth-child(5) {
+  animation-delay: calc(var(--dur-micro) * 1.2);
+}
+@keyframes portada-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+}
+
+/* Movimiento reducido: solo el fundido, sin desplazamiento (y sin escena: lo decide CampoMensajes) */
+@media (prefers-reduced-motion: reduce) {
+  .portada__entra {
+    animation-name: portada-funde;
+    animation-duration: var(--dur-micro) !important;
+  }
+}
+@keyframes portada-funde {
+  from {
+    opacity: 0;
+  }
+}

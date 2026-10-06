@@ -1,35 +1,37 @@
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { Halo } from "@/components/base/Halo";
 import { FormularioLista } from "@/components/FormularioLista";
-import { Escena3D } from "@/components/escena3d/Escena3D";
+import { CampoMensajes } from "@/components/escena3d/CampoMensajes";
 
 /**
- * 1. Portada (Grupo 1). Versión base: fondo #000, la escena 3D de partículas
- * como atmósfera fija detrás (brillo bajo; en modo claro solo el halo), el
- * halo morado detrás del título, título display, intro de 18px, el
- * formulario en línea y la línea en Mono con lo que cuesta empezar.
- * El recorte (clip-path) hace que la escena fija solo se vea dentro de la portada.
+ * 1. Portada (Grupo 1 · propuesta G1-T2: "los mensajes sin contestar").
+ *
+ * Detrás, fijo, un campo de partículas dispersas y lejanas: los mensajes que
+ * nadie ha contestado. Al bajar, se ordenan en renglones detrás del halo,
+ * como una bandeja ya atendida, mientras el título y el formulario suben y
+ * la siguiente sección tapa el fondo. Solo se mueve el contenido.
+ *
+ * Un solo protagonista: el título sobre el halo. La escena es atmósfera
+ * (brillo bajo); con movimiento reducido o sin WebGL queda solo el halo.
+ * El recorte (clip-path) hace que la capa fija solo se vea dentro de la portada.
  */
 export function Portada() {
   return (
-    <section
-      aria-labelledby="portada-titulo"
-      className="seccion--portada con-halo relative flex min-h-[calc(100svh-var(--barra-h))] items-center [clip-path:inset(0)]"
-    >
-      <Escena3D tenue />
-      <Halo y="40%" ancho="min(1040px, 150vw)" className="z-0" />
-      <div className="contenedor relative z-[1] flex flex-col items-center py-[var(--spacing-96)] text-center">
-        <Etiqueta tono="cielo">Para clínicas, consultorios y estéticas</Etiqueta>
-        <h1 id="portada-titulo" className="t-display mt-[var(--spacing-24)] max-w-[15ch]">
+    <section aria-labelledby="portada-titulo" className="portada seccion--portada con-halo">
+      <CampoMensajes />
+      <div className="contenedor portada__contenido">
+        <Etiqueta tono="cielo" className="portada__entra">
+          Para clínicas, consultorios y estéticas
+        </Etiqueta>
+        <h1 id="portada-titulo" className="t-display portada__titulo portada__entra">
           Que ningún cliente se quede sin respuesta
         </h1>
-        <p className="t-intro mt-[var(--spacing-24)]">
+        <p className="t-intro portada__intro portada__entra">
           Cuatro agentes de IA atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo
           de oficina. Lo importante no sale sin tu visto bueno.
         </p>
-        <FormularioLista centrado className="mt-[var(--spacing-40)]" />
-        <Etiqueta tono="tenue" className="mt-[var(--spacing-24)]">
-          Plan Free · Gratis · Entras con tu correo, sin contraseña
+        <FormularioLista centrado className="portada__formulario portada__entra" />
+        <Etiqueta tono="tenue" className="portada__condiciones portada__entra">
+          Plan Free gratis, con Clara · Entras con tu correo, sin contraseña
         </Etiqueta>
       </div>
     </section>
