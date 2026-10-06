@@ -7,6 +7,16 @@ fidelidad al estilo de GitHub · que NO parezca hecho por IA ni genérico · que
 los errores de CLAUDE.md · claridad para un dueño de clínica · calidad en celular ·
 acabado y detalle.
 
+## Prioridad número uno (lo pidió el dueño)
+**Tiene que verse como el sitio de GitHub.** Fondo casi negro (#0d1117 / #000 en
+la portada), halos morados difuminados, vidrio translúcido, bordes finos #21262d,
+Mona Sans con sus pesos exactos (425/440/460), etiquetas en Mona Sans Mono,
+botones de radio 6px, pestañas en píldora de 60px, el producto dentro de un marco
+de navegador y mucho aire. Antes de entregar, compara tu propuesta contra
+`diseno/github/DESIGN.md` punto por punto y corrige lo que se aleje. Lo que la
+hace de Atendel es el contenido (agentes, conversaciones reales, personajes), no
+cambiar el estilo.
+
 ## Antes de empezar (obligatorio, completo)
 1. Lee `CLAUDE.md` (sobre todo "Lecciones de diseño" y "Reglas anti-genéricas").
 2. Lee `diseno/guia.md` (manda), `diseno/github/DESIGN.md`, `diseno/plan.md`

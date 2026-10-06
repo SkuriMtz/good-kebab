@@ -20,6 +20,8 @@ español sencillo.
 
 ## Guía de estilo vigente
 
+**Prioridad del dueño: que se vea como el sitio de GitHub.** El estilo se respeta tal cual; lo propio de Atendel es el contenido (agentes, conversaciones, personajes).
+
 La casa actual es el estilo de GitHub: `diseno/github/` (DESIGN.md, tokens.json,
 theme.css, variables.css) y el resumen con contradicciones resueltas en
 `diseno/guia.md`. **Léelos antes de tocar cualquier cosa visual.** El plan de
