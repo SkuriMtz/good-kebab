@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- Paso 4 terminado (commit d4f4a7c). Paso 5 en curso: Grupo 1. G1-T3 entregado. G1-T1, T2, T4 y T5 reanudados el 2026-10-05 20:46 UTC tras el límite de uso. Después: revisores G1 y tanda del Grupo 2.
+- Paso 4 terminado (commit d4f4a7c). Paso 5: G1-T2, T3, T4 y T5 entregados. G1-T1 se detuvo (paro del usuario) y se relanzó el 2026-10-06 19:20 UTC sobre su avance. Tanda del Grupo 2 lanzada el 2026-10-06 19:20 UTC (worktrees `/home/user/wt/g2-t1…t5`, ramas `prop/g2-t1…t5`, base 1c23d2f con la prioridad 'que se vea como GitHub'). Siguiente: revisores del G1 cuando entregue G1-T1.
 
 ## Paso 0 — Archivos y respaldo
 
