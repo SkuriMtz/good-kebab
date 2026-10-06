@@ -4,4 +4,183 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta G1-T1 · "Las cuatro esferas": el logo de Atendel hecho de
+ * partículas, muy tenue y fijo detrás del halo; encima, el título sobrio y
+ * centrado; abajo, la leyenda que dice qué esfera es cada agente.
  */
+
+/* ---------- La sección ---------- */
+.portada {
+  /* El recorte hace que la escena (position: fixed) solo se vea aquí */
+  clip-path: inset(0);
+  min-height: calc(100svh - var(--barra-h));
+}
+/* Fundido de la portada (#000) al fondo de la página (#0d1117) en la orilla de abajo:
+   sin corte duro cuando el contenido sube sobre la escena fija */
+.portada::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  height: var(--spacing-96);
+  background: linear-gradient(to bottom, transparent, var(--c-fondo));
+  pointer-events: none;
+}
+/* El halo va ENCIMA de la escena (que es fija, con z-index 0) y debajo del texto */
+.portada__halo {
+  z-index: 0;
+}
+
+/* ---------- La escena (Escena3D variante "portada") ---------- */
+/* La viñeta se funde con el color de la portada en los dos modos (no con negro) */
+.escena3d--portada::after {
+  background: radial-gradient(
+    ellipse 120% 100% at 50% 45%,
+    transparent 50%,
+    color-mix(in srgb, var(--c-portada) 80%, transparent) 100%
+  );
+}
+
+/* ---------- El contenido ---------- */
+.portada__contenido {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: calc(100svh - var(--barra-h));
+  padding-block: var(--spacing-48) var(--spacing-24);
+}
+@media (min-width: 768px) {
+  .portada__contenido {
+    padding-block: var(--spacing-96) var(--spacing-48);
+  }
+}
+.portada__bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  text-align: center;
+}
+.portada__titulo {
+  margin-top: var(--spacing-24);
+  max-width: 24ch;
+}
+.portada__intro {
+  margin-top: var(--spacing-24);
+  margin-inline: auto;
+}
+.portada__formulario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: var(--spacing-40);
+}
+.portada__condiciones {
+  margin-top: var(--spacing-24);
+}
+
+/* ---------- La leyenda de la escena: qué esfera es cada agente ---------- */
+.portada__leyenda {
+  margin-top: var(--spacing-48);
+}
+@media (min-width: 768px) {
+  .portada__leyenda {
+    margin-top: var(--spacing-64);
+  }
+}
+.portada__agentes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--spacing-32);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* En celular, dos por dos: el mismo acomodo de la marca */
+@media (max-width: 639px) {
+  .portada__agentes {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    justify-content: center;
+    column-gap: var(--spacing-24);
+  }
+}
+.portada__agente {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--spacing-44); /* objetivo táctil */
+  padding-inline: var(--spacing-4);
+  border-radius: var(--radio-boton);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--c-texto-2);
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.portada__agente:active {
+  transform: scale(0.97);
+}
+.portada__punto {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  flex-shrink: 0;
+  border-radius: var(--radio-circulo);
+  background: var(--agente);
+  transition: transform var(--dur-micro) var(--ease);
+}
+.portada__nombre {
+  color: var(--c-texto);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: var(--spacing-4);
+}
+.portada__area {
+  color: var(--c-tenue);
+}
+.portada__area::before {
+  content: "· ";
+}
+@media (hover: hover) and (pointer: fine) {
+  .portada__agente:hover .portada__nombre {
+    text-decoration-color: currentColor;
+  }
+  .portada__agente:hover .portada__punto {
+    transform: scale(1.25);
+  }
+}
+
+/* ---------- Entrada (una vez por visita): sube 8px y aparece, en orden ---------- */
+.portada__entra {
+  animation: portada-entra var(--dur-grande) var(--ease-entrada) both;
+  animation-delay: calc(var(--dur-micro) / 3 * var(--i, 0) + var(--dur-micro) / 2);
+}
+@keyframes portada-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+}
+/* Movimiento reducido: solo opacidad (la escena ni se monta; queda el halo) */
+@media (prefers-reduced-motion: reduce) {
+  .portada__entra {
+    animation-name: aparecer;
+  }
+  .portada__agente,
+  .portada__punto {
+    transition-property: opacity;
+  }
+}

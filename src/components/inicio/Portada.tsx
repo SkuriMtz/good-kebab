@@ -1,36 +1,66 @@
+import type { CSSProperties } from "react";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { FormularioLista } from "@/components/FormularioLista";
+import { EnlaceFicha } from "@/components/agentes/BotonFicha";
 import { Escena3D } from "@/components/escena3d/Escena3D";
+import { AGENTES_INFO } from "@/lib/agentes";
+
+const orden = (i: number) => ({ "--i": i }) as CSSProperties;
 
 /**
- * 1. Portada (Grupo 1). Versión base: fondo #000, la escena 3D de partículas
- * como atmósfera fija detrás (brillo bajo; en modo claro solo el halo), el
- * halo morado detrás del título, título display, intro de 18px, el
- * formulario en línea y la línea en Mono con lo que cuesta empezar.
- * El recorte (clip-path) hace que la escena fija solo se vea dentro de la portada.
+ * 1. Portada (Grupo 1 · propuesta G1-T1: "Las cuatro esferas").
+ *
+ * Detrás de todo, fija, la escena 3D forma el logo de Atendel: cuatro esferas
+ * de partículas, una por agente, muy tenues, girando lento detrás del halo.
+ * Encima, sobrio y centrado: título, intro, el formulario de la lista y la
+ * línea en Mono con lo que cuesta empezar.
+ * Abajo, la "leyenda" de la escena: qué esfera es cada agente, en el mismo
+ * orden que el logo (en celular, dos por dos, como la marca). Cada nombre
+ * abre la ficha del agente.
+ *
+ * El recorte (clip-path) hace que la escena fija solo se vea dentro de la
+ * portada; el contenido se desliza encima y la figura se queda (lección 8).
  */
 export function Portada() {
   return (
-    <section
-      aria-labelledby="portada-titulo"
-      className="seccion--portada con-halo relative flex min-h-[calc(100svh-var(--barra-h))] items-center [clip-path:inset(0)]"
-    >
-      <Escena3D tenue />
-      <Halo y="40%" ancho="min(1040px, 150vw)" className="z-0" />
-      <div className="contenedor relative z-[1] flex flex-col items-center py-[var(--spacing-96)] text-center">
-        <Etiqueta tono="cielo">Para clínicas, consultorios y estéticas</Etiqueta>
-        <h1 id="portada-titulo" className="t-display mt-[var(--spacing-24)] max-w-[15ch]">
-          Que ningún cliente se quede sin respuesta
-        </h1>
-        <p className="t-intro mt-[var(--spacing-24)]">
-          Cuatro agentes de IA atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo
-          de oficina. Lo importante no sale sin tu visto bueno.
-        </p>
-        <FormularioLista centrado className="mt-[var(--spacing-40)]" />
-        <Etiqueta tono="tenue" className="mt-[var(--spacing-24)]">
-          Plan Free · Gratis · Entras con tu correo, sin contraseña
-        </Etiqueta>
+    <section aria-labelledby="portada-titulo" className="portada seccion--portada con-halo">
+      <Escena3D variante="portada" />
+      <Halo y="44%" ancho="min(980px, 150vw)" className="portada__halo" />
+
+      <div className="contenedor portada__contenido">
+        <div className="portada__bloque" data-escena-centro="">
+          <Etiqueta tono="cielo" className="portada__entra">
+            Para clínicas, consultorios y estéticas
+          </Etiqueta>
+          <h1 id="portada-titulo" className="t-display portada__titulo portada__entra" style={orden(1)}>
+            Tu recepción sigue contestando mientras tú atiendes
+          </h1>
+          <p className="t-intro portada__intro portada__entra" style={orden(2)}>
+            Cuatro agentes de IA contestan tu WhatsApp, agendan y confirman citas, ordenan tu correo y le escriben a quien faltó a su
+            cita. Lo importante no sale sin tu visto bueno.
+          </p>
+          <div className="portada__formulario portada__entra" style={orden(3)}>
+            <FormularioLista centrado />
+            <Etiqueta tono="tenue" className="portada__condiciones">
+              Plan Free · Gratis · Entras con tu correo, sin contraseña
+            </Etiqueta>
+          </div>
+        </div>
+
+        <nav aria-label="Los cuatro agentes" className="portada__leyenda portada__entra" style={orden(4)}>
+          <ul className="portada__agentes">
+            {AGENTES_INFO.map((a) => (
+              <li key={a.id}>
+                <EnlaceFicha agente={a.id} className="portada__agente">
+                  <span className="portada__punto" style={{ "--agente": `var(--agente-${a.id})` } as CSSProperties} aria-hidden="true" />
+                  <span className="portada__nombre">{a.nombre}</span>
+                  <span className="portada__area">{a.area}</span>
+                </EnlaceFicha>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </section>
   );
