@@ -21,10 +21,10 @@ import {
   File02Icon,
   HelpCircleIcon,
   Mic01Icon,
-  PlusSignIcon,
   SparklesIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
+import { Icono } from "./base/Iconos";
 import "./PromptBar.css";
 
 export type PromptBarSource = {
@@ -138,7 +138,9 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
  * PromptBar de React Bits: barra para escribirle a la IA, con menú "@" y
  * botón "+" (aquí: elegir agente), menú "/" (acciones), botón de enviar que
  * se vuelve "detener", y opcionalmente selector de modelo, esfuerzo y dictado.
- * Cambios para Atendel: textos en español, tipado y búsqueda con acentos.
+ * Cambios para Atendel: textos en español, tipado, búsqueda con acentos y
+ * colores de la base (el botón de enviar es neutro: el violeta queda para el
+ * botón principal de cada pantalla).
  */
 export default function PromptBar({
   placeholder = "Escribe tu mensaje",
@@ -154,13 +156,13 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
+  background = "var(--c-superficie)",
+  color = "var(--c-texto)",
+  menuBackground = "var(--c-superficie)",
   sparkColor = "#b39dff",
   sparkBoost = 1,
   width = 400,
-  radius = 16,
+  radius = 8,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
@@ -655,7 +657,7 @@ export default function PromptBar({
               focusInput();
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+            <Icono nombre="mas" tam={16} />
           </button>
           {models.length > 0 && model ? (
             <button
