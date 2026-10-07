@@ -56,7 +56,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [ ] G2-T2 · rama `prop/g2-t2` · capturas `diseno/capturas/paso5/g2-t2/`
 - [x] G2-T3 · rama `prop/g2-t3` · capturas `diseno/capturas/paso5/g2-t3/` — **2026-10-07 14:14 UTC** — evidencia: commit `608fd13` en `prop/g2-t3` (origin), 33 capturas, `diseno/entregas/g2-t3.md`
 - [ ] G2-T4 · rama `prop/g2-t4` · capturas `diseno/capturas/paso5/g2-t4/`
-- [ ] G2-T5 · rama `prop/g2-t5` · capturas `diseno/capturas/paso5/g2-t5/`
+- [x] G2-T5 · rama `prop/g2-t5` · capturas `diseno/capturas/paso5/g2-t5/` — **2026-10-07 14:15 UTC** — evidencia: commit `039e7bc` en `prop/g2-t5` (origin), 22 capturas, `diseno/entregas/g2-t5.md`
 
 ### Grupo 3 — Agentes (5 trabajadores): pestañas de los 4 agentes, personajes (blobs) y páginas de cada agente
 
