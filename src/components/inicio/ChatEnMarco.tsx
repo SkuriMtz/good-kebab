@@ -1,34 +1,54 @@
 import { ChatDemo } from "@/components/ChatDemo";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
+import { Boton } from "@/components/base/Boton";
+import { Halo } from "@/components/base/Halo";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
-import { Personaje } from "@/components/agentes/Personaje";
-import { AGENTES_INFO } from "@/lib/agentes";
-
-/** La pestaña de cada agente en la barra del marco: "Lola · WhatsApp", "Clara · Correo"… */
-const PESTANAS = AGENTES_INFO.map((a, i) => ({
-  id: a.id,
-  etiqueta: `${a.nombre} · ${a.id === "lola" ? a.abarca.split(" ")[0] : a.area}`,
-  adorno: <Personaje agente={a.id} avatar />,
-  activa: i === 0,
-}));
+import { Avatar } from "@/components/chat/Piezas";
+import { IDS_AGENTES } from "@/lib/agentes";
 
 /**
- * 2. El producto en vivo (Grupo 2). Versión base: el chat de demostración
- * (guion local, sin IA) dentro del marco de navegador, como la prueba
- * principal de Atendel.
+ * 2. El producto en vivo (Grupo 2 · propuesta G2-T4).
+ * Como el editor en la página de GitHub: el producto real, grande, dentro de
+ * un marco de navegador que flota sobre el halo morado. Adentro, la
+ * conversación de la recepción se reproduce sola al aparecer: Lola agenda a
+ * una paciente, le pasa el seguimiento a Víctor y queda un mensaje esperando
+ * tu visto bueno. Después la persona puede escribir (guion local, sin IA).
  */
 export function ChatEnMarco() {
   return (
-    <Seccion id="en-vivo" etiquetadaPor="en-vivo-titulo">
+    <Seccion id="en-vivo" etiquetadaPor="en-vivo-titulo" halo>
       <EncabezadoSeccion
         id="en-vivo-titulo"
-        etiqueta="Pruébalo aquí mismo"
-        titulo="Así se ve un día con tu equipo"
-        texto="Escríbele a Lola como si fueras tu paciente, o abre el grupo de la recepción. Es una demostración: nada sale de esta página."
+        adorno={
+          <span className="en-vivo__personajes">
+            {IDS_AGENTES.map((id) => (
+              <Avatar key={id} agente={id} tam={40} />
+            ))}
+          </span>
+        }
+        etiqueta="En vivo · guion de ejemplo"
+        titulo="Una paciente escribe y tu equipo se pasa el trabajo"
+        texto="Sofía pidió su primera limpieza facial por WhatsApp. Mira cómo Lola le da cita y le pasa el seguimiento a Víctor. Luego escríbeles tú: nada sale de esta página."
       />
-      <MarcoNavegador titulo="Chat de demostración de Atendel" pestanas={PESTANAS} direccion="atendel.mx/pruebalo">
-        <ChatDemo />
-      </MarcoNavegador>
+      <div className="en-vivo__escenario">
+        <Halo y="45%" ancho="min(1760px, 190vw)" proporcion="16 / 10" />
+        <ChatDemo lugar="inicio" />
+      </div>
+      <div className="en-vivo__pie">
+        <ol className="en-vivo__nota etiqueta" aria-label="Qué pasa en la conversación">
+          <li>
+            <span className="en-vivo__num">01</span> Lola agenda
+          </li>
+          <li>
+            <span className="en-vivo__num">02</span> Víctor da seguimiento
+          </li>
+          <li>
+            <span className="en-vivo__num">03</span> Tú das el visto bueno
+          </li>
+        </ol>
+        <Boton href="/pruebalo" variante="fantasma" tam="chico" flecha>
+          Abrir a pantalla completa
+        </Boton>
+      </div>
     </Seccion>
   );
 }
