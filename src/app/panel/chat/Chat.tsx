@@ -1,23 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { Spinner } from "@/components/Buttons";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Pista } from "@/components/ChatDemo";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
-import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
+import { Personaje } from "@/components/agentes/Personaje";
+import { Boton } from "@/components/base/Boton";
+import { Giro, Icono } from "@/components/base/Iconos";
+import { FilaDeslizable } from "@/components/chat/Deslizar";
 import {
+  Avatar,
   Caras,
+  Comentario,
+  Cuerpo,
   Dia,
   Escribiendo,
-  IconoCerrar,
-  IconoLista,
-  IconoMas,
-  MensajeAgente,
-  MensajeTuyo,
+  Evento,
+  Hilo,
+  IconoCopiar,
+  IconoLado,
   NuevoGrupo,
-  Sistema,
   nombres,
 } from "@/components/chat/Piezas";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
@@ -84,15 +88,6 @@ const integrantes = (c: Conversacion): IdAgente[] | null => {
   const p = (c.participantes ?? []).filter(esIdAgente);
   return p.length >= 2 ? p : null;
 };
-
-function Candado() {
-  return (
-    <svg className="h-3 w-3 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" rx="1.5" stroke="currentColor" />
-      <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
-    </svg>
-  );
-}
 
 /**
  * Chat con los agentes, como una app de mensajería: a la izquierda tus
@@ -218,16 +213,17 @@ export function Chat({
     return () => window.removeEventListener("keydown", tecla);
   }, [lista]);
 
-  /** La ✕ de cada conversación: pregunta antes de borrar. */
+  /** Borrar una conversación (papelera o deslizar): pregunta antes. Devuelve si se borró. */
   async function borrar(c: Conversacion) {
-    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return;
+    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return false;
     const { error } = await createClient().from("conversaciones").delete().eq("id", c.id);
     if (error) {
       setAviso("No se pudo borrar la conversación.");
-      return;
+      return false;
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
     if (actual === c.id) nueva(c.agente);
+    return true;
   }
 
   async function enviar(contenido: string) {
@@ -343,6 +339,29 @@ export function Chat({
   // Quién escribe ahora (para los tres puntos y la cabecera)
   const enCurso = visibles[visibles.length - 1]?.enCurso ? (visibles[visibles.length - 1].de as IdAgente) : null;
 
+  /** La línea de tiempo: día, comentarios (voces seguidas juntas), "escribiendo" y errores. */
+  type Bloque =
+    | { tipo: "dia"; key: string; fecha: Date }
+    | { tipo: "escribiendo"; key: string; agente: IdAgente }
+    | { tipo: "error"; key: string; texto: string; fecha: Date }
+    | { tipo: "comentario"; key: string; autor: "tu" | IdAgente; partes: Pieza[] };
+  const bloques: Bloque[] = [];
+  visibles.forEach((p, i) => {
+    const antes = visibles[i - 1];
+    if (!antes || !mismoDia(antes.fecha, p.fecha)) bloques.push({ tipo: "dia", key: `d-${p.key}`, fecha: p.fecha });
+    if (p.de !== "tu" && !p.texto && p.enCurso) {
+      bloques.push({ tipo: "escribiendo", key: `e-${p.key}`, agente: p.de });
+      return;
+    }
+    if (!p.texto) {
+      bloques.push({ tipo: "error", key: `x-${p.key}`, texto: p.error ?? "", fecha: p.fecha });
+      return;
+    }
+    const ultimo = bloques[bloques.length - 1];
+    if (ultimo?.tipo === "comentario" && ultimo.autor === p.de) ultimo.partes.push(p);
+    else bloques.push({ tipo: "comentario", key: `c-${p.key}`, autor: p.de, partes: [p] });
+  });
+
   const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
     key: id,
     name: AGENTE_POR_ID[id].nombre,
@@ -350,86 +369,78 @@ export function Chat({
     icon: <Personaje agente={id} avatar className="h-5 w-5" />,
   }));
   const sugerencias = grupo ? grupo.slice(0, 3).map((id) => AGENTE_POR_ID[id].sugerencias[0]) : info.sugerencias;
+  const comandos = comandosDe(participantes);
   const gruposGuardados = conversaciones.filter((c) => integrantes(c));
   const chatsGuardados = conversaciones.filter((c) => !integrantes(c));
 
   const filaConversacion = (c: Conversacion) => {
     const ids = integrantes(c) ?? [c.agente];
     return (
-      <li key={c.id} className="group relative">
-        <button type="button" className="chat-app__conv pr-12" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
-          <Caras agentes={ids} tam={44} />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-[0.9375rem] font-semibold text-tinta">{c.titulo}</span>
-              <span className="shrink-0 text-[0.75rem] tabular-nums text-tenue">{cuando(c.actualizado_en)}</span>
+      <FilaDeslizable key={c.id} etiqueta={`Borrar «${c.titulo}»`} alBorrar={() => borrar(c)}>
+        <button type="button" className="charla__conv" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
+          <Caras agentes={ids} tam={32} />
+          <span className="charla__conv-texto">
+            <span className="charla__conv-linea">
+              <span className="charla__conv-nombre">{c.titulo}</span>
+              <span className="charla__conv-hora">{cuando(c.actualizado_en)}</span>
             </span>
-            <span className="mt-0.5 block truncate text-[0.8125rem] text-tenue">
-              {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
-            </span>
+            <span className="charla__conv-vista">{ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}</span>
           </span>
         </button>
-        <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
-          <IconoCerrar />
-        </button>
-      </li>
+      </FilaDeslizable>
     );
   };
 
   return (
     <>
       <NavApp email={email} />
-      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[var(--barra-h)]">
+      <div className="charla charla--pantalla">
         {/* ---------- Agentes, grupos y conversaciones ---------- */}
-        <aside className="chat-app__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
-          <div className="flex items-center justify-between px-5 pb-3 pt-5">
-            <p className="text-[1.0625rem] font-semibold tracking-[-0.01em]">Chats</p>
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(false)} aria-label="Cerrar la lista">
-              <IconoCerrar />
+        <aside className="charla__lado" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
+          <div className="charla__lado-cabeza">
+            <p className="charla__lado-titulo">Conversaciones</p>
+            <button type="button" className="charla__boton-icono charla__solo-movil" onClick={() => setLista(false)} aria-label="Cerrar la lista">
+              <Icono nombre="cerrar" tam={16} />
             </button>
           </div>
-          <div className="px-3">
+          <div className="charla__lado-accion">
             {puedeGrupos ? (
-              <button
-                type="button"
-                className="chat-app__nuevo"
+              <Boton
+                variante="fantasma"
+                tam="chico"
+                bloque
+                icono={<Icono nombre="mas" tam={16} />}
                 onClick={() => {
                   setCreando(true);
                   setLista(false);
                 }}
               >
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <IconoMas />
-                </span>
                 Nuevo grupo
-              </button>
+              </Boton>
             ) : (
-              <Link href="/precios" className="chat-app__nuevo chat-app__nuevo--bloqueado">
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <Candado />
-                </span>
+              <Boton variante="fantasma" tam="chico" bloque href="/precios" icono={<Icono nombre="candado" tam={16} />}>
                 Grupos con Atendel One
-              </Link>
+              </Boton>
             )}
           </div>
 
-          <div className="chat-app__listas">
-            <p className="chat-app__seccion">Tu equipo</p>
+          <div className="charla__listas" data-lenis-prevent="">
+            <p className="charla__seccion">Tu equipo</p>
             <ul>
               {AGENTES_INFO.map((a) => {
                 const activo = activos.includes(a.id);
                 const elegido = a.id === agente && !grupo && !actual;
                 const contenido = (
                   <>
-                    <Caras agentes={[a.id]} tam={44} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.9375rem] font-semibold text-tinta">{a.nombre}</span>
-                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-tenue">
+                    <Caras agentes={[a.id]} tam={32} />
+                    <span className="charla__conv-texto">
+                      <span className="charla__conv-nombre">{a.nombre}</span>
+                      <span className="charla__conv-vista">
                         {activo ? (
                           `${a.area} · ${a.abarca}`
                         ) : (
                           <>
-                            <Candado /> Con {planMinimo(a.id).nombre}
+                            <Icono nombre="candado" tam={12} /> Con {planMinimo(a.id).nombre}
                           </>
                         )}
                       </span>
@@ -439,11 +450,11 @@ export function Chat({
                 return (
                   <li key={a.id}>
                     {activo ? (
-                      <button type="button" className="chat-app__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
+                      <button type="button" className="charla__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
                         {contenido}
                       </button>
                     ) : (
-                      <Link href="/precios" className="chat-app__conv opacity-50" title={`Disponible con ${planMinimo(a.id).nombre}`}>
+                      <Link href="/precios" className="charla__conv charla__conv--bloqueado" title={`Disponible con ${planMinimo(a.id).nombre}`}>
                         {contenido}
                       </Link>
                     )}
@@ -454,27 +465,27 @@ export function Chat({
 
             {gruposGuardados.length ? (
               <>
-                <p className="chat-app__seccion">Grupos</p>
+                <p className="charla__seccion">Grupos</p>
                 <ul>{gruposGuardados.map(filaConversacion)}</ul>
               </>
             ) : null}
 
-            <p className="chat-app__seccion">Conversaciones</p>
+            <p className="charla__seccion">Conversaciones</p>
             {chatsGuardados.length ? (
               <ul>{chatsGuardados.map(filaConversacion)}</ul>
             ) : (
-              <p className="px-3 text-[0.8125rem] text-tenue">Aquí aparecerán tus conversaciones.</p>
+              <p className="charla__conv-vista px-[var(--spacing-8)]">Aquí aparecerán tus conversaciones.</p>
             )}
           </div>
 
-          <div className="chat-app__plan">
-            <p className="mb-2 text-[0.8125rem] font-semibold text-tinta">{plan.nombre}</p>
+          <div className="charla__plan">
+            <p className="charla__plan-nombre">{plan.nombre}</p>
             <Uso usados={usados} plan={plan} compacto />
           </div>
         </aside>
         <button
           type="button"
-          className="chat-app__velo md:hidden"
+          className="charla__velo charla__solo-movil"
           data-abierta={lista ? "" : undefined}
           onClick={() => setLista(false)}
           aria-hidden="true"
@@ -482,19 +493,17 @@ export function Chat({
         />
 
         {/* ---------- Conversación abierta ---------- */}
-        <section className="chat-app__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
-          <header className="chat-app__cabeza">
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(true)} aria-label="Ver chats">
-              <IconoLista />
+        <section className="charla__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
+          <header className="charla__cabeza">
+            <button type="button" className="charla__boton-icono charla__solo-movil" onClick={() => setLista(true)} aria-label="Ver conversaciones">
+              <IconoLado tam={20} />
             </button>
-            <Caras agentes={participantes} tam={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[1rem] font-semibold leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
-              <p className="truncate text-[0.8125rem] leading-snug text-tenue" aria-live="polite">
+            <Caras agentes={participantes} tam={32} />
+            <div className="charla__cabeza-texto">
+              <p className="charla__cabeza-titulo">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
+              <p className="charla__cabeza-meta" aria-live="polite">
                 {enCurso ? (
-                  <span className="chat-app__escribe">
-                    {grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}
-                  </span>
+                  <span className="charla__escribe">{grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "Escribiendo…"}</span>
                 ) : grupo ? (
                   `Grupo · ${nombres(grupo)}`
                 ) : (
@@ -503,53 +512,47 @@ export function Chat({
               </p>
             </div>
             {actual ? (
-              <button type="button" className="chat-app__probar inline-flex" onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
-                <IconoMas />
+              <Boton variante="fantasma" tam="chico" icono={<Icono nombre="mas" tam={16} />} onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
                 Nueva
-              </button>
+              </Boton>
             ) : null}
           </header>
 
           <div
             ref={scrollRef}
-            className="chat-app__mensajes"
+            className="charla__mensajes"
+            data-lenis-prevent=""
             onScroll={(e) => {
               const el = e.currentTarget;
               pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
             }}
           >
-            <div className="mx-auto flex min-h-full w-full max-w-[880px] flex-col">
+            <div className="charla__columna flex min-h-full flex-col">
               {cargando ? (
-                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-tenue">
-                  <Spinner /> Abriendo conversación…
+                <p className="charla__cargando" role="status">
+                  <Giro /> Abriendo conversación…
                 </p>
               ) : mensajes.length === 0 ? (
-                <div className="chat-app__vacio">
-                  {grupo ? (
-                    <Caras agentes={grupo} tam={92} />
-                  ) : (
-                    <span className="retrato !w-28" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
-                      <Personaje agente={agente} avatar />
-                    </span>
-                  )}
-                  <p className="mt-6 text-[1.75rem] font-bold leading-tight tracking-[-0.025em] sm:text-[2rem]">
-                    {grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}
-                  </p>
-                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-grafito">
+                <div className="charla__vacio">
+                  <Caras agentes={participantes} tam={64} />
+                  <p className="charla__vacio-titulo">{grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}</p>
+                  <p className="charla__vacio-texto">
                     {grupo
                       ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
                       : info.lema}
                   </p>
                   {disponible ? (
-                    <div className="mt-8 flex max-w-[620px] flex-wrap justify-center gap-2">
+                    <div className="charla__ideas">
+                      <p className="charla__ideas-titulo etiqueta">Para empezar</p>
                       {sugerencias.map((s) => (
-                        <button key={s} type="button" className="chat-app__sugerencia chat-app__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
-                          {s}
+                        <button key={s} type="button" className="charla__idea" onClick={() => enviar(s)} disabled={sinMensajes}>
+                          <span>{s}</span>
+                          <Icono nombre="flecha" tam={16} />
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-8 text-[0.9375rem] text-grafito">
+                    <p className="charla__vacio-texto">
                       {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
                       <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="enlace">
                         {!participantes.every((id) => plan.agentes.includes(id))
@@ -561,85 +564,87 @@ export function Chat({
                   )}
                 </div>
               ) : (
-                <div className="chat-app__hilo" role="log" aria-live="polite">
-                  {visibles.map((p, i) => {
-                    const antes = visibles[i - 1];
-                    const despues = visibles[i + 1];
-                    const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
-                    const primero = nuevoDia || antes.de !== p.de;
-                    const ultimo = !despues || despues.de !== p.de || !mismoDia(despues.fecha, p.fecha);
-                    const fila = { primero, ultimo, nueva: p.nuevo, bloque: primero && !nuevoDia, hora: hora(p.fecha) };
-                    let pieza;
-                    if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
-                    else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
-                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error {...fila} />;
-                    else
-                      pieza = (
-                        <MensajeAgente
-                          agente={p.de}
-                          texto={p.texto}
-                          enGrupo={!!grupo}
-                          {...fila}
-                          hora={p.enCurso ? undefined : fila.hora}
-                          pie={
-                            p.error ? (
-                              <p role="alert" className="chat-app__error">
-                                {p.error}
-                              </p>
-                            ) : !p.enCurso && ultimo ? (
-                              <Copiar texto={p.texto} fijo={i === visibles.length - 1} />
+                <div role="log" aria-live="polite">
+                  <Hilo etiqueta={grupo ? `Conversación con ${nombres(grupo)}` : `Conversación con ${info.nombre}`}>
+                    {bloques.map((b, i) => {
+                      if (b.tipo === "dia") return <Dia key={b.key}>{dia(b.fecha)}</Dia>;
+                      if (b.tipo === "escribiendo") return <Escribiendo key={b.key} agente={b.agente} />;
+                      if (b.tipo === "error")
+                        return <Evento key={b.key} icono="alerta" tono="error" texto={b.texto} hora={hora(b.fecha)} alerta />;
+                      const ultimaParte = b.partes[b.partes.length - 1];
+                      const listo = !ultimaParte.enCurso;
+                      return (
+                        <Comentario
+                          key={b.key}
+                          autor={b.autor}
+                          hora={hora(b.partes[0].fecha)}
+                          nueva={b.partes[0].nuevo}
+                          acciones={
+                            b.autor !== "tu" && listo ? (
+                              <Copiar texto={b.partes.map((p) => p.texto).join("\n\n")} fijo={i === bloques.length - 1} />
                             ) : null
                           }
-                        />
+                          pie={
+                            ultimaParte.error ? (
+                              <p role="alert" className="charla__error">
+                                {ultimaParte.error}
+                              </p>
+                            ) : null
+                          }
+                        >
+                          {b.partes.map((p, k) => (
+                            <Fragment key={p.key}>
+                              {k > 0 ? <hr className="charla__separador" aria-hidden="true" /> : null}
+                              <Cuerpo autor={b.autor} texto={p.texto} />
+                            </Fragment>
+                          ))}
+                        </Comentario>
                       );
-                    return (
-                      <Fragment key={p.key}>
-                        {nuevoDia ? <Dia>{dia(p.fecha)}</Dia> : null}
-                        {pieza}
-                      </Fragment>
-                    );
-                  })}
+                    })}
+                    {aviso ? <Evento icono="alerta" tono="error" texto={aviso} alerta /> : null}
+                  </Hilo>
                 </div>
               )}
-              {aviso ? (
-                <p role="alert" className="chat-app__fila chat-app__sistema chat-app__sistema--error">
-                  <span>{aviso}</span>
+              {aviso && mensajes.length === 0 ? (
+                <p role="alert" className="charla__error text-center">
+                  {aviso}
                 </p>
               ) : null}
             </div>
           </div>
 
-          <div className="chat-app__pie mx-auto w-full max-w-[944px] pb-[max(18px,env(safe-area-inset-bottom))]">
-            {sinMensajes ? (
-              <p className="mb-3 text-center text-[0.875rem] text-grafito">
-                Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                <Link href="/precios" className="enlace">
-                  Ver planes
-                </Link>
-              </p>
-            ) : null}
-            {disponible && !sinMensajes ? (
-              <PromptBar
-                key={grupo ? grupo.join("-") : agente}
-                placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
-                sources={fuentes}
-                commands={comandosDe(participantes)}
-                models={[]}
-                efforts={[]}
-                busy={enviando}
-                onSend={(t) => enviar(t)}
-                onStop={() => abortar.current?.abort()}
-                background="var(--chat-campo)"
-                color="var(--c-texto)"
-                menuBackground="var(--chat-menu)"
-                width={4000}
-                radius={24}
-                maxRows={8}
-              />
-            ) : null}
-            <p className="mt-3 text-center text-[0.75rem] text-tenue">
-              {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
-            </p>
+          <div className="charla__pie pb-[max(var(--spacing-16),env(safe-area-inset-bottom))]">
+            <div className="charla__columna charla__compositor">
+              {disponible && !sinMensajes ? <Avatar autor="tu" className="charla__avatar--lado" /> : null}
+              <div className="charla__compositor-cuerpo">
+                {sinMensajes ? (
+                  <p className="charla__limite">
+                    Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
+                    <Link href="/precios" className="enlace">
+                      Ver planes
+                    </Link>
+                  </p>
+                ) : null}
+                {disponible && !sinMensajes ? (
+                  <PromptBar
+                    key={grupo ? grupo.join("-") : agente}
+                    placeholder={grupo ? "Escribe al grupo" : `Escríbele a ${info.nombre}`}
+                    sources={fuentes}
+                    commands={comandos}
+                    models={[]}
+                    efforts={[]}
+                    busy={enviando}
+                    onSend={(t) => enviar(t)}
+                    onStop={() => abortar.current?.abort()}
+                    pista={<Pista grupo={Boolean(grupo)} />}
+                    maxRows={8}
+                  />
+                ) : null}
+                <p className="charla__nota">
+                  {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -657,13 +662,15 @@ export function Chat({
   );
 }
 
-/** "Copiar" aparece al pasar el cursor; en pantallas táctiles, solo en la última respuesta (`fijo`). */
+/** "Copiar" en la cabecera de la respuesta: aparece al pasar el cursor; en pantallas táctiles, solo en la última (`fijo`). */
 function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
   const [copiado, setCopiado] = useState(false);
   return (
     <button
       type="button"
-      className={`chat-app__copiar${fijo ? " chat-app__copiar--fijo" : ""}`}
+      className={`charla__copiar${fijo ? " charla__copiar--fijo" : ""}`}
+      data-hecho={copiado ? "" : undefined}
+      aria-label={copiado ? "Copiado" : "Copiar respuesta"}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(texto);
@@ -674,7 +681,8 @@ function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
         }
       }}
     >
-      {copiado ? "Copiado" : "Copiar"}
+      {copiado ? <Icono nombre="check" tam={16} /> : <IconoCopiar tam={16} />}
+      <span aria-hidden="true">{copiado ? "Copiado" : "Copiar"}</span>
     </button>
   );
 }

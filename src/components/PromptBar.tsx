@@ -12,19 +12,13 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
+  type ReactNode,
 } from "react";
 import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  Cancel01Icon,
-  File02Icon,
-  HelpCircleIcon,
-  Mic01Icon,
-  PlusSignIcon,
-  SparklesIcon,
-  Tick02Icon,
-} from "@hugeicons/core-free-icons";
+import { HelpCircleIcon, Mic01Icon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Icono } from "./base/Iconos";
+import { colorCss } from "@/lib/tema";
 import "./PromptBar.css";
 
 export type PromptBarSource = {
@@ -65,6 +59,8 @@ type Props = {
   tilt?: number;
   pressScale?: number;
   className?: string;
+  /** Ayuda corta a la derecha de la barra (atajos como <kbd>@</kbd>). Se oculta en celular. */
+  pista?: ReactNode;
 };
 
 type Variables = CSSProperties & Record<`--${string}`, string | number>;
@@ -135,7 +131,7 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
 }
 
 /**
- * PromptBar de React Bits: barra para escribirle a la IA, con menú "@" y
+ * PromptBar (origen: React Bits): el compositor al final de la conversación, con menú "@" y
  * botón "+" (aquí: elegir agente), menú "/" (acciones), botón de enviar que
  * se vuelve "detener", y opcionalmente selector de modelo, esfuerzo y dictado.
  * Cambios para Atendel: textos en español, tipado y búsqueda con acentos.
@@ -154,19 +150,20 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
-  sparkColor = "#b39dff",
+  background = "var(--c-fondo)",
+  color = "var(--c-texto)",
+  menuBackground = "var(--c-superficie)",
+  sparkColor = "var(--c-destacada)",
   sparkBoost = 1,
-  width = 400,
-  radius = 16,
+  width = 4000,
+  radius = 6,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
   tilt = 8,
   pressScale = 0.96,
   className = "",
+  pista,
 }: Props) {
   const reduce = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -275,6 +272,7 @@ export default function PromptBar({
     if (!maxed || reduce || !canvas) return undefined;
     const ctx = canvas.getContext("2d");
     if (!ctx) return undefined;
+    const chispa = colorCss(sparkColor);
     typing.current.strokes = 0;
     let raf = 0;
     let last = performance.now();
@@ -324,8 +322,8 @@ export default function PromptBar({
         if (parts.length < 30) spawn(false);
       }
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = sparkColor;
-      ctx.shadowColor = sparkColor;
+      ctx.fillStyle = chispa;
+      ctx.shadowColor = chispa;
       ctx.shadowBlur = 6 + energy * 10 + pulse * 6;
       for (let i = parts.length - 1; i >= 0; i -= 1) {
         const p = parts[i];
@@ -506,6 +504,7 @@ export default function PromptBar({
       {open ? (
         <div
           className="prompt-bar__menu"
+          data-lenis-prevent=""
           role={open === "effort" ? "dialog" : "listbox"}
           aria-label={open === "at" ? "Agentes" : open === "slash" ? "Acciones" : open === "model" ? "Modelos" : "Esfuerzo"}
           data-kind={open}
@@ -572,14 +571,14 @@ export default function PromptBar({
                   onPointerEnter={() => setActive(i)}
                   onClick={() => pick(row)}
                 >
-                  {open === "at" && "icon" in row ? <span className="prompt-bar__row-icon">{renderIcon(row.icon, 15)}</span> : null}
+                  {open === "at" && "icon" in row ? <span className="prompt-bar__row-icon">{renderIcon(row.icon, 16)}</span> : null}
                   <span className="prompt-bar__row-name">{row.name}</span>
                   {"description" in row && row.description ? <span className="prompt-bar__row-desc">{row.description}</span> : null}
                   {open === "model" ? (
                     <>
                       <span className="prompt-bar__row-tag">{"tag" in row ? row.tag : null}</span>
                       <span className="prompt-bar__row-check" data-on={row.key === model?.key ? "" : undefined}>
-                        <HugeiconsIcon icon={Tick02Icon} size={13} strokeWidth={2.5} />
+                        <Icono nombre="check" tam={16} trazo={2} />
                       </span>
                     </>
                   ) : null}
@@ -605,7 +604,7 @@ export default function PromptBar({
           <div className="prompt-bar__chips">
             {attachments.map((file, i) => (
               <span key={`${file}-${i}`} className="prompt-bar__chip">
-                <HugeiconsIcon icon={File02Icon} size={12} strokeWidth={2} />
+                <Icono nombre="documento" tam={12} />
                 <span className="prompt-bar__chip-name">{file}</span>
                 <button
                   type="button"
@@ -613,7 +612,7 @@ export default function PromptBar({
                   aria-label={`Quitar ${file}`}
                   onClick={() => setAttachments((a) => a.filter((_, j) => j !== i))}
                 >
-                  <HugeiconsIcon icon={Cancel01Icon} size={10} strokeWidth={2.5} />
+                  <Icono nombre="cerrar" tam={12} trazo={2} />
                 </button>
               </span>
             ))}
@@ -655,7 +654,7 @@ export default function PromptBar({
               focusInput();
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+            <Icono nombre="mas" tam={16} />
           </button>
           {models.length > 0 && model ? (
             <button
@@ -674,7 +673,7 @@ export default function PromptBar({
               }}
             >
               <span>{model.name}</span>
-              <HugeiconsIcon icon={ArrowDown01Icon} size={12} strokeWidth={2.4} />
+              <Icono nombre="chevron" tam={12} trazo={2} />
             </button>
           ) : null}
           {efforts.length > 0 ? (
@@ -698,6 +697,7 @@ export default function PromptBar({
             </button>
           ) : null}
           <span className="prompt-bar__spacer" />
+          {pista ? <span className="prompt-bar__pista">{pista}</span> : null}
           {onDictate ? (
             <button
               type="button"
