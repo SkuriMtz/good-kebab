@@ -1,22 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Spinner } from "@/components/Buttons";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
-import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
+import { Personaje } from "@/components/agentes/Personaje";
+import { Icono } from "@/components/base/Iconos";
 import {
   Caras,
+  ContenidoFila,
   Dia,
   Escribiendo,
-  IconoCerrar,
-  IconoLista,
-  IconoMas,
+  FilaDeslizable,
+  FiltroChats,
+  Integrantes,
+  ListaAcciones,
   MensajeAgente,
   MensajeTuyo,
   NuevoGrupo,
+  SeccionDetalles,
+  SeccionLista,
   Sistema,
   nombres,
 } from "@/components/chat/Piezas";
@@ -61,6 +66,12 @@ const MARCA_ERROR = "\u0000ERROR:";
 const MAX_MENSAJE = 4000;
 const MAX_TEMA = 120;
 
+const sinAcentos = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 const mismoDia = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
 function cuando(fecha: string) {
@@ -84,15 +95,6 @@ const integrantes = (c: Conversacion): IdAgente[] | null => {
   const p = (c.participantes ?? []).filter(esIdAgente);
   return p.length >= 2 ? p : null;
 };
-
-function Candado() {
-  return (
-    <svg className="h-3 w-3 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" rx="1.5" stroke="currentColor" />
-      <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
-    </svg>
-  );
-}
 
 /**
  * Chat con los agentes, como una app de mensajería: a la izquierda tus
@@ -130,6 +132,7 @@ export function Chat({
   const [usados, setUsados] = useState(usadosIniciales);
   const [lista, setLista] = useState(false); // lista de chats en celular
   const [aviso, setAviso] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortar = useRef<AbortController | null>(null);
   const pegado = useRef(true); // ¿la vista está hasta abajo?
@@ -353,305 +356,305 @@ export function Chat({
   const gruposGuardados = conversaciones.filter((c) => integrantes(c));
   const chatsGuardados = conversaciones.filter((c) => !integrantes(c));
 
+  const buscado = sinAcentos(filtro.trim());
+  const coincide = (c: Conversacion) => !buscado || sinAcentos(c.titulo).includes(buscado) || sinAcentos(c.tema ?? "").includes(buscado);
+  const gruposVisibles = gruposGuardados.filter(coincide);
+  const chatsVisibles = chatsGuardados.filter(coincide);
+  const equipoVisible = AGENTES_INFO.filter((a) => !buscado || sinAcentos(a.nombre).includes(buscado) || sinAcentos(a.area).includes(buscado));
+
   const filaConversacion = (c: Conversacion) => {
     const ids = integrantes(c) ?? [c.agente];
     return (
-      <li key={c.id} className="group relative">
-        <button type="button" className="chat-app__conv pr-12" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
-          <Caras agentes={ids} tam={44} />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-[0.9375rem] font-semibold text-tinta">{c.titulo}</span>
-              <span className="shrink-0 text-[0.75rem] tabular-nums text-tenue">{cuando(c.actualizado_en)}</span>
-            </span>
-            <span className="mt-0.5 block truncate text-[0.8125rem] text-tenue">
-              {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
-            </span>
-          </span>
-        </button>
-        <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
-          <IconoCerrar />
-        </button>
+      <li key={c.id}>
+        <FilaDeslizable alBorrar={() => borrar(c)} etiqueta={c.titulo}>
+          <button type="button" className="conversa__fila-lista pr-[var(--spacing-40)]" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
+            <ContenidoFila agentes={ids} nombre={c.titulo} hora={cuando(c.actualizado_en)} linea={ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre} />
+          </button>
+          <button type="button" className="conversa__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
+            <Icono nombre="cerrar" tam={16} />
+          </button>
+        </FilaDeslizable>
       </li>
     );
   };
 
+  const comandos = comandosDe(participantes);
+  const bloqueado = !disponible || sinMensajes;
+
   return (
     <>
       <NavApp email={email} />
-      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[var(--barra-h)]">
-        {/* ---------- Agentes, grupos y conversaciones ---------- */}
-        <aside className="chat-app__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
-          <div className="flex items-center justify-between px-5 pb-3 pt-5">
-            <p className="text-[1.0625rem] font-semibold tracking-[-0.01em]">Chats</p>
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(false)} aria-label="Cerrar la lista">
-              <IconoCerrar />
-            </button>
-          </div>
-          <div className="px-3">
-            {puedeGrupos ? (
-              <button
-                type="button"
-                className="chat-app__nuevo"
-                onClick={() => {
-                  setCreando(true);
-                  setLista(false);
-                }}
-              >
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <IconoMas />
-                </span>
-                Nuevo grupo
-              </button>
-            ) : (
-              <Link href="/precios" className="chat-app__nuevo chat-app__nuevo--bloqueado">
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <Candado />
-                </span>
-                Grupos con Atendel One
-              </Link>
-            )}
-          </div>
-
-          <div className="chat-app__listas">
-            <p className="chat-app__seccion">Tu equipo</p>
-            <ul>
-              {AGENTES_INFO.map((a) => {
-                const activo = activos.includes(a.id);
-                const elegido = a.id === agente && !grupo && !actual;
-                const contenido = (
-                  <>
-                    <Caras agentes={[a.id]} tam={44} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.9375rem] font-semibold text-tinta">{a.nombre}</span>
-                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-tenue">
-                        {activo ? (
-                          `${a.area} · ${a.abarca}`
-                        ) : (
-                          <>
-                            <Candado /> Con {planMinimo(a.id).nombre}
-                          </>
-                        )}
-                      </span>
-                    </span>
-                  </>
-                );
-                return (
-                  <li key={a.id}>
-                    {activo ? (
-                      <button type="button" className="chat-app__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
-                        {contenido}
-                      </button>
-                    ) : (
-                      <Link href="/precios" className="chat-app__conv opacity-50" title={`Disponible con ${planMinimo(a.id).nombre}`}>
-                        {contenido}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-
-            {gruposGuardados.length ? (
-              <>
-                <p className="chat-app__seccion">Grupos</p>
-                <ul>{gruposGuardados.map(filaConversacion)}</ul>
-              </>
-            ) : null}
-
-            <p className="chat-app__seccion">Conversaciones</p>
-            {chatsGuardados.length ? (
-              <ul>{chatsGuardados.map(filaConversacion)}</ul>
-            ) : (
-              <p className="px-3 text-[0.8125rem] text-tenue">Aquí aparecerán tus conversaciones.</p>
-            )}
-          </div>
-
-          <div className="chat-app__plan">
-            <p className="mb-2 text-[0.8125rem] font-semibold text-tinta">{plan.nombre}</p>
-            <Uso usados={usados} plan={plan} compacto />
-          </div>
-        </aside>
-        <button
-          type="button"
-          className="chat-app__velo md:hidden"
-          data-abierta={lista ? "" : undefined}
-          onClick={() => setLista(false)}
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-
-        {/* ---------- Conversación abierta ---------- */}
-        <section className="chat-app__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
-          <header className="chat-app__cabeza">
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(true)} aria-label="Ver chats">
-              <IconoLista />
-            </button>
-            <Caras agentes={participantes} tam={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[1rem] font-semibold leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
-              <p className="truncate text-[0.8125rem] leading-snug text-tenue" aria-live="polite">
-                {enCurso ? (
-                  <span className="chat-app__escribe">
-                    {grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}
-                  </span>
-                ) : grupo ? (
-                  `Grupo · ${nombres(grupo)}`
-                ) : (
-                  `${info.area} · ${info.abarca}`
-                )}
-              </p>
-            </div>
-            {actual ? (
-              <button type="button" className="chat-app__probar inline-flex" onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
-                <IconoMas />
-                Nueva
-              </button>
-            ) : null}
-          </header>
-
-          <div
-            ref={scrollRef}
-            className="chat-app__mensajes"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-            }}
-          >
-            <div className="mx-auto flex min-h-full w-full max-w-[880px] flex-col">
-              {cargando ? (
-                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-tenue">
-                  <Spinner /> Abriendo conversación…
-                </p>
-              ) : mensajes.length === 0 ? (
-                <div className="chat-app__vacio">
-                  {grupo ? (
-                    <Caras agentes={grupo} tam={92} />
-                  ) : (
-                    <span className="retrato !w-28" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
-                      <Personaje agente={agente} avatar />
-                    </span>
-                  )}
-                  <p className="mt-6 text-[1.75rem] font-bold leading-tight tracking-[-0.025em] sm:text-[2rem]">
-                    {grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}
-                  </p>
-                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-grafito">
-                    {grupo
-                      ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
-                      : info.lema}
-                  </p>
-                  {disponible ? (
-                    <div className="mt-8 flex max-w-[620px] flex-wrap justify-center gap-2">
-                      {sugerencias.map((s) => (
-                        <button key={s} type="button" className="chat-app__sugerencia chat-app__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-8 text-[0.9375rem] text-grafito">
-                      {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                      <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="enlace">
-                        {!participantes.every((id) => plan.agentes.includes(id))
-                          ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
-                          : "Agrégalo en Mis agentes"}
-                      </Link>
-                      .
-                    </p>
-                  )}
-                </div>
+      <div className="conversa-caja conversa--pantalla">
+        <div className="conversa" data-lateral={lista ? "abierta" : undefined}>
+          {/* ---------- Agentes, grupos y conversaciones ---------- */}
+          <aside className="conversa__lateral" aria-label="Equipo y conversaciones">
+            <div className="conversa__lateral-cabeza">
+              <h2 className="conversa__lateral-titulo">Chats</h2>
+              {puedeGrupos ? (
+                <button
+                  type="button"
+                  className="conversa__nuevo"
+                  onClick={() => {
+                    setCreando(true);
+                    setLista(false);
+                  }}
+                >
+                  <Icono nombre="mas" tam={16} />
+                  Nuevo grupo
+                </button>
               ) : (
-                <div className="chat-app__hilo" role="log" aria-live="polite">
-                  {visibles.map((p, i) => {
-                    const antes = visibles[i - 1];
-                    const despues = visibles[i + 1];
-                    const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
-                    const primero = nuevoDia || antes.de !== p.de;
-                    const ultimo = !despues || despues.de !== p.de || !mismoDia(despues.fecha, p.fecha);
-                    const fila = { primero, ultimo, nueva: p.nuevo, bloque: primero && !nuevoDia, hora: hora(p.fecha) };
-                    let pieza;
-                    if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
-                    else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
-                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error {...fila} />;
-                    else
-                      pieza = (
-                        <MensajeAgente
-                          agente={p.de}
-                          texto={p.texto}
-                          enGrupo={!!grupo}
-                          {...fila}
-                          hora={p.enCurso ? undefined : fila.hora}
-                          pie={
-                            p.error ? (
-                              <p role="alert" className="chat-app__error">
-                                {p.error}
-                              </p>
-                            ) : !p.enCurso && ultimo ? (
-                              <Copiar texto={p.texto} fijo={i === visibles.length - 1} />
-                            ) : null
+                <Link href="/precios" className="conversa__nuevo" aria-disabled="true" title="Los grupos vienen con Atendel One">
+                  <Icono nombre="candado" tam={16} />
+                  Grupos con One
+                </Link>
+              )}
+              <button type="button" className="conversa__icono conversa__solo-movil" onClick={() => setLista(false)} aria-label="Cerrar la lista">
+                <Icono nombre="cerrar" tam={16} />
+              </button>
+            </div>
+            <FiltroChats valor={filtro} alCambiar={setFiltro} />
+
+            <nav className="conversa__listas" aria-label="Conversaciones" data-lenis-prevent>
+              {equipoVisible.length ? (
+                <SeccionLista titulo="Tu equipo" cuenta={activos.length}>
+                  <ul>
+                    {equipoVisible.map((a) => {
+                      const activo = activos.includes(a.id);
+                      const elegido = a.id === agente && !grupo && !actual;
+                      const contenido = (
+                        <ContenidoFila
+                          agentes={[a.id]}
+                          nombre={a.nombre}
+                          linea={
+                            activo ? (
+                              `${a.area} · ${a.abarca}`
+                            ) : (
+                              <>
+                                <Icono nombre="candado" tam={16} /> Con {planMinimo(a.id).nombre}
+                              </>
+                            )
                           }
                         />
                       );
-                    return (
-                      <Fragment key={p.key}>
-                        {nuevoDia ? <Dia>{dia(p.fecha)}</Dia> : null}
-                        {pieza}
-                      </Fragment>
-                    );
-                  })}
-                </div>
-              )}
-              {aviso ? (
-                <p role="alert" className="chat-app__fila chat-app__sistema chat-app__sistema--error">
-                  <span>{aviso}</span>
+                      return (
+                        <li key={a.id}>
+                          {activo ? (
+                            <button type="button" className="conversa__fila-lista" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
+                              {contenido}
+                            </button>
+                          ) : (
+                            <Link href="/precios" className="conversa__fila-lista" data-bloqueada="" title={`Disponible con ${planMinimo(a.id).nombre}`}>
+                              {contenido}
+                            </Link>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </SeccionLista>
+              ) : null}
+
+              {gruposVisibles.length ? (
+                <SeccionLista titulo="Grupos" cuenta={gruposVisibles.length}>
+                  <ul>{gruposVisibles.map(filaConversacion)}</ul>
+                </SeccionLista>
+              ) : null}
+
+              <SeccionLista titulo="Conversaciones" cuenta={chatsVisibles.length}>
+                {chatsVisibles.length ? (
+                  <ul>{chatsVisibles.map(filaConversacion)}</ul>
+                ) : (
+                  <p className="conversa__vacio-lista">
+                    {buscado ? `Ninguna conversación coincide con «${filtro.trim()}».` : "Aquí aparecerán tus conversaciones."}
+                  </p>
+                )}
+              </SeccionLista>
+            </nav>
+
+            <div className="conversa__lateral-pie conversa__plan">
+              <p className="conversa__plan-nombre">{plan.nombre}</p>
+              <Uso usados={usados} plan={plan} compacto />
+            </div>
+          </aside>
+          <button type="button" className="conversa__velo" onClick={() => setLista(false)} aria-hidden="true" tabIndex={-1} />
+
+          {/* ---------- Conversación abierta ---------- */}
+          <section className="conversa__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
+            <header className="conversa__cabeza">
+              <button type="button" className="conversa__icono conversa__solo-movil" onClick={() => setLista(true)} aria-label="Ver chats">
+                <Icono nombre="menu" tam={20} />
+              </button>
+              <Caras agentes={participantes} tam={32} />
+              <div className="conversa__cabeza-texto">
+                <p className="conversa__titulo">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
+                <p className="conversa__estado" aria-live="polite">
+                  {enCurso ? (
+                    <span className="conversa__estado--escribe">{grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}</span>
+                  ) : grupo ? (
+                    `Grupo · ${nombres(grupo)}`
+                  ) : (
+                    `${info.area} · ${info.abarca}`
+                  )}
+                </p>
+              </div>
+              {actual ? (
+                <button type="button" className="conversa__nuevo" onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
+                  <Icono nombre="mas" tam={16} />
+                  Nueva
+                </button>
+              ) : null}
+            </header>
+
+            <div
+              ref={scrollRef}
+              className="conversa__mensajes"
+              data-lenis-prevent
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+              }}
+            >
+              <div className="conversa__hilo min-h-full">
+                {cargando ? (
+                  <p className="conversa__cargando">
+                    <Spinner /> Abriendo conversación…
+                  </p>
+                ) : mensajes.length === 0 ? (
+                  <div className="conversa__vacio">
+                    <Caras agentes={participantes} tam={56} />
+                    <div>
+                      <p className="conversa__vacio-titulo">{grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}</p>
+                      <p className="conversa__vacio-texto mt-[var(--spacing-8)]">
+                        {grupo
+                          ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
+                          : info.lema}
+                      </p>
+                    </div>
+                    {disponible ? (
+                      <ul className="conversa__ideas" aria-label="Ideas para empezar">
+                        {sugerencias.map((s) => (
+                          <li key={s}>
+                            <button type="button" className="conversa__idea" onClick={() => enviar(s)} disabled={sinMensajes}>
+                              {s}
+                              <Icono nombre="flecha" tam={16} />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="conversa__vacio-texto">
+                        {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
+                        <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"} className="enlace">
+                          {!participantes.every((id) => plan.agentes.includes(id))
+                            ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
+                            : "Agrégalo en Mis agentes"}
+                        </Link>
+                        .
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col" role="log" aria-live="polite">
+                    {visibles.map((p, i) => {
+                      const antes = visibles[i - 1];
+                      const despues = visibles[i + 1];
+                      const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
+                      const primero = nuevoDia || antes.de !== p.de;
+                      const ultimo = !despues || despues.de !== p.de || !mismoDia(despues.fecha, p.fecha);
+                      const fila = { primero, ultimo, nueva: p.nuevo, bloque: primero && !nuevoDia, hora: hora(p.fecha) };
+                      let pieza;
+                      if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
+                      else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
+                      else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error {...fila} />;
+                      else
+                        pieza = (
+                          <MensajeAgente
+                            agente={p.de}
+                            texto={p.texto}
+                            enGrupo={!!grupo}
+                            {...fila}
+                            hora={p.enCurso ? undefined : fila.hora}
+                            pie={
+                              p.error ? (
+                                <p role="alert" className="conversa__error">
+                                  {p.error}
+                                </p>
+                              ) : !p.enCurso && ultimo ? (
+                                <Copiar texto={p.texto} fijo={i === visibles.length - 1} />
+                              ) : null
+                            }
+                          />
+                        );
+                      return (
+                        <Fragment key={p.key}>
+                          {nuevoDia ? <Dia>{dia(p.fecha)}</Dia> : null}
+                          {pieza}
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+                {aviso ? <Sistema texto={aviso} error /> : null}
+              </div>
+            </div>
+
+            <div className="conversa__pie">
+              {sinMensajes ? (
+                <p className="conversa__aviso-pie mb-[var(--spacing-8)]">
+                  Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
+                  <Link href="/precios" className="enlace">
+                    Ver planes
+                  </Link>
                 </p>
               ) : null}
-            </div>
-          </div>
-
-          <div className="chat-app__pie mx-auto w-full max-w-[944px] pb-[max(18px,env(safe-area-inset-bottom))]">
-            {sinMensajes ? (
-              <p className="mb-3 text-center text-[0.875rem] text-grafito">
-                Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                <Link href="/precios" className="enlace">
-                  Ver planes
-                </Link>
+              {!bloqueado ? (
+                <PromptBar
+                  key={grupo ? grupo.join("-") : agente}
+                  placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
+                  sources={fuentes}
+                  commands={comandos}
+                  models={[]}
+                  efforts={[]}
+                  busy={enviando}
+                  onSend={(t) => enviar(t)}
+                  onStop={() => abortar.current?.abort()}
+                  width={4000}
+                  maxRows={8}
+                />
+              ) : null}
+              <p className="conversa__aviso-pie">
+                {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
               </p>
-            ) : null}
-            {disponible && !sinMensajes ? (
-              <PromptBar
-                key={grupo ? grupo.join("-") : agente}
-                placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
-                sources={fuentes}
-                commands={comandosDe(participantes)}
-                models={[]}
-                efforts={[]}
-                busy={enviando}
-                onSend={(t) => enviar(t)}
-                onStop={() => abortar.current?.abort()}
-                background="var(--chat-campo)"
-                color="var(--c-texto)"
-                menuBackground="var(--chat-menu)"
-                width={4000}
-                radius={24}
-                maxRows={8}
-              />
-            ) : null}
-            <p className="mt-3 text-center text-[0.75rem] text-tenue">
-              {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
-            </p>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        {creando ? (
-          <NuevoGrupo
-            disponibles={activos}
-            nombreObligatorio={false}
-            maxNombre={MAX_TEMA}
-            onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)}
-            onCerrar={() => setCreando(false)}
-          />
-        ) : null}
+          {/* ---------- Quién está y qué se le puede pedir ---------- */}
+          <aside className="conversa__detalles" aria-label="Detalles de la conversación" data-lenis-prevent>
+            <SeccionDetalles titulo={grupo ? "Integrantes" : "Agente"}>
+              <Integrantes agentes={participantes} />
+            </SeccionDetalles>
+            {comandos.length ? (
+              <SeccionDetalles titulo="Acciones">
+                <ListaAcciones acciones={comandos} alElegir={enviar} deshabilitada={bloqueado || enviando} />
+              </SeccionDetalles>
+            ) : null}
+            <SeccionDetalles titulo="Cómo usarlo">
+              <p className="conversa__detalle-vacio">
+                Usa @ para pedirle algo a alguien en especial y / para una acción. Todo se guarda en Conversaciones.
+              </p>
+            </SeccionDetalles>
+          </aside>
+
+          {creando ? (
+            <NuevoGrupo
+              disponibles={activos}
+              nombreObligatorio={false}
+              maxNombre={MAX_TEMA}
+              onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)}
+              onCerrar={() => setCreando(false)}
+            />
+          ) : null}
+        </div>
       </div>
     </>
   );
@@ -663,7 +666,7 @@ function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
   return (
     <button
       type="button"
-      className={`chat-app__copiar${fijo ? " chat-app__copiar--fijo" : ""}`}
+      className={`conversa__copiar${fijo ? " conversa__copiar--fijo" : ""}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(texto);
@@ -674,7 +677,8 @@ function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
         }
       }}
     >
-      {copiado ? "Copiado" : "Copiar"}
+      <Icono nombre={copiado ? "check" : "documento"} tam={16} />
+      <span aria-live="polite">{copiado ? "Copiado" : "Copiar"}</span>
     </button>
   );
 }

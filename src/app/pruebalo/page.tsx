@@ -1,27 +1,42 @@
 import type { Metadata } from "next";
-import { BotonLink } from "@/components/Buttons";
 import { ChatDemo } from "@/components/ChatDemo";
 import { Sitio } from "@/components/Sitio";
+import { Boton } from "@/components/base/Boton";
+import { Etiqueta } from "@/components/base/Etiqueta";
+import { Atajos } from "@/components/inicio/ChatEnMarco";
 
-export const metadata: Metadata = { title: "Pruébalo" };
+export const metadata: Metadata = {
+  title: "Pruébalo",
+  description: "Escríbeles a Lola, Clara, Víctor e Iris: chats, grupos y acciones con respuestas de ejemplo.",
+};
 
-/** El chat con los agentes a pantalla completa: chats, grupos y la barra para escribir. */
+/**
+ * El chat con los agentes a lo ancho, dentro del marco de navegador: grupos,
+ * chats con cada agente, la barra para escribir y, a la derecha, lo que quedó
+ * hecho. Guion local (no llama a la IA).
+ */
 export default function Pruebalo() {
   return (
     <Sitio>
-      <section className="contenedor pb-[var(--spacing-60)] pt-[var(--spacing-12)]">
-        <div className="mb-[var(--spacing-18)] flex flex-wrap items-end justify-between gap-x-[var(--spacing-24)] gap-y-[var(--spacing-12)]">
+      <section className="contenedor pb-[var(--spacing-64)] pt-[var(--spacing-24)]" aria-labelledby="pruebalo-titulo">
+        <header className="pruebalo__cabeza">
           <div>
-            <h1 className="t-etiqueta">Pruébalo</h1>
-            <p className="t-chico mt-[var(--spacing-6)]">
-              Escríbeles, usa @ para mencionar o / para una acción. Demostración: las respuestas son de ejemplo.
+            <Etiqueta tono="cielo">Pruébalo · demostración</Etiqueta>
+            <h1 id="pruebalo-titulo" className="pruebalo__titulo">
+              Habla con tu equipo
+            </h1>
+            <p className="pruebalo__texto">
+              Usa @ para mencionar a alguien o / para pedir una acción. Las respuestas son de ejemplo; en tu panel trabajan con tu negocio.
             </p>
           </div>
-          <BotonLink href="/entrar" variante="suave" flecha>
+          <Boton href="/entrar" variante="sutil" flecha>
             Probarlo de verdad
-          </BotonLink>
+          </Boton>
+        </header>
+        <ChatDemo variante="pagina" />
+        <div className="chat-vivo__pie">
+          <Atajos />
         </div>
-        <ChatDemo completa />
       </section>
     </Sitio>
   );

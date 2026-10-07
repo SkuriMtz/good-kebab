@@ -1,7 +1,1590 @@
 /*
  * Estilos del chat: ChatEnMarco, ChatDemo, PromptBar, /pruebalo y /panel/chat.
  * Dueño: Grupo 2 · Chat (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Dirección G2-T1: interfaz de producto densa y sobria, como una app de
+ * desarrollo con el lenguaje de GitHub. Tres columnas que aparecen según el
+ * ancho del propio chat (container queries, no el de la ventana):
+ *   < 720px   solo la conversación; la lista de chats entra por la izquierda
+ *   ≥ 720px   lista de chats | conversación
+ *   ≥ 1080px  lista de chats | conversación | integrantes, hecho y acciones
+ * Solo tokens de src/app/globals.css. Nada de sombras: los bordes de 1px hacen
+ * la elevación. La única "caja" del hilo es la tarjeta de un resultado.
  */
+
+/* ---------------------------------------------------------------------
+   Contenedor y alturas
+   --------------------------------------------------------------------- */
+.conversa-caja {
+  container: conversa / inline-size;
+}
+
+.conversa {
+  --conversa-lateral: var(--c-fondo-2);
+  --conversa-anillo: var(--c-fondo);
+  --conversa-burbuja-r: var(--radius-xl); /* 12px: la burbuja del chat de GitHub (ver Pedidos a la base) */
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: clamp(520px, 78svh, 720px);
+  overflow: hidden;
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  text-align: left;
+  isolation: isolate;
+}
+
+.conversa[data-variante="pagina"] {
+  height: max(520px, calc(100dvh - var(--barra-h) - 268px));
+}
+
+@media (max-width: 639px) {
+  .conversa[data-variante="pagina"] {
+    height: max(460px, calc(100dvh - var(--barra-h) - 236px));
+  }
+}
+
+/* El chat real del panel ocupa la pantalla debajo de la barra */
+.conversa--pantalla {
+  position: fixed;
+  inset: var(--barra-h) 0 0;
+}
+
+.conversa--pantalla > .conversa {
+  height: 100%;
+}
+
+/* Dentro del marco de navegador, el marco pone el borde y el radio */
+.conversa-marco {
+  position: relative;
+}
+
+/* ---------------------------------------------------------------------
+   Caras (personajes en un círculo)
+   --------------------------------------------------------------------- */
+.conversa__caras {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+}
+
+.conversa__cara {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radio-circulo);
+  background: var(--c-relleno);
+  box-shadow: 0 0 0 2px var(--conversa-anillo);
+}
+
+.conversa__cara[data-sola] {
+  box-shadow: inset 0 0 0 1px var(--c-borde);
+}
+
+.conversa__cara > svg {
+  width: 78%;
+  height: 78%;
+}
+
+/* ---------------------------------------------------------------------
+   Botones pequeños del chat
+   --------------------------------------------------------------------- */
+.conversa__icono {
+  position: relative;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--alto-control);
+  height: var(--alto-control);
+  border-radius: var(--radio-boton);
+  color: var(--c-texto-2);
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__icono:hover {
+    background: var(--c-vidrio-fuerte);
+    color: var(--c-texto);
+  }
+}
+
+.conversa__icono:active {
+  transform: scale(0.94);
+}
+
+.conversa__punto {
+  position: absolute;
+  top: var(--spacing-8);
+  right: var(--spacing-8);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-enlace);
+  box-shadow: 0 0 0 2px var(--c-fondo);
+}
+
+.conversa__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: 32px;
+  color: var(--c-enlace);
+  font-size: var(--t-chico);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__enlace:hover {
+    text-decoration-color: currentColor;
+  }
+  .conversa__enlace:hover .flecha {
+    transform: translateX(2px);
+  }
+}
+
+.conversa__enlace:active {
+  opacity: 0.7;
+}
+
+/* Sello en Mono ("DEMOSTRACIÓN", "DEMO"): etiqueta con borde de píldora */
+.conversa__sello {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 var(--spacing-8);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto-2);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   Barra lateral: lista de grupos y chats
+   --------------------------------------------------------------------- */
+.conversa__lateral {
+  --conversa-anillo: var(--conversa-lateral);
+
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: min(88%, 320px);
+  min-height: 0;
+  border-right: 1px solid var(--c-borde);
+  background: var(--conversa-lateral);
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition:
+    transform var(--dur-micro) var(--ease),
+    visibility 0s linear var(--dur-micro);
+}
+
+.conversa[data-lateral="abierta"] .conversa__lateral {
+  visibility: visible;
+  transform: none;
+  transition:
+    transform var(--dur-grande) var(--ease-entrada),
+    visibility 0s;
+}
+
+.conversa__velo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--c-scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+
+.conversa[data-lateral="abierta"] .conversa__velo {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.conversa__lateral-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 56px;
+  padding: var(--spacing-8) var(--spacing-8) var(--spacing-8) var(--spacing-16);
+}
+
+.conversa__lateral-titulo {
+  flex: 1;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  letter-spacing: 0;
+}
+
+/* "Nuevo grupo": botón chico con borde (fantasma), radio 6px */
+.conversa__nuevo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: 32px;
+  padding: 0 var(--spacing-12) 0 var(--spacing-8);
+  border: 1px solid var(--c-fantasma-borde);
+  border-radius: var(--radio-boton);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__nuevo:hover:not([aria-disabled="true"]) {
+    background: var(--c-vidrio-fuerte);
+  }
+}
+
+.conversa__nuevo:active:not([aria-disabled="true"]) {
+  transform: scale(0.97);
+}
+
+.conversa__nuevo[aria-disabled="true"] {
+  color: var(--c-tenue);
+}
+
+.conversa__filtro {
+  position: relative;
+  display: block;
+  margin: 0 var(--spacing-12) var(--spacing-8);
+}
+
+.conversa__filtro-icono {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-12);
+  width: var(--icono-chico);
+  height: var(--icono-chico);
+  color: var(--c-tenue);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.conversa__filtro input {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: var(--spacing-4) var(--spacing-12) var(--spacing-4) 36px;
+  border: 1px solid var(--c-campo-borde);
+  border-radius: var(--radio-boton);
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  font-family: inherit;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (pointer: fine) {
+  .conversa__filtro input {
+    font-size: var(--t-chico);
+  }
+}
+
+.conversa__filtro input::placeholder {
+  color: var(--c-placeholder);
+}
+
+.conversa__filtro input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__filtro input:hover:not(:focus) {
+    border-color: var(--c-campo-borde-hover);
+  }
+}
+
+.conversa__filtro input:focus {
+  border-color: var(--c-foco);
+  outline: 2px solid var(--c-foco);
+  outline-offset: 1px;
+}
+
+.conversa__listas {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--spacing-8) var(--spacing-16);
+  scrollbar-width: thin;
+}
+
+@media (pointer: fine) {
+  .conversa__listas {
+    overscroll-behavior: contain;
+  }
+}
+
+.conversa__seccion + .conversa__seccion {
+  margin-top: var(--spacing-8);
+}
+
+.conversa__seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-8) var(--spacing-4);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
+}
+
+/* Contador: la píldora gris de GitHub */
+.conversa__contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radio-pildora);
+  background: var(--c-vidrio-fuerte);
+  color: var(--c-texto-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Fila de la lista: el elegido lleva fondo y una barra de 4px a la izquierda */
+.conversa__fila-lista {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--spacing-8);
+  border-radius: var(--radio-panel);
+  color: var(--c-texto);
+  text-align: left;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__fila-lista:hover {
+    background: var(--c-vidrio);
+  }
+}
+
+.conversa__fila-lista:active {
+  background: var(--c-vidrio-fuerte);
+}
+
+.conversa__fila-lista[aria-current="true"] {
+  background: var(--c-vidrio-fuerte);
+}
+
+.conversa__fila-lista[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-12);
+  bottom: var(--spacing-12);
+  left: calc(-1 * var(--spacing-8));
+  width: 4px;
+  border-radius: var(--radio-boton);
+  background: var(--c-enlace);
+}
+
+.conversa__fila-lista:focus-visible {
+  outline-offset: -2px;
+}
+
+.conversa__fila-lista[data-bloqueada] {
+  opacity: 0.55;
+}
+
+.conversa__fila-cuerpo {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa__fila-arriba,
+.conversa__fila-abajo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+
+.conversa__fila-abajo {
+  align-items: center;
+}
+
+.conversa__fila-nombre {
+  overflow: hidden;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.conversa__fila-hora {
+  flex-shrink: 0;
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.conversa__fila-linea {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.conversa__fila-linea--escribe {
+  color: var(--c-enlace);
+}
+
+.conversa__sin-leer {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radio-pildora);
+  background: var(--c-enlace);
+  color: var(--c-fondo);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+}
+
+.conversa__vacio-lista {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-16) var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+
+.conversa__lateral-pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-16) var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+
+.conversa__nota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+/* ---------------------------------------------------------------------
+   Deslizar para borrar (filas del panel)
+   --------------------------------------------------------------------- */
+.conversa__desliza {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radio-panel);
+}
+
+.conversa__desliza-fondo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding-right: var(--spacing-16);
+  border-radius: inherit;
+  background: var(--c-error);
+  color: var(--c-sobre-accion);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  opacity: 0;
+}
+
+.conversa__desliza[data-arrastra] .conversa__desliza-fondo {
+  opacity: 1;
+}
+
+.conversa__desliza-fila {
+  position: relative;
+  background: var(--conversa-lateral);
+  touch-action: pan-y;
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+.conversa__desliza[data-arrastra] .conversa__desliza-fila {
+  transition: none;
+}
+
+/* La ✕ de cada conversación: aparece con el cursor o el foco; en táctil, siempre tenue */
+.conversa__borrar {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-4);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radio-boton);
+  color: var(--c-tenue);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--dur-micro) var(--ease);
+}
+
+.conversa__desliza:hover .conversa__borrar,
+.conversa__borrar:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__borrar:hover {
+    background: var(--c-vidrio-fuerte);
+    color: var(--c-error);
+  }
+}
+
+@media (hover: none) {
+  .conversa__borrar {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Conversación: cabecera, hilo y pie
+   --------------------------------------------------------------------- */
+.conversa__principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--c-fondo);
+}
+
+.conversa__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: 56px;
+  padding: var(--spacing-8) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+}
+
+.conversa__cabeza-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa__titulo {
+  overflow: hidden;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.conversa__estado {
+  overflow: hidden;
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.conversa__estado--escribe {
+  color: var(--c-enlace);
+}
+
+.conversa__mensajes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-8) var(--spacing-16) var(--spacing-24);
+  scrollbar-width: thin;
+}
+
+@media (pointer: fine) {
+  .conversa__mensajes {
+    overscroll-behavior: contain;
+  }
+}
+
+.conversa__hilo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+/* Día: línea fina con la etiqueta en medio */
+.conversa__dia {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  margin: var(--spacing-16) 0 var(--spacing-4);
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+}
+
+.conversa__dia::before,
+.conversa__dia::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-borde);
+}
+
+.conversa__hora {
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-cuerpo);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Aviso del sistema: ícono en la columna del personaje y texto tenue */
+.conversa__evento {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-12);
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+.conversa__evento-icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  color: var(--c-texto-2);
+}
+
+.conversa__evento-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa__evento--error,
+.conversa__evento--error .conversa__evento-icono {
+  color: var(--c-error);
+}
+
+.conversa__fila {
+  display: flex;
+  margin-top: var(--spacing-4);
+}
+
+.conversa__fila--bloque {
+  margin-top: var(--spacing-20);
+}
+
+/* Lo tuyo: a la derecha */
+.conversa__fila--tu {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.conversa__burbuja {
+  max-width: min(85%, 520px);
+  padding: var(--spacing-8) var(--spacing-12);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--conversa-burbuja-r);
+  background: var(--c-fondo-2);
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.conversa__burbuja:not([data-ultimo]) {
+  border-bottom-right-radius: var(--radio-panel);
+}
+
+.conversa__burbuja:not([data-primero]) {
+  border-top-right-radius: var(--radio-panel);
+}
+
+.conversa__token {
+  color: var(--c-enlace);
+  font-weight: var(--peso-medio);
+}
+
+.conversa__hora--tu {
+  margin-top: var(--spacing-4);
+}
+
+/* Lo del agente: personaje en una columna fija, sin caja */
+.conversa__fila--agente {
+  gap: var(--spacing-12);
+}
+
+.conversa__avatar {
+  display: block;
+  flex-shrink: 0;
+  width: 28px;
+  padding-top: 2px;
+}
+
+.conversa__columna {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-width: 0;
+  max-width: min(100%, 640px);
+}
+
+.conversa__quien {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-8);
+  line-height: 1.5;
+}
+
+.conversa__nombre {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+
+/* Área en grupos: la etiqueta con borde de GitHub ("Owner") */
+.conversa__area {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 var(--spacing-8);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto-2);
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+}
+
+.conversa__texto {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Resultado adjunto: la única caja del hilo, siempre con algo hecho */
+.conversa__tarjeta {
+  display: flex;
+  gap: var(--spacing-12);
+  width: min(100%, 420px);
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+  background: var(--c-fondo-2);
+}
+
+.conversa__tarjeta-icono {
+  flex-shrink: 0;
+  padding-top: 2px;
+  color: var(--c-enlace);
+}
+
+.conversa__tarjeta-sello {
+  color: var(--c-exito);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+}
+
+.conversa__tarjeta-titulo {
+  margin-top: var(--spacing-4);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+
+.conversa__tarjeta-detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+
+.conversa__tarjeta-pie {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+}
+
+.conversa__tarjeta-pie .icono {
+  color: var(--c-exito);
+}
+
+/* "Escribiendo": tres puntos que laten (solo opacidad) */
+.conversa__puntos {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: 24px;
+}
+
+.conversa__puntos i {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-texto-2);
+  animation: conversa-punto 1.2s var(--ease) infinite;
+}
+
+.conversa__puntos i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.conversa__puntos i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes conversa-punto {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Lo que llega: fundido y 6px hacia arriba, 0.2s con la curva de entrada */
+.conversa__entra {
+  animation: conversa-entra var(--dur-micro) var(--ease-entrada) both;
+}
+
+@keyframes conversa-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Pie: acciones sugeridas y la barra para escribir */
+.conversa__pie {
+  width: 100%;
+  max-width: calc(760px + 2 * var(--spacing-16));
+  margin-inline: auto;
+  padding: var(--spacing-8) var(--spacing-16) max(var(--spacing-16), env(safe-area-inset-bottom));
+}
+
+.conversa__sugerencias {
+  display: flex;
+  gap: var(--spacing-8);
+  margin: 0 calc(-1 * var(--spacing-16)) var(--spacing-8);
+  padding: 0 var(--spacing-16) var(--spacing-4);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.conversa__sugerencias::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sugerencia: píldora (filtro) con la acción en Mono */
+.conversa__sugerencia {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 32px;
+  padding: var(--spacing-4) var(--spacing-12);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__sugerencia:hover:not(:disabled) {
+    border-color: var(--c-texto-2);
+  }
+}
+
+.conversa__sugerencia:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.conversa__sugerencia:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.conversa__sugerencia-nombre {
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-weight: var(--peso-medio);
+}
+
+.conversa__sugerencia-desc {
+  color: var(--c-tenue);
+}
+
+.conversa__aviso-pie {
+  margin-top: var(--spacing-8);
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------
+   Panel de detalles (derecha), como la barra lateral de un issue
+   --------------------------------------------------------------------- */
+.conversa__detalles {
+  display: none;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--spacing-16);
+  border-left: 1px solid var(--c-borde);
+  background: var(--c-fondo);
+  scrollbar-width: thin;
+}
+
+.conversa__detalle {
+  padding: var(--spacing-16) 0;
+}
+
+.conversa__detalle + .conversa__detalle {
+  border-top: 1px solid var(--c-borde);
+}
+
+.conversa__detalle-titulo {
+  margin-bottom: var(--spacing-8);
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  text-wrap: initial;
+}
+
+.conversa__detalle-vacio {
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+.conversa__integrantes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.conversa__integrantes li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+
+.conversa__integrante-nombre {
+  display: block;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+}
+
+.conversa__integrante-papel {
+  display: block;
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+  line-height: 1.5;
+}
+
+.conversa__hechos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.conversa__hecho {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+
+.conversa__hecho-icono {
+  flex-shrink: 0;
+  padding-top: 2px;
+  color: var(--c-tenue);
+}
+
+.conversa__hecho[data-estado="hecho"] .conversa__hecho-icono {
+  color: var(--c-exito);
+}
+
+.conversa__hecho[data-estado="espera"] .conversa__hecho-icono {
+  color: var(--c-enlace);
+}
+
+.conversa__hecho-texto {
+  display: block;
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+
+.conversa__hecho-detalle {
+  display: block;
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+
+.conversa__hecho[data-estado="espera"] .conversa__hecho-meta {
+  color: var(--c-enlace);
+}
+
+.conversa__hecho-meta {
+  display: block;
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+}
+
+.conversa__acciones {
+  display: flex;
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--spacing-8));
+}
+
+.conversa__accion {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: var(--alto-control);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--radio-panel);
+  text-align: left;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__accion:hover:not(:disabled) {
+    background: var(--c-vidrio);
+  }
+}
+
+.conversa__accion:active:not(:disabled) {
+  background: var(--c-vidrio-fuerte);
+}
+
+.conversa__accion:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.conversa__accion-nombre {
+  color: var(--c-enlace);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+}
+
+.conversa__accion-desc {
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+}
+
+/* ---------------------------------------------------------------------
+   Panel: conversación vacía, copiar, errores, plan
+   --------------------------------------------------------------------- */
+.conversa__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+  width: 100%;
+  max-width: 560px;
+  margin: auto;
+  padding: var(--spacing-40) 0;
+}
+
+.conversa__vacio-titulo {
+  font-size: var(--t-titulo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.3;
+}
+
+.conversa__vacio-texto {
+  color: var(--c-texto-2);
+  font-size: var(--t-cuerpo);
+}
+
+/* Ideas para empezar: lista de renglones con borde, como una lista de GitHub */
+.conversa__ideas {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+}
+
+.conversa__idea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--spacing-12) var(--spacing-16);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  text-align: left;
+}
+
+.conversa__ideas li + li .conversa__idea {
+  border-top: 1px solid var(--c-borde);
+}
+
+.conversa__idea .icono {
+  margin-left: auto;
+  color: var(--c-tenue);
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__idea:hover:not(:disabled) {
+    background: var(--c-vidrio);
+  }
+  .conversa__idea:hover:not(:disabled) .icono {
+    transform: translateX(2px);
+  }
+}
+
+.conversa__idea:active:not(:disabled) {
+  background: var(--c-vidrio-fuerte);
+}
+
+.conversa__idea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.conversa__idea:focus-visible {
+  outline-offset: -2px;
+}
+
+.conversa__copiar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: 28px;
+  padding: 0 var(--spacing-8);
+  margin-left: calc(-1 * var(--spacing-8));
+  border-radius: var(--radio-boton);
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+
+.conversa__fila:hover .conversa__copiar,
+.conversa__copiar:focus-visible,
+.conversa__copiar--fijo {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__copiar:hover {
+    background: var(--c-vidrio-fuerte);
+    color: var(--c-texto);
+  }
+}
+
+@media (hover: none) {
+  .conversa__copiar:not(.conversa__copiar--fijo) {
+    display: none;
+  }
+}
+
+.conversa__error {
+  color: var(--c-error);
+  font-size: var(--t-chico);
+}
+
+.conversa__cargando {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin: auto;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+.conversa__plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.conversa__plan-nombre {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+
+/* ---------------------------------------------------------------------
+   Ventana "Nuevo grupo" (dentro del chat), como un diálogo de GitHub
+   --------------------------------------------------------------------- */
+.conversa__capa {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-16);
+  background: var(--c-scrim);
+  animation: aparecer var(--dur-micro) var(--ease);
+}
+
+.conversa__ventana {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 480px);
+  max-height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-marco);
+  background: var(--c-fondo);
+  animation: conversa-ventana var(--dur-micro) var(--ease-entrada) both;
+}
+
+@keyframes conversa-ventana {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.conversa__ventana-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-8) var(--spacing-8) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-fondo-2);
+}
+
+.conversa__ventana-titulo {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+
+.conversa__ventana-cuerpo {
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-16);
+}
+
+.conversa__ventana-texto {
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+
+.conversa__elegir-lista {
+  margin: var(--spacing-12) 0 var(--spacing-16);
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+}
+
+.conversa__elegir-lista li + li {
+  border-top: 1px solid var(--c-borde);
+}
+
+.conversa__elegir {
+  --conversa-anillo: var(--c-fondo);
+
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--spacing-8) var(--spacing-12);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__elegir:hover:not(:disabled) {
+    background: var(--c-vidrio);
+  }
+}
+
+.conversa__elegir:active:not(:disabled) {
+  background: var(--c-vidrio-fuerte);
+}
+
+.conversa__elegir:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.conversa__elegir:focus-visible {
+  outline-offset: -2px;
+}
+
+.conversa__casilla {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: 4px;
+  color: transparent;
+}
+
+.conversa__elegir[aria-pressed="true"] .conversa__casilla {
+  border-color: var(--c-foco);
+  background: var(--c-foco);
+  color: var(--c-fondo);
+}
+
+.conversa__etiqueta-campo {
+  display: block;
+  margin-bottom: var(--spacing-8);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+
+.conversa__campo {
+  display: block;
+  width: 100%;
+  min-height: var(--alto-control);
+  padding: var(--spacing-8) var(--spacing-12);
+  border: 1px solid var(--c-campo-borde);
+  border-radius: var(--radio-campo);
+  background: var(--c-campo-fondo);
+  color: var(--c-texto);
+  font-family: inherit;
+  font-size: var(--t-cuerpo);
+}
+
+.conversa__campo::placeholder {
+  color: var(--c-placeholder);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conversa__campo:hover:not(:focus) {
+    border-color: var(--c-campo-borde-hover);
+  }
+}
+
+.conversa__campo:focus {
+  border-color: var(--c-foco);
+  outline: 2px solid var(--c-foco);
+  outline-offset: 1px;
+}
+
+.conversa__ventana-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+
+.conversa__ventana-ayuda {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.conversa__ventana-botones {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--spacing-8);
+}
+
+/* ---------------------------------------------------------------------
+   Columnas según el ancho del chat
+   --------------------------------------------------------------------- */
+@container conversa (min-width: 720px) {
+  .conversa {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .conversa__lateral {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    width: auto;
+    visibility: visible;
+    transform: none;
+    transition: none;
+  }
+  .conversa__velo,
+  .conversa__solo-movil {
+    display: none;
+  }
+  .conversa__mensajes {
+    padding-inline: var(--spacing-24);
+  }
+}
+
+@container conversa (min-width: 1080px) {
+  .conversa {
+    grid-template-columns: 260px minmax(0, 1fr) 264px;
+  }
+  .conversa__detalles {
+    display: block;
+  }
+  /* Las acciones ya están a la derecha */
+  .conversa--con-detalles .conversa__sugerencias {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Sección del inicio y página /pruebalo
+   --------------------------------------------------------------------- */
+.chat-vivo__marco {
+  position: relative;
+}
+
+.chat-vivo__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-24);
+  margin-top: var(--spacing-16);
+}
+
+/* Atajos del teclado, en Mono como en la documentación de un producto */
+.chat-vivo__atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8) var(--spacing-16);
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+.chat-vivo__atajos li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.chat-vivo__tecla {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--c-borde-fuerte);
+  border-bottom-width: 2px;
+  border-radius: var(--radio-boton);
+  background: var(--c-fondo-2);
+  color: var(--c-texto);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+}
+
+@media (max-width: 767px) {
+  .chat-vivo__atajos li.chat-vivo__atajos--teclado {
+    display: none;
+  }
+}
+
+.pruebalo__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-16) var(--spacing-24);
+  margin-bottom: var(--spacing-24);
+}
+
+.pruebalo__titulo {
+  margin-top: var(--spacing-8);
+  font-size: var(--t-seccion);
+  font-weight: var(--peso-seccion);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-seccion);
+}
+
+.pruebalo__texto {
+  max-width: var(--ancho-texto);
+  margin-top: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-cuerpo);
+}
+
+@media (max-width: 639px) {
+  .pruebalo__texto {
+    display: none;
+  }
+  .pruebalo__cabeza {
+    margin-bottom: var(--spacing-16);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Movimiento reducido: solo opacidad (la base vuelve instantáneas las demás)
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .conversa__entra,
+  .conversa__ventana {
+    animation: aparecer var(--dur-micro) var(--ease) both !important;
+  }
+  .conversa__puntos i {
+    animation: conversa-punto 1.6s var(--ease) infinite !important;
+  }
+}
+
+.conversa__fila-linea .icono {
+  margin-right: var(--spacing-4);
+  vertical-align: -3px;
+}

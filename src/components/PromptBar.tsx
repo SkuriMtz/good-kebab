@@ -21,10 +21,10 @@ import {
   File02Icon,
   HelpCircleIcon,
   Mic01Icon,
-  PlusSignIcon,
   SparklesIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
+import { Icono } from "./base/Iconos";
 import "./PromptBar.css";
 
 export type PromptBarSource = {
@@ -154,13 +154,13 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
-  sparkColor = "#b39dff",
+  background = "var(--c-superficie)",
+  color = "var(--c-texto)",
+  menuBackground = "var(--c-superficie)",
+  sparkColor = "var(--c-destacada)",
   sparkBoost = 1,
   width = 400,
-  radius = 16,
+  radius = 8,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
@@ -276,6 +276,8 @@ export default function PromptBar({
     const ctx = canvas.getContext("2d");
     if (!ctx) return undefined;
     typing.current.strokes = 0;
+    // El color puede llegar como token (var(--…)): el canvas necesita el valor ya resuelto
+    const chispa = getComputedStyle(canvas).getPropertyValue("--pb-spark").trim() || sparkColor;
     let raf = 0;
     let last = performance.now();
     let w = 0;
@@ -324,8 +326,8 @@ export default function PromptBar({
         if (parts.length < 30) spawn(false);
       }
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = sparkColor;
-      ctx.shadowColor = sparkColor;
+      ctx.fillStyle = chispa;
+      ctx.shadowColor = chispa;
       ctx.shadowBlur = 6 + energy * 10 + pulse * 6;
       for (let i = parts.length - 1; i >= 0; i -= 1) {
         const p = parts[i];
@@ -557,6 +559,9 @@ export default function PromptBar({
             </>
           ) : (
             <>
+              <p className="prompt-bar__titulo" aria-hidden="true">
+                {open === "at" ? "Mencionar a" : open === "slash" ? "Acciones" : "Modelo"}
+              </p>
               <span ref={glowRef} className="prompt-bar__glow" aria-hidden="true" />
               {list.map((row, i) => (
                 <button
@@ -585,7 +590,7 @@ export default function PromptBar({
                   ) : null}
                 </button>
               ))}
-              {list.length === 0 ? <div className="prompt-bar__empty">Nada coincide con “{query}”</div> : null}
+              {list.length === 0 ? <div className="prompt-bar__empty">Nada coincide con «{query}»</div> : null}
             </>
           )}
         </div>
@@ -655,7 +660,7 @@ export default function PromptBar({
               focusInput();
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+            <Icono nombre="mas" tam={16} />
           </button>
           {models.length > 0 && model ? (
             <button
