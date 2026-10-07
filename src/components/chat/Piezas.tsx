@@ -1,15 +1,21 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Boton } from "@/components/base/Boton";
+import { Campo } from "@/components/base/Campo";
+import { Icono } from "@/components/base/Iconos";
 import { Texto } from "@/components/Texto";
 import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
 
 /*
- * Las piezas del chat con estilo de app de mensajería (burbujas, caras,
- * "escribiendo…", panel de nuevo grupo). Las usan el chat de ejemplo de la
- * página de inicio y el chat real del panel; el estilo vive en globals.css
- * bajo .chat-app.
+ * Las piezas del chat (Grupo 2 · G2-T5). Las usan el chat de demostración
+ * (/pruebalo) y el chat real del panel (/panel/chat); el estilo vive en
+ * src/estilos/chat.css bajo ".charla".
+ * Lenguaje de producto al estilo GitHub: la respuesta del agente va sin caja
+ * (su personaje, su nombre y la hora en Mono arriba del bloque); lo tuyo, en
+ * una burbuja neutra a la derecha; los avisos, como eventos de una línea de
+ * tiempo. Nada de cajas sin intención.
  */
 
 /** "Lola", "Lola y Víctor", "Lola, Clara e Iris". */
@@ -40,22 +46,30 @@ const ACOMODO: Record<number, { x: number; y: number; s: number }[]> = {
   ],
 };
 
-/** El personaje (o los personajes encimados de un grupo) en un círculo suave. */
+/** El personaje (o los personajes encimados de un grupo), cada uno en un círculo con un velo de su color. */
 export function Caras({ agentes, tam }: { agentes: readonly IdAgente[]; tam: number }) {
   const k = tam / 46;
   const acomodo = ACOMODO[Math.min(Math.max(agentes.length, 1), 4)];
   return (
-    <span className="relative block shrink-0" style={{ width: tam, height: tam }} aria-hidden="true">
+    <span className="charla__caras" style={{ width: tam, height: tam }} aria-hidden="true">
       {agentes.slice(0, 4).map((id, i) => {
         const p = acomodo[i];
         return (
           <span
             key={id}
-            className="chat-app__cara"
+            className="charla__cara"
             data-sola={agentes.length === 1 ? "" : undefined}
-            style={{ left: p.x * k, top: p.y * k, width: p.s * k, height: p.s * k }}
+            style={
+              {
+                left: p.x * k,
+                top: p.y * k,
+                width: p.s * k,
+                height: p.s * k,
+                "--agente": PERSONAJES[id].color,
+              } as CSSProperties
+            }
           >
-            <Personaje agente={id} avatar className="h-[78%] w-[78%]" />
+            <Personaje agente={id} avatar />
           </span>
         );
       })}
@@ -63,7 +77,7 @@ export function Caras({ agentes, tam }: { agentes: readonly IdAgente[]; tam: num
   );
 }
 
-/** Resalta @menciones y /acciones dentro del mensaje de la persona. */
+/** Resalta @menciones y /acciones dentro del mensaje de la persona (en Mono, como código). */
 function TextoTuyo({ texto }: { texto: string }) {
   return (
     <>
@@ -71,7 +85,7 @@ function TextoTuyo({ texto }: { texto: string }) {
         /^\s?[@/]/.test(p) ? (
           <Fragment key={i}>
             {/^\s/.test(p) ? p[0] : ""}
-            <strong className="font-semibold">{p.trim()}</strong>
+            <span className="charla__mencion">{p.trim()}</span>
           </Fragment>
         ) : (
           <Fragment key={i}>{p}</Fragment>
@@ -84,7 +98,7 @@ function TextoTuyo({ texto }: { texto: string }) {
 type Fila = {
   /** Primer mensaje de un bloque seguido de la misma persona. */
   primero: boolean;
-  /** Último del bloque: lleva el avatar y la esquina más recta. */
+  /** Último del bloque: lleva la esquina más recta. */
   ultimo: boolean;
   /** Mensaje recién llegado: entra con animación. */
   nueva?: boolean;
@@ -93,54 +107,62 @@ type Fila = {
   hora?: string;
 };
 
-const clasesFila = ({ nueva, bloque }: Fila) =>
-  `chat-app__fila${nueva ? " chat-app__entra" : ""}${bloque ? " chat-app__fila--bloque" : ""}`;
+const clasesFila = ({ nueva, bloque }: Fila, extra: string) =>
+  `charla__fila ${extra}${nueva ? " charla__entra" : ""}${bloque ? " charla__fila--bloque" : ""}`;
 
-/** Separador del día ("Hoy", "Ayer", "12 sep."). */
+/** Separador del día ("Hoy", "Ayer", "12 sep."), con líneas finas a los lados. */
 export function Dia({ children }: { children: ReactNode }) {
-  return <p className="chat-app__dia">{children}</p>;
-}
-
-/** Aviso centrado, como "Creaste el grupo…". */
-export function Sistema({ texto, error = false, ...fila }: Fila & { texto: string; error?: boolean }) {
   return (
-    <p className={`${clasesFila(fila)} chat-app__sistema${error ? " chat-app__sistema--error" : ""}`} role={error ? "alert" : undefined}>
-      <span>{texto}</span>
+    <p className="charla__dia">
+      <span>{children}</span>
     </p>
   );
 }
 
-/** Burbuja de la persona: a la derecha, en el color de la marca. */
+/** Aviso de una línea, como evento de línea de tiempo ("Creaste el grupo…") o error. */
+export function Sistema({ texto, error = false, ...fila }: Fila & { texto: string; error?: boolean }) {
+  return (
+    <p
+      className={`${clasesFila(fila, "charla__sistema")}${error ? " charla__sistema--error" : ""}`}
+      role={error ? "alert" : undefined}
+    >
+      <span className="charla__sistema-icono" aria-hidden="true">
+        <Icono nombre={error ? "alerta" : "usuarios"} tam={14} />
+      </span>
+      <span>{texto}</span>
+      {fila.hora && !error ? <span className="charla__sello">{fila.hora}</span> : null}
+    </p>
+  );
+}
+
+/** Burbuja de la persona: a la derecha, neutra (el violeta queda para el botón principal). */
 export function MensajeTuyo({ texto, ...fila }: Fila & { texto: string }) {
   return (
-    <div className={`${clasesFila(fila)} justify-end`}>
-      <p
-        className="chat-app__burbuja chat-app__burbuja--tu"
-        data-primero={fila.primero ? "" : undefined}
-        data-ultimo={fila.ultimo ? "" : undefined}
-      >
+    <div className={clasesFila(fila, "charla__fila--tu")}>
+      <p className="charla__burbuja" data-ultimo={fila.ultimo ? "" : undefined}>
+        <span className="sr-only">Tú: </span>
         <span className="whitespace-pre-wrap">
           <TextoTuyo texto={texto} />
         </span>
-        {fila.hora ? <span className="chat-app__hora">{fila.hora}</span> : null}
+        {fila.hora ? <span className="charla__sello charla__sello--dentro">{fila.hora}</span> : null}
       </p>
     </div>
   );
 }
 
-/** Nombre del agente arriba de su bloque, con su color. */
-function Nombre({ agente, area }: { agente: IdAgente; area?: boolean }) {
+/** Quién habla: nombre, su área (en grupos) y la hora, en la cabeza de su bloque. */
+function Autor({ agente, area, hora }: { agente: IdAgente; area?: boolean; hora?: string }) {
   const info = AGENTE_POR_ID[agente];
   return (
-    <p className="chat-app__nombre">
-      <span className="chat-app__marca" style={{ background: PERSONAJES[agente].color }} aria-hidden="true" />
-      <span className="font-semibold text-tinta">{info.nombre}</span>
-      {area ? <span className="text-tenue">{info.area}</span> : null}
+    <p className="charla__autor">
+      <span className="charla__autor-nombre">{info.nombre}</span>
+      {area ? <span className="charla__sello">{info.area}</span> : null}
+      {hora ? <span className="charla__sello">{hora}</span> : null}
     </p>
   );
 }
 
-/** Burbuja de un agente: su personaje chiquito, su nombre arriba del bloque y el texto. */
+/** Respuesta de un agente: su personaje y su nombre arriba del bloque, y el texto sin caja. */
 export function MensajeAgente({
   agente,
   texto,
@@ -149,19 +171,18 @@ export function MensajeAgente({
   ...fila
 }: Fila & { agente: IdAgente; texto: string; enGrupo?: boolean; pie?: ReactNode }) {
   return (
-    <div className={clasesFila(fila)}>
-      <span className="chat-app__avatar">{fila.ultimo ? <Personaje agente={agente} avatar className="h-8 w-8" /> : null}</span>
-      <div className="chat-app__columna">
-        {fila.primero ? <Nombre agente={agente} area={enGrupo} /> : null}
-        <div
-          className="chat-app__burbuja chat-app__burbuja--agente"
-          data-primero={fila.primero ? "" : undefined}
-          data-ultimo={fila.ultimo ? "" : undefined}
-        >
-          <div className="chat-app__texto">
-            <Texto texto={texto} />
-          </div>
-          {fila.hora ? <span className="chat-app__hora">{fila.hora}</span> : null}
+    <div className={clasesFila(fila, "charla__fila--agente")}>
+      <span className="charla__avatar" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
+        {fila.primero ? <Personaje agente={agente} avatar /> : null}
+      </span>
+      <div className="charla__columna">
+        {fila.primero ? (
+          <Autor agente={agente} area={enGrupo} hora={fila.hora} />
+        ) : (
+          <span className="sr-only">{AGENTE_POR_ID[agente].nombre}: </span>
+        )}
+        <div className="charla__texto">
+          <Texto texto={texto} />
         </div>
         {pie}
       </div>
@@ -169,23 +190,17 @@ export function MensajeAgente({
   );
 }
 
-/** Los tres puntos de "escribiendo…", con el personaje de quien escribe. */
+/** "Escribiendo…": el personaje de quien escribe y tres puntos, sin caja. */
 export function Escribiendo({ agente, sigue, enGrupo = false }: { agente: IdAgente; sigue: boolean; enGrupo?: boolean }) {
   const info = AGENTE_POR_ID[agente];
   return (
-    <div className={`chat-app__fila chat-app__entra${sigue ? "" : " chat-app__fila--bloque"}`}>
-      <span className="chat-app__avatar">
-        <Personaje agente={agente} avatar className="h-8 w-8" />
+    <div className={`charla__fila charla__fila--agente charla__entra${sigue ? "" : " charla__fila--bloque"}`}>
+      <span className="charla__avatar" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
+        {sigue ? null : <Personaje agente={agente} avatar />}
       </span>
-      <div className="chat-app__columna">
-        {sigue ? null : <Nombre agente={agente} area={enGrupo} />}
-        <span
-          className="chat-app__burbuja chat-app__burbuja--agente chat-app__puntos"
-          data-primero={sigue ? undefined : ""}
-          data-ultimo=""
-          role="status"
-          aria-label={`${info.nombre} está escribiendo`}
-        >
+      <div className="charla__columna">
+        {sigue ? null : <Autor agente={agente} area={enGrupo} />}
+        <span className="charla__puntos" role="status" aria-label={`${info.nombre} está escribiendo`}>
           <i />
           <i />
           <i />
@@ -196,30 +211,19 @@ export function Escribiendo({ agente, sigue, enGrupo = false }: { agente: IdAgen
 }
 
 export function IconoCerrar() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
-      <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
+  return <Icono nombre="cerrar" tam={16} />;
 }
 
 export function IconoMas() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden="true">
-      <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
+  return <Icono nombre="mas" tam={16} />;
 }
 
+/** Flecha hacia atrás (‹) para volver a la lista de chats en el celular. */
 export function IconoLista() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-[18px] w-[18px]" aria-hidden="true">
-      <path d="M3 6h14M3 10h14M3 14h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
+  return <Icono nombre="chevron-derecha" tam={20} className="charla__atras-flecha" />;
 }
 
-/** Panel para armar un grupo: se eligen los personajes y se le pone nombre. */
+/** Ventana para armar un grupo: se eligen los personajes y se le pone nombre. */
 export function NuevoGrupo({
   onCrear,
   onCerrar,
@@ -238,6 +242,12 @@ export function NuevoGrupo({
   const [nombre, setNombre] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
   const listo = elegidos.length >= 2 && (!nombreObligatorio || nombre.trim().length > 0);
+  const falta =
+    elegidos.length < 2
+      ? `Elige ${elegidos.length === 1 ? "a uno más" : "al menos a dos"}`
+      : nombreObligatorio && !nombre.trim()
+        ? "Falta el nombre del grupo"
+        : null;
 
   const cerrarRef = useRef(onCerrar);
   cerrarRef.current = onCerrar;
@@ -253,73 +263,76 @@ export function NuevoGrupo({
   const crear = () => listo && onCrear(nombre.trim(), elegidos);
 
   return (
-    <div className="chat-app__capa" onClick={(e) => e.target === e.currentTarget && onCerrar()}>
-      <div ref={panelRef} className="chat-app__panel" role="dialog" aria-modal="true" aria-labelledby="nuevo-grupo-titulo">
-        <div className="flex items-start justify-between gap-4">
+    <div className="charla__capa" onClick={(e) => e.target === e.currentTarget && onCerrar()}>
+      <div
+        ref={panelRef}
+        className="charla__dialogo"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nuevo-grupo-titulo"
+        data-lenis-prevent
+      >
+        <div className="charla__dialogo-cabeza">
           <div>
-            <p id="nuevo-grupo-titulo" className="t-titulo">
+            <p id="nuevo-grupo-titulo" className="charla__dialogo-titulo">
               Nuevo grupo
             </p>
-            <p className="mt-1 text-[0.875rem] text-tenue">
-              Elige a quién incluir (mínimo dos) y ponle nombre{nombreObligatorio ? "" : " o tema"}.
+            <p className="charla__dialogo-texto">
+              Elige a quién incluir (mínimo dos) y ponle nombre{nombreObligatorio ? "" : " o tema"}. Contesta quien sepa del tema.
             </p>
           </div>
-          <button type="button" className="chat-app__icono -mr-2 -mt-1" onClick={onCerrar} aria-label="Cerrar">
+          <button type="button" className="charla__icono" onClick={onCerrar} aria-label="Cerrar">
             <IconoCerrar />
           </button>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="charla__elegir-rejilla">
           {AGENTES_INFO.map((a) => {
             const puede = disponibles.includes(a.id);
             return (
               <button
                 key={a.id}
                 type="button"
-                className="chat-app__elegir"
+                className="charla__elegir"
                 aria-pressed={elegidos.includes(a.id)}
                 disabled={!puede}
                 title={puede ? undefined : "No está en tu equipo"}
                 onClick={() => alternar(a.id)}
               >
-                <span className="chat-app__check" aria-hidden="true">
-                  <svg viewBox="0 0 20 20" className="h-3 w-3">
-                    <path d="M5 10.5l3.2 3L15 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                <span className="charla__check" aria-hidden="true">
+                  <Icono nombre="check" tam={12} trazo={2} />
                 </span>
-                <span className="marca-agente" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
+                <span className="marca-agente marca-agente--chica" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
                   <Personaje agente={a.id} avatar />
                 </span>
-                <span className="mt-3 text-[0.9375rem] font-semibold text-tinta">{a.nombre}</span>
-                <span className="text-[0.75rem] text-tenue">{puede ? a.area : "No está en tu equipo"}</span>
+                <span className="charla__elegir-nombre">{a.nombre}</span>
+                <span className="charla__elegir-area">{puede ? a.area : "No está en tu equipo"}</span>
               </button>
             );
           })}
         </div>
 
-        <label className="mt-6 block">
-          <span className="text-[0.875rem] font-medium text-tinta">{nombreObligatorio ? "Nombre del grupo" : "Nombre o tema (opcional)"}</span>
-          <input
-            className="chat-app__campo mt-2"
-            value={nombre}
-            maxLength={maxNombre}
-            placeholder={nombreObligatorio ? "Ej. Promociones de diciembre" : "Ej. Recepción, campaña de noviembre"}
-            onChange={(e) => setNombre(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && crear()}
-          />
-        </label>
+        <Campo
+          etiqueta={nombreObligatorio ? "Nombre del grupo" : "Nombre o tema (opcional)"}
+          value={nombre}
+          maxLength={maxNombre}
+          placeholder={nombreObligatorio ? "Ej. Promociones de diciembre" : "Ej. Recepción, campaña de noviembre"}
+          alCambiar={setNombre}
+          onKeyDown={(e) => e.key === "Enter" && crear()}
+          className="charla__dialogo-campo"
+        />
 
-        <div className="mt-8 flex items-center justify-end gap-4 sm:justify-between">
-          <p className="hidden min-w-0 truncate text-[0.8125rem] text-tenue sm:block">
-            {elegidos.length ? nombres(elegidos) : "Nadie todavía"}
+        <div className="charla__dialogo-pie">
+          <p className="charla__dialogo-estado" aria-live="polite">
+            {falta ?? `Con ${nombres(elegidos)}`}
           </p>
-          <div className="flex shrink-0 gap-2">
-            <button type="button" className="chat-app__boton" onClick={onCerrar}>
+          <div className="charla__dialogo-botones">
+            <Boton variante="fantasma" onClick={onCerrar}>
               Cancelar
-            </button>
-            <button type="button" className="chat-app__boton chat-app__boton--fuerte" disabled={!listo} onClick={crear}>
+            </Boton>
+            <Boton variante="principal" disabled={!listo} onClick={crear}>
               Crear grupo
-            </button>
+            </Boton>
           </div>
         </div>
       </div>

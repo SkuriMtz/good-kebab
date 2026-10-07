@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Arrow } from "./Buttons";
 import PromptBar, {
   type PromptBarCommand,
   type PromptBarSource,
@@ -10,8 +8,8 @@ import PromptBar, {
 import { Personaje } from "./agentes/Personaje";
 import {
   Caras,
+  Dia,
   Escribiendo,
-  IconoCerrar,
   IconoLista,
   IconoMas,
   MensajeAgente,
@@ -390,10 +388,11 @@ function responder(texto: string, c: Conversacion): Turno[] {
 const PRIMER_NUEVO = 1000;
 
 /**
- * El chat de ejemplo de la página de inicio, como una app de mensajería:
- * lista de chats y grupos a la izquierda, la conversación a la derecha y la
- * barra PromptBar para escribir. Las respuestas son de muestra (no se llama
- * a la IA desde aquí); dentro del panel sí es real.
+ * El chat de demostración (/pruebalo), como una app de mensajería: lista de
+ * chats y grupos a la izquierda, la conversación a la derecha y la barra
+ * PromptBar para escribir. En el celular, la lista es una pantalla aparte
+ * (como en una app nativa) y se vuelve con la flecha ‹. Las respuestas son
+ * de muestra (no se llama a la IA desde aquí); dentro del panel sí es real.
  */
 export function ChatDemo({ completa = false }: { completa?: boolean }) {
   const [convs, setConvs] = useState<Conversacion[]>(INICIO);
@@ -582,42 +581,28 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
   const fila = (c: Conversacion) => {
     const escribe = pendiente?.conv === c.id ? pendiente.agente : null;
     const ultimo = c.mensajes[c.mensajes.length - 1];
+    const sinLeer = c.sinLeer && c.id !== activa ? c.sinLeer : 0;
     return (
       <li key={c.id}>
-        <button
-          type="button"
-          className="chat-app__conv"
-          aria-current={c.id === activa ? "true" : undefined}
-          onClick={() => abrir(c.id)}
-        >
-          <Caras agentes={c.agentes} tam={46} />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-[0.9375rem] font-semibold text-tinta">
-                {c.nombre}
-              </span>
-              <span className="shrink-0 text-[0.75rem] tabular-nums text-tenue">
-                {ultimo?.dia ?? ultimo?.hora}
-              </span>
+        <button type="button" className="charla__conv" aria-current={c.id === activa ? "true" : undefined} onClick={() => abrir(c.id)}>
+          <Caras agentes={c.agentes} tam={40} />
+          <span className="charla__conv-cuerpo">
+            <span className="charla__conv-linea">
+              <span className="charla__conv-nombre">{c.nombre}</span>
+              <span className="charla__conv-hora">{ultimo?.dia ?? ultimo?.hora}</span>
             </span>
-            <span className="mt-0.5 flex items-center gap-3">
+            <span className="charla__conv-linea">
               {escribe ? (
-                <span className="chat-app__escribe truncate text-[0.8125rem]">
-                  {esGrupoConv(c)
-                    ? `${AGENTE_POR_ID[escribe].nombre} está escribiendo…`
-                    : "Escribiendo…"}
+                <span className="charla__conv-vista charla__escribe">
+                  {esGrupoConv(c) ? `${AGENTE_POR_ID[escribe].nombre} está escribiendo…` : "Escribiendo…"}
                 </span>
               ) : (
-                <span className="truncate text-[0.8125rem] text-tenue">
-                  {vistaPrevia(c)}
-                </span>
+                <span className="charla__conv-vista">{vistaPrevia(c)}</span>
               )}
-              {c.sinLeer && c.id !== activa ? (
-                <span
-                  className="chat-app__sin-leer"
-                  aria-label={`${c.sinLeer} sin leer`}
-                >
-                  {c.sinLeer}
+              {sinLeer ? (
+                <span className="charla__sin-leer">
+                  {sinLeer}
+                  <span className="sr-only"> sin leer</span>
                 </span>
               ) : null}
             </span>
@@ -628,113 +613,56 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
   };
 
   return (
-    <div className={`chat-app${completa ? " chat-app--completa" : ""}`}>
+    <div className={`chat-app charla${completa ? " charla--completa" : ""}`} data-lista={barra ? "" : undefined}>
       {/* ---------- Lista de chats y grupos ---------- */}
-      <aside
-        className="chat-app__barra"
-        data-abierta={barra ? "" : undefined}
-        aria-label="Tus chats"
-      >
-        <div className="flex items-center justify-between px-5 pb-3 pt-5">
-          <p className="text-[1.0625rem] font-semibold tracking-[-0.01em]">
-            Chats
-          </p>
-          <button
-            type="button"
-            className="chat-app__icono md:hidden"
-            onClick={() => setBarra(false)}
-            aria-label="Cerrar la lista"
-          >
-            <IconoCerrar />
-          </button>
-        </div>
-        <div className="px-3">
-          <button
-            type="button"
-            className="chat-app__nuevo"
-            onClick={() => setCreando(true)}
-          >
-            <span className="chat-app__nuevo-mas" aria-hidden="true">
-              <IconoMas />
-            </span>
+      <aside className="charla__barra" data-abierta={barra ? "" : undefined} aria-label="Tus chats">
+        <div className="charla__barra-cabeza">
+          <p className="charla__barra-titulo">Chats</p>
+          <button type="button" className="charla__nuevo" onClick={() => setCreando(true)}>
+            <IconoMas />
             Nuevo grupo
           </button>
         </div>
-        <div className="chat-app__listas">
-          <p className="chat-app__seccion">Grupos</p>
+        <div className="charla__listas" data-lenis-prevent>
+          <p className="charla__seccion">Grupos</p>
           <ul>{grupos.map(fila)}</ul>
-          <p className="chat-app__seccion">Agentes</p>
+          <p className="charla__seccion">Agentes</p>
           <ul>{chats.map(fila)}</ul>
         </div>
       </aside>
-      <button
-        type="button"
-        className="chat-app__velo md:hidden"
-        data-abierta={barra ? "" : undefined}
-        onClick={() => setBarra(false)}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
 
       {/* ---------- Conversación abierta ---------- */}
-      <section
-        className="chat-app__principal"
-        aria-label={`Chat: ${conv.nombre}`}
-      >
-        <header className="chat-app__cabeza">
-          <button
-            type="button"
-            className="chat-app__icono relative md:hidden"
-            onClick={() => setBarra(true)}
-            aria-label="Ver chats"
-          >
+      <section className="charla__principal" aria-label={`Chat: ${conv.nombre}`}>
+        <header className="charla__cabeza">
+          <button type="button" className="charla__icono charla__atras" onClick={() => setBarra(true)} aria-label="Ver chats">
             <IconoLista />
             {sinLeerTotal ? (
-              <span
-                className="chat-app__punto"
-                aria-label={`${sinLeerTotal} sin leer`}
-              />
+              <span className="charla__atras-cuenta">
+                {sinLeerTotal}
+                <span className="sr-only"> sin leer</span>
+              </span>
             ) : null}
           </button>
-          <Caras agentes={conv.agentes} tam={40} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[1rem] font-semibold leading-tight">
-              {conv.nombre}
-            </p>
-            <p
-              className="truncate text-[0.8125rem] leading-snug text-tenue"
-              aria-live="polite"
-            >
+          <Caras agentes={conv.agentes} tam={36} />
+          <div className="charla__cabeza-texto">
+            <p className="charla__cabeza-nombre">{conv.nombre}</p>
+            <p className="charla__cabeza-estado" aria-live="polite">
               {escribiendoAqui ? (
-                <span className="chat-app__escribe">
-                  {esGrupo
-                    ? `${AGENTE_POR_ID[escribiendoAqui].nombre} está escribiendo…`
-                    : "escribiendo…"}
+                <span className="charla__escribe">
+                  {esGrupo ? `${AGENTE_POR_ID[escribiendoAqui].nombre} está escribiendo…` : "escribiendo…"}
                 </span>
               ) : esGrupo ? (
                 `Grupo · ${nombres(conv.agentes)}`
               ) : (
-                `${AGENTE_POR_ID[conv.agentes[0]].area} · en línea`
+                <span className="charla__en-linea">{AGENTE_POR_ID[conv.agentes[0]].area} · en línea</span>
               )}
             </p>
           </div>
-          <Link
-            href="/entrar"
-            className="chat-app__probar hidden sm:inline-flex"
-          >
-            Probarlo de verdad
-            <Arrow />
-          </Link>
+          <span className="charla__demo">Demostración</span>
         </header>
 
-        <div
-          ref={listaRef}
-          className="chat-app__mensajes"
-          role="log"
-          aria-live="polite"
-          aria-label={`Mensajes de ${conv.nombre}`}
-        >
-          <div key={conv.id} className="chat-app__hilo">
+        <div ref={listaRef} className="charla__mensajes" role="log" aria-live="polite" aria-label={`Mensajes de ${conv.nombre}`} data-lenis-prevent>
+          <div key={conv.id} className="charla__hilo">
             {conv.mensajes.map((msg, i) => {
               const antes = conv.mensajes[i - 1];
               const dia = msg.dia ?? "Hoy";
@@ -742,13 +670,11 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
               const despues = conv.mensajes[i + 1];
               const primero = nuevoDia || antes.de !== msg.de;
               const ultimo =
-                (!despues ||
-                  despues.de !== msg.de ||
-                  (despues.dia ?? "Hoy") !== dia) &&
+                (!despues || despues.de !== msg.de || (despues.dia ?? "Hoy") !== dia) &&
                 !(escribiendoAqui && escribiendoAqui === msg.de && !despues);
               return (
                 <Fragment key={msg.id}>
-                  {nuevoDia ? <p className="chat-app__dia">{dia}</p> : null}
+                  {nuevoDia ? <Dia>{dia}</Dia> : null}
                   <Burbuja
                     mensaje={msg}
                     primero={primero}
@@ -763,36 +689,25 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
             {escribiendoAqui ? (
               <Escribiendo
                 agente={escribiendoAqui}
-                sigue={
-                  conv.mensajes[conv.mensajes.length - 1]?.de ===
-                  escribiendoAqui
-                }
+                sigue={conv.mensajes[conv.mensajes.length - 1]?.de === escribiendoAqui}
+                enGrupo={esGrupo}
               />
             ) : null}
           </div>
         </div>
 
-        <div className="chat-app__pie">
-          <div className="chat-app__sugerencias" aria-label="Prueba una acción">
+        <div className="charla__pie">
+          <div className="charla__sugerencias" aria-label="Prueba una acción" role="group" data-lenis-prevent>
             {sugerencias.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                className="chat-app__sugerencia"
-                disabled={ocupado}
-                onClick={() => enviar(a.name)}
-              >
-                {a.name}
+              <button key={a.key} type="button" className="charla__sugerencia" disabled={ocupado} onClick={() => enviar(a.name)}>
+                <span className="charla__sugerencia-nombre">{a.name}</span>
+                <span className="charla__sugerencia-desc">{a.description}</span>
               </button>
             ))}
           </div>
           <PromptBar
             key={conv.id}
-            placeholder={
-              esGrupo
-                ? "Escribe al grupo · @ para mencionar"
-                : `Escríbele a ${conv.nombre} · / para acciones`
-            }
+            placeholder={esGrupo ? "Escribe al grupo · @ para mencionar" : `Escríbele a ${conv.nombre} · / para acciones`}
             sources={fuentes}
             commands={comandos}
             models={[]}
@@ -800,19 +715,14 @@ export function ChatDemo({ completa = false }: { completa?: boolean }) {
             busy={ocupado}
             onSend={(texto) => enviar(texto)}
             onStop={detener}
-            background="var(--chat-campo)"
-            color="var(--c-texto)"
-            menuBackground="var(--chat-menu)"
             width={4000}
-            radius={24}
             maxRows={5}
           />
+          <p className="charla__nota">Respuestas de ejemplo: aquí no se llama a la IA y nada sale de esta página.</p>
         </div>
       </section>
 
-      {creando ? (
-        <NuevoGrupo onCrear={crearGrupo} onCerrar={() => setCreando(false)} />
-      ) : null}
+      {creando ? <NuevoGrupo onCrear={crearGrupo} onCerrar={() => setCreando(false)} /> : null}
     </div>
   );
 }

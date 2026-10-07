@@ -21,7 +21,6 @@ import {
   File02Icon,
   HelpCircleIcon,
   Mic01Icon,
-  PlusSignIcon,
   SparklesIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
@@ -139,6 +138,9 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
  * botón "+" (aquí: elegir agente), menú "/" (acciones), botón de enviar que
  * se vuelve "detener", y opcionalmente selector de modelo, esfuerzo y dictado.
  * Cambios para Atendel: textos en español, tipado y búsqueda con acentos.
+ * G2-T5: en la barra, dos atajos con su tecla a la vista ("/ Acciones" y
+ * "@ Mencionar") en lugar de un "+" que no dice nada; colores y radios de
+ * los tokens de la base (radio 8px de campo, foco azul cielo).
  */
 export default function PromptBar({
   placeholder = "Escribe tu mensaje",
@@ -154,13 +156,14 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
-  sparkColor = "#b39dff",
+  background = "var(--c-superficie)",
+  color = "var(--c-texto)",
+  menuBackground = "var(--c-superficie)",
+  // El canvas no lee variables de CSS: es el valor de --c-destacada (#8c93fb)
+  sparkColor = "#8c93fb",
   sparkBoost = 1,
   width = 400,
-  radius = 16,
+  radius = 8,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
@@ -627,6 +630,7 @@ export default function PromptBar({
           value={draft}
           placeholder={listening ? "Escuchando…" : placeholder}
           aria-label="Mensaje"
+          enterKeyHint="send"
           onChange={(e) => {
             setDraft(e.target.value);
             typing.current.energy = Math.min(1.6, typing.current.energy + 0.22);
@@ -640,23 +644,50 @@ export default function PromptBar({
         />
 
         <div className="prompt-bar__bar">
-          <button
-            type="button"
-            className="prompt-bar__tool"
-            aria-label="Elegir agente"
-            aria-expanded={plusOpen}
-            data-on={plusOpen ? "" : undefined}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              setModelOpen(false);
-              setEffortOpen(false);
-              setActive(0);
-              setPlusOpen((v) => !v);
-              focusInput();
-            }}
-          >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
-          </button>
+          {commands.length > 0 ? (
+            <button
+              type="button"
+              className="prompt-bar__pick prompt-bar__atajo"
+              aria-label="Ver acciones"
+              aria-expanded={open === "slash"}
+              data-on={open === "slash" ? "" : undefined}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                closeMenus();
+                setActive(0);
+                if (open === "slash") {
+                  setDismissed(true);
+                } else {
+                  setDismissed(false);
+                  setDraft((d) => (token?.kind === "slash" ? d : `${d}${d && !/\s$/.test(d) ? " " : ""}/`));
+                }
+                focusInput();
+              }}
+            >
+              <kbd className="prompt-bar__tecla">/</kbd>
+              <span>Acciones</span>
+            </button>
+          ) : null}
+          {sources.length > 1 ? (
+            <button
+              type="button"
+              className="prompt-bar__pick prompt-bar__atajo"
+              aria-label="Mencionar a un agente"
+              aria-expanded={plusOpen}
+              data-on={plusOpen ? "" : undefined}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setModelOpen(false);
+                setEffortOpen(false);
+                setActive(0);
+                setPlusOpen((v) => !v);
+                focusInput();
+              }}
+            >
+              <kbd className="prompt-bar__tecla">@</kbd>
+              <span>Mencionar</span>
+            </button>
+          ) : null}
           {models.length > 0 && model ? (
             <button
               type="button"
