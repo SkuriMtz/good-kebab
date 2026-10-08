@@ -1,14 +1,20 @@
 import Link from "next/link";
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
-import { Giro, Icono } from "./Iconos";
+import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from "react";
+import { Giro, Icono, type NombreIcono } from "./Iconos";
+import { Insignia } from "./Insignia";
 
 /**
  * Botones de Atendel (estilo en globals.css, ".boton"):
- * - principal: violeta de Atendel con texto blanco. UNO por pantalla.
+ * - principal: AZUL de acción (#0071e3, hover #0077ed) con texto blanco.
+ *   UNO por pantalla. (Desde la base 4b el violeta ya no es acción: es marca.)
  * - sutil: fondo oscuro translúcido, texto azul cielo y borde. La alternativa
- *   de menor compromiso (ej. "Prueba los agentes").
- * - fantasma: transparente; el texto y el borde hacen la señal.
- * Radio 6px, padding 6px 20px, alto mínimo 40px (48px en "grande").
+ *   de menor compromiso (ej. "Prueba los agentes"). Dentro de .producto pasa a
+ *   neutro con contorno (el botón "normal" del dashboard).
+ * - fantasma: transparente; el texto y el borde hacen la señal. Dentro de
+ *   .producto, sin borde (aparece al pasar el cursor).
+ * Radio 6px (8px dentro de .producto), padding 6px 20px.
+ * Tamaños: "chico" 36px · "normal" 40px · "grande" 48px · "compacto" 32px
+ * (el del dashboard: 14px/500; en táctil el área que se toca crece a 44px).
  * Estados: hover (capa de opacidad), foco visible, presión (scale 0.97),
  * deshabilitado y cargando (con giro y aria-busy).
  *
@@ -16,7 +22,7 @@ import { Giro, Icono } from "./Iconos";
  */
 
 export type VarianteBoton = "principal" | "sutil" | "fantasma";
-export type TamBoton = "normal" | "grande" | "chico";
+export type TamBoton = "normal" | "grande" | "chico" | "compacto";
 
 /** Las clases de un botón, para usarlas en elementos que no son <Boton> (ej. <summary>, <label>). */
 // Clases escritas completas (no armadas con plantillas) para que Tailwind no las descarte al compilar.
@@ -25,7 +31,12 @@ const CLASE_VARIANTE: Record<VarianteBoton, string> = {
   sutil: "boton boton--sutil",
   fantasma: "boton boton--fantasma",
 };
-const CLASE_TAM: Record<TamBoton, string> = { normal: "", grande: "boton--grande", chico: "boton--chico" };
+const CLASE_TAM: Record<TamBoton, string> = {
+  normal: "",
+  grande: "boton--grande",
+  chico: "boton--chico",
+  compacto: "boton--compacto",
+};
 
 export function claseBotonBase(variante: VarianteBoton = "principal", tam: TamBoton = "normal", bloque = false) {
   return [CLASE_VARIANTE[variante], CLASE_TAM[tam], bloque ? "boton--bloque" : ""].filter(Boolean).join(" ");
@@ -141,3 +152,50 @@ export function Boton(props: PropsBoton) {
     </button>
   );
 }
+
+/* ---------------------------------------------------------------------
+   Botón de solo ícono (barra del dashboard: campana, "+", barra lateral…)
+   --------------------------------------------------------------------- */
+
+type PropsBotonIcono = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
+  /** Qué hace, para lectores de pantalla (y el globo del cursor). Obligatorio: no hay texto visible. */
+  etiqueta: string;
+  icono: NombreIcono;
+  /** "compacto" 32px (barra del dashboard; 44px de área táctil en celular) o "normal" 44px. */
+  tam?: "compacto" | "normal";
+  /** Contador encima (ej. avisos sin leer). 0 o sin valor: no se pinta. */
+  contador?: number;
+  /** Un punto encima en vez de número ("hay algo nuevo"). */
+  punto?: boolean;
+  /** Cómo se lee el contador o el punto (ej. "3 avisos sin leer"). */
+  etiquetaContador?: string;
+  /** Color del anillo del contador: el fondo sobre el que va el botón (por defecto --c-fondo). */
+  anillo?: string;
+};
+
+/**
+ * <BotonIcono etiqueta="Avisos" icono="campana" tam="compacto" contador={3} etiquetaContador="3 avisos sin leer" />
+ * Hover y presión con una capa sutil (--c-activo); foco visible; aria-expanded
+ * o aria-pressed dejan la capa puesta. Se puede usar como disparador de <Menu>.
+ */
+export const BotonIcono = forwardRef<HTMLButtonElement, PropsBotonIcono>(function BotonIcono(
+  { etiqueta, icono, tam = "compacto", contador, punto = false, etiquetaContador, anillo, className = "", type = "button", style, ...resto },
+  ref,
+) {
+  const hayContador = typeof contador === "number" && contador > 0;
+  const lectura = etiquetaContador ? `${etiqueta}, ${etiquetaContador}` : etiqueta;
+  return (
+    <button
+      {...resto}
+      ref={ref}
+      type={type}
+      aria-label={lectura}
+      title={etiqueta}
+      className={`boton-icono boton-icono--capa${tam === "compacto" ? " boton-icono--compacto" : ""} ${className}`}
+      style={anillo ? ({ ...style, "--anillo": anillo } as CSSProperties) : style}
+    >
+      <Icono nombre={icono} tam={tam === "compacto" ? 20 : 24} />
+      {hayContador ? <Insignia contador={contador} solida sobre /> : punto ? <Insignia punto tono="azul" sobre /> : null}
+    </button>
+  );
+});

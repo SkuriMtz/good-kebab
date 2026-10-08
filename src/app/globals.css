@@ -26,8 +26,30 @@
    --------------------------------------------------------------------- */
 :root {
   /* ---------- Primitivos de Atendel ---------- */
-  --color-violeta-atendel: #8052ff; /* el color de acción (rol del verde de GitHub) */
-  --color-violeta-atendel-hondo: #6e40f0; /* acción en modo claro: contraste AA con blanco (5.7:1) */
+  --color-violeta-atendel: #8052ff; /* identidad de la marca (ya NO es acción desde la base 4b) */
+  --color-violeta-atendel-hondo: #6e40f0; /* identidad en modo claro */
+  /* Azul de acción (base 4b: dashboard con refinamiento Apple; manda en TODO el sitio) */
+  --azul-accion: #0071e3; /* botón principal, oscuro y claro (blanco encima: 4.7:1) */
+  --azul-accion-hover: #0077ed;
+  --azul-enlace-noche: #4ea1ff; /* enlaces y texto de acción sobre #0d1117 (6.9:1) */
+  --azul-enlace-dia: #0066cc; /* enlaces y texto de acción sobre blanco (5.6:1) */
+  /* Producto en oscuro ("noche"): textos y divisiones del dashboard */
+  --noche-texto: #f0f6fc;
+  --noche-texto-2: #9198a1;
+  --noche-tenue: #6e7681;
+  --noche-division: #30363d;
+  --noche-ambar: #d29922;
+  /* Producto en claro ("día"): superficies y textos del dashboard */
+  --dia-blanco: #ffffff;
+  --dia-niebla: #f5f5f7; /* fondo de la app y bandas */
+  --dia-papel: #fafafc; /* superficie alterna (lateral) */
+  --dia-borde: #d6d6d6; /* divisiones y contornos de control */
+  --dia-borde-suave: #e6e6e8; /* bordes sutiles de tarjeta */
+  --dia-tinta: #1d1d1f;
+  --dia-pizarra: #707070;
+  --dia-acero: #86868b;
+  --dia-ambar: #9a6700;
+  --dia-rojo: #cf222e;
   --color-halo: rgba(167, 162, 255, 0.5);
   --color-haz-inicio: rgba(120, 115, 203, 0.2); /* "violet beam" */
   --color-haz-fin: rgb(89, 147, 212);
@@ -66,6 +88,55 @@
   --color-electric-iris: var(--color-violeta-atendel);
   --color-saffron-spark: var(--color-sky);
   --color-deep-verdant: var(--color-sky);
+
+  /* ---------- Tipografía de producto (dashboard, chat, panel) ----------
+     La pila del sistema: en Mac y iPhone se ve como la letra de Apple;
+     en Windows, Segoe UI; en Android/Linux, Noto Sans. Nunca peso 700. */
+  --font-producto: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --t-app-etiqueta: 0.75rem; /* 12 · etiquetas, insignias, metadatos */
+  --t-app-cuerpo: 0.875rem; /* 14 · cuerpo del producto */
+  --t-app-mediano: 1rem; /* 16 · títulos de tarjeta, campos */
+  --t-app-titulo: 1.25rem; /* 20 · título de panel */
+  --t-app-titulo-grande: 1.5rem; /* 24 · título de vista */
+  --t-app-saludo: clamp(1.75rem, 1.5rem + 1vw, 2rem); /* 28 → 32 · saludo de bienvenida */
+  --interlineado-app: 1.43;
+  --interlineado-app-etiqueta: 1.33;
+  --interlineado-app-titulo: 1.25;
+  --tracking-app: -0.01em;
+  --tracking-app-saludo: -0.02em;
+  --peso-app-medio: 500;
+  --peso-app-titulo: 600;
+
+  /* ---------- Formas del dashboard ---------- */
+  --radio-app-control: 8px; /* botones e inputs del producto */
+  --radio-app-tarjeta: 12px; /* tarjetas compactas, filas, paneles internos */
+  --radio-app-menu: 14px; /* menús desplegables */
+  --radio-app-panel: 16px; /* tarjetas y paneles grandes (bienvenida) */
+  --radio-app-pildora: 9999px; /* filtros, pestañas y buscador */
+  --radio-burbuja: 16px; /* burbuja de chat */
+  --radio-burbuja-esquina: 6px; /* la esquina que apunta a quien habla */
+  --radio-kbd: 6px;
+
+  /* ---------- Medidas del dashboard ---------- */
+  --barra-app-h: 56px; /* barra superior fija */
+  --ancho-app-lateral: 256px; /* menú lateral izquierdo (240–272) */
+  --ancho-app-columna: 320px; /* columna derecha */
+  --ancho-app-max: 1440px; /* las tres columnas juntas */
+  --ancho-cajon: min(85vw, 320px); /* cajón lateral en celular */
+  --alto-app-fila: 48px; /* filas de lista (44–52) */
+  --alto-control-compacto: 32px; /* botones e íconos de la barra */
+  --espacio-app-tarjeta: var(--spacing-20); /* padding de tarjeta */
+  --espacio-app-tarjeta-amplio: var(--spacing-24);
+  --espacio-app-bloques: var(--spacing-24); /* entre bloques */
+  --espacio-app-bloques-amplio: var(--spacing-32);
+
+  /* ---------- Avatares (redondos) ---------- */
+  --avatar-20: 20px;
+  --avatar-24: 24px;
+  --avatar-28: 28px;
+  --avatar-32: 32px;
+  --avatar-40: 40px;
+  --avatar-64: 64px;
 
   /* ---------- Tipografía (Mona Sans; nunca peso 700) ---------- */
   --t-display: clamp(2.375rem, 1.55rem + 3.4vw, 4rem); /* 38px celular → 64px */
@@ -124,6 +195,8 @@
   --ease-entrada: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-micro: 0.2s;
   --dur-grande: 0.4s;
+  --dur-salida: 0.15s; /* lo que se cierra sale más rápido de lo que entra (menús) */
+  --dur-respiro: 12s; /* atmósfera lenta y continua (respiro del halo de la portada) */
 
   /* ---------- Tamaños de control ---------- */
   --alto-control: 40px;
@@ -169,12 +242,49 @@
   --c-acento: var(--color-sky);
   --c-destacada: var(--color-ultraviolet); /* #8c93fb borde de lo destacado */
   --c-foco: var(--color-sky);
-  --c-error: var(--color-rojo-oscuro);
-  --c-exito: var(--color-verde-oscuro);
+  --c-terciario: var(--color-moss); /* en el producto: placeholders, deshabilitado, íconos inactivos */
 
-  /* ---------- Semánticos: acción (un solo botón principal por pantalla) ---------- */
-  --c-accion: var(--color-violeta-atendel);
+  /* ---------- Semánticos: estados (solo insignias pequeñas y puntos de estado) ---------- */
+  --c-error: var(--color-rojo-oscuro); /* #f85149 */
+  --c-exito: var(--color-verde-oscuro); /* #3fb950 */
+  --c-atencion: var(--noche-ambar); /* #d29922 */
+  --c-error-fondo: color-mix(in srgb, var(--c-error) 15%, transparent);
+  --c-exito-fondo: color-mix(in srgb, var(--c-exito) 15%, transparent);
+  --c-atencion-fondo: color-mix(in srgb, var(--c-atencion) 15%, transparent);
+
+  /* ---------- Semánticos: acción azul (un solo botón principal por pantalla) ---------- */
+  --c-accion: var(--azul-accion); /* #0071e3 */
+  --c-accion-hover: var(--azul-accion-hover); /* #0077ed */
+  --c-accion-presion: color-mix(in srgb, var(--azul-accion) 86%, #000);
+  --c-accion-texto: var(--azul-enlace-noche); /* #4ea1ff: texto azul de acción, enlaces del producto */
+  --c-accion-fondo: color-mix(in srgb, var(--azul-enlace-noche) 15%, transparent); /* insignia azul, seleccionado */
   --c-sobre-accion: var(--color-snow);
+  /* Violeta de Atendel: SOLO identidad (logo, personajes, detalles puntuales). Nunca en botones. */
+  --c-marca: var(--color-violeta-atendel);
+
+  /* ---------- Semánticos: matices de estado (listas, filas, botones de ícono) ---------- */
+  --c-hover: color-mix(in srgb, var(--c-texto) 6%, transparent); /* al pasar el cursor */
+  --c-activo: color-mix(in srgb, var(--c-texto) 10%, transparent); /* seleccionado / elemento activo */
+  --c-elevado: color-mix(in srgb, var(--c-texto) 8%, var(--c-fondo)); /* superficie elevada opaca: burbuja neutra, chips */
+  --c-propio: color-mix(in srgb, var(--c-accion-texto) 12%, var(--c-fondo)); /* "lo mío": mi mensaje, mi elemento */
+
+  /* ---------- Elevación: sombra SOLO para lo que flota (menús, cajón, modal) ---------- */
+  --sombra-flotante: 0 8px 24px rgba(0, 0, 0, 0.24);
+  --c-menu-fondo: color-mix(in srgb, var(--c-superficie) 94%, transparent);
+
+  /* ---------- Producto (dashboard): oscuro primero ----------
+     Se usan directo (var(--c-app-…)) o, mejor, dentro de .producto, que
+     convierte los --c-* de siempre en estos valores (ver más abajo). */
+  --c-app-fondo: var(--color-deep-void); /* #0d1117 */
+  --c-app-superficie: var(--color-obsidian); /* #151a22 tarjetas y paneles */
+  --c-app-superficie-2: color-mix(in srgb, var(--color-obsidian) 50%, var(--color-deep-void)); /* alterna */
+  --c-app-lateral: var(--color-deep-void); /* menú lateral y cajón */
+  --c-app-barra: color-mix(in srgb, var(--color-deep-void) 82%, transparent); /* barra superior translúcida */
+  --c-app-borde: var(--color-slate-edge); /* #21262d bordes sutiles */
+  --c-app-division: var(--noche-division); /* #30363d divisiones y contornos */
+  --c-app-texto: var(--noche-texto); /* #f0f6fc */
+  --c-app-texto-2: var(--noche-texto-2); /* #9198a1 secundario (AA: 6.5:1) */
+  --c-app-tenue: var(--noche-tenue); /* #6e7681 terciario (4.1:1: no para texto que hay que leer) */
 
   /* ---------- Vidrio ---------- */
   --c-vidrio: rgba(255, 255, 255, 0.06);
@@ -238,11 +348,42 @@
   --c-acento: var(--primer-azul);
   --c-destacada: var(--color-ultraviolet);
   --c-foco: var(--primer-azul);
-  --c-error: var(--primer-rojo);
-  --c-exito: var(--primer-verde);
+  --c-terciario: var(--primer-tenue);
 
-  --c-accion: var(--color-violeta-atendel-hondo);
+  --c-error: var(--dia-rojo); /* #cf222e */
+  --c-exito: var(--primer-verde); /* #1a7f37 */
+  --c-atencion: var(--dia-ambar); /* #9a6700 */
+  --c-error-fondo: color-mix(in srgb, var(--c-error) 10%, transparent);
+  --c-exito-fondo: color-mix(in srgb, var(--c-exito) 10%, transparent);
+  --c-atencion-fondo: color-mix(in srgb, var(--c-atencion) 12%, transparent);
+
+  --c-accion: var(--azul-accion);
+  --c-accion-hover: var(--azul-accion-hover);
+  --c-accion-presion: color-mix(in srgb, var(--azul-accion) 86%, #000);
+  --c-accion-texto: var(--azul-enlace-dia); /* #0066cc */
+  --c-accion-fondo: color-mix(in srgb, var(--azul-enlace-dia) 10%, transparent);
   --c-sobre-accion: var(--primer-blanco);
+  --c-marca: var(--color-violeta-atendel-hondo);
+
+  --c-hover: color-mix(in srgb, var(--c-texto) 5%, transparent);
+  --c-activo: color-mix(in srgb, var(--c-texto) 8%, transparent);
+  --c-elevado: color-mix(in srgb, var(--c-texto) 6%, var(--c-fondo));
+  --c-propio: color-mix(in srgb, var(--c-accion-texto) 10%, var(--c-fondo));
+
+  --sombra-flotante: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --c-menu-fondo: color-mix(in srgb, var(--c-superficie) 92%, transparent);
+
+  /* Producto en claro: blanco sobre niebla, como la tienda de una galería */
+  --c-app-fondo: var(--dia-niebla); /* #f5f5f7 fondo de la app */
+  --c-app-superficie: var(--dia-blanco); /* #ffffff tarjetas */
+  --c-app-superficie-2: var(--dia-papel); /* #fafafc alterna */
+  --c-app-lateral: var(--dia-papel);
+  --c-app-barra: color-mix(in srgb, var(--dia-blanco) 72%, transparent);
+  --c-app-borde: var(--dia-borde-suave); /* #e6e6e8 */
+  --c-app-division: var(--dia-borde); /* #d6d6d6 */
+  --c-app-texto: var(--dia-tinta); /* #1d1d1f */
+  --c-app-texto-2: var(--dia-pizarra); /* #707070 (AA: 4.9:1 sobre blanco) */
+  --c-app-tenue: var(--dia-acero); /* #86868b (3.6:1: no para texto que hay que leer) */
 
   --c-vidrio: var(--primer-blanco);
   --c-vidrio-fuerte: var(--primer-blanco);
@@ -275,6 +416,90 @@
   --color-acento: var(--c-accion);
 
   color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------
+   2c. SUPERFICIE DE PRODUCTO (.producto) — dashboard, /pruebalo, panel, chat
+   Pon class="producto" en el contenedor del dashboard. Adentro, los --c-*
+   de siempre toman los valores del producto del modo actual (oscuro:
+   #0d1117/#151a22/#f0f6fc; claro: #f5f5f7/#fff/#1d1d1f), la letra pasa a
+   la pila del sistema a 14px y los radios a los del dashboard. Así la base
+   (Boton, Campo, Pestanas, TarjetaVidrio…) y el chat se ven "de producto"
+   sin cambiar su código. Va DESPUÉS de los bloques de modo para ganarles
+   cuando un mismo elemento lleva data-tema y .producto.
+   --------------------------------------------------------------------- */
+.producto {
+  --c-fondo: var(--c-app-fondo);
+  --c-fondo-2: var(--c-app-superficie-2);
+  --c-superficie: var(--c-app-superficie);
+  --c-relleno: var(--c-app-superficie-2);
+  --c-lateral: var(--c-app-lateral);
+  --c-barra: var(--c-app-barra);
+  --c-borde: var(--c-app-borde);
+  --c-borde-fuerte: var(--c-app-division);
+  --c-texto: var(--c-app-texto);
+  --c-texto-2: var(--c-app-texto-2);
+  --c-tenue: var(--c-app-texto-2); /* el terciario de lectura se queda en AA */
+  --c-terciario: var(--c-app-tenue);
+  --c-enlace: var(--c-accion-texto);
+  --c-acento: var(--c-accion-texto);
+  --c-foco: var(--c-accion-texto);
+  --c-destacada: var(--c-accion-texto);
+  /* Las tarjetas del producto son sólidas (sin vidrio): separan el borde y la superficie */
+  --c-vidrio: var(--c-app-superficie);
+  --c-vidrio-fuerte: var(--c-app-superficie);
+  --c-vidrio-frost: var(--c-app-superficie);
+  --c-vidrio-borde: var(--c-app-borde);
+  --vidrio-desenfoque: 0px;
+  /* Botones: sutil = neutro con contorno; fantasma = invisible hasta el hover */
+  --c-sutil-fondo: var(--c-app-superficie);
+  --c-sutil-borde: var(--c-app-division);
+  --c-sutil-texto: var(--c-app-texto);
+  --c-fantasma-texto: var(--c-app-texto);
+  --c-fantasma-borde: transparent;
+  --c-campo-fondo: var(--c-app-superficie);
+  --c-campo-borde: var(--c-app-division);
+  --c-campo-borde-hover: var(--c-app-tenue);
+  --c-placeholder: var(--c-app-texto-2);
+  --c-pildora-borde: var(--c-app-division);
+  --c-pildora-activa: var(--c-app-texto);
+  --c-sobre-pildora-activa: var(--c-app-fondo);
+  --c-marco-fondo: var(--c-app-fondo);
+  --c-marco-barra: var(--c-app-superficie);
+  /* Los matices se recalculan con el texto del producto */
+  --c-hover: color-mix(in srgb, var(--c-app-texto) 6%, transparent);
+  --c-activo: color-mix(in srgb, var(--c-app-texto) 10%, transparent);
+  --c-elevado: color-mix(in srgb, var(--c-app-texto) 8%, var(--c-app-fondo));
+  --c-propio: color-mix(in srgb, var(--c-accion-texto) 12%, var(--c-app-fondo));
+  --c-menu-fondo: color-mix(in srgb, var(--c-app-superficie) 94%, transparent);
+  --c-velo: var(--c-vidrio);
+  --c-velo-fuerte: var(--c-vidrio-fuerte);
+  --c-filo-campo: var(--c-borde-fuerte);
+  --hairline: var(--c-borde);
+  /* Formas y medidas del dashboard */
+  --radio-boton: var(--radio-app-control);
+  --radio-campo: var(--radio-app-control);
+  --radio-panel: var(--radio-app-tarjeta);
+  --radio-marco: var(--radio-app-tarjeta);
+  --radio-tarjeta: var(--radio-app-panel);
+  --radio-pildora: var(--radio-app-pildora);
+  --relleno-tarjeta: var(--espacio-app-tarjeta);
+  --barra-h: var(--barra-app-h);
+  --t-cuerpo: var(--t-app-cuerpo);
+  --t-intro: var(--t-app-mediano);
+}
+/* Lo visible de .producto va en una capa, para que las clases de Tailwind
+   (bg-transparent, text-…) le puedan ganar si hace falta. */
+@layer components {
+  .producto {
+    background: var(--c-fondo);
+    color: var(--c-texto);
+    font-family: var(--font-producto);
+    font-size: var(--t-app-cuerpo);
+    line-height: var(--interlineado-app);
+    letter-spacing: var(--tracking-app);
+    font-optical-sizing: auto;
+  }
 }
 
 /* ---------------------------------------------------------------------
@@ -316,6 +541,10 @@
   h4 {
     font-weight: var(--peso-seccion);
     text-wrap: balance;
+  }
+  /* En el producto los títulos van a 600 (la letra del sistema no tiene 460) */
+  .producto :where(h1, h2, h3, h4) {
+    font-weight: var(--peso-app-titulo);
   }
   strong,
   b {
@@ -571,9 +800,11 @@
   }
 
   /* ---------- Botones (Boton.tsx) ----------
-     principal: violeta, uno por pantalla · sutil: azul cielo con borde ·
-     fantasma: transparente. Radio 6px. Hover y presión con una capa de
-     opacidad (sin animar colores), presión con scale(0.97). */
+     principal: AZUL (#0071e3, hover #0077ed), uno por pantalla · sutil: azul
+     cielo con borde (en .producto: neutro con contorno) · fantasma:
+     transparente (en .producto, sin borde). Radio 6px (8px en .producto).
+     Hover y presión con una capa de opacidad (sin animar colores), presión
+     con scale(0.97). */
   .boton,
   .btn {
     --boton-capa: currentColor;
@@ -645,13 +876,19 @@
     cursor: progress;
     opacity: 0.85;
   }
+  /* El hover del principal es el azul #0077ed (la capa se funde encima con
+     opacidad); al presionar, la capa pasa al azul hondo. */
   .boton--principal,
   .btn--primario {
-    --boton-capa: #000;
-    --boton-capa-hover: 0.12;
-    --boton-capa-activa: 0.2;
+    --boton-capa: var(--c-accion-hover);
+    --boton-capa-hover: 1;
+    --boton-capa-activa: 1;
     background: var(--c-accion);
     color: var(--c-sobre-accion);
+  }
+  .boton--principal:active:not(:disabled):not([aria-disabled="true"])::before,
+  .btn--primario:active:not(:disabled):not([aria-disabled="true"])::before {
+    background: var(--c-accion-presion);
   }
   .boton--sutil,
   .btn--suave {
@@ -684,6 +921,27 @@
     padding: 4px 14px;
     font-size: var(--t-chico);
   }
+  /* Compacto (32px): el de la barra y las tarjetas del dashboard. En
+     pantallas táctiles el área que se puede tocar crece a 44px. */
+  .boton--compacto {
+    min-height: var(--alto-control-compacto);
+    gap: var(--spacing-8);
+    padding: 4px 12px;
+    font-size: var(--t-app-cuerpo);
+    font-weight: var(--peso-app-medio);
+    line-height: var(--interlineado-app);
+    letter-spacing: var(--tracking-app);
+  }
+  .boton--compacto .icono {
+    --icono-tam: var(--icono-chico);
+  }
+  @media (pointer: coarse) {
+    .boton--compacto::after {
+      content: "";
+      position: absolute;
+      inset: calc((var(--alto-control-compacto) - 44px) / 2) 0;
+    }
+  }
   .boton--bloque {
     width: 100%;
   }
@@ -713,6 +971,53 @@
   }
   .boton-icono:active {
     transform: scale(0.94);
+  }
+  /* Con capa (BotonIcono): fondo sutil al pasar el cursor y al presionar */
+  .boton-icono--capa {
+    position: relative;
+    isolation: isolate;
+  }
+  .boton-icono--capa::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--c-activo);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-micro) var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .boton-icono--capa:hover:not(:disabled)::before {
+      opacity: 0.7;
+    }
+  }
+  .boton-icono--capa:active:not(:disabled)::before,
+  .boton-icono--capa[aria-expanded="true"]::before,
+  .boton-icono--capa[aria-pressed="true"]::before {
+    opacity: 1;
+  }
+  .boton-icono--capa[aria-expanded="true"],
+  .boton-icono--capa[aria-pressed="true"] {
+    color: var(--c-texto);
+  }
+  .boton-icono:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  /* Compacto (32px) para la barra del dashboard; 44px de área táctil en celular */
+  .boton-icono--compacto {
+    position: relative;
+    width: var(--alto-control-compacto);
+    height: var(--alto-control-compacto);
+  }
+  @media (pointer: coarse) {
+    .boton-icono--compacto::after {
+      content: "";
+      position: absolute;
+      inset: calc((var(--alto-control-compacto) - 44px) / 2);
+    }
   }
 
   /* ---------- Tarjeta de vidrio (TarjetaVidrio.tsx) ---------- */
@@ -1138,7 +1443,7 @@
     position: absolute;
     top: var(--halo-y, 50%);
     left: var(--halo-x, 50%);
-    z-index: -1;
+    z-index: var(--halo-z, -1); /* --halo-z: 0 si el halo vive en una envoltura que se anima */
     width: var(--halo-ancho, min(960px, 130vw));
     aspect-ratio: var(--halo-proporcion, 16 / 10);
     border-radius: 50%;
@@ -1328,18 +1633,852 @@
 }
 
 /* ---------------------------------------------------------------------
+   4b. BASE 4B — PIEZAS DEL DASHBOARD (arquitectura de dashboard, refinamiento
+   Apple). Todas usan los --c-* semánticos: dentro de .producto toman solas
+   los valores del producto. Movimiento: 0.2s micro / 0.4s grande; menús con
+   opacidad + escala 0.98→1 + 4px; solo transform y opacity.
+   --------------------------------------------------------------------- */
+@layer components {
+  /* ---------- Tipografía de producto ---------- */
+  .t-app {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-cuerpo);
+    line-height: var(--interlineado-app);
+    letter-spacing: var(--tracking-app);
+  }
+  .t-app-etiqueta {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-etiqueta);
+    font-weight: var(--peso-app-medio);
+    line-height: var(--interlineado-app-etiqueta);
+    letter-spacing: 0;
+    color: var(--c-texto-2);
+  }
+  .t-app-mediano {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-mediano);
+    font-weight: var(--peso-app-titulo);
+    line-height: 1.375;
+    letter-spacing: var(--tracking-app);
+    color: var(--c-texto);
+  }
+  .t-app-titulo {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-titulo);
+    font-weight: var(--peso-app-titulo);
+    line-height: var(--interlineado-app-titulo);
+    letter-spacing: -0.015em;
+    color: var(--c-texto);
+    text-wrap: balance;
+  }
+  .t-app-titulo-grande {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-titulo-grande);
+    font-weight: var(--peso-app-titulo);
+    line-height: var(--interlineado-app-titulo);
+    letter-spacing: -0.015em;
+    color: var(--c-texto);
+    text-wrap: balance;
+  }
+  .t-app-saludo {
+    font-family: var(--font-producto);
+    font-size: var(--t-app-saludo);
+    font-weight: var(--peso-app-titulo);
+    line-height: 1.15;
+    letter-spacing: var(--tracking-app-saludo);
+    color: var(--c-texto);
+    text-wrap: balance;
+  }
+  /* Números en tablas, métricas, contadores y horas: todos del mismo ancho */
+  .cifras {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Menú desplegable (Menu.tsx) ---------- */
+  .menu {
+    position: relative;
+    display: inline-flex;
+  }
+  .menu__disparador {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-8);
+    border-radius: var(--radio-app-control);
+    color: inherit;
+    cursor: pointer;
+    transition: transform var(--dur-micro) var(--ease);
+  }
+  .menu__disparador:active {
+    transform: scale(0.97);
+  }
+  /* Disparador con avatar: el foco y el hover son un anillo alrededor */
+  .menu__disparador--avatar {
+    border-radius: var(--radio-circulo);
+  }
+  .menu__disparador--avatar::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px var(--c-borde-fuerte);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-micro) var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .menu__disparador--avatar:hover::after {
+      opacity: 1;
+    }
+  }
+  .menu__disparador--avatar[aria-expanded="true"]::after {
+    opacity: 1;
+  }
+  @media (pointer: coarse) {
+    .menu__disparador--avatar::before {
+      content: "";
+      position: absolute;
+      inset: -6px;
+    }
+  }
+  .menu__panel {
+    position: absolute;
+    top: calc(100% + var(--spacing-8));
+    left: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    min-width: 240px;
+    max-width: min(320px, calc(100vw - 2 * var(--orilla)));
+    max-height: min(70vh, 480px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: calc(var(--spacing-4) * 1.5); /* 6px: con radio 14 deja a los elementos en 8 (radios concéntricos) */
+    border: 1px solid var(--c-borde-fuerte);
+    border-radius: var(--radio-app-menu);
+    background: var(--c-menu-fondo);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    backdrop-filter: blur(20px) saturate(1.8);
+    box-shadow: var(--sombra-flotante);
+    color: var(--c-texto);
+    font-size: var(--t-app-cuerpo);
+    line-height: var(--interlineado-app);
+    letter-spacing: var(--tracking-app);
+    text-align: left;
+    transform-origin: top left;
+    /* Cerrado: sale más rápido de lo que entra */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+    transition:
+      opacity var(--dur-salida) var(--ease),
+      transform var(--dur-salida) var(--ease),
+      visibility 0s linear var(--dur-salida);
+  }
+  .menu__panel:focus {
+    outline: none;
+  }
+  .menu--fin .menu__panel {
+    right: 0;
+    left: auto;
+    transform-origin: top right;
+  }
+  .menu--arriba .menu__panel {
+    top: auto;
+    bottom: calc(100% + var(--spacing-8));
+    transform: translateY(4px) scale(0.98);
+    transform-origin: bottom left;
+  }
+  .menu--arriba.menu--fin .menu__panel {
+    transform-origin: bottom right;
+  }
+  .menu__panel[data-abierto="true"] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-micro) var(--ease-entrada),
+      transform var(--dur-micro) var(--ease-entrada),
+      visibility 0s;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .menu__panel {
+      background: var(--c-superficie);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  .menu__cabeza {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px var(--spacing-12);
+    align-items: center;
+    padding: var(--spacing-8) var(--spacing-8) var(--spacing-12);
+  }
+  .menu__cabeza > .avatar {
+    grid-row: span 3;
+  }
+  .menu__nombre {
+    overflow: hidden;
+    font-weight: var(--peso-app-titulo);
+    color: var(--c-texto);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .menu__correo {
+    overflow: hidden;
+    font-size: var(--t-app-etiqueta);
+    line-height: var(--interlineado-app-etiqueta);
+    color: var(--c-texto-2);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .menu__separador {
+    flex-shrink: 0;
+    height: 1px;
+    margin: calc(var(--spacing-4) * 1.5) calc(var(--spacing-4) * -1.5);
+    background: var(--c-borde);
+  }
+  .menu__titulo {
+    padding: var(--spacing-8) var(--spacing-8) var(--spacing-4);
+    font-size: var(--t-app-etiqueta);
+    font-weight: var(--peso-app-medio);
+    line-height: var(--interlineado-app-etiqueta);
+    color: var(--c-texto-2);
+  }
+  .menu__elemento {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--spacing-12);
+    width: 100%;
+    min-height: 36px;
+    padding: var(--spacing-8);
+    border-radius: var(--radio-app-control);
+    color: var(--c-texto);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  @media (pointer: coarse) {
+    .menu__elemento {
+      min-height: 44px;
+    }
+  }
+  .menu__elemento > .icono {
+    --icono-tam: var(--icono-chico);
+    color: var(--c-texto-2);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .menu__elemento:hover:not([aria-disabled="true"]) {
+      background: var(--c-hover);
+    }
+  }
+  .menu__elemento:focus {
+    outline: none;
+  }
+  .menu__elemento:focus-visible {
+    background: var(--c-activo);
+    outline: 2px solid var(--c-foco);
+    outline-offset: -2px;
+  }
+  .menu__elemento:active:not([aria-disabled="true"]) {
+    background: var(--c-activo);
+  }
+  .menu__elemento[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .menu__elemento[aria-current="page"] {
+    background: var(--c-activo);
+  }
+  .menu__elemento--peligro,
+  .menu__elemento--peligro > .icono {
+    color: var(--c-error);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .menu__elemento--peligro:hover {
+      background: var(--c-error-fondo);
+    }
+  }
+  .menu__elemento--peligro:focus-visible {
+    background: var(--c-error-fondo);
+  }
+  .menu__texto {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .menu__descripcion {
+    font-size: var(--t-app-etiqueta);
+    line-height: var(--interlineado-app-etiqueta);
+    color: var(--c-texto-2);
+  }
+  .menu__extra {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-left: auto;
+    color: var(--c-texto-2);
+  }
+
+  /* ---------- Avatar (Avatar.tsx) ---------- */
+  .avatar {
+    --avatar-tam: var(--avatar-32);
+    position: relative;
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: var(--avatar-tam);
+    height: var(--avatar-tam);
+    border-radius: var(--radio-circulo);
+    background: var(--c-elevado);
+    color: var(--c-texto-2);
+    font-family: var(--font-producto);
+    font-size: calc(var(--avatar-tam) * 0.4);
+    font-weight: var(--peso-app-titulo);
+    line-height: 1;
+    letter-spacing: 0;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Filo de 1px por dentro: separa la foto del fondo en los dos modos */
+  .avatar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--c-borde);
+    pointer-events: none;
+  }
+  .avatar--20 {
+    --avatar-tam: var(--avatar-20);
+  }
+  .avatar--24 {
+    --avatar-tam: var(--avatar-24);
+  }
+  .avatar--28 {
+    --avatar-tam: var(--avatar-28);
+  }
+  .avatar--32 {
+    --avatar-tam: var(--avatar-32);
+  }
+  .avatar--40 {
+    --avatar-tam: var(--avatar-40);
+  }
+  .avatar--64 {
+    --avatar-tam: var(--avatar-64);
+  }
+  .avatar__imagen {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+  }
+  .avatar__contenido {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  .avatar__contenido > svg {
+    width: 86%;
+    height: 86%;
+  }
+  .avatar__estado {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    z-index: 1;
+  }
+  .avatar--64 .avatar__estado {
+    --punto-tam: 12px;
+    right: 2px;
+    bottom: 2px;
+  }
+
+  /* ---------- Punto de estado (PuntoEstado.tsx) ---------- */
+  .punto-estado {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--spacing-8);
+    color: var(--c-texto-2);
+    font-size: var(--t-app-etiqueta);
+    line-height: var(--interlineado-app-etiqueta);
+  }
+  .punto-estado__punto {
+    flex-shrink: 0;
+    width: var(--punto-tam, 8px);
+    height: var(--punto-tam, 8px);
+    border-radius: var(--radio-circulo);
+    background: var(--punto-color, var(--c-terciario));
+  }
+  .punto-estado--grande {
+    --punto-tam: 10px;
+  }
+  .punto-estado--exito {
+    --punto-color: var(--c-exito);
+  }
+  .punto-estado--atencion {
+    --punto-color: var(--c-atencion);
+  }
+  .punto-estado--error {
+    --punto-color: var(--c-error);
+  }
+  .punto-estado--azul {
+    --punto-color: var(--c-accion-texto);
+  }
+  .punto-estado--neutro {
+    --punto-color: var(--c-terciario);
+  }
+  /* Sobre un avatar o un ícono: anillo del color del fondo para despegarlo */
+  .punto-estado--sobre .punto-estado__punto {
+    box-shadow: 0 0 0 2px var(--anillo, var(--c-fondo));
+  }
+  /* "Trabajando ahora": late suave (solo opacidad) */
+  .punto-estado--pulso .punto-estado__punto {
+    animation: punto-late 2s var(--ease) infinite;
+  }
+
+  /* ---------- Insignia (Insignia.tsx): contadores y estados ---------- */
+  .insignia {
+    --insignia-fondo: var(--c-activo);
+    --insignia-texto: var(--c-texto-2);
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-4);
+    min-height: 20px;
+    padding: 0 var(--spacing-8);
+    border-radius: var(--radio-circulo);
+    background: var(--insignia-fondo);
+    color: var(--insignia-texto);
+    font-family: var(--font-producto);
+    font-size: var(--t-app-etiqueta);
+    font-weight: var(--peso-app-medio);
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .insignia--azul {
+    --insignia-fondo: var(--c-accion-fondo);
+    --insignia-texto: var(--c-accion-texto);
+  }
+  .insignia--exito {
+    --insignia-fondo: var(--c-exito-fondo);
+    --insignia-texto: var(--c-exito);
+  }
+  .insignia--atencion {
+    --insignia-fondo: var(--c-atencion-fondo);
+    --insignia-texto: var(--c-atencion);
+  }
+  .insignia--error {
+    --insignia-fondo: var(--c-error-fondo);
+    --insignia-texto: var(--c-error);
+  }
+  /* "Pronto": lo que todavía no existe, sin relleno, con contorno */
+  .insignia--pronto {
+    --insignia-fondo: transparent;
+    --insignia-texto: var(--c-texto-2);
+    box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  }
+  /* Contador: redondo cuando es de un dígito */
+  .insignia--contador {
+    min-width: 20px;
+    padding: 0 6px;
+  }
+  /* Sólida: el contador que pide atención (campana, sin leer) */
+  .insignia--solida {
+    --insignia-fondo: var(--c-accion);
+    --insignia-texto: var(--c-sobre-accion);
+  }
+  .insignia__punto {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radio-circulo);
+    background: currentColor;
+  }
+  /* Solo un punto (hay algo nuevo, sin número) */
+  .insignia--punto {
+    width: 8px;
+    min-width: 0;
+    height: 8px;
+    min-height: 0;
+    padding: 0;
+    background: var(--insignia-texto);
+  }
+  /* Encima de un botón de ícono (campana): esquina superior derecha, con anillo */
+  .insignia--sobre {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    z-index: 1;
+    min-width: 16px;
+    min-height: 16px;
+    padding: 0 4px;
+    box-shadow: 0 0 0 2px var(--anillo, var(--c-fondo));
+    pointer-events: none;
+  }
+  .insignia--sobre.insignia--punto {
+    top: 4px;
+    right: 4px;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* ---------- Teclas (Kbd.tsx) ---------- */
+  .kbd {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--spacing-4);
+    border: 1px solid var(--c-borde-fuerte);
+    border-radius: var(--radio-kbd);
+    background: var(--c-superficie);
+    box-shadow: inset 0 -1px 0 var(--c-borde-fuerte);
+    color: var(--c-texto-2);
+    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-size: var(--t-app-etiqueta);
+    font-weight: var(--peso-app-medio);
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: 0;
+    font-variant-ligatures: none;
+  }
+  .kbd-grupo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+
+  /* ---------- Buscador redondo (Buscador.tsx) ---------- */
+  .buscador {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+  .buscador__icono {
+    position: absolute;
+    left: var(--spacing-12);
+    z-index: 1;
+    color: var(--c-texto-2);
+    pointer-events: none;
+  }
+  .buscador__campo {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    margin: 0;
+    padding: 0 var(--spacing-40) 0 36px;
+    border: 1px solid var(--c-borde);
+    border-radius: var(--radio-app-pildora);
+    background: var(--c-hover);
+    color: var(--c-texto);
+    font-family: var(--font-producto);
+    font-size: 16px; /* sin zoom en iPhone */
+    line-height: 1.25;
+    letter-spacing: var(--tracking-app);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  @media (pointer: fine) {
+    .buscador__campo {
+      font-size: var(--t-app-cuerpo);
+    }
+  }
+  .buscador--compacto .buscador__campo {
+    height: var(--alto-control-compacto);
+  }
+  .buscador__campo::placeholder {
+    color: var(--c-texto-2);
+    opacity: 1;
+  }
+  .buscador__campo::-webkit-search-cancel-button,
+  .buscador__campo::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .buscador__campo:hover:not(:focus):not(:disabled) {
+      border-color: var(--c-borde-fuerte);
+    }
+  }
+  .buscador__campo:focus {
+    border-color: var(--c-foco);
+    background: var(--c-superficie);
+    outline: 2px solid color-mix(in srgb, var(--c-foco) 40%, transparent);
+    outline-offset: 1px;
+  }
+  .buscador__campo:focus-visible {
+    outline: 2px solid var(--c-foco);
+  }
+  .buscador__campo:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .buscador__fin {
+    position: absolute;
+    right: var(--spacing-8);
+    display: inline-flex;
+    align-items: center;
+  }
+  .buscador__campo:focus ~ .buscador__fin .buscador__atajo,
+  .buscador__campo:not(:placeholder-shown) ~ .buscador__fin .buscador__atajo {
+    display: none;
+  }
+  @media (pointer: coarse) {
+    .buscador__atajo {
+      display: none;
+    }
+  }
+  .buscador__borrar {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radio-circulo);
+    color: var(--c-texto-2);
+    cursor: pointer;
+    transition: transform var(--dur-micro) var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .buscador__borrar:hover {
+      background: var(--c-activo);
+      color: var(--c-texto);
+    }
+  }
+  .buscador__borrar:active {
+    transform: scale(0.94);
+  }
+  @media (pointer: coarse) {
+    .buscador__borrar::after {
+      content: "";
+      position: absolute;
+      inset: -10px;
+    }
+  }
+
+  /* ---------- Cajón lateral (Cajon.tsx): <dialog> modal a pantalla completa ---------- */
+  .cajon {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    color: var(--c-texto);
+  }
+  .cajon::backdrop {
+    background: transparent;
+  }
+  .cajon__velo {
+    position: absolute;
+    inset: 0;
+    background: var(--c-scrim);
+    opacity: 0;
+    transition: opacity var(--dur-grande) var(--ease-entrada);
+  }
+  .cajon__panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    width: var(--ancho-cajon);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-right: 1px solid var(--c-borde);
+    background: var(--c-lateral, var(--c-fondo));
+    box-shadow: var(--sombra-flotante);
+    transform: translateX(-100%);
+    transition: transform var(--dur-grande) var(--ease-entrada);
+    touch-action: pan-y; /* el dedo de lado cierra; de arriba a abajo desplaza */
+    will-change: transform;
+  }
+  .cajon--derecha .cajon__panel {
+    right: 0;
+    left: auto;
+    border-right: 0;
+    border-left: 1px solid var(--c-borde);
+    transform: translateX(100%);
+  }
+  .cajon[data-abierto="true"] .cajon__velo {
+    opacity: 1;
+  }
+  .cajon[data-abierto="true"] .cajon__panel {
+    transform: none;
+  }
+  /* Al cerrar: más rápido y sin rebote */
+  .cajon[data-cerrando="true"] .cajon__velo,
+  .cajon[data-cerrando="true"] .cajon__panel {
+    transition-duration: calc(var(--dur-grande) * 0.75);
+    transition-timing-function: var(--ease);
+  }
+  /* Mientras el dedo arrastra, el panel lo sigue 1:1 (sin transición) */
+  .cajon[data-arrastrando="true"] .cajon__panel,
+  .cajon[data-arrastrando="true"] .cajon__velo {
+    transition: none;
+  }
+  .cajon__cabeza {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-12);
+    min-height: var(--barra-app-h);
+    padding: 0 var(--spacing-8) 0 var(--spacing-16);
+    border-bottom: 1px solid var(--c-borde);
+  }
+  .cajon__titulo {
+    min-width: 0;
+    font-size: var(--t-app-mediano);
+    font-weight: var(--peso-app-titulo);
+    color: var(--c-texto);
+  }
+  .cajon__cuerpo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--spacing-12);
+    /* Es contenedor con scroll: sin esto el navegador se queda con el gesto de lado */
+    touch-action: pan-y;
+  }
+
+  /* ---------- Barra de progreso (BarraProgreso.tsx): uso del plan ---------- */
+  .progreso {
+    display: grid;
+    gap: var(--spacing-8);
+    min-width: 0;
+  }
+  .progreso__cabeza {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-12);
+    font-size: var(--t-app-cuerpo);
+    line-height: var(--interlineado-app);
+  }
+  .progreso__etiqueta {
+    min-width: 0;
+    color: var(--c-texto);
+  }
+  .progreso__valor {
+    flex-shrink: 0;
+    color: var(--c-texto-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .progreso__pista {
+    position: relative;
+    height: 6px;
+    overflow: hidden;
+    border-radius: var(--radio-circulo);
+    background: var(--c-activo);
+  }
+  /* El relleno se corre de lado (solo transform): sin deformar la punta redonda */
+  .progreso__relleno {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--progreso-color, var(--c-accion-texto));
+    transform: translateX(calc((var(--progreso, 0) - 1) * 100%));
+    transition: transform var(--dur-grande) var(--ease-entrada);
+  }
+  .progreso--atencion {
+    --progreso-color: var(--c-atencion);
+  }
+  .progreso--error {
+    --progreso-color: var(--c-error);
+  }
+  .progreso__detalle {
+    font-size: var(--t-app-etiqueta);
+    line-height: var(--interlineado-app-etiqueta);
+    color: var(--c-texto-2);
+  }
+  .progreso--atencion .progreso__detalle {
+    color: var(--c-atencion);
+  }
+  .progreso--error .progreso__detalle {
+    color: var(--c-error);
+  }
+
+  /* ---------- "Escribiendo…" compartido (Escribiendo.tsx) ---------- */
+  .escribiendo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-8);
+    color: var(--c-texto-2);
+  }
+  .escribiendo__puntos {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+  .escribiendo__punto {
+    width: calc(var(--spacing-4) * 1.5);
+    height: calc(var(--spacing-4) * 1.5);
+    border-radius: var(--radio-circulo);
+    background: currentColor;
+    opacity: 0.3;
+    animation: escribiendo 1.2s var(--ease) infinite;
+  }
+  .escribiendo__punto:nth-child(2) {
+    animation-delay: 0.16s;
+  }
+  .escribiendo__punto:nth-child(3) {
+    animation-delay: 0.32s;
+  }
+  .escribiendo--burbuja .escribiendo__puntos {
+    min-height: 40px;
+    padding: 0 var(--spacing-16);
+    border-radius: var(--radio-burbuja);
+    border-bottom-left-radius: var(--radio-burbuja-esquina);
+    background: var(--c-elevado);
+  }
+  .escribiendo__texto {
+    font-size: var(--t-app-etiqueta);
+    line-height: var(--interlineado-app-etiqueta);
+  }
+}
+
+/* ---------------------------------------------------------------------
    5. PIEZAS COMPARTIDAS QUE YA EXISTÍAN (con los tokens nuevos)
    Se quitan solo cuando ningún archivo de src/ las usa.
    --------------------------------------------------------------------- */
 @layer components {
-  /* ---------- Escena de partículas 2D (todas las páginas) ---------- */
-  .escena {
+  /* ---------- Escena de partículas 2D (todas las páginas) ----------
+     Antes se llamaba .escena: se renombró porque es un nombre genérico y
+     quita los clics (pointer-events: none) a quien lo use para otra cosa. */
+  .escena-fondo {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
   }
-  .escena canvas {
+  .escena-fondo canvas {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -1373,13 +2512,17 @@
       opacity: 0.32;
     }
   }
+  /* Viñeta en las orillas. Una escena que se pinta en el color del modo
+     (no en negro) puede fundirla con su fondo: --escena-vineta: var(--c-portada). */
   .escena3d::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 130% 120% at 50% 50%, transparent 45%, rgb(0 0 0 / 0.45) 100%);
+    background: radial-gradient(ellipse 130% 120% at 50% 50%, transparent 45%, var(--escena-vineta, rgb(0 0 0 / 0.45)) 100%);
   }
-  /* La escena 3D se pinta en negro: en modo claro la portada se queda solo con el halo */
+  /* SOLO la variante heredada "tenue" (la historia, que se pinta sobre negro)
+     se oculta en modo claro. Las escenas nuevas que leen los colores del modo
+     (p. ej. --polvo, --portada) no llevan esta clase y se ven en los dos modos. */
   :root[data-tema="claro"] .escena3d--tenue {
     visibility: hidden;
     opacity: 0;
@@ -2655,6 +3798,27 @@
     opacity: 1;
   }
 }
+/* "Escribiendo…": los tres puntos se encienden en ola (solo opacidad) */
+@keyframes escribiendo {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+/* Punto de estado "trabajando": late despacio (solo opacidad) */
+@keyframes punto-late {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
 /* Cada página entra con un fundido (template.tsx) */
 .page-enter {
   animation: aparecer var(--dur-grande) var(--ease-entrada);
@@ -2700,5 +3864,26 @@
   .girando {
     animation-duration: 1.4s !important;
     animation-iteration-count: infinite !important;
+  }
+  /* "Escribiendo…" también es información: sigue (solo opacidad), más lento */
+  .escribiendo__punto {
+    animation-duration: 1.8s !important;
+    animation-iteration-count: infinite !important;
+  }
+  /* Menús: entran y salen solo con opacidad (el visibility acompaña al fundido) */
+  .menu__panel,
+  .menu__panel[data-abierto="true"],
+  .menu--arriba .menu__panel {
+    transform: none !important;
+    transition-property: opacity, visibility !important;
+  }
+  /* Cajón: en vez de deslizarse, aparece con un fundido */
+  .cajon__panel {
+    transform: none !important;
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease) !important;
+  }
+  .cajon[data-abierto="true"] .cajon__panel {
+    opacity: 1;
   }
 }

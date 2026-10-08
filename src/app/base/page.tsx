@@ -3,7 +3,14 @@ import type { ReactNode } from "react";
 import { Sitio } from "@/components/Sitio";
 import { FormularioLista } from "@/components/FormularioLista";
 import { Acordeon } from "@/components/base/Acordeon";
+import { Avatar } from "@/components/base/Avatar";
+import { BarraProgreso } from "@/components/base/BarraProgreso";
 import { Boton } from "@/components/base/Boton";
+import { Buscador } from "@/components/base/Buscador";
+import { Escribiendo } from "@/components/base/Escribiendo";
+import { Insignia } from "@/components/base/Insignia";
+import { Kbd } from "@/components/base/Kbd";
+import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { Campo, CampoCorreo } from "@/components/base/Campo";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
@@ -14,6 +21,7 @@ import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
 import { TarjetaVidrio } from "@/components/base/TarjetaVidrio";
 import { Personaje } from "@/components/agentes/Personaje";
 import { AGENTES_INFO } from "@/lib/agentes";
+import { DemoBotonesIcono, DemoCajon, DemoDashboard, DemoMenus, DemoProgreso, DosModos } from "./Demos";
 
 export const metadata: Metadata = {
   title: "Base común",
@@ -39,13 +47,39 @@ const COLORES: { token: string; uso: string }[] = [
   { token: "--c-texto-2", uso: "Cuerpo" },
   { token: "--c-tenue", uso: "Terciario" },
   { token: "--c-enlace", uso: "Enlaces, acento frío" },
-  { token: "--c-accion", uso: "Botón principal" },
+  { token: "--c-accion", uso: "Botón principal (azul)" },
+  { token: "--c-accion-hover", uso: "Hover del principal" },
+  { token: "--c-accion-texto", uso: "Texto azul de acción" },
+  { token: "--c-marca", uso: "Violeta: solo identidad" },
   { token: "--c-destacada", uso: "Borde destacado" },
   { token: "--c-foco", uso: "Anillo de foco" },
-  { token: "--c-error", uso: "Error" },
   { token: "--c-exito", uso: "Éxito" },
+  { token: "--c-atencion", uso: "Atención" },
+  { token: "--c-error", uso: "Error" },
+  { token: "--c-hover", uso: "Matiz al pasar el cursor" },
+  { token: "--c-activo", uso: "Matiz de seleccionado" },
+  { token: "--c-elevado", uso: "Superficie elevada opaca" },
+  { token: "--c-propio", uso: "Lo mío (tinte azul)" },
   { token: "--c-vidrio", uso: "Vidrio 0.06" },
   { token: "--c-vidrio-frost", uso: "Vidrio frost 0.2" },
+];
+
+/* Los tokens del producto (dashboard): se ven dentro de .producto */
+const COLORES_APP: { token: string; uso: string }[] = [
+  { token: "--c-app-fondo", uso: "Fondo de la app" },
+  { token: "--c-app-superficie", uso: "Tarjetas y paneles" },
+  { token: "--c-app-superficie-2", uso: "Superficie alterna" },
+  { token: "--c-app-lateral", uso: "Menú lateral y cajón" },
+  { token: "--c-app-borde", uso: "Bordes sutiles" },
+  { token: "--c-app-division", uso: "Divisiones y contornos" },
+  { token: "--c-app-texto", uso: "Texto principal" },
+  { token: "--c-app-texto-2", uso: "Secundario (AA)" },
+  { token: "--c-app-tenue", uso: "Terciario (no para leer)" },
+  { token: "--c-accion", uso: "Botón principal" },
+  { token: "--c-accion-texto", uso: "Enlaces del producto" },
+  { token: "--c-exito", uso: "Éxito" },
+  { token: "--c-atencion", uso: "Atención" },
+  { token: "--c-error", uso: "Error" },
 ];
 
 const AGENTES_COLOR = AGENTES_INFO.map((a) => ({ token: `--agente-${a.id}`, uso: a.nombre }));
@@ -75,6 +109,23 @@ const RADIOS: { token: string; uso: string }[] = [
   { token: "--radio-tarjeta", uso: "Tarjetas 24px" },
   { token: "--radio-pildora", uso: "Píldoras 60px" },
 ];
+const RADIOS_APP: { token: string; uso: string }[] = [
+  { token: "--radio-app-control", uso: "Botones 8px" },
+  { token: "--radio-app-tarjeta", uso: "Tarjetas 12px" },
+  { token: "--radio-app-menu", uso: "Menús 14px" },
+  { token: "--radio-app-panel", uso: "Paneles 16px" },
+  { token: "--radio-burbuja", uso: "Burbuja 16px" },
+  { token: "--radio-app-pildora", uso: "Píldora 9999px" },
+];
+
+const TIPOS_APP: { clase: string; spec: string; ejemplo: string }[] = [
+  { clase: "t-app-saludo", spec: "28 → 32px · 600 · −0.02em", ejemplo: "Buenos días, Ana" },
+  { clase: "t-app-titulo-grande", spec: "24px · 600", ejemplo: "Conversaciones" },
+  { clase: "t-app-titulo", spec: "20px · 600", ejemplo: "Actividad de tus agentes" },
+  { clase: "t-app-mediano", spec: "16px · 600", ejemplo: "Próximas citas" },
+  { clase: "t-app", spec: "14px · 1.43 · −0.01em (el cuerpo de .producto)", ejemplo: "Lola agendó a Mariana para el jueves a las 16:30." },
+  { clase: "t-app-etiqueta", spec: "12px · 500 · 1.33", ejemplo: "Martes 8 de octubre · 10:44" },
+];
 
 function Bloque({ id, titulo, texto, children }: { id: string; titulo: string; texto?: string; children: ReactNode }) {
   return (
@@ -99,12 +150,13 @@ function Muestra({ etiqueta, children, className = "" }: { etiqueta: string; chi
   );
 }
 
-function Paleta({ tema }: { tema: "oscuro" | "claro" }) {
+function Paleta({ tema, producto = false }: { tema: "oscuro" | "claro"; producto?: boolean }) {
+  const lista = producto ? COLORES_APP : [...COLORES, ...AGENTES_COLOR];
   return (
-    <div data-tema={tema} className="rounded-tarjeta border border-borde bg-fondo p-[var(--spacing-24)] text-tinta">
-      <Etiqueta tono="texto">Modo {tema}</Etiqueta>
+    <div data-tema={tema} className={`${producto ? "producto rounded-panel-app" : "rounded-tarjeta"} border border-borde bg-fondo p-[var(--spacing-24)] text-tinta`}>
+      <Etiqueta tono="texto">{producto ? `Producto · ${tema}` : `Modo ${tema}`}</Etiqueta>
       <ul className="mt-[var(--spacing-16)] grid grid-cols-1 gap-[var(--spacing-12)] sm:grid-cols-2 xl:grid-cols-3">
-        {[...COLORES, ...AGENTES_COLOR].map((c) => (
+        {lista.map((c) => (
           <li key={c.token} className="flex items-center gap-[var(--spacing-12)]">
             <span
               className="h-10 w-10 shrink-0 rounded-panel border border-borde"
@@ -141,18 +193,27 @@ export default function Base() {
     <Sitio fondo="ninguno">
       <Seccion fondo="portada" halo espacio="compacto">
         <Halo y="0%" suave />
-        <Etiqueta tono="cielo">Paso 4 · Arquitecto</Etiqueta>
+        <Etiqueta tono="cielo">Paso 4 y 4b · Arquitecto</Etiqueta>
         <h1 className="t-grande mt-[var(--spacing-16)]">Base común de Atendel</h1>
         <p className="t-intro mt-[var(--spacing-16)]">
-          Tokens y componentes que usan todas las propuestas. Nada de colores, tamaños ni componentes fuera de aquí: si falta algo,
-          se pide en el ENTREGA.md de tu rama. La documentación completa está en diseno/base.md.
+          Tokens y componentes que usan todas las propuestas. Desde la base 4b la acción es azul (el violeta queda como marca) y el
+          dashboard tiene sus piezas: menú, avatar, insignias, buscador, cajón y más. Nada fuera de aquí: si falta algo, se pide en
+          el ENTREGA.md de tu rama. La documentación completa está en diseno/base.md.
         </p>
         <nav aria-label="Secciones del muestrario" className="mt-[var(--spacing-24)] flex flex-wrap gap-[var(--spacing-8)]">
           {[
+            ["dashboard", "Dashboard"],
             ["color", "Color"],
             ["tipografia", "Tipografía"],
             ["espacios", "Espacios y radios"],
             ["botones", "Botones"],
+            ["menu", "Menú"],
+            ["avatar", "Avatar"],
+            ["insignias", "Insignias"],
+            ["buscador", "Buscador"],
+            ["cajon", "Cajón"],
+            ["progreso", "Progreso"],
+            ["escribiendo", "Escribiendo"],
             ["campos", "Campos"],
             ["pestanas", "Pestañas"],
             ["tarjetas", "Tarjetas"],
@@ -172,13 +233,26 @@ export default function Base() {
 
       <div className="contenedor pb-[var(--spacing-96)]">
         <Bloque
+          id="dashboard"
+          titulo="Dashboard: composición de referencia"
+          texto="Barra superior (56px, translúcida: logo y sección, buscador con «/», «+», campana con contador, avatar con menú de perfil) + menú lateral (activo con relleno sutil, «Pronto» donde no hay nada, tus agentes con su estado) + tarjetas (bienvenida, actividad, uso del plan). Todo dentro de .producto. En celular el lateral vive en el cajón (botón de barra lateral). Datos de ejemplo."
+        >
+          <div className="grid gap-[var(--spacing-32)]">
+            <DemoDashboard tema="oscuro" />
+            <DemoDashboard tema="claro" />
+          </div>
+        </Bloque>
+
+        <Bloque
           id="color"
           titulo="Color"
-          texto="Tokens semánticos (--c-*): cambian solos entre modos. Los dos paneles usan data-tema para verse lado a lado. El violeta de acción solo va en el botón principal (uno por pantalla)."
+          texto="Tokens semánticos (--c-*): cambian solos entre modos. Los paneles usan data-tema para verse lado a lado. El azul de acción solo va en el botón principal (uno por pantalla); el violeta es marca, nunca botón. Abajo, los mismos --c-* dentro de .producto (el dashboard)."
         >
           <div className="grid gap-[var(--spacing-24)] lg:grid-cols-2">
             <Paleta tema="oscuro" />
             <Paleta tema="claro" />
+            <Paleta tema="oscuro" producto />
+            <Paleta tema="claro" producto />
           </div>
         </Bloque>
 
@@ -194,6 +268,21 @@ export default function Base() {
               </li>
             ))}
           </ul>
+          <Muestra etiqueta="Producto (dentro de .producto): pila del sistema, números tabulares con .cifras" className="mt-[var(--spacing-40)]">
+            <DosModos>
+              <ul className="flex flex-col gap-[var(--spacing-16)]">
+                {TIPOS_APP.map((t) => (
+                  <li key={t.clase}>
+                    <p className={t.clase}>{t.ejemplo}</p>
+                    <p className="t-app-etiqueta mt-[var(--spacing-4)] !text-terciario">
+                      .{t.clase} · {t.spec}
+                    </p>
+                  </li>
+                ))}
+                <li className="t-app-titulo cifras">320 / 500 · 10:44 · 1,280</li>
+              </ul>
+            </DosModos>
+          </Muestra>
         </Bloque>
 
         <Bloque id="espacios" titulo="Espacios y radios" texto="Base de 4px. Entre secciones 64–96px (--espacio-seccion), entre elementos 16–24px, padding de tarjeta 24px, contenido máx. 1200px.">
@@ -219,6 +308,26 @@ export default function Base() {
               </li>
             ))}
           </ul>
+          <Muestra etiqueta="Dashboard: radios, sombra solo para lo que flota" className="mt-[var(--spacing-40)]">
+            <ul className="grid grid-cols-2 gap-[var(--spacing-16)] sm:grid-cols-3 lg:grid-cols-7">
+              {RADIOS_APP.map((r) => (
+                <li key={r.token}>
+                  <span
+                    className="block h-20 border border-borde-fuerte bg-[var(--c-vidrio)]"
+                    style={{ borderRadius: `var(${r.token})` }}
+                    aria-hidden="true"
+                  />
+                  <p className="t-mono mt-[var(--spacing-8)] !text-[12px] text-tinta">{r.token}</p>
+                  <p className="t-caption">{r.uso}</p>
+                </li>
+              ))}
+              <li>
+                <span className="block h-20 rounded-menu border border-borde-fuerte bg-superficie shadow-flotante" aria-hidden="true" />
+                <p className="t-mono mt-[var(--spacing-8)] !text-[12px] text-tinta">--sombra-flotante</p>
+                <p className="t-caption">Menús, cajón, modal</p>
+              </li>
+            </ul>
+          </Muestra>
         </Bloque>
 
         <Bloque
@@ -266,8 +375,11 @@ export default function Base() {
               </div>
             </Muestra>
           </div>
-          <Muestra etiqueta="Tamaños: chico · normal · grande" className="mt-[var(--spacing-32)]">
+          <Muestra etiqueta="Tamaños: compacto · chico · normal · grande" className="mt-[var(--spacing-32)]">
             <div className="flex flex-wrap items-center gap-[var(--spacing-12)]">
+              <Boton tam="compacto" variante="fantasma">
+                Compacto 32px
+              </Boton>
               <Boton tam="chico" variante="fantasma">
                 Chico 36px
               </Boton>
@@ -276,6 +388,28 @@ export default function Base() {
                 Grande 48px
               </Boton>
             </div>
+          </Muestra>
+          <Muestra etiqueta="Dentro de .producto: radio 8px, sutil neutro con contorno, fantasma sin borde, compacto 32px" className="mt-[var(--spacing-32)]">
+            <DosModos>
+              <div className="flex flex-wrap items-center gap-[var(--spacing-8)]">
+                <Boton tam="compacto">Nueva conversación</Boton>
+                <Boton tam="compacto" variante="sutil" icono={<Icono nombre="calendario" />}>
+                  Agendar cita
+                </Boton>
+                <Boton tam="compacto" variante="fantasma">
+                  Ver todo
+                </Boton>
+                <Boton tam="compacto" cargando>
+                  Enviando
+                </Boton>
+                <Boton tam="compacto" variante="sutil" disabled>
+                  Deshabilitado
+                </Boton>
+              </div>
+              <div className="mt-[var(--spacing-16)]">
+                <DemoBotonesIcono />
+              </div>
+            </DosModos>
           </Muestra>
         </Bloque>
 
@@ -324,6 +458,148 @@ export default function Base() {
               ]}
             />
           </Muestra>
+        </Bloque>
+
+        <Bloque
+          id="menu"
+          titulo="Menú desplegable"
+          texto="<Menu>: disparador (icono, avatar, botón), panel con radio 14px, borde, sombra suave y vidrio. Entra con opacidad + escala 0.98→1 + 4px (0.2s) y sale en 0.15s. Clic afuera o Esc lo cierran (el foco vuelve al disparador); ↓ ↑ Inicio Fin y la primera letra para moverse. Aquí se ven abiertos."
+        >
+          <DosModos alto="460px">
+            <DemoMenus />
+          </DosModos>
+        </Bloque>
+
+        <Bloque
+          id="avatar"
+          titulo="Avatar y punto de estado"
+          texto="<Avatar nombre src tam estado>: foto o iniciales, tamaños 20 · 24 · 28 · 32 · 40 · 64, punto de estado con anillo. <PuntoEstado tono etiqueta mostrarEtiqueta pulso>: el color nunca va solo."
+        >
+          <DosModos>
+            <div className="flex flex-wrap items-end gap-[var(--spacing-16)]">
+              {([20, 24, 28, 32, 40, 64] as const).map((t) => (
+                <div key={t} className="flex flex-col items-center gap-[var(--spacing-8)]">
+                  <Avatar nombre="Ana López" tam={t} estado={t >= 32 ? "exito" : undefined} anillo="var(--c-app-fondo)" />
+                  <span className="t-app-etiqueta cifras">{t}</span>
+                </div>
+              ))}
+              <div className="flex flex-col items-center gap-[var(--spacing-8)]">
+                <Avatar nombre="Lola" tam={40} estado="azul" anillo="var(--c-app-fondo)">
+                  <Personaje agente="lola" avatar />
+                </Avatar>
+                <span className="t-app-etiqueta">agente</span>
+              </div>
+            </div>
+            <ul className="mt-[var(--spacing-24)] flex flex-col gap-[var(--spacing-12)]">
+              <li>
+                <PuntoEstado tono="exito" etiqueta="Activa" mostrarEtiqueta />
+              </li>
+              <li>
+                <PuntoEstado tono="azul" etiqueta="Trabajando ahora (late despacio)" mostrarEtiqueta pulso />
+              </li>
+              <li>
+                <PuntoEstado tono="atencion" etiqueta="Espera tu visto bueno" mostrarEtiqueta />
+              </li>
+              <li>
+                <PuntoEstado tono="error" etiqueta="Con un problema" mostrarEtiqueta />
+              </li>
+              <li>
+                <PuntoEstado tono="neutro" etiqueta="En pausa" mostrarEtiqueta />
+              </li>
+            </ul>
+          </DosModos>
+        </Bloque>
+
+        <Bloque
+          id="insignias"
+          titulo="Insignias y teclas"
+          texto="<Insignia tono contador solida punto conPunto sobre>: contadores y estados (neutra, azul, éxito, atención, error) y «Pronto» para lo que todavía no existe. <Kbd> para atajos."
+        >
+          <DosModos>
+            <div className="flex flex-wrap items-center gap-[var(--spacing-8)]">
+              <Insignia>Borrador</Insignia>
+              <Insignia tono="azul">Nuevo</Insignia>
+              <Insignia tono="exito" conPunto>
+                Conectado
+              </Insignia>
+              <Insignia tono="atencion" conPunto>
+                Espera tu visto bueno
+              </Insignia>
+              <Insignia tono="error" conPunto>
+                Falló el envío
+              </Insignia>
+              <Insignia tono="pronto">Pronto</Insignia>
+            </div>
+            <div className="mt-[var(--spacing-16)] flex flex-wrap items-center gap-[var(--spacing-8)]">
+              <Insignia contador={2} etiqueta="2 sin leer" />
+              <Insignia contador={12} tono="azul" etiqueta="12 sin leer" />
+              <Insignia contador={3} solida etiqueta="3 avisos" />
+              <Insignia contador={240} solida etiqueta="Más de 99 avisos" />
+              <Insignia punto etiqueta="Hay algo nuevo" />
+            </div>
+            <div className="mt-[var(--spacing-16)] flex flex-wrap items-center gap-[var(--spacing-12)] text-grafito">
+              <span className="flex items-center gap-[var(--spacing-8)]">
+                Buscar <Kbd>/</Kbd>
+              </span>
+              <span className="flex items-center gap-[var(--spacing-8)]">
+                Cerrar <Kbd>Esc</Kbd>
+              </span>
+              <span className="flex items-center gap-[var(--spacing-8)]">
+                Comandos <Kbd teclas={["Ctrl", "K"]} />
+              </span>
+            </div>
+          </DosModos>
+        </Bloque>
+
+        <Bloque
+          id="buscador"
+          titulo="Buscador redondo"
+          texto="<Buscador etiqueta placeholder tam atajo>: píldora con lupa, tinte sutil; al enfocar, superficie con anillo azul. «/» lo enfoca desde cualquier parte (uno por página), Esc borra o suelta, ✕ borra. 16px en táctil (sin zoom), 14px con mouse."
+        >
+          <DosModos>
+            <div className="grid gap-[var(--spacing-16)]">
+              <Buscador etiqueta="Buscar (muestra normal)" placeholder="Busca citas, clientes o chats" atajo={false} />
+              <Buscador etiqueta="Buscar (muestra compacta)" placeholder="Compacto 32px" tam="compacto" atajo={false} />
+              <Buscador etiqueta="Buscar (muestra con texto)" inicial="Mariana" atajo={false} />
+              <Buscador etiqueta="Buscar (muestra deshabilitada)" placeholder="Deshabilitado" deshabilitado atajo={false} />
+            </div>
+          </DosModos>
+        </Bloque>
+
+        <Bloque
+          id="cajon"
+          titulo="Cajón lateral (celular)"
+          texto="<Cajon abierto alCerrar titulo|cabeza lado>: <dialog> modal: queda encima de todo, foco atrapado y devuelto, scroll bloqueado. Se cierra con Esc, tocando el velo, con ✕ o deslizándolo con el dedo. Entra en 0.4s y sale en 0.3s."
+        >
+          <div data-tema="oscuro" className="producto inline-block rounded-panel-app border border-borde p-[var(--spacing-16)]">
+            <DemoCajon />
+          </div>
+        </Bloque>
+
+        <Bloque
+          id="progreso"
+          titulo="Barra de progreso"
+          texto="<BarraProgreso etiqueta valor max unidad detalle>: role=progressbar con valor leído en palabras. Azul; ámbar desde el 80%; rojo al tope. El relleno se corre con transform (0.4s)."
+        >
+          <DosModos>
+            <DemoProgreso />
+          </DosModos>
+        </Bloque>
+
+        <Bloque
+          id="escribiendo"
+          titulo="Escribiendo…"
+          texto="<Escribiendo quien variante conTexto>: el indicador compartido del chat y de la portada. Solo opacidad; con movimiento reducido sigue, más lento."
+        >
+          <DosModos>
+            <div className="flex flex-col items-start gap-[var(--spacing-16)]">
+              <Escribiendo quien="Lola" variante="burbuja" />
+              <Escribiendo quien="Clara" conTexto />
+              <span className="flex items-center gap-[var(--spacing-8)] text-grafito">
+                Víctor <Escribiendo quien="Víctor" />
+              </span>
+            </div>
+          </DosModos>
         </Bloque>
 
         <Bloque id="tarjetas" titulo="Tarjetas de vidrio" texto="<TarjetaVidrio nivel destacada relleno>. Sin sombras: la elevación la hacen la translucidez y el borde.">
@@ -398,7 +674,7 @@ export default function Base() {
           </div>
         </Bloque>
 
-        <Bloque id="iconos" titulo="Íconos de contorno" texto="<Icono nombre tono tam>: trazo de 1.75px, en gris perla (cuerpo) o azul cielo.">
+        <Bloque id="iconos" titulo="Íconos de contorno" texto="<Icono nombre tono tam>: trazo de 1.75px, en gris perla (cuerpo) o azul cielo. La base 4b agregó los del dashboard y el chat (campana, buscar, inicio, conversaciones, agentes, clientes, gráfica, ajustes, ayuda, perfil, persona, facturación, negocio, cerrar sesión, flechas a la izquierda, pausa, reproducir, repetir, copiar, basura, barra lateral, estrella, fijar, filtro, puntos, check doble, rayo).">
           <ul className="grid grid-cols-3 gap-[var(--spacing-16)] sm:grid-cols-6 lg:grid-cols-11">
             {NOMBRES_ICONOS.map((n, i) => (
               <li key={n} className="flex flex-col items-center gap-[var(--spacing-8)] text-center">
@@ -420,6 +696,8 @@ export default function Base() {
               ["--dur-grande", "0.4s · cambios grandes (acordeón, cambio de modo)"],
               ["--ease", "cubic-bezier(0.25, 0.1, 0.25, 1)"],
               ["--ease-entrada", "cubic-bezier(0.16, 1, 0.3, 1) · entradas y revelados"],
+              ["--dur-salida", "0.15s · lo que se cierra (menús) sale más rápido"],
+              ["--dur-respiro", "12s · atmósfera lenta (respiro del halo)"],
             ].map(([t, d]) => (
               <li key={t} className="marco__panel p-[var(--spacing-16)]">
                 <p className="t-mono text-tinta">{t}</p>

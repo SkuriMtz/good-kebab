@@ -17,7 +17,8 @@ modos. Manda `diseno/guia.md`; este documento dice cómo está hecho.
    agrega a la base.
 3. Toca **solo tus archivos** (tabla "Reparto de archivos" de `diseno/plan.md`).
    Tu CSS va en tu archivo de `src/estilos/` (ya existe y está importado).
-4. **Un solo botón principal (violeta) por pantalla.** Lo demás: sutil o fantasma.
+4. **Un solo botón principal (azul desde la base 4b) por pantalla.** Lo demás: sutil o fantasma.
+   El violeta #8052ff ya no es acción: es marca (`--c-marca`).
 5. Nunca peso 700. Solo se anima `transform` y `opacity` (el acordeón usa
    `grid-template-rows`, ya resuelto en la base). Movimiento reducido: solo opacidad
    (ya lo hace el bloque global).
@@ -74,11 +75,11 @@ lo usa para enseñar los dos modos lado a lado).
 | `--c-texto-2` | `#a4aea6` | `#59636e` | Cuerpo |
 | `--c-tenue` | `#7c8980` | `#656d76` | Terciario (AA en los dos) |
 | `--c-enlace` / `--c-acento` | `#8dd6ff` | `#0969da` | Enlaces y acento frío |
-| `--c-accion` | `#8052ff` | `#6e40f0` | Botón principal (texto blanco: 4.6:1 / 5.7:1) |
+| `--c-accion` | `#0071e3` | `#0071e3` | Botón principal, AZUL desde la base 4b (texto blanco: 4.7:1). Antes violeta. |
 | `--c-sobre-accion` | `#ffffff` | `#ffffff` | Texto sobre la acción |
 | `--c-destacada` | `#8c93fb` | `#8c93fb` | Borde de lo destacado |
 | `--c-foco` | `#8dd6ff` | `#0969da` | Anillo de foco |
-| `--c-error` | `#f85149` | `#d1242f` | Error (Primer) |
+| `--c-error` | `#f85149` | `#cf222e` | Error (claro cambió de #d1242f a #cf222e en la base 4b) |
 | `--c-exito` | `#3fb950` | `#1a7f37` | Éxito (Primer) |
 | `--c-vidrio` | `rgba(255,255,255,.06)` | `#ffffff` | Tarjeta de vidrio |
 | `--c-vidrio-fuerte` | `rgba(255,255,255,.1)` | `#ffffff` | Vidrio más presente |
@@ -208,9 +209,235 @@ CSS por grupo (vacíos, importados después de globals.css): `src/estilos/portad
 ## Pendientes que se dejan a los grupos (no son de la base)
 
 - Grupo 6: la barra todavía usa el botón principal en "Pruébalo" (el plan pide
-  sutil para dejar el violeta a cada pantalla) y el pie sigue en una fila.
+  sutil para dejar el color de acción —ahora azul— a cada pantalla) y el pie sigue en una fila.
 - Grupo 1: afinar la escena 3D de la portada (hoy al 45% de opacidad, 32% en
   celular; oculta en modo claro porque se pinta sobre negro).
 - Grupo 5: en `/preguntas` el candado de partículas queda detrás del acordeón.
 - Las páginas viejas (agentes, precios, para quién es, preguntas, entrar,
   panel) ya usan los tokens nuevos pero conservan su composición anterior.
+
+---
+
+# Base 4b — dashboard (Paso 4b · arquitecto, 8 oct)
+
+Dirección nueva del dueño: el **panel** y **`/pruebalo`** son un dashboard con
+la arquitectura del dashboard de GitHub y el refinamiento visual de Apple,
+**acento azul** y **oscuro primero** (ver `diseno/guia.md` → "Actualización:
+dashboard", que manda). Todo lo de abajo está vivo en **`/base`** (sección
+"Dashboard" arriba de todo, y una sección por componente, en oscuro y claro).
+Capturas: `diseno/capturas/paso4b/`.
+
+## Qué cambió para los grupos (léelo primero)
+
+1. **El violeta ya no es acción.** `--c-accion` es **azul #0071e3** (hover
+   #0077ed) en los dos modos y en TODO el sitio: `Boton variante="principal"`,
+   `.btn--primario`, el botón de enviar del PromptBar, la burbuja propia del
+   chat viejo (`--chat-tu`) y la selección de texto ya salen azules sin tocar
+   nada. El violeta #8052ff queda como **`--c-marca`**: solo identidad (logo,
+   personajes, detalles muy puntuales). **Nunca** en botones.
+   Sigue la regla: **un solo botón principal por pantalla**.
+2. **`.producto`**: pon `class="producto"` en el contenedor del dashboard (panel,
+   `/pruebalo`, chat). Adentro, los `--c-*` de siempre toman los valores del
+   producto del modo actual, la letra pasa a la pila del sistema a 14px y los
+   radios a los del dashboard. La base y el chat se ven "de producto" sin
+   cambiar su código. Afuera (sitio público) nada cambia.
+3. **Mona Sans se queda para el sitio público.** El producto usa
+   `--font-producto` (la pila del sistema: en Mac/iPhone se ve como Apple).
+4. Nombres que **no** cambiaron: todos los `--c-*`, `--agente-*`, `--radio-*`,
+   `--t-*` existentes; la clave de tema `atendel-tema-v5` y `data-tema`.
+5. Renombrado: la clase `.escena` (fondo de partículas 2D) ahora es
+   **`.escena-fondo`** (ya se cambió en `escena/Escena.tsx`). Era un nombre
+   genérico que quitaba los clics a quien lo usara para otra cosa.
+
+## Tokens nuevos (`src/app/globals.css`)
+
+### Primitivos
+
+| Token | Valor | Para qué |
+|---|---|---|
+| `--azul-accion` / `--azul-accion-hover` | #0071e3 / #0077ed | Botón principal y su hover |
+| `--azul-enlace-noche` / `--azul-enlace-dia` | #4ea1ff / #0066cc | Texto azul de acción y enlaces del producto |
+| `--noche-texto` / `--noche-texto-2` / `--noche-tenue` | #f0f6fc / #9198a1 / #6e7681 | Textos del producto en oscuro |
+| `--noche-division` | #30363d | Divisiones en oscuro |
+| `--noche-ambar` / `--dia-ambar` | #d29922 / #9a6700 | Atención |
+| `--dia-blanco` / `--dia-niebla` / `--dia-papel` | #ffffff / #f5f5f7 / #fafafc | Superficies del producto en claro |
+| `--dia-borde` / `--dia-borde-suave` | #d6d6d6 / #e6e6e8 | Bordes en claro |
+| `--dia-tinta` / `--dia-pizarra` / `--dia-acero` | #1d1d1f / #707070 / #86868b | Textos del producto en claro |
+| `--dia-rojo` | #cf222e | Error en claro |
+
+### Semánticos (cambian solos entre oscuro y claro)
+
+| Token | Oscuro | Claro | Uso |
+|---|---|---|---|
+| `--c-accion` | #0071e3 | #0071e3 | Botón principal (uno por pantalla) |
+| `--c-accion-hover` | #0077ed | #0077ed | Hover del principal (capa que se funde con opacidad) |
+| `--c-accion-presion` | #0071e3 + 14% negro | igual | Al presionar el principal |
+| `--c-accion-texto` | #4ea1ff (6.9:1) | #0066cc (5.6:1) | Texto azul de acción, enlaces del producto, foco en `.producto` |
+| `--c-accion-fondo` | azul al 15% | azul al 10% | Insignia azul, fondo de "seleccionado" con tinte |
+| `--c-marca` | #8052ff | #6e40f0 | Violeta: SOLO identidad |
+| `--c-exito` | #3fb950 | #1a7f37 | Solo insignias y puntos |
+| `--c-atencion` | #d29922 | #9a6700 | Solo insignias y puntos ("espera tu visto bueno") |
+| `--c-error` | #f85149 | #cf222e | Solo insignias, puntos y mensajes de error |
+| `--c-exito-fondo` / `--c-atencion-fondo` / `--c-error-fondo` | su color al 15% | al 10–12% | Fondo de la insignia de ese estado |
+| `--c-hover` | texto al 6% | texto al 5% | Matiz al pasar el cursor (filas, botones de ícono) |
+| `--c-activo` | texto al 10% | texto al 8% | Seleccionado / elemento activo del lateral |
+| `--c-elevado` | texto al 8% sobre el fondo | al 6% | Superficie elevada **opaca** (burbuja neutra, avatar de iniciales, chips) |
+| `--c-propio` | azul-texto al 12% sobre el fondo | al 10% | "Lo mío" con tinte azul (mi mensaje, mi elemento), si se quiere |
+| `--c-terciario` | #7c8980 (en `.producto`: #6e7681) | #656d76 (en `.producto`: #86868b) | Placeholders, deshabilitado, íconos inactivos. **No** para texto que hay que leer (en el producto no llega a AA) |
+| `--sombra-flotante` | 0 8px 24px rgba(0,0,0,.24) | 0 8px 24px rgba(0,0,0,.08) | **Solo** lo que flota: menús, cajón, modal. Tarjetas sin sombra |
+| `--c-menu-fondo` | superficie al 94% | al 92% | Panel de menú (vidrio, con blur 20px) |
+
+### Producto (`--c-app-*`; dentro de `.producto` se vuelven los `--c-*`)
+
+| Token | Oscuro | Claro | Uso |
+|---|---|---|---|
+| `--c-app-fondo` | #0d1117 | #f5f5f7 | Fondo de la app |
+| `--c-app-superficie` | #151a22 | #ffffff | Tarjetas y paneles |
+| `--c-app-superficie-2` | mezcla 50% de las dos de arriba | #fafafc | Superficie alterna |
+| `--c-app-lateral` | #0d1117 | #fafafc | Menú lateral y cajón (`--c-lateral` en `.producto`) |
+| `--c-app-barra` | #0d1117 al 82% | blanco al 72% | Barra superior translúcida (con `backdrop-filter: blur(20px)`; `--c-barra` en `.producto`) |
+| `--c-app-borde` | #21262d | #e6e6e8 | Bordes sutiles |
+| `--c-app-division` | #30363d | #d6d6d6 | Divisiones y contornos de control |
+| `--c-app-texto` | #f0f6fc | #1d1d1f | Texto principal |
+| `--c-app-texto-2` | #9198a1 (6.5:1) | #707070 (4.9:1) | Secundario |
+| `--c-app-tenue` | #6e7681 (4.1:1) | #86868b (3.6:1) | Terciario: no para leer |
+
+**Qué hace `.producto`** (así se mapea): fondo → `app-fondo`; superficie,
+campos, vidrio → `app-superficie` (las tarjetas del producto son **sólidas**,
+sin blur); borde → `app-borde`; borde-fuerte → `app-division`; texto →
+`app-texto`; texto-2 y **tenue → `app-texto-2`** (el terciario de lectura se
+queda en AA); `--c-terciario` → `app-tenue`; enlace, acento, foco y destacada
+→ `--c-accion-texto`; botón sutil → neutro con contorno; botón fantasma →
+sin borde; píldora activa → texto del producto. Radios: botón y campo 8,
+panel y marco 12, tarjeta 16, píldora 9999. `--t-cuerpo` → 14px, `--t-intro`
+→ 16px, `--barra-h` → 56px, `--relleno-tarjeta` → 20px. Títulos h1–h4 a 600.
+Las variables van sin capa (para ganarle a `data-tema` en el mismo
+elemento); el fondo, color y letra van en `@layer components` (Tailwind les
+puede ganar). Si un trozo necesita otro modo, pon `data-tema` en el **mismo**
+elemento que `.producto` o en uno de afuera, no adentro.
+
+### Tipografía de producto (nunca 700)
+
+| Token / clase | Valor |
+|---|---|
+| `--font-producto` | -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif |
+| `.t-app` | 14px / 1.43 / −0.01em (es el cuerpo de `.producto`) |
+| `.t-app-etiqueta` | 12px / 500 / 1.33, texto-2 (sin mayúsculas: no es la etiqueta Mono del sitio) |
+| `.t-app-mediano` | 16px / 600 (títulos de tarjeta) |
+| `.t-app-titulo` | 20px / 600 / 1.25 (título de panel) |
+| `.t-app-titulo-grande` | 24px / 600 (título de vista) |
+| `.t-app-saludo` | 28 → 32px / 600 / −0.02em (bienvenida) |
+| `.cifras` | `font-variant-numeric: tabular-nums` (horas, contadores, métricas, tablas) |
+| Tokens | `--t-app-etiqueta` 12 · `--t-app-cuerpo` 14 · `--t-app-mediano` 16 · `--t-app-titulo` 20 · `--t-app-titulo-grande` 24 · `--t-app-saludo` · `--interlineado-app` 1.43 · `--tracking-app` −0.01em · `--tracking-app-saludo` −0.02em · `--peso-app-medio` 500 · `--peso-app-titulo` 600 |
+
+### Formas, medidas y movimiento
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--radio-app-control` | 8px | Botones e inputs del producto |
+| `--radio-app-tarjeta` | 12px | Tarjetas compactas, filas, paneles internos |
+| `--radio-app-menu` | 14px | Menús desplegables |
+| `--radio-app-panel` | 16px | Tarjetas y paneles grandes |
+| `--radio-app-pildora` | 9999px | Filtros, pestañas y buscador |
+| `--radio-burbuja` / `--radio-burbuja-esquina` | 16px / 6px | Burbuja de chat y su esquina hacia quien habla |
+| `--radio-kbd` | 6px | Teclas |
+| `--barra-app-h` | 56px | Barra superior |
+| `--ancho-app-lateral` / `--ancho-app-columna` / `--ancho-app-max` | 256 / 320 / 1440px | Lateral, columna derecha, las tres juntas |
+| `--ancho-cajon` | min(85vw, 320px) | Cajón en celular |
+| `--alto-app-fila` | 48px | Filas de lista (44–52) |
+| `--alto-control-compacto` | 32px | Botones e íconos de la barra (44px de área táctil en celular) |
+| `--espacio-app-tarjeta` / `-amplio` | 20 / 24px | Padding de tarjeta |
+| `--espacio-app-bloques` / `-amplio` | 24 / 32px | Entre bloques |
+| `--avatar-20/24/28/32/40/64` | 20…64px | Avatares |
+| `--dur-salida` | 0.15s | Lo que se cierra (menús) sale más rápido de lo que entra |
+| `--dur-respiro` | 12s | Atmósfera lenta y continua (pedido de G1-T4) |
+
+Tailwind (`tailwind.config.ts`): colores `atencion`, `accion-texto`, `marca`,
+`terciario`, `elevado`, `propio`, `capa-hover`, `capa-activa`, `lateral`;
+radios `control`, `tarjeta-app`, `menu`, `panel-app`, `burbuja`, `circulo`;
+`font-producto`; `shadow-flotante`. Ej.: `rounded-panel-app border border-borde bg-superficie`.
+
+## Componentes nuevos (`src/components/base/`)
+
+Todos accesibles, con hover (solo con puntero fino), foco visible, presionado,
+deshabilitado y, donde aplica, cargando. Movimiento: 0.2s micro / 0.4s
+grande; menús con opacidad + escala 0.98→1 + 4px; solo transform y opacity;
+con movimiento reducido, solo opacidad.
+
+| Componente | API | Notas |
+|---|---|---|
+| `Menu.tsx` → `<Menu>` | `etiqueta` (nombre) · `disparador` (ReactNode) · `aspecto` icono \| avatar \| boton \| libre · `etiquetaDisparador` · `claseDisparador` · `elementos` · `encabezado` {nombre, correo, foto, estado {tono, etiqueta}} · `alineacion` inicio \| fin · `lado` abajo \| arriba · `abiertoInicial` · `alCambiar(abierto)` | Elementos: `{id, etiqueta, icono, descripcion, href \| alElegir, peligroso, deshabilitado, pronto, atajo: ["N"], contador, actual}`, `{tipo:"separador"}`, `{tipo:"titulo", etiqueta}`. Panel radio 14, borde, `--sombra-flotante`, vidrio (sólido con `prefers-reduced-transparency`), sale desde su disparador. Clic afuera, Esc (foco vuelve), Tab, ↓ ↑ Inicio Fin, primera letra. Abierto con teclado → foco al primero; con mouse → al panel. `pronto` = deshabilitado con insignia "Pronto". |
+| `Avatar.tsx` → `<Avatar>`, `iniciales()` | `nombre` · `src` · `tam` 20 \| 24 \| 28 \| 32 \| 40 \| 64 · `estado` (tono) · `etiquetaEstado` · `etiqueta` (si va solo) · `anillo` · `children` (personaje) | Foto (si falla, iniciales), iniciales sobre `--c-elevado`, filo interior de 1px. Decorativo por defecto. |
+| `Insignia.tsx` → `<Insignia>` | `tono` neutra \| azul \| exito \| atencion \| error \| pronto · `contador` · `max` (99+) · `solida` · `punto` · `conPunto` · `sobre` · `etiqueta` (lectura) · `oculta` | Píldora 20px, 12/500, números tabulares. `sobre`: encima de un botón de ícono con anillo (`--anillo`). |
+| `Buscador.tsx` → `<Buscador>` | `etiqueta` · `placeholder` · `valor`/`alCambiar` o `inicial` · `alBuscar` · `atajo` (sí) · `tam` normal 36 \| compacto 32 · `deshabilitado` · `name` · ref al input | `role="search"`. "/" lo enfoca desde cualquier parte (uno por página). Esc borra/suelta, ✕ borra. 16px táctil, 14px con mouse. Foco: superficie + anillo azul. |
+| `Cajon.tsx` → `<Cajon>` | `abierto` · `alCerrar` · `titulo` o `cabeza` · `etiqueta` · `lado` izquierda \| derecha | `<dialog>` modal (encima de todo, foco atrapado y devuelto, resto inerte). Bloquea el scroll. Cierra con Esc, velo, ✕ o deslizando con el dedo (1:1, cierra pasando 30% o con gesto rápido; resorte si jalas al revés). Entra 0.4s, sale 0.3s. Área segura del iPhone. |
+| `Kbd.tsx` → `<Kbd>` | `children` o `teclas={["Ctrl","K"]}` | Mona Sans Mono 12px. No mostrar en táctil. |
+| `PuntoEstado.tsx` → `<PuntoEstado>` | `tono` exito \| azul \| atencion \| error \| neutro · `etiqueta` · `mostrarEtiqueta` · `pulso` · `grande` · `sobre` | 8px (10 grande). El color nunca va solo: la etiqueta se ve o se lee. `pulso` late con opacidad ("trabajando ahora"). |
+| `BarraProgreso.tsx` → `<BarraProgreso>` | `etiqueta` · `valor` · `max` · `unidad` · `mostrarValor` · `ocultarEtiqueta` · `detalle` · `umbralAtencion` (0.8) · `umbralError` (1) | `role="progressbar"` con `aria-valuetext` ("320 de 500 mensajes"). Pista 6px; relleno con `translateX` (0.4s). Ámbar desde 80%, rojo al tope. |
+| `Escribiendo.tsx` → `<Escribiendo>` | `quien` · `variante` burbuja \| suelto · `conTexto` | El "escribiendo…" compartido (pedido de G1 y G2). `role="status"`. Solo opacidad; con movimiento reducido sigue, más lento. Al integrar, puede reemplazar a `.conversa__puntos`, `.muestra__escribe` y `.chat-app__puntos`. |
+| `Boton.tsx` (actualizado) | `tam` ahora también **"compacto"** (32px, 14/500, área táctil 44) · nuevo **`<BotonIcono etiqueta icono tam contador punto etiquetaContador anillo>`** | `BotonIcono`: 32px (compacto) o 44px, capa `--c-activo` al pasar/presionar, se queda puesta con `aria-expanded`/`aria-pressed`. `etiqueta` obligatoria. |
+| `Iconos.tsx` (ampliado) | `campana`, `buscar`, `inicio`, `conversaciones`, `agentes` (un personaje), `clientes`, `grafica`, `ajustes`, `ayuda`, `perfil`, `persona`, `facturacion`, `negocio`, `cerrar-sesion`, `flecha-izquierda`, `chevron-izquierda`, `pausa`, `reproducir`, `repetir`, `copiar`, `basura`, `barra-lateral`, `estrella`, `fijar`, `filtro`, `puntos`, `check-doble`, `rayo` | Mismo trazo (1.75, rejilla de 24). Equivalencias con lo que pidieron: papelera → `basura`; panel-lateral → `barra-lateral`; seguir/play → `reproducir`. |
+| `MarcoNavegador.tsx` (actualizado) | igual | Con `alElegir`, el cuerpo es `role="tabpanel"` con `aria-labelledby`, la pestaña activa lleva `aria-controls` y las flechas ← →, Inicio y Fin recorren las pestañas. |
+| `Etiqueta.tsx` (actualizado) | acepta `data-*`, `aria-*`, `title`… | Pasan al elemento. |
+
+Clases CSS de las piezas: `.menu*`, `.avatar*`, `.insignia*`, `.punto-estado*`,
+`.kbd`, `.buscador*`, `.cajon*`, `.progreso*`, `.escribiendo*`,
+`.boton--compacto`, `.boton-icono--capa`, `.boton-icono--compacto`, `.t-app*`, `.cifras`.
+
+## Composición de referencia (en `/base#dashboard`)
+
+Barra superior 56px translúcida (logo + "/ Resumen", buscador compacto con
+"/", "+" con menú de acciones rápidas, campana con contador, avatar con menú
+de perfil) · lateral de 256px (activo con relleno `--c-activo`, "Pronto" donde
+no hay nada, "Tus agentes" con personaje y punto de estado) · tarjetas sólidas
+(bienvenida con saludo de 28–32px, un solo botón principal azul y uno sutil;
+actividad con filas y "escribiendo…"; columna derecha con uso del plan y
+próximas citas). En celular el lateral vive en el `<Cajon>` (botón de barra
+lateral). Es una **referencia**, no la entrega del Grupo 7: el Grupo 7 compone
+la suya en `src/components/dashboard/*` y `src/estilos/dashboard.css` con
+estas piezas. Los datos son de ejemplo (marcados "Datos de ejemplo").
+
+## Pedidos a la base de los grupos 1 y 2
+
+| Pedido | Quién | ¿Se atendió? |
+|---|---|---|
+| Indicador "escribiendo…" compartido | G1-T3, G2-T1 | **Sí**: `<Escribiendo>`. |
+| Íconos: papelera, barra lateral, persona, copiar, buscar, pausa, seguir, repetir, chevron izquierda | G2-T2, G2-T3, G2-T4, G2-T5 | **Sí** (con los nombres de la tabla de arriba). |
+| `--c-hover` / `--c-activo` (matices de hover y seleccionado) | G2-T3, G2-T5 | **Sí**, en los dos modos y recalculados dentro de `.producto`. |
+| Radio de burbuja | G2-T1 (12px), G2-T2 (16px) | **Sí**: `--radio-burbuja` 16px (+ `--radio-burbuja-esquina` 6px). Se eligió 16: cuadra con las tarjetas del dashboard (16) y con la burbuja anterior. |
+| Tamaños de avatar | G2-T4 (la propuesta ganadora del Grupo 2) | **Sí**: `--avatar-20/24/28/32/40/64` y `<Avatar tam>`; cubren sus `.chat__avatar--24/28/32/40/64`. |
+| Tono de atención (#d29922 / #9a6700) | G2-T1 | **Sí**: `--c-atencion` (+ fondos de los tres estados). |
+| Superficie elevada / burbuja propia / "lo propio" | G2-T3, G2-T5 | **Sí**: `--c-elevado` (neutro, opaco) y `--c-propio` (tinte azul). El grupo elige cuál usa su burbuja. |
+| `MarcoNavegador`: `tabpanel` y `aria-controls` | G2-T2 | **Sí** (más flechas ← →). |
+| `Etiqueta` con `data-*` | G1-T5 | **Sí** (acepta todos los atributos). |
+| Renombrar `.escena` | G2-T5 | **Sí**: `.escena-fondo` (y `Escena.tsx`). |
+| `.halo` con z-index variable | G1-T4 | **Sí**: `z-index: var(--halo-z, -1)`. |
+| Token de duración larga de atmósfera | G1-T4 (12s), G1-T5 (7s) | **Sí, uno**: `--dur-respiro: 12s` (el de la propuesta ganadora G1-T4). No se agregó el de 7s de G1-T5. |
+| Viñeta de `.escena3d` por modo | G1-T3 | **Sí, como opción**: `--escena-vineta` (por defecto la negra de siempre; una escena que pinta en el color del modo usa `var(--c-portada)`). No se cambió el valor por defecto porque la escena "historia" sigue pintando sobre negro. |
+| Quitar la regla que ocultaba la escena 3D en modo claro | G1-T3, G1-T5 | **No se borró, se acotó**: solo afecta a la variante heredada `.escena3d--tenue` (la historia, que pinta sobre negro; la portada base de esta rama todavía la usa y sin la regla se vería un bloque negro en claro). Las escenas nuevas (`--polvo` de G1-T4, `--portada` de G1-T1) no llevan esa clase y se ven en los dos modos. |
+| Quitar las reglas `.escena3d--tenue` | G1-T1, G1-T2, G1-T4 | **No (todavía)**: en esta rama las usa la portada base y G1-T4 las conserva como "heredado". El integrador las quita cuando ningún archivo use `tenue`. |
+| Borrar el bloque `.chat-app*` de `globals.css` | G2-T1…T5 | **No**: verificado con grep, en esta rama lo usan `ChatDemo.tsx`, `panel/chat/Chat.tsx`, `chat/Piezas.tsx`, `portadas/ConversacionEnVivo.tsx` (`.chat-app__puntos`) y `ScrollSuave.tsx` (`.chat-app`). Se borra al integrar el chat ganador, dejando `.chat-app__puntos` + `@keyframes chat-app-punto` mientras `ConversacionEnVivo` exista (o cambiándolo por `<Escribiendo>`). Lo mismo para `.marco__cuerpo > .chat-app` (G2-T4). |
+| Tamaños de personaje 64–176px | G1-T5 | **No**: la propuesta no ganó y el Grupo 3 es dueño de los personajes; si lo necesita, lo pide. |
+| `--tracking-display-chico` | G1-T4 (opcional) | **No**: la ganadora ya usa `--tracking-grande`, que es lo que pide la curva de la guía. |
+| Anchos del chat (lista 280–300, lectura 880, texto 680, tarjeta 440) | G2-T4 | **No**: dependen de dónde viva el chat; ahora vive dentro del dashboard (lateral 256 + columnas), así que el integrador los decide con el chat ganador. Para el dashboard ya están `--ancho-app-*`. |
+| Agregar `.charla` a `ScrollSuave` | G2-T3 | **No**: no hace falta, sus zonas usan `data-lenis-prevent`, que ya funciona. `ScrollSuave` tampoco es de la base. |
+| "Pruébalo" de la barra en principal (dos azules en la portada) | G1-T1, G1-T3, G2-T1 | **No es de la base**: es del Grupo 6 (sigue anotado). Con el cambio, ahora son dos azules en vez de dos violetas. |
+| Ancla `#en-vivo` | G1-T3 | **No es de la base**: nota para el integrador (conservar `id="en-vivo"` en `ChatEnMarco`). |
+
+## Lo que se verificó y lo que falta
+
+- `npm run lint` y `npm run build` sin errores. (El aviso de Tailwind "safelist
+  pattern doesn't match" ya salía antes: viene de `PromptBar.css`, que se
+  procesa aparte y no trae las clases de la base.)
+- Capturas en 1440×900 y 390×844, oscuro y claro, de `/base` (pantalla,
+  página completa y una por sección), `/`, `/pruebalo` y `/precios`; más
+  estados: buscador enfocado, menú de perfil abierto y cajón abierto en celular.
+- Probado con Playwright: el menú se abre con Enter (foco al primero), ↓, Fin,
+  primera letra, Esc (cierra y devuelve el foco), clic afuera; "/" enfoca el
+  buscador y Esc lo borra; el cajón atrapa el foco, bloquea y libera el
+  scroll, devuelve el foco y se cierra deslizándolo con el dedo (eventos
+  táctiles emulados).
+- **Falta en un teléfono real:** el arrastre del cajón, el área táctil de 44px,
+  el blur de la barra y del menú, y cómo se ve `--font-producto` en un iPhone
+  (en las capturas, Linux pone su letra de respaldo).
+- `/panel` necesita sesión: no se capturó. Ya hereda el azul por `--c-accion`.

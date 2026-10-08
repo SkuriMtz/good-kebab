@@ -5,7 +5,7 @@ import { Giro, Icono } from "./base/Iconos";
 /*
  * Puente entre los nombres de antes y los botones de la base común
  * (src/components/base/Boton.tsx). Los usos existentes siguen funcionando:
- * - primario → principal (violeta, uno por pantalla)
+ * - primario → principal (azul de acción desde la base 4b, uno por pantalla)
  * - suave    → sutil (azul cielo con borde)
  * - texto / borde → fantasma (transparente)
  * Código nuevo: usa <Boton> de "@/components/base/Boton" directamente.

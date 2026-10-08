@@ -561,7 +561,7 @@ export function Escena() {
   }, []);
 
   return (
-    <div ref={refCaja} className="escena" aria-hidden="true">
+    <div ref={refCaja} className="escena-fondo" aria-hidden="true">
       <canvas ref={ref} />
       <canvas ref={refLineas} />
     </div>
