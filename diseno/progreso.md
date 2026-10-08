@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero; guía de Apple en `diseno/apple/DESIGN.md`). Grupo 1 completo (gana G1-T4). Grupo 2: 5 propuestas entregadas. Grupo 3: se lanzó pero se detuvo por el límite antes de escribir código; se relanza después del Grupo 7 sobre la base actualizada. Siguiente: arquitecto 4b + revisores del Grupo 2, luego Grupo 7.
+- **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero). Grupo 1 completo (gana G1-T4). Grupo 2 completo (gana G2-T4). Base 4b lista (commit 7525f6d). Grupo 7 (dashboard) lanzado el 2026-10-08 01:30 UTC (worktrees `/home/user/wt/g7-t1…t5`). Después: revisores G7, luego Grupo 3, 4, 5, 6.
 
 ## Paso 0 — Archivos y respaldo
 
@@ -40,9 +40,9 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Paso 4b — Arquitecto: base actualizada para el dashboard (8 oct)
 
-- [ ] 4b.1 Tokens del dashboard (azul, oscuro/claro, radios, sombras, pila tipográfica de producto) y pedidos a la base de G1/G2
-- [ ] 4b.2 Componentes nuevos (Menu, Avatar, Insignia, Buscador, Cajon, Kbd, PuntoEstado, BarraProgreso, íconos) en el muestrario `/base`
-- [ ] 4b.3 Commit de la base actualizada (hash anotado) y capturas en `diseno/capturas/paso4b/`
+- [x] 4b.1 Tokens del dashboard (azul, oscuro/claro, radios, sombras, pila tipográfica de producto) y pedidos a la base de G1/G2 — **2026-10-08 01:30 UTC** — evidencia: `src/app/globals.css` (superficie `.producto`, azul, estados, radios, sombras, letra de producto), `diseno/base.md` sección "Base 4b — dashboard"
+- [x] 4b.2 Componentes nuevos (Menu, Avatar, Insignia, Buscador, Cajon, Kbd, PuntoEstado, BarraProgreso, íconos) en el muestrario `/base` — **2026-10-08 01:30 UTC** — evidencia: `src/components/base/` (Menu, Avatar, Insignia, Buscador, Cajon, Kbd, PuntoEstado, BarraProgreso, Escribiendo, BotonIcono, 28 íconos) y muestrario `/base`
+- [x] 4b.3 Commit de la base actualizada (hash anotado) y capturas en `diseno/capturas/paso4b/` — **2026-10-08 01:30 UTC** — evidencia: commit `7525f6d` en `rediseno-11` (origin), 84 capturas en `diseno/capturas/paso4b/`
 
 ## Paso 5 — Grupos de trabajadores (33 propuestas)
 
