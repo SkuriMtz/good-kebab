@@ -87,3 +87,36 @@ jerarquía, espacio y estados (escribiendo, vacío, hover, foco).
 
 ## Reglas anti-genéricas
 Ver "Reglas anti-genéricas" en `CLAUDE.md`. Son obligatorias.
+
+## Actualización: dashboard (8 oct) — manda sobre lo anterior donde choque
+
+Referencias: `diseno/github/DESIGN.md` (estructura y producto) + `diseno/apple/DESIGN.md` (refinamiento). Decisiones del dueño: dashboard en **panel y Pruébalo**, **acento azul**, **oscuro primero**.
+
+### Color
+- **Acción:** azul. Oscuro: botón principal #0071e3 (hover #0077ed), enlaces #4ea1ff (legible sobre #0d1117). Claro: botón principal #0071e3, enlaces #0066cc. Sustituye al violeta en el rol del botón principal en TODO el sitio. Sigue la regla: un solo botón principal por pantalla.
+- **Oscuro (por defecto):** fondo #0d1117, superficies elevadas #151a22, bordes #21262d (sutiles), divisiones #30363d, texto #f0f6fc / secundario #9198a1 / terciario #6e7681.
+- **Claro (Apple):** fondo #ffffff, banda/fondo de app #f5f5f7, superficie alterna #fafafc, bordes #d6d6d6 / #e6e6e8, texto #1d1d1f, secundario #707070 / #86868b.
+- **Violeta Atendel:** solo identidad (logo, personajes, detalles muy puntuales), ya no en botones.
+- **Estados:** éxito #3fb950 (oscuro) / #1a7f37 (claro); atención #d29922 / #9a6700; error #f85149 / #cf222e. Solo en insignias pequeñas y puntos de estado.
+
+### Tipografía
+- **Producto (dashboard, chat, panel):** pila del sistema `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif` (en Mac/iPhone se ve como Apple; es la misma pila que usa el producto de GitHub). Cuerpo 14px/1.43 con tracking -0.01em; títulos de panel 20–24px/600; saludo grande 28–32px/600 con -0.02em.
+- **Marketing (sitio público):** Mona Sans como está.
+- Números en tablas y métricas con `font-variant-numeric: tabular-nums`.
+
+### Formas y elevación (dashboard)
+- Radios: tarjetas y paneles **12–16px**; menús desplegables **14px**; botones **8px** (píldora 9999px solo para filtros/pestañas y el buscador); avatares redondos.
+- Sombras mínimas solo en lo que flota (menús, cajón móvil, modal): `0 8px 24px rgba(0,0,0,.24)` en oscuro / `0 8px 24px rgba(0,0,0,.08)` en claro. Tarjetas sin sombra: separan el borde de 1px y el cambio de superficie.
+- Más aire que GitHub: padding de tarjeta 20–24px, separación entre bloques 24–32px, filas de lista de 44–52px.
+
+### Estructura del dashboard
+- **Barra superior fija** (56–60px, translúcida con blur): logo de Atendel y nombre de la sección; buscador redondo (con atajo "/"); campana con insignia; botón "+" con acciones rápidas (Nueva conversación, Agendar cita, Nuevo grupo, Importar contactos); avatar que abre el menú de perfil (foto, nombre, correo, estado; Perfil, Configuración, Plan y facturación, Mi negocio; Cerrar sesión) con animación suave, sombra suave, esquinas redondeadas y cierre al hacer clic afuera o con Esc.
+- **Menú lateral izquierdo** (240–272px): Resumen, Conversaciones, Agentes, Citas, Correo, Clientes, Reportes, Configuración (cada uno lleva a algo que existe o se marca "Pronto" sin inventar); elemento activo con fondo relleno sutil; sección "Tus agentes" (los 4 con su personaje y estado) y "Grupos". En celular, cajón deslizable.
+- **Centro:** tarjeta de bienvenida grande (saludo, resumen del día, acciones), pestañas (Actividad · Pendientes de tu visto bueno · Destacados), línea de tiempo de actividad de los agentes (citas agendadas, correos resumidos, recordatorios enviados, reportes), agentes "fijados" en cuadrícula (como repos fijados), conversaciones recientes en lista.
+- **Columna derecha:** uso del plan (mensajes del mes, con barra), próximas citas, novedades de Atendel, recomendaciones/consejos, tarjeta pequeña del negocio/perfil, métricas rápidas.
+- **Pie mínimo** con enlaces de utilidad.
+- **Responsivo:** escritorio 3 columnas; tableta: la columna derecha baja debajo del contenido; celular: lateral en cajón, contenido apilado, acciones a ancho completo, menú de perfil por el avatar.
+- **Datos:** en `/pruebalo` datos de ejemplo realistas de una clínica (nombres, horarios, servicios), nunca lorem ipsum ni cifras de clientes reales; en `/panel` los datos reales que ya existen (cuenta, plan, uso, conversaciones, agentes) y estados vacíos bien diseñados donde todavía no hay datos.
+
+### Movimiento
+Igual que antes: 0.2s micro, 0.4s cambios grandes; menús entran con opacidad + escala 0.98→1 + 4px de desplazamiento; solo transform y opacity; con movimiento reducido, solo opacidad.

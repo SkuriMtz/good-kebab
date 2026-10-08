@@ -17,6 +17,8 @@ de navegador y mucho aire. Antes de entregar, compara tu propuesta contra
 hace de Atendel es el contenido (agentes, conversaciones reales, personajes), no
 cambiar el estilo.
 
+**Actualización del 8 oct:** el panel y `/pruebalo` son un dashboard como el de GitHub con el refinamiento de Apple (`diseno/apple/DESIGN.md`), acento azul y oscuro primero. Lee la sección "Actualización: dashboard" de `diseno/guia.md`: manda sobre lo anterior donde choque. Usa también la skill `apple-design`.
+
 ## Antes de empezar (obligatorio, completo)
 1. Lee `CLAUDE.md` (sobre todo "Lecciones de diseño" y "Reglas anti-genéricas").
 2. Lee `diseno/guia.md` (manda), `diseno/github/DESIGN.md`, `diseno/plan.md`

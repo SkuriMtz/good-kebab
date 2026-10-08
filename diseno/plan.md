@@ -34,7 +34,8 @@ toca sus archivos. Si un grupo necesita algo de la base, lo pide en su entrega
 | Grupo 3 · Agentes | `src/components/inicio/Agentes.tsx`, `src/components/agentes/*`, `src/app/agentes/**`, `src/estilos/agentes.css` |
 | Grupo 4 · Informativas | `src/components/inicio/QueEs.tsx`, `ComoFunciona.tsx`, `ParaQuien.tsx`, `Seguridad.tsx`, `src/app/para-quien-es/*`, `src/estilos/informativas.css` |
 | Grupo 5 · Conversión | `src/components/inicio/Precios.tsx`, `PreguntasInicio.tsx`, `CtaFinal.tsx`, `src/components/Planes.tsx`, `src/components/Preguntas.tsx`, `src/components/FormularioLista.tsx`, `src/app/precios/*`, `src/app/preguntas/*`, `src/app/contacto/*`, `src/app/lista/*`, `src/estilos/conversion.css` |
-| Grupo 6 · Estructura | `src/components/Nav.tsx`, `Footer.tsx`, `BotonTema.tsx`, `Sitio.tsx`, `Logo.tsx`, `src/estilos/estructura.css`, `src/estilos/tema-claro.css`, `src/app/entrar/*`, `src/app/panel/Panel.tsx`, `src/app/panel/agentes/*`, `src/components/app/*` |
+| Grupo 6 · Estructura | `src/components/Nav.tsx`, `Footer.tsx`, `BotonTema.tsx`, `Sitio.tsx`, `Logo.tsx`, `src/estilos/estructura.css`, `src/estilos/tema-claro.css`, `src/app/entrar/*` |
+| Grupo 7 · Dashboard | `src/components/dashboard/*` (nuevo), `src/app/panel/layout.tsx` (nuevo), `src/app/panel/page.tsx`, `src/app/panel/Panel.tsx`, `src/app/panel/agentes/*`, `src/components/app/*`, `src/app/pruebalo/page.tsx` (marco del dashboard; el chat dentro lo pone el Grupo 2), `src/lib/demo-dashboard.ts` (nuevo, datos de ejemplo), `src/estilos/dashboard.css` (nuevo) |
 
 `/vista-3d` y `/opciones` (páginas de prueba, sin índice) se quedan; solo heredan la casa nueva.
 
@@ -115,3 +116,15 @@ solo opacidad. Scroll suave (Lenis) se queda.
 - Paso 6: 2 revisores por grupo (12), que no construyeron nada.
 - Paso 7: 1 integrador.
 - Paso 8: 3 revisores nuevos por ronda, hasta 4 rondas.
+
+## Actualización (8 oct): el dashboard
+
+Decisión del dueño: el **panel** y **`/pruebalo`** se vuelven un dashboard con la arquitectura del dashboard de GitHub y el refinamiento de Apple (ver `diseno/guia.md` → "Actualización: dashboard"). Acento azul, oscuro primero.
+
+- **Arquitecto (Paso 4b):** actualiza la base: tokens (azul, superficies y textos del dashboard en oscuro y claro, radios 8/12/14/16, sombras de lo que flota, pila tipográfica del sistema para producto), y componentes nuevos: `Menu` desplegable (clic afuera, Esc, flechas, animación), `Avatar`, `Insignia` (contadores y estados), `Buscador` redondo con atajo "/", `Cajon` (drawer móvil), `Kbd`, `PuntoEstado`, `BarraProgreso`, más los íconos que pidieron los grupos 1 y 2 y los "pedidos a la base" de sus entregas (indicador "escribiendo…" compartido, tonos de hover/activo, radio de burbuja, tamaños de avatar).
+- **Grupo 7 · Dashboard (5 trabajadores, nuevo):** el armazón del dashboard (barra superior, menú lateral, columna derecha, pie, cajón en celular, menú de perfil y menú de acciones rápidas) y la vista **Resumen** (bienvenida, pestañas, línea de tiempo de actividad de los agentes, agentes fijados, conversaciones recientes); en `/panel` con datos reales y estados vacíos, y en `/pruebalo` con datos de ejemplo de una clínica. La vista **Conversaciones** del dashboard usa el chat ganador del Grupo 2.
+- **Grupo 2 · Chat:** sus 5 propuestas ya están; los revisores las califican pensando también en que el chat vivirá dentro del dashboard.
+- **Grupo 3 · Agentes:** además de lo público, la vista **Agentes** del dashboard (`/panel/agentes`) pasa al Grupo 7; el Grupo 3 conserva fichas, personajes y páginas públicas.
+- **Grupo 6 · Estructura:** ya no lleva el panel; se queda con barra y pie públicos, modo claro/oscuro, celular y `/entrar`.
+- Orden de trabajo: revisores del Grupo 2 y arquitecto 4b → Grupo 7 → Grupo 3 → Grupo 4 → Grupo 5 → Grupo 6 → integración.
+- Total de trabajadores: 33 (se agregan 5 del Grupo 7); revisores de grupo: 14.

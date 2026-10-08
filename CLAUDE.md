@@ -22,6 +22,13 @@ español sencillo.
 
 **Prioridad del dueño: que se vea como el sitio de GitHub.** El estilo se respeta tal cual; lo propio de Atendel es el contenido (agentes, conversaciones, personajes).
 
+**Dirección vigente (8 oct, palabras del dueño: "quiero literalmente GitHub, algo profesional que no se vea genérico… como el GitHub dashboard"):**
+- El **panel** (`/panel/*`) y **`/pruebalo`** son un dashboard con la arquitectura de información del dashboard de GitHub (barra superior fija con buscador, menú lateral, actividad al centro, columna derecha) y el refinamiento visual de Apple (`diseno/apple/DESIGN.md`): aire, bordes suaves, tipografía limpia, esquinas redondeadas, sombras mínimas. `/pruebalo` lo muestra con datos de ejemplo.
+- El **sitio público** se queda con el estilo GitHub de su portada, afinado con Apple.
+- **Acento azul** tipo Apple/GitHub, solo donde hace falta; los colores de los 4 agentes viven en sus personajes.
+- **Oscuro primero**, con modo claro elegante como opción.
+- Detalle completo en `diseno/guia.md` ("Actualización: dashboard").
+
 La casa actual es el estilo de GitHub: `diseno/github/` (DESIGN.md, tokens.json,
 theme.css, variables.css) y el resumen con contradicciones resueltas en
 `diseno/guia.md`. **Léelos antes de tocar cualquier cosa visual.** El plan de
@@ -45,6 +52,7 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 9. El **modo claro era solo blanco y negro**, sin matices. → Usar grises cálidos y superficies secundarias (#f6f8fa), no solo #fff y #000.
 10. (Escena 3D) Transiciones entre figuras que **cruzaban la pantalla en desorden** y un **"agujero negro"/círculo** visible. → Morphs cortos y ordenados espacialmente; nada de cascarones de polvo con hueco.
 11. (Escena 3D) **Demasiados fragmentos opacaban la pantalla.** → Pocas partículas sueltas; el texto siempre legible.
+12. (8 oct) **"No quiero ya nada genérico… quiero literalmente GitHub, algo profesional"; "no idéntico, pero parecido; como el GitHub dashboard".** → La app se organiza como el dashboard de GitHub (no como página de marketing) y se pule con el lenguaje de Apple. Nada de layouts de plantilla: densidad útil, jerarquía clara, datos realistas de una clínica.
 
 ### Lo que se aprendió del historial (git log)
 - Hubo más de 10 rediseños (editorial "título de cine", "cuarto oscuro" nogal y crema, cuaderno de papel cálido, Dala negro/violeta/ámbar, escena 3D). Los que se rechazaron cambiaban el estilo pero no la composición: se sentían como la misma página con otra piel.

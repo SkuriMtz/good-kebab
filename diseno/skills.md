@@ -12,13 +12,15 @@ aplican a su parte antes de empezar.
 | **transitions-dev** | Grupos 3, 4, 5 y 6 | Recetas probadas de pestañas deslizantes, acordeón, revelado de textos, tooltip y menú. **Los tiempos y curvas se cambian por los de `diseno/guia.md`** (0.2s/0.4s, ease y cubic-bezier(0.16, 1, 0.3, 1)). |
 | **animate** | Grupos 1 y 2 | Decidir si algo se anima, con qué propiedad y cómo se interrumpe: halo, escena 3D, mensajes del chat, "escribiendo…". |
 | **mobile-native** | Todos los grupos, sobre todo el 6 | Celular: 100dvh, inputs que no hacen zoom, tap highlight, hover pegado, zona segura del notch. |
+| **apple-design** | Arquitecto 4b, Grupo 7 y todos los grupos que sigan | (Agregada el 8 oct, al pedir el dueño el refinamiento de Apple) Materiales, profundidad, tipografía, movimiento y retroalimentación al estilo Apple para web. |
+| **dataviz** | Grupo 7 | (Agregada el 8 oct) Métricas rápidas, barra de uso del plan y cualquier número o gráfica pequeña del dashboard. |
 | **threejs-shaders** | Grupo 1 | Recolorear y bajar el brillo de la escena 3D de partículas para usarla como fondo de la portada. |
 
 ## Las que se dejan fuera y por qué
 - **21st-ai, 21st-cli-use, 21st-ui-build, 21st-ui-explore, 21st-ui-review, 21st-registry, 21st-design-sync**: dependen del catálogo y la CLI de 21st.dev (con cuenta). Traen componentes de catálogo: justo el "aspecto por defecto de librería" que hay que evitar.
 - **ui-styling** (shadcn/Radix), **pick-ui-library**: el proyecto no usa shadcn y no se va a meter otra librería de componentes.
-- **design, brand, banner-design, slides, dataviz**: logos, banners, presentaciones y gráficas; no hay nada de eso en este trabajo (el logo de Atendel ya existe y no se cambia).
-- **apple-design**: es otro lenguaje visual (el de Apple); mezclarlo con la casa de GitHub la volvería incoherente.
+- **design, brand, banner-design, slides**: logos, banners, presentaciones y gráficas; no hay nada de eso en este trabajo (el logo de Atendel ya existe y no se cambia).
+- ~~apple-design~~: se dejó fuera al principio; el 8 oct el dueño pidió el refinamiento de Apple y ahora se usa.
 - **transitions-polish**: ajusta movimiento a la escala de tokens de transitions.dev; aquí manda la escala de tiempos de GitHub.
 - **animation-vocabulary, find-animation-opportunities, improve-animations, review-animations**: son de consulta o auditoría de movimiento; el movimiento de esta casa es mínimo y ya está definido en la guía.
 - **break-ui**: sirve para probar datos extremos en componentes de datos; los revisores ya revisan textos largos y celular con sus criterios.

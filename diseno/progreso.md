@@ -6,7 +6,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 ## Estado actual / qué sigue
 
-- Paso 4 terminado (commit d4f4a7c). Grupo 1 completo: gana G1-T4 (ver `diseno/revisiones/paso6/g1-resultado.md`). Grupo 2: T1, T2, T3 y T5 entregados; G2-T4 trabajando. Grupo 3 lanzado el 2026-10-07 19:04 UTC (worktrees `/home/user/wt/g3-t1…t5`, ramas `prop/g3-t1…t5`). Siguiente: revisores del G2 cuando entregue G2-T4.
+- **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero; guía de Apple en `diseno/apple/DESIGN.md`). Grupo 1 completo (gana G1-T4). Grupo 2: 5 propuestas entregadas. Grupo 3: se lanzó pero se detuvo por el límite antes de escribir código; se relanza después del Grupo 7 sobre la base actualizada. Siguiente: arquitecto 4b + revisores del Grupo 2, luego Grupo 7.
 
 ## Paso 0 — Archivos y respaldo
 
@@ -38,7 +38,13 @@ Rama de trabajo principal: `rediseno-11`.
 - [x] 4.3 Componentes base: botones, tarjeta de vidrio, input, pestañas en píldora, etiqueta, marco de navegador, contenedor de sección — **2026-10-05 06:27 UTC** — evidencia: `src/components/base/` (10 archivos), `src/components/FormularioLista.tsx`, muestrario `/base`, capturas `diseno/capturas/paso4/` (24)
 - [x] 4.4 Commit de la base (hash anotado) — **2026-10-05 06:27 UTC** — evidencia: commit `d4f4a7c` en `rediseno-11` (en origin)
 
-## Paso 5 — Grupos de trabajadores (28 propuestas)
+## Paso 4b — Arquitecto: base actualizada para el dashboard (8 oct)
+
+- [ ] 4b.1 Tokens del dashboard (azul, oscuro/claro, radios, sombras, pila tipográfica de producto) y pedidos a la base de G1/G2
+- [ ] 4b.2 Componentes nuevos (Menu, Avatar, Insignia, Buscador, Cajon, Kbd, PuntoEstado, BarraProgreso, íconos) en el muestrario `/base`
+- [ ] 4b.3 Commit de la base actualizada (hash anotado) y capturas en `diseno/capturas/paso4b/`
+
+## Paso 5 — Grupos de trabajadores (33 propuestas)
 
 Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/capturas/paso5/gN-tM/` (1440 y 390px).
 
@@ -88,6 +94,14 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [ ] G6-T3 · rama `prop/g6-t3` · capturas `diseno/capturas/paso5/g6-t3/`
 - [ ] G6-T4 · rama `prop/g6-t4` · capturas `diseno/capturas/paso5/g6-t4/`
 
+### Grupo 7 — Dashboard (5 trabajadores, agregado el 8 oct): armazón del dashboard y vista Resumen en /panel y /pruebalo
+
+- [ ] G7-T1 · rama `prop/g7-t1` · capturas `diseno/capturas/paso5/g7-t1/`
+- [ ] G7-T2 · rama `prop/g7-t2` · capturas `diseno/capturas/paso5/g7-t2/`
+- [ ] G7-T3 · rama `prop/g7-t3` · capturas `diseno/capturas/paso5/g7-t3/`
+- [ ] G7-T4 · rama `prop/g7-t4` · capturas `diseno/capturas/paso5/g7-t4/`
+- [ ] G7-T5 · rama `prop/g7-t5` · capturas `diseno/capturas/paso5/g7-t5/`
+
 ## Paso 6 — Elección de los mejores (2 revisores por grupo)
 
 - [x] G1 revisor A → `diseno/revisiones/paso6/g1-revisor-a.md` — **2026-10-06 19:31 UTC** — evidencia: `diseno/revisiones/paso6/g1-revisor-a.md` (gana G1-T3, 8.17)
@@ -108,10 +122,13 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [ ] G6 revisor A → `diseno/revisiones/paso6/g6-revisor-a.md`
 - [ ] G6 revisor B → `diseno/revisiones/paso6/g6-revisor-b.md`
 - [ ] G6 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g6-resultado.md`
+- [ ] G7 revisor A → `diseno/revisiones/paso6/g7-revisor-a.md`
+- [ ] G7 revisor B → `diseno/revisiones/paso6/g7-revisor-b.md`
+- [ ] G7 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g7-resultado.md`
 
 ## Paso 7 — Integrador
 
-- [ ] 7.1 Juntar las 6 propuestas ganadoras en `rediseno-11`
+- [ ] 7.1 Juntar las 7 propuestas ganadoras en `rediseno-11`
 - [ ] 7.2 Incorporar las mejores ideas anotadas
 - [ ] 7.3 Unificar ritmo, animaciones, tono y transiciones
 - [ ] 7.4 Ramas de todas las propuestas conservadas (en local y en origin)
