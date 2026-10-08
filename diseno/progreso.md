@@ -107,7 +107,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [x] G1 revisor A → `diseno/revisiones/paso6/g1-revisor-a.md` — **2026-10-06 19:31 UTC** — evidencia: `diseno/revisiones/paso6/g1-revisor-a.md` (gana G1-T3, 8.17)
 - [x] G1 revisor B → `diseno/revisiones/paso6/g1-revisor-b.md` — **2026-10-07 13:59 UTC** — evidencia: `diseno/revisiones/paso6/g1-revisor-b.md` (gana G1-T4, 8.17) + 40 capturas en `diseno/capturas/paso6/g1-revisor-b/`
 - [x] G1 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g1-resultado.md` — **2026-10-07 13:59 UTC** — evidencia: `diseno/revisiones/paso6/g1-resultado.md` — gana G1-T4 (8.00)
-- [ ] G2 revisor A → `diseno/revisiones/paso6/g2-revisor-a.md`
+- [x] G2 revisor A → `diseno/revisiones/paso6/g2-revisor-a.md` — **2026-10-08 01:07 UTC** — evidencia: `diseno/revisiones/paso6/g2-revisor-a.md` (gana G2-T4, 8.33)
 - [ ] G2 revisor B → `diseno/revisiones/paso6/g2-revisor-b.md`
 - [ ] G2 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g2-resultado.md`
 - [ ] G3 revisor A → `diseno/revisiones/paso6/g3-revisor-a.md`
