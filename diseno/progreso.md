@@ -101,7 +101,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [x] G7-T2 · rama `prop/g7-t2` · capturas `diseno/capturas/paso5/g7-t2/` — **2026-10-14 14:11 UTC** — evidencia: commit a45526a en origin/prop/g7-t2 ("Propuesta G7-T2: dashboard 'el GitHub que respira'"), 70 capturas, entrega `diseno/entregas/g7-t2.md`; lint y build pasan; worktree limpio (ruta temporal del panel borrada)
 - [ ] G7-T3 · rama `prop/g7-t3` · capturas `diseno/capturas/paso5/g7-t3/`
 - [ ] G7-T4 · rama `prop/g7-t4` · capturas `diseno/capturas/paso5/g7-t4/`
-- [ ] G7-T5 · rama `prop/g7-t5` · capturas `diseno/capturas/paso5/g7-t5/`
+- [x] G7-T5 · rama `prop/g7-t5` · capturas `diseno/capturas/paso5/g7-t5/` — **2026-10-14 20:31 UTC** — evidencia: commit 3f2c25f en origin/prop/g7-t5 ("Propuesta G7-T5: dashboard de GitHub que se maneja con el teclado o con el pulgar"), 78 capturas, entrega `diseno/entregas/g7-t5.md`; lint y build pasan; worktree limpio (ruta temporal del panel borrada)
 
 ## Paso 6 — Elección de los mejores (2 revisores por grupo)
 
