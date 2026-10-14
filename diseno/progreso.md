@@ -7,7 +7,7 @@ Rama de trabajo principal: `rediseno-11`.
 ## Estado actual / qué sigue
 
 - **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero). Grupo 1 completo (gana G1-T4). Grupo 2 completo (gana G2-T4). Base 4b lista (commit 7525f6d). Grupo 7 (dashboard) lanzado el 2026-10-08 01:30 UTC (worktrees `/home/user/wt/g7-t1…t5`). Después: revisores G7, luego Grupo 3, 4, 5, 6.
-- **Interrupciones del Grupo 7 por límite de uso** (el trabajo de cada uno sigue en su worktree, sin perderse): límite de sesión el 8 oct (reanudados 21:04 UTC); otro límite de sesión el 8 oct ~21:10 UTC (reanudados 9 oct 03:39 UTC); límite semanal el 9 oct ~03:40 UTC (se reinició el 13 oct 18:00 UTC; reanudados 14 oct 04:28 UTC); límite de sesión el 14 oct ~05:00 UTC (reanudados 14 oct 13:53 UTC). Mientras tanto se dejaron listas las instrucciones de los revisores del Grupo 7 y de los trabajadores del Grupo 3.
+- **Interrupciones del Grupo 7 por límite de uso** (el trabajo de cada uno sigue en su worktree, sin perderse): límite de sesión el 8 oct (reanudados 21:04 UTC); otro límite de sesión el 8 oct ~21:10 UTC (reanudados 9 oct 03:39 UTC); límite semanal el 9 oct ~03:40 UTC (se reinició el 13 oct 18:00 UTC; reanudados 14 oct 04:28 UTC); límite de sesión el 14 oct ~05:00 UTC (reanudados 14 oct 13:53 UTC); límite de sesión el 14 oct ~14:15 UTC con G7-T1, T3, T4 y T5 ya con capturas hechas (reanudados 14 oct 20:31 UTC). Mientras tanto se dejaron listas las instrucciones de los revisores del Grupo 7 y de los trabajadores del Grupo 3.
 
 ## Paso 0 — Archivos y respaldo
 
@@ -98,7 +98,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 ### Grupo 7 — Dashboard (5 trabajadores, agregado el 8 oct): armazón del dashboard y vista Resumen en /panel y /pruebalo
 
 - [ ] G7-T1 · rama `prop/g7-t1` · capturas `diseno/capturas/paso5/g7-t1/`
-- [ ] G7-T2 · rama `prop/g7-t2` · capturas `diseno/capturas/paso5/g7-t2/`
+- [x] G7-T2 · rama `prop/g7-t2` · capturas `diseno/capturas/paso5/g7-t2/` — **2026-10-14 14:11 UTC** — evidencia: commit a45526a en origin/prop/g7-t2 ("Propuesta G7-T2: dashboard 'el GitHub que respira'"), 70 capturas, entrega `diseno/entregas/g7-t2.md`; lint y build pasan; worktree limpio (ruta temporal del panel borrada)
 - [ ] G7-T3 · rama `prop/g7-t3` · capturas `diseno/capturas/paso5/g7-t3/`
 - [ ] G7-T4 · rama `prop/g7-t4` · capturas `diseno/capturas/paso5/g7-t4/`
 - [ ] G7-T5 · rama `prop/g7-t5` · capturas `diseno/capturas/paso5/g7-t5/`
