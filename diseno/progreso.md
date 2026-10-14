@@ -7,7 +7,7 @@ Rama de trabajo principal: `rediseno-11`.
 ## Estado actual / qué sigue
 
 - **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero). Grupo 1 completo (gana G1-T4). Grupo 2 completo (gana G2-T4). Base 4b lista (commit 7525f6d). Grupo 7 (dashboard) lanzado el 2026-10-08 01:30 UTC (worktrees `/home/user/wt/g7-t1…t5`). Después: revisores G7, luego Grupo 3, 4, 5, 6.
-- **Interrupciones del Grupo 7 por límite de uso** (el trabajo de cada uno sigue en su worktree, sin perderse): límite de sesión el 8 oct (reanudados 21:04 UTC); otro límite de sesión el 8 oct ~21:10 UTC (reanudados 9 oct 03:39 UTC); límite semanal el 9 oct ~03:40 UTC (se reinició el 13 oct 18:00 UTC; reanudados 14 oct 04:28 UTC). Mientras tanto se dejaron listas las instrucciones de los revisores del Grupo 7 y de los trabajadores del Grupo 3.
+- **Interrupciones del Grupo 7 por límite de uso** (el trabajo de cada uno sigue en su worktree, sin perderse): límite de sesión el 8 oct (reanudados 21:04 UTC); otro límite de sesión el 8 oct ~21:10 UTC (reanudados 9 oct 03:39 UTC); límite semanal el 9 oct ~03:40 UTC (se reinició el 13 oct 18:00 UTC; reanudados 14 oct 04:28 UTC); límite de sesión el 14 oct ~05:00 UTC (reanudados 14 oct 13:53 UTC). Mientras tanto se dejaron listas las instrucciones de los revisores del Grupo 7 y de los trabajadores del Grupo 3.
 
 ## Paso 0 — Archivos y respaldo
 
