@@ -128,3 +128,11 @@ Decisión del dueño: el **panel** y **`/pruebalo`** se vuelven un dashboard con
 - **Grupo 6 · Estructura:** ya no lleva el panel; se queda con barra y pie públicos, modo claro/oscuro, celular y `/entrar`.
 - Orden de trabajo: revisores del Grupo 2 y arquitecto 4b → Grupo 7 → Grupo 3 → Grupo 4 → Grupo 5 → Grupo 6 → integración.
 - Total de trabajadores: 33 (se agregan 5 del Grupo 7); revisores de grupo: 14.
+
+## Actualización (14 oct): ahorro de límite de uso
+
+El dueño pidió gastar menos del límite semanal y del de 5 horas ("lo que pienses que sea lo mejor, pero mantente constante"). Desde aquí, y para todo lo que falta:
+- **Grupos 3, 4, 5 y 6: 3 trabajadores cada uno** (12 en vez de 18). Grupo 3 conserva las direcciones T1 (pestañas como la portada de GitHub), T2 (perfil de agente como los perfiles de GitHub) y T3 (`/agentes` como GitHub Docs, antes llamada T5).
+- **Revisores de los grupos 3 a 6:** A y B califican con las capturas y el código de cada trabajador; no levantan cada propuesta ni hacen capturas propias. (Los del Grupo 7 ya trabajaban completos.)
+- **Paso 8: 2 revisores nuevos por ronda** (en vez de 3), hasta 4 rondas, meta ≥ 9 en todo.
+- Totales: 27 trabajadores (G1 ×5, G2 ×5, G7 ×5, G3–G6 ×3); revisores de grupo: 14 (2 por grupo); no se juntan grupos.

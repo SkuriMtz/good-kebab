@@ -9,6 +9,8 @@ Rama de trabajo principal: `rediseno-11`.
 - **8 oct: el dueño cambió la dirección** (dashboard tipo GitHub + Apple en panel y Pruébalo; acento azul; oscuro primero). Grupo 1 completo (gana G1-T4). Grupo 2 completo (gana G2-T4). Base 4b lista (commit 7525f6d). Grupo 7 (dashboard) lanzado el 2026-10-08 01:30 UTC; las 5 propuestas entregadas el 2026-10-14 (T2 14:11, T5 20:31, T1 20:33, T3 20:34, T4 20:35 UTC). Revisores G7 lanzados el 2026-10-14 20:37 UTC. Después: Grupo 3, 4, 5, 6.
 - **Interrupciones del Grupo 7 por límite de uso** (el trabajo de cada uno sigue en su worktree, sin perderse): límite de sesión el 8 oct (reanudados 21:04 UTC); otro límite de sesión el 8 oct ~21:10 UTC (reanudados 9 oct 03:39 UTC); límite semanal el 9 oct ~03:40 UTC (se reinició el 13 oct 18:00 UTC; reanudados 14 oct 04:28 UTC); límite de sesión el 14 oct ~05:00 UTC (reanudados 14 oct 13:53 UTC); límite de sesión el 14 oct ~14:15 UTC con G7-T1, T3, T4 y T5 ya con capturas hechas (reanudados 14 oct 20:31 UTC). Mientras tanto se dejaron listas las instrucciones de los revisores del Grupo 7 y de los trabajadores del Grupo 3.
 
+- **14 oct: el dueño pidió gastar menos del límite semanal y del de 5 horas** ("no me gastes tanto… lo que pienses que sea lo mejor, pero mantente constante"). Recortes decididos y aplicados igual a todo lo que falta: (1) grupos 3 a 6 con 3 trabajadores cada uno (12 en vez de 18); (2) los revisores A y B de los grupos 3 a 6 califican con las capturas y el código de cada trabajador, sin levantar cada propuesta ni hacer capturas propias (los dos revisores del Grupo 7 ya estaban trabajando y siguen completos); (3) revisión final con 2 revisores por ronda en vez de 3 (se mantiene el máximo de 4 rondas y la meta de ≥ 9). No se juntan los grupos 4 y 5.
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)
@@ -65,35 +67,35 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [x] G2-T4 · rama `prop/g2-t4` · capturas `diseno/capturas/paso5/g2-t4/` — **2026-10-07 19:12 UTC** — evidencia: commit `e1e005e` en `prop/g2-t4` (origin), 38 capturas, `diseno/entregas/g2-t4.md`
 - [x] G2-T5 · rama `prop/g2-t5` · capturas `diseno/capturas/paso5/g2-t5/` — **2026-10-07 14:15 UTC** — evidencia: commit `039e7bc` en `prop/g2-t5` (origin), 22 capturas, `diseno/entregas/g2-t5.md`
 
-### Grupo 3 — Agentes (5 trabajadores): pestañas de los 4 agentes, personajes (blobs) y páginas de cada agente
+### Grupo 3 — Agentes (3 trabajadores; eran 5): pestañas de los 4 agentes, personajes (blobs) y páginas de cada agente
 
 - [ ] G3-T1 · rama `prop/g3-t1` · capturas `diseno/capturas/paso5/g3-t1/`
 - [ ] G3-T2 · rama `prop/g3-t2` · capturas `diseno/capturas/paso5/g3-t2/`
 - [ ] G3-T3 · rama `prop/g3-t3` · capturas `diseno/capturas/paso5/g3-t3/`
-- [ ] G3-T4 · rama `prop/g3-t4` · capturas `diseno/capturas/paso5/g3-t4/`
-- [ ] G3-T5 · rama `prop/g3-t5` · capturas `diseno/capturas/paso5/g3-t5/`
+- [-] ~~G3-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
+- [-] ~~G3-T5~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 
-### Grupo 4 — Secciones informativas (5 trabajadores): Qué es Atendel, Cómo funciona, Para quién es y Seguridad
+### Grupo 4 — Secciones informativas (3 trabajadores; eran 5): Qué es Atendel, Cómo funciona, Para quién es y Seguridad
 
 - [ ] G4-T1 · rama `prop/g4-t1` · capturas `diseno/capturas/paso5/g4-t1/`
 - [ ] G4-T2 · rama `prop/g4-t2` · capturas `diseno/capturas/paso5/g4-t2/`
 - [ ] G4-T3 · rama `prop/g4-t3` · capturas `diseno/capturas/paso5/g4-t3/`
-- [ ] G4-T4 · rama `prop/g4-t4` · capturas `diseno/capturas/paso5/g4-t4/`
-- [ ] G4-T5 · rama `prop/g4-t5` · capturas `diseno/capturas/paso5/g4-t5/`
+- [-] ~~G4-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
+- [-] ~~G4-T5~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 
-### Grupo 5 — Conversión (4 trabajadores): Precios, Preguntas frecuentes, Lista de espera, Contacto y CTA final
+### Grupo 5 — Conversión (3 trabajadores; eran 4): Precios, Preguntas frecuentes, Lista de espera, Contacto y CTA final
 
 - [ ] G5-T1 · rama `prop/g5-t1` · capturas `diseno/capturas/paso5/g5-t1/`
 - [ ] G5-T2 · rama `prop/g5-t2` · capturas `diseno/capturas/paso5/g5-t2/`
 - [ ] G5-T3 · rama `prop/g5-t3` · capturas `diseno/capturas/paso5/g5-t3/`
-- [ ] G5-T4 · rama `prop/g5-t4` · capturas `diseno/capturas/paso5/g5-t4/`
+- [-] ~~G5-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 
-### Grupo 6 — Estructura (4 trabajadores): barra de navegación, pie, modo claro/oscuro y adaptación a celular
+### Grupo 6 — Estructura (3 trabajadores; eran 4): barra de navegación, pie, modo claro/oscuro y adaptación a celular
 
 - [ ] G6-T1 · rama `prop/g6-t1` · capturas `diseno/capturas/paso5/g6-t1/`
 - [ ] G6-T2 · rama `prop/g6-t2` · capturas `diseno/capturas/paso5/g6-t2/`
 - [ ] G6-T3 · rama `prop/g6-t3` · capturas `diseno/capturas/paso5/g6-t3/`
-- [ ] G6-T4 · rama `prop/g6-t4` · capturas `diseno/capturas/paso5/g6-t4/`
+- [-] ~~G6-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 
 ### Grupo 7 — Dashboard (5 trabajadores, agregado el 8 oct): armazón del dashboard y vista Resumen en /panel y /pruebalo
 
@@ -144,7 +146,7 @@ Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/pa
 - [ ] R1 capturas de todas las páginas
 - [ ] R1 revisor A (nuevo) → `diseno/revisiones/paso8/ronda-1-revisor-a.md`
 - [ ] R1 revisor B (nuevo) → `diseno/revisiones/paso8/ronda-1-revisor-b.md`
-- [ ] R1 revisor C (nuevo) → `diseno/revisiones/paso8/ronda-1-revisor-c.md`
+- [-] ~~R1 revisor C~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [ ] R1 correcciones de todo criterio < 9 (o: todos ≥ 9, no hace falta otra ronda)
 
 ### Ronda 2
@@ -152,7 +154,7 @@ Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/pa
 - [ ] R2 capturas de todas las páginas
 - [ ] R2 revisor A (nuevo) → `diseno/revisiones/paso8/ronda-2-revisor-a.md`
 - [ ] R2 revisor B (nuevo) → `diseno/revisiones/paso8/ronda-2-revisor-b.md`
-- [ ] R2 revisor C (nuevo) → `diseno/revisiones/paso8/ronda-2-revisor-c.md`
+- [-] ~~R2 revisor C~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [ ] R2 correcciones de todo criterio < 9 (o: todos ≥ 9, no hace falta otra ronda)
 
 ### Ronda 3
@@ -160,7 +162,7 @@ Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/pa
 - [ ] R3 capturas de todas las páginas
 - [ ] R3 revisor A (nuevo) → `diseno/revisiones/paso8/ronda-3-revisor-a.md`
 - [ ] R3 revisor B (nuevo) → `diseno/revisiones/paso8/ronda-3-revisor-b.md`
-- [ ] R3 revisor C (nuevo) → `diseno/revisiones/paso8/ronda-3-revisor-c.md`
+- [-] ~~R3 revisor C~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [ ] R3 correcciones de todo criterio < 9 (o: todos ≥ 9, no hace falta otra ronda)
 
 ### Ronda 4
@@ -168,7 +170,7 @@ Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/pa
 - [ ] R4 capturas de todas las páginas
 - [ ] R4 revisor A (nuevo) → `diseno/revisiones/paso8/ronda-4-revisor-a.md`
 - [ ] R4 revisor B (nuevo) → `diseno/revisiones/paso8/ronda-4-revisor-b.md`
-- [ ] R4 revisor C (nuevo) → `diseno/revisiones/paso8/ronda-4-revisor-c.md`
+- [-] ~~R4 revisor C~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [ ] R4 correcciones de todo criterio < 9 (o: todos ≥ 9, no hace falta otra ronda)
 
 - [ ] 8.L Lecciones nuevas de las revisiones agregadas a `CLAUDE.md`
