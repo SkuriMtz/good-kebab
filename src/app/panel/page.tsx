@@ -5,7 +5,8 @@ import { Panel } from "./Panel";
 
 export const metadata: Metadata = { title: "Panel" };
 
-export default async function PanelPage() {
+/** /panel: el Resumen del día. Con ?vista=correo, el correo con Clara (modo de prueba, Gmail e historial). */
+export default async function PanelPage({ searchParams }: { searchParams: { vista?: string } }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,5 +16,11 @@ export default async function PanelPage() {
   if (!user) redirect("/entrar");
 
   const proveedores = (user.app_metadata?.providers as string[] | undefined) ?? [];
-  return <Panel email={user.email ?? ""} conGoogle={proveedores.includes("google")} />;
+  return (
+    <Panel
+      email={user.email ?? ""}
+      conGoogle={proveedores.includes("google")}
+      vista={searchParams.vista === "correo" ? "correo" : "resumen"}
+    />
+  );
 }

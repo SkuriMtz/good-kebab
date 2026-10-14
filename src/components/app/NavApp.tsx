@@ -1,58 +1,22 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { claseBoton } from "../Buttons";
-import { Nav } from "../Nav";
-import { AGENTES_INFO } from "@/lib/agentes";
-import { createClient } from "@/lib/supabase/client";
-
-/** Secciones de la app (después de entrar). */
+/**
+ * Secciones de la app (después de entrar). Las mismas que el menú lateral
+ * del dashboard (src/components/dashboard/TableroPanel.tsx).
+ */
 export const NAV_APP = [
-  { href: "/panel/chat", label: "Hablar con mi equipo" },
-  { href: "/panel/agentes", label: "Mis agentes" },
-  { href: "/panel", label: "Correo con Clara" },
+  { href: "/panel", label: "Resumen" },
+  { href: "/panel/chat", label: "Conversaciones" },
+  { href: "/panel/agentes", label: "Agentes" },
+  { href: "/panel?vista=correo", label: "Correo con Clara" },
 ];
 
-const REPARTO = AGENTES_INFO.map((a) => ({
-  id: a.id,
-  nombre: a.nombre,
-  papel: `${a.area} · ${a.abarca}`,
-  href: `/panel/chat?agente=${a.id}`,
-}));
-
-/** Barra de la app: tu correo y "Salir" a la derecha; lo mismo dentro del menú en celular. */
-export function NavApp({ email }: { email: string }) {
-  const router = useRouter();
-
-  async function salir() {
-    await createClient().auth.signOut();
-    router.replace("/");
-    router.refresh();
-  }
-
-  return (
-    <Nav
-      items={NAV_APP}
-      homeHref="/panel/chat"
-      reparto={REPARTO}
-      desktopRight={
-        <>
-          <span className="max-w-[200px] truncate text-[0.8125rem] text-tenue" title={email}>
-            {email}
-          </span>
-          <button type="button" className={claseBoton("texto")} onClick={salir}>
-            Salir
-          </button>
-        </>
-      }
-      mobileBottom={
-        <>
-          <p className="truncate text-[0.875rem] text-tenue">{email}</p>
-          <button type="button" className={`${claseBoton("texto", "grande")} w-full !justify-start !px-0`} onClick={salir}>
-            Cerrar sesión
-          </button>
-        </>
-      }
-    />
-  );
+/**
+ * Antes era la barra de la app. Desde el dashboard, la barra, el menú
+ * lateral, tu cuenta y "Cerrar sesión" los pone el layout del panel
+ * (src/app/panel/layout.tsx) para todas sus páginas, así que aquí ya no se
+ * pinta nada. Se conserva para que las páginas que lo usan (como el chat)
+ * no tengan que cambiar.
+ */
+export function NavApp(props: { email: string }) {
+  void props;
+  return null;
 }

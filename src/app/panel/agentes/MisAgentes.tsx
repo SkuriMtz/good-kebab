@@ -1,30 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useState, type CSSProperties } from "react";
-import { Arrow, Check, claseBoton, Spinner } from "@/components/Buttons";
-import { NavApp } from "@/components/app/NavApp";
+import { useState } from "react";
 import { Uso } from "@/components/app/Uso";
-import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
+import { Boton } from "@/components/base/Boton";
+import { Icono } from "@/components/base/Iconos";
+import { Insignia } from "@/components/base/Insignia";
+import { PuntoEstado } from "@/components/base/PuntoEstado";
+import { EncabezadoVista, TarjetaAgente } from "@/components/dashboard/Agentes";
+import { PieMinimo } from "@/components/dashboard/Columna";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 
-function Candado() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" rx="1.5" stroke="currentColor" />
-      <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
-    </svg>
-  );
-}
-
 /**
  * "Mis agentes": la persona arma su equipo. En Free solo trabaja Clara;
  * en One y Max elige entre los agentes de su plan (al menos uno).
+ * El plan no se cambia desde aquí: solo se ve y se consulta en Precios.
  */
 export function MisAgentes({
-  email,
   userId,
   planId,
   elegidosIniciales,
@@ -67,111 +60,111 @@ export function MisAgentes({
   }
 
   return (
-    <>
-      <NavApp email={email} />
-      <main className="contenedor pb-24 pt-10 sm:pt-12 lg:pt-16">
-        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-7">
-            <p className="t-etiqueta">{plan.nombre}</p>
-            <h1 className="t-display mt-[var(--spacing-18)]">Tu equipo.</h1>
-            <p className="t-editorial mt-4 max-w-[540px]">
-              {libre
-                ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
-                : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."}
-            </p>
-          </div>
-          <div className="lg:col-span-5">
-            <Uso usados={usados} plan={plan} />
-          </div>
+    <div className="vista">
+      <EncabezadoVista
+        titulo="Tu equipo"
+        texto={
+          libre
+            ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
+            : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."
+        }
+        extra={<Insignia tono="azul">{plan.nombre}</Insignia>}
+      />
+
+      <section id="plan" className="tarjeta-app equipo__plan" aria-labelledby="plan-titulo">
+        <div className="equipo__plan-texto">
+          <h2 id="plan-titulo" className="t-app-mediano">
+            {plan.nombre}
+          </h2>
+          <p>{plan.resumen}</p>
         </div>
+        <Uso usados={usados} plan={plan} />
+      </section>
 
-        {error ? (
-          <p role="alert" className="mt-6 text-error">
-            {error}
-          </p>
-        ) : null}
+      {error ? (
+        <p role="alert" className="correo__error">
+          <Icono nombre="alerta" tam={16} />
+          {error}
+        </p>
+      ) : null}
 
-        <ul className="mt-10 grid gap-4 md:grid-cols-2">
-          {AGENTES_INFO.map((a) => {
-            const permitido = plan.agentes.includes(a.id);
-            const enEquipo = permitido && elegidos.includes(a.id);
-            return (
-              <li key={a.id} className="flex flex-col">
-                <div className="flex items-start justify-between gap-4">
-                  <span
-                    className={`marca-agente marca-agente--grande ${permitido ? "" : "opacity-60"}`}
-                    style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}
-                  >
-                    <Personaje agente={a.id} avatar />
+      <ul className="fichas">
+        {AGENTES_INFO.map((a) => {
+          const permitido = plan.agentes.includes(a.id);
+          const enEquipo = permitido && elegidos.includes(a.id);
+          return (
+            <TarjetaAgente
+              key={a.id}
+              agente={a.id}
+              apagado={!enEquipo}
+              marcada={enEquipo && libre}
+              estado={
+                !permitido ? (
+                  <span className="lateral__bloqueado">
+                    <Icono nombre="candado" tam={16} />
+                    Con {planMinimo(a.id).nombre}
                   </span>
+                ) : enEquipo ? (
+                  <PuntoEstado tono="exito" etiqueta="En tu equipo" mostrarEtiqueta />
+                ) : (
+                  <PuntoEstado tono="neutro" etiqueta="Fuera de tu equipo" mostrarEtiqueta />
+                )
+              }
+              acciones={
+                <>
                   {!permitido ? (
-                    <span className="pill">
-                      <Candado />
-                      Con {planMinimo(a.id).nombre}
-                    </span>
-                  ) : null}
-                </div>
-                <h2 className={`t-titulo mt-5 ${permitido ? "" : "!text-tenue"}`}>{a.nombre}</h2>
-                <p className="t-chico">{a.area}</p>
-                <p className="t-cuerpo mt-3">{a.lema}</p>
-                <p className="t-chico mt-2">{a.capacidades.join(" · ")}</p>
-                <div className="mt-auto flex flex-wrap items-center gap-3 pt-6">
-                  {!permitido ? (
-                    <Link href="/precios" className={claseBoton("suave")}>
+                    <Boton variante="sutil" tam="compacto" href="/precios">
                       Ver precios
-                    </Link>
+                    </Boton>
                   ) : libre ? (
-                    <button
-                      type="button"
-                      className={claseBoton(enEquipo ? "suave" : "borde")}
+                    <Boton
+                      variante={enEquipo ? "sutil" : "fantasma"}
+                      tam="compacto"
                       aria-pressed={enEquipo}
                       onClick={() => alternar(a.id)}
                       disabled={guardando !== null}
+                      cargando={guardando === a.id}
+                      icono={enEquipo ? <Icono nombre="check" tam={16} /> : <Icono nombre="mas" tam={16} />}
                     >
-                      {guardando === a.id ? <Spinner /> : enEquipo ? <Check className="h-4 w-4" /> : null}
-                      {enEquipo ? "En tu equipo" : "+ Agregar"}
-                    </button>
+                      {enEquipo ? "En tu equipo" : "Agregar"}
+                    </Boton>
                   ) : (
-                    <span className="pill pill--azul">
-                      <Check className="h-3.5 w-3.5" />
+                    <Insignia tono="azul" conPunto>
                       En tu equipo
-                    </span>
+                    </Insignia>
                   )}
                   {enEquipo ? (
-                    <Link href={`/panel/chat?agente=${a.id}`} className={claseBoton("primario")}>
-                      Hablar
-                      <Arrow />
-                    </Link>
+                    <Boton variante="fantasma" tam="compacto" href={`/panel/chat?agente=${a.id}`} flecha>
+                      Hablar con {a.nombre}
+                    </Boton>
                   ) : null}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </>
+              }
+            />
+          );
+        })}
+      </ul>
 
-        {plan.id !== "max" ? (
-          <div className="mt-8 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="t-cuerpo max-w-[600px]">
-              {plan.id === "free" ? (
-                <>
-                  Con <span className="font-semibold text-tinta">Atendel One</span> se suma Lola, que atiende tu WhatsApp y tus
-                  citas. Con <span className="font-semibold text-tinta">Atendel Max</span> tienes a los cuatro: Víctor trae de
-                  regreso a tus clientes e Iris se encarga de la oficina.
-                </>
-              ) : (
-                <>
-                  Con <span className="font-semibold text-tinta">Atendel Max</span> tienes a los cuatro: Víctor trae de regreso a
-                  tus clientes e Iris se encarga de la oficina.
-                </>
-              )}
-            </p>
-            <Link href="/precios" className={claseBoton("suave")}>
-              Ver precios
-              <Arrow />
-            </Link>
-          </div>
-        ) : null}
-      </main>
-    </>
+      {plan.id !== "max" ? (
+        <section className="tarjeta-app equipo__mas" aria-label="Lo que traen los otros planes">
+          <p>
+            {plan.id === "free" ? (
+              <>
+                Con <strong>Atendel One</strong> se suma Lola, que atiende tu WhatsApp y tus citas. Con <strong>Atendel Max</strong> tienes a los
+                cuatro: Víctor trae de regreso a tus clientes e Iris se encarga de la oficina.
+              </>
+            ) : (
+              <>
+                Con <strong>Atendel Max</strong> tienes a los cuatro: Víctor trae de regreso a tus clientes e Iris se encarga de la oficina.
+              </>
+            )}
+          </p>
+          <Boton variante="sutil" tam="compacto" href="/precios" flecha>
+            Ver precios
+          </Boton>
+        </section>
+      ) : null}
+      <PieMinimo />
+    </div>
   );
 }
