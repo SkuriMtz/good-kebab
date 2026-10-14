@@ -1,29 +1,31 @@
 import Link from "next/link";
+import { BarraProgreso } from "@/components/base/BarraProgreso";
 import type { Plan } from "@/lib/planes";
 
-/** Cuántos mensajes llevas este mes, con una barra que se va llenando. */
+const formato = new Intl.NumberFormat("es-MX");
+
+/**
+ * Cuántos mensajes llevas este mes, con la barra de progreso de la base
+ * (ámbar desde el 80%, rojo al tope; el color nunca va solo: hay texto).
+ * Lo usan "Agentes" del panel y la lista del chat (`compacto`).
+ * El plan no se cambia desde aquí: "Ver los planes" solo informa.
+ */
 export function Uso({ usados, plan, compacto = false }: { usados: number; plan: Plan; compacto?: boolean }) {
-  const proporcion = Math.min(1, usados / plan.mensajesMes);
-  const casi = proporcion >= 0.85;
+  const restantes = Math.max(0, plan.mensajesMes - usados);
   return (
-    <div>
-      <div className={`flex text-[0.8125rem] ${compacto ? "flex-col items-start gap-1" : "items-baseline justify-between gap-4"}`}>
-        <span className="text-tenue">
-          <span className={`font-semibold tabular-nums ${casi ? "text-error" : "text-tinta"}`}>{usados.toLocaleString("es-MX")}</span> de{" "}
-          {plan.mensajesMes.toLocaleString("es-MX")} mensajes este mes
-        </span>
-        {plan.id !== "max" ? (
-          <Link href="/precios" className="font-medium text-enlace hover:underline">
-            Mejorar plan
-          </Link>
-        ) : null}
-      </div>
-      <span className="uso__pista mt-2" aria-hidden="true">
-        <span
-          className={`uso__relleno${casi ? " uso__relleno--casi" : ""}`}
-          style={{ width: `${Math.max(proporcion * 100, usados > 0 ? 2 : 0)}%` }}
-        />
-      </span>
+    <div className={`uso${compacto ? " uso--compacto" : ""}`}>
+      <BarraProgreso
+        etiqueta="Mensajes este mes"
+        valor={usados}
+        max={plan.mensajesMes}
+        unidad="mensajes"
+        detalle={usados >= plan.mensajesMes ? "Llegaste al tope de tu plan este mes." : `Te quedan ${formato.format(restantes)}.`}
+      />
+      {plan.id !== "max" ? (
+        <Link href="/precios" className="dash-enlace dash-enlace--chico uso__planes">
+          Ver los planes
+        </Link>
+      ) : null}
     </div>
   );
 }

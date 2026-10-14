@@ -1,0 +1,2383 @@
+/*
+ * Dashboard de Atendel (/pruebalo y /panel). Dueño: Grupo 7 · Dashboard.
+ * Estructura del dashboard de GitHub, acabado de Apple, acento azul,
+ * oscuro primero. Todo vive dentro de .producto (globals.css), que pone
+ * los colores, la letra del sistema y los radios del producto en los dos
+ * modos. Aquí solo hay tokens de la base: var(--c-…), var(--spacing-…),
+ * var(--radio-app-…), var(--dur-…), var(--ease…). Prefijo: .dash-
+ */
+
+/* =====================================================================
+   1. ARMAZÓN: franja de ejemplo, barra superior, lateral, contenido, pie
+   ===================================================================== */
+
+.dash {
+  --alto-aviso: 0px;
+  --anillo: var(--c-fondo);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.dash:has(> .dash-demo) {
+  --alto-aviso: var(--alto-control-chico);
+}
+
+/* Saltar al contenido (aparece solo con el teclado) */
+.dash-saltar {
+  position: absolute;
+  top: var(--spacing-8);
+  left: var(--spacing-8);
+  z-index: 90;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-app-control);
+  background: var(--c-superficie);
+  box-shadow: var(--sombra-flotante);
+  color: var(--c-texto);
+  font-weight: var(--peso-app-medio);
+  opacity: 0;
+  transform: translateY(-150%);
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+.dash-saltar:focus {
+  opacity: 1;
+  transform: none;
+}
+
+/* Franja "Datos de ejemplo" (/pruebalo): una línea, sin competir con la barra */
+.dash-demo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  height: var(--alto-control-chico);
+  padding: 0 var(--orilla);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-fondo-2);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+  white-space: nowrap;
+}
+.dash-demo__icono {
+  flex-shrink: 0;
+  color: var(--c-accion-texto);
+}
+.dash-demo__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-demo__texto strong {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+@media (max-width: 767px) {
+  .dash-demo__mas {
+    display: none;
+  }
+}
+
+/* ---------- Barra superior: fija, translúcida (vidrio de Apple) ---------- */
+.dash-barra {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  height: var(--barra-app-h);
+  padding: 0 var(--spacing-12);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-barra);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.8);
+}
+@media (min-width: 640px) {
+  .dash-barra {
+    padding: 0 var(--spacing-16);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dash-barra {
+    background: var(--c-fondo);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+.dash-barra__inicio {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.dash-barra__fin {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+/* Los botones de la barra llevan contorno, como en el dashboard de GitHub */
+.dash-barra .boton-icono--compacto {
+  box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  border-radius: var(--radio-app-control);
+}
+@media (min-width: 1024px) {
+  .dash-barra__cajon {
+    display: none;
+  }
+}
+.dash-barra .dash-barra__buscador.dash-busca {
+  display: none;
+}
+@media (min-width: 768px) {
+  .dash-barra .dash-barra__buscador.dash-busca {
+    display: block;
+    width: var(--ancho-app-columna);
+  }
+  .dash-barra__lupa {
+    display: none;
+  }
+}
+.dash-barra__division {
+  display: none;
+  width: 1px;
+  height: var(--spacing-20);
+  background: var(--c-borde-fuerte);
+}
+@media (min-width: 768px) {
+  .dash-barra__division {
+    display: block;
+  }
+}
+.dash-barra__perfil {
+  margin-left: var(--spacing-4);
+}
+
+/* Miga: logo de Atendel / sección */
+.dash-miga {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.dash-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-4);
+  margin: calc(-1 * var(--spacing-4));
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+  letter-spacing: var(--tracking-app);
+}
+.dash-logo__marca {
+  flex-shrink: 0;
+  width: var(--avatar-24);
+  height: var(--avatar-24);
+}
+@media (max-width: 639px) {
+  .dash-logo__nombre {
+    display: none;
+  }
+}
+.dash-miga__separador {
+  color: var(--c-terciario);
+}
+.dash-miga__seccion {
+  overflow: hidden;
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Botón "+ ▾" con contorno (crear) */
+.dash-crear {
+  height: var(--alto-control-compacto);
+  gap: var(--spacing-4);
+  padding: 0 var(--spacing-8);
+  box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  color: var(--c-texto-2);
+}
+.dash-crear[aria-expanded="true"] {
+  color: var(--c-texto);
+}
+@media (max-width: 639px) {
+  .dash-crear__chevron {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .dash-crear::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--alto-control-compacto) - var(--spacing-44)) / 2) calc(-1 * var(--spacing-4));
+  }
+}
+
+/* Búsqueda en celular: la barra se vuelve el campo */
+.dash-barra__busqueda {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: 0 var(--spacing-12);
+  background: var(--c-superficie);
+  animation: aparecer var(--dur-micro) var(--ease);
+}
+.dash-barra__busqueda-campo {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Paneles flotantes de la barra en celular: a lo ancho, debajo de la barra */
+@media (max-width: 639px) {
+  .dash-barra .menu--fin .menu__panel.dash-avisos {
+    position: fixed;
+    top: calc(var(--barra-app-h) + var(--spacing-8));
+    right: var(--spacing-8);
+    left: var(--spacing-8);
+    width: auto;
+    max-width: none;
+    transform-origin: top center;
+  }
+}
+
+/* ---------- Cuerpo: lateral + contenido ---------- */
+.dash-cuerpo {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1024px) {
+  .dash-cuerpo {
+    grid-template-columns: var(--ancho-app-lateral) minmax(0, 1fr);
+  }
+}
+.dash-lateral {
+  display: none;
+}
+/* La columna ocupa todo el alto (fondo y borde hasta abajo); su contenido
+   se queda pegado bajo la barra y se desplaza solo si no cabe. */
+@media (min-width: 1024px) {
+  .dash-lateral {
+    --anillo: var(--c-lateral);
+    display: block;
+    padding: 0 var(--spacing-12);
+    border-right: 1px solid var(--c-borde);
+    background: var(--c-lateral);
+  }
+  .dash-lateral > .dash-lateral__contenido {
+    position: sticky;
+    top: var(--barra-app-h);
+    max-height: calc(100dvh - var(--barra-app-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0 calc(-1 * var(--spacing-12));
+    padding: var(--spacing-16) var(--spacing-12) var(--spacing-32);
+    scrollbar-width: thin;
+  }
+}
+.cajon .dash-lateral__contenido {
+  --anillo: var(--c-lateral);
+}
+
+.dash-principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-24) var(--orilla) 0;
+}
+@media (min-width: 1024px) {
+  .dash-principal {
+    padding: var(--spacing-32) var(--spacing-32) 0;
+  }
+}
+.dash-principal:focus {
+  outline: none;
+}
+.dash-principal--completo {
+  padding: 0;
+}
+.dash-pagina {
+  width: 100%;
+  max-width: calc(var(--ancho-app-max) - var(--ancho-app-lateral) - 2 * var(--spacing-32));
+  margin-inline: auto;
+}
+
+/* Cada vista entra con un fundido y 4px de desplazamiento */
+.dash-entra {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  animation: dash-entra var(--dur-grande) var(--ease-entrada);
+}
+@keyframes dash-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-4));
+  }
+}
+
+/* ---------- Rejilla del resumen: centro + columna derecha ---------- */
+.dash-rejilla {
+  display: grid;
+  align-items: start;
+  gap: var(--espacio-app-bloques-amplio);
+}
+@media (min-width: 1280px) {
+  .dash-rejilla {
+    grid-template-columns: minmax(0, 1fr) var(--ancho-app-columna);
+  }
+}
+.dash-centro {
+  display: grid;
+  gap: var(--spacing-40);
+  min-width: 0;
+}
+.dash-derecha {
+  display: grid;
+  align-content: start;
+  gap: var(--espacio-app-bloques-amplio);
+  min-width: 0;
+}
+/* Tableta: la columna derecha baja debajo del contenido, en dos columnas */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .dash-derecha {
+    display: block;
+    columns: 2;
+    column-gap: var(--espacio-app-bloques);
+    padding-top: var(--spacing-8);
+    border-top: 1px solid var(--c-borde);
+  }
+  .dash-derecha > * {
+    break-inside: avoid;
+    margin-top: var(--espacio-app-bloques);
+  }
+}
+
+/* ---------- Pie mínimo ---------- */
+.dash-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-24);
+  width: 100%;
+  max-width: calc(var(--ancho-app-max) - var(--ancho-app-lateral) - 2 * var(--spacing-32));
+  margin: var(--spacing-64) auto 0;
+  padding: var(--spacing-24) 0 max(var(--spacing-32), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-pie__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.dash-pie__logo {
+  width: var(--icono-chico);
+  height: var(--icono-chico);
+}
+.dash-pie__enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4) var(--spacing-16);
+}
+.dash-pie__enlaces a,
+.dash-pie__enlaces button {
+  position: relative;
+  color: var(--c-texto-2);
+  font-size: inherit;
+  text-underline-offset: 0.2em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-pie__enlaces a:hover,
+  .dash-pie__enlaces button:hover {
+    color: var(--c-accion-texto);
+    text-decoration: underline;
+  }
+}
+@media (pointer: coarse) {
+  .dash-pie__enlaces a::after,
+  .dash-pie__enlaces button::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spacing-12)) calc(-1 * var(--spacing-8));
+  }
+  .dash-pie__enlaces {
+    gap: var(--spacing-16) var(--spacing-20);
+  }
+}
+
+/* =====================================================================
+   2. CAPA DE HOVER Y PRESIÓN COMPARTIDA (filas, renglones, enlaces de fila)
+   Un velo de --c-hover que aparece con opacidad (no se anima el color de
+   fondo); al presionar, --c-activo. Solo en lo que se puede tocar.
+   ===================================================================== */
+
+:is(a, button):is(
+    .dash-nav__elemento,
+    .dash-fila-lateral,
+    .dash-renglon,
+    .dash-fila__principal,
+    .dash-conv,
+    .dash-aviso,
+    .dash-desplegable__boton,
+    .dash-logo,
+    .dash-crear
+  ) {
+  position: relative;
+  isolation: isolate;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+:is(a, button):is(
+    .dash-nav__elemento,
+    .dash-fila-lateral,
+    .dash-renglon,
+    .dash-fila__principal,
+    .dash-conv,
+    .dash-aviso,
+    .dash-desplegable__boton,
+    .dash-logo,
+    .dash-crear
+  )::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-hover);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(a, button):is(
+      .dash-nav__elemento,
+      .dash-fila-lateral,
+      .dash-renglon,
+      .dash-fila__principal,
+      .dash-conv,
+      .dash-aviso,
+      .dash-desplegable__boton,
+      .dash-logo,
+      .dash-crear
+    ):hover::before {
+    opacity: 1;
+  }
+}
+:is(a, button):is(
+    .dash-nav__elemento,
+    .dash-fila-lateral,
+    .dash-renglon,
+    .dash-fila__principal,
+    .dash-conv,
+    .dash-aviso,
+    .dash-desplegable__boton,
+    .dash-logo,
+    .dash-crear
+  ):active::before,
+.dash-crear[aria-expanded="true"]::before {
+  background: var(--c-activo);
+  opacity: 1;
+}
+/* Lo chico se encoge un poco al presionar (respuesta inmediata) */
+:is(a, button):is(.dash-nav__elemento, .dash-logo, .dash-desplegable__boton, .dash-renglon) {
+  transition: transform var(--dur-micro) var(--ease);
+}
+:is(a, button):is(.dash-nav__elemento, .dash-logo, .dash-desplegable__boton):active {
+  transform: scale(0.98);
+}
+/* Dentro de paneles y listas con borde, el anillo de foco va por dentro */
+:is(.dash-aviso, .dash-conv, .dash-fila__principal, .dash-renglon, .dash-nav__elemento, .dash-fila-lateral):focus-visible {
+  outline-offset: -2px;
+}
+
+/* =====================================================================
+   3. PIEZAS
+   ===================================================================== */
+
+/* Personaje de un agente en su círculo (tamaños de avatar de la base) */
+.dash-marca {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--avatar-32);
+  height: var(--avatar-32);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente, var(--c-terciario)) 22%, var(--c-fondo));
+}
+.dash-marca > svg {
+  width: 76%;
+  height: 76%;
+}
+.dash-marca--20 {
+  width: var(--avatar-20);
+  height: var(--avatar-20);
+}
+.dash-marca--24 {
+  width: var(--avatar-24);
+  height: var(--avatar-24);
+}
+.dash-marca--28 {
+  width: var(--avatar-28);
+  height: var(--avatar-28);
+}
+.dash-marca--40 {
+  width: var(--avatar-40);
+  height: var(--avatar-40);
+}
+.dash-marca--64 {
+  width: var(--avatar-64);
+  height: var(--avatar-64);
+}
+/* Varios encimados (grupo, relevo): cada uno con un anillo del fondo */
+.dash-pila {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.dash-pila > .dash-marca {
+  box-shadow: 0 0 0 2px var(--anillo);
+}
+.dash-pila > .dash-marca + .dash-marca {
+  margin-left: calc(-1 * var(--spacing-8));
+}
+
+.dash-hora {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-cuerpo);
+  white-space: nowrap;
+}
+.dash-nota {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+
+/* Enlace de acción azul ("Ver todos ›") */
+.dash-enlace {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  border-radius: var(--radio-app-control);
+  color: var(--c-accion-texto);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-medio);
+  white-space: nowrap;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.dash-enlace--chico {
+  font-size: var(--t-app-etiqueta);
+}
+.dash-enlace .icono {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-enlace:hover {
+    text-decoration: underline;
+  }
+  .dash-enlace:hover .icono {
+    transform: translateX(2px);
+  }
+}
+.dash-enlace:active {
+  opacity: 0.7;
+}
+@media (pointer: coarse) {
+  .dash-enlace::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spacing-12)) calc(-1 * var(--spacing-4));
+  }
+}
+
+/* Encabezado de bloque */
+.dash-bloque {
+  min-width: 0;
+}
+.dash-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  min-height: var(--alto-control-compacto);
+  margin-bottom: var(--spacing-12);
+}
+.dash-cabeza__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+  line-height: var(--interlineado-app-titulo);
+}
+.dash-cabeza__accion {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* Estado vacío */
+.dash-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-40) var(--spacing-24);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+  text-align: center;
+}
+.dash-vacio--compacto {
+  padding: var(--spacing-24) var(--spacing-16);
+  border: 0;
+  background: transparent;
+}
+.dash-vacio__icono {
+  margin-bottom: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.dash-vacio .dash-marca {
+  margin-bottom: var(--spacing-4);
+}
+.dash-vacio__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-vacio__texto {
+  max-width: 44ch;
+  color: var(--c-texto-2);
+}
+.dash-vacio__accion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-8);
+}
+
+/* Tarjeta (solo donde hay algo que tocar o una lista que agrupar) */
+.dash-tarjeta {
+  --anillo: var(--c-superficie);
+  min-width: 0;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+}
+.dash-tarjeta__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-4) var(--spacing-12);
+  padding: var(--spacing-16) var(--espacio-app-tarjeta) var(--spacing-8);
+}
+.dash-tarjeta__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-tarjeta__resumen {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-tarjeta__pie {
+  padding: var(--spacing-12) var(--espacio-app-tarjeta) var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+
+/* =====================================================================
+   4. LATERAL
+   ===================================================================== */
+
+.dash-lateral__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+.dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-4) / 2);
+}
+.dash-nav__elemento {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: var(--alto-control-chico);
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-cuerpo);
+  text-align: left;
+}
+@media (pointer: coarse) {
+  .dash-nav__elemento {
+    min-height: var(--spacing-44);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  a.dash-nav__elemento:hover,
+  button.dash-nav__elemento:hover {
+    color: var(--c-texto);
+  }
+}
+.dash-nav__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* La activa: relleno sutil, texto pleno y la marquita azul de la izquierda */
+.dash-nav__elemento[aria-current="page"] {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-medio);
+}
+.dash-nav__elemento[aria-current="page"]::before {
+  background: var(--c-activo);
+  opacity: 1;
+}
+.dash-nav__elemento[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--spacing-8) - 1px);
+  width: var(--spacing-4);
+  height: var(--spacing-20);
+  border-radius: var(--radio-circulo);
+  background: var(--c-accion-texto);
+  transform: translateY(-50%);
+}
+.dash-nav__elemento[aria-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--c-terciario);
+}
+
+.dash-lateral__bloque {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+.dash-lateral__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-8) var(--spacing-4);
+}
+.dash-lateral__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-nuevo.boton--compacto {
+  min-height: var(--avatar-28);
+  padding: 0 var(--spacing-8);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-lista-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-4) / 2);
+}
+.dash-fila-lateral {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: var(--spacing-44);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  text-align: left;
+}
+.dash-fila-lateral__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-fila-lateral__nombre {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-8);
+  overflow: hidden;
+  font-weight: var(--peso-app-medio);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-fila-lateral__area {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-cuerpo);
+}
+.dash-fila-lateral__estado {
+  min-width: 0;
+}
+.dash-fila-lateral__estado .punto-estado__texto,
+.dash-fila-lateral__detalle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-fila-lateral__detalle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-fila-lateral__detalle .icono {
+  --icono-tam: var(--spacing-12);
+  flex-shrink: 0;
+}
+.dash-fila-lateral--bloqueada {
+  color: var(--c-texto-2);
+}
+.dash-fila-lateral--bloqueada .dash-marca {
+  opacity: 0.55;
+}
+.dash-lateral__vacio {
+  padding: 0 var(--spacing-8);
+}
+.dash-fila-lateral--grupo .dash-pila {
+  min-width: var(--avatar-28);
+}
+
+/* =====================================================================
+   5. BUSCADOR, AVISOS
+   ===================================================================== */
+
+.dash-busca.menu {
+  display: block;
+}
+.dash-busca__panel.menu__panel {
+  right: 0;
+  left: 0;
+  min-width: 100%;
+  max-width: none;
+  max-height: min(70vh, calc(var(--spacing-96) * 5));
+}
+.dash-busca__grupo + .dash-busca__grupo {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--c-borde);
+}
+.dash-busca__marca {
+  background: transparent;
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-busca__nada {
+  padding: var(--spacing-12) var(--spacing-8);
+  color: var(--c-texto-2);
+}
+.dash-busca__resultado .menu__descripcion {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dash-avisos.menu__panel {
+  width: min(calc(100vw - 2 * var(--orilla)), calc(var(--ancho-app-columna) + var(--spacing-64)));
+  max-width: none;
+  padding: var(--spacing-8);
+}
+.dash-avisos {
+  --anillo: var(--c-superficie);
+}
+.dash-avisos__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-8);
+  margin-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--c-borde);
+}
+.dash-avisos__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-avisos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-4) / 2);
+}
+.dash-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  width: 100%;
+  padding: var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  text-align: left;
+}
+.dash-aviso__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(var(--spacing-4) / 2);
+  min-width: 0;
+}
+.dash-aviso__titulo {
+  font-weight: var(--peso-app-medio);
+}
+.dash-aviso--nuevo .dash-aviso__titulo {
+  font-weight: var(--peso-app-titulo);
+}
+.dash-aviso__detalle {
+  color: var(--c-texto-2);
+}
+.dash-aviso > .insignia--punto {
+  margin-top: var(--spacing-8);
+}
+
+/* =====================================================================
+   6. CENTRO: bienvenida, actividad, visto bueno, fijados, conversaciones
+   ===================================================================== */
+
+/* ---------- Bienvenida (el momento protagonista) ---------- */
+.dash-bienvenida {
+  display: grid;
+  gap: var(--spacing-24);
+  padding: var(--espacio-app-tarjeta-amplio);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+}
+@media (min-width: 768px) {
+  .dash-bienvenida {
+    padding: var(--spacing-32);
+  }
+}
+@media (min-width: 1024px) {
+  .dash-bienvenida--con-dia {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: var(--spacing-32);
+  }
+}
+.dash-bienvenida__fecha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--avatar-20);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-bienvenida__saludo {
+  margin-top: var(--spacing-12);
+}
+.dash-bienvenida__resumen {
+  max-width: 56ch;
+  margin-top: var(--spacing-12);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-mediano);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-app);
+}
+.dash-bienvenida__resumen strong {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-bienvenida__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-24);
+}
+.dash-bienvenida__acciones .boton {
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-medio);
+}
+@media (max-width: 639px) {
+  .dash-bienvenida__acciones > * {
+    flex: 1 1 100%;
+  }
+}
+.dash-bienvenida__dia {
+  padding-top: var(--spacing-20);
+  border-top: 1px solid var(--c-borde);
+}
+@media (min-width: 1024px) {
+  .dash-bienvenida__dia {
+    padding-top: 0;
+    padding-left: var(--spacing-32);
+    border-top: 0;
+    border-left: 1px solid var(--c-borde);
+  }
+}
+.dash-bienvenida__dia-titulo {
+  margin-bottom: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-bienvenida__dia ul {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-4) / 2);
+}
+.dash-renglon {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: calc(100% + 2 * var(--spacing-8));
+  min-height: var(--alto-app-fila);
+  margin-inline: calc(-1 * var(--spacing-8));
+  padding: var(--spacing-8);
+  border-radius: var(--radio-app-tarjeta);
+  color: var(--c-texto);
+  text-align: left;
+}
+.dash-renglon__icono {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+}
+.dash-renglon__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-renglon__titulo {
+  font-weight: var(--peso-app-titulo);
+}
+.dash-renglon__detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-renglon--error .dash-renglon__detalle::before,
+.dash-renglon--atencion .dash-renglon__detalle::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: var(--spacing-4);
+  border-radius: var(--radio-circulo);
+  background: var(--c-error);
+  vertical-align: 0.1em;
+}
+.dash-renglon--atencion .dash-renglon__detalle::before {
+  background: var(--c-atencion);
+}
+.dash-renglon__flecha {
+  flex-shrink: 0;
+  color: var(--c-terciario);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-renglon:hover .dash-renglon__flecha {
+    transform: translateX(2px);
+  }
+}
+
+/* ---------- Actividad: pestañas en píldora compactas ---------- */
+.dash-actividad {
+  scroll-margin-top: calc(var(--barra-app-h) + var(--spacing-16));
+}
+.dash-actividad .pestanas__pestana {
+  min-height: var(--alto-control-compacto);
+  padding: var(--spacing-4) var(--spacing-12);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-medio);
+}
+@media (pointer: coarse) {
+  .dash-actividad .pestanas__pestana {
+    min-height: var(--alto-control);
+  }
+}
+.dash-actividad__panel {
+  margin-top: var(--spacing-24);
+}
+.dash-actividad__panel:focus-visible {
+  outline-offset: var(--spacing-4);
+}
+.dash-pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* ---------- Línea de tiempo ---------- */
+.dash-feed__lista {
+  display: flex;
+  flex-direction: column;
+}
+.dash-evento {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--avatar-32) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-32);
+}
+/* La línea que une un evento con el siguiente */
+.dash-evento::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--avatar-32) + var(--spacing-8));
+  bottom: var(--spacing-8);
+  left: calc(var(--avatar-32) / 2 - 1px);
+  width: 2px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-borde);
+}
+.dash-evento:last-child {
+  padding-bottom: var(--spacing-16);
+}
+.dash-evento:last-child::before {
+  display: none;
+}
+.dash-evento__avatar {
+  display: flex;
+  justify-content: center;
+  height: var(--avatar-32);
+  align-items: center;
+}
+.dash-evento__avatar .dash-pila .dash-marca + .dash-marca {
+  margin-left: calc(-1 * var(--spacing-12));
+}
+.dash-evento__cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  min-width: 0;
+}
+.dash-evento__frase {
+  padding-top: calc((var(--avatar-32) - 1.43em) / 2);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-cuerpo);
+}
+.dash-evento__frase strong {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-evento__cuando {
+  white-space: nowrap;
+}
+.dash-evento__cuando > [aria-hidden] {
+  color: var(--c-terciario);
+}
+
+/* El objeto incrustado (cita, mensaje, archivo, lista) */
+.dash-objeto {
+  align-self: stretch;
+  min-width: 0;
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-superficie);
+}
+.dash-objeto--fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+}
+.dash-objeto--fila > .insignia {
+  margin-left: auto;
+}
+.dash-objeto__icono {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+}
+.dash-objeto__fila-texto {
+  display: flex;
+  flex: 1 1 calc(var(--spacing-96) * 2);
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-objeto__titulo {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-medio);
+}
+.dash-objeto__detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-objeto--mensaje {
+  margin: 0;
+}
+.dash-objeto__para {
+  margin-bottom: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-objeto__cita {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--c-texto);
+  line-height: 1.5;
+}
+.dash-objeto__cita::before {
+  content: "“";
+}
+.dash-objeto__cita::after {
+  content: "”";
+}
+.dash-objeto--mensaje .dash-objeto__detalle {
+  margin-top: var(--spacing-8);
+}
+.dash-objeto--lista {
+  padding-block: 0;
+}
+.dash-objeto__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) 0;
+}
+.dash-objeto__fila + .dash-objeto__fila {
+  border-top: 1px solid var(--c-borde);
+}
+.dash-objeto__pie {
+  padding: var(--spacing-12) 0;
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* Evento agrupado que se despliega */
+.dash-desplegable {
+  align-self: stretch;
+}
+.dash-desplegable__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  margin-left: calc(-1 * var(--spacing-8));
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-accion-texto);
+  font-weight: var(--peso-app-medio);
+}
+.dash-desplegable__chevron {
+  transform: rotate(-90deg);
+  transition: transform var(--dur-micro) var(--ease);
+}
+.dash-desplegable[data-abierto] .dash-desplegable__chevron {
+  transform: none;
+}
+.dash-desplegable__cuenta,
+.dash-grupo-titulo__cuenta {
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--avatar-20);
+  height: var(--avatar-20);
+  padding: 0 6px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-activo);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-desplegable__cuerpo {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-grande) var(--ease-entrada);
+}
+.dash-desplegable[data-abierto] .dash-desplegable__cuerpo {
+  grid-template-rows: 1fr;
+}
+.dash-desplegable__interior {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    visibility 0s linear var(--dur-grande);
+}
+.dash-desplegable[data-abierto] .dash-desplegable__interior {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--dur-grande) var(--ease),
+    visibility 0s;
+}
+.dash-desplegable__interior > .dash-objeto {
+  margin-top: var(--spacing-8);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-desplegable__cuerpo {
+    transition: none;
+  }
+}
+
+.dash-feed__mas,
+.dash-feed__fin {
+  padding-left: calc(var(--avatar-32) + var(--spacing-16));
+}
+.dash-feed__fin {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* ---------- Espera tu visto bueno ---------- */
+.dash-pendientes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.dash-pendiente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding: var(--espacio-app-tarjeta);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+}
+.dash-pendiente__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--spacing-8) var(--spacing-12);
+}
+.dash-pendiente__titulos {
+  flex: 1 1 0;
+  min-width: 60%;
+}
+.dash-pendiente__titulo {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-pendiente__meta {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-pendiente .dash-objeto {
+  background: var(--c-fondo);
+}
+.dash-pendiente--listo .dash-objeto {
+  opacity: 0.7;
+}
+.dash-pendiente__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-16);
+}
+.dash-pendiente__nota {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 60%;
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-pendiente__botones {
+  display: flex;
+  gap: var(--spacing-8);
+}
+@media (max-width: 639px) {
+  .dash-pendiente__botones {
+    width: 100%;
+  }
+  .dash-pendiente__botones > * {
+    flex: 1;
+  }
+}
+
+/* ---------- Listas con borde (destacados, conversaciones, correo, agentes) ---------- */
+.dash-lista--borde {
+  --anillo: var(--c-superficie);
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+}
+.dash-lista--borde > li + li {
+  border-top: 1px solid var(--c-borde);
+}
+.dash-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding-right: var(--spacing-12);
+}
+.dash-fila__principal {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-width: 0;
+  min-height: var(--alto-app-fila);
+  padding: var(--spacing-12) var(--spacing-16);
+  color: var(--c-texto);
+  text-align: left;
+}
+.dash-fila__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-fila__titulo {
+  font-weight: var(--peso-app-medio);
+}
+.dash-fila__detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* Conversaciones recientes */
+.dash-conv {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: calc(var(--alto-app-fila) + var(--spacing-12));
+  padding: var(--spacing-12) var(--spacing-16);
+  color: var(--c-texto);
+  text-align: left;
+}
+.dash-conv__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-conv__linea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.dash-conv__titulo {
+  overflow: hidden;
+  font-weight: var(--peso-app-medio);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-conv--nueva .dash-conv__titulo {
+  font-weight: var(--peso-app-titulo);
+}
+/* Etiqueta con contorno, como "Public" en GitHub */
+.dash-conv__canal {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: var(--avatar-20);
+  padding: 0 var(--spacing-8);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-circulo);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-conv__ultimo {
+  overflow: hidden;
+  color: var(--c-texto-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-conv__fin {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-4);
+}
+.dash-conv__quien {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--avatar-20);
+}
+
+/* ---------- Agentes fijados (como los repositorios fijados) ---------- */
+.dash-fijados {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-16);
+}
+@media (min-width: 640px) {
+  .dash-fijados {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.dash-fijado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-width: 0;
+  padding: var(--spacing-16);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-superficie);
+}
+.dash-fijado__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.dash-fijado__nombre {
+  position: relative;
+  color: var(--c-accion-texto);
+  font-weight: var(--peso-app-titulo);
+  border-radius: var(--radio-app-control);
+  text-underline-offset: 0.2em;
+}
+@media (hover: hover) and (pointer: fine) {
+  a.dash-fijado__nombre:hover,
+  button.dash-fijado__nombre:hover {
+    text-decoration: underline;
+  }
+}
+@media (pointer: coarse) {
+  .dash-fijado__nombre::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spacing-12)) calc(-1 * var(--spacing-8));
+  }
+}
+.dash-fijado__lema {
+  flex: 1;
+  color: var(--c-texto-2);
+}
+.dash-fijado__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4) var(--spacing-16);
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-fijado__dato {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-fijado__dato .icono {
+  --icono-tam: var(--spacing-16);
+}
+
+/* =====================================================================
+   7. COLUMNA DERECHA
+   ===================================================================== */
+
+/* Negocio + plan */
+.dash-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding: var(--espacio-app-tarjeta);
+}
+.dash-plan__negocio {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-width: 0;
+}
+.dash-plan__nombres {
+  min-width: 0;
+}
+.dash-plan__nombre {
+  overflow: hidden;
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-plan__giro {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-plan__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+.dash-plan__plan {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-plan__equipo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-plan__pie {
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--c-borde);
+}
+
+/* Citas de mañana */
+.dash-citas__lista {
+  padding: 0 var(--espacio-app-tarjeta) var(--spacing-8);
+}
+.dash-cita {
+  display: grid;
+  grid-template-columns: var(--spacing-44) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--alto-app-fila);
+}
+.dash-cita + .dash-cita {
+  border-top: 1px solid var(--c-borde);
+}
+.dash-cita__hora {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-cita__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-cita__paciente,
+.dash-cita__servicio {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-cita__paciente {
+  font-weight: var(--peso-app-medio);
+}
+.dash-cita__servicio {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* La semana en números */
+.dash-metricas__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-tarjeta);
+}
+.dash-metrica {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-12);
+}
+.dash-metrica + .dash-metrica {
+  border-left: 1px solid var(--c-borde);
+}
+.dash-metrica__etiqueta {
+  min-height: calc(2 * 1.33em);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-metrica__valor {
+  color: var(--c-texto);
+  font-size: var(--t-app-titulo);
+  font-weight: var(--peso-app-titulo);
+  line-height: var(--interlineado-app-titulo);
+  letter-spacing: -0.015em;
+}
+.dash-metrica__delta {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-4) / 2);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-metrica__delta .icono {
+  --icono-tam: var(--spacing-12);
+}
+.dash-metrica__baja {
+  transform: scaleY(-1);
+}
+
+/* Novedades: línea de tiempo con puntos (como "Últimos cambios") */
+.dash-novedades__lista {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding-left: var(--spacing-20);
+}
+.dash-novedades__lista::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-8);
+  bottom: var(--spacing-8);
+  left: calc(var(--spacing-4) - 1px);
+  width: 2px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-borde);
+}
+.dash-novedad {
+  position: relative;
+}
+.dash-novedad::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-4);
+  left: calc(-1 * var(--spacing-20));
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border-radius: var(--radio-circulo);
+  background: var(--c-borde-fuerte);
+  box-shadow: 0 0 0 3px var(--c-fondo);
+}
+.dash-novedad:first-child::before {
+  background: var(--c-accion-texto);
+}
+.dash-novedad__fecha {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+}
+.dash-novedad__titulo {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-novedad__texto {
+  color: var(--c-texto-2);
+}
+
+/* Te puede servir */
+.dash-consejos ul {
+  padding: 0 var(--espacio-app-tarjeta) var(--spacing-8);
+}
+.dash-consejo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) 0 var(--spacing-16);
+}
+.dash-consejo + .dash-consejo {
+  border-top: 1px solid var(--c-borde);
+}
+.dash-consejo__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.dash-consejo__titulo {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-consejo__texto {
+  color: var(--c-texto-2);
+}
+
+/* Ayuda */
+.dash-ayuda__lista {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--spacing-4) / 2);
+}
+.dash-ayuda__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
+  text-underline-offset: 0.2em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-ayuda__enlace:hover {
+    color: var(--c-accion-texto);
+    text-decoration: underline;
+  }
+}
+@media (pointer: coarse) {
+  .dash-ayuda__enlace {
+    min-height: var(--spacing-44);
+  }
+}
+.dash-ayuda__atajo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-12);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+@media (pointer: coarse) {
+  .dash-ayuda__atajo {
+    display: none;
+  }
+}
+
+/* =====================================================================
+   8. VISTAS: Agentes, Correo, Conversaciones (chat dentro del armazón)
+   ===================================================================== */
+
+.dash-vista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-app-bloques-amplio);
+}
+.dash-vista__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-24);
+}
+.dash-vista__texto {
+  max-width: 64ch;
+  margin-top: var(--spacing-8);
+  color: var(--c-texto-2);
+}
+.dash-grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-12);
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-titulo);
+}
+
+/* Lista de agentes */
+.dash-agente {
+  display: grid;
+  grid-template-columns: var(--avatar-40) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  padding: var(--espacio-app-tarjeta);
+}
+@media (min-width: 768px) {
+  .dash-agente {
+    grid-template-columns: var(--avatar-40) minmax(0, 1fr) auto;
+    align-items: start;
+  }
+}
+.dash-agente__linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.dash-agente__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+}
+.dash-agente__lema {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.dash-agente__capacidades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4) var(--spacing-16);
+  margin-top: var(--spacing-12);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-agente__capacidades li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+.dash-agente__capacidades .icono {
+  --icono-tam: var(--spacing-12);
+}
+.dash-agente__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4) var(--spacing-16);
+  margin-top: var(--spacing-12);
+}
+.dash-agente__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  grid-column: 2;
+}
+@media (min-width: 768px) {
+  .dash-agente__acciones {
+    grid-column: 3;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 639px) {
+  .dash-agente__acciones > * {
+    flex: 1 1 100%;
+  }
+}
+.dash-agente--bloqueado .dash-agente__marca {
+  opacity: 0.55;
+}
+.dash-agente--bloqueado .dash-agente__nombre {
+  color: var(--c-texto-2);
+}
+
+/* Correo */
+.dash-correo {
+  display: grid;
+  grid-template-columns: var(--avatar-32) minmax(0, 1fr);
+  gap: var(--spacing-8) var(--spacing-16);
+  padding: var(--spacing-16);
+}
+@media (min-width: 640px) {
+  .dash-correo {
+    grid-template-columns: var(--avatar-32) minmax(0, 1fr) auto;
+  }
+}
+.dash-correo__cuerpo {
+  min-width: 0;
+}
+.dash-correo .avatar__contenido > .icono {
+  width: var(--icono-chico);
+  height: var(--icono-chico);
+  color: var(--c-texto-2);
+}
+.dash-correo__linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--spacing-8);
+}
+.dash-correo__remitente {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-correo__asunto {
+  color: var(--c-texto-2);
+}
+.dash-correo__resumen {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto);
+}
+.dash-correo__accion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-8);
+  color: var(--c-accion-texto);
+}
+.dash-correo__accion .icono {
+  flex-shrink: 0;
+  margin-top: calc((1.43em - var(--icono-chico)) / 2);
+}
+.dash-correo__fin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+  grid-column: 2;
+}
+@media (min-width: 640px) {
+  .dash-correo__fin {
+    flex-direction: column;
+    align-items: flex-end;
+    grid-column: 3;
+  }
+}
+.dash-correo__chat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-16);
+  padding: var(--spacing-16) var(--espacio-app-tarjeta);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  color: var(--c-texto-2);
+}
+
+/* Conversaciones: el chat a lo alto de la pantalla, sin pie */
+.dash-vista-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  height: calc(100dvh - var(--barra-app-h) - var(--alto-aviso));
+  min-height: calc(var(--spacing-96) * 5);
+  padding: var(--spacing-16) var(--orilla);
+}
+@media (min-width: 1024px) {
+  .dash-vista-chat {
+    padding: var(--spacing-24) var(--spacing-32);
+  }
+}
+.dash-vista-chat__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-12) var(--spacing-24);
+}
+@media (max-width: 639px) {
+  .dash-vista-chat__cabeza .dash-vista__texto {
+    display: none;
+  }
+}
+.dash-vista-chat__marco {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.dash-vista-chat__marco > .chat-app {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* El chat real de /panel/chat (Grupo 2) usa position: fixed; este marco lo
+   contiene (contain: layout lo vuelve su bloque contenedor) y le quita la
+   altura de la barra pública. */
+.dash-chat-real {
+  --barra-h: 0px;
+  position: relative;
+  height: calc(100dvh - var(--barra-app-h));
+  contain: layout;
+}
+
+/* =====================================================================
+   9. PANEL: Correo con Clara (modo de prueba, Gmail, historial)
+   ===================================================================== */
+
+.dash-clara {
+  display: grid;
+  gap: var(--espacio-app-bloques);
+}
+@media (min-width: 1024px) {
+  .dash-clara {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: start;
+  }
+}
+.dash-clara__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  padding: var(--espacio-app-tarjeta-amplio);
+}
+.dash-clara__ejemplos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-12);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-chip:hover {
+    border-color: var(--c-texto-2);
+  }
+}
+.dash-chip:active {
+  transform: scale(0.97);
+}
+@media (pointer: coarse) {
+  .dash-chip {
+    min-height: var(--spacing-44);
+  }
+}
+.dash-clara__botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+@media (max-width: 639px) {
+  .dash-clara__botones > * {
+    flex: 1 1 100%;
+  }
+}
+.dash-clara__error {
+  color: var(--c-error);
+}
+.dash-clara__resultado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  min-height: calc(var(--spacing-96) * 3);
+  padding: var(--espacio-app-tarjeta-amplio);
+}
+@media (min-width: 1024px) {
+  .dash-clara__resultado {
+    position: sticky;
+    top: calc(var(--barra-app-h) + var(--spacing-24));
+  }
+}
+.dash-clara__resultado--vacio {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.dash-clara__resumen {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+  line-height: 1.5;
+}
+.dash-clara__sugerencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  color: var(--c-texto);
+}
+.dash-clara__sugerencia .icono {
+  flex-shrink: 0;
+  margin-top: calc((1.43em - var(--icono-chico)) / 2);
+  color: var(--c-accion-texto);
+}
+.dash-gmail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-16) var(--spacing-24);
+  padding: var(--espacio-app-tarjeta);
+}
+.dash-gmail__texto {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  min-width: 0;
+  max-width: 60ch;
+}
+.dash-gmail__accion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+@media (min-width: 768px) {
+  .dash-gmail__accion {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+.dash-historial__fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-8);
+  padding: var(--spacing-16) var(--espacio-app-tarjeta);
+}
+@media (min-width: 768px) {
+  .dash-historial__fila {
+    grid-template-columns: var(--ancho-app-lateral) minmax(0, 1fr);
+    gap: var(--spacing-24);
+  }
+}
+.dash-historial__quien {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-historial__quien span {
+  overflow-wrap: anywhere;
+}
+.dash-historial__asunto {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-historial__resumen {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.dash-cargando {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-24) var(--espacio-app-tarjeta);
+  color: var(--c-texto-2);
+}
+/* Esqueleto mientras carga el historial (solo opacidad) */
+.dash-esqueleto {
+  display: block;
+  height: var(--spacing-12);
+  border-radius: var(--radio-circulo);
+  background: var(--c-activo);
+  animation: dash-respira calc(var(--dur-grande) * 4) var(--ease) infinite alternate;
+}
+.dash-esqueleto--corto {
+  width: 40%;
+}
+@keyframes dash-respira {
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* Dentro de la barra (que ya es vidrio), el desenfoque de un panel no
+   alcanza lo que hay detrás: los paneles que salen de ella van sólidos. */
+.dash-barra .menu__panel {
+  background: var(--c-superficie);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Correo con Clara: piezas sueltas */
+.dash-vista__agente {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-clara__ejemplos--arriba {
+  margin-top: var(--spacing-8);
+}
+.dash-clara__campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.dash-clara__quien {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+}
+.dash-clara__origen {
+  overflow-wrap: anywhere;
+}
+.dash-gmail__icono {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+}
+.dash-gmail__explica {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.dash-gmail__mensaje {
+  max-width: 40ch;
+}
+.dash-historial__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.dash-historial__remitente {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-medio);
+}
+.dash-historial__fecha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.dash-historial__cuerpo {
+  min-width: 0;
+}
+.dash-historial__sugerencia {
+  margin-top: var(--spacing-8);
+}
+
+/* Agentes (panel): equipo y plan */
+.dash-alerta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-error-fondo);
+  color: var(--c-error);
+}
+.dash-agentes__mas {
+  margin: 0;
+}
+.dash-plan__fila--arriba {
+  padding-top: 0;
+  border-top: 0;
+}
+.dash-plan__incluye {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-texto-2);
+}
+.dash-plan__incluye li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+.dash-plan__incluye .icono {
+  flex-shrink: 0;
+  margin-top: calc((1.43em - var(--icono-chico)) / 2);
+}
+/* "En tu equipo" queda marcado (aria-pressed) con el matiz de activo */
+.dash-alternar[aria-pressed="true"]::before {
+  background: var(--c-activo);
+  opacity: 1;
+}
+
+/* Uso del plan (Uso.tsx): barra de la base + enlace a los planes */
+.uso {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+.uso > .progreso {
+  align-self: stretch;
+}
