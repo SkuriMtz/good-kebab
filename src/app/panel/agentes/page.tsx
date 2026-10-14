@@ -21,6 +21,7 @@ export default async function MisAgentesPage() {
       planId={cuenta.plan.id}
       elegidosIniciales={cuenta.elegidos}
       usados={cuenta.usados}
+      negocio={cuenta.negocio}
     />
   );
 }
