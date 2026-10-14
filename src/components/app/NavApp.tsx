@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEnArmazon } from "../dashboard/contexto";
 import { claseBoton } from "../Buttons";
 import { Nav } from "../Nav";
 import { AGENTES_INFO } from "@/lib/agentes";
@@ -20,15 +21,22 @@ const REPARTO = AGENTES_INFO.map((a) => ({
   href: `/panel/chat?agente=${a.id}`,
 }));
 
-/** Barra de la app: tu correo y "Salir" a la derecha; lo mismo dentro del menú en celular. */
+/**
+ * Barra de la app: tu correo y "Salir" a la derecha; lo mismo dentro del menú en celular.
+ * Dentro del armazón del dashboard (todo /panel) no se pinta: la barra
+ * superior del dashboard ya hace su trabajo (el chat la sigue llamando).
+ */
 export function NavApp({ email }: { email: string }) {
   const router = useRouter();
+  const enArmazon = useEnArmazon();
 
   async function salir() {
     await createClient().auth.signOut();
     router.replace("/");
     router.refresh();
   }
+
+  if (enArmazon) return null;
 
   return (
     <Nav
