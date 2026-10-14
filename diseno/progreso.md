@@ -97,7 +97,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ### Grupo 7 — Dashboard (5 trabajadores, agregado el 8 oct): armazón del dashboard y vista Resumen en /panel y /pruebalo
 
-- [ ] G7-T1 · rama `prop/g7-t1` · capturas `diseno/capturas/paso5/g7-t1/`
+- [x] G7-T1 · rama `prop/g7-t1` · capturas `diseno/capturas/paso5/g7-t1/` — **2026-10-14 20:33 UTC** — evidencia: commit bf6c614 en origin/prop/g7-t1 ("Propuesta G7-T1: dashboard fiel a la estructura de GitHub con acabado de Apple"), 94 capturas, entrega `diseno/entregas/g7-t1.md`; lint y build pasan; worktree limpio (ruta temporal del panel borrada)
 - [x] G7-T2 · rama `prop/g7-t2` · capturas `diseno/capturas/paso5/g7-t2/` — **2026-10-14 14:11 UTC** — evidencia: commit a45526a en origin/prop/g7-t2 ("Propuesta G7-T2: dashboard 'el GitHub que respira'"), 70 capturas, entrega `diseno/entregas/g7-t2.md`; lint y build pasan; worktree limpio (ruta temporal del panel borrada)
 - [ ] G7-T3 · rama `prop/g7-t3` · capturas `diseno/capturas/paso5/g7-t3/`
 - [ ] G7-T4 · rama `prop/g7-t4` · capturas `diseno/capturas/paso5/g7-t4/`
