@@ -1,67 +1,22 @@
-import { Check } from "@/components/Buttons";
-import { Boton } from "@/components/base/Boton";
-import { Etiqueta } from "@/components/base/Etiqueta";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
-import { Pestanas } from "@/components/base/Pestanas";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
-import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
-import { Personaje } from "@/components/agentes/Personaje";
-import { DETALLE } from "@/components/agentes/detalle";
-import { AGENTES_INFO } from "@/lib/agentes";
-import { planMinimo } from "@/lib/planes";
+import { VitrinaAgentes } from "@/components/agentes/VitrinaAgentes";
 
 /**
- * 3. Los cuatro agentes (Grupo 3). Versión base: pestañas en píldora con el
- * personaje pequeño; cada pestaña muestra al agente, qué hace, su
- * conversación de ejemplo en un panel del producto y en qué plan está.
+ * 3. Los cuatro agentes (Grupo 3 · G3-T1). Como la fila de funciones de la
+ * portada de GitHub: pestañas en píldora con el personaje de cada agente y,
+ * debajo, un panel de vidrio con qué hace y su conversación de ejemplo dentro
+ * de una ventana del producto.
  */
 export function Agentes() {
-  const pestanas = AGENTES_INFO.map((a) => ({
-    id: a.id,
-    etiqueta: a.nombre,
-    adorno: <Personaje agente={a.id} avatar />,
-    contenido: (
-      <div className="columnas-asimetricas">
-        <div>
-          <Personaje agente={a.id} className="h-24 w-24" />
-          <Etiqueta tono="cielo" className="mt-[var(--spacing-16)]">
-            {a.area} · {a.abarca}
-          </Etiqueta>
-          <h3 className="t-titulo mt-[var(--spacing-8)]">{a.nombre}</h3>
-          <p className="t-intro mt-[var(--spacing-12)]">{a.lema}</p>
-          <ul className="lista-check mt-[var(--spacing-24)]">
-            {a.capacidades.map((c) => (
-              <li key={c} className="t-editorial">
-                <Check className="h-4 w-4" />
-                {c}
-              </li>
-            ))}
-          </ul>
-          <p className="t-chico mt-[var(--spacing-24)]">Viene con {planMinimo(a.id).nombre}.</p>
-          <Boton href={`/agentes#${a.id}`} variante="fantasma" flecha className="mt-[var(--spacing-24)]">
-            Todo lo que hace {a.nombre}
-          </Boton>
-        </div>
-        <MarcoNavegador
-          titulo={`Conversación de ejemplo con ${a.nombre}`}
-          pestanas={[{ etiqueta: `${a.nombre} · ${DETALLE[a.id].canal}`, activa: true }]}
-          relleno
-        >
-          <ConversacionEjemplo agente={a.id} />
-        </MarcoNavegador>
-      </div>
-    ),
-  }));
-
   return (
     <Seccion id="agentes" etiquetadaPor="agentes-titulo">
       <EncabezadoSeccion
         id="agentes-titulo"
         etiqueta="Tu equipo"
-        titulo="Cuatro agentes, un solo equipo"
-        texto="Cada uno lleva un área de tu negocio: atención, correo, clientes y oficina. Elige uno para ver qué hace y cómo habla."
+        titulo="Cuatro agentes, cada uno con su trabajo"
+        texto="Uno contesta WhatsApp y agenda, otra lleva tu correo, otro trae de regreso a tus clientes y otra hace el trabajo de oficina. Elige uno para ver cómo trabaja."
       />
-      <Pestanas etiqueta="Los agentes de Atendel" pestanas={pestanas} />
+      <VitrinaAgentes />
     </Seccion>
   );
 }
