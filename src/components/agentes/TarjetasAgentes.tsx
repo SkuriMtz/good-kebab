@@ -1,26 +1,21 @@
-import type { CSSProperties } from "react";
 import { BotonFicha } from "./BotonFicha";
 import { Personaje } from "./Personaje";
-import { PERSONAJES } from "@/lib/personajes";
 import { AGENTES_INFO } from "@/lib/agentes";
 
 /**
- * Los cuatro agentes como tarjetas de equipo: su retrato, el área en
- * violeta y el nombre grande. Sin cajas: flotan sobre el negro. Cada una
- * abre la ficha del agente.
+ * Los cuatro agentes juntos, de pie, como el retrato del equipo: su
+ * personaje, su nombre y su área en Mono. Sin cajas: flotan sobre el halo.
+ * Cada uno abre su ficha (en celular se tocan; con mouse se asoman un poco).
  */
 export function TarjetasAgentes() {
   return (
-    <ul className="grid grid-cols-2 gap-x-[var(--spacing-18)] gap-y-[var(--spacing-36)] lg:grid-cols-4 lg:gap-x-[var(--spacing-24)]">
+    <ul className="equipo-ag" aria-label="Los cuatro agentes">
       {AGENTES_INFO.map((a) => (
         <li key={a.id}>
-          <BotonFicha agente={a.id} className="tarjeta-agente" ariaLabel={`${a.nombre}, ${a.area}: ver su ficha`}>
-            <span className="retrato" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
-              <Personaje agente={a.id} avatar />
-            </span>
-            <span className="t-rol mt-[var(--spacing-6)]">{a.area}</span>
-            <span className="t-titulo tarjeta-agente__nombre">{a.nombre}</span>
-            <span className="t-chico">{a.abarca}</span>
+          <BotonFicha agente={a.id} className="equipo-ag__boton" ariaLabel={`${a.nombre}, ${a.area}: ver su ficha`}>
+            <Personaje agente={a.id} className="equipo-ag__personaje" />
+            <span className="equipo-ag__nombre">{a.nombre}</span>
+            <span className="etiqueta etiqueta--tenue">{a.area}</span>
           </BotonFicha>
         </li>
       ))}
