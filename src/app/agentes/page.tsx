@@ -1,99 +1,138 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
-import { BotonLink, Check, claseBoton } from "@/components/Buttons";
-import { EncabezadoPagina } from "@/components/Encabezado";
+import Link from "next/link";
 import { Sitio } from "@/components/Sitio";
+import { Boton, claseBotonBase } from "@/components/base/Boton";
+import { Etiqueta } from "@/components/base/Etiqueta";
+import { Halo } from "@/components/base/Halo";
+import { Icono } from "@/components/base/Iconos";
+import { MarcoNavegador } from "@/components/base/MarcoNavegador";
 import { BotonFicha } from "@/components/agentes/BotonFicha";
 import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
+import { IndiceAgentes } from "@/components/agentes/IndiceAgentes";
 import { Personaje } from "@/components/agentes/Personaje";
-import { TarjetasAgentes } from "@/components/agentes/TarjetasAgentes";
+import { DatosAgente, RetratoAgente, colorAgente } from "@/components/agentes/PiezasAgente";
 import { DETALLE } from "@/components/agentes/detalle";
 import { AGENTES_INFO } from "@/lib/agentes";
-import { PERSONAJES } from "@/lib/personajes";
 
 export const metadata: Metadata = { title: "Agentes" };
 
 /*
- * Agentes: el encabezado, las cuatro tarjetas (cada una abre su ficha) y un
- * bloque por agente en dos columnas que alternan de lado: lo que hace de un
- * lado; su retrato y una conversación de ejemplo del otro.
+ * /agentes: el equipo completo.
+ * 1. Encabezado con los cuatro personajes de pie (cada uno lleva a su sección).
+ * 2. Índice en píldoras pegado arriba que marca en qué agente vas.
+ * 3. Una sección por agente (#lola, #clara, #victor, #iris) armada como la
+ *    cabecera de un perfil: retrato, nombre, área y acciones; abajo, lo que
+ *    hace y su conversación de ejemplo dentro del marco del producto.
+ * 4. Acceso al chat.
+ * "?ficha=lola" abre la ficha (lo resuelve FichasAgentes, en el Sitio).
  */
 export default function Agentes() {
   return (
     <Sitio>
-      <EncabezadoPagina
-        escena="logoDerecha"
-        etiqueta="Atención, Correo, Clientes y Oficina"
-        titulo={
-          <>
-            ¿Qué le encargas <span className="resalta">hoy?</span>
-          </>
-        }
-        texto="Haz clic en cada uno para ver todo lo que hace, una conversación de ejemplo y en qué plan está."
-        acciones={<BotonLink href="/pruebalo">Habla con los agentes</BotonLink>}
-      />
-
-      <section aria-label="Los cuatro agentes" className="contenedor pb-[var(--spacing-60)] lg:pb-[var(--spacing-96)]">
-        <TarjetasAgentes />
+      <section className="agentes-cabeza con-halo" aria-labelledby="agentes-titulo">
+        <Halo y="30%" ancho="min(880px, 120vw)" proporcion="16 / 9" />
+        <div className="contenedor">
+          <ul className="agentes-cabeza__equipo">
+            {AGENTES_INFO.map((a) => (
+              <li key={a.id}>
+                <a href={`#${a.id}`} className="agentes-cabeza__agente" aria-label={`${a.nombre}, ${a.area}`}>
+                  <Personaje agente={a.id} className="agentes-cabeza__personaje" />
+                  <span className="agentes-cabeza__nombre" aria-hidden="true">
+                    {a.nombre}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <Etiqueta className="agentes-cabeza__etiqueta">Tu equipo · 4 agentes</Etiqueta>
+          <h1 id="agentes-titulo" className="t-grande agentes-cabeza__titulo">
+            Lola contesta, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace la oficina.
+          </h1>
+          <p className="t-intro agentes-cabeza__texto">
+            Cada uno se encarga de un área de tu negocio. Abre su perfil para ver todo lo que hace, una conversación de
+            ejemplo y en qué plan viene.
+          </p>
+          <div className="agentes-cabeza__acciones">
+            <Boton href="/pruebalo">Habla con los agentes</Boton>
+            <Boton href="/precios" variante="fantasma" flecha>
+              Ver precios
+            </Boton>
+          </div>
+        </div>
       </section>
 
-      {AGENTES_INFO.map((a, i) => (
-        <section key={a.id} id={a.id} aria-labelledby={`${a.id}-titulo`} className="seccion">
-          <div className="contenedor dos-columnas !items-start">
-            <div className={i % 2 ? "lg:order-2" : undefined}>
-              <p className="t-etiqueta">
-                {a.area} · {a.abarca}
-              </p>
-              <h2 id={`${a.id}-titulo`} className="t-display mt-[var(--spacing-18)]">
-                {a.nombre}
-              </h2>
-              <p className="t-editorial mt-[var(--spacing-18)] max-w-[480px]">{a.lema}</p>
-              <h3 className="t-etiqueta mt-[var(--spacing-36)]">Lo que hace</h3>
-              <ul className="lista-check mt-[var(--spacing-18)]">
-                {a.capacidades.map((c) => (
-                  <li key={c} className="t-editorial">
-                    <Check className="h-4 w-4" />
-                    {c}
-                  </li>
-                ))}
-              </ul>
-              <p className="t-cuerpo mt-[var(--spacing-36)] max-w-[520px]">{DETALLE[a.id].descripcion}</p>
-              <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">
-                <BotonFicha agente={a.id} className={claseBoton("suave")}>
+      <IndiceAgentes />
+
+      {AGENTES_INFO.map((a) => (
+        <section key={a.id} id={a.id} className="agente-seccion" aria-labelledby={`${a.id}-titulo`}>
+          <div className="contenedor">
+            <header className="agente-seccion__cabeza">
+              <RetratoAgente agente={a.id} tam="chico" />
+              <div className="agente-seccion__identidad">
+                <Etiqueta tono="tenue">
+                  {a.area} · {a.abarca}
+                </Etiqueta>
+                <h2 id={`${a.id}-titulo`} className="t-seccion">
+                  {a.nombre}
+                </h2>
+                <p className="agente-seccion__lema">{a.lema}</p>
+              </div>
+              <div className="agente-seccion__acciones">
+                <Boton href={`/agentes/${a.id}`} variante="sutil" flecha>
+                  Ver su perfil
+                </Boton>
+                <BotonFicha agente={a.id} className={claseBotonBase("fantasma")}>
                   Ver su ficha
                 </BotonFicha>
-                <BotonLink href={`/pruebalo?con=${a.id}`} variante="texto" flecha>
-                  Háblale a {a.nombre}
-                </BotonLink>
               </div>
-            </div>
-            <div className="flex flex-col gap-[var(--spacing-36)]">
-              <span className="retrato max-w-[320px]" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
-                <Personaje agente={a.id} avatar />
-              </span>
-              <ConversacionEjemplo agente={a.id} />
+            </header>
+
+            <div className="agente-seccion__cuerpo">
+              <div className="agente-seccion__texto">
+                <Etiqueta as="h3" tono="tenue">
+                  Lo que hace
+                </Etiqueta>
+                <ul className="lista-check agente-seccion__lista">
+                  {a.capacidades.map((c) => (
+                    <li key={c} className="t-editorial">
+                      <Icono nombre="check" tam={16} tono="cielo" />
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+                <p className="t-cuerpo agente-seccion__descripcion">{DETALLE[a.id].descripcion}</p>
+                <DatosAgente agente={a.id} />
+              </div>
+              <MarcoNavegador
+                titulo={`Conversación de ejemplo con ${a.nombre}`}
+                pestanas={[{ etiqueta: `${a.nombre} · ${DETALLE[a.id].canal}`, adorno: <Personaje agente={a.id} avatar />, activa: true }]}
+                relleno
+              >
+                <ConversacionEjemplo agente={a.id} />
+              </MarcoNavegador>
             </div>
           </div>
         </section>
       ))}
 
-      {/* Acceso al chat */}
-      <section className="seccion">
-        <div className="contenedor">
-          <p className="t-etiqueta">El chat</p>
-          <h2 className="t-display mt-[var(--spacing-18)] max-w-[14ch]">
-            Pruébalos <span className="resalta">en el chat.</span>
+      <section className="agentes-final" aria-labelledby="agentes-chat">
+        <div className="contenedor agentes-final__caja">
+          <span className="pila-agentes" aria-hidden="true">
+            {AGENTES_INFO.map((a) => (
+              <span key={a.id} className="pila-agentes__cara" style={colorAgente(a.id)}>
+                <Personaje agente={a.id} avatar />
+              </span>
+            ))}
+          </span>
+          <h2 id="agentes-chat" className="t-seccion">
+            Pruébalos en el chat
           </h2>
-          <div className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-24)] lg:flex-row lg:items-end lg:justify-between">
-            <p className="t-editorial max-w-[480px]">
-              Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras.
-            </p>
-            <div className="flex flex-wrap items-center gap-[var(--spacing-12)]">
-              <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
-              <BotonLink href="/precios" variante="suave" flecha>
-                Ver precios
-              </BotonLink>
-            </div>
+          <p className="t-intro">Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras.</p>
+          <div className="agentes-final__acciones">
+            <Boton href="/pruebalo">Habla con los agentes</Boton>
+            <Link href="/precios" className={claseBotonBase("fantasma")}>
+              Ver precios
+            </Link>
           </div>
         </div>
       </section>

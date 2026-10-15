@@ -1,7 +1,1112 @@
 /*
  * Estilos de los agentes: sección del inicio, /agentes, /agentes/[agente] y fichas.
  * Dueño: Grupo 3 · Agentes (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Propuesta G3-T2: cada agente como un PERFIL (como los perfiles de usuario
+ * de GitHub): retrato redondo grande, nombre, área, datos con íconos y con
+ * quién trabaja a la izquierda; pestañas en píldora con el contenido a la derecha.
+ * Solo tokens de src/app/globals.css. Se carga después de globals.css y sin
+ * @layer: aquí no se mezclan utilidades de Tailwind en los mismos elementos.
  */
+
+/* ---------------------------------------------------------------------
+   Piezas compartidas
+   --------------------------------------------------------------------- */
+
+/* Retrato redondo: el personaje entero sobre un velo de su color, con filo de 1px (como el avatar de un perfil) */
+.retrato-agente {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente) 12%, var(--c-fondo-2));
+}
+.retrato-agente > svg {
+  width: 88%;
+  height: auto;
+  transform: translateY(3%);
+}
+.retrato-agente--perfil {
+  width: calc(2 * var(--spacing-64));
+}
+.retrato-agente--mediano {
+  width: calc(2 * var(--spacing-80));
+}
+.retrato-agente--chico {
+  width: var(--spacing-80);
+}
+.retrato-agente--mini {
+  width: var(--spacing-64);
+}
+@media (min-width: 640px) {
+  .retrato-agente--chico {
+    width: var(--spacing-96);
+  }
+}
+@media (min-width: 1024px) {
+  .retrato-agente--perfil {
+    width: 100%;
+  }
+}
+
+/* Datos con íconos (dónde trabaja, plan, si ya se conecta) */
+.datos-agente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.datos-agente li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.datos-agente li > svg {
+  flex-shrink: 0;
+  color: var(--c-tenue);
+}
+.datos-agente .punto-estado {
+  flex-shrink: 0;
+  margin-inline: var(--spacing-4);
+}
+
+/* "Trabaja con": los otros tres, como las organizaciones de un perfil */
+.equipo-agente {
+  padding-top: var(--spacing-20);
+  border-top: 1px solid var(--c-borde);
+}
+.equipo-agente__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+}
+.equipo-agente__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-12);
+}
+.equipo-agente__enlace {
+  display: grid;
+  grid-template-columns: var(--avatar-32) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--spacing-44);
+  margin-inline: calc(-1 * var(--spacing-8));
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .equipo-agente__enlace:hover {
+    background: var(--c-hover);
+  }
+}
+.equipo-agente__enlace:active {
+  transform: scale(0.98);
+}
+.equipo-agente__cara {
+  display: grid;
+  place-items: center;
+  width: var(--avatar-32);
+  height: var(--avatar-32);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente) 22%, var(--c-fondo));
+}
+.equipo-agente__cara > svg {
+  width: 76%;
+  height: 76%;
+}
+.equipo-agente__nombre {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+}
+.equipo-agente__area {
+  justify-self: end;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+
+/* Cajas de vidrio del perfil (Quién es · Todo lo que hace) */
+.caja-agente {
+  overflow: hidden;
+}
+.caja-agente__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--spacing-48);
+  padding: var(--spacing-12) var(--spacing-20);
+  border-bottom: 1px solid var(--c-vidrio-borde);
+  color: var(--c-tenue);
+}
+.caja-agente__lectura {
+  max-width: 68ch;
+  padding: var(--spacing-24) var(--spacing-20);
+  color: var(--c-texto);
+  font-size: var(--t-intro);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-intro);
+}
+@media (min-width: 640px) {
+  .caja-agente__cabeza {
+    padding-inline: var(--spacing-24);
+  }
+  .caja-agente__lectura {
+    padding: var(--spacing-28) var(--spacing-24) var(--spacing-32);
+  }
+}
+.funciones-agente__fila {
+  display: grid;
+  grid-template-columns: var(--spacing-16) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  padding: var(--spacing-20);
+}
+.funciones-agente__fila + .funciones-agente__fila {
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 640px) {
+  .funciones-agente__fila {
+    padding-inline: var(--spacing-24);
+  }
+}
+.funciones-agente__icono {
+  margin-top: var(--spacing-4);
+}
+.funciones-agente__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+}
+.funciones-agente__detalle {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+
+/* En qué plan viene: tres planes en fila; el primero que lo trae, con borde destacado */
+.planes-agente__lista {
+  display: grid;
+  gap: var(--spacing-12);
+}
+@media (min-width: 640px) {
+  .planes-agente__lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.planes-agente__plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-20);
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-vidrio);
+}
+.planes-agente__plan[data-desde] {
+  border-color: var(--c-destacada);
+}
+.planes-agente__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  min-height: var(--spacing-20);
+}
+.planes-agente__marca {
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+}
+.planes-agente__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-titulo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.3;
+}
+.planes-agente__plan:not([data-incluido]) .planes-agente__nombre {
+  color: var(--c-tenue);
+}
+.planes-agente__precio {
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+.planes-agente__estado {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-12);
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--c-vidrio-borde);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+}
+.planes-agente__plan:not([data-incluido]) .planes-agente__estado {
+  color: var(--c-tenue);
+}
+.planes-agente__guion {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--spacing-12);
+  height: 1px;
+  margin-inline: var(--spacing-4) 0;
+  background: currentColor;
+}
+.planes-agente__trae {
+  margin-top: var(--spacing-32);
+}
+.planes-agente__incluye {
+  margin-top: var(--spacing-16);
+}
+.planes-agente__incluye li {
+  color: var(--c-texto);
+}
+.planes-agente__resumen {
+  margin-top: var(--spacing-16);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+
+/* Enlace con flecha ("Escríbele en el chat →") */
+.enlace-agente {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-enlace);
+  font-weight: var(--peso-medio);
+}
+.enlace-agente > svg {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .enlace-agente:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .enlace-agente:hover > svg {
+    transform: translateX(2px);
+  }
+}
+
+/* Pila de caritas (como los avatares encimados de un equipo) */
+.pila-agentes {
+  display: inline-flex;
+}
+.pila-agentes__cara {
+  display: grid;
+  place-items: center;
+  width: var(--spacing-48);
+  height: var(--spacing-48);
+  margin-left: calc(-1 * var(--spacing-12));
+  border: 2px solid var(--c-fondo);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente) 22%, var(--c-fondo));
+}
+.pila-agentes__cara:first-child {
+  margin-left: 0;
+}
+.pila-agentes__cara > svg {
+  width: 76%;
+  height: 76%;
+}
+
+/* ---------------------------------------------------------------------
+   La conversación de ejemplo como hilo del producto
+   --------------------------------------------------------------------- */
+.hilo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.hilo__lista {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+/* La línea del hilo, detrás de los avatares */
+.hilo__lista::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-16);
+  bottom: var(--spacing-16);
+  left: calc(var(--avatar-32) / 2);
+  width: 1px;
+  background: var(--c-borde);
+}
+.hilo__mensaje,
+.hilo__evento {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--avatar-32) minmax(0, 1fr);
+  gap: var(--spacing-12);
+}
+.hilo__avatar {
+  position: relative;
+  z-index: 1;
+}
+.hilo__avatar--agente {
+  display: grid;
+  place-items: center;
+  width: var(--avatar-32);
+  height: var(--avatar-32);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente) 24%, var(--c-marco-fondo));
+}
+.hilo__avatar--agente > svg {
+  width: 76%;
+  height: 76%;
+}
+.hilo__cuerpo {
+  min-width: 0;
+}
+.hilo__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--avatar-32);
+}
+.hilo__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+}
+.hilo__hora {
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-variant-numeric: tabular-nums;
+}
+.hilo__burbuja {
+  width: fit-content;
+  max-width: 100%;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-burbuja-esquina) var(--radio-burbuja) var(--radio-burbuja) var(--radio-burbuja);
+  background: var(--c-elevado);
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.hilo__mensaje[data-de="agente"] .hilo__burbuja {
+  background: var(--c-propio);
+}
+.hilo__evento {
+  align-items: center;
+}
+.hilo__icono {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--avatar-32);
+  height: var(--avatar-32);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-circulo);
+  background: var(--c-marco-fondo);
+  color: var(--c-enlace);
+}
+.hilo__evento-texto {
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+}
+.hilo__aviso {
+  padding-left: calc(var(--avatar-32) + var(--spacing-12));
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+}
+
+/* ---------------------------------------------------------------------
+   Inicio · sección "Tu equipo"
+   --------------------------------------------------------------------- */
+.agentes-inicio .pestanas__panel {
+  margin-top: var(--spacing-40);
+}
+.agentes-inicio__panel {
+  display: grid;
+  gap: var(--spacing-24);
+  text-align: left;
+}
+@media (min-width: 1024px) {
+  .agentes-inicio__panel {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-32);
+    align-items: start;
+  }
+}
+.agentes-inicio__perfil {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+@media (min-width: 1024px) {
+  .agentes-inicio__perfil.vidrio--relleno {
+    padding: var(--spacing-32);
+  }
+}
+.agentes-inicio__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20);
+}
+.agentes-inicio__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-seccion);
+  font-weight: var(--peso-seccion);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-seccion);
+}
+.agentes-inicio__cabecera .etiqueta {
+  margin-top: var(--spacing-4);
+}
+.agentes-inicio__lema {
+  color: var(--c-texto);
+}
+.agentes-inicio__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  padding-top: var(--spacing-20);
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+
+/* ---------------------------------------------------------------------
+   /agentes · encabezado, índice pegado, una sección por agente, chat
+   --------------------------------------------------------------------- */
+.agentes-cabeza {
+  padding-block: var(--spacing-48) var(--spacing-64);
+  text-align: center;
+}
+@media (min-width: 1024px) {
+  .agentes-cabeza {
+    padding-block: var(--spacing-80) var(--spacing-96);
+  }
+}
+.agentes-cabeza__equipo {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+@media (min-width: 640px) {
+  .agentes-cabeza__equipo {
+    gap: var(--spacing-32);
+  }
+}
+.agentes-cabeza__agente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-radius: var(--radio-imagen);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .agentes-cabeza__agente:hover {
+    transform: translateY(calc(-1 * var(--spacing-4)));
+  }
+}
+.agentes-cabeza__agente:active {
+  transform: scale(0.97);
+}
+.agentes-cabeza__personaje {
+  width: var(--spacing-80);
+  height: auto;
+}
+@media (min-width: 640px) {
+  .agentes-cabeza__personaje {
+    width: calc(2 * var(--spacing-64));
+  }
+}
+.agentes-cabeza__nombre {
+  color: var(--c-texto-2);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+}
+.agentes-cabeza__etiqueta {
+  margin-top: var(--spacing-40);
+}
+.agentes-cabeza__titulo {
+  max-width: 30ch;
+  margin: var(--spacing-16) auto 0;
+  text-wrap: balance;
+}
+.agentes-cabeza__texto {
+  margin: var(--spacing-20) auto 0;
+}
+.agentes-cabeza__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-32);
+}
+
+/* Índice pegado debajo de la barra: píldoras con la blanca que se desliza */
+.indice-agentes {
+  position: sticky;
+  top: var(--barra-h);
+  z-index: 40;
+  padding-block: var(--spacing-12);
+  border-block: 1px solid var(--c-borde);
+  background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+}
+.indice-agentes__desliza {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-inline: var(--orilla);
+  scrollbar-width: none;
+}
+.indice-agentes__desliza::-webkit-scrollbar {
+  display: none;
+}
+.indice-agentes__pista {
+  position: relative;
+  isolation: isolate;
+  width: max-content;
+  margin-inline: auto;
+}
+.indice-agentes__lista {
+  display: flex;
+  gap: var(--spacing-8);
+}
+.indice-agentes__enlace {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control);
+  padding: var(--spacing-4) var(--spacing-16) var(--spacing-4) var(--spacing-4);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .indice-agentes__enlace:hover:not([aria-current]) {
+    border-color: var(--c-texto-2);
+  }
+}
+.indice-agentes__enlace:active {
+  transform: scale(0.97);
+}
+.indice-agentes__enlace[aria-current] {
+  border-color: var(--c-pildora-activa);
+  color: var(--c-sobre-pildora-activa);
+}
+/* Antes de medir (sin JS), la activa se pinta sola */
+.indice-agentes:not([data-medido]) .indice-agentes__enlace[aria-current] {
+  background: var(--c-pildora-activa);
+}
+.indice-agentes__cara {
+  display: grid;
+  place-items: center;
+  width: var(--avatar-32);
+  height: var(--avatar-32);
+  border-radius: var(--radio-circulo);
+  background: color-mix(in srgb, var(--agente) 22%, var(--c-fondo));
+}
+.indice-agentes__cara > svg {
+  width: 76%;
+  height: 76%;
+}
+.indice-agentes__area {
+  display: none;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+}
+.indice-agentes__enlace[aria-current] .indice-agentes__area {
+  color: color-mix(in srgb, var(--c-sobre-pildora-activa) 64%, transparent);
+}
+@media (min-width: 640px) {
+  .indice-agentes__area {
+    display: inline;
+  }
+}
+.indice-agentes__indicador {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--c-pildora-activa);
+  pointer-events: none;
+  transform-origin: 0 50%;
+}
+.indice-agentes__indicador[data-anima="true"] {
+  transition: transform var(--dur-micro) var(--ease);
+}
+
+/* Cada agente: cabecera de perfil y, abajo, lo que hace + su conversación */
+.agente-seccion {
+  padding-block: var(--espacio-seccion);
+  border-top: 1px solid var(--c-borde);
+  scroll-margin-top: calc(var(--barra-h) + var(--spacing-64));
+}
+.indice-agentes + .agente-seccion {
+  border-top: 0;
+}
+.agente-seccion__cabeza {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-20) var(--spacing-20);
+}
+.agente-seccion__identidad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.agente-seccion__lema {
+  max-width: var(--ancho-texto);
+  color: var(--c-texto-2);
+  font-size: var(--t-intro);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-intro);
+}
+.agente-seccion__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: var(--spacing-12);
+}
+@media (min-width: 1024px) {
+  .agente-seccion__cabeza {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--spacing-32);
+  }
+  .agente-seccion__acciones {
+    grid-column: auto;
+  }
+}
+.agente-seccion__cuerpo {
+  display: grid;
+  gap: var(--spacing-40);
+  margin-top: var(--spacing-40);
+}
+@media (min-width: 1024px) {
+  .agente-seccion__cuerpo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: start;
+    margin-top: var(--spacing-48);
+  }
+}
+.agente-seccion__lista {
+  margin-top: var(--spacing-16);
+}
+.agente-seccion__descripcion {
+  max-width: var(--ancho-texto);
+  margin-top: var(--spacing-24);
+}
+.agente-seccion__texto .datos-agente {
+  margin-top: var(--spacing-24);
+  padding-top: var(--spacing-20);
+  border-top: 1px solid var(--c-borde);
+}
+
+/* Acceso al chat */
+.agentes-final {
+  padding-block: var(--espacio-seccion);
+  border-top: 1px solid var(--c-borde);
+}
+.agentes-final__caja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-16);
+  text-align: center;
+}
+.agentes-final__caja .pila-agentes {
+  margin-bottom: var(--spacing-8);
+}
+.agentes-final__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+
+/* ---------------------------------------------------------------------
+   /agentes/[agente] · el perfil
+   --------------------------------------------------------------------- */
+.perfil {
+  padding-top: var(--spacing-24);
+  padding-bottom: var(--espacio-seccion);
+}
+.perfil__ruta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.perfil__ruta a {
+  color: var(--c-enlace);
+}
+@media (hover: hover) and (pointer: fine) {
+  .perfil__ruta a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+.perfil__ruta [aria-current] {
+  color: var(--c-texto);
+  font-weight: var(--peso-titulo);
+}
+/* En celular: cabecera → pestañas → "Trabaja con". En computadora: columna izquierda (perfil y equipo) y pestañas a la derecha. */
+.perfil__rejilla {
+  display: grid;
+  grid-template-areas: "lateral" "principal" "equipo";
+  gap: var(--spacing-40);
+  margin-top: var(--spacing-24);
+}
+@media (min-width: 1024px) {
+  .perfil__rejilla {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "lateral principal" "equipo principal";
+    gap: var(--spacing-24) var(--spacing-48);
+    margin-top: var(--spacing-40);
+  }
+}
+.perfil__equipo {
+  grid-area: equipo;
+  align-self: start;
+}
+.perfil__lateral {
+  grid-area: lateral;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+.perfil__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20);
+}
+@media (min-width: 1024px) {
+  .perfil__cabecera {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-24);
+  }
+}
+.perfil__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-seccion);
+  font-weight: var(--peso-seccion);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-seccion);
+}
+.perfil__area {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-intro);
+  line-height: 1.4;
+  letter-spacing: var(--tracking-intro);
+}
+.perfil__lema {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.perfil__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .perfil__acciones {
+    flex-direction: row;
+  }
+  .perfil__acciones > * {
+    flex: 1;
+  }
+}
+.perfil__datos {
+  padding-top: var(--spacing-4);
+}
+.perfil__principal {
+  grid-area: principal;
+  min-width: 0;
+}
+.perfil__principal .pestanas__panel {
+  margin-top: var(--spacing-24);
+}
+.perfil__contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-20);
+  height: var(--spacing-20);
+  margin-left: var(--spacing-8);
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radio-circulo);
+  background: var(--c-activo);
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.pestanas__pestana[aria-selected="true"] .perfil__contador {
+  background: color-mix(in srgb, var(--c-sobre-pildora-activa) 12%, transparent);
+}
+.perfil__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+.perfil__sigue {
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------------
+   Ficha de un agente (AgenteModal): ventana de vidrio frost, radio 24px
+   --------------------------------------------------------------------- */
+.ficha-agente {
+  box-sizing: border-box;
+  width: calc(100% - 2 * var(--spacing-8));
+  max-width: calc(var(--ancho-max) - 2 * var(--spacing-80));
+  height: auto;
+  max-height: calc(100dvh - 2 * var(--spacing-8));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--c-vidrio-frost);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.4);
+  backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.4);
+  box-shadow: var(--sombra-flotante);
+  color: var(--c-texto);
+  opacity: 0;
+  transform: scale(0.96) translateY(var(--spacing-8));
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+.ficha-agente[open] {
+  display: flex;
+  flex-direction: column;
+}
+.ficha-agente[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--dur-grande);
+  transition-timing-function: var(--ease-entrada);
+}
+.ficha-agente::backdrop {
+  background: var(--c-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.ficha-agente[data-visible="true"]::backdrop {
+  opacity: 1;
+  transition-duration: var(--dur-grande);
+}
+@media (min-width: 640px) {
+  .ficha-agente {
+    width: calc(100% - 2 * var(--spacing-32));
+    max-height: calc(100dvh - 2 * var(--spacing-32));
+  }
+}
+.ficha-agente__caja {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--spacing-20) var(--spacing-20) var(--spacing-32);
+}
+@media (min-width: 1024px) {
+  .ficha-agente__caja {
+    padding: var(--spacing-40);
+  }
+}
+.ficha-agente:focus {
+  outline: none;
+}
+.ficha-agente__cabeza {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+.ficha-agente__lema {
+  grid-column: 1 / -1;
+}
+@media (min-width: 640px) {
+  .ficha-agente__cabeza {
+    align-items: start;
+    gap: var(--spacing-8) var(--spacing-24);
+  }
+  .ficha-agente__retrato {
+    grid-row: span 2;
+  }
+  .ficha-agente__lema {
+    grid-column: 2 / 3;
+  }
+}
+.ficha-agente__retrato.retrato-agente--chico {
+  width: var(--spacing-64);
+}
+@media (min-width: 640px) {
+  .ficha-agente__retrato.retrato-agente--chico {
+    width: var(--spacing-96);
+  }
+}
+.ficha-agente__identidad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-4);
+}
+.ficha-agente__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-grande);
+  font-weight: var(--peso-grande);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-grande);
+}
+.ficha-agente__lema {
+  color: var(--c-texto-2);
+  font-size: var(--t-intro);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-intro);
+}
+.ficha-agente__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-24);
+}
+@media (min-width: 640px) {
+  .ficha-agente__acciones {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--spacing-12);
+  }
+}
+@media (min-width: 640px) {
+  .ficha-agente__acciones,
+  .ficha-agente__aviso {
+    margin-left: calc(var(--spacing-96) + var(--spacing-24));
+  }
+}
+.ficha-agente__aviso {
+  margin-top: var(--spacing-12);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+.ficha-agente__cuerpo {
+  display: grid;
+  gap: var(--spacing-32);
+  margin-top: var(--spacing-32);
+  padding-top: var(--spacing-32);
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 1024px) {
+  .ficha-agente__cuerpo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-48);
+    margin-top: var(--spacing-40);
+    padding-top: var(--spacing-40);
+  }
+}
+.ficha-agente__columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-32);
+  min-width: 0;
+}
+.ficha-agente__lectura {
+  margin-top: var(--spacing-12);
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.ficha-agente__datos {
+  margin-top: var(--spacing-16);
+}
+.ficha-agente__funciones {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--spacing-12);
+}
+.ficha-agente__funciones li {
+  padding-block: var(--spacing-12);
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+.ficha-agente__funcion {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+}
+.ficha-agente__detalle {
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.ficha-agente__panel {
+  padding: var(--spacing-20);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-marco-fondo);
+}
+.ficha-agente .planes-agente {
+  margin-top: var(--spacing-12);
+}
+
+/* Con movimiento reducido: solo opacidad. Sin transparencias: superficies sólidas. */
+@media (prefers-reduced-motion: reduce) {
+  .ficha-agente,
+  .ficha-agente[data-visible="true"] {
+    transform: none;
+  }
+  .agentes-cabeza__agente:hover,
+  .agentes-cabeza__agente:active,
+  .indice-agentes__enlace:active,
+  .equipo-agente__enlace:active {
+    transform: none;
+  }
+  .indice-agentes__indicador[data-anima="true"] {
+    transition: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ficha-agente {
+    background: var(--c-superficie);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .indice-agentes {
+    background: var(--c-fondo);
+  }
+}

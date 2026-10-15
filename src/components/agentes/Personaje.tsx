@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { IdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
 
@@ -17,7 +17,17 @@ const OJOS = [80, 120] as const;
 const OJO_RX = 11.5;
 const OJO_RY = 13.5;
 const PUPILA = 6;
+/** Hasta dónde se mueve la pupila sin salirse del ojo. */
+const MAX_X = OJO_RX - PUPILA - 1.6;
+const MAX_Y = OJO_RY - PUPILA - 1.6;
 const PUNTOS = 10;
+
+/**
+ * La personalidad está en cómo mira cada uno (no en adornos):
+ * Lola, atenta, va directo al cursor; Víctor, con ganas; Iris, concentrada;
+ * Clara, con calma. Es la fracción del camino que recorre la mirada por cuadro.
+ */
+const MIRADA: Record<IdAgente, number> = { lola: 0.22, victor: 0.16, iris: 0.11, clara: 0.08 };
 
 /** Contorno del cuerpo: un círculo apenas ondulado, distinto en cada personaje (según su fase). */
 function contorno(fase: number) {
@@ -50,12 +60,155 @@ function contorno(fase: number) {
   return d + "Z";
 }
 
+/* ---------------------------------------------------------------------
+   La mirada, compartida por todos los personajes de la página.
+   Un solo escucha del puntero y un solo ciclo de cuadros, que solo corre
+   mientras alguna mirada va en camino (quieto = cero trabajo). Solo se
+   mueven los personajes que están a la vista.
+   --------------------------------------------------------------------- */
+
+type Instancia = {
+  svg: SVGSVGElement;
+  pupilas: SVGGElement;
+  cara: SVGGElement;
+  parpados: SVGGElement;
+  rapidez: number;
+  /** Personaje entero (no avatar): parpadea y asoma la cara. */
+  entero: boolean;
+  visible: boolean;
+  x: number;
+  y: number;
+};
+
+const instancias = new Set<Instancia>();
+const puntero = { x: 0, y: 0, desde: 0, tipo: "nada" as "mouse" | "toque" | "nada" };
+/** Con el dedo, mira un momento hacia donde tocaste y vuelve al frente. */
+const MIRA_TOQUE_MS = 2500;
+let cuadroPendiente = 0;
+let regreso = 0;
+let parpadeo = 0;
+let vigia: IntersectionObserver | null = null;
+const porSvg = new WeakMap<Element, Instancia>();
+
+function pedirCuadro() {
+  if (!cuadroPendiente) cuadroPendiente = requestAnimationFrame(cuadro);
+}
+
+function cuadro() {
+  cuadroPendiente = 0;
+  const ahora = performance.now();
+  const mira = puntero.tipo === "mouse" || (puntero.tipo === "toque" && ahora - puntero.desde < MIRA_TOQUE_MS);
+  let enCamino = false;
+  for (const i of instancias) {
+    if (!i.visible) continue;
+    let mx = 0;
+    let my = 0;
+    if (mira) {
+      const r = i.svg.getBoundingClientRect();
+      const dx = puntero.x - (r.left + r.width / 2);
+      const dy = puntero.y - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy) || 1;
+      const f = Math.min(1, d / Math.max(120, r.width * 1.5));
+      mx = (dx / d) * f;
+      my = (dy / d) * f;
+    }
+    i.x += (mx - i.x) * i.rapidez;
+    i.y += (my - i.y) * i.rapidez;
+    if (Math.abs(mx - i.x) > 0.002 || Math.abs(my - i.y) > 0.002) enCamino = true;
+
+    // La pupila nunca se sale del ojo (elipse)
+    let px = i.x * MAX_X;
+    let py = i.y * MAX_Y;
+    const e = (px * px) / (MAX_X * MAX_X) + (py * py) / (MAX_Y * MAX_Y);
+    if (e > 1) {
+      const k = 1 / Math.sqrt(e);
+      px *= k;
+      py *= k;
+    }
+    i.pupilas.setAttribute("transform", `translate(${px.toFixed(2)} ${py.toFixed(2)})`);
+    // La cara (ojos, boca y lentes) se asoma apenas hacia donde mira
+    if (i.entero) i.cara.setAttribute("transform", `translate(${(i.x * 2.6).toFixed(2)} ${(i.y * 1.8).toFixed(2)})`);
+  }
+  if (enCamino) pedirCuadro();
+}
+
+function alMover(e: PointerEvent) {
+  puntero.x = e.clientX;
+  puntero.y = e.clientY;
+  puntero.desde = performance.now();
+  puntero.tipo = e.pointerType === "mouse" ? "mouse" : "toque";
+  pedirCuadro();
+  if (puntero.tipo === "toque") {
+    window.clearTimeout(regreso);
+    regreso = window.setTimeout(pedirCuadro, MIRA_TOQUE_MS + 50);
+  }
+}
+
+function alDesplazar() {
+  if (puntero.tipo === "mouse") pedirCuadro();
+}
+
+/** De vez en cuando parpadea alguno de los personajes enteros que se ven. */
+function programarParpadeo() {
+  parpadeo = window.setTimeout(
+    () => {
+      const candidatos = [...instancias].filter((i) => i.entero && i.visible);
+      const elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
+      if (elegido && typeof elegido.parpados.animate === "function") {
+        const dur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-micro")) || 0.2;
+        elegido.parpados.animate(
+          [{ transform: "scaleY(1)" }, { transform: "scaleY(0.08)" }, { transform: "scaleY(1)" }],
+          { duration: dur * 1000, easing: "ease-in-out" },
+        );
+      }
+      programarParpadeo();
+    },
+    1800 + Math.random() * 3200,
+  );
+}
+
+function registrar(i: Instancia) {
+  if (instancias.size === 0) {
+    window.addEventListener("pointermove", alMover, { passive: true });
+    window.addEventListener("pointerdown", alMover, { passive: true });
+    window.addEventListener("scroll", alDesplazar, { passive: true });
+    vigia = new IntersectionObserver((entradas) => {
+      for (const en of entradas) {
+        const inst = porSvg.get(en.target);
+        if (inst) inst.visible = en.isIntersecting;
+      }
+      pedirCuadro();
+    });
+    programarParpadeo();
+  }
+  instancias.add(i);
+  porSvg.set(i.svg, i);
+  vigia?.observe(i.svg);
+  return () => {
+    vigia?.unobserve(i.svg);
+    instancias.delete(i);
+    if (instancias.size === 0) {
+      window.removeEventListener("pointermove", alMover);
+      window.removeEventListener("pointerdown", alMover);
+      window.removeEventListener("scroll", alDesplazar);
+      vigia?.disconnect();
+      vigia = null;
+      window.clearTimeout(parpadeo);
+      window.clearTimeout(regreso);
+      if (cuadroPendiente) cancelAnimationFrame(cuadroPendiente);
+      cuadroPendiente = 0;
+    }
+  };
+}
+
 /**
- * Personaje de cada agente: un cuerpo redondo con cara, en SVG. Plano y
- * quieto: un color por personaje y tinta para los detalles (audífonos de
- * Lola, lentes de Clara, moño de Víctor, chongo con lápiz de Iris).
- * La versión que respira, parpadea y sigue el cursor está guardada en
- * componentes-pendientes/personaje-animado.
+ * Personaje de cada agente: un cuerpo redondo de forma orgánica, con cara,
+ * en SVG. Plano: un color por personaje y tinta para los detalles (audífonos
+ * de Lola, lentes de Clara, moño de Víctor, chongo con lápiz de Iris).
+ * Lo vivo está en la mirada: las pupilas siguen al cursor (o un momento al
+ * dedo) sin salirse del ojo, cada uno a su ritmo; el personaje entero
+ * asoma la cara hacia donde mira y parpadea de vez en cuando.
+ * Con "reducir movimiento" se queda quieto y mirando al frente.
  */
 export function Personaje({
   agente,
@@ -69,9 +222,23 @@ export function Personaje({
 }) {
   const { color, fase } = PERSONAJES[agente];
   const ojos = `ojos-${useId().replace(/:/g, "")}`;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const caraRef = useRef<SVGGElement>(null);
+  const parpadosRef = useRef<SVGGElement>(null);
+  const pupilasRef = useRef<SVGGElement>(null);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    const cara = caraRef.current;
+    const parpados = parpadosRef.current;
+    const pupilas = pupilasRef.current;
+    if (!svg || !cara || !parpados || !pupilas) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    return registrar({ svg, cara, parpados, pupilas, rapidez: MIRADA[agente], entero: !avatar, visible: false, x: 0, y: 0 });
+  }, [agente, avatar]);
 
   return (
-    <svg viewBox={avatar ? "28 26 144 154" : "0 0 200 210"} className={className} aria-hidden="true" focusable="false">
+    <svg ref={svgRef} viewBox={avatar ? "28 26 144 154" : "0 0 200 210"} className={className} aria-hidden="true" focusable="false">
       <defs>
         <clipPath id={ojos}>
           {OJOS.map((x) => (
@@ -100,39 +267,45 @@ export function Personaje({
         </g>
       ) : null}
 
-      {/* Ojos: blanco y pupila al centro */}
-      {OJOS.map((x) => (
-        <ellipse key={x} cx={x} cy={OJO_Y} rx={OJO_RX} ry={OJO_RY} fill="#fff" />
-      ))}
-      <g clipPath={`url(#${ojos})`}>
-        {OJOS.map((x) => (
-          <circle key={x} cx={x} cy={OJO_Y} r={PUPILA} fill={TINTA} />
-        ))}
-      </g>
-
-      {/* Boca: un trazo, distinto para cada uno */}
-      {agente === "lola" ? (
-        <path d="M88 127 Q100 140 112 127" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
-      ) : null}
-      {agente === "clara" ? (
-        <path d="M92 130 Q100 136 108 130" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
-      ) : null}
-      {agente === "victor" ? (
-        <path d="M85 126 Q100 143 115 126" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
-      ) : null}
-      {agente === "iris" ? (
-        <path d="M93 131 Q101 135 109 129" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
-      ) : null}
-
-      {/* Lentes de Clara: mismas medidas que los ojos */}
-      {agente === "clara" ? (
-        <g fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round">
+      <g ref={caraRef}>
+        {/* Ojos: blanco y pupila (que mira); el grupo se cierra al parpadear */}
+        <g ref={parpadosRef} style={{ transformBox: "fill-box", transformOrigin: "center" }}>
           {OJOS.map((x) => (
-            <circle key={x} cx={x} cy={OJO_Y} r="16.5" />
+            <ellipse key={x} cx={x} cy={OJO_Y} rx={OJO_RX} ry={OJO_RY} fill="#fff" />
           ))}
-          <path d={`M${OJOS[0] + 16.5} ${OJO_Y - 2} Q100 ${OJO_Y - 7} ${OJOS[1] - 16.5} ${OJO_Y - 2}`} />
+          <g clipPath={`url(#${ojos})`}>
+            <g ref={pupilasRef}>
+              {OJOS.map((x) => (
+                <circle key={x} cx={x} cy={OJO_Y} r={PUPILA} fill={TINTA} />
+              ))}
+            </g>
+          </g>
         </g>
-      ) : null}
+
+        {/* Boca: un trazo, distinto para cada uno */}
+        {agente === "lola" ? (
+          <path d="M88 127 Q100 140 112 127" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
+        ) : null}
+        {agente === "clara" ? (
+          <path d="M92 130 Q100 136 108 130" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
+        ) : null}
+        {agente === "victor" ? (
+          <path d="M85 126 Q100 143 115 126" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" />
+        ) : null}
+        {agente === "iris" ? (
+          <path d="M93 131 Q101 135 109 129" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" />
+        ) : null}
+
+        {/* Lentes de Clara: mismas medidas que los ojos, se mueven con la cara */}
+        {agente === "clara" ? (
+          <g fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round">
+            {OJOS.map((x) => (
+              <circle key={x} cx={x} cy={OJO_Y} r="16.5" />
+            ))}
+            <path d={`M${OJOS[0] + 16.5} ${OJO_Y - 2} Q100 ${OJO_Y - 7} ${OJOS[1] - 16.5} ${OJO_Y - 2}`} />
+          </g>
+        ) : null}
+      </g>
 
       {agente === "victor" ? (
         <g fill={TINTA} stroke={TINTA} strokeWidth="2" strokeLinejoin="round">
