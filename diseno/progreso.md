@@ -70,7 +70,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 ### Grupo 3 — Agentes (3 trabajadores; eran 5): pestañas de los 4 agentes, personajes (blobs) y páginas de cada agente
 
 - [ ] G3-T1 · rama `prop/g3-t1` · capturas `diseno/capturas/paso5/g3-t1/`
-- [ ] G3-T2 · rama `prop/g3-t2` · capturas `diseno/capturas/paso5/g3-t2/`
+- [x] G3-T2 · rama `prop/g3-t2` · capturas `diseno/capturas/paso5/g3-t2/` — **2026-10-15 14:16 UTC** — evidencia: commit 75142ce en origin/prop/g3-t2 ("Propuesta G3-T2: agentes como perfiles"), 38 capturas, entrega `diseno/entregas/g3-t2.md`; lint y build pasan; worktree limpio
 - [ ] G3-T3 · rama `prop/g3-t3` · capturas `diseno/capturas/paso5/g3-t3/`
 - [-] ~~G3-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [-] ~~G3-T5~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
