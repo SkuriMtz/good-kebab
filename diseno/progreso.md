@@ -125,7 +125,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [ ] G6 revisor A → `diseno/revisiones/paso6/g6-revisor-a.md`
 - [ ] G6 revisor B → `diseno/revisiones/paso6/g6-revisor-b.md`
 - [ ] G6 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g6-resultado.md`
-- [ ] G7 revisor A → `diseno/revisiones/paso6/g7-revisor-a.md`
+- [x] G7 revisor A → `diseno/revisiones/paso6/g7-revisor-a.md` — **2026-10-15 02:27 UTC** — evidencia: `diseno/revisiones/paso6/g7-revisor-a.md` (gana G7-T1, 8.67; T5 8.33, T3 8.17, T2 7.50, T4 6.67)
 - [ ] G7 revisor B → `diseno/revisiones/paso6/g7-revisor-b.md`
 - [ ] G7 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g7-resultado.md`
 
