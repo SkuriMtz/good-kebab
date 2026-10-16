@@ -80,7 +80,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 ### Grupo 4 — Secciones informativas (3 trabajadores; eran 5): Qué es Atendel, Cómo funciona, Para quién es y Seguridad
 
 - [ ] G4-T1 · rama `prop/g4-t1` · capturas `diseno/capturas/paso5/g4-t1/`
-- [ ] G4-T2 · rama `prop/g4-t2` · capturas `diseno/capturas/paso5/g4-t2/`
+- [x] G4-T2 · rama `prop/g4-t2` · capturas `diseno/capturas/paso5/g4-t2/` — **2026-10-16 17:42 UTC** — evidencia: commit e4ccf22 en origin/prop/g4-t2, 40 capturas, entrega `diseno/entregas/g4-t2.md`; lint y build pasan (continuación de un trabajador detenido)
 - [x] G4-T3 · rama `prop/g4-t3` · capturas `diseno/capturas/paso5/g4-t3/` — **2026-10-16 03:03 UTC** — evidencia: commit 6f43d46 en origin/prop/g4-t3 ("Propuesta G4-T3: GitHub con la calma de Apple (tipografía protagonista, pocas cajas)"), 25 capturas, entrega `diseno/entregas/g4-t3.md`; lint y build pasan; worktree limpio
 - [-] ~~G4-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 - [-] ~~G4-T5~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
