@@ -4,4 +4,683 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Sin @layer (este archivo se procesa aparte): las reglas van con clases
+ * propias (inf-*) para no chocar con las de la base.
+ *
+ * Propuesta G4-T1: el ritmo de secciones de la portada de GitHub.
+ *   4. Qué es        → columnas asimétricas: título a la izquierda, panel de
+ *                      vidrio "Hoy en la recepción" (feed de actividad) a la derecha.
+ *   5. Cómo funciona → línea de tiempo vertical (como la de un pull request) y,
+ *                      al final, la muestra del producto que espera tu visto bueno.
+ *   6. Para quién es → pestañas en píldora por negocio; tareas por agente con su personaje.
+ *   7. Seguridad     → una tarjeta de vidrio ancha, tres garantías separadas por 1px.
+ *   /para-quien-es   → bloques alternados como las páginas de funciones de GitHub.
  */
+
+/* ---------- Revelado al bajar (feed y línea de tiempo) ----------
+   Cada pieza sube 12px y aparece, una tras otra (escalón de 100ms).
+   Solo transform y opacity. Con movimiento reducido, el bloque global
+   de globals.css deja solo la opacidad. */
+.inf-pieza {
+  transition:
+    opacity var(--dur-grande) var(--ease-entrada),
+    transform var(--dur-grande) var(--ease-entrada);
+  transition-delay: calc(var(--i, 0) * var(--dur-micro) / 2);
+}
+[data-inf-revela="esperando"] .inf-pieza {
+  opacity: 0;
+  transform: translateY(var(--spacing-12));
+}
+
+/* Nombre de un agente dentro de una frase (feed, tareas) */
+.inf-nombre {
+  color: var(--c-texto);
+  font-weight: var(--peso-titulo);
+}
+
+/* Enlace con flecha que se adelanta al pasar el cursor ("Más sobre…") */
+.inf-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 44px;
+  color: var(--c-enlace);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.inf-enlace .icono {
+  transition: transform var(--dur-micro) var(--ease);
+}
+.inf-enlace span {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .inf-enlace:hover span {
+    text-decoration-color: currentColor;
+  }
+  .inf-enlace:hover .icono {
+    transform: translateX(var(--spacing-4));
+  }
+}
+.inf-enlace:active .icono {
+  transform: translateX(var(--spacing-4));
+}
+
+/* =====================================================================
+   4. Qué es Atendel
+   ===================================================================== */
+.inf-quees {
+  display: grid;
+  gap: var(--spacing-48);
+}
+@media (min-width: 1024px) {
+  .inf-quees {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: center;
+  }
+}
+.inf-quees__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+}
+.inf-quees__texto .t-intro {
+  color: var(--c-texto);
+}
+
+/* Los cuatro personajes juntos, encimados (el equipo) */
+.inf-equipo {
+  display: flex;
+  margin-bottom: var(--spacing-8);
+  padding-left: var(--spacing-4);
+}
+.inf-equipo > .marca-agente {
+  margin-left: calc(-1 * var(--spacing-8));
+  outline: 2px solid var(--c-fondo);
+}
+.inf-equipo > .marca-agente:first-child {
+  margin-left: 0;
+}
+
+/* Panel de vidrio con el día de la recepción */
+.inf-dia {
+  overflow: hidden;
+}
+.inf-dia__cabeza,
+.inf-dia__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8) var(--spacing-16);
+  padding: var(--spacing-16) var(--spacing-20);
+}
+.inf-dia__cabeza {
+  border-bottom: 1px solid var(--c-vidrio-borde);
+}
+.inf-dia__pie {
+  border-top: 1px solid var(--c-vidrio-borde);
+  padding-block: var(--spacing-8);
+}
+.inf-dia__fila {
+  display: grid;
+  grid-template-columns: var(--alto-control) minmax(0, 1fr);
+  grid-template-areas:
+    "avatar sello"
+    "avatar texto";
+  column-gap: var(--spacing-16);
+  row-gap: var(--spacing-4);
+  padding: var(--spacing-20);
+}
+.inf-dia__fila + .inf-dia__fila {
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 640px) {
+  .inf-dia__cabeza,
+  .inf-dia__pie,
+  .inf-dia__fila {
+    padding-inline: var(--spacing-24);
+  }
+  .inf-dia__fila {
+    grid-template-columns: var(--alto-control) minmax(0, 1fr) auto;
+    grid-template-areas: "avatar texto sello";
+  }
+}
+.inf-dia__avatar {
+  grid-area: avatar;
+}
+.inf-dia__texto {
+  grid-area: texto;
+  min-width: 0;
+}
+.inf-dia__sello {
+  grid-area: sello;
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .inf-dia__sello {
+    padding-top: var(--spacing-4);
+    text-align: right;
+  }
+}
+.inf-dia__frase {
+  color: var(--c-texto-2);
+}
+/* El resultado concreto: la cita, el archivo (como la tarjeta anidada de un feed) */
+.inf-resultados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-12);
+}
+.inf-resultado {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding: var(--spacing-4) var(--spacing-12);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.inf-resultado .icono {
+  flex-shrink: 0;
+  color: var(--c-enlace);
+}
+.inf-resultado--archivo {
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+}
+
+/* =====================================================================
+   5. Cómo funciona — línea de tiempo vertical
+   ===================================================================== */
+.inf-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-48);
+  max-width: calc(var(--ancho-texto) + var(--spacing-80));
+  margin-inline: auto;
+}
+.inf-paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--alto-control) minmax(0, 1fr);
+  column-gap: var(--spacing-20);
+}
+@media (min-width: 640px) {
+  .inf-paso {
+    column-gap: var(--spacing-32);
+  }
+}
+/* El hilo que une un paso con el siguiente (pasa por detrás de los números) */
+.inf-paso:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: var(--alto-control);
+  bottom: calc(-1 * var(--spacing-48));
+  left: calc(var(--alto-control) / 2);
+  width: 1px;
+  background: var(--c-borde-fuerte);
+  transform: translateX(-50%);
+}
+.inf-paso__nodo {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--alto-control);
+  height: var(--alto-control);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-circulo);
+  background: var(--c-fondo);
+  color: var(--c-texto-2);
+}
+.inf-paso--ultimo .inf-paso__nodo {
+  border-color: var(--c-enlace);
+  color: var(--c-enlace);
+}
+.inf-paso__titulo {
+  padding-top: var(--spacing-4);
+}
+.inf-paso__texto {
+  max-width: 56ch;
+  margin-top: var(--spacing-8);
+}
+
+/* Paso 2: los cuatro agentes que puedes elegir */
+.inf-agentes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-20);
+}
+.inf-agente {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-chico);
+  padding: var(--spacing-4) var(--spacing-12) var(--spacing-4) var(--spacing-4);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.inf-agente .etiqueta {
+  color: var(--c-tenue);
+}
+@media (max-width: 639px) {
+  /* En celular caben dos por fila: el área ya la dice el texto del paso */
+  .inf-agente .etiqueta {
+    display: none;
+  }
+}
+
+/* Paso 3: la muestra del producto (un mensaje que espera tu visto bueno).
+   Va dentro de .producto: letra del sistema, 14px y radios del dashboard. */
+.inf-visto {
+  margin-top: var(--spacing-24);
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--c-superficie);
+}
+.inf-visto__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-fondo-2);
+}
+.inf-visto__quien {
+  display: flex;
+  flex: 1 1 15rem;
+  min-width: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.inf-visto__cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-12);
+  padding: var(--spacing-20) var(--spacing-16);
+}
+.inf-visto__contexto {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+}
+.inf-burbuja {
+  max-width: min(100%, 52ch);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-radius: var(--radio-burbuja) var(--radio-burbuja) var(--radio-burbuja-esquina) var(--radio-burbuja);
+  background: var(--c-propio);
+  color: var(--c-texto);
+  overflow-wrap: anywhere;
+}
+.inf-burbuja--otro {
+  border-radius: var(--radio-burbuja) var(--radio-burbuja) var(--radio-burbuja) var(--radio-burbuja-esquina);
+  background: var(--c-elevado);
+}
+.inf-visto__editor {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.inf-visto__campo {
+  width: 100%;
+  min-height: calc(var(--spacing-96) + var(--spacing-16));
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  font: inherit;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  resize: vertical;
+}
+.inf-visto__campo:focus-visible {
+  border-color: var(--c-foco);
+}
+.inf-visto__entrega {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.inf-visto__entrega .icono {
+  color: var(--c-accion-texto);
+}
+.inf-visto__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+.inf-visto__aviso {
+  display: inline-flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  color: var(--c-texto-2);
+}
+.inf-visto__aviso .icono {
+  flex-shrink: 0;
+  color: var(--c-exito);
+}
+@media (max-width: 639px) {
+  .inf-visto__pie > .boton {
+    flex: 1 1 auto;
+  }
+}
+
+/* =====================================================================
+   6. Para quién es (inicio)
+   ===================================================================== */
+.inf-negocio {
+  display: grid;
+  gap: var(--spacing-32);
+}
+@media (min-width: 1024px) {
+  .inf-negocio {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: start;
+  }
+}
+.inf-negocio__lado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+}
+@media (min-width: 1024px) {
+  .inf-negocio__lado {
+    padding-top: var(--spacing-20);
+  }
+}
+.inf-negocio__lado .t-sub {
+  max-width: 30ch;
+}
+
+/* Lista de tareas: personaje al lado de cada una, filas separadas por 1px */
+.inf-tareas > li {
+  display: grid;
+  grid-template-columns: var(--alto-control-grande) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  padding-block: var(--spacing-20);
+}
+.inf-tareas > li + li {
+  border-top: 1px solid var(--c-borde);
+}
+.inf-tareas--compacta > li {
+  grid-template-columns: var(--alto-control) minmax(0, 1fr);
+  padding-block: var(--spacing-16);
+}
+.inf-tareas__quien {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-4) var(--spacing-12);
+  margin-bottom: var(--spacing-4);
+}
+.inf-tareas__plan {
+  margin-left: auto;
+}
+
+/* =====================================================================
+   7. Seguridad — una sola tarjeta de vidrio ancha
+   ===================================================================== */
+.inf-garantias {
+  display: grid;
+}
+@media (min-width: 768px) {
+  .inf-garantias {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.inf-garantia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding: var(--spacing-24);
+}
+.inf-garantia + .inf-garantia {
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 768px) {
+  .inf-garantia {
+    padding: var(--spacing-32);
+  }
+  .inf-garantia + .inf-garantia {
+    border-top: 0;
+    border-left: 1px solid var(--c-vidrio-borde);
+  }
+}
+@media (min-width: 1024px) {
+  .inf-garantia {
+    padding: var(--spacing-40);
+  }
+}
+.inf-garantia .icono {
+  margin-bottom: var(--spacing-8);
+}
+.inf-seguridad__pie {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-8) var(--spacing-24);
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 768px) {
+  .inf-seguridad__pie {
+    padding-inline: var(--spacing-32);
+  }
+}
+@media (min-width: 1024px) {
+  .inf-seguridad__pie {
+    padding-inline: var(--spacing-40);
+  }
+}
+
+/* =====================================================================
+   /para-quien-es
+   ===================================================================== */
+.inf-hero-pagina {
+  display: flex;
+  min-height: calc(80svh - var(--barra-h));
+  align-items: center;
+}
+@media (max-width: 899px) {
+  /* En celular la burbuja de partículas va arriba: el texto empieza debajo */
+  .inf-hero-pagina {
+    min-height: 0;
+    padding-top: 44svh;
+  }
+}
+.inf-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-20);
+}
+.inf-hero h1 {
+  max-width: 16ch;
+}
+.inf-hero__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-8);
+}
+.inf-final .inf-hero__acciones {
+  justify-content: center;
+}
+
+/* Barra de negocios: se queda fija debajo de la barra del sitio */
+.inf-subnav {
+  position: sticky;
+  top: var(--barra-h);
+  z-index: 40;
+  border-block: 1px solid var(--c-borde);
+  background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+}
+.inf-subnav__desliza {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.inf-subnav__desliza::-webkit-scrollbar {
+  display: none;
+}
+.inf-subnav__lista {
+  display: flex;
+  gap: var(--spacing-8);
+  width: max-content;
+  margin-inline: auto;
+  padding: var(--spacing-12) var(--orilla);
+}
+.inf-subnav__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control);
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+  -webkit-user-select: none;
+  user-select: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .inf-subnav__enlace:hover:not([aria-current="location"]) {
+    border-color: var(--c-texto-2);
+  }
+}
+.inf-subnav__enlace:active {
+  transform: scale(0.97);
+}
+.inf-subnav__enlace[aria-current="location"] {
+  border-color: var(--c-pildora-activa);
+  background: var(--c-pildora-activa);
+  color: var(--c-sobre-pildora-activa);
+}
+.inf-subnav__enlace .etiqueta {
+  color: inherit;
+}
+
+.inf-segmento {
+  scroll-margin-top: calc(var(--barra-h) + var(--spacing-64));
+}
+.inf-segmento__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+}
+.inf-segmento__texto .t-sub {
+  max-width: 32ch;
+  color: var(--c-texto-2);
+}
+.inf-segmento__ejemplo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+@media (min-width: 1024px) {
+  .inf-segmento__ejemplo {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-96));
+  }
+}
+
+/* Conversación de ejemplo dentro del marco (estilo producto) */
+.inf-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding: var(--spacing-20) var(--spacing-16);
+  background: var(--c-fondo);
+}
+@media (min-width: 640px) {
+  .inf-chat {
+    padding: var(--spacing-24);
+  }
+}
+.inf-chat__fila {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+.inf-chat__fila[data-lado="der"] {
+  align-items: flex-end;
+}
+.inf-chat__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding-inline: var(--spacing-4);
+  color: var(--c-texto-2);
+}
+.inf-chat__fila .inf-burbuja {
+  max-width: min(85%, 52ch);
+}
+.inf-chat__nota {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  text-align: center;
+}
+.inf-chat__nota .icono {
+  flex-shrink: 0;
+  color: var(--c-exito);
+}
+.inf-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-20);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Solo el fundido: nada sube */
+  [data-inf-revela="esperando"] .inf-pieza {
+    transform: none;
+  }
+}
