@@ -4,4 +4,674 @@
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta G4-T2 · "el producto manda": cada sección se explica con un
+ * fragmento del producto (bitácora del día, miniaturas de cada paso,
+ * renglones de tareas, permisos de la cuenta). Prefijo de clases: inf-.
  */
+
+/* ---------- Revelado al bajar (Revelar.tsx) ----------
+   Hijos directos suben 12px y aparecen en orden; 0.4s con la curva de
+   entrada. Solo con JS; con "reducir movimiento" queda solo la opacidad
+   (el bloque global de globals.css deja pasar solo opacity). */
+.js .inf-revela > * {
+  opacity: 0;
+  transform: translateY(var(--spacing-12));
+  transition:
+    opacity var(--dur-grande) var(--ease-entrada),
+    transform var(--dur-grande) var(--ease-entrada);
+  transition-delay: calc(var(--i, 0) * var(--dur-micro) * 0.4);
+}
+.js .inf-revela.is-shown > * {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .inf-revela > * {
+    transform: none;
+  }
+}
+
+/* Nombres en negritas dentro de los fragmentos: 600, nunca 700 */
+.inf-bitacora strong,
+.inf-tareas strong {
+  font-weight: var(--peso-titulo);
+  color: var(--c-texto);
+}
+
+/* =========================================================
+   4. Qué es Atendel · la bitácora del día
+   ========================================================= */
+.inf-parrafos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  max-width: var(--ancho-texto);
+  margin-top: var(--spacing-16);
+}
+.inf-bitacora__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-4) var(--spacing-16);
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--c-borde);
+}
+.inf-bitacora__titulo {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.inf-bitacora {
+  padding: var(--spacing-4) var(--spacing-20) var(--spacing-8);
+}
+.inf-bitacora__fila {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--avatar-28) minmax(0, 1fr) auto;
+  column-gap: var(--spacing-16);
+  padding-block: var(--spacing-16);
+}
+/* La línea de tiempo: une un personaje con el siguiente */
+.inf-bitacora__fila:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--spacing-16) + var(--avatar-28) + var(--spacing-4));
+  bottom: calc(var(--spacing-4) - var(--spacing-16));
+  left: calc(var(--avatar-28) / 2 - 0.5px);
+  width: 1px;
+  background: var(--c-borde);
+}
+.inf-bitacora__avatar {
+  position: relative;
+  z-index: 1;
+}
+.inf-bitacora__accion {
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-bitacora__detalle {
+  margin-top: var(--spacing-4);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-bitacora__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+  margin-top: var(--spacing-8);
+}
+.inf-bitacora__hora {
+  padding-top: var(--spacing-4);
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .inf-bitacora {
+    padding-inline: var(--spacing-24);
+  }
+  .inf-bitacora__cabeza {
+    padding-inline: var(--spacing-24);
+  }
+}
+
+/* =========================================================
+   5. Cómo funciona · línea de tiempo con miniaturas
+   ========================================================= */
+.inf-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-64);
+}
+.inf-paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--alto-control) minmax(0, 1fr);
+  column-gap: var(--spacing-16);
+}
+/* Tramo de la línea entre un número y el siguiente */
+.inf-paso:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--alto-control) + var(--spacing-8));
+  bottom: calc(var(--spacing-8) - var(--spacing-64));
+  left: calc(var(--alto-control) / 2 - 0.5px);
+  width: 1px;
+  background: var(--c-borde-fuerte);
+}
+.inf-paso__nodo {
+  display: grid;
+  place-items: center;
+  width: var(--alto-control);
+  height: var(--alto-control);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-circulo);
+  background: var(--c-fondo);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  color: var(--c-texto);
+  font-variant-numeric: tabular-nums;
+}
+.inf-paso__cuerpo {
+  display: grid;
+  gap: var(--spacing-24);
+  min-width: 0;
+}
+.inf-paso__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  max-width: 44ch;
+  padding-top: var(--spacing-8);
+}
+.inf-paso__muestra {
+  min-width: 0;
+  max-width: 560px;
+}
+@media (min-width: 1024px) {
+  .inf-paso {
+    column-gap: var(--spacing-32);
+  }
+  .inf-paso__cuerpo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: start;
+  }
+  /* El título de la sección se alinea con el texto de los pasos */
+  .inf-como__encabezado {
+    margin-left: calc(var(--alto-control) + var(--spacing-32));
+  }
+  .inf-como__encabezado .t-intro {
+    margin-inline: 0;
+  }
+}
+
+/* Miniaturas (contenido de los marcos de navegador) */
+.inf-mini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.inf-mini__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 360px;
+  padding: var(--spacing-8) var(--spacing-12);
+  border: 1px solid var(--c-campo-borde);
+  border-radius: var(--radio-campo);
+  background: var(--c-campo-fondo);
+}
+.inf-mini__campo-etiqueta {
+  font-size: var(--t-caption);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-mini__campo-valor {
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.inf-mini__linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+}
+.inf-mini__linea--entre {
+  justify-content: space-between;
+}
+.inf-mini__nota {
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-mini__quien {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  color: var(--c-texto);
+}
+.inf-mini__recibido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  align-self: flex-start;
+  max-width: 85%;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-burbuja) var(--radio-burbuja) var(--radio-burbuja)
+    var(--radio-burbuja-esquina);
+  background: var(--c-elevado);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+/* Lo que todavía no sale: borde punteado, como un borrador */
+.inf-mini__borrador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12);
+  border: 1px dashed var(--c-borde-fuerte);
+  border-radius: var(--radio-panel);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.inf-mini__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+/* Botones de la miniatura: dibujados, no se pueden tocar (la miniatura es aria-hidden) */
+.inf-mini__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-12);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-boton);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  color: var(--c-texto-2);
+  white-space: nowrap;
+}
+.inf-mini__boton--hecho {
+  border-color: var(--c-borde-fuerte);
+  background: var(--c-elevado);
+  color: var(--c-texto);
+}
+.inf-mini-equipo__fila {
+  display: grid;
+  grid-template-columns: var(--avatar-28) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) var(--spacing-16);
+}
+.inf-mini-equipo__fila + .inf-mini-equipo__fila {
+  border-top: 1px solid var(--c-borde);
+}
+.inf-mini-equipo__nombre {
+  display: block;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  line-height: 1.4;
+  color: var(--c-texto);
+}
+.inf-mini-equipo__area {
+  display: block;
+  font-size: var(--t-caption);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+@media (min-width: 640px) {
+  .inf-mini-equipo__fila {
+    padding-inline: var(--spacing-24);
+  }
+}
+
+/* =========================================================
+   6. Para quién es · acordeón con renglones de producto
+   ========================================================= */
+.inf-negocios {
+  max-width: 880px;
+  margin-inline: auto;
+  overflow: hidden;
+}
+.inf-negocios .acordeon {
+  border-top: 0;
+}
+.inf-negocios .acordeon__item {
+  border-bottom-color: var(--c-vidrio-borde);
+}
+.inf-negocios .acordeon__item:last-child {
+  border-bottom: 0;
+}
+.inf-negocios .acordeon__boton {
+  align-items: center;
+  padding: var(--spacing-16);
+}
+.inf-negocios .acordeon__boton:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .inf-negocios .acordeon__boton:hover {
+    background: var(--c-hover);
+  }
+}
+.inf-negocios .acordeon__boton:active .inf-negocio {
+  transform: scale(0.99);
+}
+.inf-negocios .acordeon__chevron {
+  margin-top: 0;
+}
+.inf-negocios .acordeon__contenido {
+  max-width: none;
+  padding: 0 var(--spacing-16) var(--spacing-16);
+  color: var(--c-texto-2);
+}
+.inf-negocio {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  transition: transform var(--dur-micro) var(--ease);
+}
+.inf-negocio__nombre {
+  font-size: var(--t-sub);
+  font-weight: var(--peso-sub);
+  line-height: 1.3;
+  color: var(--c-texto);
+}
+.inf-negocio__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.inf-negocio__intro {
+  max-width: 64ch;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-negocio__intro .borrador {
+  margin-left: var(--spacing-4);
+}
+.inf-negocio__pie {
+  display: flex;
+  justify-content: flex-end;
+}
+@media (min-width: 640px) {
+  .inf-negocios .acordeon__boton {
+    padding: var(--spacing-20) var(--spacing-24);
+  }
+  .inf-negocios .acordeon__contenido {
+    padding: 0 var(--spacing-24) var(--spacing-24);
+  }
+}
+
+/* Personajes encimados, como los avatares de quien colabora */
+.inf-pila {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.inf-pila > .marca-agente {
+  outline: 2px solid var(--c-fondo);
+}
+.inf-pila > .marca-agente + .marca-agente {
+  margin-left: calc(-1 * var(--spacing-8));
+}
+
+/* Renglones de tareas (inicio y /para-quien-es) */
+.inf-tareas__fila {
+  display: grid;
+  grid-template-columns: var(--alto-control) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-4) var(--spacing-16);
+  padding: var(--spacing-16);
+}
+.inf-tareas__fila + .inf-tareas__fila {
+  border-top: 1px solid var(--c-borde);
+}
+.inf-tareas--caja {
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-marco);
+  background: var(--c-fondo-2); /* #151a22 en oscuro; #f6f8fa en claro (no solo blanco) */
+}
+.inf-tareas__quien {
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-tareas__texto {
+  margin-top: var(--spacing-4);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.inf-tareas__plan {
+  grid-column: 2;
+  justify-self: start;
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .inf-tareas__fila {
+    grid-template-columns: var(--alto-control) minmax(0, 1fr) auto;
+    padding: var(--spacing-20) var(--spacing-24);
+  }
+  .inf-tareas__plan {
+    grid-column: auto;
+    padding-top: var(--spacing-4);
+  }
+}
+
+/* =========================================================
+   7. Seguridad · quién puede ver qué
+   ========================================================= */
+.inf-permisos {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-marco);
+  background: var(--c-marco-fondo);
+}
+.inf-permisos__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  min-height: calc(var(--alto-control) + var(--spacing-4));
+  padding: var(--spacing-8) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-marco-barra);
+}
+.inf-permisos__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  color: var(--c-texto);
+}
+.inf-permisos__titulo .icono {
+  color: var(--c-texto-2);
+}
+.inf-permisos__grupo {
+  padding: var(--spacing-16) var(--spacing-16) var(--spacing-4);
+}
+.inf-permisos__grupo + .inf-permisos__grupo {
+  border-top: 1px solid var(--c-borde);
+}
+.inf-permisos__subtitulo {
+  margin-bottom: var(--spacing-4);
+}
+.inf-permisos__fila {
+  display: grid;
+  grid-template-columns: var(--avatar-28) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+  padding-block: var(--spacing-12);
+}
+.inf-permisos__fila + .inf-permisos__fila {
+  border-top: 1px solid var(--c-borde);
+}
+.inf-permisos__fila > .insignia {
+  grid-column: 2;
+  justify-self: start;
+}
+.inf-permisos__icono {
+  display: grid;
+  place-items: center;
+  width: var(--avatar-28);
+  height: var(--avatar-28);
+  color: var(--c-texto-2);
+}
+.inf-permisos__que {
+  display: block;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  line-height: 1.4;
+  color: var(--c-texto);
+}
+.inf-permisos__detalle {
+  display: block;
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+@media (min-width: 640px) {
+  .inf-permisos__cabeza {
+    padding-inline: var(--spacing-24);
+  }
+  .inf-permisos__grupo {
+    padding-inline: var(--spacing-24);
+  }
+  .inf-permisos__fila {
+    grid-template-columns: var(--avatar-28) minmax(0, 1fr) auto;
+  }
+  .inf-permisos__fila > .insignia {
+    grid-column: auto;
+  }
+}
+
+.inf-garantias {
+  margin-top: var(--spacing-32);
+  border-top: 1px solid var(--c-borde);
+}
+.inf-garantias__fila {
+  display: grid;
+  grid-template-columns: var(--icono) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  padding-block: var(--spacing-20);
+  border-bottom: 1px solid var(--c-borde);
+}
+.inf-garantias__fila > .icono {
+  margin-top: var(--spacing-4);
+}
+.inf-garantias__titulo {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.inf-garantias__titulo + p {
+  margin-top: var(--spacing-4);
+}
+.inf-garantias__enlace {
+  margin-top: var(--spacing-24);
+}
+
+/* =========================================================
+   /para-quien-es
+   ========================================================= */
+/* Encabezado a la izquierda: la escena de partículas dibuja la burbuja a la derecha */
+.inf-pagina {
+  display: flex;
+  min-height: 80svh;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--spacing-96) var(--spacing-64);
+}
+.inf-pagina__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+  max-width: 600px;
+}
+.inf-pagina__texto .t-intro {
+  max-width: 520px;
+}
+.inf-pagina__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+@media (max-width: 899px) {
+  /* En celular la burbuja va arriba al centro: el texto baja */
+  .inf-pagina {
+    min-height: 0;
+    justify-content: flex-end;
+    padding-top: 44svh;
+  }
+}
+.inf-saltos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-12) var(--spacing-16);
+  margin-top: var(--spacing-32);
+}
+.inf-saltos ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.inf-salto {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alto-control);
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  font-size: var(--t-chico);
+  line-height: 1.4;
+  color: var(--c-texto);
+  transition: transform var(--dur-micro) var(--ease);
+  -webkit-user-select: none;
+  user-select: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .inf-salto:hover {
+    border-color: var(--c-pildora-activa);
+  }
+}
+.inf-salto:active {
+  transform: scale(0.97);
+}
+/* Después del encabezado, el lienzo queda limpio (como GitHub): la escena
+   sigue fija detrás y se desvanece en el fondo, sin cortes */
+.inf-cuerpo {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--c-fondo) var(--espacio-seccion)
+  );
+}
+.inf-bloque {
+  scroll-margin-top: var(--barra-h);
+}
+.inf-bloque__titulo {
+  margin-top: var(--spacing-12);
+}
+.inf-bloque__intro {
+  margin-top: var(--spacing-16);
+}
+.inf-bloque__borrador {
+  margin-top: var(--spacing-12);
+}
+.inf-bloque__equipo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-32);
+}
+.inf-cierre__caja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-16);
+  text-align: center;
+}
+.inf-cierre__caja .inf-pagina__acciones {
+  justify-content: center;
+}
