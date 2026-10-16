@@ -1,42 +1,75 @@
 import type { CSSProperties } from "react";
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
-import { TarjetaVidrio } from "@/components/base/TarjetaVidrio";
+import { Halo } from "@/components/base/Halo";
+import { Seccion } from "@/components/base/Seccion";
 import { Personaje } from "@/components/agentes/Personaje";
 import type { IdAgente } from "@/lib/agentes";
 import { AGENTE_POR_ID } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
 
-/** Lo que el equipo resolvió en "un día de la recepción": sale de las conversaciones de ejemplo de cada agente (detalle.ts). */
-const DIA: { agente: IdAgente; sello: string; texto: string }[] = [
-  { agente: "clara", sello: "Correo · 09:40", texto: "Cambió la cita de Andrea al martes a las 17:00 y le contestó desde tu correo." },
-  { agente: "lola", sello: "WhatsApp · 10:44", texto: "Agendó a Mariana el jueves a las 16:30 para limpieza facial." },
-  { agente: "victor", sello: "WhatsApp · 11:20", texto: "Paola volvió a agendar: viernes a las 12:00." },
-  { agente: "iris", sello: "Oficina", texto: "Dejó el reporte de septiembre listo en Excel y en PDF." },
+/**
+ * "Un día en la recepción": lo que el equipo resolvió, en orden de hora.
+ * Sale tal cual de las conversaciones de ejemplo de cada agente
+ * (src/components/agentes/detalle.ts). La de Iris no tiene hora en el
+ * ejemplo, así que no se le inventa una: va al final, sin hora.
+ */
+const DIA: { hora: string | null; agente: IdAgente; canal: string; texto: string }[] = [
+  {
+    hora: "09:40",
+    agente: "clara",
+    canal: "Correo",
+    texto: "Cambió la cita de Andrea Solís al martes a las 17:00 y le contestó desde tu correo.",
+  },
+  {
+    hora: "10:44",
+    agente: "lola",
+    canal: "WhatsApp",
+    texto: "Agendó a Mariana el jueves a las 16:30 para limpieza facial. Un día antes le manda un recordatorio.",
+  },
+  {
+    hora: "11:20",
+    agente: "victor",
+    canal: "WhatsApp",
+    texto: "Le escribió a Paola, que preguntó por botox y no había agendado. Quedó para el viernes a las 12:00.",
+  },
+  {
+    hora: null,
+    agente: "iris",
+    canal: "Oficina",
+    texto: "Dejó el reporte de septiembre listo en Excel y en PDF.",
+  },
 ];
 
 /**
- * 4. Qué es Atendel (Grupo 4). Versión base: columnas asimétricas. A la
- * izquierda el título y el texto; a la derecha, un panel de vidrio con lo
- * que los agentes resolvieron en un día (sellos de hora en Mono).
+ * 4. Qué es Atendel (Grupo 4 · propuesta T3: tipografía protagonista, pocas cajas).
+ * Una frase grande a todo lo ancho; debajo, los tres párrafos de siempre y,
+ * a la derecha, la lista de un día con la hora en Mono como guía de lectura.
+ * Sin tarjetas: la estructura la dan las divisiones de 1px.
  */
 export function QueEs() {
   return (
-    <Seccion id="que-es" etiquetadaPor="que-es-titulo">
-      <div className="columnas-asimetricas lg:items-center">
-        <div>
-          <EncabezadoSeccion
-            id="que-es-titulo"
-            alineacion="izquierda"
-            adorno={<Personaje agente="lola" />}
-            etiqueta="Qué es Atendel"
-            titulo="Agentes de IA para negocios que atienden personas"
-            texto="Un equipo de cuatro agentes para clínicas, consultorios y estéticas. Les hablas como a una persona y te entregan el trabajo hecho: mensajes, tablas, reportes y documentos."
-            className="!mb-0"
-          />
+    <Seccion id="que-es" etiquetadaPor="que-es-titulo" halo>
+      <Halo x="16%" y="18%" ancho="min(760px, 120vw)" proporcion="16 / 9" suave />
+      <Etiqueta>Qué es Atendel</Etiqueta>
+      <h2 id="que-es-titulo" className="t-grande que-es__frase">
+        Agentes de IA para negocios que atienden personas.
+      </h2>
+
+      <div className="que-es__cuerpo">
+        <div className="que-es__texto">
+          <p className="t-intro que-es__primero">
+            Atendel es un equipo de cuatro agentes de inteligencia artificial para clínicas, consultorios y estéticas.
+          </p>
+          <p className="t-intro">
+            Atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo de oficina.
+          </p>
+          <p className="t-intro">
+            Les hablas como a una persona y te entregan el trabajo hecho: mensajes, tablas, reportes y documentos.
+          </p>
         </div>
-        <TarjetaVidrio as="figure" relleno="amplio" aria-labelledby="que-es-dia">
-          <figcaption className="flex flex-wrap items-baseline justify-between gap-x-[var(--spacing-16)] gap-y-[var(--spacing-4)]">
+
+        <figure className="dia" aria-labelledby="que-es-dia">
+          <figcaption className="dia__cabeza">
             <Etiqueta as="span" tono="texto" id="que-es-dia">
               Un día en la recepción
             </Etiqueta>
@@ -44,25 +77,41 @@ export function QueEs() {
               Ejemplo · nombres ficticios
             </Etiqueta>
           </figcaption>
-          <ol className="mt-[var(--spacing-24)] flex flex-col">
-            {DIA.map((d) => (
-              <li
-                key={d.agente}
-                className="grid grid-cols-[40px_minmax(0,1fr)] gap-[var(--spacing-16)] border-t border-borde py-[var(--spacing-16)] first:border-t-0 first:pt-0 last:pb-0"
-              >
-                <span className="marca-agente marca-agente--chica" style={{ "--agente": PERSONAJES[d.agente].color } as CSSProperties}>
-                  <Personaje agente={d.agente} avatar />
-                </span>
-                <div>
-                  <Etiqueta tono="cielo">
-                    {AGENTE_POR_ID[d.agente].nombre} · {d.sello}
-                  </Etiqueta>
-                  <p className="t-editorial mt-[var(--spacing-4)]">{d.texto}</p>
-                </div>
-              </li>
-            ))}
+          <ol className="dia__lista">
+            {DIA.map((d) => {
+              const agente = AGENTE_POR_ID[d.agente];
+              return (
+                <li key={d.agente} className="dia__fila">
+                  {d.hora ? (
+                    <time className="dia__hora" dateTime={d.hora}>
+                      {d.hora}
+                    </time>
+                  ) : (
+                    <span className="dia__hora dia__hora--sin">
+                      <span aria-hidden="true">—</span>
+                      <span className="sr-only">Sin hora</span>
+                    </span>
+                  )}
+                  <span
+                    className="marca-agente marca-agente--mini dia__personaje"
+                    style={{ "--agente": PERSONAJES[d.agente].color } as CSSProperties}
+                  >
+                    <Personaje agente={d.agente} avatar />
+                  </span>
+                  <div className="dia__texto">
+                    <p className="info-quien">
+                      <span className="info-nombre">{agente.nombre}</span>
+                      <Etiqueta as="span" tono="tenue">
+                        {d.canal}
+                      </Etiqueta>
+                    </p>
+                    <p className="t-cuerpo">{d.texto}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
-        </TarjetaVidrio>
+        </figure>
       </div>
     </Seccion>
   );
