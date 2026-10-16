@@ -13,6 +13,8 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **2026-10-16 08:42 UTC:** G4-T1, G4-T2, G5-T1 y G5-T2 quedaron detenidos por una interrupción del dueño; el sistema no permite reanudarlos. El dueño eligió "punto medio": se relanzan G4-T1 y G4-T2 continuando su trabajo a medias; el Grupo 5 queda solo con G5-T3 (G5-T1 y G5-T2 no se hacen).
 
+- **2026-10-16 17:45 UTC:** Grupo 4 completo (T1 dce78f4, T2 e4ccf22, T3 6f43d46); revisores G4 lanzados (modo ligero). Grupo 6 (3 trabajadores) lanzado (worktrees `/home/user/wt/g6-t1…t3`, base 38b8bb8; encargo `/home/user/wt/g6-encargo.md`, incluye la lección 13).
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)
