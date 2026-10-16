@@ -1,59 +1,34 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { claseBoton } from "./Buttons";
 import { Footer } from "./Footer";
 import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
 import { Escena } from "./escena/Escena";
 import { ScrollSuave } from "./escena/ScrollSuave";
 import { Escena3D } from "./escena3d/Escena3D";
-import { AGENTES_INFO } from "@/lib/agentes";
-import { PAGINAS, PRUEBALO } from "@/lib/contenido";
-
-const REPARTO = AGENTES_INFO.map((a) => ({
-  id: a.id,
-  nombre: a.nombre,
-  papel: `${a.area} · ${a.abarca}`,
-  href: `/agentes?ficha=${a.id}`,
-}));
 
 /**
- * El marco de cada página pública: la escena de triangulitos al fondo, la
- * barra (con "Pruébalo", el chat, como botón violeta), el pie y la ficha de
- * los agentes, que se puede abrir desde cualquier página.
- * `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
+ * El marco de cada página pública: los fragmentos de fondo (fijos: solo se
+ * mueve el contenido), la barra, el contenido, el pie y las fichas de los
+ * agentes, que se pueden abrir desde cualquier página.
+ * - `fondo="particulas"` (por defecto): la escena de triangulitos, discreta
+ *   (opacidad baja y casi invisible detrás del texto, lecciones 7, 11 y 13).
+ * - `fondo="3d"`: la escena 3D completa (la historia de /vista-3d).
+ * - `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
+ * El pie siempre llega abajo, aunque la página sea corta.
  */
 export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" }) {
   return (
-    <>
+    <div className={`sitio sitio--${fondo}`}>
       {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : null}
       <ScrollSuave />
-      <Nav
-        items={PAGINAS}
-        destacado={PRUEBALO}
-        reparto={REPARTO}
-        desktopRight={
-          <Link href="/entrar" className="barra__enlace">
-            Entrar
-          </Link>
-        }
-        mobileBottom={
-          <>
-            <Link href="/entrar" className={`${claseBoton("suave", "grande")} w-full`}>
-              Empezar gratis
-            </Link>
-            <Link href="/entrar" className={`${claseBoton("texto", "grande")} w-full`}>
-              Entrar
-            </Link>
-            <p className="t-chico text-center">Entras con tu correo, sin contraseña.</p>
-          </>
-        }
-      />
-      <main className="sobre-escena">{children}</main>
+      <Nav />
+      <main id="contenido" tabIndex={-1} className="sitio__contenido sobre-escena">
+        {children}
+      </main>
       <div className="sobre-escena">
         <Footer />
       </div>
       <FichasAgentes />
-    </>
+    </div>
   );
 }

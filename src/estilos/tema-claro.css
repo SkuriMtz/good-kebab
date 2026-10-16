@@ -1,7 +1,20 @@
 /*
- * Ajustes del modo claro que no resuelvan los tokens de globals.css (:root[data-tema="claro"]).
+ * Ajustes del modo claro que no resuelven solos los tokens de globals.css
+ * ([data-tema="claro"]: Primer #ffffff, #f6f8fa, #1f2328, #59636e, #d1d9e0
+ * con grises cálidos, lección 9).
  * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Solo tokens de la base; nada de colores sueltos.
  */
+
+/* Barra al bajar: blanco translúcido, como los materiales claros de Apple */
+[data-tema="claro"] .cabecera::before {
+  background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
+}
+[data-tema="claro"] .cabecera[data-hoja="true"]::before {
+  background: var(--c-fondo);
+}
+
+/* Fragmentos de fondo: sobre blanco se leen más fuertes; un poco más bajos */
+[data-tema="claro"] .sitio--particulas .escena-fondo {
+  opacity: 0.4;
+}
