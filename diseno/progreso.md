@@ -11,7 +11,7 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **14 oct: el dueño pidió gastar menos del límite semanal y del de 5 horas** ("no me gastes tanto… lo que pienses que sea lo mejor, pero mantente constante"). Recortes decididos y aplicados igual a todo lo que falta: (1) grupos 3 a 6 con 3 trabajadores cada uno (12 en vez de 18); (2) los revisores A y B de los grupos 3 a 6 califican con las capturas y el código de cada trabajador, sin levantar cada propuesta ni hacer capturas propias (los dos revisores del Grupo 7 ya estaban trabajando y siguen completos); (3) revisión final con 2 revisores por ronda en vez de 3 (se mantiene el máximo de 4 rondas y la meta de ≥ 9). No se juntan los grupos 4 y 5.
 
-- **2026-10-16 08:42 UTC:** G4-T1, G4-T2, G5-T1 y G5-T2 quedaron detenidos por una interrupción del dueño; el sistema no permite reanudarlos. Se le preguntó al dueño si se relanzan (pendiente su respuesta).
+- **2026-10-16 08:42 UTC:** G4-T1, G4-T2, G5-T1 y G5-T2 quedaron detenidos por una interrupción del dueño; el sistema no permite reanudarlos. El dueño eligió "punto medio": se relanzan G4-T1 y G4-T2 continuando su trabajo a medias; el Grupo 5 queda solo con G5-T3 (G5-T1 y G5-T2 no se hacen).
 
 ## Paso 0 — Archivos y respaldo
 
@@ -87,8 +87,8 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ### Grupo 5 — Conversión (3 trabajadores; eran 4): Precios, Preguntas frecuentes, Lista de espera, Contacto y CTA final
 
-- [ ] G5-T1 · rama `prop/g5-t1` · capturas `diseno/capturas/paso5/g5-t1/`
-- [ ] G5-T2 · rama `prop/g5-t2` · capturas `diseno/capturas/paso5/g5-t2/`
+- [-] ~~G5-T1~~ (no se hace: detenido por interrupción; el dueño eligió no relanzarlo para ahorrar límite)
+- [-] ~~G5-T2~~ (no se hace: detenido por interrupción; el dueño eligió no relanzarlo para ahorrar límite)
 - [x] G5-T3 · rama `prop/g5-t3` · capturas `diseno/capturas/paso5/g5-t3/` — **2026-10-16 08:42 UTC** — evidencia: commit 2f9a536 en origin/prop/g5-t3, 48 capturas, entrega `diseno/entregas/g5-t3.md`; lint y build pasan
 - [-] ~~G5-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
 
