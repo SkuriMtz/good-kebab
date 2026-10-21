@@ -1,56 +1,85 @@
 import type { Metadata } from "next";
-import { BotonLink } from "@/components/Buttons";
-import { Preguntas } from "@/components/Preguntas";
+import Link from "next/link";
+import { GrupoPreguntas, NoEstaTuPregunta, TEMAS_TODAS } from "@/components/Preguntas";
 import { Sitio } from "@/components/Sitio";
-import { Revela } from "@/components/escena/Revela";
-import { Tetra } from "@/components/escena/Tetra";
-import { GARANTIAS, PREGUNTAS } from "@/lib/contenido";
+import { Boton } from "@/components/base/Boton";
+import { Etiqueta } from "@/components/base/Etiqueta";
+import { Icono, type NombreIcono } from "@/components/base/Iconos";
+import { GARANTIAS } from "@/lib/contenido";
+import { IndiceTemas } from "./IndiceTemas";
 
-const COLORES = ["#2fd6a8", "#8052ff", "#ffb829"];
+export const metadata: Metadata = {
+  title: "Preguntas frecuentes",
+  description: "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
+};
 
-export const metadata: Metadata = { title: "Preguntas frecuentes" };
+const ICONOS_GARANTIA: NombreIcono[] = ["candado", "mano", "escudo"];
 
 /**
- * Preguntas frecuentes: el título a la izquierda (fijo al bajar en computadora) y las respuestas a la derecha.
- * Abajo, "Tus datos": cómo se cuida la información, con el candado de triangulitos.
+ * /preguntas: dos columnas como la documentación de GitHub. A la izquierda,
+ * el título y los temas (fijos al bajar, con el tema que lees marcado, y
+ * "Tus datos" que lleva a #seguridad); a la derecha, todas las preguntas
+ * agrupadas por tema en acordeón.
+ * Abajo, #seguridad con las GARANTIAS y la escena del candado a la derecha
+ * (fondo de partículas). Al integrar, el Grupo 4 puede poner aquí su
+ * componente <Seguridad variante="preguntas" /> conservando id="seguridad".
  */
 export default function PreguntasFrecuentes() {
+  const entradas = [
+    ...TEMAS_TODAS.map((t) => ({ id: t.id, nombre: t.nombre, cuenta: t.preguntas.length })),
+    { id: "seguridad", nombre: "Cómo cuidamos tus datos" },
+  ];
   return (
     <Sitio>
-      <section className="contenedor dos-columnas !items-start pb-[var(--spacing-96)] pt-[var(--spacing-36)] lg:pb-[var(--spacing-120)] lg:pt-[var(--spacing-96)]">
-        <div className="lg:sticky lg:top-[calc(var(--barra-h)+var(--spacing-36))]">
-          <p className="t-etiqueta">Preguntas frecuentes</p>
-          <h1 className="t-display mt-[var(--spacing-18)]">
-            Lo que <span className="resalta">nos preguntan.</span>
-          </h1>
-          <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">
-            <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
-            <BotonLink href="/precios" variante="suave" flecha>
-              Ver precios
-            </BotonLink>
+      <div className="contenedor faq-pagina">
+        <aside className="faq-pagina__lado">
+          <Etiqueta tono="cielo">Ayuda</Etiqueta>
+          <h1 className="t-grande">Preguntas frecuentes</h1>
+          <p className="t-cuerpo">Lo que nos preguntan dueños de clínicas, estéticas y consultorios antes de empezar.</p>
+          <IndiceTemas etiqueta="Temas" entradas={entradas} />
+          <div className="faq-pagina__pie">
+            <NoEstaTuPregunta />
+            <div className="faq-pagina__acciones">
+              <Boton href="/pruebalo" variante="sutil">
+                Prueba los agentes
+              </Boton>
+              <Boton href="/precios" variante="fantasma" flecha>
+                Precios
+              </Boton>
+            </div>
           </div>
+        </aside>
+        <div className="faq-pagina__preguntas" id="preguntas">
+          {TEMAS_TODAS.map((t, i) => (
+            <GrupoPreguntas key={t.id} tema={t} abiertaInicial={i === 0 ? 0 : null} />
+          ))}
         </div>
-        <div id="preguntas">
-          <Preguntas preguntas={PREGUNTAS} />
-        </div>
-      </section>
+      </div>
 
-      <section id="seguridad" className="encabezado-escena contenedor" data-escena="candadoDerecha">
-        <Revela className="encabezado-escena__texto">
-          <p className="t-etiqueta">Tus datos</p>
-          <h2 className="d-grande mt-[var(--spacing-18)]">Cada negocio ve solo lo suyo</h2>
-          <ul className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-30)]">
+      <section id="seguridad" className="seguridad-preguntas contenedor" data-escena="candadoDerecha" aria-labelledby="seguridad-titulo">
+        <div className="seguridad-preguntas__texto">
+          <Etiqueta tono="cielo">Tus datos</Etiqueta>
+          <h2 id="seguridad-titulo" className="t-grande">
+            Cada negocio ve solo lo suyo
+          </h2>
+          <ul className="seguridad-preguntas__lista">
             {GARANTIAS.map(([titulo, texto], i) => (
-              <li key={titulo} className="grid grid-cols-[44px_minmax(0,1fr)] gap-[var(--spacing-18)]">
-                <Tetra color={COLORES[i]} className="h-11 w-11" />
-                <span>
-                  <span className="t-sub block">{titulo}</span>
-                  <span className="d-parrafos d-parrafos--chico !mt-1 block max-w-[440px]">{texto}</span>
-                </span>
+              <li key={titulo}>
+                <Icono nombre={ICONOS_GARANTIA[i] ?? "check"} tam={24} tono="cielo" />
+                <div>
+                  <h3 className="t-titulo">{titulo}</h3>
+                  <p className="t-cuerpo">{texto}</p>
+                </div>
               </li>
             ))}
           </ul>
-        </Revela>
+          <p className="t-chico">
+            ¿Algo más sobre tus datos?{" "}
+            <Link href="/contacto" className="enlace">
+              Escríbenos
+            </Link>
+          </p>
+        </div>
       </section>
     </Sitio>
   );

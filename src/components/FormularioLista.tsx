@@ -1,24 +1,62 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { Boton } from "./base/Boton";
 import { CampoCorreo } from "./base/Campo";
 import { Icono } from "./base/Iconos";
-import { enviarSolicitud, revisarSolicitud } from "@/lib/lista";
+import { normalizarCorreo, revisarSolicitud, type Solicitud } from "@/lib/lista";
 import { PRUEBALO } from "@/lib/contenido";
 
-type Estado = "editando" | "enviando" | "enviado" | "error";
+/* ---------------------------------------------------------------------
+   Envío a /api/lista (lista de espera y contacto).
+   Igual que enviarSolicitud() de src/lib/lista.ts, pero además dice POR QUÉ
+   falló, para que cada formulario lo muestre con el tono correcto:
+   - "datos":    el servidor rechazó un valor (400): error junto al campo.
+   - "pausa":    la tabla todavía no existe (503, falta correr la migración):
+                 aviso amable, no un error rojo.
+   - "falla":    el servidor no pudo guardar (500 u otro): aviso con reintento.
+   - "conexion": sin internet: aviso con reintento.
+   --------------------------------------------------------------------- */
+export type MotivoFalla = "datos" | "pausa" | "falla" | "conexion";
+export type ResultadoEnvio = { ok: true } | { ok: false; motivo: MotivoFalla; error: string };
+
+export async function mandarSolicitud(s: Solicitud, trampa = ""): Promise<ResultadoEnvio> {
+  const problema = revisarSolicitud(s);
+  if (problema) return { ok: false, motivo: "datos", error: problema };
+  try {
+    const res = await fetch("/api/lista", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...s, correo: normalizarCorreo(s.correo), sitio_web: trampa }),
+    });
+    const datos = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+    if (res.ok && datos?.ok) return { ok: true };
+    const error = datos?.error || "No pudimos guardar tus datos. Intenta de nuevo en un momento.";
+    const motivo: MotivoFalla = res.status === 503 ? "pausa" : res.status === 400 ? "datos" : "falla";
+    return { ok: false, motivo, error };
+  } catch {
+    return { ok: false, motivo: "conexion", error: "No hay conexión. Revisa tu internet e intenta de nuevo." };
+  }
+}
+
+type Estado = "editando" | "enviando" | "enviado" | "error" | "aviso";
 
 /**
- * Formulario en línea de la lista de espera (portada y CTA final):
+ * Formulario en línea de la lista de espera (portada, CTA final y /lista):
  * campo de correo + botón principal "Únete a la lista" + botón sutil
  * "Prueba los agentes" (a /pruebalo). En celular se apila.
  *
- * Estados: vacío, escribiendo, enviando (giro y botón ocupado), enviado
- * ("Listo. Te escribimos a <correo>…", anunciado a lectores de pantalla) y
- * error (mensaje junto al campo; el foco regresa al campo).
- * Guarda en /api/lista. Si la tabla aún no existe, el servidor contesta con
- * un mensaje amable y aquí se muestra tal cual.
+ * Estados:
+ * - vacío / escribiendo;
+ * - enviando: giro en el botón, campo bloqueado;
+ * - enviado: "Listo. Te escribimos a <correo>…" (anunciado), con opción de
+ *   corregir el correo;
+ * - error del correo: mensaje junto al campo, el campo se sacude apenas
+ *   (solo transform) y el foco regresa a él;
+ * - aviso: si el servidor todavía no puede guardar (la tabla de Supabase no
+ *   existe) o falla, un aviso amable bajo el formulario —sin rojo— con el
+ *   camino a Pruébalo; el correo se queda escrito para reintentar.
  */
 export function FormularioLista({
   centrado = false,
@@ -36,53 +74,74 @@ export function FormularioLista({
   const [trampa, setTrampa] = useState("");
   const [estado, setEstado] = useState<Estado>("editando");
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ motivo: MotivoFalla; texto: string } | null>(null);
+  const [sacudidas, setSacudidas] = useState(0);
   const [enviadoA, setEnviadoA] = useState("");
   const campo = useRef<HTMLInputElement>(null);
   const idTrampa = useId();
+  const idAviso = useId();
+
+  const marcarError = (texto: string) => {
+    setError(texto);
+    setAviso(null);
+    setEstado("error");
+    setSacudidas((n) => n + 1);
+    campo.current?.focus();
+  };
 
   const enviar = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (estado === "enviando") return;
     const problema = revisarSolicitud({ tipo: "lista", correo });
-    if (problema) {
-      setError(problema);
-      setEstado("error");
-      campo.current?.focus();
-      return;
-    }
+    if (problema) return marcarError(problema);
     setError(null);
     setEstado("enviando");
-    const r = await enviarSolicitud({ tipo: "lista", correo }, trampa);
+    const r = await mandarSolicitud({ tipo: "lista", correo }, trampa);
     if (r.ok) {
-      setEnviadoA(correo.trim());
+      setEnviadoA(normalizarCorreo(correo));
+      setAviso(null);
       setEstado("enviado");
+    } else if (r.motivo === "datos") {
+      marcarError(r.error);
     } else {
-      setError(r.error);
-      setEstado("error");
-      campo.current?.focus();
+      setAviso({ motivo: r.motivo, texto: r.error });
+      setEstado("aviso");
     }
   };
+
+  const corregir = () => {
+    setEstado("editando");
+    requestAnimationFrame(() => campo.current?.focus());
+  };
+
+  const reintento = estado === "aviso" && aviso?.motivo !== "pausa";
 
   return (
     <div className={`formulario-lista${centrado ? " formulario-lista--centro" : ""} ${className}`}>
       <div aria-live="polite">
         {estado === "enviado" ? (
-          <p className="formulario-lista__listo">
+          <div className="formulario-lista__listo">
             <Icono nombre="check-circulo" />
-            <span>
-              Listo. Te escribimos a <strong className="break-all">{enviadoA}</strong> en cuanto abramos tu lugar.
-            </span>
-          </p>
+            <p>
+              <span className="block">
+                Listo. Te escribimos a <strong className="break-all font-medium">{enviadoA}</strong> en cuanto abramos
+                tu lugar.
+              </span>
+              <button type="button" className="formulario-lista__corregir" onClick={corregir}>
+                ¿Te equivocaste de correo? Corrígelo
+              </button>
+            </p>
+          </div>
         ) : null}
       </div>
 
       {estado !== "enviado" ? (
-        <form noValidate onSubmit={enviar} aria-label="Lista de espera de Atendel">
+        <form noValidate onSubmit={enviar} aria-label="Lista de espera de Atendel" aria-describedby={aviso ? idAviso : undefined}>
           <div className="formulario-lista__fila">
             <CampoCorreo
               ref={campo}
               name="correo"
-              className="formulario-lista__campo"
+              className={`formulario-lista__campo${sacudidas ? (sacudidas % 2 ? " sacude-a" : " sacude-b") : ""}`}
               value={correo}
               alCambiar={(v) => {
                 setCorreo(v);
@@ -92,11 +151,12 @@ export function FormularioLista({
                 }
               }}
               error={error}
-              disabled={estado === "enviando"}
+              readOnly={estado === "enviando"}
+              aria-busy={estado === "enviando" || undefined}
               required
             />
             <Boton type="submit" tam="grande" cargando={estado === "enviando"} className="max-sm:w-full">
-              {estado === "enviando" ? "Anotando…" : etiquetaBoton}
+              {estado === "enviando" ? "Anotando…" : reintento ? "Intentar de nuevo" : etiquetaBoton}
             </Boton>
             {conSecundario ? (
               <Boton href={PRUEBALO.href} variante="sutil" tam="grande" className="max-sm:w-full">
@@ -119,6 +179,22 @@ export function FormularioLista({
           </div>
         </form>
       ) : null}
+
+      <div aria-live="polite">
+        {estado === "aviso" && aviso ? (
+          <div id={idAviso} className="formulario-lista__aviso" role="status">
+            <Icono nombre={aviso.motivo === "pausa" ? "reloj" : "alerta"} tam={20} />
+            <p>
+              {aviso.texto}{" "}
+              {aviso.motivo === "pausa" ? (
+                <Link href={PRUEBALO.href} className="enlace">
+                  Ir a Pruébalo
+                </Link>
+              ) : null}
+            </p>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
