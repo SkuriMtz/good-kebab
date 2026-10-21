@@ -1,102 +1,79 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
-import { BotonLink, Check, claseBoton } from "@/components/Buttons";
-import { EncabezadoPagina } from "@/components/Encabezado";
 import { Sitio } from "@/components/Sitio";
-import { BotonFicha } from "@/components/agentes/BotonFicha";
-import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
+import { Boton } from "@/components/base/Boton";
+import { Halo } from "@/components/base/Halo";
+import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
+import { HojaAgente } from "@/components/agentes/HojaAgente";
+import { NavAgentes } from "@/components/agentes/NavAgentes";
 import { Personaje } from "@/components/agentes/Personaje";
 import { TarjetasAgentes } from "@/components/agentes/TarjetasAgentes";
-import { DETALLE } from "@/components/agentes/detalle";
 import { AGENTES_INFO } from "@/lib/agentes";
-import { PERSONAJES } from "@/lib/personajes";
 
-export const metadata: Metadata = { title: "Agentes" };
+export const metadata: Metadata = {
+  title: "Agentes",
+  description: "Lola, Clara, Víctor e Iris: qué hace cada agente de Atendel, cómo habla y en qué plan viene.",
+};
 
 /*
- * Agentes: el encabezado, las cuatro tarjetas (cada una abre su ficha) y un
- * bloque por agente en dos columnas que alternan de lado: lo que hace de un
- * lado; su retrato y una conversación de ejemplo del otro.
+ * /agentes (G3-T1): el encabezado con los cuatro personajes de pie (cada uno
+ * abre su ficha, sus ojos siguen al cursor); una fila de pestañas en píldora
+ * que se queda pegada mientras bajas; una sección profunda por agente
+ * (#lola, #clara, #victor, #iris) y el acceso al chat al final.
+ * "?ficha=lola" abre la ficha (lo resuelve FichasAgentes, en Sitio).
  */
 export default function Agentes() {
   return (
     <Sitio>
-      <EncabezadoPagina
-        escena="logoDerecha"
-        etiqueta="Atención, Correo, Clientes y Oficina"
-        titulo={
-          <>
-            ¿Qué le encargas <span className="resalta">hoy?</span>
-          </>
-        }
-        texto="Haz clic en cada uno para ver todo lo que hace, una conversación de ejemplo y en qué plan está."
-        acciones={<BotonLink href="/pruebalo">Habla con los agentes</BotonLink>}
-      />
-
-      <section aria-label="Los cuatro agentes" className="contenedor pb-[var(--spacing-60)] lg:pb-[var(--spacing-96)]">
-        <TarjetasAgentes />
-      </section>
-
-      {AGENTES_INFO.map((a, i) => (
-        <section key={a.id} id={a.id} aria-labelledby={`${a.id}-titulo`} className="seccion">
-          <div className="contenedor dos-columnas !items-start">
-            <div className={i % 2 ? "lg:order-2" : undefined}>
-              <p className="t-etiqueta">
-                {a.area} · {a.abarca}
-              </p>
-              <h2 id={`${a.id}-titulo`} className="t-display mt-[var(--spacing-18)]">
-                {a.nombre}
-              </h2>
-              <p className="t-editorial mt-[var(--spacing-18)] max-w-[480px]">{a.lema}</p>
-              <h3 className="t-etiqueta mt-[var(--spacing-36)]">Lo que hace</h3>
-              <ul className="lista-check mt-[var(--spacing-18)]">
-                {a.capacidades.map((c) => (
-                  <li key={c} className="t-editorial">
-                    <Check className="h-4 w-4" />
-                    {c}
-                  </li>
-                ))}
-              </ul>
-              <p className="t-cuerpo mt-[var(--spacing-36)] max-w-[520px]">{DETALLE[a.id].descripcion}</p>
-              <div className="mt-[var(--spacing-36)] flex flex-wrap items-center gap-[var(--spacing-12)]">
-                <BotonFicha agente={a.id} className={claseBoton("suave")}>
-                  Ver su ficha
-                </BotonFicha>
-                <BotonLink href={`/pruebalo?con=${a.id}`} variante="texto" flecha>
-                  Háblale a {a.nombre}
-                </BotonLink>
-              </div>
-            </div>
-            <div className="flex flex-col gap-[var(--spacing-36)]">
-              <span className="retrato max-w-[320px]" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
-                <Personaje agente={a.id} avatar />
-              </span>
-              <ConversacionEjemplo agente={a.id} />
-            </div>
-          </div>
-        </section>
-      ))}
-
-      {/* Acceso al chat */}
-      <section className="seccion">
+      <section className="seccion con-halo agentes-portada" aria-labelledby="agentes-titulo">
+        <Halo y="38%" ancho="min(1100px, 150vw)" proporcion="16 / 9" />
         <div className="contenedor">
-          <p className="t-etiqueta">El chat</p>
-          <h2 className="t-display mt-[var(--spacing-18)] max-w-[14ch]">
-            Pruébalos <span className="resalta">en el chat.</span>
-          </h2>
-          <div className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-24)] lg:flex-row lg:items-end lg:justify-between">
-            <p className="t-editorial max-w-[480px]">
-              Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras.
-            </p>
-            <div className="flex flex-wrap items-center gap-[var(--spacing-12)]">
-              <BotonLink href="/pruebalo">Habla con los agentes</BotonLink>
-              <BotonLink href="/precios" variante="suave" flecha>
-                Ver precios
-              </BotonLink>
-            </div>
+          <EncabezadoSeccion
+            id="agentes-titulo"
+            nivel={1}
+            etiqueta="Atención · Correo · Clientes · Oficina"
+            titulo="¿Qué le encargas hoy?"
+            texto="Lola contesta tu WhatsApp y agenda, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace el trabajo de oficina. Toca a cualquiera para ver su ficha."
+          />
+          <TarjetasAgentes />
+          <div className="agentes-portada__acciones">
+            <Boton href="/pruebalo">Habla con los agentes</Boton>
+            <Boton href="/precios" variante="fantasma" flecha>
+              Ver precios
+            </Boton>
           </div>
         </div>
       </section>
+
+      <div className="agentes-hojas">
+        <NavAgentes />
+        {AGENTES_INFO.map((a, i) => (
+          <HojaAgente key={a.id} agente={a} invertida={i % 2 === 1} />
+        ))}
+      </div>
+
+      {/* Acceso al chat */}
+      <Seccion halo fondo="fondo-2" etiquetadaPor="agentes-chat-titulo" className="agentes-cierre">
+        <Halo y="60%" ancho="min(900px, 140vw)" suave />
+        <EncabezadoSeccion
+          id="agentes-chat-titulo"
+          adorno={
+            <span className="agentes-cierre__equipo">
+              {AGENTES_INFO.map((a) => (
+                <Personaje key={a.id} agente={a.id} avatar />
+              ))}
+            </span>
+          }
+          etiqueta="El chat"
+          titulo="Pruébalos en el chat"
+          texto="Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras."
+        />
+        <div className="agentes-portada__acciones">
+          <Boton href="/pruebalo">Habla con los agentes</Boton>
+          <Boton href="/precios" variante="sutil" flecha>
+            Ver precios
+          </Boton>
+        </div>
+      </Seccion>
     </Sitio>
   );
 }

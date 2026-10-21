@@ -1,7 +1,1124 @@
 /*
  * Estilos de los agentes: sección del inicio, /agentes, /agentes/[agente] y fichas.
  * Dueño: Grupo 3 · Agentes (ver diseno/plan.md, "Reparto de archivos").
+ * Propuesta G3-T1: "la fila de funciones de la portada de GitHub".
  * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
  * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
  * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Movimiento: 0.2s micro / 0.4s grande; entradas con --ease-entrada; solo
+ * transform y opacity (el bloque global de movimiento reducido deja solo opacidad).
  */
+
+@keyframes agentes-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+}
+
+/* =====================================================================
+   Conversación de ejemplo (ConversacionEjemplo.tsx) · va dentro del marco
+   ===================================================================== */
+.conv {
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.conv__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8) var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+}
+.conv__quien {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+.conv__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-titulo);
+  line-height: 1.4;
+}
+.conv__canal {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-tenue);
+  font-size: var(--t-caption);
+  line-height: 1.5;
+}
+.conv__ejemplo {
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
+}
+.conv__avatar-agente .avatar__contenido > svg,
+.conv__avatar-agente svg {
+  width: 82%;
+  height: 82%;
+}
+.conv__mensajes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-16);
+}
+@media (min-width: 640px) {
+  .conv__mensajes {
+    padding: var(--spacing-24);
+  }
+}
+
+/* Chat (WhatsApp, chat con Iris) */
+.conv__fila {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+.conv__fila--mia {
+  align-items: flex-end;
+}
+.conv__fila + .conv__fila:has(.conv__firma) {
+  margin-top: var(--spacing-12);
+}
+.conv__firma {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+}
+.conv__firma-personaje {
+  width: var(--icono-chico);
+  height: var(--icono-chico);
+}
+.conv__nota-quien {
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-cuerpo);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.conv__burbuja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: var(--spacing-12);
+  max-width: min(88%, 480px);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-burbuja);
+  border-top-left-radius: var(--radio-burbuja-esquina);
+  background: var(--c-elevado);
+}
+.conv__burbuja--mia {
+  border-top-left-radius: var(--radio-burbuja);
+  border-top-right-radius: var(--radio-burbuja-esquina);
+  background: var(--c-propio);
+}
+.conv__texto {
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.conv__hora {
+  margin-left: auto;
+  color: var(--c-tenue);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+.conv__adjuntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.conv__adjunto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding: var(--spacing-4) var(--spacing-12);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+  background: var(--c-superficie);
+  color: var(--c-texto);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+}
+.conv__adjunto .icono {
+  color: var(--c-enlace);
+}
+
+/* Correo (Clara): un hilo, uno debajo de otro */
+.conv--correo .conv__mensajes {
+  gap: 0;
+  padding-block: var(--spacing-4);
+}
+.conv__correo {
+  display: grid;
+  grid-template-columns: var(--avatar-32) minmax(0, 1fr);
+  gap: var(--spacing-12);
+  padding-block: var(--spacing-16);
+}
+.conv__correo + .conv__correo {
+  border-top: 1px solid var(--c-borde);
+}
+.conv__correo-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--spacing-8);
+  margin-bottom: var(--spacing-4);
+}
+
+/* La nota final, como evento de la línea de tiempo */
+.conv__evento {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+  padding: var(--spacing-8) var(--spacing-12);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-panel);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+.conv--correo .conv__evento {
+  margin-bottom: var(--spacing-16);
+}
+.conv__evento-icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--avatar-24);
+  height: var(--avatar-24);
+  border-radius: var(--radio-circulo);
+  background: var(--c-exito-fondo);
+  color: var(--c-exito);
+}
+
+/* Al cambiar de agente, los mensajes entran uno tras otro (50ms entre cada uno) */
+.conv--entra .conv__item {
+  animation: agentes-entra var(--dur-grande) var(--ease-entrada) both;
+  animation-delay: calc(var(--i, 0) * var(--dur-micro) / 4 + var(--dur-micro) / 2);
+}
+
+/* =====================================================================
+   Planes que traen al agente (piezas.tsx)
+   ===================================================================== */
+.planes-agente {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+}
+.planes-agente__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.planes-agente__plan {
+  color: var(--c-texto);
+}
+.planes-agente__plan .icono {
+  color: var(--c-enlace);
+}
+
+/* =====================================================================
+   Inicio · la vitrina de los agentes (VitrinaAgentes.tsx)
+   ===================================================================== */
+.vitrina__pestana-area {
+  display: none;
+}
+@media (min-width: 640px) {
+  .vitrina__pestana-area {
+    display: inline;
+    margin-left: var(--spacing-4);
+    opacity: 0.64;
+  }
+}
+.vitrina__panel {
+  margin-top: var(--spacing-32);
+  overflow: clip;
+}
+/* En claro, el panel toma el gris de las superficies secundarias (no todo blanco) */
+[data-tema="claro"] .vitrina__panel {
+  background: var(--c-fondo-2);
+}
+.vitrina__contenido {
+  animation: agentes-entra var(--dur-grande) var(--ease-entrada) both;
+}
+.vitrina__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+@media (min-width: 1024px) {
+  .vitrina__texto {
+    padding-top: var(--spacing-8);
+  }
+}
+.vitrina__quien {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+.vitrina__personaje {
+  flex-shrink: 0;
+  width: var(--avatar-64);
+  height: var(--avatar-64);
+}
+@media (min-width: 640px) {
+  .vitrina__personaje {
+    width: calc(var(--avatar-40) * 2);
+    height: calc(var(--avatar-40) * 2);
+  }
+}
+.vitrina__lema {
+  margin-top: var(--spacing-24);
+}
+.vitrina__capacidades {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-24);
+}
+.vitrina__capacidades li {
+  display: grid;
+  grid-template-columns: var(--icono) minmax(0, 1fr);
+  gap: var(--spacing-12);
+  align-items: start;
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.vitrina__capacidades .icono {
+  margin-top: var(--spacing-4);
+}
+.vitrina__planes {
+  align-self: stretch;
+  margin-top: var(--spacing-32);
+  padding-top: var(--spacing-24);
+  border-top: 1px solid var(--c-borde);
+}
+.vitrina__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-24);
+}
+.vitrina__marco {
+  position: relative;
+}
+
+/* Entre grupos de quien habla, un poco más de aire */
+.conv__fila--mia + .conv__fila:not(.conv__fila--mia),
+.conv__fila:not(.conv__fila--mia) + .conv__fila--mia {
+  margin-top: var(--spacing-12);
+}
+
+/* =====================================================================
+   Lista de funciones (con divisiones, como una lista de GitHub)
+   ===================================================================== */
+.funciones {
+  display: flex;
+  flex-direction: column;
+}
+.funciones__fila {
+  padding-block: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+}
+.funciones__fila:last-child {
+  border-bottom: 1px solid var(--c-borde);
+}
+.funciones__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+}
+.funciones--numeradas .funciones__fila {
+  display: grid;
+  grid-template-columns: var(--spacing-40) minmax(0, 1fr);
+  gap: var(--spacing-12);
+  padding-block: var(--spacing-20);
+}
+.funciones__numero {
+  padding-top: var(--spacing-4);
+  color: var(--c-enlace);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-etiqueta);
+}
+.funciones--compacta .funciones__fila {
+  padding-block: var(--spacing-12);
+}
+
+/* =====================================================================
+   /agentes · encabezado con los cuatro de pie
+   ===================================================================== */
+.agentes-portada {
+  padding-top: var(--spacing-64);
+}
+.agentes-portada__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-48);
+}
+.elenco {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-16);
+  max-width: 1040px;
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  .elenco {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--spacing-24);
+  }
+}
+.elenco__agente {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  padding: var(--spacing-16) var(--spacing-12) var(--spacing-24);
+  border-radius: var(--radio-tarjeta);
+  color: var(--c-texto);
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease);
+}
+/* El vidrio de atrás aparece al pasar el cursor (solo opacidad) */
+.elenco__agente::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: inherit;
+  background: var(--c-vidrio);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.elenco__personaje {
+  width: min(100%, calc(var(--avatar-64) * 3));
+  aspect-ratio: 200 / 210;
+  margin-bottom: var(--spacing-8);
+  transition: transform var(--dur-grande) var(--ease-entrada);
+}
+.elenco__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-titulo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.3;
+}
+.elenco__abarca {
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+.elenco__ver {
+  margin-top: var(--spacing-8);
+  color: var(--c-enlace);
+  font-size: var(--t-chico);
+  opacity: 0;
+  transform: translateY(var(--spacing-4));
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .elenco__agente:hover::before,
+  .elenco__agente:focus-visible::before {
+    opacity: 1;
+  }
+  .elenco__agente:hover .elenco__personaje {
+    transform: translateY(calc(-1 * var(--spacing-4)));
+  }
+  .elenco__agente:hover .elenco__ver,
+  .elenco__agente:focus-visible .elenco__ver {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* En táctil no hay hover: "Ver su ficha" siempre a la vista */
+@media (hover: none) {
+  .elenco__ver {
+    opacity: 1;
+    transform: none;
+  }
+}
+.elenco__agente:active {
+  transform: scale(0.98);
+}
+.elenco__agente:focus-visible {
+  outline-offset: 4px;
+}
+
+/* =====================================================================
+   /agentes · pestañas pegadas debajo de la barra
+   ===================================================================== */
+.agentes-hojas {
+  position: relative;
+  background: var(--c-fondo);
+}
+.nav-agentes {
+  position: sticky;
+  top: calc(var(--barra-h) + var(--spacing-12));
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--orilla);
+  pointer-events: none;
+}
+.nav-agentes__lista {
+  display: flex;
+  gap: var(--spacing-4);
+  max-width: 100%;
+  padding: var(--spacing-4);
+  overflow-x: auto;
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-pildora);
+  background: var(--c-menu-fondo);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+  box-shadow: var(--sombra-flotante);
+  scrollbar-width: none;
+  pointer-events: auto;
+}
+.nav-agentes__lista::-webkit-scrollbar {
+  display: none;
+}
+.nav-agentes__enlace {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-chico);
+  padding: var(--spacing-4) var(--spacing-12);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.nav-agentes__enlace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-pildora-activa);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.nav-agentes__enlace[aria-current="true"] {
+  color: var(--c-sobre-pildora-activa);
+}
+.nav-agentes__enlace[aria-current="true"]::before {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-agentes__enlace:hover:not([aria-current="true"]) {
+    color: var(--c-texto);
+  }
+}
+.nav-agentes__enlace:active {
+  transform: scale(0.97);
+}
+.nav-agentes__personaje {
+  display: none;
+  width: var(--icono);
+  height: var(--icono);
+}
+@media (min-width: 480px) {
+  .nav-agentes__personaje {
+    display: block;
+  }
+  .nav-agentes__enlace {
+    padding-inline: var(--spacing-12) var(--spacing-16);
+  }
+}
+
+/* =====================================================================
+   /agentes · la sección profunda de cada agente (HojaAgente.tsx)
+   ===================================================================== */
+.hoja {
+  border-top: 1px solid var(--c-borde);
+}
+.nav-agentes + .hoja {
+  border-top: 0;
+}
+.hoja__cabeza {
+  display: grid;
+  grid-template-columns: var(--avatar-64) minmax(0, 1fr);
+  gap: var(--spacing-16) var(--spacing-20);
+  align-items: start;
+}
+.hoja__personaje {
+  width: var(--avatar-64);
+  height: var(--avatar-64);
+}
+.hoja__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.hoja__titulos .t-intro {
+  margin-top: var(--spacing-4);
+}
+.hoja__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  grid-column: 1 / -1;
+}
+@media (min-width: 768px) {
+  .hoja__cabeza {
+    grid-template-columns: calc(var(--avatar-40) * 3) minmax(0, 1fr) auto;
+    gap: var(--spacing-32);
+    align-items: center;
+  }
+  .hoja__personaje {
+    width: calc(var(--avatar-40) * 3);
+    height: calc(var(--avatar-40) * 3);
+  }
+  .hoja__acciones {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+}
+.hoja__cuerpo {
+  display: grid;
+  gap: var(--spacing-40);
+  margin-top: var(--spacing-48);
+}
+@media (min-width: 1024px) {
+  .hoja__cuerpo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: start;
+    margin-top: var(--spacing-64);
+  }
+  .hoja__cuerpo--invertida {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .hoja__cuerpo--invertida .hoja__marco {
+    order: -1;
+  }
+  .hoja__marco {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-80));
+  }
+}
+.hoja__subtitulo {
+  margin-top: var(--spacing-32);
+  margin-bottom: var(--spacing-8);
+}
+.hoja__planes {
+  margin-top: var(--spacing-24);
+}
+
+/* /agentes · cierre (acceso al chat) */
+.agentes-cierre .encabezado__adorno {
+  width: auto;
+}
+.agentes-cierre__equipo {
+  display: flex;
+}
+.agentes-cierre__equipo > svg {
+  width: var(--avatar-40);
+  height: var(--avatar-40);
+}
+.agentes-cierre__equipo > svg + svg {
+  margin-left: calc(-1 * var(--spacing-8));
+}
+
+/* =====================================================================
+   /agentes/[agente] · la página de cada agente
+   ===================================================================== */
+.agente-heroe {
+  padding-top: var(--spacing-32);
+}
+.ruta ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+.ruta li + li::before {
+  content: "/";
+  margin-right: var(--spacing-8);
+  color: var(--c-tenue);
+}
+.ruta li[aria-current="page"] {
+  color: var(--c-texto);
+}
+.ruta__enlace {
+  color: var(--c-enlace);
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ruta__enlace:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+.agente-heroe__fila {
+  display: grid;
+  gap: var(--spacing-32);
+  align-items: center;
+  margin-top: var(--spacing-32);
+}
+@media (min-width: 1024px) {
+  .agente-heroe__fila {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: var(--spacing-64);
+    margin-top: var(--spacing-48);
+  }
+}
+.agente-heroe__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-20);
+}
+.agente-heroe__texto .t-display {
+  margin-top: calc(-1 * var(--spacing-4));
+}
+.agente-heroe__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-12);
+}
+.agente-heroe__escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+  order: -1;
+}
+@media (min-width: 1024px) {
+  .agente-heroe__escena {
+    order: 0;
+  }
+}
+.agente-heroe__personaje {
+  width: min(56vw, 240px);
+  aspect-ratio: 200 / 210;
+}
+@media (min-width: 1024px) {
+  .agente-heroe__personaje {
+    width: min(100%, 380px);
+  }
+}
+.agente-conversacion {
+  max-width: 880px;
+  margin-inline: auto;
+}
+.agente-funciones__encabezado {
+  margin-bottom: 0;
+}
+@media (min-width: 1024px) {
+  .agente-funciones__encabezado {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-32));
+  }
+}
+
+/* Ideas para empezar */
+.agente-ideas {
+  display: grid;
+  gap: var(--spacing-24);
+}
+@media (min-width: 1024px) {
+  .agente-ideas {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: center;
+  }
+}
+.agente-ideas__encabezado {
+  margin-bottom: 0;
+}
+.ideas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+.idea {
+  display: grid;
+  grid-template-columns: var(--icono) minmax(0, 1fr) var(--icono-chico);
+  gap: var(--spacing-12);
+  align-items: center;
+  min-height: var(--alto-control-grande);
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-imagen);
+  background: var(--c-vidrio);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+  color: var(--c-texto);
+  text-decoration: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.idea__texto {
+  font-size: var(--t-cuerpo);
+  line-height: 1.4;
+}
+.idea__flecha {
+  color: var(--c-texto-2);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .idea:hover .idea__flecha {
+    transform: translateX(var(--spacing-4));
+  }
+  .idea:hover .idea__texto {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+}
+.idea:active {
+  transform: scale(0.99);
+}
+
+/* Planes en una sola tarjeta ancha */
+.planes-fila__lista {
+  display: grid;
+}
+@media (min-width: 768px) {
+  .planes-fila__lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.planes-fila__plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--relleno-tarjeta);
+}
+.planes-fila__plan + .planes-fila__plan {
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 768px) {
+  .planes-fila__plan {
+    padding: var(--spacing-32);
+  }
+  .planes-fila__plan + .planes-fila__plan {
+    border-top: 0;
+    border-left: 1px solid var(--c-vidrio-borde);
+  }
+}
+.planes-fila__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+.planes-fila__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-8);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+}
+.planes-fila__plan[data-incluido="true"] .planes-fila__estado .icono {
+  color: var(--c-exito);
+}
+.planes-fila__plan[data-incluido="false"] .planes-fila__estado {
+  color: var(--c-texto-2);
+}
+.planes-fila__plan[data-incluido="false"] .t-titulo {
+  color: var(--c-texto-2);
+}
+
+/* El resto del equipo */
+.equipo-enlaces {
+  display: grid;
+  gap: var(--spacing-16);
+}
+@media (min-width: 768px) {
+  .equipo-enlaces {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-24);
+  }
+}
+.equipo-enlace {
+  display: grid;
+  grid-template-columns: var(--avatar-64) minmax(0, 1fr) var(--icono);
+  gap: var(--spacing-16);
+  align-items: center;
+  padding: var(--spacing-20);
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--c-vidrio);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+  color: var(--c-texto);
+  text-decoration: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.equipo-enlace__personaje {
+  width: var(--avatar-64);
+  height: var(--avatar-64);
+}
+.equipo-enlace__texto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+.equipo-enlace__flecha {
+  color: var(--c-texto-2);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .equipo-enlace:hover {
+    transform: translateY(calc(-1 * var(--spacing-4) / 2));
+  }
+  .equipo-enlace:hover .equipo-enlace__flecha {
+    transform: translateX(var(--spacing-4));
+  }
+}
+.equipo-enlace:active {
+  transform: scale(0.99);
+}
+.equipo-enlace:focus-visible,
+.idea:focus-visible {
+  outline-offset: 3px;
+}
+
+/* =====================================================================
+   Ficha de un agente (AgenteModal.tsx): ventana de vidrio "frost", radio 24px
+   ===================================================================== */
+.ficha {
+  width: calc(100% - 2 * var(--spacing-12));
+  max-width: 1080px;
+  height: auto;
+  max-height: calc(100dvh - 2 * var(--spacing-12));
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--c-texto);
+  /* Sobre el vidrio, el terciario sube a secundario para seguir leyéndose (AA) */
+  --c-tenue: var(--c-texto-2);
+}
+.ficha[open] {
+  display: block;
+  overflow: visible;
+}
+/* El foco va a lo de adentro (la ✕ y los botones llevan su anillo); la ventana no se marca */
+.ficha:focus-visible {
+  outline: none;
+}
+.ficha::backdrop {
+  background: var(--c-scrim);
+  animation: aparecer var(--dur-grande) var(--ease);
+}
+.ficha[data-cerrando]::backdrop {
+  animation: ficha-velo-sale var(--dur-salida) var(--ease) both;
+}
+.ficha__caja.vidrio {
+  max-width: none;
+  max-height: calc(100dvh - 2 * var(--spacing-12));
+  margin: 0;
+  padding: var(--spacing-20);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: var(--sombra-flotante);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.4);
+  backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.4);
+  animation: ficha-entra var(--dur-grande) var(--ease-entrada) both;
+  transform-origin: 50% 40%;
+}
+@media (min-width: 768px) {
+  .ficha__caja.vidrio {
+    padding: var(--spacing-40);
+  }
+}
+.ficha[data-cerrando] .ficha__caja {
+  animation: ficha-sale var(--dur-salida) var(--ease) both;
+}
+@keyframes ficha-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8)) scale(0.98);
+  }
+}
+@keyframes ficha-sale {
+  to {
+    opacity: 0;
+    transform: translateY(var(--spacing-8)) scale(0.98);
+  }
+}
+@keyframes ficha-velo-sale {
+  to {
+    opacity: 0;
+  }
+}
+.ficha__cabeza {
+  display: grid;
+  grid-template-columns: var(--avatar-64) minmax(0, 1fr) auto;
+  gap: var(--spacing-16);
+  align-items: start;
+}
+/* En celular: personaje y ✕ arriba; el nombre y lo que hace, a todo lo ancho debajo */
+@media (max-width: 767px) {
+  .ficha__personaje {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .ficha__cerrar {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .ficha__titulos {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 768px) {
+  .ficha__cabeza {
+    grid-template-columns: calc(var(--avatar-40) * 3) minmax(0, 1fr) auto;
+    gap: var(--spacing-24);
+    align-items: center;
+  }
+}
+.ficha__personaje {
+  width: 100%;
+  aspect-ratio: 200 / 210;
+}
+.ficha__titulos {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.ficha__titulos .t-intro {
+  color: var(--c-texto);
+}
+.ficha__cerrar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+}
+.ficha__cuerpo {
+  display: grid;
+  gap: var(--spacing-32);
+  margin-top: var(--spacing-32);
+  padding-top: var(--spacing-32);
+  border-top: 1px solid var(--c-vidrio-borde);
+}
+@media (min-width: 900px) {
+  .ficha__cuerpo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--spacing-40);
+  }
+}
+.ficha__columna {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--spacing-32);
+}
+.ficha__columna .etiqueta {
+  margin-bottom: var(--spacing-12);
+}
+.ficha__parrafo {
+  color: var(--c-texto);
+}
+.ficha .funciones__fila,
+.ficha .funciones__fila:last-child {
+  border-color: var(--c-vidrio-borde);
+}
+.ficha__planes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-imagen);
+}
+.ficha__planes li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-12) var(--spacing-16);
+}
+.ficha__planes li + li {
+  border-left: 1px solid var(--c-vidrio-borde);
+}
+.ficha__plan-nombre {
+  color: var(--c-texto);
+  font-size: var(--t-titulo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.3;
+}
+.ficha__plan-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+}
+.ficha__planes li[data-incluido="true"] .ficha__plan-estado {
+  color: var(--c-texto);
+}
+.ficha__planes li[data-incluido="true"] .icono {
+  color: var(--c-exito);
+}
+.ficha__planes li[data-incluido="false"] .ficha__plan-nombre {
+  color: var(--c-texto-2);
+}
+.ficha__nota {
+  margin-top: var(--spacing-12);
+}
+.ficha__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-20);
+}
+/* Sin transparencias (preferencia del sistema): la ficha se vuelve sólida */
+@media (prefers-reduced-transparency: reduce) {
+  .ficha__caja.vidrio {
+    background: var(--c-superficie);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
