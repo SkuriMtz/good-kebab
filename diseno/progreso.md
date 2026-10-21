@@ -15,6 +15,8 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **2026-10-16 17:45 UTC:** Grupo 4 completo (T1 dce78f4, T2 e4ccf22, T3 6f43d46); revisores G4 lanzados (modo ligero). Grupo 6 (3 trabajadores) lanzado (worktrees `/home/user/wt/g6-t1…t3`, base 38b8bb8; encargo `/home/user/wt/g6-encargo.md`, incluye la lección 13).
 
+- **2026-10-21 01:26 UTC:** límite semanal del 16 oct (se reinició el 20 oct 18:00 UTC); Grupo 6 reanudado el 21 oct 01:26 UTC. Existe el PR https://github.com/SkuriMtz/good-kebab/pull/1 (rediseno-11 → claude/setup-ai-agents-project-uhpqxj), creado desde la interfaz.
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)
@@ -96,7 +98,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ### Grupo 6 — Estructura (3 trabajadores; eran 4): barra de navegación, pie, modo claro/oscuro y adaptación a celular
 
-- [ ] G6-T1 · rama `prop/g6-t1` · capturas `diseno/capturas/paso5/g6-t1/`
+- [x] G6-T1 · rama `prop/g6-t1` · capturas `diseno/capturas/paso5/g6-t1/` — **2026-10-21 01:26 UTC** — evidencia: commit e304119 en origin/prop/g6-t1, 40 capturas, entrega `diseno/entregas/g6-t1.md`; lint y build pasan
 - [ ] G6-T2 · rama `prop/g6-t2` · capturas `diseno/capturas/paso5/g6-t2/`
 - [ ] G6-T3 · rama `prop/g6-t3` · capturas `diseno/capturas/paso5/g6-t3/`
 - [-] ~~G6-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
