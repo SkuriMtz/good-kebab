@@ -18,6 +18,7 @@ No se borró nada. Esta carpeta **no forma parte del sitio**: no se carga ni se 
 | `barra-y-menu-de-telon/` | Barra que se esconde al bajar, menú que baja como telón, reloj de CDMX, contador de capítulos y línea de progreso | Todas las páginas | `src/components/Nav.tsx` y `Sitio.tsx` |
 | `portada-anterior/` | La portada anterior completa (círculos del logo que aparecen y la miniatura del chat) | Inicio | `src/app/page.tsx` |
 | `dock/` | El Dock (se había quitado en una versión anterior; versión antigua, puede necesitar ajustes) | Barra de navegación | `src/components/` |
+| `carrusel-del-equipo/` | El carrusel del equipo estilo Dala (CarruselEquipo) y sus estilos `.equipo` | Ninguna (ya no la montaba ninguna página; se guardó al integrar el Paso 7) | `src/components/agentes/` y su CSS a `src/estilos/agentes.css` |
 | `estilos-anteriores/` | La hoja de estilos anterior completa: ahí está el CSS de todos estos efectos | Todo el sitio | se copia lo necesario a `src/app/globals.css` |
 
 ## Cómo regresar uno

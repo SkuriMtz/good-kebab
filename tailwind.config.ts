@@ -12,7 +12,7 @@ const config: Config = {
   safelist: [
     {
       pattern:
-        /^(boton|btn|boton-icono|vidrio|entrada|pestanas|marco|halo|acordeon|icono|etiqueta|encabezado|seccion|contenedor|formulario-lista|pildora|marca-agente|producto|menu|avatar|insignia|punto-estado|kbd|buscador|cajon|progreso|escribiendo|t-app)(--|__|-|$)/,
+        /^(boton|btn|boton-icono|vidrio|entrada|pestanas|marco|halo|acordeon|icono|etiqueta|encabezado|seccion|contenedor|formulario-lista|pildora|marca-agente|producto|menu|avatar|insignia|punto-estado|kbd|buscador|cajon|progreso|escribiendo|t-app|popover|selector-tema)(--|__|-|$)/,
     },
   ],
   future: {

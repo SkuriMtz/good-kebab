@@ -2,7 +2,7 @@
  * Dashboard de Atendel (/pruebalo y /panel). Dueño: Grupo 7 · Dashboard.
  * Estructura del dashboard de GitHub, acabado de Apple, acento azul,
  * oscuro primero. Todo vive dentro de .producto (globals.css), que pone
- * los colores, la letra del sistema y los radios del producto en los dos
+ * los colores, Mona Sans (lección 13) y los radios del producto en los dos
  * modos. Aquí solo hay tokens de la base: var(--c-…), var(--spacing-…),
  * var(--radio-app-…), var(--dur-…), var(--ease…). Prefijo: .dash-
  */
@@ -513,39 +513,10 @@
    3. PIEZAS
    ===================================================================== */
 
-/* Personaje de un agente en su círculo (tamaños de avatar de la base) */
+/* Personaje de un agente en su círculo: .marca-agente de la base (tamaños
+   20–64 en globals.css); aquí solo va en línea con el texto */
 .dash-marca {
   display: inline-grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: var(--avatar-32);
-  height: var(--avatar-32);
-  border-radius: var(--radio-circulo);
-  background: color-mix(in srgb, var(--agente, var(--c-terciario)) 22%, var(--c-fondo));
-}
-.dash-marca > svg {
-  width: 76%;
-  height: 76%;
-}
-.dash-marca--20 {
-  width: var(--avatar-20);
-  height: var(--avatar-20);
-}
-.dash-marca--24 {
-  width: var(--avatar-24);
-  height: var(--avatar-24);
-}
-.dash-marca--28 {
-  width: var(--avatar-28);
-  height: var(--avatar-28);
-}
-.dash-marca--40 {
-  width: var(--avatar-40);
-  height: var(--avatar-40);
-}
-.dash-marca--64 {
-  width: var(--avatar-64);
-  height: var(--avatar-64);
 }
 /* Varios encimados (grupo, relevo): cada uno con un anillo del fondo */
 .dash-pila {
@@ -2257,13 +2228,6 @@
   }
 }
 
-/* Dentro de la barra (que ya es vidrio), el desenfoque de un panel no
-   alcanza lo que hay detrás: los paneles que salen de ella van sólidos. */
-.dash-barra .menu__panel {
-  background: var(--c-superficie);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
 
 /* Correo con Clara: piezas sueltas */
 .dash-vista__agente {

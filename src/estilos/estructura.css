@@ -34,13 +34,13 @@
    discretos: opacidad baja y casi invisibles en el centro, donde va el
    texto (lecciones 7, 8, 11 y 13). La máscara solo usa transparencia. */
 .sitio--particulas .escena-fondo {
-  opacity: 0.5;
+  opacity: var(--escena-opacidad);
   -webkit-mask-image: radial-gradient(ellipse 50% 62% at 50% 50%, rgb(0 0 0 / 0.16), rgb(0 0 0 / 1));
   mask-image: radial-gradient(ellipse 50% 62% at 50% 50%, rgb(0 0 0 / 0.16), rgb(0 0 0 / 1));
 }
 @media (max-width: 767px) {
   .sitio--particulas .escena-fondo {
-    opacity: 0.45;
+    opacity: calc(var(--escena-opacidad) * 0.9);
     -webkit-mask-image: linear-gradient(rgb(0 0 0 / 1), rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.3) 70%, rgb(0 0 0 / 1));
     mask-image: linear-gradient(rgb(0 0 0 / 1), rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.3) 70%, rgb(0 0 0 / 1));
   }
@@ -679,7 +679,7 @@
   position: relative;
   isolation: isolate;
   display: inline-grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   height: var(--alto-control-chico);
   padding: var(--spacing-4);
   border: 1px solid var(--c-borde);
@@ -697,14 +697,17 @@
   bottom: var(--spacing-4);
   left: var(--spacing-4);
   z-index: -1;
-  width: calc(50% - var(--spacing-4));
+  width: calc((100% - 2 * var(--spacing-4)) / 3);
   border: 1px solid var(--c-borde-fuerte);
   border-radius: var(--radio-pildora);
   background: var(--c-elevado);
   transition: transform var(--dur-micro) var(--ease);
 }
-[data-tema="claro"] .selector-tema__marca {
+[data-preferencia="claro"] .selector-tema__marca {
   transform: translateX(100%);
+}
+[data-preferencia="sistema"] .selector-tema__marca {
+  transform: translateX(200%);
 }
 .selector-tema__opcion {
   display: inline-flex;
@@ -731,8 +734,9 @@
     color: var(--c-texto);
   }
 }
-:root:not([data-tema="claro"]) .selector-tema__opcion--oscuro,
-[data-tema="claro"] .selector-tema__opcion--claro {
+:root:not([data-preferencia="claro"]):not([data-preferencia="sistema"]) .selector-tema__opcion--oscuro,
+[data-preferencia="claro"] .selector-tema__opcion--claro,
+[data-preferencia="sistema"] .selector-tema__opcion--sistema {
   color: var(--c-texto);
 }
 

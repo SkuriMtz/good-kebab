@@ -90,9 +90,11 @@
   --color-deep-verdant: var(--color-sky);
 
   /* ---------- Tipografía de producto (dashboard, chat, panel) ----------
-     La pila del sistema: en Mac y iPhone se ve como la letra de Apple;
-     en Windows, Segoe UI; en Android/Linux, Noto Sans. Nunca peso 700. */
-  --font-producto: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+     Lección 13 (16 oct): Mona Sans en todo, también en el producto; Mona
+     Sans Mono para horas y números (.cifras). Ya no se usa la pila del
+     sistema. Nunca peso 700. */
+  --font-producto: var(--font-mona-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-cifras: var(--font-mona-sans-mono), ui-monospace, monospace;
   --t-app-etiqueta: 0.75rem; /* 12 · etiquetas, insignias, metadatos */
   --t-app-cuerpo: 0.875rem; /* 14 · cuerpo del producto */
   --t-app-mediano: 1rem; /* 16 · títulos de tarjeta, campos */
@@ -296,6 +298,8 @@
   /* ---------- Halo y degradados (solo atmósfera, siempre difuminados) ---------- */
   --c-halo: var(--color-halo);
   --halo-opacidad: 0.6;
+  /* Fragmentos de fondo (escena de partículas): discretos, lecciones 7, 11 y 13 */
+  --escena-opacidad: 0.5;
   --haz-opacidad: 0.3;
   --rastro-opacidad: 0.3;
 
@@ -391,6 +395,8 @@
   --c-vidrio-borde: var(--primer-borde);
 
   --halo-opacidad: 0.35;
+  /* Sobre fondo claro los fragmentos se leen más fuertes: van más tenues */
+  --escena-opacidad: 0.4;
   --haz-opacidad: 0.18;
   --rastro-opacidad: 0.15;
 
@@ -423,7 +429,7 @@
    Pon class="producto" en el contenedor del dashboard. Adentro, los --c-*
    de siempre toman los valores del producto del modo actual (oscuro:
    #0d1117/#151a22/#f0f6fc; claro: #f5f5f7/#fff/#1d1d1f), la letra pasa a
-   la pila del sistema a 14px y los radios a los del dashboard. Así la base
+   Mona Sans a 14px (lección 13) y los radios a los del dashboard. Así la base
    (Boton, Campo, Pestanas, TarjetaVidrio…) y el chat se ven "de producto"
    sin cambiar su código. Va DESPUÉS de los bloques de modo para ganarles
    cuando un mismo elemento lleva data-tema y .producto.
@@ -542,7 +548,7 @@
     font-weight: var(--peso-seccion);
     text-wrap: balance;
   }
-  /* En el producto los títulos van a 600 (la letra del sistema no tiene 460) */
+  /* En el producto los títulos van a 600 (más densos que los del sitio) */
   .producto :where(h1, h2, h3, h4) {
     font-weight: var(--peso-app-titulo);
   }
@@ -1426,11 +1432,6 @@
       padding: var(--spacing-24);
     }
   }
-  /* El chat de ejemplo dentro del marco: el marco pone el borde y el radio */
-  .marco__cuerpo > .chat-app {
-    border: 0;
-    border-radius: 0;
-  }
   /* Panel interno del producto (lista, conversación, tarjeta de cita) */
   .marco__panel {
     border: 1px solid var(--c-borde);
@@ -1689,9 +1690,13 @@
     color: var(--c-texto);
     text-wrap: balance;
   }
-  /* Números en tablas, métricas, contadores y horas: todos del mismo ancho */
+  /* Horas, contadores, métricas y tablas: Mona Sans Mono (lección 13),
+     todos los números del mismo ancho */
   .cifras {
+    font-family: var(--font-cifras);
     font-variant-numeric: tabular-nums;
+    font-variant-ligatures: none;
+    letter-spacing: 0;
   }
 
   /* ---------- Menú desplegable (Menu.tsx) ---------- */
@@ -1778,6 +1783,15 @@
   }
   .menu__panel:focus {
     outline: none;
+  }
+  /* Sólido: dentro de una barra de vidrio (el desenfoque de un panel hijo no
+     alcanza lo de atrás) y en todo el producto (lección 13: nada de vidrio). */
+  .menu--solido .menu__panel,
+  .producto .menu__panel,
+  .popover--solido {
+    background: var(--c-superficie);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   .menu--fin .menu__panel {
     right: 0;
@@ -2093,6 +2107,14 @@
     --insignia-fondo: transparent;
     --insignia-texto: var(--c-texto-2);
     box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  }
+  /* Contorno: sin relleno, filo de 1px (etiquetas de clasificación, como "Public") */
+  .insignia--contorno {
+    --insignia-fondo: transparent;
+    box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  }
+  .insignia--contorno:is(.insignia--azul, .insignia--exito, .insignia--atencion, .insignia--error) {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--insignia-texto) 45%, transparent);
   }
   /* Contador: redondo cuando es de un dígito */
   .insignia--contador {
@@ -2627,116 +2649,6 @@
     color: var(--c-enlace);
   }
 
-  /* ---------- Carrusel del equipo (CarruselEquipo.tsx; hoy ninguna página lo monta,
-     se queda para el grupo 3). Sus medidas viven en .equipo. ---------- */
-  .equipo {
-    --tw: clamp(200px, 20.4vw, 300px);
-    --th: calc(var(--tw) * 1.46);
-    --paso: calc(var(--tw) * 1.31);
-    position: relative;
-    height: calc(var(--th) + 90px);
-    overflow-x: clip;
-  }
-  .equipo__pista {
-    position: absolute;
-    inset: 0 0 auto;
-    height: var(--th);
-  }
-  .equipo__tarjeta {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    z-index: 0;
-    width: var(--tw);
-    opacity: 0.2;
-    transform: translateX(calc(-50% + var(--k) * var(--paso))) scale(0.84);
-    transition:
-      transform var(--dur-grande) var(--ease-entrada),
-      opacity var(--dur-grande) var(--ease);
-  }
-  .equipo__tarjeta[data-centro="true"] {
-    z-index: 1;
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
-  }
-  .equipo__boton {
-    display: block;
-    width: 100%;
-  }
-  .equipo__retrato {
-    aspect-ratio: auto;
-    height: var(--th);
-    border-radius: var(--radio-tarjeta);
-  }
-  .equipo__retrato > svg {
-    width: 70%;
-    height: auto;
-  }
-  .equipo__datos {
-    position: absolute;
-    top: calc(var(--th) * 0.18);
-    left: calc(50% + var(--tw) / 2 + 24px);
-    z-index: 2;
-    width: 220px;
-    animation: aparecer var(--dur-grande) var(--ease-entrada) both;
-  }
-  .equipo__nombre {
-    margin-top: var(--spacing-12);
-    font-size: var(--t-seccion);
-    font-weight: var(--peso-seccion);
-    line-height: 1.2;
-    color: var(--c-texto);
-  }
-  .equipo__abarca {
-    margin-top: var(--spacing-12);
-    font-size: var(--t-chico);
-    color: var(--c-tenue);
-  }
-  .equipo__ficha {
-    margin-top: var(--spacing-12);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
-    font-size: var(--t-caption);
-    font-weight: var(--peso-medio);
-    letter-spacing: var(--tracking-etiqueta);
-    text-transform: uppercase;
-    color: var(--c-enlace);
-  }
-  .equipo__flechas {
-    position: absolute;
-    top: calc(var(--th) + 40px);
-    left: 50%;
-    display: flex;
-    gap: var(--spacing-8);
-    transform: translateX(-50%);
-  }
-  .equipo__flecha {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--c-sutil-borde);
-    border-radius: var(--radio-boton);
-    background: var(--c-sutil-fondo);
-    color: var(--c-sutil-texto);
-  }
-  @media (max-width: 899px) {
-    .equipo {
-      --tw: min(58vw, 260px);
-      --paso: calc(var(--tw) * 1.18);
-      position: relative;
-      height: calc(var(--th) + 200px);
-      margin-top: var(--spacing-40);
-    }
-    .equipo__datos {
-      top: calc(var(--th) + 20px);
-      left: calc(50% - var(--tw) / 2);
-      width: var(--tw);
-    }
-    .equipo__flechas {
-      top: calc(var(--th) + 152px);
-    }
-  }
-
   /* ---------- Encabezado de página con escena (Encabezado.tsx) ---------- */
   .encabezado-escena {
     display: flex;
@@ -2878,6 +2790,31 @@
     width: 28px;
     height: 28px;
   }
+  /* Tamaños de avatar (pedido de G7): 20, 24, 28, 32, 40 y 64 */
+  .marca-agente--20 {
+    width: var(--avatar-20);
+    height: var(--avatar-20);
+  }
+  .marca-agente--24 {
+    width: var(--avatar-24);
+    height: var(--avatar-24);
+  }
+  .marca-agente--28 {
+    width: var(--avatar-28);
+    height: var(--avatar-28);
+  }
+  .marca-agente--32 {
+    width: var(--avatar-32);
+    height: var(--avatar-32);
+  }
+  .marca-agente--40 {
+    width: var(--avatar-40);
+    height: var(--avatar-40);
+  }
+  .marca-agente--64 {
+    width: var(--avatar-64);
+    height: var(--avatar-64);
+  }
   .tarjeta-agente {
     display: flex;
     flex-direction: column;
@@ -2933,219 +2870,10 @@
     animation: girar 0.7s linear infinite;
   }
 
-  /* ---------- Barra superior (Nav.tsx · grupo 6) ---------- */
-  .barra {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    height: var(--barra-h);
-    background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-  }
-  .barra__fila {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-12);
-    height: 100%;
-    max-width: calc(var(--ancho-max) + 2 * var(--orilla));
-    margin-inline: auto;
-    padding-inline: var(--orilla);
-  }
-  .barra__enlaces {
-    display: none;
-  }
-  .barra__acciones {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-8);
-    margin-left: auto;
-  }
-  @media (min-width: 1024px) {
-    .barra__enlaces {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-4);
-      margin-left: var(--spacing-24);
-      margin-right: auto;
-    }
-    .barra__acciones {
-      margin-left: 0;
-    }
-  }
-  .barra__enlace {
-    padding: var(--spacing-8) var(--spacing-12);
-    border-radius: var(--radio-boton);
-    font-size: var(--t-cuerpo);
-    font-weight: var(--peso-cuerpo);
-    line-height: 1.5;
-    color: var(--c-texto-2);
-    white-space: nowrap;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .barra__enlace:hover {
-      color: var(--c-texto);
-    }
-  }
-  .barra__enlace[aria-current="page"] {
-    color: var(--c-texto);
-  }
-  .logo-palabra {
-    font-size: var(--t-sub);
-    font-weight: var(--peso-sub);
-    color: var(--c-texto);
-  }
-  /* Menú en celular y tablet: una hoja debajo de la barra */
-  .menu-movil {
-    position: fixed;
-    inset: var(--barra-h) 0 0 0;
-    z-index: 49;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: var(--spacing-12) var(--orilla) calc(var(--spacing-40) + env(safe-area-inset-bottom, 0px));
-    background: var(--c-fondo);
-    visibility: hidden;
-    opacity: 0;
-    transition:
-      opacity var(--dur-micro) var(--ease),
-      visibility 0s linear var(--dur-micro);
-  }
-  .menu-movil[data-abierto="true"] {
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s;
-  }
-  @media (min-width: 1024px) {
-    .menu-movil {
-      display: none;
-    }
-  }
-  .menu-movil__enlace {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-12);
-    min-height: 56px;
-    border-bottom: 1px solid var(--c-borde);
-    font-size: var(--t-sub);
-    font-weight: var(--peso-sub);
-    color: var(--c-texto);
-  }
-  .menu-movil__enlace[aria-current="page"] {
-    color: var(--c-enlace);
-  }
-  .menu-movil__titulo {
-    margin: var(--spacing-40) 0 var(--spacing-8);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
-    font-size: var(--t-caption);
-    font-weight: var(--peso-medio);
-    letter-spacing: var(--tracking-etiqueta);
-    text-transform: uppercase;
-    color: var(--c-texto-2);
-  }
-  .menu-movil__agente {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-12);
-    width: 100%;
-    min-height: 60px;
-    text-align: left;
-  }
-
-  /* ---------- Pie (Footer.tsx · grupo 6) ---------- */
-  .pie {
-    display: grid;
-    gap: var(--spacing-12);
-    justify-items: center;
-    padding: var(--spacing-24) var(--orilla) calc(var(--spacing-24) + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--c-borde);
-    background: var(--c-fondo);
-    text-align: center;
-  }
-  @media (min-width: 1024px) {
-    .pie {
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      justify-items: stretch;
-      text-align: left;
-    }
-  }
-  .pie__derechos {
-    font-size: var(--t-chico);
-    color: var(--c-tenue);
-  }
-  .pie__centro,
-  .pie__derecha {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px var(--spacing-24);
-  }
-  @media (min-width: 1024px) {
-    .pie__derecha {
-      justify-content: flex-end;
-    }
-  }
-  .pie__enlace {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    font-size: var(--t-chico);
-    font-weight: var(--peso-cuerpo);
-    color: var(--c-texto-2);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .pie__enlace:hover {
-      color: var(--c-texto);
-    }
-  }
-
   /* ---------- Preguntas: clase heredada (Preguntas.tsx usa Acordeon) ---------- */
   .faq {
     display: flex;
     flex-direction: column;
-  }
-
-  /* ---------- Ficha de un agente (AgenteModal.tsx · grupo 3) ---------- */
-  .ficha {
-    width: 100%;
-    max-width: none;
-    height: 100%;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: var(--c-fondo);
-    color: var(--c-texto);
-    overscroll-behavior: contain;
-  }
-  .ficha[open] {
-    display: block;
-    overflow-y: auto;
-  }
-  .ficha::backdrop {
-    background: var(--c-scrim);
-  }
-  .ficha__caja {
-    position: relative;
-    max-width: calc(var(--ancho-max) + 2 * var(--orilla));
-    margin-inline: auto;
-    padding: var(--spacing-24) var(--orilla) var(--spacing-96);
-  }
-  .ficha__cerrar {
-    position: sticky;
-    top: var(--spacing-12);
-    z-index: 2;
-    float: right;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    margin-left: var(--spacing-20);
-    border: 1px solid var(--c-borde);
-    border-radius: var(--radio-boton);
-    background: var(--c-superficie);
-    color: var(--c-texto);
   }
 
   /* ---------- Chip (filtros heredados) ---------- */
@@ -3165,380 +2893,20 @@
     }
   }
 
-  /* ---------- Mensajes usados en el mes (Uso.tsx) ---------- */
-  .uso__pista {
-    display: block;
-    height: 4px;
-    overflow: hidden;
-    border-radius: var(--radio-circulo);
-    background: var(--c-vidrio-fuerte);
-  }
-  .uso__relleno {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--c-enlace);
-  }
-  .uso__relleno--casi {
-    background: var(--c-error);
-  }
 }
 
-/* ---------- Chat como app de mensajería (ejemplo y chat real · grupo 2) ----------
-   Superficies de producto: #0d1117 / #151a22, bordes #21262d, paneles de 6px. */
+/* ---------- "Escribiendo…" de la portada heredada de /opciones (ConversacionEnVivo.tsx).
+   El resto del chat viejo (.chat-app*) se quitó al integrar el chat ganador (G2-T4). ---------- */
 @layer components {
-  .chat-app {
-    --chat-fondo: var(--c-fondo);
-    --chat-barra: var(--c-fondo-2);
-    --chat-burbuja: var(--c-superficie);
-    --chat-campo: var(--c-superficie);
-    --chat-menu: var(--c-superficie);
-    --chat-activo: var(--c-vidrio-fuerte);
-    --chat-hover: var(--c-vidrio);
-    --chat-tu: var(--c-accion);
-    --chat-tu-texto: var(--c-sobre-accion);
-    --chat-r: 16px;
-    --chat-r-chica: 6px;
-
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-    height: min(82svh, 700px);
-    min-height: 540px;
-    overflow: hidden;
-    border: 1px solid var(--c-borde);
-    border-radius: var(--radio-marco);
-    background: var(--c-fondo-2);
-    color: var(--c-texto);
-    font-weight: var(--peso-cuerpo);
-    text-align: left;
-    isolation: isolate;
-  }
-  @media (min-width: 768px) {
-    .chat-app {
-      grid-template-columns: 280px minmax(0, 1fr);
-      height: clamp(580px, 78vh, 740px);
-    }
-  }
-  @media (min-width: 1024px) {
-    .chat-app {
-      grid-template-columns: 320px minmax(0, 1fr);
-    }
-  }
-  .chat-app__barra {
-    position: absolute;
-    inset: 0 auto 0 0;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    width: min(86%, 320px);
-    background: var(--c-fondo);
-    visibility: hidden;
-    transform: translateX(-102%);
-    transition:
-      transform var(--dur-grande) var(--ease-entrada),
-      visibility 0s linear var(--dur-grande);
-  }
-  .chat-app__barra[data-abierta] {
-    visibility: visible;
-    transform: none;
-    transition-delay: 0s;
-  }
-  @media (min-width: 768px) {
-    .chat-app__barra {
-      position: relative;
-      width: auto;
-      background: transparent;
-      visibility: visible;
-      transform: none;
-    }
-  }
-  .chat-app__velo {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: var(--c-scrim);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--dur-micro) var(--ease);
-  }
-  .chat-app__velo[data-abierta] {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .chat-app__listas {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: var(--spacing-8) var(--spacing-12) var(--spacing-20);
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-  }
-  .chat-app__seccion {
-    padding: var(--spacing-20) var(--spacing-12) var(--spacing-8);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
-    font-size: var(--t-caption);
-    font-weight: var(--peso-medio);
-    letter-spacing: var(--tracking-etiqueta);
-    text-transform: uppercase;
-    color: var(--c-texto-2);
-  }
-  .chat-app__conv {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-12);
-    width: 100%;
-    padding: var(--spacing-12);
-    border-radius: var(--radio-panel);
-    text-align: left;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__conv:hover {
-      background: var(--chat-hover);
-    }
-  }
-  .chat-app__conv[aria-current] {
-    background: var(--chat-activo);
-  }
-  .chat-app__sin-leer {
-    display: inline-grid;
-    place-items: center;
-    min-width: 20px;
-    height: 20px;
-    margin-left: auto;
-    padding: 0 var(--spacing-8);
-    border-radius: var(--radio-circulo);
-    background: var(--c-enlace);
-    color: var(--c-fondo);
-    font-size: 11px;
-    font-weight: var(--peso-titulo);
-    font-variant-numeric: tabular-nums;
-  }
-  .chat-app__escribe {
-    color: var(--c-enlace);
-  }
-  .chat-app__nuevo {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-12);
-    width: 100%;
-    min-height: 44px;
-    padding: var(--spacing-8) var(--spacing-12);
-    border-radius: var(--radio-boton);
-    color: var(--c-texto);
-    font-size: var(--t-chico);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__nuevo:hover {
-      background: var(--chat-hover);
-    }
-  }
-  .chat-app__nuevo-mas {
-    display: inline-grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--c-borde-fuerte);
-    border-radius: var(--radio-boton);
-    color: var(--c-texto);
-  }
-  .chat-app__nuevo--bloqueado {
-    color: var(--c-tenue);
-  }
-  .chat-app__nuevo--bloqueado .chat-app__nuevo-mas {
-    color: var(--c-tenue);
-  }
-  .chat-app__cara {
-    position: absolute;
-    display: grid;
-    place-items: center;
-    border-radius: var(--radio-circulo);
-    background: var(--c-vidrio-fuerte);
-    box-shadow: 0 0 0 2px var(--c-fondo);
-  }
-  .chat-app__cara[data-sola] {
-    box-shadow: none;
-  }
-  .chat-app__principal {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    background: var(--c-fondo);
-  }
-  @media (min-width: 768px) {
-    .chat-app__principal {
-      border-left: 1px solid var(--c-borde);
-    }
-  }
-  .chat-app__cabeza {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-12);
-    padding: var(--spacing-16) var(--spacing-20);
-    border-bottom: 1px solid var(--c-borde);
-  }
-  .chat-app__icono {
-    position: relative;
-    display: inline-grid;
-    flex-shrink: 0;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radio-boton);
-    color: var(--c-texto-2);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__icono:hover {
-      background: var(--chat-hover);
-    }
-  }
-  .chat-app__punto {
-    position: absolute;
-    top: 9px;
-    right: 9px;
-    width: 8px;
-    height: 8px;
-    border-radius: var(--radio-circulo);
-    background: var(--c-enlace);
-  }
-  .chat-app__probar {
-    align-items: center;
-    gap: var(--spacing-8);
-    min-height: 40px;
-    padding: var(--spacing-8) var(--spacing-12);
-    font-size: var(--t-chico);
-    color: var(--c-texto-2);
-    white-space: nowrap;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__probar:hover {
-      color: var(--c-texto);
-    }
-  }
-  .chat-app__mensajes {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: var(--spacing-8) var(--spacing-20) var(--spacing-24);
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-  }
-  @media (min-width: 640px) {
-    .chat-app__mensajes {
-      padding-inline: var(--spacing-32);
-    }
-  }
-  .chat-app__hilo {
-    display: flex;
-    flex-direction: column;
-  }
-  .chat-app__dia {
-    align-self: center;
-    margin: var(--spacing-20) 0 var(--spacing-8);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
-    font-size: var(--t-caption);
-    font-weight: var(--peso-medio);
-    letter-spacing: var(--tracking-etiqueta);
-    text-transform: uppercase;
-    color: var(--c-tenue);
-  }
-  .chat-app__fila {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--spacing-12);
-    margin-top: 4px;
-  }
-  .chat-app__fila--bloque {
-    margin-top: var(--spacing-20);
-  }
-  .chat-app__avatar {
-    display: block;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-  }
-  .chat-app__columna {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    min-width: 0;
-    max-width: min(85%, 560px);
-  }
-  .chat-app__nombre {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-8);
-    margin: 0 0 var(--spacing-8) 4px;
-    font-size: 13px;
-  }
-  .chat-app__marca {
-    width: 8px;
-    height: 8px;
-    border-radius: var(--radio-circulo);
-  }
-  .chat-app__sistema {
-    justify-content: center;
-    margin-top: var(--spacing-12);
-  }
-  .chat-app__sistema span {
-    max-width: 90%;
-    font-size: var(--t-caption);
-    text-align: center;
-    color: var(--c-tenue);
-  }
-  .chat-app__burbuja {
-    display: block;
-    padding: 10px 14px 8px;
-    border-radius: var(--chat-r);
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  .chat-app__burbuja--agente {
-    border: 1px solid var(--c-borde);
-    border-top-left-radius: var(--chat-r-chica);
-    border-bottom-left-radius: var(--chat-r-chica);
-    background: var(--chat-burbuja);
-    color: var(--c-texto);
-  }
-  .chat-app__burbuja--agente[data-primero] {
-    border-top-left-radius: var(--chat-r);
-  }
-  .chat-app__burbuja--tu {
-    max-width: min(82%, 520px);
-    border-top-right-radius: var(--chat-r-chica);
-    border-bottom-right-radius: var(--chat-r-chica);
-    background: var(--chat-tu);
-    color: var(--chat-tu-texto);
-  }
-  .chat-app__burbuja--tu[data-primero] {
-    border-top-right-radius: var(--chat-r);
-  }
-  .chat-app__hora {
-    float: right;
-    margin: 6px 0 -2px 12px;
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
-    font-size: 11px;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.7;
-  }
-  .chat-app__texto {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6em;
-  }
   .chat-app__puntos {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 13px 15px;
+    gap: var(--spacing-4);
+    padding: var(--spacing-12) var(--spacing-16);
   }
   .chat-app__puntos i {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: var(--radio-circulo);
     background: var(--c-texto-2);
     animation: chat-app-punto 1.2s var(--ease) infinite;
@@ -3548,230 +2916,6 @@
   }
   .chat-app__puntos i:nth-child(3) {
     animation-delay: 0.32s;
-  }
-  .chat-app__pie {
-    padding: var(--spacing-8) var(--spacing-20) var(--spacing-20);
-  }
-  @media (min-width: 640px) {
-    .chat-app__pie {
-      padding-inline: var(--spacing-24);
-    }
-  }
-  .chat-app__sugerencias {
-    display: flex;
-    gap: var(--spacing-8);
-    margin-bottom: var(--spacing-12);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .chat-app__sugerencia {
-    flex-shrink: 0;
-    min-height: 36px;
-    padding: var(--spacing-8) var(--spacing-12);
-    border: 1px solid var(--c-pildora-borde);
-    border-radius: var(--radio-pildora);
-    color: var(--c-texto);
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__sugerencia:hover:not(:disabled) {
-      border-color: var(--c-texto-2);
-    }
-  }
-  .chat-app__sugerencia:disabled {
-    opacity: 0.5;
-  }
-  .chat-app__sugerencia--larga {
-    max-width: 100%;
-    padding: var(--spacing-12) var(--spacing-16);
-    border-radius: var(--radio-panel);
-    font-size: 14px;
-    text-align: left;
-    white-space: normal;
-  }
-  .chat-app__capa {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    display: grid;
-    place-items: center;
-    padding: var(--spacing-20);
-    background: var(--c-scrim);
-  }
-  .chat-app__panel {
-    width: min(100%, 560px);
-    max-height: 100%;
-    overflow-y: auto;
-    padding: var(--spacing-24);
-    border: 1px solid var(--c-borde);
-    border-radius: var(--radio-marco);
-    background: var(--c-fondo);
-  }
-  @media (min-width: 640px) {
-    .chat-app__panel {
-      padding: var(--spacing-32);
-    }
-  }
-  .chat-app__elegir {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--spacing-20) var(--spacing-8) var(--spacing-12);
-    border: 1px solid var(--c-borde);
-    border-radius: var(--radio-panel);
-    background: var(--c-superficie);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__elegir:hover:not(:disabled) {
-      border-color: var(--c-borde-fuerte);
-    }
-  }
-  .chat-app__elegir:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-  .chat-app__elegir[aria-pressed="true"] {
-    border-color: var(--c-destacada);
-  }
-  .chat-app__check {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    display: grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: var(--radio-circulo);
-    background: var(--c-destacada);
-    color: var(--c-fondo);
-    opacity: 0;
-  }
-  .chat-app__elegir[aria-pressed="true"] .chat-app__check {
-    opacity: 1;
-  }
-  .chat-app__campo {
-    display: block;
-    width: 100%;
-    min-height: 48px;
-    padding: var(--spacing-12) var(--spacing-16);
-    border: 1px solid var(--c-campo-borde);
-    border-radius: var(--radio-campo);
-    background: var(--c-campo-fondo);
-    color: var(--c-texto);
-    font-size: 16px;
-  }
-  .chat-app__campo::placeholder {
-    color: var(--c-placeholder);
-  }
-  .chat-app__campo:focus {
-    border-color: var(--c-foco);
-    outline: 2px solid var(--c-foco);
-    outline-offset: 1px;
-  }
-  .chat-app__boton {
-    min-height: 40px;
-    padding: 6px 20px;
-    border: 1px solid var(--c-fantasma-borde);
-    border-radius: var(--radio-boton);
-    color: var(--c-texto);
-    font-size: var(--t-cuerpo);
-  }
-  .chat-app__boton--fuerte {
-    border-color: transparent;
-    background: var(--c-accion);
-    color: var(--c-sobre-accion);
-  }
-  .chat-app__boton:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  .chat-app.chat-app--completa {
-    height: calc(100svh - var(--barra-h) - 110px);
-    min-height: 520px;
-  }
-  .chat-app.chat-app--pantalla {
-    height: auto;
-    min-height: 0;
-    border: 0;
-    border-radius: 0;
-  }
-  .chat-app__plan {
-    margin: var(--spacing-8) var(--spacing-12) var(--spacing-12);
-    padding: var(--spacing-12);
-  }
-  .chat-app__borrar {
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    z-index: 1;
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radio-boton);
-    color: var(--c-tenue);
-    opacity: 0;
-    transform: translateY(-50%);
-  }
-  .group:hover .chat-app__borrar,
-  .chat-app__borrar:focus-visible {
-    opacity: 1;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__borrar:hover {
-      background: var(--chat-activo);
-      color: var(--c-texto);
-    }
-  }
-  .chat-app__vacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: auto;
-    padding: var(--spacing-40) var(--spacing-8);
-    text-align: center;
-  }
-  .chat-app__copiar {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 2px;
-    padding: 3px 9px;
-    border-radius: var(--radio-boton);
-    color: var(--c-tenue);
-    font-size: var(--t-caption);
-    opacity: 0;
-  }
-  .chat-app__fila:hover .chat-app__copiar,
-  .chat-app__copiar:focus-visible {
-    opacity: 1;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .chat-app__copiar:hover {
-      color: var(--c-texto);
-    }
-  }
-  @media (hover: none) {
-    .chat-app__borrar {
-      opacity: 1;
-    }
-    .chat-app__copiar {
-      display: none;
-    }
-    .chat-app__copiar--fijo {
-      display: block;
-      opacity: 0.9;
-    }
-  }
-  .chat-app__error {
-    margin: var(--spacing-8) 0 0 4px;
-    color: var(--c-error);
-    font-size: 13px;
-  }
-  .chat-app__sistema--error span {
-    color: var(--c-error);
   }
 }
 

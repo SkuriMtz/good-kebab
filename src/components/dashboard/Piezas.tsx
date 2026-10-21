@@ -14,19 +14,20 @@ import type { Accion } from "./tipos";
    --------------------------------------------------------------------- */
 
 type TamMarca = 20 | 24 | 28 | 32 | 40 | 64;
+// Tamaños de la marca de agente de la base (clases completas para Tailwind)
 const CLASE_TAM: Record<TamMarca, string> = {
-  20: "dash-marca--20",
-  24: "dash-marca--24",
-  28: "dash-marca--28",
-  32: "dash-marca--32",
-  40: "dash-marca--40",
-  64: "dash-marca--64",
+  20: "marca-agente--20",
+  24: "marca-agente--24",
+  28: "marca-agente--28",
+  32: "marca-agente--32",
+  40: "marca-agente--40",
+  64: "marca-agente--64",
 };
 
 /** El personaje de un agente en su círculo con un velo de su color (su "avatar"). */
 export function MarcaAgente({ id, tam = 32, className = "" }: { id: IdAgente; tam?: TamMarca; className?: string }) {
   return (
-    <span className={`dash-marca ${CLASE_TAM[tam]} ${className}`} style={{ "--agente": `var(--agente-${id})` } as CSSProperties} aria-hidden="true">
+    <span className={`dash-marca marca-agente ${CLASE_TAM[tam]} ${className}`} style={{ "--agente": `var(--agente-${id})` } as CSSProperties} aria-hidden="true">
       <Personaje agente={id} avatar />
     </span>
   );

@@ -1036,7 +1036,11 @@
 .ficha__cerrar {
   position: sticky;
   top: 0;
+  z-index: 2;
   align-self: start;
+  border: 1px solid var(--c-borde);
+  background: var(--c-superficie);
+  color: var(--c-texto);
 }
 .ficha__cuerpo {
   display: grid;

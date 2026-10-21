@@ -268,7 +268,7 @@ export default function Base() {
               </li>
             ))}
           </ul>
-          <Muestra etiqueta="Producto (dentro de .producto): pila del sistema, números tabulares con .cifras" className="mt-[var(--spacing-40)]">
+          <Muestra etiqueta="Producto (dentro de .producto): Mona Sans; horas y números en Mona Sans Mono con .cifras" className="mt-[var(--spacing-40)]">
             <DosModos>
               <ul className="flex flex-col gap-[var(--spacing-16)]">
                 {TIPOS_APP.map((t) => (

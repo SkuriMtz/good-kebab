@@ -6,7 +6,7 @@ import { Icono } from "@/components/base/Iconos";
 import { sinAcentos } from "./nombres";
 import { Accionable, MarcaAgente } from "./Piezas";
 import type { ResultadoBusqueda } from "./tipos";
-import { usePopover } from "./usePopover";
+import { usePopover } from "@/components/base/Popover";
 
 const MAX = 8;
 

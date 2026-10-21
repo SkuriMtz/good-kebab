@@ -23,8 +23,8 @@ import {
  *
  * Uso:
  *   <Pestanas etiqueta="Los agentes" pestanas={[{ id: "lola", etiqueta: "Lola", adorno: <Personaje …/>, contenido: … }]} />
- * Sin `contenido`, solo es el selector: usa `activa` + `alCambiar` y pinta tú el panel
- * (dale id={idPanel(base, id)} si quieres conservar la relación accesible).
+ * Sin `contenido`, solo es el selector: usa `activa` + `alCambiar` y pinta tú el panel;
+ * pásale su id en `idPanelExterno` (la pestaña activa lleva aria-controls).
  */
 
 // useLayoutEffect solo en el navegador (en el servidor no hay nada que medir)
@@ -48,6 +48,7 @@ export function Pestanas({
   alineacion = "centro",
   className = "",
   classNamePanel = "",
+  idPanelExterno,
 }: {
   pestanas: Pestana[];
   /** Nombre de la fila para lectores de pantalla (aria-label). */
@@ -60,6 +61,12 @@ export function Pestanas({
   alineacion?: "centro" | "izquierda";
   className?: string;
   classNamePanel?: string;
+  /**
+   * Sin `contenido` (el panel lo pintas tú): el id de ese panel. Así la
+   * pestaña activa lleva aria-controls y el panel puede usar
+   * aria-labelledby={idPestanaActiva}. Ver `idPestanaDe`.
+   */
+  idPanelExterno?: string;
 }) {
   const base = useId().replace(/:/g, "");
   const [libre, setLibre] = useState(inicial ?? pestanas[0]?.id);
@@ -161,7 +168,7 @@ export function Pestanas({
                 data-pestana={p.id}
                 className="pestanas__pestana"
                 aria-selected={seleccionada}
-                aria-controls={seleccionada && p.contenido !== undefined ? idPanel(base, p.id) : undefined}
+                aria-controls={seleccionada ? (p.contenido !== undefined ? idPanel(base, p.id) : idPanelExterno) : undefined}
                 tabIndex={seleccionada ? 0 : -1}
                 disabled={p.deshabilitada}
                 onClick={() => elegir(p.id)}

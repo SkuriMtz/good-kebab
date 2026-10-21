@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Icono } from "./base/Iconos";
-import { EVENTO_TEMA, ponerTema, temaActual, type Tema } from "@/lib/tema";
+import { EVENTO_TEMA, ponerTema, preferenciaActual, seguirSistema, temaActual, type PreferenciaTema, type Tema } from "@/lib/tema";
 
-const OPCIONES: { id: Tema; etiqueta: string; icono: "luna" | "sol" }[] = [
+const OPCIONES: { id: PreferenciaTema; etiqueta: string; icono: "luna" | "sol" | "monitor" }[] = [
   { id: "oscuro", etiqueta: "Oscuro", icono: "luna" },
   { id: "claro", etiqueta: "Claro", icono: "sol" },
+  { id: "sistema", etiqueta: "Sistema", icono: "monitor" },
 ];
 
 /**
@@ -14,7 +15,8 @@ const OPCIONES: { id: Tema; etiqueta: string; icono: "luna" | "sol" }[] = [
  * - `icono` (barra): botón de ícono de 32px con borde, como los de la barra
  *   del dashboard de GitHub. Muestra el sol en oscuro y la luna en claro.
  * - `selector` (pie y hoja del celular): control segmentado en píldora con
- *   "Oscuro" y "Claro"; la marca se desliza (solo transform, 0.2s).
+ *   "Oscuro", "Claro" y "Sistema" (sigue al teléfono o la computadora); la
+ *   marca se desliza (solo transform, 0.2s).
  * Lo que se ve lo decide CSS con data-tema de <html>, así no parpadea antes
  * de que cargue JavaScript; el estado de React solo da la lectura accesible.
  */
@@ -29,11 +31,17 @@ export function BotonTema({
   etiquetadoPor?: string;
 }) {
   const [tema, setTema] = useState<Tema>("oscuro");
+  const [preferencia, setPreferencia] = useState<PreferenciaTema>("oscuro");
   const opcionesRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     setTema(temaActual());
-    const alCambiar = (e: Event) => setTema((e as CustomEvent<Tema>).detail);
+    setPreferencia(preferenciaActual());
+    if (preferenciaActual() === "sistema") seguirSistema();
+    const alCambiar = (e: Event) => {
+      setTema((e as CustomEvent<Tema>).detail);
+      setPreferencia(preferenciaActual());
+    };
     window.addEventListener(EVENTO_TEMA, alCambiar);
     return () => window.removeEventListener(EVENTO_TEMA, alCambiar);
   }, []);
@@ -43,7 +51,7 @@ export function BotonTema({
     const alTeclear = (e: KeyboardEvent<HTMLDivElement>) => {
       if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
       e.preventDefault();
-      const i = OPCIONES.findIndex((o) => o.id === tema);
+      const i = OPCIONES.findIndex((o) => o.id === preferencia);
       const paso = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1;
       const j = (i + paso + OPCIONES.length) % OPCIONES.length;
       ponerTema(OPCIONES[j].id);
@@ -66,8 +74,8 @@ export function BotonTema({
             }}
             type="button"
             role="radio"
-            aria-checked={tema === o.id}
-            tabIndex={tema === o.id ? 0 : -1}
+            aria-checked={preferencia === o.id}
+            tabIndex={preferencia === o.id ? 0 : -1}
             className={`selector-tema__opcion selector-tema__opcion--${o.id}`}
             onClick={() => ponerTema(o.id)}
           >

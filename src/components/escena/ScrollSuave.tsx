@@ -25,7 +25,7 @@ export function ScrollSuave() {
       anchors: { offset: -80 },
       allowNestedScroll: true,
       autoRaf: false,
-      prevent: (nodo) => !!nodo.closest?.("dialog, .chat-app, .menu-movil, textarea, [data-lenis-prevent]"),
+      prevent: (nodo) => !!nodo.closest?.("dialog, .chat, textarea, [data-lenis-prevent]"),
     });
     lenis.on("scroll", ScrollTrigger.update);
     const latido = (segundos: number) => lenis.raf(segundos * 1000);

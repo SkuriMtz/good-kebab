@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Boton, claseBotonBase } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
@@ -26,6 +26,7 @@ export function VitrinaAgentes() {
   const [activa, setActiva] = useState<IdAgente>("lola");
   const a = AGENTE_POR_ID[activa];
   const detalle = DETALLE[activa];
+  const idPanel = `${useId().replace(/:/g, "")}-vitrina`;
 
   return (
     <div className="vitrina">
@@ -33,6 +34,7 @@ export function VitrinaAgentes() {
         etiqueta="Elige un agente"
         activa={activa}
         alCambiar={(id) => setActiva(id as IdAgente)}
+        idPanelExterno={idPanel}
         pestanas={AGENTES_INFO.map((ag) => ({
           id: ag.id,
           adorno: <Personaje agente={ag.id} avatar />,
@@ -45,7 +47,7 @@ export function VitrinaAgentes() {
         }))}
       />
 
-      <div className="vitrina__panel vidrio vidrio--relleno vidrio--relleno-amplio con-halo" role="tabpanel" aria-label={`${a.nombre}: qué hace y una conversación de ejemplo`}>
+      <div id={idPanel} className="vitrina__panel vidrio vidrio--relleno vidrio--relleno-amplio con-halo" role="tabpanel" aria-label={`${a.nombre}: qué hace y una conversación de ejemplo`}>
         <Halo x="72%" y="46%" ancho="min(720px, 120%)" proporcion="4 / 3" suave />
         <div key={activa} className="vitrina__contenido columnas-asimetricas">
           <div className="vitrina__texto">

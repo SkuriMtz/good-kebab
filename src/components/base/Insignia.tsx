@@ -18,6 +18,9 @@ import type { ReactNode } from "react";
  * - `solida`: relleno azul con texto blanco (el contador que pide atención).
  * - `punto`: solo un punto de 8px, sin texto ("hay algo nuevo").
  * - `conPunto`: un punto de su color antes del texto (estados).
+ * - `contorno`: sin relleno, con un filo de 1px (como "Public" en GitHub):
+ *   etiquetas de clasificación (canal, área de un agente). Combina con un tono
+ *   para colorear el texto y el filo.
  * - `sobre`: va encima de un botón de ícono (esquina superior derecha, con
  *   anillo del color del fondo; cambia el anillo con style={{"--anillo": …}}).
  *
@@ -45,6 +48,7 @@ export function Insignia({
   solida = false,
   punto = false,
   conPunto = false,
+  contorno = false,
   sobre = false,
   etiqueta,
   oculta,
@@ -58,6 +62,7 @@ export function Insignia({
   solida?: boolean;
   punto?: boolean;
   conPunto?: boolean;
+  contorno?: boolean;
   sobre?: boolean;
   /** Cómo se lee (ej. "3 avisos sin leer", "Estado: conectado"). */
   etiqueta?: string;
@@ -74,6 +79,7 @@ export function Insignia({
     esContador ? "insignia--contador" : "",
     solida ? "insignia--solida" : "",
     punto ? "insignia--punto" : "",
+    contorno ? "insignia--contorno" : "",
     sobre ? "insignia--sobre" : "",
     className,
   ]

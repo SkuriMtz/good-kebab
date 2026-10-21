@@ -14,7 +14,11 @@
   background: var(--c-fondo);
 }
 
-/* Fragmentos de fondo: sobre blanco se leen más fuertes; un poco más bajos */
-[data-tema="claro"] .sitio--particulas .escena-fondo {
-  opacity: 0.4;
+/* Los fragmentos de fondo ya bajan solos en claro (--escena-opacidad: 0.4 en globals.css). */
+
+/* Lección 9 + G6-T2: en el sitio PÚBLICO el lienzo claro es el gris cálido de
+   la portada (#f7f6f3) y las superficies se quedan en blanco Primer. Solo en
+   páginas con .sitio: el dashboard (.producto) conserva su #f5f5f7. */
+:root[data-tema="claro"]:has(.sitio) {
+  --c-fondo: var(--c-portada);
 }

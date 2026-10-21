@@ -5,7 +5,7 @@ import { BotonIcono } from "@/components/base/Boton";
 import { Insignia } from "@/components/base/Insignia";
 import { Accionable, Hora, MarcaAgente, Vacio } from "./Piezas";
 import type { Aviso } from "./tipos";
-import { usePopover } from "./usePopover";
+import { usePopover } from "@/components/base/Popover";
 
 /**
  * La campana: cuántos avisos sin leer y, al abrirla, la lista (quién, qué

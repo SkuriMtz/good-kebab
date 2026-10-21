@@ -28,6 +28,7 @@ export type NombreIcono =
   | "menu"
   | "cerrar"
   | "sol"
+  | "monitor"
   | "luna"
   | "enviar"
   | "reloj"
@@ -142,6 +143,13 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
     </>
   ),
   luna: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />,
+  /* Como el sistema (tema): una pantalla en su base */
+  monitor: (
+    <>
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M9 20h6M12 16v4" />
+    </>
+  ),
   enviar: (
     <>
       <path d="M20.5 3.5 10 14" />
