@@ -154,13 +154,13 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
-  sparkColor = "#b39dff",
+  background,
+  color,
+  menuBackground,
+  sparkColor,
   sparkBoost = 1,
-  width = 400,
-  radius = 16,
+  width,
+  radius,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
@@ -324,8 +324,8 @@ export default function PromptBar({
         if (parts.length < 30) spawn(false);
       }
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = sparkColor;
-      ctx.shadowColor = sparkColor;
+      ctx.fillStyle = chispa;
+      ctx.shadowColor = chispa;
       ctx.shadowBlur = 6 + energy * 10 + pulse * 6;
       for (let i = parts.length - 1; i >= 0; i -= 1) {
         const p = parts[i];
@@ -356,6 +356,8 @@ export default function PromptBar({
       raf = requestAnimationFrame(tick);
     };
     resize();
+    // El color sale del token (--pb-spark): el canvas no entiende var()
+    const chispa = getComputedStyle(canvas).getPropertyValue("--pb-spark").trim() || "currentColor";
     for (let i = 0; i < 26; i += 1) spawn(true);
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
@@ -365,7 +367,7 @@ export default function PromptBar({
       ro.disconnect();
       ctx.clearRect(0, 0, w, h);
     };
-  }, [maxed, reduce, sparkColor]);
+  }, [maxed, reduce]);
 
   const setEffort = (i: number) => {
     const next = Math.max(0, Math.min(efforts.length - 1, i));
@@ -485,13 +487,14 @@ export default function PromptBar({
   };
   const up = () => setPressed(false);
 
+  // Sin props, los colores y radios salen de los tokens (PromptBar.css)
   const vars: Variables = {
-    "--pb-bg": background,
-    "--pb-ink": color,
-    "--pb-menu": menuBackground,
-    "--pb-w": `${width}px`,
-    "--pb-radius": `${radius}px`,
-    "--pb-spark": sparkColor,
+    ...(background ? { "--pb-bg": background } : null),
+    ...(color ? { "--pb-ink": color } : null),
+    ...(menuBackground ? { "--pb-menu": menuBackground } : null),
+    ...(width ? { "--pb-w": `${width}px` } : null),
+    ...(radius ? { "--pb-radius": `${radius}px` } : null),
+    ...(sparkColor ? { "--pb-spark": sparkColor } : null),
     "--pb-press": pressScale,
   };
 
@@ -622,6 +625,7 @@ export default function PromptBar({
 
         <textarea
           ref={inputRef}
+          enterKeyHint="send"
           className="prompt-bar__input"
           rows={1}
           value={draft}
@@ -655,7 +659,7 @@ export default function PromptBar({
               focusInput();
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
           </button>
           {models.length > 0 && model ? (
             <button
