@@ -98,7 +98,7 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ### Grupo 6 — Estructura (3 trabajadores; eran 4): barra de navegación, pie, modo claro/oscuro y adaptación a celular
 
-- [x] G6-T1 · rama `prop/g6-t1` · capturas `diseno/capturas/paso5/g6-t1/` — **2026-10-21 01:26 UTC** — evidencia: commit e304119 en origin/prop/g6-t1, 40 capturas, entrega `diseno/entregas/g6-t1.md`; lint y build pasan
+- [x] G6-T1 · rama `prop/g6-t1` · capturas `diseno/capturas/paso5/g6-t1/` — **2026-10-21 01:26 UTC** — evidencia: commit e304119 en origin/prop/g6-t1, 38 capturas (el trabajador dijo 40; hay 38 en la carpeta), entrega `diseno/entregas/g6-t1.md`; lint y build pasan
 - [ ] G6-T2 · rama `prop/g6-t2` · capturas `diseno/capturas/paso5/g6-t2/`
 - [ ] G6-T3 · rama `prop/g6-t3` · capturas `diseno/capturas/paso5/g6-t3/`
 - [-] ~~G6-T4~~ (no se hace: recorte para ahorrar límite de uso, decidido el 2026-10-14 con permiso del dueño)
