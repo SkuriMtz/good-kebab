@@ -275,7 +275,7 @@
   color: var(--c-sobre-pildora-activa);
 }
 .temas__cuenta {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   font-variant-numeric: tabular-nums;
@@ -521,7 +521,7 @@
 .comparar__grupo th {
   padding: var(--spacing-32) 0 var(--spacing-12);
   color: var(--c-texto-2);
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   letter-spacing: var(--tracking-etiqueta);
@@ -560,7 +560,7 @@
 }
 .comparar__cifra {
   color: var(--c-texto);
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-chico);
   font-weight: var(--peso-medio);
 }
@@ -750,7 +750,7 @@
   border: 1px solid var(--c-borde-fuerte);
   border-radius: var(--radio-boton);
   color: var(--c-texto);
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   font-variant-numeric: tabular-nums;

@@ -93,8 +93,8 @@
      Lección 13 (16 oct): Mona Sans en todo, también en el producto; Mona
      Sans Mono para horas y números (.cifras). Ya no se usa la pila del
      sistema. Nunca peso 700. */
-  --font-producto: var(--font-mona-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-cifras: var(--font-mona-sans-mono), ui-monospace, monospace;
+  --font-producto: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-cifras: var(--font-geist-mono), ui-monospace, monospace;
   --t-app-etiqueta: 0.75rem; /* 12 · etiquetas, insignias, metadatos */
   --t-app-cuerpo: 0.875rem; /* 14 · cuerpo del producto */
   --t-app-mediano: 1rem; /* 16 · títulos de tarjeta, campos */
@@ -533,7 +533,7 @@
     min-height: 100svh;
     background: var(--c-fondo);
     color: var(--c-texto);
-    font-family: var(--font-mona-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     font-size: var(--t-cuerpo);
     font-weight: var(--peso-cuerpo);
     line-height: 1.5;
@@ -564,7 +564,7 @@
   code,
   kbd,
   samp {
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-variant-ligatures: none;
   }
   ::selection {
@@ -751,7 +751,7 @@
     color: var(--c-tenue);
   }
   .t-mono {
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-variant-ligatures: none; /* que "--c-fondo" no se junte en un solo guion */
     font-size: var(--t-chico);
     font-weight: var(--peso-cuerpo);
@@ -761,7 +761,7 @@
   /* Etiqueta: Mona Sans Mono 12/500, mayúsculas. Sellos de hora y canal. */
   .etiqueta,
   .t-etiqueta {
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-variant-ligatures: none;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
@@ -782,7 +782,7 @@
   }
   /* Rol o nombre de quien habla (conversaciones de ejemplo) */
   .t-rol {
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     line-height: 1.5;
@@ -1187,7 +1187,7 @@
   .campo__etiqueta {
     display: block;
     margin-bottom: var(--spacing-8);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     letter-spacing: var(--tracking-etiqueta);
@@ -1298,7 +1298,7 @@
     padding: 2px 12px;
     border: 1px solid var(--c-pildora-borde);
     border-radius: var(--radio-pildora);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     letter-spacing: var(--tracking-etiqueta);
@@ -1414,7 +1414,7 @@
     border-radius: var(--radio-panel);
     background: var(--c-marco-barra);
     color: var(--c-texto-2);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     line-height: 1.5;
     white-space: nowrap;
@@ -2173,7 +2173,7 @@
     background: var(--c-superficie);
     box-shadow: inset 0 -1px 0 var(--c-borde-fuerte);
     color: var(--c-texto-2);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-app-etiqueta);
     font-weight: var(--peso-app-medio);
     font-style: normal;
@@ -2641,7 +2641,7 @@
     font-size: var(--t-cuerpo);
   }
   .d-rol {
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     letter-spacing: var(--tracking-etiqueta);
@@ -2735,7 +2735,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-8);
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     line-height: 1.5;
@@ -2847,7 +2847,7 @@
   }
   .borrador {
     display: inline-flex;
-    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: var(--t-caption);
     font-weight: var(--peso-medio);
     letter-spacing: var(--tracking-etiqueta);

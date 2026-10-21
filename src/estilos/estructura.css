@@ -405,7 +405,7 @@
 .hoja-nav__titulo {
   margin-bottom: var(--spacing-8);
   padding-inline: var(--spacing-8);
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   line-height: 1.5;
@@ -792,7 +792,7 @@
   text-wrap: pretty;
 }
 .pie-sitio__sello {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   letter-spacing: var(--tracking-etiqueta);
@@ -983,7 +983,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-8);
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
   letter-spacing: var(--tracking-etiqueta);

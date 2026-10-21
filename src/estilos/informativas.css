@@ -106,7 +106,7 @@
   border-bottom: 1px solid var(--c-borde);
 }
 .dia__hora {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-variant-ligatures: none;
   font-variant-numeric: tabular-nums;
   font-size: var(--t-chico);
@@ -165,7 +165,7 @@
   background: var(--c-borde-fuerte);
 }
 .paso__numero {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-variant-ligatures: none;
   font-variant-numeric: tabular-nums;
   font-size: var(--t-cuerpo);
@@ -495,7 +495,7 @@
   opacity: 0.7;
 }
 .pqe-indice__numero {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   font-size: var(--t-caption);
   font-weight: var(--peso-medio);
@@ -565,7 +565,7 @@
   gap: var(--spacing-16);
 }
 .pqe-bloque__numero {
-  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-variant-ligatures: none;
   font-variant-numeric: tabular-nums;
   font-size: var(--t-chico);

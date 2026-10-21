@@ -18,27 +18,27 @@ import { SCRIPT_TEMA } from "@/lib/tema";
 
 /*
  * Tipografías servidas desde nuestro propio dominio (la política de seguridad
- * solo permite fuentes de 'self'). Archivos variables de github/mona-sans
- * (licencia SIL OFL 1.1, ver src/fonts/OFL.txt):
- * - Mona Sans: eje de peso 200–900 (usamos 400, 425, 440, 460, 480, 500, 600)
- *   y tamaño óptico automático.
- * - Mona Sans Mono: eje de peso 200–900, para etiquetas y sellos de hora.
+ * solo permite fuentes de 'self'). Geist y Geist Mono, archivos variables de
+ * Vercel (licencia SIL OFL 1.1, ver src/fonts/Geist-OFL.txt). Lección 14 del
+ * dueño: una letra más elegante y moderna en todo el sitio.
+ * - Geist: eje de peso 100–900 (usamos 400, 450, 500, 600).
+ * - Geist Mono: eje de peso 100–900, para etiquetas, horas y cifras.
  */
-const monaSans = localFont({
-  src: "../fonts/MonaSansVF-opsz-wght.woff2",
-  weight: "200 900",
+const geist = localFont({
+  src: "../fonts/GeistVF.woff2",
+  weight: "100 900",
   style: "normal",
   display: "swap",
-  variable: "--font-mona-sans",
+  variable: "--font-geist-sans",
   fallback: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
-const monaSansMono = localFont({
-  src: "../fonts/MonaSansMonoVF-wght.woff2",
-  weight: "200 900",
+const geistMono = localFont({
+  src: "../fonts/GeistMonoVF.woff2",
+  weight: "100 900",
   style: "normal",
   display: "swap",
-  variable: "--font-mona-sans-mono",
+  variable: "--font-geist-mono",
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
 });
 
@@ -63,10 +63,10 @@ export const viewport: Viewport = {
 
 /*
  * Las clases de las fuentes van en <html> y en <body>: así el valor de
- * --font-mona-sans que pone next/font le gana al nombre genérico que trae
+ * --font-geist-sans que pone next/font le gana al nombre genérico que trae
  * diseno/github/variables.css (que no apunta a ningún archivo).
  */
-const FUENTES = `${monaSans.variable} ${monaSansMono.variable}`;
+const FUENTES = `${geist.variable} ${geistMono.variable}`;
 
 export default function RootLayout({
   children,

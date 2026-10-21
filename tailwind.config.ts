@@ -48,8 +48,8 @@ const config: Config = {
         lateral: "var(--c-lateral, var(--c-fondo))",
       },
       fontFamily: {
-        sans: ["var(--font-mona-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-mona-sans-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
         producto: ["var(--font-producto)"],
       },
       boxShadow: {

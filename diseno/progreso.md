@@ -17,6 +17,8 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **2026-10-21 01:26 UTC:** límite semanal del 16 oct (se reinició el 20 oct 18:00 UTC); Grupo 6 reanudado el 21 oct 01:26 UTC. Existe el PR https://github.com/SkuriMtz/good-kebab/pull/1 (rediseno-11 → claude/setup-ai-agents-project-uhpqxj), creado desde la interfaz.
 
+- **2026-10-21 02:50 UTC — Plan nuevo del dueño (21 oct, ver CLAUDE.md lección 14 y `/root/.claude/plans/vivid-fluttering-dusk.md`):** se paró todo. La integración quedó en e792607 (los 7 ganadores juntos + lección 13 en la base; no se terminó el resto del encargo del integrador). Desde aquí: un trabajador por pantalla, un revisor ligero, y el dueño aprueba capturas antes de seguir. Orden: (1) letra Geist en todo — hecho; (2) dashboard más GitHub y simple; (3) chat tipo IA moderna; (4) landing con `diseno/vercel/`; (5) cierre.
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)
