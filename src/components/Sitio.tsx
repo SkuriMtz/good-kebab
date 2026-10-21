@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { claseBoton } from "./Buttons";
+import { SincronizarTema } from "./BotonTema";
 import { Footer } from "./Footer";
 import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
@@ -18,40 +18,54 @@ const REPARTO = AGENTES_INFO.map((a) => ({
 }));
 
 /**
- * El marco de cada página pública: la escena de triangulitos al fondo, la
- * barra (con "Pruébalo", el chat, como botón violeta), el pie y la ficha de
- * los agentes, que se puede abrir desde cualquier página.
+ * El marco de cada página pública, con el mismo lenguaje que el dashboard:
+ * - Al fondo, los fragmentos (partículas) fijos y discretos: se quedan en
+ *   las orillas y se apagan detrás del texto (lecciones 7, 8, 11 y 13).
+ * - La barra (logo con la sección, buscador "/", botones de ícono con
+ *   borde), el contenido y el pie, que siempre queda abajo aunque la página
+ *   sea corta.
+ * - La ficha de los agentes, que se puede abrir desde cualquier página.
  * `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
  */
 export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" }) {
   return (
     <>
-      {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : null}
+      {fondo === "3d" ? (
+        <Escena3D />
+      ) : fondo === "particulas" ? (
+        <div className="sitio__fondo" aria-hidden="true">
+          <Escena />
+        </div>
+      ) : null}
       <ScrollSuave />
-      <Nav
-        items={PAGINAS}
-        destacado={PRUEBALO}
-        reparto={REPARTO}
-        desktopRight={
-          <Link href="/entrar" className="barra__enlace">
-            Entrar
-          </Link>
-        }
-        mobileBottom={
-          <>
-            <Link href="/entrar" className={`${claseBoton("suave", "grande")} w-full`}>
-              Empezar gratis
-            </Link>
-            <Link href="/entrar" className={`${claseBoton("texto", "grande")} w-full`}>
-              Entrar
-            </Link>
-            <p className="t-chico text-center">Entras con tu correo, sin contraseña.</p>
-          </>
-        }
-      />
-      <main className="sobre-escena">{children}</main>
-      <div className="sobre-escena">
-        <Footer />
+      <SincronizarTema />
+      <div className="sitio">
+        <a href="#contenido" className="sitio__saltar">
+          Saltar al contenido
+        </a>
+        <Nav
+          items={PAGINAS}
+          destacado={PRUEBALO}
+          reparto={REPARTO}
+          buscar
+          mobileBottom={
+            <>
+              <Link href="/entrar" className="boton boton--sutil boton--grande boton--bloque">
+                Empezar gratis
+              </Link>
+              <Link href="/entrar" className="boton boton--fantasma boton--grande boton--bloque">
+                Entrar
+              </Link>
+              <p className="menu-sitio__nota">Entras con tu correo, sin contraseña. El plan Free no pide tarjeta.</p>
+            </>
+          }
+        />
+        <main id="contenido" tabIndex={-1} className="sobre-escena sitio__principal">
+          {children}
+        </main>
+        <div className="sobre-escena">
+          <Footer />
+        </div>
       </div>
       <FichasAgentes />
     </>

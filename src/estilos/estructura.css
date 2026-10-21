@@ -1,7 +1,1097 @@
 /*
- * Estilos de la barra de navegación, pie, botón de tema, /entrar y /panel.
+ * Estructura del sitio público: marco (Sitio.tsx), barra (Nav.tsx),
+ * buscador del sitio, menú del celular, pie (Footer.tsx), selector de tema
+ * (BotonTema.tsx) y /entrar.
  * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Dirección (G6-T3): el sitio público habla el mismo idioma que la app.
+ * La barra es la del dashboard (logo con la sección, buscador redondo con
+ * "/", botones de ícono con borde), el menú del celular es el mismo cajón
+ * del dashboard y /entrar es una tarjeta del panel. Mona Sans en todo
+ * (lección 13), tokens de globals.css y nada más.
  */
+
+/* =====================================================================
+   1. MARCO (Sitio.tsx)
+   ===================================================================== */
+.sitio {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh; /* el pie siempre abajo, aunque la página sea corta */
+}
+.sitio__principal {
+  flex: 1 0 auto;
+}
+.sitio__principal:focus {
+  outline: none;
+}
+/* "Saltar al contenido": invisible hasta que llega el foco con el teclado */
+.sitio__saltar {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + var(--spacing-12));
+  left: var(--orilla);
+  z-index: 70;
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-boton);
+  background: var(--c-superficie);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  opacity: 0;
+  transform: translateY(calc(-100% - var(--spacing-24)));
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+.sitio__saltar:focus-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Los fragmentos del fondo: fijos (solo se mueve el contenido), con brillo
+   bajo y apagados en el centro, donde se lee. Viven en las orillas, como
+   las estrellas detrás de la portada de GitHub (lecciones 7, 8, 11 y 13). */
+.sitio__fondo .escena-fondo {
+  --fondo-mascara-arriba: linear-gradient(to bottom, transparent var(--barra-h), var(--c-texto) calc(var(--barra-h) + var(--spacing-96)));
+  --fondo-mascara-centro: radial-gradient(ellipse 56% 64% at 50% 50%, transparent 38%, var(--c-texto) 100%);
+  opacity: 0.5;
+  /* Dos máscaras que se cruzan: nada detrás de la barra y casi nada en el centro */
+  -webkit-mask-image: var(--fondo-mascara-arriba), var(--fondo-mascara-centro);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--fondo-mascara-arriba), var(--fondo-mascara-centro);
+  mask-composite: intersect;
+}
+@media (max-width: 767px) {
+  .sitio__fondo .escena-fondo {
+    opacity: 0.4;
+  }
+}
+
+/* =====================================================================
+   2. BARRA (Nav.tsx) — el lenguaje de la barra del dashboard
+   ===================================================================== */
+.barra-sitio {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  isolation: isolate;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+/* Arriba es transparente; al bajar aparece el vidrio con su orilla de 1px
+   (solo se anima la opacidad de esta capa) */
+.barra-sitio::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-bottom: 1px solid var(--c-borde);
+  background: color-mix(in srgb, var(--c-fondo) 80%, transparent);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.8);
+  backdrop-filter: blur(var(--vidrio-desenfoque)) saturate(1.8);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.barra-sitio[data-bajado="true"]::before {
+  opacity: 1;
+}
+/* En el inicio, arriba, la barra se funde con el negro de la portada */
+.barra-sitio[data-portada="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: var(--c-portada);
+  pointer-events: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.barra-sitio[data-portada="true"][data-bajado="true"]::after {
+  opacity: 0;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .barra-sitio::before {
+    background: var(--c-fondo);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+.barra-sitio__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  height: var(--barra-h);
+  padding-inline: var(--orilla);
+}
+
+/* Botones de ícono con borde (hamburguesa, lupa, tema), como los de la barra del dashboard */
+.barra-sitio__icono,
+.menu-sitio .cajon__cabeza > .boton-icono {
+  border: 1px solid var(--c-app-division);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .barra-sitio__icono:hover,
+  .menu-sitio .cajon__cabeza > .boton-icono:hover {
+    color: var(--c-texto);
+  }
+}
+@media (min-width: 1024px) {
+  .barra-sitio .barra-sitio__solo-movil {
+    display: none;
+  }
+}
+@media (max-width: 1023.98px) {
+  .barra-sitio .barra-sitio__solo-escritorio {
+    display: none;
+  }
+}
+
+/* ---------- Logo con la sección: "Atendel / Precios" ---------- */
+.miga {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.miga__logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 44px;
+  border-radius: var(--radio-boton);
+  color: var(--c-texto);
+  transition: transform var(--dur-micro) var(--ease);
+}
+.miga__logo:active {
+  transform: scale(0.97);
+}
+.miga__marca {
+  width: var(--icono-grande);
+  height: var(--icono-grande);
+  flex-shrink: 0;
+}
+.miga__nombre,
+.miga__seccion {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+  color: var(--c-texto);
+  white-space: nowrap;
+}
+.miga__separador {
+  font-size: var(--t-cuerpo);
+  color: var(--c-terciario);
+}
+.miga__seccion {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Celular: la marca y la sección (el nombre ya lo dice la marca) */
+@media (max-width: 1023.98px) {
+  .barra-sitio .miga[data-seccion] .miga__nombre,
+  .barra-sitio .miga[data-seccion] .miga__separador {
+    display: none;
+  }
+}
+/* Computadora angosta: las páginas ya marcan dónde estás; se quita la sección para que quepa todo */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .barra-sitio .miga__separador,
+  .barra-sitio .miga__seccion {
+    display: none;
+  }
+}
+
+/* ---------- Páginas (computadora) ---------- */
+.barra-sitio__enlaces {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .barra-sitio__enlaces {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-left: var(--spacing-16);
+  }
+}
+.barra-sitio__enlace {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radio-boton);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto);
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+}
+/* Capa sutil al pasar el cursor (como las filas del dashboard) */
+.barra-sitio__enlace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-hover);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .barra-sitio__enlace:hover::before {
+    opacity: 1;
+  }
+}
+.barra-sitio__enlace:active {
+  transform: scale(0.97);
+}
+.barra-sitio__enlace:active::before {
+  background: var(--c-activo);
+  opacity: 1;
+}
+/* La página en la que estás: una línea azul sobre la orilla de la barra */
+.barra-sitio__enlace::after {
+  content: "";
+  position: absolute;
+  right: var(--spacing-8);
+  bottom: calc((var(--alto-control-compacto) - var(--barra-h)) / 2);
+  left: var(--spacing-8);
+  height: 2px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-accion);
+  opacity: 0;
+  transform: scaleX(0.5);
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+.barra-sitio__enlace[aria-current]::after {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Acciones de la derecha ---------- */
+.barra-sitio__acciones {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-left: auto;
+}
+.barra-sitio__cuenta {
+  display: inline-flex;
+  align-items: center;
+}
+.barra-sitio__division {
+  width: 1px;
+  height: var(--icono);
+  margin-inline: var(--spacing-4);
+  background: var(--c-app-division);
+}
+
+/* Buscador: una píldora con "Escribe / para buscar" (abre la búsqueda); en celular, la lupa */
+.barra-sitio__buscar {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  width: var(--alto-control-compacto);
+  height: var(--alto-control-compacto);
+  border: 1px solid var(--c-app-division);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.barra-sitio__buscar:active {
+  transform: scale(0.97);
+}
+@media (pointer: coarse) {
+  .barra-sitio__buscar::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--alto-control-compacto) - 44px) / 2);
+  }
+}
+.barra-sitio__buscar-texto,
+.barra-sitio__buscar-corto {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .barra-sitio__buscar {
+    justify-content: flex-start;
+    width: clamp(160px, 18vw, 272px);
+    padding: 0 var(--spacing-12);
+    border-radius: var(--radio-app-pildora);
+    background: var(--c-hover);
+  }
+  .barra-sitio__buscar-corto {
+    display: inline;
+  }
+}
+@media (min-width: 1280px) {
+  .barra-sitio__buscar-corto {
+    display: none;
+  }
+  .barra-sitio__buscar-texto {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+}
+/* Tableta en horizontal: sin teclado, no se anuncia el atajo "/" */
+@media (min-width: 1024px) and (pointer: coarse) {
+  .barra-sitio__buscar-texto {
+    display: none;
+  }
+  .barra-sitio__buscar-corto {
+    display: inline;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .barra-sitio__buscar:hover {
+    border-color: var(--c-borde-fuerte);
+    color: var(--c-texto);
+  }
+}
+.barra-sitio__buscar[aria-expanded="true"] {
+  border-color: var(--c-foco);
+}
+
+/* =====================================================================
+   3. BÚSQUEDA DEL SITIO (<dialog>): el campo arriba y los destinos abajo
+   ===================================================================== */
+.busqueda {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--c-texto);
+}
+.busqueda::backdrop {
+  background: transparent;
+}
+.busqueda__velo {
+  position: absolute;
+  inset: 0;
+  background: var(--c-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-salida) var(--ease);
+}
+.busqueda[data-abierto="true"] .busqueda__velo {
+  opacity: 0.6;
+  transition-duration: var(--dur-micro);
+}
+.busqueda__panel {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + var(--spacing-12));
+  right: var(--orilla);
+  display: flex;
+  flex-direction: column;
+  width: min(640px, calc(100% - 2 * var(--orilla)));
+  max-height: min(560px, calc(100dvh - 2 * var(--spacing-12) - env(safe-area-inset-top, 0px)));
+  overflow: hidden;
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-menu);
+  background: var(--c-superficie);
+  box-shadow: var(--sombra-flotante);
+  transform-origin: top right;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transition:
+    opacity var(--dur-salida) var(--ease),
+    transform var(--dur-salida) var(--ease);
+}
+.busqueda[data-abierto="true"] .busqueda__panel {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--dur-micro);
+  transition-timing-function: var(--ease-entrada);
+}
+.busqueda__cabeza {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-grande);
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-4) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+}
+.busqueda__cabeza:focus-within {
+  border-bottom-color: var(--c-foco);
+}
+.busqueda__lupa {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+}
+.busqueda__campo {
+  flex: 1;
+  min-width: 0;
+  height: var(--alto-control);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-texto);
+  font: inherit;
+  font-size: var(--t-cuerpo); /* 16px: sin zoom en iPhone */
+  outline: none;
+}
+.busqueda__campo::placeholder {
+  color: var(--c-placeholder);
+  opacity: 1;
+}
+.busqueda__campo:focus-visible {
+  outline: none; /* el foco lo marca la orilla azul de la cabeza */
+}
+.busqueda__esc {
+  display: inline-flex;
+}
+.busqueda__cerrar {
+  display: none;
+}
+@media (pointer: coarse) {
+  .busqueda__esc {
+    display: none;
+  }
+  .busqueda__cerrar {
+    display: inline-grid;
+  }
+}
+.busqueda__cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--spacing-4) * 1.5);
+}
+.busqueda__grupo {
+  padding: var(--spacing-12) var(--spacing-8) var(--spacing-4);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-texto-2);
+  font-variant-ligatures: none;
+}
+.busqueda__opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: 44px;
+  padding: var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.busqueda__opcion > .icono {
+  flex-shrink: 0;
+  margin-inline: calc((var(--avatar-28) - var(--icono-chico)) / 2);
+  color: var(--c-texto-2);
+}
+.busqueda__opcion[aria-selected="true"] {
+  background: var(--c-activo);
+}
+.busqueda__opcion[aria-selected="true"] > .icono {
+  color: var(--c-texto);
+}
+.busqueda__opcion:active {
+  background: var(--c-activo);
+}
+.busqueda__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.busqueda__titulo {
+  overflow: hidden;
+  font-size: var(--t-chico);
+  line-height: 1.43;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.busqueda__detalle {
+  overflow: hidden;
+  font-size: var(--t-caption);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.busqueda__marca {
+  background: transparent;
+  color: inherit;
+  font-weight: var(--peso-titulo);
+}
+.busqueda__ir {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0;
+}
+.busqueda__opcion[aria-selected="true"] .busqueda__ir {
+  opacity: 1;
+}
+.busqueda__nada {
+  padding: var(--spacing-32) var(--spacing-16);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+  text-align: center;
+  text-wrap: balance;
+}
+.busqueda__pie {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--spacing-8) var(--spacing-20);
+  padding: var(--spacing-8) var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+  font-size: var(--t-caption);
+  color: var(--c-texto-2);
+}
+.busqueda__pie > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+@media (pointer: coarse) {
+  .busqueda__ir,
+  .busqueda__pie {
+    display: none;
+  }
+}
+
+/* =====================================================================
+   4. MENÚ DEL CELULAR: el cajón del dashboard (Cajon.tsx), a pantalla completa
+   ===================================================================== */
+.menu-sitio {
+  --ancho-cajon: 100vw;
+}
+.menu-sitio .cajon__panel {
+  border-right: 0;
+  background: var(--c-fondo);
+  box-shadow: none;
+}
+.menu-sitio .cajon__cabeza {
+  min-height: var(--barra-h);
+  padding: 0 var(--orilla);
+}
+.menu-sitio .cajon__cuerpo {
+  padding: var(--spacing-16) var(--orilla) var(--spacing-40);
+}
+.menu-sitio__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+}
+.menu-sitio__buscar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--spacing-16);
+  border: 1px solid var(--c-app-division);
+  border-radius: var(--radio-app-pildora);
+  background: var(--c-hover);
+  color: var(--c-texto-2);
+  font-size: var(--t-cuerpo);
+  text-align: left;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.menu-sitio__buscar:active {
+  transform: scale(0.98);
+}
+.menu-sitio__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-sitio__fila {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--alto-app-fila);
+  padding: 0 var(--spacing-12);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  -webkit-touch-callout: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.menu-sitio__fila > .icono {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .menu-sitio__fila:hover {
+    background: var(--c-hover);
+  }
+}
+.menu-sitio__fila:active {
+  background: var(--c-activo);
+  transform: scale(0.98);
+}
+.menu-sitio__fila[aria-current] {
+  background: var(--c-activo);
+  font-weight: var(--peso-medio);
+}
+.menu-sitio__fila[aria-current] > .icono {
+  color: var(--c-texto);
+}
+/* La página en la que estás: la misma rayita azul del menú lateral del dashboard */
+.menu-sitio__fila[aria-current]::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-12);
+  bottom: var(--spacing-12);
+  left: calc(-1 * var(--spacing-8));
+  width: var(--spacing-4);
+  border-radius: var(--radio-circulo);
+  background: var(--c-accion);
+}
+.menu-sitio__fila--agente {
+  min-height: 56px;
+}
+.menu-sitio__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.menu-sitio__nombre {
+  color: var(--c-texto);
+}
+.menu-sitio__papel {
+  overflow: hidden;
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.menu-sitio__chevron {
+  flex-shrink: 0;
+  color: var(--c-terciario);
+}
+.menu-sitio__bloque {
+  padding-top: var(--spacing-24);
+  border-top: 1px solid var(--c-borde);
+}
+.menu-sitio__titulo {
+  padding: 0 var(--spacing-12) var(--spacing-8);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-texto-2);
+  font-variant-ligatures: none;
+}
+.menu-sitio__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+.menu-sitio__nota {
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* =====================================================================
+   5. SELECTOR DE TEMA (claro · oscuro · sistema)
+   ===================================================================== */
+.tema-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+.tema-selector--bloque {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-inline: var(--spacing-12);
+}
+.tema-selector__nombre {
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+}
+.tema-selector__grupo {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 2px;
+  border: 1px solid var(--c-app-division);
+  border-radius: var(--radio-app-pildora);
+}
+/* La pastilla de la opción elegida se desliza (solo transform) */
+.tema-selector__pastilla {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  z-index: -1;
+  width: calc((100% - 4px) / 3);
+  border-radius: var(--radio-app-pildora);
+  background: var(--c-activo);
+  opacity: 0;
+  transform: translateX(calc(100% * var(--i, 0)));
+  transition:
+    transform var(--dur-micro) var(--ease),
+    opacity var(--dur-micro) var(--ease);
+}
+.tema-selector__grupo[data-listo="true"] .tema-selector__pastilla {
+  opacity: 1;
+}
+.tema-selector__opcion {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  min-height: 28px;
+  padding: 0 var(--spacing-12);
+  border-radius: var(--radio-app-pildora);
+  color: var(--c-texto-2);
+  font-size: var(--t-chico);
+  line-height: 1.43;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.tema-selector__opcion:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tema-selector__opcion:hover {
+    color: var(--c-texto);
+  }
+}
+.tema-selector__opcion[aria-checked="true"] {
+  color: var(--c-texto);
+}
+@media (pointer: coarse) {
+  .tema-selector__opcion {
+    min-height: var(--alto-control);
+  }
+}
+.tema-selector--bloque .tema-selector__grupo {
+  flex: 1;
+  max-width: 320px;
+}
+
+/* =====================================================================
+   6. PIE (Footer.tsx): cuatro columnas sin bordes, como el de GitHub
+   ===================================================================== */
+.pie-sitio {
+  border-top: 1px solid var(--c-borde);
+  background: var(--c-fondo);
+}
+.pie-sitio__arriba,
+.pie-sitio__abajo {
+  max-width: calc(var(--ancho-max) + 2 * var(--orilla));
+  margin-inline: auto;
+  padding-inline: var(--orilla);
+}
+.pie-sitio__arriba {
+  display: grid;
+  gap: var(--spacing-40);
+  padding-top: var(--spacing-64);
+  padding-bottom: var(--spacing-48);
+}
+@media (min-width: 1024px) {
+  .pie-sitio__arriba {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--spacing-32);
+  }
+}
+.pie-sitio__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  border-radius: var(--radio-boton);
+  color: var(--c-texto);
+}
+.pie-sitio__circulos {
+  width: var(--spacing-32);
+  height: var(--spacing-32);
+  flex-shrink: 0;
+}
+.pie-sitio__nombre {
+  font-size: var(--t-sub);
+  font-weight: var(--peso-sub);
+  letter-spacing: var(--tracking-seccion);
+}
+.pie-sitio__lema {
+  max-width: 300px;
+  margin-top: var(--spacing-16);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+}
+.pie-sitio__columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-40) var(--spacing-24);
+}
+@media (min-width: 768px) {
+  .pie-sitio__columnas {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.pie-sitio__titulo {
+  margin-bottom: var(--spacing-16);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.pie-sitio__lista {
+  display: grid;
+  gap: var(--spacing-12);
+}
+.pie-sitio__enlace {
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+  text-underline-offset: 0.2em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pie-sitio__enlace:hover {
+    color: var(--c-texto);
+    text-decoration: underline;
+  }
+}
+/* En pantallas táctiles, cada enlace es un blanco de 40px */
+@media (pointer: coarse) {
+  .pie-sitio__lista {
+    gap: var(--spacing-4);
+  }
+  .pie-sitio__enlace {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--alto-control);
+  }
+  .pie-sitio__titulo {
+    margin-bottom: var(--spacing-8);
+  }
+}
+.pie-sitio__abajo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-16) var(--spacing-24);
+  padding-top: var(--spacing-24);
+  padding-bottom: calc(var(--spacing-24) + env(safe-area-inset-bottom, 0px));
+}
+.pie-sitio__abajo::before {
+  content: "";
+  flex-basis: 100%;
+  height: 1px;
+  margin-top: calc(-1 * var(--spacing-24));
+  margin-bottom: var(--spacing-8);
+  background: var(--c-borde);
+}
+.pie-sitio__derechos {
+  font-size: var(--t-caption);
+  color: var(--c-tenue);
+}
+
+/* =====================================================================
+   7. /entrar — una tarjeta del panel, angosta y centrada
+   ===================================================================== */
+.entrar {
+  padding: var(--spacing-40) var(--orilla) var(--spacing-96);
+}
+@media (min-width: 768px) {
+  .entrar {
+    padding-top: var(--spacing-80);
+  }
+}
+.entrar__columna {
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+}
+/* Los cuatro agentes encimados (los cuatro círculos del logo, con cara) */
+.entrar__equipo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-24);
+}
+.entrar__miembro {
+  box-shadow: 0 0 0 2px var(--c-fondo);
+}
+.entrar__miembro + .entrar__miembro {
+  margin-left: calc(-1 * var(--spacing-8));
+}
+.entrar__titulo {
+  font-size: var(--t-app-saludo);
+  font-weight: var(--peso-grande);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-grande);
+  color: var(--c-texto);
+  text-align: center;
+}
+.entrar__sub {
+  margin-top: var(--spacing-8);
+  font-size: var(--t-cuerpo);
+  color: var(--c-texto-2);
+  text-align: center;
+  text-wrap: balance;
+}
+.entrar__correo {
+  color: var(--c-texto);
+  font-weight: var(--peso-titulo);
+  overflow-wrap: anywhere;
+}
+.entrar__tarjeta {
+  margin-top: var(--spacing-24);
+  padding: var(--spacing-24);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-fondo-2);
+}
+@media (max-width: 389.98px) {
+  .entrar__tarjeta {
+    padding: var(--spacing-20);
+  }
+}
+.entrar__formulario {
+  display: grid;
+  gap: var(--spacing-16);
+}
+/* Google: botón neutro con contorno, como los botones normales del panel (el azul es solo "Enviarme el link") */
+.entrar__formulario .boton--sutil {
+  --c-sutil-fondo: var(--c-superficie);
+  --c-sutil-borde: var(--c-app-division);
+  --c-sutil-texto: var(--c-texto);
+}
+.entrar__o {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+}
+.entrar__o::before,
+.entrar__o::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-borde);
+}
+.entrar__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  font-size: var(--t-chico);
+  color: var(--c-error);
+}
+.entrar__error > .icono {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.entrar__nota {
+  margin-top: var(--spacing-16);
+  padding: var(--spacing-16) var(--spacing-24);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-app-panel);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+  text-align: center;
+  text-wrap: balance;
+}
+.entrar__enlace {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-accion-texto);
+  font: inherit;
+  cursor: pointer;
+  text-underline-offset: 0.2em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .entrar__enlace:hover {
+    text-decoration: underline;
+  }
+}
+.entrar__enlace:active {
+  opacity: 0.7;
+}
+.entrar__estado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  font-size: var(--t-chico);
+}
+.entrar__hora {
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  color: var(--c-texto-2);
+  font-variant-numeric: tabular-nums;
+}
+.entrar__pasos {
+  display: grid;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+.entrar__pasos > li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  font-size: var(--t-cuerpo);
+  color: var(--c-texto);
+}
+.entrar__paso {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--avatar-24);
+  height: var(--avatar-24);
+  border: 1px solid var(--c-app-division);
+  border-radius: var(--radio-circulo);
+  color: var(--c-texto-2);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-variant-numeric: tabular-nums;
+}
+.entrar__ayuda {
+  margin-top: var(--spacing-16);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+}

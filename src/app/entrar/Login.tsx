@@ -1,10 +1,14 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
-import { claseBoton, Spinner } from "@/components/Buttons";
-import { MarcasAgentes } from "@/components/agentes/MarcasAgentes";
-import { Field } from "@/components/ui/Field";
+import Link from "next/link";
+import { useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
+import { Boton } from "@/components/base/Boton";
+import { CampoCorreo } from "@/components/base/Campo";
+import { Icono } from "@/components/base/Iconos";
+import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
+import { AGENTES_INFO } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
 
 function traducirError(error: { message: string; code?: string }) {
@@ -18,12 +22,32 @@ function traducirError(error: { message: string; code?: string }) {
   return `No se pudo enviar el link: ${error.message}`;
 }
 
-/** Entrar con un link al correo (sin contraseña) o con Google si está disponible. */
+/** Los cuatro agentes encimados, como los avatares de un equipo (son los cuatro círculos del logo). */
+function Equipo() {
+  return (
+    <ul className="entrar__equipo" aria-hidden="true">
+      {AGENTES_INFO.map((a) => (
+        <li key={a.id} className="marca-agente marca-agente--chica entrar__miembro" style={{ "--agente": PERSONAJES[a.id].color } as CSSProperties}>
+          <Personaje agente={a.id} avatar />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Entrar con un link al correo (sin contraseña) o con Google si está
+ * disponible. Mismo lenguaje que el panel: columna angosta y centrada,
+ * tarjeta sólida con borde de 1px y radio de 16px, un solo botón azul.
+ * La lógica de inicio de sesión (Supabase) es la de siempre; solo cambió
+ * cómo se ve.
+ */
 export function Login({ errorInicial }: { errorInicial: boolean }) {
   const supabase = useMemo(() => createClient(), []);
   const google = useGoogleDisponible();
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<"idle" | "enviando" | "enviado">("idle");
+  const [hora, setHora] = useState("");
   const [error, setError] = useState<string | null>(
     errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
   );
@@ -41,6 +65,7 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
       setEstado("idle");
       setError(traducirError(error));
     } else {
+      setHora(new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false }));
       setEstado("enviado");
     }
   }
@@ -56,71 +81,93 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     });
   }
 
+  const enviado = estado === "enviado";
+
   return (
-    <section className="contenedor dos-columnas pb-[var(--spacing-96)] pt-[var(--spacing-36)] lg:pt-[var(--spacing-96)]">
-      <div className="w-full max-w-[520px]" aria-live="polite">
-        {estado !== "enviado" ? (
-          <div key="formulario">
-            <p className="t-etiqueta">Entrar</p>
-            <h1 className="t-display mt-[var(--spacing-18)]">Entra a Atendel.</h1>
-            <p className="t-editorial mt-[var(--spacing-18)] max-w-[420px]">
-              Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
-            </p>
-            <form onSubmit={enviar} className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-18)]">
-              <Field
-                label="Tu correo"
-                name="email"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="tu@correo.com"
-                autoComplete="email"
-                inputMode="email"
-                required
-              />
-              <button type="submit" className={`${claseBoton("primario", "grande")} w-full`} disabled={estado === "enviando"}>
-                {estado === "enviando" ? (
-                  <>
-                    <Spinner />
-                    Enviando
-                  </>
-                ) : (
-                  "Enviarme el link"
-                )}
-              </button>
-              {google ? (
-                <button type="button" className={`${claseBoton("suave", "grande")} w-full`} onClick={entrarConGoogle}>
-                  Continuar con Google
-                </button>
-              ) : null}
-              {error ? (
-                <p role="alert" className="flex items-start gap-2 text-[0.9375rem] text-error">
-                  <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M8 4.8v3.6M8 10.9v.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
-                  {error}
+    <section className="entrar" aria-labelledby="entrar-titulo">
+      <div className="entrar__columna">
+        <Equipo />
+
+        <div aria-live="polite">
+          {!enviado ? (
+            <div key="formulario">
+              <h1 id="entrar-titulo" className="entrar__titulo">
+                Entra a Atendel
+              </h1>
+              <p className="entrar__sub">Te mandamos un link a tu correo para entrar. Sin contraseñas.</p>
+
+              <div className="entrar__tarjeta">
+                <form onSubmit={enviar} className="entrar__formulario">
+                  <CampoCorreo name="email" value={email} alCambiar={setEmail} required disabled={estado === "enviando"} />
+                  <Boton type="submit" variante="principal" tam="grande" bloque cargando={estado === "enviando"}>
+                    {estado === "enviando" ? "Enviando" : "Enviarme el link"}
+                  </Boton>
+                  {google ? (
+                    <>
+                      <p className="entrar__o" aria-hidden="true">
+                        <span>o</span>
+                      </p>
+                      <Boton type="button" variante="sutil" tam="grande" bloque onClick={entrarConGoogle}>
+                        Continuar con Google
+                      </Boton>
+                    </>
+                  ) : null}
+                  {error ? (
+                    <p role="alert" className="entrar__error">
+                      <Icono nombre="alerta" tam={16} />
+                      <span>{error}</span>
+                    </p>
+                  ) : null}
+                </form>
+              </div>
+
+              <p className="entrar__nota">
+                ¿Primera vez? Tu cuenta se crea sola al entrar, con el plan Free.{" "}
+                <Link href="/precios" className="entrar__enlace">
+                  Ver los planes
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div key="enviado">
+              <h1 id="entrar-titulo" className="entrar__titulo">
+                Revisa tu correo
+              </h1>
+              <p className="entrar__sub">
+                Te mandamos un link a <strong className="entrar__correo">{email}</strong>
+              </p>
+
+              <div className="entrar__tarjeta">
+                <p className="entrar__estado">
+                  <PuntoEstado tono="exito" etiqueta="Link enviado" mostrarEtiqueta />
+                  {hora ? <span className="entrar__hora">{hora}</span> : null}
                 </p>
-              ) : null}
-            </form>
-          </div>
-        ) : (
-          <div key="enviado">
-            <p className="t-etiqueta">Link enviado</p>
-            <h1 className="t-display mt-[var(--spacing-18)]">Revisa tu correo.</h1>
-            <p className="t-cuerpo mt-4">
-              Te mandamos un link a <span className="font-semibold text-tinta">{email}</span>. Ábrelo en este mismo navegador
-              para entrar.
-            </p>
-            <p className="t-chico mt-3">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
-            <button type="button" className={`${claseBoton("texto")} mt-6`} onClick={() => setEstado("idle")}>
-              Usar otro correo
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="mx-auto hidden w-full max-w-[420px] lg:mr-0 lg:block">
-        <MarcasAgentes />
+                <ol className="entrar__pasos">
+                  <li>
+                    <span className="entrar__paso" aria-hidden="true">
+                      1
+                    </span>
+                    Abre el correo que te acabamos de mandar.
+                  </li>
+                  <li>
+                    <span className="entrar__paso" aria-hidden="true">
+                      2
+                    </span>
+                    Toca el link en este mismo navegador y ya estás adentro.
+                  </li>
+                </ol>
+                <p className="entrar__ayuda">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
+              </div>
+
+              <p className="entrar__nota">
+                ¿Te equivocaste de correo?{" "}
+                <button type="button" className="entrar__enlace" onClick={() => setEstado("idle")}>
+                  Usar otro correo
+                </button>
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

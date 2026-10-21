@@ -1,7 +1,40 @@
 /*
- * Ajustes del modo claro que no resuelvan los tokens de globals.css (:root[data-tema="claro"]).
+ * Ajustes del modo claro que no resuelven los tokens de globals.css
+ * ([data-tema="claro"]: Primer #ffffff, #f6f8fa, #1f2328, #59636e, #d1d9e0
+ * y los grises cálidos #f7f6f3 / #efede8 de la lección 9).
  * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Solo tokens de la base; nada de colores sueltos.
  */
+
+/* Los fragmentos del fondo, sobre blanco, se apagan un poco más: en claro
+   cualquier color pesa más que sobre negro (lecciones 7 y 11). */
+[data-tema="claro"] .sitio__fondo .escena-fondo {
+  opacity: 0.4;
+}
+@media (max-width: 767px) {
+  [data-tema="claro"] .sitio__fondo .escena-fondo {
+    opacity: 0.3;
+  }
+}
+
+/* La barra al bajar: vidrio blanco con la orilla de Primer (#d1d9e0), no gris */
+[data-tema="claro"] .barra-sitio::before {
+  background: color-mix(in srgb, var(--c-fondo) 85%, transparent);
+}
+
+/* El pie en claro: la franja secundaria de Primer (#f6f8fa) para que no sea
+   solo blanco y negro y se note dónde termina la página */
+[data-tema="claro"] .pie-sitio {
+  background: var(--c-fondo-2);
+}
+
+/* /entrar: la tarjeta en #f6f8fa y el campo en blanco, como el inicio de
+   sesión de GitHub en claro; la nota de abajo, sobre blanco */
+[data-tema="claro"] .entrar__nota {
+  background: var(--c-fondo);
+}
+
+/* La búsqueda: el velo de Primer es gris azulado; en claro se queda más tenue */
+[data-tema="claro"] .busqueda[data-abierto="true"] .busqueda__velo {
+  opacity: 0.4;
+}
