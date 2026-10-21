@@ -1,5 +1,8 @@
-/** Los colores de Lola, Clara, Víctor e Iris (los mismos de sus personajes). */
-const COLORES = ["#ff8a6b", "#7fb2ff", "#5fd09f", "#f6c64a"];
+/**
+ * Los colores de Lola, Clara, Víctor e Iris (los mismos de sus personajes),
+ * tomados de los tokens de la base (--agente-*). Mismos valores de siempre.
+ */
+const COLORES = ["var(--agente-lola)", "var(--agente-clara)", "var(--agente-victor)", "var(--agente-iris)"];
 const POS = [
   [28, 28],
   [72, 28],
@@ -10,20 +13,23 @@ const POS = [
 /** La marca: los cuatro agentes como cuatro círculos, uno por color. */
 export function Marca({ className = "h-[22px] w-[22px]" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
+    <svg viewBox="0 0 100 100" className={className} aria-hidden="true" focusable="false">
       {POS.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="19" fill={COLORES[i]} />
+        <circle key={i} cx={x} cy={y} r="19" style={{ fill: COLORES[i] }} />
       ))}
     </svg>
   );
 }
 
-/** Logo: la marca de los cuatro círculos y el nombre. */
+/**
+ * Logo: la marca y el nombre juntos, como el título junto al logo en la
+ * barra de GitHub. Lo usan la barra y el pie (`.logo` en estructura.css).
+ */
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <Marca />
-      <span className="logo-palabra leading-none">Atendel</span>
+    <span className={`logo ${className}`}>
+      <Marca className="logo__marca" />
+      <span className="logo__nombre">Atendel</span>
     </span>
   );
 }

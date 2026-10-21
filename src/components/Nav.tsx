@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { BotonTema } from "./BotonTema";
-import { Marca } from "./Logo";
+import { Logo } from "./Logo";
+import { Boton } from "./base/Boton";
+import { Etiqueta } from "./base/Etiqueta";
+import { Icono } from "./base/Iconos";
 import { PERSONAJES, Personaje } from "./agentes/Personaje";
 import type { IdAgente } from "@/lib/agentes";
 import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
@@ -13,83 +16,96 @@ export type NavItem = { href: string; label: string };
 export type Reparto = { id: IdAgente; nombre: string; papel: string; href: string };
 
 type Props = {
+  /** Las páginas (la primera puede ser el inicio: en la barra la representa el logo). */
   items: NavItem[];
-  /** El enlace más importante (el chat): el botón azul, siempre a la vista. */
+  /** "Pruébalo": botón sutil, siempre a la vista (el azul queda libre para cada pantalla). */
   destacado?: NavItem;
+  /** "Entrar": fantasma en la barra; en el celular, abajo del panel. */
+  cuenta?: NavItem;
   homeHref?: string;
-  /** Lo que va a la derecha en computadora (ej. "Entrar"). */
+  /** Para la barra de la app (NavApp): lo que va a la derecha en computadora (correo, "Salir"). */
   desktopRight?: ReactNode;
-  /** Lo que va abajo del menú en celular. */
+  /** Para la barra de la app: lo que va abajo del panel en celular (en lugar de "Entrar"). */
   mobileBottom?: ReactNode;
-  /** Los agentes, dentro del menú del celular. */
+  /** Los agentes, dentro del panel del celular. */
   reparto?: Reparto[];
 };
 
-function IconoMenu({ abierto }: { abierto: boolean }) {
-  return (
-    <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" aria-hidden="true">
-      {abierto ? (
-        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      ) : (
-        <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      )}
-    </svg>
-  );
-}
-
-function Chevron() {
-  return (
-    <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 text-tenue" fill="none" aria-hidden="true">
-      <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /**
- * Barra de arriba, fija al hacer scroll:
- * - Computadora: logo a la izquierda, páginas al centro y, a la derecha,
- *   las acciones, el chat (botón azul) y el modo claro/oscuro.
- * - Celular y tablet: logo, el chat (botón azul) y el botón de menú; el menú
- *   es una hoja debajo de la barra con las páginas, los agentes y el modo.
+ * La barra de arriba: delgada y silenciosa, todo en una línea.
+ * - Computadora: logo y nombre; las cuatro páginas (sin desplegables);
+ *   a la derecha el modo claro/oscuro (botón de ícono con borde), "Entrar"
+ *   (fantasma) y "Pruébalo" (sutil).
+ * - Arriba de todo es transparente (toma el color de la portada si la página
+ *   abre con una); al bajar, se vuelve vidrio con desenfoque y una línea fina.
+ * - Celular y tablet: logo, "Pruébalo" y la hamburguesa (con aria-label,
+ *   nunca la palabra "Menú"). Abre un panel a pantalla completa con las
+ *   páginas en grande, los agentes y, abajo, la cuenta y el modo.
  */
-export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBottom, reparto }: Props) {
+export function Nav({ items, destacado, cuenta, homeHref = "/", desktopRight, mobileBottom, reparto }: Props) {
   const [abierto, setAbierto] = useState(false);
-  const [sombra, setSombra] = useState(false);
+  const [bajado, setBajado] = useState(false);
   const botonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  // La barra marca su orilla cuando ya bajaste
+  // Al bajar, la barra se vuelve vidrio
   useEffect(() => {
-    const actualizar = () => setSombra(window.scrollY > 4);
-    actualizar();
-    window.addEventListener("scroll", actualizar, { passive: true });
-    return () => window.removeEventListener("scroll", actualizar);
+    let cuadro = 0;
+    const medir = () => {
+      cuadro = 0;
+      setBajado(window.scrollY > 8);
+    };
+    const alBajar = () => {
+      if (!cuadro) cuadro = window.requestAnimationFrame(medir);
+    };
+    medir();
+    window.addEventListener("scroll", alBajar, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", alBajar);
+      if (cuadro) window.cancelAnimationFrame(cuadro);
+    };
   }, []);
 
-  // Cerrar el menú al cambiar de página
+  // Cerrar el panel al cambiar de página
   useEffect(() => {
     setAbierto(false);
   }, [pathname]);
 
-  // Con el menú abierto: sin scroll detrás, Escape lo cierra y el foco va al primer enlace
+  // Panel abierto: sin scroll detrás, Esc cierra, el foco no se sale del panel
   useEffect(() => {
     if (!abierto) return;
     const html = document.documentElement;
     const overflowPrevio = html.style.overflow;
     html.style.overflow = "hidden";
+    const enfocables = () =>
+      [botonRef.current, ...Array.from(panelRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [])].filter(
+        (el): el is HTMLElement => Boolean(el),
+      );
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setAbierto(false);
         botonRef.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const lista = enfocables();
+      const primero = lista[0];
+      const ultimo = lista[lista.length - 1];
+      if (e.shiftKey && document.activeElement === primero) {
+        e.preventDefault();
+        ultimo?.focus();
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault();
+        primero?.focus();
       }
     };
-    // Si la pantalla crece a computadora, el menú ya no hace falta
+    // Si la pantalla crece a computadora, el panel ya no hace falta
     const computadora = window.matchMedia("(min-width: 1024px)");
     const alCrecer = () => computadora.matches && setAbierto(false);
     window.addEventListener("keydown", alTeclear);
     computadora.addEventListener("change", alCrecer);
-    menuRef.current?.querySelector<HTMLElement>("a, button")?.focus({ preventScroll: true });
+    panelRef.current?.querySelector<HTMLElement>("a[href]")?.focus({ preventScroll: true });
     return () => {
       html.style.overflow = overflowPrevio;
       window.removeEventListener("keydown", alTeclear);
@@ -125,62 +141,95 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
   };
 
   const actual = (href: string) => (pathname === href ? "page" : undefined);
+  const paginas = items.filter((item) => item.href !== homeHref);
 
   return (
     <>
-      <header className="barra" data-sombra={sombra ? "true" : "false"} data-abierto={abierto ? "true" : "false"}>
-        <div className="barra__fila">
-          <Link href={homeHref} className="flex min-h-[44px] shrink-0 items-center" aria-label="Atendel, inicio">
-            <Marca className="h-[26px] w-[26px]" />
+      <header className="cabecera" data-bajado={bajado ? "true" : "false"} data-abierto={abierto ? "true" : "false"}>
+        <div className="cabecera__fila">
+          <Link href={homeHref} className="cabecera__inicio" aria-label="Atendel, inicio" onClick={() => setAbierto(false)}>
+            <Logo />
           </Link>
 
-          <nav className="barra__enlaces" aria-label="Principal">
-            {items
-              .filter((item) => item.href !== homeHref)
-              .map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="barra__enlace"
-                aria-current={actual(item.href)}
-                onClick={(e) => alElegir(e, item.href)}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="cabecera__nav" aria-label="Principal">
+            <ul className="cabecera__enlaces">
+              {paginas.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="cabecera__enlace"
+                    aria-current={actual(item.href)}
+                    onClick={(e) => alElegir(e, item.href)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </nav>
 
-          <div className="barra__acciones">
-            {desktopRight ? <div className="hidden items-center gap-2 lg:flex">{desktopRight}</div> : null}
-            {destacado ? (
-              <Link href={destacado.href} className="btn btn--primario !px-3.5 sm:!px-4" aria-current={actual(destacado.href)}>
-                {destacado.label}
-              </Link>
+          <div className="cabecera__acciones">
+            <BotonTema className="cabecera__solo-compu" />
+            {cuenta || desktopRight ? <span className="cabecera__division cabecera__solo-compu" aria-hidden="true" /> : null}
+            {desktopRight ? <div className="cabecera__extra cabecera__solo-compu">{desktopRight}</div> : null}
+            {cuenta ? (
+              <Boton
+                href={cuenta.href}
+                variante="fantasma"
+                tam="chico"
+                className="boton--solo-texto cabecera__solo-compu"
+                aria-current={actual(cuenta.href)}
+              >
+                {cuenta.label}
+              </Boton>
             ) : null}
-            <BotonTema className="hidden lg:inline-grid" />
+            {destacado ? (
+              <Boton href={destacado.href} variante="sutil" tam="chico" aria-current={actual(destacado.href)}>
+                {destacado.label}
+              </Boton>
+            ) : null}
             <button
               ref={botonRef}
               type="button"
-              className="boton-icono lg:hidden"
-              aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
+              className="boton-borde cabecera__hamburguesa"
+              aria-label={abierto ? "Cerrar las páginas del sitio" : "Abrir las páginas del sitio"}
               aria-expanded={abierto}
               aria-controls="menu-movil"
               onClick={() => setAbierto((a) => !a)}
             >
-              <IconoMenu abierto={abierto} />
+              <span className="hamburguesa" data-abierto={abierto ? "true" : "false"} aria-hidden="true">
+                <Icono nombre="menu" tam={16} className="hamburguesa__abrir" />
+                <Icono nombre="cerrar" tam={16} className="hamburguesa__cerrar" />
+              </span>
             </button>
           </div>
         </div>
       </header>
 
-      <div id="menu-movil" ref={menuRef} className="menu-movil" data-abierto={abierto ? "true" : "false"} aria-hidden={!abierto}>
-        <nav aria-label="Menú">
-          <ul>
-            {items.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="menu-movil__enlace" aria-current={actual(item.href)} onClick={(e) => alElegir(e, item.href)}>
+      <div
+        id="menu-movil"
+        ref={panelRef}
+        className="cortina"
+        data-abierto={abierto ? "true" : "false"}
+        aria-hidden={!abierto}
+        data-lenis-prevent
+      >
+        <nav aria-label="Páginas del sitio">
+          <ul className="cortina__paginas">
+            {items.map((item, i) => (
+              <li key={item.href} className="cortina__item" style={{ "--i": i } as CSSProperties}>
+                <Link
+                  href={item.href}
+                  className="cortina__enlace"
+                  aria-current={actual(item.href)}
+                  onClick={(e) => alElegir(e, item.href)}
+                >
                   {item.label}
-                  <Chevron />
+                  {actual(item.href) ? (
+                    <Etiqueta tono="tenue" as="span" aria-hidden="true">
+                      Estás aquí
+                    </Etiqueta>
+                  ) : null}
                 </Link>
               </li>
             ))}
@@ -188,30 +237,39 @@ export function Nav({ items, destacado, homeHref = "/", desktopRight, mobileBott
         </nav>
 
         {reparto?.length ? (
-          <>
-            <p className="menu-movil__titulo">Los agentes</p>
-            <ul>
+          <section className="cortina__item cortina__agentes" style={{ "--i": items.length } as CSSProperties} aria-labelledby="cortina-agentes">
+            <Etiqueta tono="tenue" as="h2" id="cortina-agentes">
+              Los agentes
+            </Etiqueta>
+            <ul className="cortina__rejilla">
               {reparto.map((r) => (
                 <li key={r.id}>
-                  <Link href={r.href} className="menu-movil__agente" onClick={(e) => alElegir(e, r.href)}>
-                    <span className="marca-agente marca-agente--chica" style={{ "--agente": PERSONAJES[r.id].color } as CSSProperties}>
+                  <Link href={r.href} className="cortina__agente" onClick={(e) => alElegir(e, r.href)}>
+                    <span className="marca-agente marca-agente--mini" style={{ "--agente": PERSONAJES[r.id].color } as CSSProperties}>
                       <Personaje agente={r.id} avatar />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold">{r.nombre}</span>
-                      <span className="block truncate text-[0.875rem] text-tenue">{r.papel}</span>
+                    <span className="cortina__agente-texto">
+                      <span className="cortina__agente-nombre">{r.nombre}</span>
+                      <span className="cortina__agente-papel">{r.papel}</span>
                     </span>
-                    <Chevron />
                   </Link>
                 </li>
               ))}
             </ul>
-          </>
+          </section>
         ) : null}
 
-        {(mobileBottom ?? desktopRight) ? <div className="mt-8 flex flex-col gap-3">{mobileBottom ?? desktopRight}</div> : null}
-        <div className="mt-6">
-          <BotonTema conTexto />
+        <div className="cortina__item cortina__cuenta" style={{ "--i": items.length + 1 } as CSSProperties}>
+          {mobileBottom ??
+            (cuenta ? (
+              <>
+                <Boton href={cuenta.href} variante="fantasma" tam="grande" bloque aria-current={actual(cuenta.href)}>
+                  {cuenta.label}
+                </Boton>
+                <p className="cortina__nota">Entras con tu correo, sin contraseña.</p>
+              </>
+            ) : null)}
+          <BotonTema variante="fila" />
         </div>
       </div>
     </>

@@ -1,7 +1,40 @@
 /*
- * Ajustes del modo claro que no resuelvan los tokens de globals.css (:root[data-tema="claro"]).
- * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Modo claro (Grupo 6 · propuesta T2). Los valores son los de Primer que ya
+ * están en globals.css (#ffffff, #f6f8fa, #1f2328, #59636e, #d1d9e0) y el azul
+ * de acción de la base 4b. Aquí solo se reasignan tokens de la base a otro
+ * papel; ningún valor nuevo.
+ *
+ * Lección 9 ("el modo claro era solo blanco y negro, sin matices"): el lienzo
+ * de la página pasa al gris cálido de la portada (#f7f6f3, --gris-calido-1) y
+ * todo lo que es superficie se queda en blanco Primer (#ffffff): tarjetas,
+ * marcos del producto, campos y botones. Así el blanco tiene de qué
+ * separarse, como en las páginas de Apple (blanco sobre gris claro) y como el
+ * propio dashboard en claro (#ffffff sobre #f5f5f7). La portada y el resto
+ * quedan en el mismo tono: no hay franjas de otro color arriba ni abajo.
+ * El producto (.producto) no cambia: redefine --c-fondo con sus propios tokens.
  */
+
+:root[data-tema="claro"] {
+  --c-fondo: var(--c-portada); /* #f7f6f3, gris cálido */
+  /* Contorno de los botones de ícono: el borde de Primer (#d1d9e0), no el gris fuerte */
+  --borde-control: var(--c-borde);
+}
+
+/* Fragmentos de fondo: en claro se pintan más oscuros, así que van más tenues */
+:root[data-tema="claro"] .sitio__fondo {
+  --fondo-opacidad: 0.45;
+}
+
+/* Barra al bajar: vidrio cálido un poco más denso (el texto oscuro pide más fondo) */
+:root[data-tema="claro"] .cabecera {
+  --cabecera-vidrio: color-mix(in srgb, var(--c-fondo) 82%, transparent);
+}
+
+/* El selector Oscuro / Claro del pie: píldora blanca sobre el gris cálido,
+   y la opción elegida con el gris cálido más hondo (#efede8) */
+:root[data-tema="claro"] .tema-seg {
+  background: var(--c-superficie);
+}
+:root[data-tema="claro"] .tema-seg__pildora {
+  background: var(--c-relleno);
+}

@@ -1,7 +1,769 @@
 /*
- * Estilos de la barra de navegación, pie, botón de tema, /entrar y /panel.
- * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Estructura del sitio público (Grupo 6 · propuesta T2: "la calma de Apple
+ * sobre la base de GitHub"): envoltura y fondo, barra, panel del celular,
+ * botón de tema, pie y /entrar.
+ * Solo tokens de src/app/globals.css. Lo que es propio de esta parte se
+ * declara como variable de componente (--cabecera-*, --pie-*, --borde-control)
+ * y siempre apunta a un token de la base; el modo claro las ajusta en
+ * src/estilos/tema-claro.css.
+ * Movimiento: solo opacity y transform; 0.2s micro, 0.4s cambios grandes.
  */
+
+/* =====================================================================
+   1. Envoltura: saltar al contenido y fondo fijo de fragmentos
+   ===================================================================== */
+.sitio {
+  position: relative;
+}
+/* Los fragmentos de fondo, discretos (lecciones 7, 11 y 13): el contenedor
+   les baja la opacidad; la escena sigue fija y solo se mueve el contenido. */
+.sitio__fondo {
+  opacity: var(--fondo-opacidad, 0.5);
+}
+.sitio__contenido:focus {
+  outline: none;
+}
+
+.saltar {
+  position: fixed;
+  top: calc(var(--spacing-8) + env(safe-area-inset-top, 0px));
+  left: var(--spacing-8);
+  z-index: 60;
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-boton);
+  background: var(--c-superficie);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  transform: translateY(calc(-100% - var(--spacing-24)));
+  transition: transform var(--dur-micro) var(--ease);
+}
+.saltar:focus,
+.saltar:focus-visible {
+  transform: none;
+}
+
+/* =====================================================================
+   2. Logo (marca de los cuatro círculos + nombre)
+   ===================================================================== */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.logo__marca {
+  width: var(--icono-grande);
+  height: var(--icono-grande);
+  flex-shrink: 0;
+}
+.logo__nombre {
+  font-size: var(--t-intro);
+  font-weight: var(--peso-titulo);
+  line-height: 1;
+  letter-spacing: var(--tracking-seccion);
+  color: var(--c-texto);
+}
+.logo--chico .logo__marca {
+  width: var(--icono);
+  height: var(--icono);
+}
+.logo--chico .logo__nombre {
+  font-size: var(--t-cuerpo);
+}
+
+/* =====================================================================
+   3. Botón de ícono con borde (tema, hamburguesa): como los de la barra
+      de GitHub. 36px a la vista, 44px de área táctil.
+   ===================================================================== */
+.boton-borde {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  align-items: center;
+  justify-content: center;
+  width: var(--alto-control-chico);
+  height: var(--alto-control-chico);
+  border: 1px solid var(--borde-control, var(--c-borde-fuerte));
+  border-radius: var(--radio-boton);
+  color: var(--c-texto-2);
+  -webkit-touch-callout: none;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.boton-borde::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-activo);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .boton-borde:hover {
+    color: var(--c-texto);
+  }
+  .boton-borde:hover::before {
+    opacity: 0.6;
+  }
+}
+.boton-borde:active {
+  transform: scale(0.94);
+}
+.boton-borde:active::before,
+.boton-borde[aria-expanded="true"]::before {
+  opacity: 1;
+}
+.boton-borde[aria-expanded="true"] {
+  color: var(--c-texto);
+}
+@media (pointer: coarse) {
+  .boton-borde::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--alto-control-chico) - 44px) / 2);
+  }
+}
+
+/* Dos íconos en el mismo lugar: uno entra y el otro sale (opacidad + escala + giro) */
+.tema-icono,
+.hamburguesa {
+  display: inline-grid;
+}
+.tema-icono > *,
+.hamburguesa > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+.tema-icono__luna,
+.hamburguesa__cerrar {
+  opacity: 0;
+  transform: scale(0.5) rotate(-45deg);
+}
+:root[data-tema="claro"] .tema-icono__sol,
+.hamburguesa[data-abierto="true"] .hamburguesa__abrir {
+  opacity: 0;
+  transform: scale(0.5) rotate(45deg);
+}
+:root[data-tema="claro"] .tema-icono__luna,
+.hamburguesa[data-abierto="true"] .hamburguesa__cerrar {
+  opacity: 1;
+  transform: none;
+}
+
+/* =====================================================================
+   4. Barra superior: delgada, silenciosa, todo en una línea
+   ===================================================================== */
+.cabecera {
+  --cabecera-vidrio: color-mix(in srgb, var(--c-fondo) 72%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: calc(var(--barra-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+}
+/* Dos capas que se funden con opacidad (no se anima el color):
+   ::before = reposo (transparente, o el color de la portada si la página abre con una);
+   ::after  = al bajar o con el panel abierto: vidrio con desenfoque y una línea fina. */
+.cabecera::before,
+.cabecera::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity var(--dur-grande) var(--ease);
+}
+.cabecera::before {
+  background: var(--cabecera-reposo, transparent);
+}
+.cabecera::after {
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--cabecera-vidrio);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+  opacity: 0;
+}
+.cabecera[data-bajado="true"]::before,
+.cabecera[data-abierto="true"]::before {
+  opacity: 0;
+}
+.cabecera[data-bajado="true"]::after,
+.cabecera[data-abierto="true"]::after {
+  opacity: 1;
+}
+/* Si la página abre con una portada (#000 / gris cálido), la barra en reposo
+   toma su color: sin franja de otro tono arriba del título. */
+.sitio:has(> main > .seccion--portada:first-child) .cabecera {
+  --cabecera-reposo: var(--c-portada);
+}
+
+.cabecera__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  height: 100%;
+  max-width: calc(var(--ancho-max) + 2 * var(--orilla));
+  margin-inline: auto;
+  padding-left: max(var(--orilla), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--orilla), env(safe-area-inset-right, 0px));
+}
+.cabecera__inicio {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 44px;
+  margin-right: auto;
+  border-radius: var(--radio-boton);
+  -webkit-touch-callout: none;
+}
+.cabecera__nav {
+  display: none;
+}
+.cabecera__enlaces {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+.cabecera__enlace {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alto-control-chico);
+  padding-inline: var(--spacing-12);
+  border-radius: var(--radio-boton);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+  white-space: nowrap;
+}
+.cabecera__enlace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-activo);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cabecera__enlace:hover {
+    color: var(--c-texto);
+  }
+}
+.cabecera__enlace:active::before {
+  opacity: 1;
+}
+.cabecera__enlace[aria-current="page"] {
+  color: var(--c-texto);
+}
+.cabecera__acciones {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+/* En la barra los botones van a 16px, como los enlaces: una sola línea pareja */
+.cabecera__acciones .boton {
+  font-size: var(--t-cuerpo);
+}
+.cabecera__extra {
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.cabecera__division {
+  width: 1px;
+  height: var(--icono);
+  margin-inline: var(--spacing-4);
+  background: var(--c-borde);
+}
+.cabecera__solo-compu {
+  display: none !important;
+}
+@media (min-width: 1024px) {
+  .cabecera__inicio {
+    margin-right: 0;
+  }
+  .cabecera__nav {
+    display: block;
+    margin-left: var(--spacing-24);
+    margin-right: auto;
+  }
+  .cabecera__solo-compu {
+    display: inline-flex !important;
+  }
+  .cabecera__hamburguesa {
+    display: none !important;
+  }
+}
+
+/* =====================================================================
+   5. Panel del celular: pantalla completa, enlaces grandes, la cuenta abajo
+   ===================================================================== */
+.cortina {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--barra-h) + env(safe-area-inset-top, 0px) + var(--spacing-24)) var(--orilla)
+    calc(var(--spacing-24) + env(safe-area-inset-bottom, 0px));
+  background: var(--c-fondo);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity var(--dur-salida) var(--ease),
+    visibility 0s linear var(--dur-salida);
+}
+.cortina[data-abierto="true"] {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    visibility 0s linear 0s;
+}
+@media (min-width: 1024px) {
+  .cortina {
+    display: none;
+  }
+}
+/* Cada bloque sube 8px y aparece, uno tras otro (40ms entre cada uno) */
+.cortina__item {
+  opacity: 0;
+  transform: translateY(var(--spacing-8));
+  transition:
+    opacity var(--dur-salida) var(--ease),
+    transform var(--dur-salida) var(--ease);
+}
+.cortina[data-abierto="true"] .cortina__item {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-grande) var(--ease-entrada),
+    transform var(--dur-grande) var(--ease-entrada);
+  transition-delay: calc(var(--i, 0) * var(--dur-micro) / 5);
+}
+.cortina__paginas {
+  display: flex;
+  flex-direction: column;
+}
+.cortina__enlace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  padding-block: var(--spacing-8);
+  font-size: var(--t-seccion);
+  font-weight: var(--peso-sub);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-seccion);
+  color: var(--c-texto);
+  -webkit-touch-callout: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.cortina__enlace:active {
+  opacity: 0.6;
+}
+.cortina__agentes {
+  margin-top: var(--spacing-40);
+}
+.cortina__rejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-4) var(--spacing-16);
+  margin-top: var(--spacing-12);
+}
+.cortina__agente {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--alto-control-grande);
+  -webkit-touch-callout: none;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.cortina__agente:active {
+  opacity: 0.6;
+}
+.cortina__agente-texto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.cortina__agente-nombre {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-medio);
+  line-height: 1.3;
+  color: var(--c-texto);
+}
+.cortina__agente-papel {
+  overflow: hidden;
+  font-size: var(--t-chico);
+  line-height: 1.4;
+  color: var(--c-tenue);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cortina__cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  margin-top: auto;
+  padding-top: var(--spacing-40);
+}
+.cortina__nota {
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+  text-align: center;
+}
+/* La fila del modo claro/oscuro (abajo del panel) */
+.tema-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  min-height: var(--alto-control-grande);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--c-borde);
+  font-size: var(--t-cuerpo);
+  color: var(--c-texto-2);
+  text-align: left;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.tema-fila:active {
+  opacity: 0.6;
+}
+.tema-fila__icono {
+  display: inline-grid;
+  place-items: center;
+  width: var(--alto-control-chico);
+  height: var(--alto-control-chico);
+  border: 1px solid var(--borde-control, var(--c-borde-fuerte));
+  border-radius: var(--radio-boton);
+}
+.tema-fila__en-claro,
+:root[data-tema="claro"] .tema-fila__en-oscuro {
+  display: none;
+}
+:root[data-tema="claro"] .tema-fila__en-claro {
+  display: inline;
+}
+
+/* =====================================================================
+   6. Pie: cuatro columnas sin bordes; abajo el logo, el año y el modo
+   ===================================================================== */
+.pie-sitio {
+  padding-top: var(--spacing-64);
+  padding-bottom: calc(var(--spacing-32) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--c-borde);
+  background: var(--pie-fondo, var(--c-fondo));
+}
+.pie-sitio__columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-40) var(--spacing-24);
+}
+@media (min-width: 768px) {
+  .pie-sitio__columnas {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.pie-sitio__titulo {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.pie-sitio__lista {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+.pie-sitio__enlace {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radio-boton);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+  text-underline-offset: 0.25em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pie-sitio__enlace:hover {
+    color: var(--c-texto);
+    text-decoration: underline;
+  }
+}
+/* En pantallas táctiles cada enlace ocupa 44px de alto (40 + 4 de separación) */
+@media (pointer: coarse) {
+  .pie-sitio__lista {
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-8);
+  }
+  .pie-sitio__enlace {
+    min-height: var(--alto-control);
+  }
+}
+.pie-sitio__enlace:active {
+  opacity: 0.6;
+}
+.pie-sitio__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-16) var(--spacing-24);
+  margin-top: var(--spacing-64);
+}
+.pie-sitio__inicio {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: var(--radio-boton);
+}
+.pie-sitio__derechos {
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+}
+.pie-sitio__lema::before {
+  content: "·";
+  margin-inline: var(--spacing-8);
+}
+@media (max-width: 639px) {
+  .pie-sitio__lema {
+    display: block;
+  }
+  .pie-sitio__lema::before {
+    content: none;
+  }
+}
+.pie-sitio__tema {
+  margin-left: auto;
+}
+@media (max-width: 639px) {
+  .pie-sitio__tema {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* Selector Oscuro / Claro: dos opciones en una píldora; la marca se desliza */
+.tema-seg {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: var(--spacing-4);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-pildora);
+}
+.tema-seg__pildora {
+  position: absolute;
+  top: var(--spacing-4);
+  bottom: var(--spacing-4);
+  left: var(--spacing-4);
+  z-index: -1;
+  width: calc(50% - var(--spacing-4));
+  border-radius: var(--radio-pildora);
+  background: var(--c-activo);
+  transition: transform var(--dur-grande) var(--ease-entrada);
+}
+:root[data-tema="claro"] .tema-seg__pildora {
+  transform: translateX(100%);
+}
+.tema-seg__opcion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding-inline: var(--spacing-16);
+  border-radius: var(--radio-pildora);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+  transition: transform var(--dur-micro) var(--ease);
+}
+.tema-seg__opcion:active {
+  transform: scale(0.97);
+}
+.tema-seg__opcion[aria-checked="true"],
+:root[data-tema="oscuro"] .tema-seg__opcion[data-opcion="oscuro"],
+:root[data-tema="claro"] .tema-seg__opcion[data-opcion="claro"] {
+  color: var(--c-texto);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tema-seg__opcion:hover {
+    color: var(--c-texto);
+  }
+}
+@media (pointer: coarse) {
+  .tema-seg__opcion {
+    min-height: var(--alto-control);
+  }
+}
+
+/* =====================================================================
+   7. /entrar: una columna centrada, con mucho aire
+   ===================================================================== */
+.entrar {
+  display: grid;
+  place-items: center;
+  min-height: calc(100svh - var(--barra-h));
+  padding: var(--espacio-seccion) var(--orilla);
+}
+.entrar__columna {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: calc(var(--ancho-app-columna) + var(--spacing-80));
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* El equipo: los cuatro personajes encimados como una fila de avatares */
+.entrar__equipo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-32);
+}
+.entrar__miembro {
+  border: 2px solid var(--c-fondo);
+}
+.entrar__miembro + .entrar__miembro {
+  margin-left: calc(-1 * var(--spacing-8));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .entrar__miembro {
+    animation: entrar-sube var(--dur-grande) var(--ease-entrada) backwards;
+    animation-delay: calc(var(--i, 0) * var(--dur-micro) / 4);
+  }
+}
+.entrar__paso {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  /* "backwards": al terminar no deja un transform puesto (si lo deja, Chrome
+     deja de desenfocar lo que hay detrás de la tarjeta de vidrio) */
+  animation: entrar-aparece var(--dur-grande) var(--ease-entrada) backwards;
+}
+.entrar__sello {
+  margin-bottom: var(--spacing-12);
+}
+.entrar__titulo {
+  margin: 0;
+}
+.entrar__intro {
+  max-width: 34ch;
+  margin-top: var(--spacing-12);
+}
+.entrar__correo {
+  color: var(--c-texto);
+  overflow-wrap: anywhere;
+}
+.entrar__tarjeta {
+  width: 100%;
+  margin-top: var(--spacing-32);
+  padding: var(--relleno-tarjeta);
+  text-align: left;
+}
+@media (min-width: 640px) {
+  .entrar__tarjeta {
+    padding: var(--spacing-32);
+  }
+}
+.entrar__form {
+  display: grid;
+  gap: var(--spacing-16);
+}
+.entrar__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid color-mix(in srgb, var(--c-error) 40%, transparent);
+  border-radius: var(--radio-campo);
+  background: var(--c-error-fondo);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.entrar__aviso-icono {
+  flex-shrink: 0;
+  margin-top: var(--spacing-4);
+  color: var(--c-error);
+}
+.entrar__o {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+}
+.entrar__o::before,
+.entrar__o::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-borde);
+}
+.entrar__nota {
+  max-width: 36ch;
+  margin-top: var(--spacing-24);
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+}
+.entrar__pasos {
+  display: grid;
+  gap: var(--spacing-12);
+}
+.entrar__pasos li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  color: var(--c-texto-2);
+}
+.entrar__num {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--icono-grande);
+  height: var(--icono-grande);
+  border: 1px solid var(--c-borde);
+  border-radius: var(--radio-boton);
+  font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-texto);
+}
+.entrar__ayuda {
+  margin: var(--spacing-20) 0;
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--c-borde);
+  font-size: var(--t-chico);
+  color: var(--c-tenue);
+}
+@keyframes entrar-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+}
+@keyframes entrar-sube {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8));
+  }
+}
