@@ -4,7 +4,7 @@ import { cargarCuenta } from "@/lib/cuenta";
 import { createClient } from "@/lib/supabase/server";
 import { MisAgentes } from "./MisAgentes";
 
-export const metadata: Metadata = { title: "Mis agentes" };
+export const metadata: Metadata = { title: "Agentes" };
 
 export default async function MisAgentesPage() {
   const supabase = await createClient();
@@ -16,7 +16,6 @@ export default async function MisAgentesPage() {
   const cuenta = await cargarCuenta(supabase, user.id);
   return (
     <MisAgentes
-      email={user.email ?? ""}
       userId={user.id}
       planId={cuenta.plan.id}
       elegidosIniciales={cuenta.elegidos}

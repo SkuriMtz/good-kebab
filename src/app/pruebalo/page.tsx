@@ -1,38 +1,16 @@
 import type { Metadata } from "next";
-import { ChatDemo } from "@/components/ChatDemo";
-import { Sitio } from "@/components/Sitio";
-import { Boton } from "@/components/base/Boton";
-import { Etiqueta } from "@/components/base/Etiqueta";
-import { Halo } from "@/components/base/Halo";
+import { PruebaloDashboard } from "@/components/dashboard/PruebaloDashboard";
 
-export const metadata: Metadata = { title: "Pruébalo" };
+export const metadata: Metadata = {
+  title: "Pruébalo",
+  description: "Así se ve Atendel por dentro: el panel de una clínica con datos de ejemplo y el chat con los agentes. No llama a la IA.",
+};
 
 /**
- * El chat con los agentes a casi toda la pantalla, dentro del marco de
- * navegador: chats, grupos, deslizar para borrar un grupo y la barra para
- * escribir (con @ y /). Guion local: no se llama a la IA.
+ * Pruébalo: el dashboard completo con datos de ejemplo de una clínica
+ * (src/lib/demo-dashboard.ts). Resumen, Conversaciones (el chat de ejemplo
+ * con grupos y PromptBar, del Grupo 2), Agentes y Correo, sin recargar.
  */
 export default function Pruebalo() {
-  return (
-    <Sitio>
-      <section className="pruebalo con-halo" aria-labelledby="pruebalo-titulo">
-        <Halo y="40%" ancho="min(1400px, 170vw)" proporcion="16 / 9" suave />
-        <div className="contenedor">
-          <div className="pruebalo__cabeza">
-            <div>
-              <Etiqueta tono="cielo">Demostración · respuestas de ejemplo</Etiqueta>
-              <h1 id="pruebalo-titulo" className="pruebalo__titulo">
-                Habla con Lola, Clara, Víctor e Iris
-              </h1>
-              <p className="pruebalo__texto">Abre un chat o arma un grupo. Con @ mencionas a alguien; con / pides una acción.</p>
-            </div>
-            <Boton href="/entrar" variante="sutil" flecha>
-              Probarlo con tu negocio
-            </Boton>
-          </div>
-          <ChatDemo lugar="pagina" />
-        </div>
-      </section>
-    </Sitio>
-  );
+  return <PruebaloDashboard />;
 }
