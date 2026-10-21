@@ -125,12 +125,12 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 - [x] G4 revisor A → `diseno/revisiones/paso6/g4-revisor-a.md` — **2026-10-16 17:51 UTC** — evidencia: `diseno/revisiones/paso6/g4-revisor-a.md` (modo ligero; gana G4-T3, 8.50; T1 7.83, T2 6.83)
 - [x] G4 revisor B → `diseno/revisiones/paso6/g4-revisor-b.md` — **2026-10-16 17:55 UTC** — evidencia: `diseno/revisiones/paso6/g4-revisor-b.md` (modo ligero; elige G4-T1, 8.33; T3 8.00, T2 6.17)
 - [x] G4 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g4-resultado.md` — **2026-10-16 17:55 UTC** — evidencia: `diseno/revisiones/paso6/g4-resultado.md` — gana G4-T3 por promedio (8.25) con el producto real de G4-T1
-- [ ] G5 revisor A → `diseno/revisiones/paso6/g5-revisor-a.md`
-- [ ] G5 revisor B → `diseno/revisiones/paso6/g5-revisor-b.md`
-- [ ] G5 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g5-resultado.md`
+- [-] ~~G5 revisor A~~ (no se hace: el Grupo 5 quedó con una sola propuesta por decisión del dueño; se revisa en la integración y en el Paso 8)
+- [-] ~~G5 revisor B~~ (no se hace: el Grupo 5 quedó con una sola propuesta por decisión del dueño; se revisa en la integración y en el Paso 8)
+- [x] G5 ganador → `diseno/revisiones/paso6/g5-resultado.md` — **2026-10-21 01:37 UTC** — evidencia: `diseno/revisiones/paso6/g5-resultado.md` — única propuesta G5-T3 (2f9a536), sin competencia
 - [x] G6 revisor A → `diseno/revisiones/paso6/g6-revisor-a.md` — **2026-10-21 01:33 UTC** — evidencia: `diseno/revisiones/paso6/g6-revisor-a.md` (modo ligero; gana G6-T1, 8.58; T3 8.00, T2 7.83)
-- [ ] G6 revisor B → `diseno/revisiones/paso6/g6-revisor-b.md`
-- [ ] G6 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g6-resultado.md`
+- [x] G6 revisor B → `diseno/revisiones/paso6/g6-revisor-b.md` — **2026-10-21 01:36 UTC** — evidencia: `diseno/revisiones/paso6/g6-revisor-b.md` (modo ligero; gana G6-T1, 8.33; T3 8.00, T2 7.83)
+- [x] G6 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g6-resultado.md` — **2026-10-21 01:36 UTC** — evidencia: `diseno/revisiones/paso6/g6-resultado.md` — gana G6-T1 (8.46)
 - [x] G7 revisor A → `diseno/revisiones/paso6/g7-revisor-a.md` — **2026-10-15 02:26 UTC** — evidencia: `diseno/revisiones/paso6/g7-revisor-a.md` (gana G7-T1, 8.67; T5 8.33, T3 8.17, T2 7.50, T4 6.67)
 - [x] G7 revisor B → `diseno/revisiones/paso6/g7-revisor-b.md` — **2026-10-15 14:15 UTC** — evidencia: `diseno/revisiones/paso6/g7-revisor-b.md` (gana G7-T1, 8.50; T3 8.00, T5 8.00, T4 7.67, T2 7.17) + 235 capturas propias con pruebas de interacción en `diseno/capturas/paso6/g7-revisor-b/`
 - [x] G7 ganador y mejores ideas de las demás → `diseno/revisiones/paso6/g7-resultado.md` — **2026-10-15 14:15 UTC** — evidencia: `diseno/revisiones/paso6/g7-resultado.md` — gana G7-T1 (8.58)
