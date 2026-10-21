@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
-import { claseBoton, Spinner } from "@/components/Buttons";
-import { MarcasAgentes } from "@/components/agentes/MarcasAgentes";
-import { Field } from "@/components/ui/Field";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Marca } from "@/components/Logo";
+import { Boton } from "@/components/base/Boton";
+import { CampoCorreo } from "@/components/base/Campo";
+import { Halo } from "@/components/base/Halo";
+import { Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,7 +21,13 @@ function traducirError(error: { message: string; code?: string }) {
   return `No se pudo enviar el link: ${error.message}`;
 }
 
-/** Entrar con un link al correo (sin contraseña) o con Google si está disponible. */
+/**
+ * Entrar con un link al correo (sin contraseña) o con Google si está disponible.
+ * Presentación como la página de inicio de sesión de GitHub (solo el estilo):
+ * la marca arriba, el título, un aviso de error encima de la tarjeta, la
+ * tarjeta centrada con el formulario y, abajo, una nota para quien entra por
+ * primera vez. La lógica de Supabase es la de siempre.
+ */
 export function Login({ errorInicial }: { errorInicial: boolean }) {
   const supabase = useMemo(() => createClient(), []);
   const google = useGoogleDisponible();
@@ -27,6 +36,20 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   const [error, setError] = useState<string | null>(
     errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
   );
+  const tituloRef = useRef<HTMLHeadingElement>(null);
+  const correoRef = useRef<HTMLInputElement>(null);
+  const venimosDeEnviado = useRef(false);
+
+  // Al cambiar de paso, el foco va a lo nuevo (el título del aviso, o el correo al volver)
+  useEffect(() => {
+    if (estado === "enviado") {
+      venimosDeEnviado.current = true;
+      tituloRef.current?.focus();
+    } else if (estado === "idle" && venimosDeEnviado.current) {
+      venimosDeEnviado.current = false;
+      correoRef.current?.focus();
+    }
+  }, [estado]);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -56,71 +79,76 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     });
   }
 
+  const enviado = estado === "enviado";
+
   return (
-    <section className="contenedor dos-columnas pb-[var(--spacing-96)] pt-[var(--spacing-36)] lg:pt-[var(--spacing-96)]">
-      <div className="w-full max-w-[520px]" aria-live="polite">
-        {estado !== "enviado" ? (
-          <div key="formulario">
-            <p className="t-etiqueta">Entrar</p>
-            <h1 className="t-display mt-[var(--spacing-18)]">Entra a Atendel.</h1>
-            <p className="t-editorial mt-[var(--spacing-18)] max-w-[420px]">
-              Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
-            </p>
-            <form onSubmit={enviar} className="mt-[var(--spacing-36)] flex flex-col gap-[var(--spacing-18)]">
-              <Field
-                label="Tu correo"
+    <section className="acceso con-halo" aria-labelledby="acceso-titulo">
+      <Halo suave y="32%" />
+      <div className="acceso__columna">
+        <Link href="/" className="acceso__marca" aria-label="Atendel, inicio">
+          <Marca className="acceso__marca-svg" />
+        </Link>
+        <h1 id="acceso-titulo" ref={tituloRef} tabIndex={-1} className="acceso__titulo">
+          {enviado ? "Revisa tu correo" : "Entra a Atendel"}
+        </h1>
+
+        {error && !enviado ? (
+          <div role="alert" className="acceso__aviso">
+            <Icono nombre="alerta" tam={16} className="acceso__aviso-icono" />
+            <p>{error}</p>
+          </div>
+        ) : null}
+
+        <div className="acceso__tarjeta" aria-live="polite">
+          {!enviado ? (
+            <form key="formulario" onSubmit={enviar} className="acceso__formulario">
+              <CampoCorreo
+                ref={correoRef}
+                etiqueta="Correo electrónico"
                 name="email"
-                type="email"
                 value={email}
-                onChange={setEmail}
-                placeholder="tu@correo.com"
-                autoComplete="email"
-                inputMode="email"
+                alCambiar={setEmail}
                 required
+                ayuda="Te mandamos un link para entrar. Sin contraseña."
               />
-              <button type="submit" className={`${claseBoton("primario", "grande")} w-full`} disabled={estado === "enviando"}>
-                {estado === "enviando" ? (
-                  <>
-                    <Spinner />
-                    Enviando
-                  </>
-                ) : (
-                  "Enviarme el link"
-                )}
-              </button>
+              <Boton type="submit" variante="principal" tam="grande" bloque cargando={estado === "enviando"}>
+                {estado === "enviando" ? "Enviando" : "Enviarme el link"}
+              </Boton>
               {google ? (
-                <button type="button" className={`${claseBoton("suave", "grande")} w-full`} onClick={entrarConGoogle}>
-                  Continuar con Google
-                </button>
-              ) : null}
-              {error ? (
-                <p role="alert" className="flex items-start gap-2 text-[0.9375rem] text-error">
-                  <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M8 4.8v3.6M8 10.9v.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
-                  {error}
-                </p>
+                <>
+                  <p className="acceso__o">
+                    <span>o</span>
+                  </p>
+                  <Boton variante="sutil" tam="grande" bloque onClick={entrarConGoogle}>
+                    Continuar con Google
+                  </Boton>
+                </>
               ) : null}
             </form>
-          </div>
-        ) : (
-          <div key="enviado">
-            <p className="t-etiqueta">Link enviado</p>
-            <h1 className="t-display mt-[var(--spacing-18)]">Revisa tu correo.</h1>
-            <p className="t-cuerpo mt-4">
-              Te mandamos un link a <span className="font-semibold text-tinta">{email}</span>. Ábrelo en este mismo navegador
-              para entrar.
-            </p>
-            <p className="t-chico mt-3">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
-            <button type="button" className={`${claseBoton("texto")} mt-6`} onClick={() => setEstado("idle")}>
-              Usar otro correo
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="mx-auto hidden w-full max-w-[420px] lg:mr-0 lg:block">
-        <MarcasAgentes />
+          ) : (
+            <div key="enviado" className="acceso__enviado">
+              <p className="acceso__sello">
+                <Icono nombre="correo" tam={16} />
+                Link enviado
+              </p>
+              <p className="acceso__texto">
+                Te mandamos un link a <strong className="acceso__correo">{email}</strong>. Ábrelo en este mismo navegador
+                para entrar.
+              </p>
+              <p className="acceso__pista">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
+              <Boton variante="fantasma" tam="grande" bloque onClick={() => setEstado("idle")}>
+                Usar otro correo
+              </Boton>
+            </div>
+          )}
+        </div>
+
+        <p className="acceso__nota">
+          ¿Primera vez? Escribe tu correo y tu cuenta se crea al entrar, con el plan Free.{" "}
+          <Link href="/precios" className="acceso__enlace">
+            Ver los planes
+          </Link>
+        </p>
       </div>
     </section>
   );
