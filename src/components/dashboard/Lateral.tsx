@@ -3,7 +3,6 @@
 import { useId, type ReactNode } from "react";
 import { Icono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
-import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { AGENTE_POR_ID } from "@/lib/agentes";
 import { nombresAgentes } from "./nombres";
 import { Accionable, MarcaAgente, PilaAgentes } from "./Piezas";
@@ -85,16 +84,12 @@ export function Lateral({
                 <Accionable
                   accion={a}
                   className={`dash-fila-lateral${a.bloqueado ? " dash-fila-lateral--bloqueada" : ""}`}
-                  etiqueta={`${info.nombre}, ${info.area}: ${a.bloqueado ?? a.estado.etiqueta}`}
+                  etiqueta={a.bloqueado ? `${info.nombre}, ${info.area}: ${a.bloqueado}` : undefined}
                 >
                   <MarcaAgente id={a.id} tam={20} />
                   <span className="dash-fila-lateral__nombre">{info.nombre}</span>
                   <span className="dash-fila-lateral__area">{a.bloqueado ?? info.area}</span>
-                  {a.bloqueado ? (
-                    <Icono nombre="candado" tam={16} className="dash-fila-lateral__fin" />
-                  ) : (
-                    <PuntoEstado tono={a.estado.tono} etiqueta={a.estado.etiqueta} pulso={a.estado.pulso} className="dash-fila-lateral__fin" />
-                  )}
+                  {a.bloqueado ? <Icono nombre="candado" tam={16} className="dash-fila-lateral__fin" /> : null}
                 </Accionable>
               </li>
             );

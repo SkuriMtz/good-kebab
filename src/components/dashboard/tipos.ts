@@ -13,6 +13,7 @@ export type Accion = { href?: string; alElegir?: () => void };
 
 export type IdVista =
   | "resumen"
+  | "actividad"
   | "conversaciones"
   | "agentes"
   | "citas"

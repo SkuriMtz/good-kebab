@@ -394,12 +394,22 @@ const reducido = () => typeof window !== "undefined" && window.matchMedia("(pref
  *   la conversación de la recepción se reproduce sola al aparecer en pantalla.
  * - `lugar="pagina"`: /pruebalo, a casi toda la pantalla.
  */
-export function ChatDemo({ lugar = "pagina", pedido }: { lugar?: "inicio" | "pagina"; /** Lo que se pidió desde la caja del dashboard: se envía una vez al abrir. */ pedido?: string }) {
+export function ChatDemo({
+  lugar = "pagina",
+  pedido,
+  nuevoGrupo = false,
+}: {
+  lugar?: "inicio" | "pagina";
+  /** Lo que se pidió desde la caja del dashboard: se envía una vez al abrir. */
+  pedido?: string;
+  /** Abre directo "Nuevo grupo" (desde el atajo del dashboard). */
+  nuevoGrupo?: boolean;
+}) {
   const enVivo = lugar === "inicio";
   const [convs, setConvs] = useState<Conversacion[]>(INICIO);
   const [activa, setActiva] = useState("recepcion");
   const [pendiente, setPendiente] = useState<{ conv: string; agente: IdAgente } | null>(null);
-  const [creando, setCreando] = useState(false);
+  const [creando, setCreando] = useState(nuevoGrupo && !enVivo);
   const [barra, setBarra] = useState(false);
   /** La reproducción del inicio: cuántos mensajes de la recepción se ven y quién escribe. null = terminó. */
   const [vivo, setVivo] = useState<{ revelados: number; escribe: IdAgente | null; corriendo: boolean } | null>(

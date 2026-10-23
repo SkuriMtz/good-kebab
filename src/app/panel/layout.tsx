@@ -51,6 +51,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         planId: cuenta.plan.id,
         activos: cuenta.activos,
         negocio: cuenta.negocio,
+        usados: cuenta.usados,
         conGoogle: proveedores.includes("google"),
         grupos,
       }}

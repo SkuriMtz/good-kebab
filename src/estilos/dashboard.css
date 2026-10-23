@@ -11,6 +11,31 @@
    1. ARMAZÓN: franja de ejemplo, barra superior, lateral, contenido, pie
    ===================================================================== */
 
+/* Colores y medidas del home de GitHub, medidos de la referencia
+   (diseno/referencias/dashboard-github-referencia.webp, lección 15):
+   en oscuro, página y barra #010409, lateral, caja y tarjetas #0d1117,
+   bordes #3d444d; en claro, el par de Primer: #f6f8fa y blanco. */
+.dash {
+  --c-app-fondo: var(--noche-inset);
+  --c-app-superficie: var(--color-deep-void);
+  --c-app-superficie-2: var(--color-deep-void);
+  --c-app-lateral: var(--color-deep-void);
+  --c-app-barra: var(--noche-inset);
+  --c-app-borde: var(--noche-borde);
+  --c-app-division: var(--noche-borde);
+  --ancho-app-lateral: 336px;
+}
+:root[data-tema="claro"] .dash {
+  --c-app-fondo: var(--primer-gris-0);
+  --c-app-superficie: var(--primer-blanco);
+  --c-app-superficie-2: var(--primer-gris-0);
+  --c-app-lateral: var(--primer-blanco);
+  --c-app-barra: var(--primer-gris-0);
+  --c-app-borde: var(--primer-borde);
+  --c-app-division: var(--primer-borde);
+  --c-app-texto: var(--primer-texto);
+  --c-app-texto-2: var(--primer-texto-2);
+}
 .dash {
   --alto-aviso: 0px;
   --anillo: var(--c-fondo);
@@ -27,13 +52,13 @@
    sitio, fija y muy tenue. Casi no se ve donde va el texto (al centro);
    el lateral y las tarjetas la tapan. El contenido va encima. */
 .dash > .escena-fondo {
-  opacity: calc(var(--escena-opacidad) * 0.7);
+  opacity: calc(var(--escena-opacidad) * 0.35);
   -webkit-mask-image: radial-gradient(ellipse 46% 60% at 50% 45%, rgb(0 0 0 / 0.12), rgb(0 0 0 / 1));
   mask-image: radial-gradient(ellipse 46% 60% at 50% 45%, rgb(0 0 0 / 0.12), rgb(0 0 0 / 1));
 }
 @media (max-width: 767px) {
   .dash > .escena-fondo {
-    opacity: calc(var(--escena-opacidad) * 0.45);
+    opacity: calc(var(--escena-opacidad) * 0.25);
   }
 }
 .dash-cuerpo,
@@ -100,7 +125,7 @@
   }
 }
 
-/* ---------- Barra superior: fija, translúcida (vidrio de Apple) ---------- */
+/* ---------- Barra superior: fija y sólida, como la de GitHub ---------- */
 .dash-barra {
   position: sticky;
   top: 0;
@@ -113,19 +138,10 @@
   padding: 0 var(--spacing-12);
   border-bottom: 1px solid var(--c-borde);
   background: var(--c-barra);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  backdrop-filter: blur(20px) saturate(1.8);
 }
 @media (min-width: 640px) {
   .dash-barra {
     padding: 0 var(--spacing-16);
-  }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .dash-barra {
-    background: var(--c-fondo);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 }
 .dash-barra__inicio {
@@ -145,11 +161,10 @@
 .dash-barra .boton-icono--compacto {
   box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
   border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
 }
-@media (min-width: 1024px) {
-  .dash-barra__cajon {
-    display: none;
-  }
+.dash-barra .boton-icono--compacto .icono {
+  --icono-tam: var(--spacing-16);
 }
 .dash-barra .dash-barra__buscador.dash-busca {
   display: none;
@@ -157,7 +172,7 @@
 @media (min-width: 768px) {
   .dash-barra .dash-barra__buscador.dash-busca {
     display: block;
-    width: var(--ancho-app-columna);
+    width: calc(var(--spacing-64) * 4);
   }
   .dash-barra__lupa {
     display: none;
@@ -177,12 +192,16 @@
 .dash-barra__perfil {
   margin-left: var(--spacing-4);
 }
+/* El buscador dice "Escribe / para buscar": el atajo ya va en el texto */
+.dash-barra .buscador__fin kbd {
+  display: none;
+}
 
 /* Miga: logo de Atendel / sección */
 .dash-miga {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: var(--spacing-12);
   min-width: 0;
 }
 .dash-logo {
@@ -200,8 +219,8 @@
 }
 .dash-logo__marca {
   flex-shrink: 0;
-  width: var(--avatar-24);
-  height: var(--avatar-24);
+  width: var(--avatar-32);
+  height: var(--avatar-32);
 }
 @media (max-width: 639px) {
   .dash-logo__nombre {
@@ -214,6 +233,7 @@
 .dash-miga__seccion {
   overflow: hidden;
   color: var(--c-texto);
+  font-size: var(--t-app-mediano);
   font-weight: var(--peso-app-titulo);
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -293,7 +313,7 @@
   .dash-lateral {
     --anillo: var(--c-lateral);
     display: block;
-    padding: 0 var(--spacing-12);
+    padding: 0 var(--spacing-16);
     border-right: 1px solid var(--c-borde);
     background: var(--c-lateral);
   }
@@ -303,8 +323,8 @@
     max-height: calc(100dvh - var(--barra-app-h));
     overflow-y: auto;
     overscroll-behavior: contain;
-    margin: 0 calc(-1 * var(--spacing-12));
-    padding: var(--spacing-16) var(--spacing-12) var(--spacing-32);
+    margin: 0 calc(-1 * var(--spacing-16));
+    padding: var(--spacing-16) var(--spacing-16) var(--spacing-32);
     scrollbar-width: thin;
   }
 }
@@ -716,12 +736,12 @@
 .dash-nav__elemento {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--spacing-8);
   width: 100%;
-  min-height: var(--alto-control-chico);
+  min-height: var(--alto-control-compacto);
   padding: 0 var(--spacing-8);
   border-radius: var(--radio-app-control);
-  color: var(--c-texto-2);
+  color: var(--c-texto);
   font-size: var(--t-app-cuerpo);
   text-align: left;
 }
@@ -758,7 +778,7 @@
   top: 50%;
   left: calc(-1 * var(--spacing-8) - 1px);
   width: var(--spacing-4);
-  height: var(--spacing-20);
+  height: var(--spacing-24);
   border-radius: var(--radio-circulo);
   background: var(--c-accion-texto);
   transform: translateY(-50%);
@@ -784,7 +804,7 @@
   padding: 0 var(--spacing-8) var(--spacing-4);
 }
 .dash-lateral__titulo {
-  color: var(--c-texto);
+  color: var(--c-texto-2);
   font-size: var(--t-app-cuerpo);
   font-weight: var(--peso-app-titulo);
 }
@@ -954,41 +974,63 @@
    6. CENTRO: bienvenida, actividad, visto bueno, fijados, conversaciones
    ===================================================================== */
 
-/* ---------- Inicio (como el home de GitHub) ----------
-   El saludo, la caja grande para pedir algo y la fila de atajos con borde.
-   La caja es el único momento protagonista de la pantalla. */
+/* ---------- Inicio: calco del home de GitHub ----------
+   Medidas de la referencia (a 1x): columna de ~920px centrada; título
+   24px con su ícono de 28px; caja de ~128px de alto con radio 12; en su
+   pie, controles de 32px con borde; atajos de 40px separados 12px;
+   tarjeta con 40px de relleno; 48px antes de cada sección. */
+.dash-inicio-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-48);
+  max-width: 920px;
+  padding-top: var(--spacing-16);
+}
+@media (max-width: 1023px) {
+  .dash-inicio-pagina {
+    gap: var(--spacing-40);
+    padding-top: 0;
+  }
+}
 .dash-inicio {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16);
+  gap: var(--spacing-12);
 }
 .dash-inicio__saludo {
   display: flex;
   align-items: center;
   gap: var(--spacing-12);
   margin-bottom: var(--spacing-4);
+  color: var(--c-texto);
+  font-size: var(--t-app-titulo-grande);
+  font-weight: var(--peso-app-titulo);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
-.dash-inicio__equipo {
+.dash-inicio__icono {
   flex-shrink: 0;
+  width: var(--spacing-28);
+  height: var(--spacing-28);
 }
 .dash-pedir {
+  position: relative;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--c-borde-fuerte);
-  border-radius: var(--radio-app-panel);
+  border-radius: var(--radio-app-tarjeta);
   background: var(--c-superficie);
-  transition:
-    border-color var(--dur-micro) var(--ease),
-    box-shadow var(--dur-micro) var(--ease);
+  transition: border-color var(--dur-micro) var(--ease);
 }
 .dash-pedir:focus-within {
   border-color: var(--c-acento);
-  box-shadow: 0 0 0 1px var(--c-acento);
+  box-shadow: inset 0 0 0 1px var(--c-acento);
 }
 .dash-pedir__campo {
   display: block;
   width: 100%;
-  min-height: calc(var(--spacing-32) * 2 + var(--spacing-8));
+  min-height: calc(var(--spacing-40) * 2);
   max-height: calc(var(--spacing-32) * 7);
   padding: var(--spacing-16) var(--spacing-16) var(--spacing-4);
   border: 0;
@@ -1004,47 +1046,46 @@
   outline: none;
 }
 .dash-pedir__campo::placeholder {
-  color: var(--c-terciario);
+  color: var(--c-texto-2);
   opacity: 1;
 }
 .dash-pedir__pie {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-12);
-  padding: var(--spacing-8) var(--spacing-12) var(--spacing-12);
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
 }
-.dash-pedir__pie > :first-child {
-  margin-right: auto;
+/* Controles del pie: 32px con borde ("Pedir ▾", "Todos los agentes ▾", "+") */
+.dash-pedir .dash-control {
+  gap: var(--spacing-4);
+  padding: 0 var(--spacing-8);
+  background: transparent;
+  font-weight: var(--peso-app-titulo);
 }
-.dash-pedir__elegido {
+.dash-control__texto {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-8);
   white-space: nowrap;
 }
-.dash-pedir__elegido--solo {
-  padding: 0 var(--spacing-4);
+.dash-control__texto > .icono {
   color: var(--c-texto-2);
-  font-size: var(--t-app-etiqueta);
-  font-weight: var(--peso-app-medio);
 }
-.dash-pedir__ayuda {
-  color: var(--c-terciario);
-  font-size: var(--t-app-etiqueta);
-}
-@media (max-width: 639px), (pointer: coarse) {
-  .dash-pedir__ayuda {
-    display: none;
-  }
+.dash-pedir .dash-control-cuadro {
+  box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto-2);
 }
 .dash-pedir .dash-pedir__enviar {
   width: var(--alto-control-compacto);
   min-width: var(--alto-control-compacto);
+  margin-left: auto;
   padding: 0;
 }
 .dash-pedir .dash-pedir__enviar:disabled {
-  background: var(--c-relleno);
-  color: var(--c-terciario);
+  background: transparent;
+  color: var(--c-texto-2);
   opacity: 1;
 }
 @media (pointer: coarse) {
@@ -1054,19 +1095,287 @@
     min-height: var(--alto-control);
   }
 }
+/* "@" para elegir agente: la lista sale bajo el texto */
+.dash-pedir__sugerencias {
+  position: absolute;
+  top: calc(100% - var(--spacing-40));
+  left: var(--spacing-8);
+  z-index: 20;
+  min-width: calc(var(--spacing-64) * 4);
+  padding: var(--spacing-4);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-control);
+  background: var(--c-superficie);
+  box-shadow: var(--sombra-flotante);
+}
+.dash-pedir__sugerencia {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  cursor: pointer;
+}
+.dash-pedir__sugerencia[aria-selected="true"] {
+  background: var(--c-activo);
+}
+.dash-pedir__sugerencia-nombre {
+  font-weight: var(--peso-app-titulo);
+}
+.dash-pedir__sugerencia-detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+/* Atajos con borde, centrados (Agendar cita · Resumir un correo · …) */
 .dash-atajos {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--spacing-8);
+  gap: var(--spacing-12);
 }
-.dash-atajos .boton {
+.dash-atajos .boton,
+.dash-atajos .dash-atajo-menu {
+  min-height: var(--alto-control);
+  padding: 0 var(--spacing-16);
+  background: transparent;
+  font-size: var(--t-app-cuerpo);
   font-weight: var(--peso-app-medio);
+}
+.dash-atajos .dash-atajo-menu {
+  gap: var(--spacing-8);
 }
 @media (max-width: 639px) {
   .dash-atajos {
     justify-content: flex-start;
+    gap: var(--spacing-8);
   }
+}
+
+/* "Conoce a tu equipo": los personajes en grande (lugar de la tarjeta de video) */
+.dash-equipo {
+  position: relative;
+  padding: var(--spacing-40);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-superficie);
+}
+@media (max-width: 639px) {
+  .dash-equipo {
+    padding: var(--spacing-24) var(--spacing-16);
+  }
+}
+.dash-equipo__cerrar {
+  position: absolute;
+  top: var(--spacing-12);
+  right: var(--spacing-12);
+  color: var(--c-texto-2);
+}
+.dash-equipo__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-app-titulo);
+  font-weight: var(--peso-app-titulo);
+  line-height: 1.3;
+}
+.dash-equipo__texto {
+  max-width: 56ch;
+  margin-top: var(--spacing-8);
+  color: var(--c-texto-2);
+}
+.dash-equipo__lista {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-16);
+  margin-top: var(--spacing-24);
+}
+@media (max-width: 639px) {
+  .dash-equipo__lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-8);
+  }
+}
+.dash-equipo__agente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  padding: var(--spacing-8) var(--spacing-8) var(--spacing-16);
+  border-radius: var(--radio-app-control);
+  text-align: center;
+}
+.dash-equipo__personaje {
+  width: 128px;
+  height: 134px;
+}
+@media (max-width: 639px) {
+  .dash-equipo__personaje {
+    width: 96px;
+    height: 100px;
+  }
+}
+.dash-equipo__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-equipo__area {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.dash-equipo__agente--apagado .dash-equipo__personaje {
+  opacity: 0.45;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-equipo__agente:hover {
+    background: var(--c-activo);
+  }
+}
+
+/* Secciones del inicio ("Primeros pasos", "Actividad reciente") */
+.dash-seccion__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-12);
+}
+.dash-seccion__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-avance {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-cuerpo);
+}
+.dash-avance__barra {
+  display: block;
+  overflow: hidden;
+  width: 72px;
+  height: var(--spacing-4);
+  border-radius: var(--radio-circulo);
+  background: var(--c-borde-fuerte);
+}
+.dash-avance__barra > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c-exito);
+}
+.dash-paso {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  min-height: var(--spacing-64);
+  padding: var(--spacing-12) var(--spacing-16);
+}
+.dash-paso__marca {
+  flex-shrink: 0;
+  color: var(--c-exito);
+}
+.dash-paso__circulo {
+  flex-shrink: 0;
+  width: var(--spacing-16);
+  height: var(--spacing-16);
+  border: 1.5px solid var(--c-texto-2);
+  border-radius: var(--radio-circulo);
+}
+.dash-paso__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.dash-paso__titulo {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-paso--listo .dash-paso__titulo {
+  color: var(--c-texto-2);
+  text-decoration: line-through;
+}
+.dash-paso__detalle {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* Actividad reciente: filas simples */
+.dash-reciente__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  min-height: var(--spacing-48);
+  padding: var(--spacing-8) var(--spacing-16);
+  color: var(--c-texto-2);
+  text-align: left;
+}
+.dash-reciente__frase {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dash-reciente__frase strong {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-reciente__fila > :last-child {
+  flex-shrink: 0;
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+@media (hover: hover) and (pointer: fine) {
+  a.dash-reciente__fila:hover,
+  button.dash-reciente__fila:hover {
+    background: var(--c-activo);
+  }
+}
+@media (max-width: 639px) {
+  .dash-reciente__frase {
+    white-space: normal;
+  }
+}
+.dash-reciente__mas {
+  padding: 0 var(--spacing-16) var(--spacing-12) calc(var(--spacing-16) + var(--spacing-32));
+}
+
+/* Al pie del lateral: el uso del plan en una línea */
+.dash-uso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-12) var(--spacing-8);
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  text-align: left;
+}
+.dash-uso__linea {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+}
+.dash-uso__plan {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+}
+.dash-uso__barra {
+  width: 100%;
+}
+.dash-uso__barra > span {
+  background: var(--c-acento);
+}
+.dash-lateral__cabeza .boton-icono,
+.dash-lateral__cabeza a.boton-icono {
+  color: var(--c-texto-2);
 }
 
 /* ---------- Actividad: pestañas en píldora compactas ---------- */
@@ -1387,7 +1696,7 @@
   --anillo: var(--c-superficie);
   overflow: hidden;
   border: 1px solid var(--c-borde);
-  border-radius: var(--radio-app-panel);
+  border-radius: var(--radio-app-tarjeta);
   background: var(--c-superficie);
 }
 .dash-lista--borde > li + li {
@@ -2345,4 +2654,21 @@
 }
 .dash-ancla:focus {
   outline: none;
+}
+
+/* En celular, el pie de la caja cabe en una sola línea: el "+" se va (la @ sigue funcionando) */
+@media (max-width: 639px) {
+  .dash-pedir__pie {
+    flex-wrap: nowrap;
+  }
+  .dash-pedir .dash-control-cuadro {
+    display: none;
+  }
+  .dash-pedir .dash-control {
+    min-width: 0;
+  }
+  .dash-control__texto {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }

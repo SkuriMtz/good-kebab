@@ -85,7 +85,7 @@ export const DEMO_DIA: { id: string; icono: "calendario" | "correo" | "reloj"; t
     icono: "calendario",
     texto: "12 citas mañana",
     detalle: "10 confirmadas, 1 cambio y 1 sin respuesta",
-    ir: { vista: "resumen", pestana: "actividad" },
+    ir: { vista: "actividad", pestana: "actividad" },
   },
   {
     id: "correo",
@@ -101,7 +101,7 @@ export const DEMO_DIA: { id: string; icono: "calendario" | "correo" | "reloj"; t
     texto: "3 cosas esperan tu visto bueno",
     detalle: "Un mensaje de Víctor, uno de Lola y uno de Clara",
     tono: "atencion",
-    ir: { vista: "resumen", pestana: "visto-bueno" },
+    ir: { vista: "actividad", pestana: "visto-bueno" },
   },
 ];
 
@@ -206,7 +206,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
       texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu limpieza facial va con 20% menos, ¿te aparto un lugar?",
     },
     accion: { etiqueta: "Revisar y aprobar" },
-    ir: { vista: "resumen", pestana: "visto-bueno" },
+    ir: { vista: "actividad", pestana: "visto-bueno" },
   },
   {
     id: "iris-reporte",
@@ -433,7 +433,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
     titulo: "Víctor espera tu visto bueno",
     detalle: "Mensaje para 31 clientes que no vienen desde junio",
     haceMin: 128,
-    ir: { vista: "resumen", pestana: "visto-bueno" },
+    ir: { vista: "actividad", pestana: "visto-bueno" },
   },
   {
     id: "a-clara",
@@ -449,7 +449,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
     titulo: "Rosa Peña no ha confirmado",
     detalle: "Su consulta es mañana a las 10:00",
     haceMin: 47,
-    ir: { vista: "resumen", pestana: "visto-bueno" },
+    ir: { vista: "actividad", pestana: "visto-bueno" },
   },
 ];
 

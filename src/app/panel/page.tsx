@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ResumenPanel, type ConversacionReal, type ResumenReal } from "@/components/dashboard/ResumenPanel";
+import { ActividadPanel, ResumenPanel, type ConversacionReal, type ResumenReal } from "@/components/dashboard/ResumenPanel";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: "Panel" };
 /**
  * /panel: el Resumen del dashboard con los datos reales de la cuenta.
  * /panel?vista=correo: Correo con Clara (modo de prueba, Gmail e historial).
+ * /panel?vista=actividad: la actividad completa (como "Feed").
  * Solo lee (RLS deja ver a cada quien solo lo suyo); no cambia datos ni la API.
  */
 export default async function PanelPage({ searchParams }: { searchParams: { vista?: string } }) {
@@ -44,6 +45,10 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
 
   const conversaciones = ((convs.data ?? []) as ConversacionReal[]).filter((c) => esIdAgente(c.agente));
 
+  if (searchParams.vista === "actividad") {
+    return <ActividadPanel conversaciones={conversaciones} resumenes={(resumenes.data ?? []) as ResumenReal[]} />;
+  }
+
   const meta = user.user_metadata ?? {};
   const nombreCompleto = (meta.full_name as string | undefined) || (meta.name as string | undefined);
 
@@ -51,9 +56,7 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
     <ResumenPanel
       nombre={nombreCompleto ? nombreCompleto.split(" ")[0] : undefined}
       planId={cuenta.plan.id}
-      usados={cuenta.usados}
       activos={cuenta.activos}
-      negocio={cuenta.negocio}
       conGoogle={conGoogle}
       conversaciones={conversaciones}
       resumenes={(resumenes.data ?? []) as ResumenReal[]}

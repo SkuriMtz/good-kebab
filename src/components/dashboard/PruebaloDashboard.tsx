@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ChatDemo } from "@/components/ChatDemo";
 import { Avatar } from "@/components/base/Avatar";
-import { Boton } from "@/components/base/Boton";
+import { Boton, BotonIcono } from "@/components/base/Boton";
 import { Icono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
 import type { ElementoMenu } from "@/components/base/Menu";
@@ -30,8 +30,8 @@ import {
 } from "@/lib/demo-dashboard";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { Armazon } from "./Armazon";
-import { Inicio, LineaTiempo, ListaVistoBueno, type OpcionPedido } from "./Centro";
-import { ProximasCitas, TarjetaPlan } from "./Columna";
+import { ActividadReciente, Inicio, LineaTiempo, ListaVistoBueno, PrimerosPasos, TarjetaEquipo, useCerrable, type ModoPedido, type OpcionPedido } from "./Centro";
+import { UsoPlan } from "./Columna";
 import { FilaAgente } from "./FilaAgente";
 import { nombresAgentes } from "./nombres";
 import { EnlaceMas, Hora, Vacio } from "./Piezas";
@@ -46,16 +46,21 @@ import type { ElementoNav, IdVista, ResultadoBusqueda } from "./tipos";
    Nada aquí llama a la IA: el chat es el guion local de ChatDemo.
    ===================================================================== */
 
-type VistaDemo = Extract<IdVista, "resumen" | "conversaciones" | "agentes" | "correo">;
-const VISTAS: VistaDemo[] = ["resumen", "conversaciones", "agentes", "correo"];
+type VistaDemo = Extract<IdVista, "resumen" | "actividad" | "conversaciones" | "agentes" | "correo">;
+const VISTAS: VistaDemo[] = ["resumen", "actividad", "conversaciones", "agentes", "correo"];
+/** El título de la barra ("Panel" en el inicio, como "Dashboard"). */
 const NOMBRE_VISTA: Record<VistaDemo, string> = {
-  resumen: "Resumen",
+  resumen: "Panel",
+  actividad: "Actividad",
   conversaciones: "Conversaciones",
   agentes: "Agentes",
   correo: "Correo",
 };
 
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
+
+/** Lo que el inicio le pasa al chat de ejemplo: un texto para enviar o abrir "Nuevo grupo". */
+type Encargo = { texto?: string; grupo?: boolean; n: number };
 
 function leerDireccion(): { vista: VistaDemo; con: string | null } {
   const h = window.location.hash.replace("#", "") as VistaDemo;
@@ -69,11 +74,10 @@ export function PruebaloDashboard() {
   const [chatCon, setChatCon] = useState<string | null>(null);
   const [pestana, setPestana] = useState<IdPestana>("actividad");
   const [aprobados, setAprobados] = useState<Set<string>>(() => new Set());
-  /** Lo que se pidió en la caja del Resumen: el chat de ejemplo lo envía al abrir. */
-  const [pedido, setPedido] = useState<{ texto: string; n: number } | null>(null);
+  /** Lo que se pidió desde el inicio: el chat de ejemplo envía el texto (o abre "Nuevo grupo") al abrir. */
+  const [pedido, setPedido] = useState<Encargo | null>(null);
   const [avisosLeidos, setAvisosLeidos] = useState(false);
   const [anterior, setAnterior] = useState<"no" | "cargando" | "si">("no");
-  const pestanasRef = useRef<HTMLDivElement>(null);
   const temporizador = useRef<number | undefined>(undefined);
 
   // La dirección manda al entrar (#agentes, ?con=lola) y con atrás/adelante
@@ -105,12 +109,7 @@ export function PruebaloDashboard() {
     setVista(vistaNueva);
     setPedido(null);
     if (d.pestana) setPestana(d.pestana);
-    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    requestAnimationFrame(() => {
-      if (vistaNueva === "resumen" && d.pestana && pestanasRef.current) {
-        pestanasRef.current.scrollIntoView({ block: "start", behavior: quieto ? "auto" : "smooth" });
-      } else window.scrollTo({ top: 0 });
-    });
+    requestAnimationFrame(() => window.scrollTo({ top: 0 }));
   }, []);
 
   const a = useCallback((d: Destino) => () => ir(d), [ir]);
@@ -123,16 +122,21 @@ export function PruebaloDashboard() {
     },
     [ir],
   );
+  const nuevoGrupo = useCallback(
+    () => {
+      ir({ vista: "conversaciones", con: "recepcion" });
+      setPedido({ grupo: true, n: Date.now() });
+    },
+    [ir],
+  );
 
   /* ---------- Armazón: navegación, agentes, grupos, menús ---------- */
 
   const pendientes = DEMO_APROBACIONES.filter((p) => !aprobados.has(p.id)).length;
 
   const nav: ElementoNav[] = [
-    { id: "resumen", etiqueta: "Resumen", icono: "inicio", alElegir: a({ vista: "resumen" }) },
-    { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", contador: 3, etiquetaContador: "3 mensajes sin leer", alElegir: a({ vista: "conversaciones" }) },
-    { id: "agentes", etiqueta: "Agentes", icono: "agentes", alElegir: a({ vista: "agentes" }) },
-    { id: "correo", etiqueta: "Correo", icono: "correo", contador: 1, etiquetaContador: "1 correo urgente", alElegir: a({ vista: "correo" }) },
+    { id: "resumen", etiqueta: "Inicio", icono: "inicio", alElegir: a({ vista: "resumen" }) },
+    { id: "actividad", etiqueta: "Actividad", icono: "rayo", alElegir: a({ vista: "actividad" }) },
   ];
 
   const agentesLateral = IDS_AGENTES.map((id) => ({ id, estado: DEMO_ESTADOS[id], alElegir: a({ vista: "conversaciones", con: id }) }));
@@ -142,23 +146,22 @@ export function PruebaloDashboard() {
     { tipo: "titulo", etiqueta: "Crear" },
     { id: "conversacion", etiqueta: "Nueva conversación", descripcion: "Con un agente o con un grupo", icono: "mensaje", alElegir: a({ vista: "conversaciones" }) },
     { id: "cita", etiqueta: "Agendar cita", descripcion: "Pídesela a Lola en su chat", icono: "calendario", alElegir: a({ vista: "conversaciones", con: "lola" }) },
-    { id: "grupo", etiqueta: "Nuevo grupo", descripcion: "Junta a dos o más agentes", icono: "usuarios", alElegir: a({ vista: "conversaciones", con: "recepcion" }) },
-    { tipo: "separador" },
-    { id: "importar", etiqueta: "Importar contactos", icono: "clientes", pronto: true },
+    { id: "grupo", etiqueta: "Nuevo grupo", descripcion: "Junta a dos o más agentes", icono: "usuarios", alElegir: nuevoGrupo },
   ];
 
   const perfil: ElementoMenu[] = [
-    { id: "perfil", etiqueta: "Perfil", icono: "perfil", pronto: true },
-    { id: "configuracion", etiqueta: "Configuración", icono: "ajustes", pronto: true },
+    { id: "agentes", etiqueta: "Mis agentes", icono: "agentes", alElegir: a({ vista: "agentes" }) },
+    { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", alElegir: a({ vista: "conversaciones" }) },
+    { id: "correo", etiqueta: "Correo", descripcion: "Lo que Clara leyó hoy", icono: "correo", alElegir: a({ vista: "correo" }) },
+    { tipo: "separador" },
     { id: "plan", etiqueta: "Plan y facturación", descripcion: `${PLAN.nombre} (ejemplo)`, icono: "facturacion", href: "/precios" },
-    { id: "negocio", etiqueta: "Mi negocio", descripcion: DEMO_NEGOCIO.nombre, icono: "negocio", pronto: true },
   ];
 
   const avisos = DEMO_AVISOS.map((av) => ({ ...av, leido: avisosLeidos, alElegir: a(av.ir) }));
 
   const indice: ResultadoBusqueda[] = useMemo(
     () => [
-      ...VISTAS.map((v) => ({ id: `v-${v}`, grupo: "Secciones", titulo: NOMBRE_VISTA[v], icono: "inicio" as const, alElegir: () => ir({ vista: v }) })),
+      ...VISTAS.map((v) => ({ id: `v-${v}`, grupo: "Secciones", titulo: v === "resumen" ? "Inicio" : NOMBRE_VISTA[v], icono: "inicio" as const, alElegir: () => ir({ vista: v }) })),
       ...AGENTES_INFO.map((ag) => ({
         id: `a-${ag.id}`,
         grupo: "Agentes",
@@ -218,17 +221,11 @@ export function PruebaloDashboard() {
       nav={nav}
       activa={vista}
       agentes={agentesLateral}
-      accionAgentes={
-        <button type="button" className="dash-enlace dash-enlace--chico" onClick={a({ vista: "agentes" })}>
-          Ver todos
-        </button>
-      }
+      accionAgentes={<BotonIcono etiqueta="Ver y buscar tus agentes" icono="buscar" onClick={a({ vista: "agentes" })} />}
       grupos={grupos}
-      accionGrupos={
-        <Boton variante="sutil" tam="compacto" icono={<Icono nombre="mas" tam={16} />} onClick={a({ vista: "conversaciones", con: "recepcion" })} className="dash-nuevo">
-          Nuevo
-        </Boton>
-      }
+      accionGrupos={<BotonIcono etiqueta="Nuevo grupo" icono="mas" onClick={nuevoGrupo} />}
+      pieLateral={<UsoPlan plan={PLAN} usados={DEMO_NEGOCIO.mensajesUsados} accion={{ href: "/precios" }} />}
+      conversaciones={{ alElegir: a({ vista: "conversaciones" }), sinLeer: 3 }}
       indice={indice}
       crear={crear}
       avisos={avisos}
@@ -240,14 +237,13 @@ export function PruebaloDashboard() {
       completo={vista === "conversaciones"}
     >
       <div key={vista} className="dash-entra">
-        {vista === "resumen" ? (
-          <Resumen
+        {vista === "resumen" ? <Resumen ahora={ahora} ir={ir} pedir={pedir} nuevoGrupo={nuevoGrupo} /> : null}
+        {vista === "actividad" ? (
+          <VistaActividad
             ahora={ahora}
             ir={ir}
-            pedir={pedir}
             pestana={pestana}
             setPestana={setPestana}
-            pestanasRef={pestanasRef}
             aprobados={aprobados}
             setAprobados={setAprobados}
             pendientes={pendientes}
@@ -270,19 +266,97 @@ export function PruebaloDashboard() {
    RESUMEN
    ===================================================================== */
 
-/** A quién se le puede pedir algo en la caja: el grupo Recepción o cada agente (los chats de ejemplo). */
+/** A quién se le pide en la caja: todos (el grupo Recepción del ejemplo) o cada agente. */
 const OPCIONES: OpcionPedido[] = [
-  { id: "recepcion", nombre: "Recepción", detalle: "El grupo de Lola y Víctor", agentes: ["lola", "victor"] },
+  { id: "recepcion", nombre: "Todos los agentes", detalle: "Lo recibe Recepción (Lola y Víctor)", agentes: [...IDS_AGENTES] },
   ...AGENTES_INFO.map((ag) => ({ id: ag.id, nombre: ag.nombre, detalle: ag.area, agentes: [ag.id] })),
+];
+
+/** "Pedir ▾": cada modo escribe el principio del pedido y elige al agente. */
+const MODOS: ModoPedido[] = [
+  { id: "pedir", etiqueta: "Pedir", icono: "mensaje", texto: "" },
+  { id: "cita", etiqueta: "Agendar cita", icono: "calendario", texto: "Agenda una cita para ", opcion: "lola" },
+  { id: "correo", etiqueta: "Resumir un correo", icono: "correo", texto: "Resume este correo: ", opcion: "clara" },
+  { id: "clientes", etiqueta: "Escribir a clientes", icono: "clientes", texto: "Escribe un mensaje para ", opcion: "victor" },
+  { id: "reporte", etiqueta: "Preparar un reporte", icono: "documento", texto: "Prepara un reporte de ", opcion: "iris" },
 ];
 
 function Resumen({
   ahora,
   ir,
   pedir,
+  nuevoGrupo,
+}: {
+  ahora: Date | null;
+  ir: (d: Destino) => void;
+  pedir: (texto: string, con: string) => void;
+  nuevoGrupo: () => void;
+}) {
+  const [equipo, cerrarEquipo] = useCerrable("atendel-pruebalo-equipo-cerrado");
+  const eventos = DEMO_ACTIVIDAD.slice(0, 6).map((e) => ({
+    ...e,
+    accion: e.ir ? { etiqueta: e.accion?.etiqueta ?? "Ver", alElegir: () => ir(e.ir as Destino) } : undefined,
+  }));
+
+  return (
+    <div className="dash-pagina dash-inicio-pagina">
+      <Inicio
+        titulo={`Bienvenida a Atendel, ${DEMO_USUARIA.nombre.split(" ")[0]}`}
+        opciones={OPCIONES}
+        modos={MODOS}
+        alPedir={pedir}
+        atajos={[
+          { id: "cita", etiqueta: "Agendar cita", icono: "calendario", modo: "cita" },
+          { id: "correo", etiqueta: "Resumir un correo", icono: "correo", modo: "correo" },
+          { id: "grupo", etiqueta: "Nuevo grupo", icono: "usuarios", alElegir: nuevoGrupo },
+          {
+            id: "citas",
+            etiqueta: "Ver citas",
+            icono: "reloj",
+            menu: [
+              { tipo: "titulo", etiqueta: "Mañana · 10 de 12 confirmadas" },
+              ...DEMO_CITAS.map((c) => ({
+                id: c.id,
+                etiqueta: `${c.hora} · ${c.paciente}`,
+                descripcion: `${c.servicio} · ${c.estado.texto}`,
+                alElegir: () => ir({ vista: "conversaciones", con: "lola" }),
+              })),
+            ],
+          },
+        ]}
+      />
+
+      {equipo ? (
+        <TarjetaEquipo
+          texto="Cuatro agentes, cada uno en lo suyo. Toca a uno para escribirle."
+          agentes={IDS_AGENTES.map((id) => ({ id, alElegir: () => ir({ vista: "conversaciones", con: id }) }))}
+          alCerrar={cerrarEquipo}
+        />
+      ) : null}
+
+      <PrimerosPasos
+        pasos={[
+          { id: "correo", titulo: "Conecta tu correo", detalle: "Clara lee tu Gmail. Solo lectura.", listo: false, boton: "Conectar", alElegir: () => ir({ vista: "correo" }) },
+          { id: "equipo", titulo: "Elige tu equipo", detalle: "Lola, Clara, Víctor e Iris.", listo: true, boton: "Ver", alElegir: () => ir({ vista: "agentes" }) },
+          { id: "chat", titulo: "Prueba el chat", detalle: "Pídele algo a un agente.", listo: false, boton: "Abrir el chat", alElegir: () => ir({ vista: "conversaciones" }) },
+        ]}
+      />
+
+      <ActividadReciente eventos={eventos} ahora={ahora} accion={<EnlaceMas accion={{ alElegir: () => ir({ vista: "actividad" }) }}>Ver todo</EnlaceMas>} />
+    </div>
+  );
+}
+
+/* =====================================================================
+   ACTIVIDAD (como "Feed"): todo lo que hizo tu equipo, con el detalle, y
+   lo que espera tu visto bueno.
+   ===================================================================== */
+
+function VistaActividad({
+  ahora,
+  ir,
   pestana,
   setPestana,
-  pestanasRef,
   aprobados,
   setAprobados,
   pendientes,
@@ -291,17 +365,14 @@ function Resumen({
 }: {
   ahora: Date | null;
   ir: (d: Destino) => void;
-  pedir: (texto: string, con: string) => void;
   pestana: IdPestana;
   setPestana: (p: IdPestana) => void;
-  pestanasRef: RefObject<HTMLDivElement>;
   aprobados: Set<string>;
   setAprobados: Dispatch<SetStateAction<Set<string>>>;
   pendientes: number;
   anterior: "no" | "cargando" | "si";
   verAnterior: () => void;
 }) {
-  const idActividad = useId().replace(/:/g, "");
   // Menos insignias: el texto del evento ya dice lo mismo
   const conAccion = <T extends { ir?: Destino; accion?: { etiqueta: string } }>(e: T) => ({
     ...e,
@@ -330,92 +401,55 @@ function Resumen({
     });
 
   return (
-    <div className="dash-pagina dash-rejilla">
-      <div className="dash-centro">
-        <Inicio
-          ahora={ahora}
-          nombre={DEMO_USUARIA.nombre.split(" ")[0]}
-          opciones={OPCIONES}
-          alPedir={pedir}
-          atajos={[
-            { id: "cita", etiqueta: "Agendar cita", icono: "calendario", alElegir: () => ir({ vista: "conversaciones", con: "lola" }) },
-            { id: "correo", etiqueta: "Resumir un correo", icono: "correo", alElegir: () => ir({ vista: "correo" }) },
-            { id: "grupo", etiqueta: "Nuevo grupo", icono: "usuarios", alElegir: () => ir({ vista: "conversaciones", con: "recepcion" }) },
+    <div className="dash-pagina dash-vista dash-inicio-pagina">
+      <header className="dash-vista__cabeza">
+        <h1 className="t-app-titulo-grande">Actividad</h1>
+      </header>
+      <section className="dash-actividad" aria-label="Actividad de tu equipo">
+        <Pestanas
+          etiqueta="Actividad de tu equipo"
+          alineacion="izquierda"
+          activa={pestana === "destacados" ? "actividad" : pestana}
+          alCambiar={(id) => setPestana(id as IdPestana)}
+          classNamePanel="dash-actividad__panel"
+          pestanas={[
             {
-              id: "citas",
-              etiqueta: "Ver citas",
-              icono: "reloj",
-              alElegir: () => {
-                const el = document.getElementById("citas-de-manana");
-                el?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-                el?.focus({ preventScroll: true });
-              },
+              id: "actividad",
+              etiqueta: "Todo",
+              contenido: <LineaTiempo eventos={eventos} ahora={ahora} pie={pieActividad} />,
+            },
+            {
+              id: "visto-bueno",
+              etiqueta: (
+                <span className="dash-pestana">
+                  Espera tu visto bueno
+                  {pendientes ? <Insignia contador={pendientes} etiqueta={`${pendientes} pendientes`} /> : null}
+                </span>
+              ),
+              contenido: pendientes ? (
+                <ListaVistoBueno
+                  pendientes={DEMO_APROBACIONES.map((p) => ({ ...p, editar: { alElegir: () => ir(p.ir) } }))}
+                  aprobados={aprobados}
+                  alAprobar={aprobar}
+                  alDeshacer={deshacer}
+                  ahora={ahora}
+                />
+              ) : (
+                <Vacio
+                  icono="check-circulo"
+                  titulo="Todo al día"
+                  texto="Nada espera tu visto bueno."
+                  accion={
+                    <button type="button" className="dash-enlace" onClick={() => setAprobados(new Set())}>
+                      Volver a ver los ejemplos
+                    </button>
+                  }
+                />
+              ),
             },
           ]}
         />
-
-        <section className="dash-bloque dash-actividad" aria-labelledby={`${idActividad}-titulo`} ref={pestanasRef}>
-          <h2 id={`${idActividad}-titulo`} className="sr-only">
-            Actividad de tu equipo
-          </h2>
-          <Pestanas
-            etiqueta="Actividad de tu equipo"
-            alineacion="izquierda"
-            activa={pestana === "destacados" ? "actividad" : pestana}
-            alCambiar={(id) => setPestana(id as IdPestana)}
-            classNamePanel="dash-actividad__panel"
-            pestanas={[
-              {
-                id: "actividad",
-                etiqueta: "Actividad",
-                contenido: <LineaTiempo eventos={eventos} ahora={ahora} pie={pieActividad} />,
-              },
-              {
-                id: "visto-bueno",
-                etiqueta: (
-                  <span className="dash-pestana">
-                    Espera tu visto bueno
-                    {pendientes ? <Insignia contador={pendientes} tono="atencion" etiqueta={`${pendientes} pendientes`} /> : null}
-                  </span>
-                ),
-                contenido: pendientes ? (
-                  <ListaVistoBueno
-                    pendientes={DEMO_APROBACIONES.map((p) => ({ ...p, editar: { alElegir: () => ir(p.ir) } }))}
-                    aprobados={aprobados}
-                    alAprobar={aprobar}
-                    alDeshacer={deshacer}
-                    ahora={ahora}
-                  />
-                ) : (
-                  <Vacio
-                    icono="check-circulo"
-                    titulo="Todo al día"
-                    texto="Nada espera tu visto bueno. Lo que salga a tu nombre aparece aquí antes de enviarse."
-                    accion={
-                      <button type="button" className="dash-enlace" onClick={() => setAprobados(new Set())}>
-                        Volver a ver los ejemplos
-                      </button>
-                    }
-                  />
-                ),
-              },
-            ]}
-          />
-        </section>
-      </div>
-
-      <aside className="dash-derecha" aria-label="Tu plan y tus citas">
-        <TarjetaPlan
-          negocio={DEMO_NEGOCIO.nombre}
-          plan={PLAN}
-          usados={DEMO_NEGOCIO.mensajesUsados}
-          ahora={ahora}
-          accion={<EnlaceMas accion={{ href: "/precios" }}>Ver los planes</EnlaceMas>}
-        />
-        <div id="citas-de-manana" tabIndex={-1} className="dash-ancla">
-          <ProximasCitas titulo="Citas de mañana" resumen="12 · 10 confirmadas" citas={DEMO_CITAS} />
-        </div>
-      </aside>
+      </section>
     </div>
   );
 }
@@ -426,7 +460,7 @@ function Resumen({
    (?con=lola) para que abra directo en esa conversación.
    ===================================================================== */
 
-function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedido: { texto: string; n: number } | null }) {
+function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedido: Encargo | null }) {
   return (
     <div className="dash-vista-chat">
       <header className="dash-vista-chat__cabeza">
@@ -436,7 +470,7 @@ function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedi
         </div>
       </header>
       <div className="dash-vista-chat__marco">
-        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} />
+        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} nuevoGrupo={pedido?.grupo} />
       </div>
     </div>
   );

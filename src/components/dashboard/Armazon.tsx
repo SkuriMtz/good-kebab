@@ -6,6 +6,7 @@ import { Avatar } from "@/components/base/Avatar";
 import { BotonIcono } from "@/components/base/Boton";
 import { Cajon } from "@/components/base/Cajon";
 import { Icono } from "@/components/base/Iconos";
+import { Insignia } from "@/components/base/Insignia";
 import { Menu, type ElementoMenu } from "@/components/base/Menu";
 import { Marca } from "@/components/Logo";
 import { Escena } from "@/components/escena/Escena";
@@ -41,6 +42,10 @@ export type PropsArmazon = {
   perfil: ElementoMenu[];
   /** Cerrar sesión (o salir de la demostración). */
   salir: ElementoMenu;
+  /** El botón de conversaciones de la barra (con un punto si hay sin leer). */
+  conversaciones?: Accion & { sinLeer?: number };
+  /** Al pie del lateral: una línea con el uso del plan. */
+  pieLateral?: ReactNode;
   /** Vista de pantalla completa (el chat): sin márgenes ni pie. */
   completo?: boolean;
   children: ReactNode;
@@ -54,7 +59,7 @@ export type PropsArmazon = {
  * producto en oscuro y en claro.
  */
 export function Armazon(props: PropsArmazon) {
-  const { seccion, inicio, aviso, nav, activa, agentes, accionAgentes, grupos, accionGrupos, vacioGrupos, completo = false, children } = props;
+  const { seccion, inicio, aviso, nav, activa, agentes, accionAgentes, grupos, accionGrupos, vacioGrupos, pieLateral, completo = false, children } = props;
   const [cajon, setCajon] = useState(false);
 
   // En celular, elegir algo del cajón lo cierra (el cambio de vista se ve detrás)
@@ -72,6 +77,7 @@ export function Armazon(props: PropsArmazon) {
       grupos={grupos}
       accionGrupos={accionGrupos}
       vacioGrupos={vacioGrupos}
+      pie={pieLateral}
     />
   );
 
@@ -105,13 +111,9 @@ export function Armazon(props: PropsArmazon) {
 function LogoBarra({ inicio, seccion }: { inicio: Accion; seccion: string }) {
   return (
     <span className="dash-miga">
-      <Accionable accion={inicio} className="dash-logo" etiqueta="Atendel: ir al resumen">
+      <Accionable accion={inicio} className="dash-logo" etiqueta="Atendel: ir al inicio">
         <Marca className="dash-logo__marca" />
-        <span className="dash-logo__nombre">Atendel</span>
       </Accionable>
-      <span className="dash-miga__separador" aria-hidden="true">
-        /
-      </span>
       <span className="dash-miga__seccion">{seccion}</span>
     </span>
   );
@@ -128,6 +130,7 @@ function BarraSuperior({
   usuario,
   perfil,
   salir,
+  conversaciones,
   abrirCajon,
   cajonAbierto,
 }: PropsArmazon & { abrirCajon: () => void; cajonAbierto: boolean }) {
@@ -161,7 +164,7 @@ function BarraSuperior({
       </div>
 
       <div className="dash-barra__fin">
-        <BuscadorDashboard indice={indice} className="dash-barra__buscador" />
+        <BuscadorDashboard indice={indice} placeholder="Escribe / para buscar" className="dash-barra__buscador" />
         <BotonIcono etiqueta="Buscar" icono="buscar" className="dash-barra__lupa" onClick={() => setBuscando(true)} aria-expanded={buscando} />
         <span className="dash-barra__division" aria-hidden="true" />
         <Menu
@@ -178,6 +181,7 @@ function BarraSuperior({
           elementos={crear}
         />
         <Avisos avisos={avisos} ahora={ahora} alLeerTodos={alLeerAvisos} />
+        {conversaciones ? <BotonConversaciones accion={conversaciones} /> : null}
         <Menu
           etiqueta="Tu cuenta"
           aspecto="avatar"
@@ -199,6 +203,20 @@ function BarraSuperior({
       ) : null}
     </header>
   );
+}
+
+/** Conversaciones en la barra (como la bandeja): botón de ícono con borde y un punto si hay sin leer. */
+function BotonConversaciones({ accion }: { accion: Accion & { sinLeer?: number } }) {
+  const etiqueta = accion.sinLeer ? `Conversaciones: ${accion.sinLeer} sin leer` : "Conversaciones";
+  if (accion.href) {
+    return (
+      <Link href={accion.href} className="boton-icono boton-icono--capa boton-icono--compacto dash-barra__icono" aria-label={etiqueta} title="Conversaciones">
+        <Icono nombre="conversaciones" tam={20} />
+        {accion.sinLeer ? <Insignia punto tono="azul" sobre /> : null}
+      </Link>
+    );
+  }
+  return <BotonIcono etiqueta="Conversaciones" icono="conversaciones" punto={Boolean(accion.sinLeer)} etiquetaContador={etiqueta} onClick={accion.alElegir} />;
 }
 
 const UTILIDAD = [

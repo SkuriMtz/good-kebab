@@ -2,14 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { Pestanas } from "@/components/base/Pestanas";
-import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
-import { Inicio, LineaTiempo, type Atajo, type OpcionPedido } from "./Centro";
-import { Consejos, ProximasCitas, TarjetaPlan } from "./Columna";
+import { AGENTE_POR_ID, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
+import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
+import { ActividadReciente, Inicio, LineaTiempo, PrimerosPasos, TarjetaEquipo, useCerrable, type Atajo, type ModoPedido, type OpcionPedido } from "./Centro";
 import { nombresAgentes } from "./nombres";
 import { EnlaceMas, Vacio } from "./Piezas";
 import { useAhora } from "./tiempo";
-import type { Consejo, Evento } from "./tipos";
+import type { Evento } from "./tipos";
 
 export type ConversacionReal = {
   id: string;
@@ -103,27 +102,22 @@ function actividadReal(resumenes: ResumenReal[], conversaciones: ConversacionRea
 }
 
 /**
- * El resumen del panel con DATOS REALES, como el home de GitHub: el saludo,
- * la caja para pedirle algo a tu equipo (lleva al chat real con el texto ya
- * escrito), los atajos, la actividad (correos que Clara resumió y tus
- * conversaciones) y, a la derecha, tu plan y lo que viene. Donde todavía no
- * hay nada, un estado vacío corto, sin inventar.
+ * El inicio del panel con DATOS REALES, calco del home de GitHub: la
+ * bienvenida, la caja para pedirle algo a tu equipo (lleva al chat real con
+ * el texto ya escrito), los atajos, "Conoce a tu equipo", "Primeros pasos"
+ * (con lo que de verdad ya hiciste) y la actividad reciente.
  */
 export function ResumenPanel({
   nombre,
   planId,
-  usados,
   activos,
-  negocio,
   conGoogle,
   conversaciones,
   resumenes,
 }: {
   nombre?: string;
   planId: IdPlan;
-  usados: number;
   activos: IdAgente[];
-  negocio: string;
   conGoogle: boolean;
   conversaciones: ConversacionReal[];
   resumenes: ResumenReal[];
@@ -131,93 +125,111 @@ export function ResumenPanel({
   const ahora = useAhora();
   const router = useRouter();
   const plan = PLAN_POR_ID[planId];
-  const eventos = actividadReal(resumenes, conversaciones);
-  const nombreNegocio = negocio === "tu negocio" ? "Tu negocio" : negocio;
+  const [equipoAbierto, cerrarEquipo] = useCerrable("atendel-panel-equipo-cerrado");
+  const eventos = actividadReal(resumenes, conversaciones).slice(0, 6);
   const equipo: IdAgente[] = activos.length ? activos : ["clara"];
+  const primero = AGENTE_POR_ID[equipo[0]];
 
-  const opciones: OpcionPedido[] = equipo.map((id) => ({ id, nombre: AGENTE_POR_ID[id].nombre, detalle: AGENTE_POR_ID[id].area, agentes: [id] }));
-
+  const opciones: OpcionPedido[] = [
+    ...(equipo.length > 1 ? [{ id: "equipo", nombre: "Todos los agentes", detalle: `Empieza ${primero.nombre}`, agentes: equipo }] : []),
+    ...equipo.map((id) => ({ id, nombre: AGENTE_POR_ID[id].nombre, detalle: AGENTE_POR_ID[id].area, agentes: [id] })),
+  ];
+  const modos: ModoPedido[] = [
+    { id: "pedir", etiqueta: "Pedir", icono: "mensaje", texto: "" },
+    ...(activos.includes("lola") ? [{ id: "cita", etiqueta: "Agendar cita", icono: "calendario" as const, texto: "Agenda una cita para ", opcion: "lola" }] : []),
+    ...(activos.includes("clara") ? [{ id: "correo", etiqueta: "Resumir un correo", icono: "correo" as const, texto: "Resume este correo: ", opcion: "clara" }] : []),
+    ...(activos.includes("victor") ? [{ id: "clientes", etiqueta: "Escribir a clientes", icono: "clientes" as const, texto: "Escribe un mensaje para ", opcion: "victor" }] : []),
+    ...(activos.includes("iris") ? [{ id: "reporte", etiqueta: "Preparar un reporte", icono: "documento" as const, texto: "Prepara un reporte de ", opcion: "iris" }] : []),
+  ];
   const atajos: Atajo[] = [
-    ...(activos.includes("lola") ? [{ id: "cita", etiqueta: "Agendar cita", icono: "calendario" as const, href: "/panel/chat?agente=lola" }] : []),
+    activos.includes("lola")
+      ? { id: "cita", etiqueta: "Agendar cita", icono: "calendario", modo: "cita" }
+      : { id: "cita", etiqueta: "Agendar cita", icono: "calendario", href: "/panel/agentes#agente-lola" },
     { id: "correo", etiqueta: "Resumir un correo", icono: "correo", href: "/panel?vista=correo" },
     ...(plan.id !== "free" && activos.length > 1 ? [{ id: "grupo", etiqueta: "Nuevo grupo", icono: "usuarios" as const, href: "/panel/chat" }] : []),
-    { id: "equipo", etiqueta: "Tu equipo", icono: "agentes", href: "/panel/agentes" },
+    {
+      id: "citas",
+      etiqueta: "Ver citas",
+      icono: "reloj",
+      menu: [
+        { tipo: "titulo", etiqueta: "Tus citas" },
+        { id: "pronto", etiqueta: "Las llevará Lola", descripcion: "Aquí verás las de mañana", icono: "calendario", pronto: true },
+      ],
+    },
   ];
 
-  const consejos: Consejo[] = conGoogle
-    ? []
-    : [
-        {
-          id: "gmail",
-          agente: "clara",
-          titulo: "Conecta tu Gmail",
-          texto: "Clara lee lo que no has leído. Solo lectura: nunca envía ni borra.",
-          etiquetaAccion: "Ir a Correo",
-          href: "/panel?vista=correo#gmail",
-        },
-      ];
-
   return (
-    <div className="dash-pagina dash-rejilla">
-      <div className="dash-centro">
-        <Inicio
-          ahora={ahora}
-          nombre={nombre}
-          opciones={opciones}
-          alPedir={(texto, id) => router.push(`/panel/chat?agente=${id}&pide=${encodeURIComponent(texto)}`)}
-          atajos={atajos}
-        />
+    <div className="dash-pagina dash-inicio-pagina">
+      <Inicio
+        titulo={nombre ? `Te damos la bienvenida, ${nombre}` : "Te damos la bienvenida a Atendel"}
+        opciones={opciones}
+        modos={modos}
+        alPedir={(texto, id) => router.push(`/panel/chat?${id === "equipo" ? "" : `agente=${id}&`}pide=${encodeURIComponent(texto)}`)}
+        atajos={atajos}
+      />
 
-        <section className="dash-bloque dash-actividad" aria-label="Actividad de tu equipo">
-          <Pestanas
-            etiqueta="Actividad de tu equipo"
-            alineacion="izquierda"
-            classNamePanel="dash-actividad__panel"
-            pestanas={[
-              {
-                id: "actividad",
-                etiqueta: "Actividad",
-                contenido: eventos.length ? (
-                  <LineaTiempo eventos={eventos} ahora={ahora} />
-                ) : (
-                  <Vacio
-                    agente="clara"
-                    titulo="Aquí verás lo que hace tu equipo"
-                    texto="Cada correo que Clara resuma y cada conversación aparece aquí, con la hora."
-                  />
-                ),
-              },
-              {
-                id: "visto-bueno",
-                etiqueta: "Espera tu visto bueno",
-                contenido: (
-                  <Vacio
-                    icono="check-circulo"
-                    titulo="Nada espera tu visto bueno"
-                    texto="Lo que un agente deje listo para salir a tu nombre aparecerá aquí antes de enviarse."
-                  />
-                ),
-              },
-            ]}
-          />
-        </section>
-      </div>
+      {equipoAbierto ? (
+        <TarjetaEquipo
+          texto={`Con ${plan.nombre} trabajan ${nombresAgentes(equipo)}. Toca a uno para escribirle.`}
+          agentes={IDS_AGENTES.map((id) =>
+            activos.includes(id)
+              ? { id, href: `/panel/chat?agente=${id}` }
+              : { id, href: `/panel/agentes#agente-${id}`, nota: plan.agentes.includes(id) ? "Fuera de tu equipo" : `Con ${planMinimo(id).nombre}`, apagado: true },
+          )}
+          alCerrar={cerrarEquipo}
+        />
+      ) : null}
 
-      <aside className="dash-derecha" aria-label="Tu plan y tus citas">
-        <TarjetaPlan
-          negocio={nombreNegocio}
-          plan={plan}
-          usados={usados}
-          ahora={ahora}
-          accion={<EnlaceMas accion={{ href: "/panel/agentes#plan" }}>Ver tu equipo y tu plan</EnlaceMas>}
+      <PrimerosPasos
+        pasos={[
+          { id: "correo", titulo: "Conecta tu correo", detalle: "Clara lee tu Gmail. Solo lectura.", listo: conGoogle, boton: "Conectar", href: "/panel?vista=correo#gmail" },
+          { id: "equipo", titulo: "Elige tu equipo", detalle: nombresAgentes(equipo), listo: activos.length > 0, boton: "Elegir", href: "/panel/agentes" },
+          { id: "chat", titulo: "Prueba el chat", detalle: "Pídele algo a un agente.", listo: conversaciones.length > 0, boton: "Abrir el chat", href: "/panel/chat" },
+        ]}
+      />
+
+      <ActividadReciente
+        eventos={eventos}
+        ahora={ahora}
+        accion={eventos.length ? <EnlaceMas accion={{ href: "/panel?vista=actividad" }}>Ver todo</EnlaceMas> : undefined}
+        vacio={<Vacio agente="clara" titulo="Aquí verás lo que hace tu equipo" texto="Cada correo que Clara resuma y cada conversación aparece aquí." />}
+      />
+    </div>
+  );
+}
+
+/** Actividad (como "Feed"): todo lo que pasó, con el detalle, y lo que espera tu visto bueno. */
+export function ActividadPanel({ conversaciones, resumenes }: { conversaciones: ConversacionReal[]; resumenes: ResumenReal[] }) {
+  const ahora = useAhora();
+  const eventos = actividadReal(resumenes, conversaciones);
+  return (
+    <div className="dash-pagina dash-vista dash-inicio-pagina">
+      <header className="dash-vista__cabeza">
+        <h1 className="t-app-titulo-grande">Actividad</h1>
+      </header>
+      <section className="dash-actividad" aria-label="Actividad de tu equipo">
+        <Pestanas
+          etiqueta="Actividad de tu equipo"
+          alineacion="izquierda"
+          classNamePanel="dash-actividad__panel"
+          pestanas={[
+            {
+              id: "actividad",
+              etiqueta: "Todo",
+              contenido: eventos.length ? (
+                <LineaTiempo eventos={eventos} ahora={ahora} />
+              ) : (
+                <Vacio agente="clara" titulo="Aquí verás lo que hace tu equipo" texto="Cada correo que Clara resuma y cada conversación aparece aquí, con la hora." />
+              ),
+            },
+            {
+              id: "visto-bueno",
+              etiqueta: "Espera tu visto bueno",
+              contenido: <Vacio icono="check-circulo" titulo="Nada espera tu visto bueno" texto="Lo que salga a tu nombre aparecerá aquí antes de enviarse." />,
+            },
+          ]}
         />
-        <ProximasCitas
-          titulo="Próximas citas"
-          citas={[]}
-          vacio={<Vacio compacto agente="lola" titulo="Pronto" texto="Cuando Lola lleve tus citas, aquí verás las de mañana." />}
-        />
-        <Consejos consejos={consejos} />
-      </aside>
+      </section>
     </div>
   );
 }

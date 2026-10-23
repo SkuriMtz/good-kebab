@@ -38,6 +38,9 @@
   --noche-texto-2: #9198a1;
   --noche-tenue: #6e7681;
   --noche-division: #30363d;
+  /* El home de GitHub en oscuro, medido de la referencia (dashboard, lección 15) */
+  --noche-inset: #010409; /* página y barra superior */
+  --noche-borde: #3d444d; /* bordes de caja, tarjetas y botones */
   --noche-ambar: #d29922;
   /* Producto en claro ("día"): superficies y textos del dashboard */
   --dia-blanco: #ffffff;

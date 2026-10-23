@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, type ReactNode } from "react";
-import { Boton } from "@/components/base/Boton";
 import { Icono } from "@/components/base/Iconos";
 import type { ElementoMenu } from "@/components/base/Menu";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 import { Armazon } from "./Armazon";
+import { UsoPlan } from "./Columna";
 import { nombresAgentes } from "./nombres";
 import { useAhora } from "./tiempo";
 import type { AgenteLateral, ElementoNav, GrupoLateral, IdVista, ResultadoBusqueda } from "./tipos";
@@ -22,12 +22,15 @@ export type DatosArmazonPanel = {
   /** Los agentes que de verdad trabajan con la persona (su plan + su elección). */
   activos: IdAgente[];
   negocio: string;
+  /** Mensajes usados este mes (la línea del plan al pie del lateral). */
+  usados: number;
   conGoogle: boolean;
   grupos: { id: string; nombre: string; agentes: IdAgente[] }[];
 };
 
 const NOMBRE: Record<string, string> = {
-  resumen: "Resumen",
+  resumen: "Panel",
+  actividad: "Actividad",
   conversaciones: "Conversaciones",
   agentes: "Agentes",
   correo: "Correo",
@@ -56,7 +59,9 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
         ? "agentes"
         : params.get("vista") === "correo"
           ? "correo"
-          : "resumen");
+          : params.get("vista") === "actividad"
+            ? "actividad"
+            : "resumen");
 
   async function salir() {
     await createClient().auth.signOut();
@@ -65,10 +70,8 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
   }
 
   const nav: ElementoNav[] = [
-    { id: "resumen", etiqueta: "Resumen", icono: "inicio", href: "/panel" },
-    { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", href: "/panel/chat" },
-    { id: "agentes", etiqueta: "Agentes", icono: "agentes", href: "/panel/agentes" },
-    { id: "correo", etiqueta: "Correo", icono: "correo", href: "/panel?vista=correo" },
+    { id: "resumen", etiqueta: "Inicio", icono: "inicio", href: "/panel" },
+    { id: "actividad", etiqueta: "Actividad", icono: "rayo", href: "/panel?vista=actividad" },
   ];
 
   const agentes: AgenteLateral[] = IDS_AGENTES.map((id) => {
@@ -94,20 +97,20 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
     conGrupos
       ? { id: "grupo", etiqueta: "Nuevo grupo", descripcion: "En Conversaciones, «Nuevo grupo»", icono: "usuarios", href: "/panel/chat" }
       : { id: "grupo", etiqueta: "Nuevo grupo", descripcion: "Los grupos llegan con Atendel One", icono: "usuarios", deshabilitado: true },
-    { tipo: "separador" },
-    { id: "importar", etiqueta: "Importar contactos", icono: "clientes", pronto: true },
   ];
 
   const perfil: ElementoMenu[] = [
-    { id: "perfil", etiqueta: "Perfil", icono: "perfil", pronto: true },
-    { id: "configuracion", etiqueta: "Configuración", icono: "ajustes", pronto: true },
+    { id: "agentes", etiqueta: "Mis agentes", descripcion: "Tu equipo y tu plan", icono: "agentes", href: "/panel/agentes" },
+    { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", href: "/panel/chat" },
+    { id: "correo", etiqueta: "Correo", descripcion: "Clara, Gmail y tu historial", icono: "correo", href: "/panel?vista=correo" },
+    { tipo: "separador" },
     { id: "plan", etiqueta: "Plan y facturación", descripcion: plan.nombre, icono: "facturacion", href: "/panel/agentes#plan" },
-    { id: "negocio", etiqueta: "Mi negocio", descripcion: datos.negocio, icono: "negocio", pronto: true },
   ];
 
   const indice: ResultadoBusqueda[] = useMemo(
     () => [
-      { id: "s-resumen", grupo: "Secciones", titulo: "Resumen", icono: "inicio", href: "/panel" },
+      { id: "s-resumen", grupo: "Secciones", titulo: "Inicio", icono: "inicio", href: "/panel" },
+      { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", icono: "rayo", href: "/panel?vista=actividad" },
       { id: "s-chat", grupo: "Secciones", titulo: "Conversaciones", icono: "conversaciones", href: "/panel/chat" },
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y tu plan", icono: "agentes", href: "/panel/agentes" },
       { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Resume un correo con Clara", icono: "correo", href: "/panel?vista=correo" },
@@ -142,16 +145,16 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
       activa={vista}
       agentes={agentes}
       accionAgentes={
-        <Link href="/panel/agentes" className="dash-enlace dash-enlace--chico">
-          Ver todos
+        <Link href="/panel/agentes" className="boton-icono boton-icono--capa boton-icono--compacto" aria-label="Ver y buscar tus agentes" title="Ver y buscar tus agentes">
+          <Icono nombre="buscar" tam={20} />
         </Link>
       }
       grupos={grupos}
       accionGrupos={
         conGrupos ? (
-          <Boton variante="sutil" tam="compacto" href="/panel/chat" icono={<Icono nombre="mas" tam={16} />} className="dash-nuevo">
-            Nuevo
-          </Boton>
+          <Link href="/panel/chat" className="boton-icono boton-icono--capa boton-icono--compacto" aria-label="Nuevo grupo" title="Nuevo grupo">
+            <Icono nombre="mas" tam={20} />
+          </Link>
         ) : null
       }
       vacioGrupos={
@@ -168,6 +171,8 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
       usuario={{ nombre: datos.nombre, correo: datos.correo, foto: datos.foto, estado: { tono: "exito", etiqueta: plan.nombre } }}
       perfil={perfil}
       salir={{ id: "salir", etiqueta: "Cerrar sesión", icono: "cerrar-sesion", peligroso: true, alElegir: salir }}
+      pieLateral={<UsoPlan plan={plan} usados={datos.usados} accion={{ href: "/panel/agentes#plan" }} />}
+      conversaciones={{ href: "/panel/chat" }}
       completo={completo}
     >
       {completo ? <div className="dash-chat-real">{children}</div> : children}
