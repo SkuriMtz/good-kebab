@@ -528,3 +528,25 @@
 :root[data-tema="claro"] .sitio .ficha__caja.vidrio {
   background: #fff;
 }
+
+/* ---------- Arreglos de la revisión final (inspector) ---------- */
+/* El filo de Free va en el color del texto: el violeta es solo del logo y los personajes */
+.sitio .plan--hoy::before {
+  background: var(--c-texto);
+}
+/* En oscuro, precios son columnas sin caja: sin radio que recorte el filo */
+:root:not([data-tema="claro"]) .sitio .planes {
+  border-radius: 0;
+}
+/* Los encabezados con figura arrancan en la misma línea que el resto del sitio */
+@media (min-width: 900px) {
+  .sitio .encabezado-escena__texto {
+    margin-left: 0;
+  }
+}
+/* En celular la figura deja ver el botón en la primera pantalla */
+@media (max-width: 899px) {
+  .sitio .encabezado-escena {
+    padding-top: 32svh;
+  }
+}
