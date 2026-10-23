@@ -19,17 +19,21 @@ import { Seguridad } from "@/components/inicio/Seguridad";
  */
 export default function Inicio() {
   return (
-    <Sitio fondo="ninguno">
+    <Sitio fondo="figura">
+      {/* Muestra M3 "Tres zonas": portada y agentes, seguidos, sobre la figura que cambia de forma */}
       <Portada />
-      <ChatEnMarco />
       <Agentes />
-      <QueEs />
-      <ComoFunciona />
-      <ParaQuien />
-      <Seguridad />
-      <Precios />
-      <PreguntasInicio />
-      <CtaFinal />
+      {/* Lo demás se queda como estaba (se rehace con la muestra que gane), sobre su propio fondo */}
+      <div className="m3-resto">
+        <ChatEnMarco />
+        <QueEs />
+        <ComoFunciona />
+        <ParaQuien />
+        <Seguridad />
+        <Precios />
+        <PreguntasInicio />
+        <CtaFinal />
+      </div>
     </Sitio>
   );
 }

@@ -55,7 +55,7 @@ void main() {
 const FRAG = `
 precision mediump float;
 varying vec3 vCol; varying float vAlfa, vTam, vAng;
-uniform float uClaro;
+uniform float uClaro, uGris;
 float tri(vec2 p) {
   const float k = 1.7320508;
   p.x = abs(p.x) - 1.0;
@@ -76,6 +76,9 @@ void main() {
   // En modo claro: colores más oscuros y lo blanco se vuelve violeta (si no, no se vería)
   float blanco = smoothstep(0.6, 0.9, min(min(vCol.r, vCol.g), vCol.b));
   vec3 col = mix(vCol, mix(vCol * 0.62, vec3(0.42, 0.26, 0.85), blanco), uClaro);
+  // Escena sobria en modo claro: gris suave (como el lienzo de Vercel)
+  float luz = dot(vCol, vec3(0.299, 0.587, 0.114));
+  col = mix(col, vec3(0.34 + 0.22 * (1.0 - luz)), uGris * uClaro);
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -100,7 +103,11 @@ const suave = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
-export function Escena() {
+/**
+ * `sobria`: sin destellos alrededor de los tetraedros y, en modo claro,
+ * partículas en gris suave (la portada nueva del inicio).
+ */
+export function Escena({ sobria = false }: { sobria?: boolean } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const refLineas = useRef<HTMLCanvasElement>(null);
   const refCaja = useRef<HTMLDivElement>(null);
@@ -135,7 +142,7 @@ export function Escena() {
 
     const ancho0 = window.innerWidth;
     const N = ancho0 < 700 ? 6000 : ancho0 < 1200 ? 9000 : 12000;
-    const NP = ancho0 < 700 ? 120 : 260;
+    const NP = sobria ? (ancho0 < 700 ? 70 : 150) : ancho0 < 700 ? 120 : 260;
 
     // Las figuras, creadas la primera vez que se necesitan
     const formas = new Map<NombreForma, Float32Array>();
@@ -206,11 +213,11 @@ export function Escena() {
       p: at(progPolvo, "aP"),
       c: at(progPolvo, "aC"),
     };
-    const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro"].map((n) => [n, un(progFigura, n)]));
-    const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro"].map((n) => [n, un(progPolvo, n)]));
+    const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro", "uGris"].map((n) => [n, un(progFigura, n)]));
+    const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro", "uGris"].map((n) => [n, un(progPolvo, n)]));
 
     // Tetraedros grandes que flotan
-    const cuantos = ancho0 < 700 ? 4 : 7;
+    const cuantos = sobria ? (ancho0 < 700 ? 2 : 4) : ancho0 < 700 ? 4 : 7;
     const tetras = Array.from({ length: cuantos }, (_, i) => ({
       x: (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
       y: Math.random(),
@@ -445,6 +452,7 @@ export function Escena() {
       gl.uniform1f(UP.uDpr, dpr);
       gl.uniform1f(UP.uAlfa, claro ? 0.7 : 1);
       gl.uniform1f(UP.uClaro, claro ? 1 : 0);
+      gl.uniform1f(UP.uGris, sobria ? 1 : 0);
       gl.drawArrays(gl.POINTS, 0, NP);
       gl.disableVertexAttribArray(A.p);
       gl.disableVertexAttribArray(A.c);
@@ -469,6 +477,7 @@ export function Escena() {
       gl.uniform1f(U.uDpr, dpr);
       gl.uniform1f(U.uCam, Math.max(h, 600) * 3);
       gl.uniform1f(U.uClaro, claro ? 1 : 0);
+      gl.uniform1f(U.uGris, sobria ? 1 : 0);
       gl.drawArrays(gl.POINTS, 0, N);
       for (const l of [A.pos, A.prof, A.col, A.tam, A.azar]) gl.disableVertexAttribArray(l);
 
@@ -489,10 +498,10 @@ export function Escena() {
           const y1 = Math.cos(ax) * yy - Math.sin(ax) * z1;
           return [cx + x1 * te.tam, cy - y1 * te.tam];
         });
-        ctx2.globalAlpha = (0.35 + 0.5 * te.prof) * (claro ? 0.6 : 1);
-        ctx2.strokeStyle = te.color;
-        ctx2.shadowColor = claro ? "transparent" : te.color;
-        ctx2.shadowBlur = claro ? 0 : 10;
+        ctx2.globalAlpha = (0.35 + 0.5 * te.prof) * (claro ? 0.6 : 1) * (sobria ? 0.6 : 1);
+        ctx2.strokeStyle = sobria && claro ? "#a8a8a8" : te.color;
+        ctx2.shadowColor = claro || sobria ? "transparent" : te.color;
+        ctx2.shadowBlur = claro || sobria ? 0 : 10;
         ctx2.beginPath();
         for (const [a, b] of ARISTAS) {
           ctx2.moveTo(pts[a][0], pts[a][1]);
@@ -558,7 +567,7 @@ export function Escena() {
       gl.deleteProgram(progFigura);
       gl.deleteProgram(progPolvo);
     };
-  }, []);
+  }, [sobria]);
 
   return (
     <div ref={refCaja} className="escena-fondo" aria-hidden="true">

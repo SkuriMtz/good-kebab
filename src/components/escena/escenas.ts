@@ -20,6 +20,8 @@ export type NombreEscena =
   | "globoDerecha"
   | "logoDerecha"
   | "candadoDerecha"
+  | "tresZonas"
+  | "tresZonasAgentes"
   | "polvo";
 
 export const ESCENAS: NombreEscena[] = [
@@ -32,6 +34,8 @@ export const ESCENAS: NombreEscena[] = [
   "globoDerecha",
   "logoDerecha",
   "candadoDerecha",
+  "tresZonas",
+  "tresZonasAgentes",
   "polvo",
 ];
 
@@ -97,6 +101,21 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
       const giro = globo ? (t: number): [number, number, number] => [t * 0.015 - 0.05, 0.22, 0.1] : quieto(forma === "burbuja" ? -0.3 : -0.35, 0.12, forma === "burbuja" ? -0.1 : 0);
       if (celular) return { forma, modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.38, h * 0.21), giro, alfa: 0.85, tam: 0.75, ocultarAtras: globo ? 1 : 0.5 };
       return { forma, modo: "objeto", cx: globo ? 0.75 : 0.72, cy: 0.55, escala: Math.min(h * (globo ? 0.36 : 0.34), w * (globo ? 0.2 : 0.22)), giro, alfa: 1, tam: 1, ocultarAtras: globo ? 1 : 0.5 };
+    }
+    case "tresZonas": {
+      // Portada en tres zonas: la burbuja vive en la columna del centro
+      // (rejilla 5fr 3.6fr 3.4fr de 1200px con huecos de 48px, como .m3-zonas en landing.css)
+      if (w < 1024) return { forma: "burbuja", modo: "objeto", cx: 0.5, cy: 0.435, escala: Math.min(w * 0.24, h * 0.1), giro: quieto(-0.3, 0.1, -0.1), alfa: 0.6, tam: 0.7, ocultarAtras: 0.55 };
+      const ancho = Math.min(1200, w - 64);
+      const util = ancho - 96;
+      const centro = (w - ancho) / 2 + (util * 5) / 12 + 48 + (util * 3.6) / 24;
+      return { forma: "burbuja", modo: "objeto", cx: centro / w, cy: 0.4, escala: Math.min(util * 0.14, h * 0.21), giro: quieto(-0.34, 0.12, -0.12), alfa: 0.6, tam: 0.9, ocultarAtras: 0.55 };
+    }
+    case "tresZonasAgentes": {
+      // La lista de agentes: el globo se hace a un lado (a la derecha; en celular, se asoma arriba)
+      const giro = (t: number): [number, number, number] => [t * 0.015 - 0.05, 0.22, 0.1];
+      if (w < 1024) return { forma: "esfera", modo: "objeto", cx: 0.96, cy: 0.1, escala: w * 0.26, giro, alfa: 0.35, tam: 0.7, ocultarAtras: 1 };
+      return { forma: "esfera", modo: "objeto", cx: 0.86, cy: 0.6, escala: Math.min(h * 0.21, w * 0.115), giro, alfa: 0.55, tam: 0.95, ocultarAtras: 1 };
     }
     default:
       return polvo("polvo", 1);

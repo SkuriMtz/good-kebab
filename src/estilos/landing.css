@@ -1,0 +1,451 @@
+/*
+ * Landing nueva · muestra M3 "Tres zonas" (portada y agentes del inicio).
+ * Solo vale dentro del sitio público con la figura de fondo (.sitio--figura,
+ * ver Sitio.tsx). La estructura es la misma en los dos modos; lo que cambia
+ * con el tema de <html> son estos tokens:
+ * - Oscuro = Dala (diseno/design.md): negro puro, texto que flota sin cajas
+ *   ni líneas, títulos Geist 400 enormes con -0.04em, cuerpo ligero, radio 24px.
+ * - Claro = Vercel (diseno/vercel/DESIGN.md): lienzo #fafafa, texto #171717 /
+ *   #4d4d4d / #666, líneas finas #ebebeb, títulos Geist 450 con -0.06em,
+ *   etiquetas Mono 11px, anillo doble en el panel de registro, radio 6px.
+ * El botón principal es el azul de Atendel (--c-accion) en los dos modos.
+ */
+
+/* =====================================================================
+   1. Tokens
+   ===================================================================== */
+.sitio--figura {
+  --m3-fondo: #000;
+  --m3-texto: #fff;
+  --m3-texto-2: #bdbdbd;
+  --m3-texto-3: #9a9a9a;
+  --m3-linea: transparent;
+  --m3-check: #9a9a9a;
+  --m3-superficie: transparent;
+
+  --m3-titular-tam: clamp(44px, 6.2vw, 96px);
+  --m3-titular-peso: 400;
+  --m3-titular-tracking: -0.04em;
+  --m3-titular-lh: 0.96;
+  --m3-nombre-tam: clamp(48px, 6vw, 88px);
+  --m3-subtitulo-tam: clamp(28px, 3vw, 42px);
+  --m3-cuerpo-tam: 18px;
+  --m3-cuerpo-peso: 300;
+  --m3-etiqueta-tam: 12px;
+  --m3-etiqueta-tracking: 0.06em;
+  --m3-radio: 24px;
+  --m3-registro-fondo: transparent;
+  --m3-registro-anillo: none;
+  --m3-registro-relleno: 0px;
+  --m3-apagado: 0.3;
+  --m3-seccion: 128px; /* separación grande entre secciones (96–128px) */
+
+  background: var(--m3-fondo);
+  /* La barra y la franja de arriba toman el mismo lienzo */
+  --c-portada: var(--m3-fondo);
+}
+[data-tema="claro"] .sitio--figura {
+  --m3-fondo: #fafafa;
+  --m3-texto: #171717;
+  --m3-texto-2: #4d4d4d;
+  --m3-texto-3: #666;
+  --m3-linea: #ebebeb;
+  --m3-check: #297a3a;
+  --m3-superficie: #fff;
+
+  --m3-titular-tam: clamp(44px, 4.5vw, 64px);
+  --m3-titular-peso: 450;
+  --m3-titular-tracking: -0.06em;
+  --m3-titular-lh: 1;
+  --m3-nombre-tam: clamp(40px, 4.5vw, 64px);
+  --m3-subtitulo-tam: clamp(24px, 2.2vw, 30px);
+  --m3-cuerpo-tam: 16px;
+  --m3-cuerpo-peso: 400;
+  --m3-etiqueta-tam: 11px;
+  --m3-etiqueta-tracking: 0.071em;
+  --m3-radio: 6px;
+  --m3-registro-fondo: #fff;
+  --m3-registro-anillo: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 0 0 2px #fafafa;
+  --m3-registro-relleno: var(--spacing-12) var(--spacing-16);
+  --m3-apagado: 0.35;
+}
+
+/* La figura de fondo: brillo bajo (lecciones 7 y 11); en claro, gris suave */
+.sitio--figura .escena-fondo {
+  opacity: 0.7;
+}
+[data-tema="claro"] .sitio--figura .escena-fondo {
+  opacity: 0.85;
+}
+
+/* Lo demás del inicio sigue con su fondo de siempre (tapa la figura) */
+.m3-resto {
+  position: relative;
+  background: var(--c-fondo);
+}
+
+/* =====================================================================
+   2. Piezas comunes de la muestra
+   ===================================================================== */
+.m3 {
+  /* Botones y campos con el radio de cada referencia */
+  --radio-boton: var(--m3-radio);
+  --radio-campo: var(--m3-radio);
+  --c-superficie: var(--m3-superficie);
+  position: relative;
+  color: var(--m3-texto);
+}
+.m3-contenedor {
+  width: 100%;
+  max-width: calc(var(--ancho-max) + 2 * var(--orilla)); /* 1200px, alineado con la barra */
+  margin-inline: auto;
+  padding-inline: var(--orilla);
+}
+.m3-etiqueta {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m3-etiqueta-tam);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: var(--m3-etiqueta-tracking);
+  text-transform: uppercase;
+  color: var(--m3-texto-3);
+}
+.m3-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--m3-texto-2);
+  text-decoration: none;
+  transition: color var(--dur-micro) var(--ease);
+}
+.m3-enlace span {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .m3-enlace:hover {
+    color: var(--m3-texto);
+  }
+  .m3-enlace:hover span {
+    transform: translateX(3px);
+  }
+}
+.m3-enlace:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* =====================================================================
+   3. Portada en tres zonas
+   ===================================================================== */
+.m3-portada {
+  padding-block: var(--spacing-32) var(--spacing-64);
+}
+.m3-zonas {
+  display: grid;
+  gap: var(--spacing-20);
+}
+.m3-titular {
+  margin-top: var(--spacing-16);
+  font-size: var(--m3-titular-tam);
+  font-weight: var(--m3-titular-peso);
+  line-height: var(--m3-titular-lh);
+  letter-spacing: var(--m3-titular-tracking);
+  color: var(--m3-texto);
+  text-wrap: balance;
+}
+/* El hueco del centro: ahí se acomoda la burbuja de triangulitos */
+.m3-zona--figura {
+  min-height: 180px;
+}
+
+/* La pila de etiquetas (en claro, el panel de registro) */
+.m3-zona--registro {
+  padding: var(--m3-registro-relleno);
+  border-radius: 6px;
+  background: var(--m3-registro-fondo);
+  box-shadow: var(--m3-registro-anillo);
+}
+.m3-registro__cabeza {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--m3-linea);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m3-etiqueta-tam);
+  font-weight: 500;
+  letter-spacing: var(--m3-etiqueta-tracking);
+  text-transform: uppercase;
+  color: var(--m3-texto-3);
+}
+.m3-registro__lista {
+  margin: 0;
+  padding: var(--spacing-4) 0;
+  list-style: none;
+}
+.m3-registro__fila {
+  display: grid;
+  grid-template-columns: 16px 64px minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--spacing-8);
+  padding-block: var(--spacing-4);
+}
+.m3-registro__check {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--m3-check);
+}
+.m3-registro__nombre {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--m3-texto);
+}
+.m3-registro__que {
+  font-size: 14px;
+  font-weight: var(--m3-cuerpo-peso);
+  line-height: 1.43;
+  color: var(--m3-texto-2);
+}
+.m3-registro__pie {
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--m3-linea);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--m3-texto-3);
+}
+
+/* Debajo: el formulario (único botón azul) y lo que cuesta empezar */
+.m3-portada__accion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-24);
+}
+.m3-portada__formulario {
+  max-width: 560px;
+}
+.m3-portada__condiciones {
+  margin-top: var(--spacing-4);
+}
+
+@media (min-width: 1024px) {
+  .m3-portada {
+    padding-block: var(--spacing-96) var(--m3-seccion);
+  }
+  .m3-zonas {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 3.6fr) minmax(0, 3.4fr);
+    column-gap: var(--spacing-48);
+    align-items: end;
+  }
+  .m3-zona--figura {
+    align-self: stretch;
+    min-height: 400px;
+  }
+  .m3-portada__accion {
+    margin-top: var(--spacing-48);
+  }
+  .m3-registro__fila {
+    padding-block: var(--spacing-8);
+  }
+  .m3-registro__pie {
+    padding-top: var(--spacing-12);
+  }
+  [data-tema="claro"] .sitio--figura {
+    --m3-registro-relleno: var(--spacing-16);
+  }
+}
+
+/* =====================================================================
+   4. Agentes: la lista tipográfica
+   ===================================================================== */
+.m3-agentes {
+  padding-block: var(--spacing-96);
+}
+.m3-agentes__cabeza {
+  display: grid;
+  gap: var(--spacing-12);
+  max-width: 640px;
+}
+.m3-subtitulo {
+  font-size: var(--m3-subtitulo-tam);
+  font-weight: var(--m3-titular-peso);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--m3-texto);
+  text-wrap: balance;
+}
+.m3-agentes__texto {
+  max-width: 52ch;
+  font-size: var(--m3-cuerpo-tam);
+  font-weight: var(--m3-cuerpo-peso);
+  line-height: 1.5;
+  color: var(--m3-texto-2);
+}
+
+.m3-lista {
+  margin: var(--spacing-48) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--m3-linea);
+}
+.m3-lista > li {
+  border-bottom: 1px solid var(--m3-linea);
+}
+.m3-agente {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 24px;
+  grid-template-areas:
+    "personaje nombre flecha"
+    "texto texto texto";
+  align-items: center;
+  column-gap: var(--spacing-12);
+  row-gap: var(--spacing-8);
+  width: 100%;
+  padding-block: var(--spacing-16);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.25s var(--ease),
+    transform 0.12s var(--ease);
+}
+.m3-agente__num {
+  display: none;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--m3-texto-3);
+}
+.m3-agente__personaje {
+  grid-area: personaje;
+  display: block;
+  width: 40px;
+  transition: transform 0.35s var(--ease-entrada, var(--ease));
+}
+.m3-agente__personaje svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.m3-agente__nombre {
+  grid-area: nombre;
+  font-size: var(--m3-nombre-tam);
+  font-weight: var(--m3-titular-peso);
+  line-height: 1;
+  letter-spacing: var(--m3-titular-tracking);
+  color: var(--m3-texto);
+  transition: transform 0.35s var(--ease-entrada, var(--ease));
+}
+.m3-agente__texto {
+  grid-area: texto;
+  display: grid;
+  gap: var(--spacing-4);
+}
+.m3-agente__area {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m3-etiqueta-tam);
+  font-weight: 500;
+  letter-spacing: var(--m3-etiqueta-tracking);
+  text-transform: uppercase;
+  color: var(--m3-texto-3);
+}
+.m3-agente__lema {
+  font-size: var(--m3-cuerpo-tam);
+  font-weight: var(--m3-cuerpo-peso);
+  line-height: 1.45;
+  color: var(--m3-texto-2);
+}
+.m3-agente__flecha {
+  grid-area: flecha;
+  justify-self: end;
+  font-size: 20px;
+  color: var(--m3-texto-3);
+  transition:
+    transform 0.25s var(--ease),
+    opacity 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+
+/* Resaltar: la fila bajo el mouse (o con el foco) manda y las demás se apagan */
+@media (hover: hover) and (pointer: fine) {
+  .m3-lista:hover .m3-agente {
+    opacity: var(--m3-apagado);
+  }
+  .m3-lista .m3-agente:hover {
+    opacity: 1;
+  }
+  .m3-agente:hover .m3-agente__nombre {
+    transform: translateX(8px);
+  }
+  .m3-agente:hover .m3-agente__personaje {
+    transform: scale(1.12) rotate(-4deg);
+  }
+  .m3-agente:hover .m3-agente__flecha {
+    color: var(--m3-texto);
+    transform: translateX(4px);
+  }
+}
+.m3-lista:has(.m3-agente:focus-visible) .m3-agente:not(:focus-visible) {
+  opacity: var(--m3-apagado);
+}
+.m3-agente:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.m3-agente:active {
+  transform: scale(0.99);
+}
+.m3-agente:active .m3-agente__flecha {
+  color: var(--m3-texto);
+}
+
+@media (min-width: 1024px) {
+  .m3-agentes {
+    padding-block: var(--spacing-96) var(--m3-seccion);
+  }
+  .m3-lista {
+    max-width: 880px;
+  }
+  .m3-agente {
+    grid-template-columns: 32px 56px minmax(0, 1fr) minmax(0, 340px) 24px;
+    grid-template-areas: "num personaje nombre texto flecha";
+    column-gap: var(--spacing-24);
+    padding-block: var(--spacing-24);
+  }
+  .m3-agente__num {
+    display: block;
+    grid-area: num;
+  }
+  .m3-agente__personaje {
+    width: 56px;
+  }
+  .m3-agente__flecha {
+    opacity: 0;
+  }
+  .m3-agente:hover .m3-agente__flecha,
+  .m3-agente:focus-visible .m3-agente__flecha {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m3-agente,
+  .m3-agente__nombre,
+  .m3-agente__personaje,
+  .m3-agente__flecha {
+    transition: none;
+  }
+}

@@ -13,13 +13,15 @@ import { Escena3D } from "./escena3d/Escena3D";
  * - `fondo="particulas"` (por defecto): la escena de triangulitos, discreta
  *   (opacidad baja y casi invisible detrás del texto, lecciones 7, 11 y 13).
  * - `fondo="3d"`: la escena 3D completa (la historia de /vista-3d).
- * - `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
+ * - `fondo="figura"`: la figura de triangulitos que cambia de forma al bajar
+ *   (cada sección dice cuál con data-escena), sobria y sin máscara: la usa el inicio.
+ * - `fondo="ninguno"`: la página pone su propia escena.
  * El pie siempre llega abajo, aunque la página sea corta.
  */
-export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" }) {
+export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "figura" | "ninguno" }) {
   return (
     <div className={`sitio sitio--${fondo}`}>
-      {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : null}
+      {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : fondo === "figura" ? <Escena sobria /> : null}
       <ScrollSuave />
       <Nav />
       <main id="contenido" tabIndex={-1} className="sitio__contenido sobre-escena">
