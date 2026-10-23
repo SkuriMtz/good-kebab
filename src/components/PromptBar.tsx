@@ -40,6 +40,8 @@ type Fila = PromptBarSource | PromptBarCommand | PromptBarModel;
 
 type Props = {
   placeholder?: string;
+  /** Texto con el que arranca la caja (lo que se pidió desde el dashboard). */
+  initialText?: string;
   sources?: PromptBarSource[];
   commands?: PromptBarCommand[];
   models?: PromptBarModel[];
@@ -142,6 +144,7 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
  */
 export default function PromptBar({
   placeholder = "Escribe tu mensaje",
+  initialText = "",
   sources = [],
   commands = [],
   models = [],
@@ -182,7 +185,7 @@ export default function PromptBar({
   const latest = useRef({ onSend, onStop, onAttach, onDictate, onEffortChange });
   latest.current = { onSend, onStop, onAttach, onDictate, onEffortChange };
 
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialText);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [modelKey, setModelKey] = useState(defaultModel);
   const [plusOpen, setPlusOpen] = useState(false);

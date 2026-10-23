@@ -103,6 +103,7 @@ export function Chat({
   conversacionesIniciales,
   agenteInicial,
   conversacionInicial,
+  textoInicial,
 }: {
   email: string;
   planId: IdPlan;
@@ -111,6 +112,8 @@ export function Chat({
   conversacionesIniciales: Conversacion[];
   agenteInicial: IdAgente;
   conversacionInicial: string | null;
+  /** Lo que se pidió desde la caja del Resumen: llega escrito, listo para enviar. */
+  textoInicial?: string;
 }) {
   const plan = PLAN_POR_ID[planId];
   const [agente, setAgente] = useState<IdAgente>(agenteInicial);
@@ -603,6 +606,7 @@ export function Chat({
             {disponible && !sinMensajes ? (
               <PromptBar
                 key={grupo ? grupo.join("-") : agente}
+                initialText={textoInicial}
                 placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
                 sources={fuentes}
                 commands={comandosDe(participantes)}

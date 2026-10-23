@@ -394,7 +394,7 @@ const reducido = () => typeof window !== "undefined" && window.matchMedia("(pref
  *   la conversación de la recepción se reproduce sola al aparecer en pantalla.
  * - `lugar="pagina"`: /pruebalo, a casi toda la pantalla.
  */
-export function ChatDemo({ lugar = "pagina" }: { lugar?: "inicio" | "pagina" }) {
+export function ChatDemo({ lugar = "pagina", pedido }: { lugar?: "inicio" | "pagina"; /** Lo que se pidió desde la caja del dashboard: se envía una vez al abrir. */ pedido?: string }) {
   const enVivo = lugar === "inicio";
   const [convs, setConvs] = useState<Conversacion[]>(INICIO);
   const [activa, setActiva] = useState("recepcion");
@@ -564,6 +564,17 @@ export function ChatDemo({ lugar = "pagina" }: { lugar?: "inicio" | "pagina" }) 
     limpiar();
     setPendiente(null);
   };
+
+  // Lo pedido en la caja del Resumen (/pruebalo): se envía una sola vez, ya en su chat (?con=…)
+  const pedidoHecho = useRef(false);
+  useEffect(() => {
+    if (enVivo || !pedido || pedidoHecho.current) return;
+    const con = new URLSearchParams(window.location.search).get("con");
+    if (con && INICIO.some((c) => c.id === con) && activa !== con) return;
+    pedidoHecho.current = true;
+    enviar(pedido);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activa, pedido, enVivo]);
 
   const abrir = (id: string) => {
     if (id !== activa) terminarVivo();

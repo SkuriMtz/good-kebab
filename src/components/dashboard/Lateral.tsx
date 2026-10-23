@@ -85,23 +85,16 @@ export function Lateral({
                 <Accionable
                   accion={a}
                   className={`dash-fila-lateral${a.bloqueado ? " dash-fila-lateral--bloqueada" : ""}`}
-                  etiqueta={a.bloqueado ? `${info.nombre}, ${info.area}: ${a.bloqueado}` : undefined}
+                  etiqueta={`${info.nombre}, ${info.area}: ${a.bloqueado ?? a.estado.etiqueta}`}
                 >
-                  <MarcaAgente id={a.id} tam={28} />
-                  <span className="dash-fila-lateral__texto">
-                    <span className="dash-fila-lateral__nombre">
-                      {info.nombre}
-                      <span className="dash-fila-lateral__area">{info.area}</span>
-                    </span>
-                    {a.bloqueado ? (
-                      <span className="dash-fila-lateral__detalle">
-                        <Icono nombre="candado" tam={16} />
-                        {a.bloqueado}
-                      </span>
-                    ) : (
-                      <PuntoEstado tono={a.estado.tono} etiqueta={a.estado.etiqueta} mostrarEtiqueta pulso={a.estado.pulso} className="dash-fila-lateral__estado" />
-                    )}
-                  </span>
+                  <MarcaAgente id={a.id} tam={20} />
+                  <span className="dash-fila-lateral__nombre">{info.nombre}</span>
+                  <span className="dash-fila-lateral__area">{a.bloqueado ?? info.area}</span>
+                  {a.bloqueado ? (
+                    <Icono nombre="candado" tam={16} className="dash-fila-lateral__fin" />
+                  ) : (
+                    <PuntoEstado tono={a.estado.tono} etiqueta={a.estado.etiqueta} pulso={a.estado.pulso} className="dash-fila-lateral__fin" />
+                  )}
                 </Accionable>
               </li>
             );
@@ -120,13 +113,10 @@ export function Lateral({
           <ul className="dash-lista-lateral">
             {grupos.map((g) => (
               <li key={g.id}>
-                <Accionable accion={g} className="dash-fila-lateral dash-fila-lateral--grupo">
+                <Accionable accion={g} className="dash-fila-lateral dash-fila-lateral--grupo" etiqueta={`${g.nombre}: ${nombresAgentes(g.agentes)}${g.sinLeer ? `, ${g.sinLeer} sin leer` : ""}`}>
                   <PilaAgentes ids={g.agentes} tam={20} />
-                  <span className="dash-fila-lateral__texto">
-                    <span className="dash-fila-lateral__nombre">{g.nombre}</span>
-                    <span className="dash-fila-lateral__detalle">{nombresAgentes(g.agentes)}</span>
-                  </span>
-                  {g.sinLeer ? <Insignia contador={g.sinLeer} solida etiqueta={`${g.sinLeer} sin leer`} /> : null}
+                  <span className="dash-fila-lateral__nombre">{g.nombre}</span>
+                  {g.sinLeer ? <Insignia contador={g.sinLeer} solida etiqueta={`${g.sinLeer} sin leer`} className="dash-fila-lateral__fin" /> : null}
                 </Accionable>
               </li>
             ))}

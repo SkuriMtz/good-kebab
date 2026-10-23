@@ -8,6 +8,7 @@ import { Cajon } from "@/components/base/Cajon";
 import { Icono } from "@/components/base/Iconos";
 import { Menu, type ElementoMenu } from "@/components/base/Menu";
 import { Marca } from "@/components/Logo";
+import { Escena } from "@/components/escena/Escena";
 import { ponerTema } from "@/lib/tema";
 import { Avisos } from "./Avisos";
 import { BuscadorDashboard } from "./BuscadorDashboard";
@@ -76,6 +77,8 @@ export function Armazon(props: PropsArmazon) {
 
   return (
     <div className="producto dash">
+      {/* Los fragmentos de fondo, discretos (sin figura: solo polvo) */}
+      <Escena />
       <a href="#contenido" className="dash-saltar">
         Saltar al contenido
       </a>

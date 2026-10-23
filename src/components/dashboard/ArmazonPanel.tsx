@@ -68,11 +68,7 @@ export function ArmazonPanel({ datos, vista: vistaForzada, children }: { datos: 
     { id: "resumen", etiqueta: "Resumen", icono: "inicio", href: "/panel" },
     { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", href: "/panel/chat" },
     { id: "agentes", etiqueta: "Agentes", icono: "agentes", href: "/panel/agentes" },
-    { id: "citas", etiqueta: "Citas", icono: "calendario", pronto: true },
     { id: "correo", etiqueta: "Correo", icono: "correo", href: "/panel?vista=correo" },
-    { id: "clientes", etiqueta: "Clientes", icono: "clientes", pronto: true },
-    { id: "reportes", etiqueta: "Reportes", icono: "grafica", pronto: true },
-    { id: "configuracion", etiqueta: "Configuración", icono: "ajustes", pronto: true },
   ];
 
   const agentes: AgenteLateral[] = IDS_AGENTES.map((id) => {

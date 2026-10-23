@@ -1,75 +1,135 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
-import { Avatar } from "@/components/base/Avatar";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Boton } from "@/components/base/Boton";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
-import { PuntoEstado } from "@/components/base/PuntoEstado";
-import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
-import { Accionable, CabezaBloque, EnlaceMas, Hora, MarcaAgente, PilaAgentes } from "./Piezas";
-import { fechaLarga, saludo } from "./tiempo";
-import type { Accion, ElementoLista, Estado, Evento, TarjetaEvento } from "./tipos";
+import { Menu } from "@/components/base/Menu";
+import { AGENTE_POR_ID, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
+import { EnlaceMas, Hora, MarcaAgente, PilaAgentes } from "./Piezas";
+import { saludo } from "./tiempo";
+import type { Accion, ElementoLista, Evento, TarjetaEvento } from "./tipos";
 
 /* =====================================================================
-   BIENVENIDA: el único momento protagonista de la pantalla. Saludo por
-   la hora, el día en una frase, las acciones y, a la derecha, el día en
-   tres renglones que llevan a donde se resuelve cada cosa.
+   INICIO (como el home de GitHub): el saludo grande, la caja para
+   pedirle algo a tu equipo (con a quién se lo pides y el botón de
+   enviar, el único azul de la pantalla) y una fila de atajos con borde.
    ===================================================================== */
 
-export type RenglonDia = Accion & { id: string; icono: NombreIcono; texto: string; detalle: string; tono?: "atencion" | "error" };
+/** A quién se le pide: un agente o el equipo (un grupo). */
+export type OpcionPedido = { id: string; nombre: string; detalle?: string; agentes: IdAgente[] };
 
-export function Bienvenida({
+/** Un atajo de la fila de abajo (Agendar cita, Resumir un correo…). */
+export type Atajo = Accion & { id: string; etiqueta: string; icono: NombreIcono };
+
+export function Inicio({
   ahora,
   nombre,
-  marca,
-  resumen,
-  acciones,
-  dia,
-  tituloDia = "Tu día",
+  opciones,
+  alPedir,
+  atajos,
 }: {
   ahora: Date | null;
   nombre?: string;
-  /** Algo junto a la fecha (en /pruebalo: la insignia "Datos de ejemplo"). */
-  marca?: ReactNode;
-  resumen: ReactNode;
-  acciones: ReactNode;
-  dia?: RenglonDia[];
-  tituloDia?: string;
+  opciones: OpcionPedido[];
+  /** Al enviar: el texto y a quién (el id de la opción). */
+  alPedir: (texto: string, opcion: string) => void;
+  atajos: Atajo[];
 }) {
   const id = useId().replace(/:/g, "");
+  const [texto, setTexto] = useState("");
+  const [elegida, setElegida] = useState(opciones[0]?.id ?? "");
+  const opcion = opciones.find((o) => o.id === elegida) ?? opciones[0];
+  const listo = Boolean(texto.trim() && opcion);
+
+  const enviar = (e?: FormEvent) => {
+    e?.preventDefault();
+    if (!listo || !opcion) return;
+    alPedir(texto.trim(), opcion.id);
+  };
+
+  const quien = !opcion ? "tu equipo" : opcion.agentes.length > 1 ? "tu equipo" : opcion.nombre;
+
   return (
-    <section className={`dash-bienvenida${dia?.length ? " dash-bienvenida--con-dia" : ""}`} aria-labelledby={`${id}-saludo`}>
-      <div className="dash-bienvenida__principal">
-        <p className="dash-bienvenida__fecha">
-          <span className="cifras">{ahora ? fechaLarga(ahora) : " "}</span>
-          {marca}
-        </p>
-        <h1 id={`${id}-saludo`} className="t-app-saludo dash-bienvenida__saludo">
+    <section className="dash-inicio" aria-labelledby={`${id}-saludo`}>
+      <h1 id={`${id}-saludo`} className="t-app-titulo-grande dash-inicio__saludo">
+        <PilaAgentes ids={IDS_AGENTES} tam={20} className="dash-inicio__equipo" />
+        <span>
           {saludo(ahora)}
           {nombre ? `, ${nombre}` : ""}
-        </h1>
-        <p className="dash-bienvenida__resumen">{resumen}</p>
-        <div className="dash-bienvenida__acciones">{acciones}</div>
-      </div>
-      {dia?.length ? (
-        <div className="dash-bienvenida__dia">
-          <h2 className="dash-bienvenida__dia-titulo">{tituloDia}</h2>
-          <ul>
-            {dia.map((r) => (
-              <li key={r.id}>
-                <Accionable accion={r} className={`dash-renglon${r.tono ? ` dash-renglon--${r.tono}` : ""}`}>
-                  <Icono nombre={r.icono} tam={20} className="dash-renglon__icono" />
-                  <span className="dash-renglon__texto">
-                    <span className="dash-renglon__titulo">{r.texto}</span>
-                    <span className="dash-renglon__detalle">{r.detalle}</span>
-                  </span>
-                  <Icono nombre="chevron-derecha" tam={16} className="dash-renglon__flecha" />
-                </Accionable>
-              </li>
-            ))}
-          </ul>
+        </span>
+      </h1>
+
+      <form className="dash-pedir" onSubmit={enviar}>
+        <label htmlFor={`${id}-pedido`} className="sr-only">
+          Pídele algo a {quien}
+        </label>
+        <textarea
+          id={`${id}-pedido`}
+          className="dash-pedir__campo"
+          rows={2}
+          placeholder={`Pídele algo a ${quien}…`}
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              enviar();
+            }
+          }}
+        />
+        <div className="dash-pedir__pie">
+          {opcion && opciones.length > 1 ? (
+            <Menu
+              etiqueta="A quién se lo pides"
+              etiquetaDisparador={`A quién se lo pides: ${opcion.nombre}`}
+              aspecto="boton"
+              claseDisparador="dash-pedir__quien"
+              disparador={
+                <span className="dash-pedir__elegido">
+                  {opcion.agentes.length > 1 ? <PilaAgentes ids={opcion.agentes} tam={20} /> : <MarcaAgente id={opcion.agentes[0]} tam={20} />}
+                  {opcion.nombre}
+                </span>
+              }
+              elementos={opciones.map((o) => ({
+                id: o.id,
+                etiqueta: o.nombre,
+                descripcion: o.detalle,
+                actual: o.id === opcion.id,
+                alElegir: () => setElegida(o.id),
+              }))}
+            />
+          ) : opcion ? (
+            <span className="dash-pedir__elegido dash-pedir__elegido--solo">
+              <MarcaAgente id={opcion.agentes[0]} tam={20} />
+              {opcion.nombre}
+            </span>
+          ) : null}
+          <span className="dash-pedir__ayuda" aria-hidden="true">
+            Enter para enviar
+          </span>
+          <button type="submit" className="boton boton--principal boton--compacto dash-pedir__enviar" disabled={!listo} aria-label={`Enviar a ${opcion?.nombre ?? "tu equipo"}`}>
+            <Icono nombre="enviar" tam={16} />
+          </button>
         </div>
+      </form>
+
+      {atajos.length ? (
+        <ul className="dash-atajos" aria-label="Atajos">
+          {atajos.map((a) => (
+            <li key={a.id}>
+              {a.href ? (
+                <Boton variante="sutil" href={a.href} icono={<Icono nombre={a.icono} tam={16} />}>
+                  {a.etiqueta}
+                </Boton>
+              ) : (
+                <Boton variante="sutil" onClick={a.alElegir} icono={<Icono nombre={a.icono} tam={16} />}>
+                  {a.etiqueta}
+                </Boton>
+              )}
+            </li>
+          ))}
+        </ul>
       ) : null}
     </section>
   );
@@ -267,11 +327,7 @@ export function ListaVistoBueno({
                 <Insignia tono="exito" conPunto>
                   Aprobado
                 </Insignia>
-              ) : (
-                <Insignia tono="atencion" conPunto>
-                  Espera tu visto bueno
-                </Insignia>
-              )}
+              ) : null}
             </div>
             <figure className="dash-objeto dash-objeto--mensaje">
               <figcaption className="dash-objeto__para">{p.para}</figcaption>
@@ -314,155 +370,5 @@ export function ListaVistoBueno({
         );
       })}
     </ul>
-  );
-}
-
-/* =====================================================================
-   DESTACADOS: lo que marcaste con estrella para tenerlo a la mano.
-   ===================================================================== */
-
-export function ListaDestacados({
-  elementos,
-  alQuitar,
-}: {
-  elementos: (Accion & { id: string; agente: IdAgente; titulo: string; detalle: string })[];
-  alQuitar: (id: string) => void;
-}) {
-  return (
-    <ul className="dash-lista dash-lista--borde">
-      {elementos.map((d) => (
-        <li key={d.id} className="dash-fila">
-          <Accionable accion={d} className="dash-fila__principal">
-            <MarcaAgente id={d.agente} tam={32} />
-            <span className="dash-fila__texto">
-              <span className="dash-fila__titulo">{d.titulo}</span>
-              <span className="dash-fila__detalle">{d.detalle}</span>
-            </span>
-          </Accionable>
-          <button type="button" className="boton-icono boton-icono--capa boton-icono--compacto dash-estrella" aria-pressed="true" aria-label={`Quitar «${d.titulo}» de destacados`} title="Quitar de destacados" onClick={() => alQuitar(d.id)}>
-            <Icono nombre="estrella" tam={16} />
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/* =====================================================================
-   AGENTES FIJADOS (como los repositorios fijados): nombre en azul, su
-   área en una etiqueta, qué hace y, abajo, su estado y su semana.
-   ===================================================================== */
-
-export type Fijado = Accion & {
-  id: IdAgente;
-  estado: Estado;
-  meta: { icono: NombreIcono; texto: string }[];
-};
-
-export function AgentesFijados({ fijados, accion, titulo = "Agentes fijados" }: { fijados: Fijado[]; accion?: ReactNode; titulo?: string }) {
-  const id = useId().replace(/:/g, "");
-  return (
-    <section aria-labelledby={`${id}-fijados`} className="dash-bloque">
-      <CabezaBloque id={`${id}-fijados`} titulo={titulo} accion={accion} />
-      <ul className="dash-fijados">
-        {fijados.map((f) => {
-          const info = AGENTE_POR_ID[f.id];
-          return (
-            <li key={f.id} className="dash-fijado">
-              <div className="dash-fijado__cabeza">
-                <MarcaAgente id={f.id} tam={24} />
-                <Accionable accion={f} className="dash-fijado__nombre">
-                  {info.nombre}
-                </Accionable>
-                <Insignia className="dash-fijado__area">{info.area}</Insignia>
-              </div>
-              <p className="dash-fijado__lema">{info.lema}</p>
-              <div className="dash-fijado__meta">
-                <PuntoEstado tono={f.estado.tono} etiqueta={f.estado.etiqueta} mostrarEtiqueta pulso={f.estado.pulso} />
-                {f.meta.map((m) => (
-                  <span key={m.texto} className="dash-fijado__dato">
-                    <Icono nombre={m.icono} tam={16} />
-                    {m.texto}
-                  </span>
-                ))}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-/* =====================================================================
-   CONVERSACIONES RECIENTES: filas de 52px, quién, por dónde, lo último
-   que se dijo, qué agente la lleva y hace cuánto.
-   ===================================================================== */
-
-export type FilaConversacion = Accion & {
-  id: string;
-  titulo: string;
-  /** Canal o con quién ("WhatsApp", "Con Lola"). */
-  canal?: string;
-  ultimo?: string;
-  agentes: IdAgente[];
-  /** Persona del otro lado (cliente): sus iniciales; si no, el personaje. */
-  persona?: string;
-  sinLeer?: boolean;
-  fecha?: string;
-  haceMin?: number;
-};
-
-export function ConversacionesRecientes({
-  filas,
-  ahora,
-  accion,
-  vacio,
-  titulo = "Conversaciones recientes",
-}: {
-  filas: FilaConversacion[];
-  ahora: Date | null;
-  accion?: ReactNode;
-  vacio?: ReactNode;
-  titulo?: string;
-}) {
-  const id = useId().replace(/:/g, "");
-  return (
-    <section aria-labelledby={`${id}-convs`} className="dash-bloque">
-      <CabezaBloque id={`${id}-convs`} titulo={titulo} accion={accion} />
-      {filas.length ? (
-        <ul className="dash-lista dash-lista--borde">
-          {filas.map((c) => (
-            <li key={c.id}>
-              <Accionable accion={c} className={`dash-conv${c.sinLeer ? " dash-conv--nueva" : ""}`}>
-                {c.persona ? (
-                  <Avatar nombre={c.persona} tam={32} />
-                ) : c.agentes.length > 1 ? (
-                  <PilaAgentes ids={c.agentes} tam={24} className="dash-conv__pila" />
-                ) : (
-                  <MarcaAgente id={c.agentes[0]} tam={32} />
-                )}
-                <span className="dash-conv__texto">
-                  <span className="dash-conv__linea">
-                    <span className="dash-conv__titulo">{c.titulo}</span>
-                    {c.canal ? <span className="dash-conv__canal">{c.canal}</span> : null}
-                  </span>
-                  {c.ultimo ? <span className="dash-conv__ultimo">{c.ultimo}</span> : null}
-                </span>
-                <span className="dash-conv__fin">
-                  <Hora item={c} ahora={ahora} />
-                  <span className="dash-conv__quien">
-                    {c.persona ? <PilaAgentes ids={c.agentes} tam={20} /> : null}
-                    {c.sinLeer ? <Insignia punto tono="azul" etiqueta="Sin leer" /> : null}
-                  </span>
-                </span>
-              </Accionable>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        vacio
-      )}
-    </section>
   );
 }

@@ -36,7 +36,7 @@ function resaltar(texto: string, q: string): ReactNode {
 export const BuscadorDashboard = forwardRef<
   HTMLInputElement,
   { indice: ResultadoBusqueda[]; placeholder?: string; atajo?: boolean; alElegir?: () => void; className?: string }
->(function BuscadorDashboard({ indice, placeholder = "Busca agentes, chats o citas", atajo = true, alElegir, className = "" }, ref) {
+>(function BuscadorDashboard({ indice, placeholder = "Busca…", atajo = true, alElegir, className = "" }, ref) {
   const [q, setQ] = useState("");
   const { abierto, setAbierto, cerrar, raiz, alSalirFoco } = usePopover();
   const idPanel = `${useId().replace(/:/g, "")}-resultados`;

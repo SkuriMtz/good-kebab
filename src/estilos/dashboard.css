@@ -23,6 +23,25 @@
   --alto-aviso: var(--alto-control-chico);
 }
 
+/* Fragmentos de fondo (lecciones 7, 11, 13 y 14): la escena de polvo del
+   sitio, fija y muy tenue. Casi no se ve donde va el texto (al centro);
+   el lateral y las tarjetas la tapan. El contenido va encima. */
+.dash > .escena-fondo {
+  opacity: calc(var(--escena-opacidad) * 0.7);
+  -webkit-mask-image: radial-gradient(ellipse 46% 60% at 50% 45%, rgb(0 0 0 / 0.12), rgb(0 0 0 / 1));
+  mask-image: radial-gradient(ellipse 46% 60% at 50% 45%, rgb(0 0 0 / 0.12), rgb(0 0 0 / 1));
+}
+@media (max-width: 767px) {
+  .dash > .escena-fondo {
+    opacity: calc(var(--escena-opacidad) * 0.45);
+  }
+}
+.dash-cuerpo,
+.dash-demo {
+  position: relative;
+  z-index: 1;
+}
+
 /* Saltar al contenido (aparece solo con el teclado) */
 .dash-saltar {
   position: absolute;
@@ -779,57 +798,48 @@
   flex-direction: column;
   gap: calc(var(--spacing-4) / 2);
 }
+/* Filas de una línea, como "Top repositories": personaje, nombre, área en
+   gris y, al final, el punto de estado (o el candado, o los sin leer). */
 .dash-fila-lateral {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--spacing-8);
   width: 100%;
-  min-height: var(--spacing-44);
+  min-height: var(--alto-control-chico);
   padding: var(--spacing-4) var(--spacing-8);
   border-radius: var(--radio-app-control);
   color: var(--c-texto);
   text-align: left;
 }
-.dash-fila-lateral__texto {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
+@media (pointer: coarse) {
+  .dash-fila-lateral {
+    min-height: var(--spacing-44);
+  }
 }
 .dash-fila-lateral__nombre {
-  display: flex;
-  align-items: baseline;
-  gap: var(--spacing-8);
-  overflow: hidden;
+  flex-shrink: 0;
   font-weight: var(--peso-app-medio);
   white-space: nowrap;
+}
+.dash-fila-lateral--grupo .dash-fila-lateral__nombre {
+  flex: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 .dash-fila-lateral__area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   color: var(--c-texto-2);
   font-size: var(--t-app-etiqueta);
-  font-weight: var(--peso-cuerpo);
-}
-.dash-fila-lateral__estado {
-  min-width: 0;
-}
-.dash-fila-lateral__estado .punto-estado__texto,
-.dash-fila-lateral__detalle {
-  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.dash-fila-lateral__detalle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  color: var(--c-texto-2);
-  font-size: var(--t-app-etiqueta);
-  line-height: var(--interlineado-app-etiqueta);
-}
-.dash-fila-lateral__detalle .icono {
-  --icono-tam: var(--spacing-12);
+.dash-fila-lateral__fin {
   flex-shrink: 0;
+  margin-left: auto;
 }
 .dash-fila-lateral--bloqueada {
   color: var(--c-texto-2);
@@ -837,11 +847,14 @@
 .dash-fila-lateral--bloqueada .dash-marca {
   opacity: 0.55;
 }
+.dash-fila-lateral--bloqueada .dash-fila-lateral__fin {
+  color: var(--c-terciario);
+}
 .dash-lateral__vacio {
   padding: 0 var(--spacing-8);
 }
 .dash-fila-lateral--grupo .dash-pila {
-  min-width: var(--avatar-28);
+  min-width: var(--spacing-32);
 }
 
 /* =====================================================================
@@ -941,141 +954,118 @@
    6. CENTRO: bienvenida, actividad, visto bueno, fijados, conversaciones
    ===================================================================== */
 
-/* ---------- Bienvenida (el momento protagonista) ---------- */
-.dash-bienvenida {
-  display: grid;
-  gap: var(--spacing-24);
-  padding: var(--espacio-app-tarjeta-amplio);
-  border: 1px solid var(--c-borde);
-  border-radius: var(--radio-app-panel);
-  background: var(--c-superficie);
-}
-@media (min-width: 768px) {
-  .dash-bienvenida {
-    padding: var(--spacing-32);
-  }
-}
-@media (min-width: 1024px) {
-  .dash-bienvenida--con-dia {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: var(--spacing-32);
-  }
-}
-.dash-bienvenida__fecha {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-8);
-  min-height: var(--avatar-20);
-  color: var(--c-texto-2);
-  font-size: var(--t-app-etiqueta);
-  font-weight: var(--peso-app-medio);
-}
-.dash-bienvenida__saludo {
-  margin-top: var(--spacing-12);
-}
-.dash-bienvenida__resumen {
-  max-width: 56ch;
-  margin-top: var(--spacing-12);
-  color: var(--c-texto-2);
-  font-size: var(--t-app-mediano);
-  line-height: 1.5;
-  letter-spacing: var(--tracking-app);
-}
-.dash-bienvenida__resumen strong {
-  color: var(--c-texto);
-  font-weight: var(--peso-app-titulo);
-}
-.dash-bienvenida__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8);
-  margin-top: var(--spacing-24);
-}
-.dash-bienvenida__acciones .boton {
-  font-size: var(--t-app-cuerpo);
-  font-weight: var(--peso-app-medio);
-}
-@media (max-width: 639px) {
-  .dash-bienvenida__acciones > * {
-    flex: 1 1 100%;
-  }
-}
-.dash-bienvenida__dia {
-  padding-top: var(--spacing-20);
-  border-top: 1px solid var(--c-borde);
-}
-@media (min-width: 1024px) {
-  .dash-bienvenida__dia {
-    padding-top: 0;
-    padding-left: var(--spacing-32);
-    border-top: 0;
-    border-left: 1px solid var(--c-borde);
-  }
-}
-.dash-bienvenida__dia-titulo {
-  margin-bottom: var(--spacing-8);
-  color: var(--c-texto-2);
-  font-size: var(--t-app-etiqueta);
-  font-weight: var(--peso-app-medio);
-}
-.dash-bienvenida__dia ul {
+/* ---------- Inicio (como el home de GitHub) ----------
+   El saludo, la caja grande para pedir algo y la fila de atajos con borde.
+   La caja es el único momento protagonista de la pantalla. */
+.dash-inicio {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing-4) / 2);
+  gap: var(--spacing-16);
 }
-.dash-renglon {
+.dash-inicio__saludo {
   display: flex;
   align-items: center;
   gap: var(--spacing-12);
-  width: calc(100% + 2 * var(--spacing-8));
-  min-height: var(--alto-app-fila);
-  margin-inline: calc(-1 * var(--spacing-8));
-  padding: var(--spacing-8);
-  border-radius: var(--radio-app-tarjeta);
-  color: var(--c-texto);
-  text-align: left;
+  margin-bottom: var(--spacing-4);
 }
-.dash-renglon__icono {
+.dash-inicio__equipo {
   flex-shrink: 0;
-  color: var(--c-texto-2);
 }
-.dash-renglon__texto {
+.dash-pedir {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  min-width: 0;
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-app-panel);
+  background: var(--c-superficie);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
 }
-.dash-renglon__titulo {
-  font-weight: var(--peso-app-titulo);
+.dash-pedir:focus-within {
+  border-color: var(--c-acento);
+  box-shadow: 0 0 0 1px var(--c-acento);
 }
-.dash-renglon__detalle {
+.dash-pedir__campo {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--spacing-32) * 2 + var(--spacing-8));
+  max-height: calc(var(--spacing-32) * 7);
+  padding: var(--spacing-16) var(--spacing-16) var(--spacing-4);
+  border: 0;
+  background: transparent;
+  color: var(--c-texto);
+  font: inherit;
+  font-size: var(--t-app-mediano);
+  line-height: 1.5;
+  resize: none;
+  field-sizing: content;
+}
+.dash-pedir__campo:focus {
+  outline: none;
+}
+.dash-pedir__campo::placeholder {
+  color: var(--c-terciario);
+  opacity: 1;
+}
+.dash-pedir__pie {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-8) var(--spacing-12) var(--spacing-12);
+}
+.dash-pedir__pie > :first-child {
+  margin-right: auto;
+}
+.dash-pedir__elegido {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  white-space: nowrap;
+}
+.dash-pedir__elegido--solo {
+  padding: 0 var(--spacing-4);
   color: var(--c-texto-2);
   font-size: var(--t-app-etiqueta);
-  line-height: var(--interlineado-app-etiqueta);
+  font-weight: var(--peso-app-medio);
 }
-.dash-renglon--error .dash-renglon__detalle::before,
-.dash-renglon--atencion .dash-renglon__detalle::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: var(--spacing-4);
-  border-radius: var(--radio-circulo);
-  background: var(--c-error);
-  vertical-align: 0.1em;
-}
-.dash-renglon--atencion .dash-renglon__detalle::before {
-  background: var(--c-atencion);
-}
-.dash-renglon__flecha {
-  flex-shrink: 0;
+.dash-pedir__ayuda {
   color: var(--c-terciario);
-  transition: transform var(--dur-micro) var(--ease);
+  font-size: var(--t-app-etiqueta);
 }
-@media (hover: hover) and (pointer: fine) {
-  .dash-renglon:hover .dash-renglon__flecha {
-    transform: translateX(2px);
+@media (max-width: 639px), (pointer: coarse) {
+  .dash-pedir__ayuda {
+    display: none;
+  }
+}
+.dash-pedir .dash-pedir__enviar {
+  width: var(--alto-control-compacto);
+  min-width: var(--alto-control-compacto);
+  padding: 0;
+}
+.dash-pedir .dash-pedir__enviar:disabled {
+  background: var(--c-relleno);
+  color: var(--c-terciario);
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  .dash-pedir .dash-pedir__enviar {
+    width: var(--alto-control);
+    min-width: var(--alto-control);
+    min-height: var(--alto-control);
+  }
+}
+.dash-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+.dash-atajos .boton {
+  font-weight: var(--peso-app-medio);
+}
+@media (max-width: 639px) {
+  .dash-atajos {
+    justify-content: flex-start;
   }
 }
 
@@ -1619,6 +1609,9 @@
   gap: var(--spacing-8);
   color: var(--c-texto-2);
   font-size: var(--t-app-etiqueta);
+}
+.dash-plan .dash-tarjeta__cabeza {
+  padding: 0;
 }
 .dash-plan__pie {
   padding-top: var(--spacing-12);
@@ -2344,4 +2337,12 @@
 }
 .uso > .progreso {
   align-self: stretch;
+}
+
+/* Destino de "Ver citas": queda bajo la barra fija al deslizar */
+.dash-ancla {
+  scroll-margin-top: calc(var(--barra-app-h) + var(--spacing-16));
+}
+.dash-ancla:focus {
+  outline: none;
 }

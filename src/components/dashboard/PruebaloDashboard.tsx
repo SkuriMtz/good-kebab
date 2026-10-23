@@ -17,14 +17,10 @@ import {
   DEMO_APROBACIONES,
   DEMO_AVISOS,
   DEMO_CITAS,
-  DEMO_CONSEJOS,
   DEMO_CONVERSACIONES,
   DEMO_CORREOS,
-  DEMO_DESTACADOS,
-  DEMO_DIA,
   DEMO_ESTADOS,
   DEMO_GRUPOS,
-  DEMO_METRICAS,
   DEMO_NEGOCIO,
   DEMO_SEMANA_AGENTE,
   DEMO_USUARIA,
@@ -34,8 +30,8 @@ import {
 } from "@/lib/demo-dashboard";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { Armazon } from "./Armazon";
-import { AgentesFijados, Bienvenida, ConversacionesRecientes, LineaTiempo, ListaDestacados, ListaVistoBueno } from "./Centro";
-import { Ayuda, Consejos, Metricas, Novedades, ProximasCitas, TarjetaPlan } from "./Columna";
+import { Inicio, LineaTiempo, ListaVistoBueno, type OpcionPedido } from "./Centro";
+import { ProximasCitas, TarjetaPlan } from "./Columna";
 import { FilaAgente } from "./FilaAgente";
 import { nombresAgentes } from "./nombres";
 import { EnlaceMas, Hora, Vacio } from "./Piezas";
@@ -73,7 +69,8 @@ export function PruebaloDashboard() {
   const [chatCon, setChatCon] = useState<string | null>(null);
   const [pestana, setPestana] = useState<IdPestana>("actividad");
   const [aprobados, setAprobados] = useState<Set<string>>(() => new Set());
-  const [destacados, setDestacados] = useState(DEMO_DESTACADOS);
+  /** Lo que se pidió en la caja del Resumen: el chat de ejemplo lo envía al abrir. */
+  const [pedido, setPedido] = useState<{ texto: string; n: number } | null>(null);
   const [avisosLeidos, setAvisosLeidos] = useState(false);
   const [anterior, setAnterior] = useState<"no" | "cargando" | "si">("no");
   const pestanasRef = useRef<HTMLDivElement>(null);
@@ -85,6 +82,7 @@ export function PruebaloDashboard() {
       const { vista: v, con } = leerDireccion();
       setVista(v);
       setChatCon(con);
+      setPedido(null);
     };
     aplicar();
     window.addEventListener("popstate", aplicar);
@@ -105,6 +103,7 @@ export function PruebaloDashboard() {
     if (destino !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.pushState(null, "", destino);
     setChatCon(d.con ?? null);
     setVista(vistaNueva);
+    setPedido(null);
     if (d.pestana) setPestana(d.pestana);
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     requestAnimationFrame(() => {
@@ -116,6 +115,15 @@ export function PruebaloDashboard() {
 
   const a = useCallback((d: Destino) => () => ir(d), [ir]);
 
+  /** La caja grande: abre Conversaciones con ese chat y el chat de ejemplo envía el texto (guion local, sin IA). */
+  const pedir = useCallback(
+    (texto: string, con: string) => {
+      ir({ vista: "conversaciones", con });
+      setPedido({ texto, n: Date.now() });
+    },
+    [ir],
+  );
+
   /* ---------- Armazón: navegación, agentes, grupos, menús ---------- */
 
   const pendientes = DEMO_APROBACIONES.filter((p) => !aprobados.has(p.id)).length;
@@ -124,11 +132,7 @@ export function PruebaloDashboard() {
     { id: "resumen", etiqueta: "Resumen", icono: "inicio", alElegir: a({ vista: "resumen" }) },
     { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", contador: 3, etiquetaContador: "3 mensajes sin leer", alElegir: a({ vista: "conversaciones" }) },
     { id: "agentes", etiqueta: "Agentes", icono: "agentes", alElegir: a({ vista: "agentes" }) },
-    { id: "citas", etiqueta: "Citas", icono: "calendario", pronto: true },
     { id: "correo", etiqueta: "Correo", icono: "correo", contador: 1, etiquetaContador: "1 correo urgente", alElegir: a({ vista: "correo" }) },
-    { id: "clientes", etiqueta: "Clientes", icono: "clientes", pronto: true },
-    { id: "reportes", etiqueta: "Reportes", icono: "grafica", pronto: true },
-    { id: "configuracion", etiqueta: "Configuración", icono: "ajustes", pronto: true },
   ];
 
   const agentesLateral = IDS_AGENTES.map((id) => ({ id, estado: DEMO_ESTADOS[id], alElegir: a({ vista: "conversaciones", con: id }) }));
@@ -196,8 +200,8 @@ export function PruebaloDashboard() {
     <div className="dash-demo" role="note">
       <Icono nombre="alerta" tam={16} className="dash-demo__icono" />
       <p className="dash-demo__texto">
-        <strong>Demostración con datos de ejemplo.</strong>
-        <span className="dash-demo__mas"> Una clínica inventada: nada se guarda ni se envía y el chat no usa la IA.</span>
+        <strong>Datos de ejemplo.</strong>
+        <span className="dash-demo__mas"> Una clínica inventada: nada se guarda ni se envía.</span>
       </p>
       <Link href="/entrar" className="dash-enlace dash-enlace--chico">
         Probarlo de verdad
@@ -240,14 +244,13 @@ export function PruebaloDashboard() {
           <Resumen
             ahora={ahora}
             ir={ir}
+            pedir={pedir}
             pestana={pestana}
             setPestana={setPestana}
             pestanasRef={pestanasRef}
             aprobados={aprobados}
             setAprobados={setAprobados}
             pendientes={pendientes}
-            destacados={destacados}
-            setDestacados={setDestacados}
             anterior={anterior}
             verAnterior={() => {
               setAnterior("cargando");
@@ -255,7 +258,7 @@ export function PruebaloDashboard() {
             }}
           />
         ) : null}
-        {vista === "conversaciones" ? <VistaConversaciones chatCon={chatCon} /> : null}
+        {vista === "conversaciones" ? <VistaConversaciones chatCon={chatCon} pedido={pedido} /> : null}
         {vista === "agentes" ? <VistaAgentes ir={ir} /> : null}
         {vista === "correo" ? <VistaCorreo ahora={ahora} ir={ir} /> : null}
       </div>
@@ -267,36 +270,42 @@ export function PruebaloDashboard() {
    RESUMEN
    ===================================================================== */
 
+/** A quién se le puede pedir algo en la caja: el grupo Recepción o cada agente (los chats de ejemplo). */
+const OPCIONES: OpcionPedido[] = [
+  { id: "recepcion", nombre: "Recepción", detalle: "El grupo de Lola y Víctor", agentes: ["lola", "victor"] },
+  ...AGENTES_INFO.map((ag) => ({ id: ag.id, nombre: ag.nombre, detalle: ag.area, agentes: [ag.id] })),
+];
+
 function Resumen({
   ahora,
   ir,
+  pedir,
   pestana,
   setPestana,
   pestanasRef,
   aprobados,
   setAprobados,
   pendientes,
-  destacados,
-  setDestacados,
   anterior,
   verAnterior,
 }: {
   ahora: Date | null;
   ir: (d: Destino) => void;
+  pedir: (texto: string, con: string) => void;
   pestana: IdPestana;
   setPestana: (p: IdPestana) => void;
   pestanasRef: RefObject<HTMLDivElement>;
   aprobados: Set<string>;
   setAprobados: Dispatch<SetStateAction<Set<string>>>;
   pendientes: number;
-  destacados: typeof DEMO_DESTACADOS;
-  setDestacados: Dispatch<SetStateAction<typeof DEMO_DESTACADOS>>;
   anterior: "no" | "cargando" | "si";
   verAnterior: () => void;
 }) {
   const idActividad = useId().replace(/:/g, "");
+  // Menos insignias: el texto del evento ya dice lo mismo
   const conAccion = <T extends { ir?: Destino; accion?: { etiqueta: string } }>(e: T) => ({
     ...e,
+    insignia: undefined,
     accion: e.accion && e.ir ? { ...e.accion, alElegir: () => ir(e.ir as Destino) } : undefined,
   });
   const eventos = [...DEMO_ACTIVIDAD, ...(anterior === "si" ? DEMO_ACTIVIDAD_ANTERIOR : [])].map(conAccion);
@@ -323,43 +332,26 @@ function Resumen({
   return (
     <div className="dash-pagina dash-rejilla">
       <div className="dash-centro">
-        <Bienvenida
+        <Inicio
           ahora={ahora}
           nombre={DEMO_USUARIA.nombre.split(" ")[0]}
-          marca={<Insignia>Datos de ejemplo</Insignia>}
-          resumen={
-            <>
-              Desde ayer, <strong>Lola</strong> confirmó 10 de las 12 citas de mañana y <strong>Clara</strong> leyó 23 correos: uno es urgente.{" "}
-              {pendientes ? (
-                <>
-                  Tu equipo dejó {pendientes === 1 ? "una cosa lista" : `${pendientes} cosas listas`} que {pendientes === 1 ? "espera" : "esperan"} tu visto bueno.
-                </>
-              ) : (
-                <>Ya aprobaste todo lo que esperaba tu visto bueno.</>
-              )}
-            </>
-          }
-          acciones={
-            <>
-              <Boton icono={<Icono nombre="mensaje" tam={16} />} onClick={() => ir({ vista: "conversaciones" })}>
-                Nueva conversación
-              </Boton>
-              <Boton variante="sutil" icono={<Icono nombre="calendario" tam={16} />} onClick={() => ir({ vista: "conversaciones", con: "lola" })}>
-                Agendar cita
-              </Boton>
-            </>
-          }
-          dia={DEMO_DIA.map((d) =>
-            d.id === "visto"
-              ? {
-                  ...d,
-                  texto: pendientes ? `${pendientes} ${pendientes === 1 ? "cosa espera" : "cosas esperan"} tu visto bueno` : "Nada espera tu visto bueno",
-                  detalle: pendientes ? d.detalle : "Lo aprobaste todo",
-                  tono: pendientes ? d.tono : undefined,
-                  alElegir: () => ir(d.ir),
-                }
-              : { ...d, alElegir: () => ir(d.ir) },
-          )}
+          opciones={OPCIONES}
+          alPedir={pedir}
+          atajos={[
+            { id: "cita", etiqueta: "Agendar cita", icono: "calendario", alElegir: () => ir({ vista: "conversaciones", con: "lola" }) },
+            { id: "correo", etiqueta: "Resumir un correo", icono: "correo", alElegir: () => ir({ vista: "correo" }) },
+            { id: "grupo", etiqueta: "Nuevo grupo", icono: "usuarios", alElegir: () => ir({ vista: "conversaciones", con: "recepcion" }) },
+            {
+              id: "citas",
+              etiqueta: "Ver citas",
+              icono: "reloj",
+              alElegir: () => {
+                const el = document.getElementById("citas-de-manana");
+                el?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+                el?.focus({ preventScroll: true });
+              },
+            },
+          ]}
         />
 
         <section className="dash-bloque dash-actividad" aria-labelledby={`${idActividad}-titulo`} ref={pestanasRef}>
@@ -369,7 +361,7 @@ function Resumen({
           <Pestanas
             etiqueta="Actividad de tu equipo"
             alineacion="izquierda"
-            activa={pestana}
+            activa={pestana === "destacados" ? "actividad" : pestana}
             alCambiar={(id) => setPestana(id as IdPestana)}
             classNamePanel="dash-actividad__panel"
             pestanas={[
@@ -398,27 +390,9 @@ function Resumen({
                   <Vacio
                     icono="check-circulo"
                     titulo="Todo al día"
-                    texto="Nada espera tu visto bueno. Cuando un agente deje algo listo que salga a tu nombre, aparece aquí antes de enviarse."
+                    texto="Nada espera tu visto bueno. Lo que salga a tu nombre aparece aquí antes de enviarse."
                     accion={
                       <button type="button" className="dash-enlace" onClick={() => setAprobados(new Set())}>
-                        Volver a ver los ejemplos
-                      </button>
-                    }
-                  />
-                ),
-              },
-              {
-                id: "destacados",
-                etiqueta: "Destacados",
-                contenido: destacados.length ? (
-                  <ListaDestacados elementos={destacados.map((d) => ({ ...d, alElegir: () => ir(d.ir) }))} alQuitar={(id) => setDestacados((ds) => ds.filter((d) => d.id !== id))} />
-                ) : (
-                  <Vacio
-                    icono="estrella"
-                    titulo="Sin destacados"
-                    texto="Quitaste todo lo que tenías a la mano."
-                    accion={
-                      <button type="button" className="dash-enlace" onClick={() => setDestacados(DEMO_DESTACADOS)}>
                         Volver a ver los ejemplos
                       </button>
                     }
@@ -428,54 +402,19 @@ function Resumen({
             ]}
           />
         </section>
-
-        <AgentesFijados
-          fijados={IDS_AGENTES.map((id) => ({
-            id,
-            estado: DEMO_ESTADOS[id],
-            meta: DEMO_SEMANA_AGENTE[id],
-            alElegir: () => ir({ vista: "conversaciones", con: id }),
-          }))}
-          accion={<EnlaceMas accion={{ alElegir: () => ir({ vista: "agentes" }) }}>Ver todos</EnlaceMas>}
-        />
-
-        <ConversacionesRecientes
-          ahora={ahora}
-          filas={DEMO_CONVERSACIONES.map((c) => ({
-            id: c.id,
-            titulo: c.cliente,
-            canal: c.canal,
-            ultimo: c.ultimo,
-            persona: c.cliente,
-            agentes: [c.agente],
-            sinLeer: c.sinLeer,
-            haceMin: c.haceMin,
-            alElegir: () => ir(c.ir),
-          }))}
-          accion={<EnlaceMas accion={{ alElegir: () => ir({ vista: "conversaciones" }) }}>Ver todas</EnlaceMas>}
-        />
       </div>
 
-      <aside className="dash-derecha" aria-label="Tu negocio, tu agenda y novedades">
+      <aside className="dash-derecha" aria-label="Tu plan y tus citas">
         <TarjetaPlan
           negocio={DEMO_NEGOCIO.nombre}
-          giro={`${DEMO_NEGOCIO.giro} · ${DEMO_NEGOCIO.ciudad}`}
           plan={PLAN}
           usados={DEMO_NEGOCIO.mensajesUsados}
-          equipo={IDS_AGENTES}
           ahora={ahora}
           accion={<EnlaceMas accion={{ href: "/precios" }}>Ver los planes</EnlaceMas>}
         />
-        <ProximasCitas
-          titulo="Citas de mañana"
-          resumen="12 citas · 10 confirmadas"
-          citas={DEMO_CITAS}
-          pie={<p className="dash-nota">Lola manda el recordatorio un día antes y aparta otro horario a quien cancela.</p>}
-        />
-        <Metricas titulo="Esta semana" nota="contra la semana pasada" metricas={DEMO_METRICAS} />
-        <Novedades />
-        <Consejos consejos={DEMO_CONSEJOS.map((c) => ({ ...c, alElegir: () => ir(c.ir) }))} />
-        <Ayuda extra={[{ etiqueta: "Entrar con tu correo", href: "/entrar" }]} />
+        <div id="citas-de-manana" tabIndex={-1} className="dash-ancla">
+          <ProximasCitas titulo="Citas de mañana" resumen="12 · 10 confirmadas" citas={DEMO_CITAS} />
+        </div>
       </aside>
     </div>
   );
@@ -487,17 +426,17 @@ function Resumen({
    (?con=lola) para que abra directo en esa conversación.
    ===================================================================== */
 
-function VistaConversaciones({ chatCon }: { chatCon: string | null }) {
+function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedido: { texto: string; n: number } | null }) {
   return (
     <div className="dash-vista-chat">
       <header className="dash-vista-chat__cabeza">
         <div>
           <h1 className="t-app-titulo">Conversaciones</h1>
-          <p className="dash-vista__texto">Escríbeles, usa @ para mencionar o / para una acción. Las respuestas son de ejemplo: aquí no se llama a la IA.</p>
+          <p className="dash-vista__texto">Las respuestas son de ejemplo: aquí no se llama a la IA.</p>
         </div>
       </header>
       <div className="dash-vista-chat__marco">
-        <ChatDemo key={chatCon ?? "inicio"} />
+        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} />
       </div>
     </div>
   );
