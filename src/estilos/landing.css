@@ -1,0 +1,403 @@
+/*
+ * Landing nueva — muestra M2, "Zigzag y registro".
+ * La estructura es una sola; lo que cambia con el tema son los tokens:
+ * - Oscuro = Dala (diseno/design.md): negro puro, texto blanco con grises
+ *   #bdbdbd y #9a9a9a, títulos enormes en Geist 400 con -0.04em, párrafos
+ *   ligeros, sin cajas, controles con radio 24px.
+ * - Claro = Vercel (diseno/vercel/DESIGN.md): papel #fafafa, tinta #171717,
+ *   #4d4d4d y #666, títulos en Geist 450 con -0.06em y altura 1.0, tarjetas
+ *   con el anillo fino doble y radio 6px, palomitas en #297a3a.
+ * El botón principal sigue en el azul de Atendel (--c-accion) en los dos.
+ * Solo vive en el sitio público (.sitio); el dashboard y el chat no cambian.
+ */
+
+/* ---------- Tokens: oscuro (Dala) ---------- */
+:root:has(.sitio) {
+  --l-fondo: #000;
+  --l-texto: #fff;
+  --l-texto-2: #bdbdbd;
+  --l-tenue: #9a9a9a;
+  --l-check: var(--color-verde-oscuro); /* #3fb950: verde que se lee sobre negro */
+  --l-titulo-tam: clamp(2.75rem, 1.4rem + 4.2vw, 5rem); /* 44 → 80 */
+  --l-seccion-tam: clamp(2.5rem, 1.5rem + 3.2vw, 4.5rem); /* 40 → 72 */
+  --l-nombre-tam: clamp(2.75rem, 2rem + 2.2vw, 4rem); /* 44 → 64 */
+  --l-titulo-peso: 400;
+  --l-titulo-track: -0.04em;
+  --l-titulo-alto: 1.02;
+  --l-cuerpo-tam: 18px;
+  --l-cuerpo-peso: 300;
+  --l-ceja-tam: 12px;
+  --l-ceja-color: var(--l-tenue);
+  --l-radio-control: 24px;
+  --l-registro-fondo: transparent;
+  --l-registro-anillo: none;
+  --l-registro-relleno: 0;
+  --l-escena-opacidad: 0.6;
+  --l-escena-filtro: none;
+  --l-seccion-espacio: clamp(6rem, 4.5rem + 3vw, 8rem); /* 96 → 128 */
+
+  /* Los tokens de siempre toman los valores del modo */
+  --c-fondo: var(--l-fondo);
+  --c-portada: var(--l-fondo);
+  --c-texto: var(--l-texto);
+  --c-texto-2: var(--l-texto-2);
+  --c-tenue: var(--l-tenue);
+  --radio-boton: var(--l-radio-control);
+  --radio-campo: var(--l-radio-control);
+}
+
+/* ---------- Tokens: claro (Vercel) ---------- */
+:root[data-tema="claro"]:has(.sitio) {
+  --l-fondo: #fafafa;
+  --l-texto: #171717;
+  --l-texto-2: #4d4d4d;
+  --l-tenue: #666;
+  --l-check: #297a3a;
+  --l-titulo-tam: clamp(2.5rem, 1.75rem + 2.4vw, 4rem); /* 40 → 64 */
+  --l-seccion-tam: clamp(2.25rem, 1.6rem + 2vw, 3.5rem); /* 36 → 56 */
+  --l-nombre-tam: clamp(2.25rem, 1.8rem + 1.4vw, 3rem); /* 36 → 48 */
+  --l-titulo-peso: 450;
+  --l-titulo-track: -0.06em;
+  --l-titulo-alto: 1;
+  --l-cuerpo-tam: 17px;
+  --l-cuerpo-peso: 400;
+  --l-ceja-tam: 11px;
+  --l-ceja-color: var(--l-texto);
+  --l-radio-control: 6px;
+  --l-registro-fondo: #fff;
+  --l-registro-anillo: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 0 0 2px #fafafa;
+  --l-registro-relleno: var(--spacing-20) var(--spacing-24);
+  --l-escena-opacidad: 0.45;
+  --l-escena-filtro: grayscale(1); /* partículas en gris suave */
+
+  --c-fondo: var(--l-fondo);
+  --c-portada: var(--l-fondo);
+  --c-borde: #ebebeb;
+}
+
+/* ---------- La escena del fondo en el inicio ----------
+   La constelación vive a la derecha: la máscara apaga lo que queda detrás
+   del texto (izquierda) y deja la figura completa (lecciones 7 y 11). */
+.sitio--inicio .escena-fondo {
+  opacity: var(--l-escena-opacidad);
+  filter: var(--l-escena-filtro);
+  -webkit-mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.14) 0%, rgb(0 0 0 / 0.2) 48%, rgb(0 0 0 / 1) 64%);
+  mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.14) 0%, rgb(0 0 0 / 0.2) 48%, rgb(0 0 0 / 1) 64%);
+}
+@media (max-width: 899px) {
+  .sitio--inicio .escena-fondo {
+    -webkit-mask-image: linear-gradient(rgb(0 0 0 / 1) 0%, rgb(0 0 0 / 1) 21%, rgb(0 0 0 / 0.18) 28%);
+    mask-image: linear-gradient(rgb(0 0 0 / 1) 0%, rgb(0 0 0 / 1) 21%, rgb(0 0 0 / 0.18) 28%);
+  }
+}
+
+/* ---------- Piezas de texto compartidas ---------- */
+.m2-ceja {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--l-ceja-tam);
+  line-height: 1.5;
+  letter-spacing: 0.071em;
+  text-transform: uppercase;
+  color: var(--l-ceja-color);
+}
+.m2-ceja--tenue {
+  color: var(--l-tenue);
+}
+.m2-titulo {
+  margin-top: var(--spacing-24);
+  font-size: var(--l-titulo-tam);
+  font-weight: var(--l-titulo-peso);
+  line-height: var(--l-titulo-alto);
+  letter-spacing: var(--l-titulo-track);
+  color: var(--l-texto);
+  text-wrap: balance;
+}
+.m2-titulo--seccion {
+  font-size: var(--l-seccion-tam);
+}
+/* Aire arriba en cada ranura de Revela para los acentos (ú, í) */
+.m2-titulo .rv-p,
+.m2-agente__nombre .rv-p {
+  padding-top: 0.12em;
+  margin-top: -0.12em;
+}
+.m2-parrafo {
+  max-width: 34rem;
+  margin-top: var(--spacing-24);
+  font-size: var(--l-cuerpo-tam);
+  font-weight: var(--l-cuerpo-peso);
+  line-height: 1.55;
+  color: var(--l-texto-2);
+  text-wrap: pretty;
+}
+.m2-parrafo b {
+  font-weight: var(--peso-medio);
+  color: var(--l-texto);
+}
+.m2-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  border-radius: 4px;
+  font-size: 15px;
+  color: var(--l-texto);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--l-texto) 30%, transparent);
+  text-underline-offset: 6px;
+  transition: text-decoration-color var(--dur-micro) var(--ease);
+}
+.m2-enlace::after {
+  content: "→";
+  transition: transform var(--dur-micro) var(--ease);
+}
+.m2-enlace:hover {
+  text-decoration-color: currentColor;
+}
+.m2-enlace:hover::after {
+  transform: translateX(3px);
+}
+.m2-enlace:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 4px;
+}
+
+/* ---------- 1. Portada partida ---------- */
+.m2-portada {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--barra-h));
+  padding-block: var(--spacing-64) var(--spacing-96);
+}
+.m2-portada__rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: center;
+}
+.m2-portada__titulo {
+  font-kerning: normal;
+}
+.m2-portada__intro {
+  max-width: 33rem;
+  margin-top: var(--spacing-32);
+}
+.m2-portada__formulario {
+  max-width: 32rem;
+  margin-top: var(--spacing-40);
+}
+.m2-portada__condiciones {
+  margin-top: var(--spacing-20);
+}
+.m2-portada__condicion {
+  white-space: nowrap;
+}
+/* El formulario y las condiciones llegan después del texto, sin competir */
+.m2-portada__formulario,
+.m2-portada__condiciones {
+  animation: m2-aparece 0.8s var(--ease-entrada) both;
+  animation-delay: 0.9s;
+}
+.m2-portada__condiciones {
+  animation-delay: 1.05s;
+}
+@keyframes m2-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-12));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- 3. Agentes: cabeza con registro ---------- */
+.m2-agentes {
+  position: relative;
+  padding-block: var(--l-seccion-espacio);
+}
+.m2-agentes__cabeza {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-64);
+  align-items: end;
+}
+
+/* El registro del día: Mono, como la salida de una terminal */
+.m2-registro {
+  margin: 0;
+  padding: var(--l-registro-relleno);
+  border-radius: 6px;
+  background: var(--l-registro-fondo);
+  box-shadow: var(--l-registro-anillo);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.m2-registro__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing-8) var(--spacing-16);
+  padding-bottom: var(--spacing-16);
+  color: var(--l-tenue);
+}
+.m2-registro__prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  color: var(--l-texto);
+}
+.m2-registro__nota {
+  font-size: 11px;
+  letter-spacing: 0.071em;
+  text-transform: uppercase;
+}
+.m2-registro__marca {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+  flex: none;
+}
+.m2-registro__lista {
+  display: grid;
+  gap: var(--spacing-8);
+}
+.m2-registro__linea {
+  display: grid;
+  grid-template-columns: 1.6ch 6ch minmax(0, 1fr);
+  column-gap: var(--spacing-12);
+  color: var(--l-texto-2);
+}
+.m2-registro__signo {
+  color: var(--l-check);
+}
+.m2-registro__hora {
+  color: var(--l-tenue);
+  font-variant-numeric: tabular-nums;
+}
+.m2-registro__texto b {
+  font-weight: var(--peso-medio);
+  color: var(--l-texto);
+}
+.m2-registro__linea--pendiente .m2-registro__signo {
+  display: flex;
+  align-items: center;
+  height: 1.6em;
+  color: var(--l-texto);
+}
+.m2-registro__linea--pendiente em {
+  font-style: normal;
+  color: var(--l-texto);
+}
+
+/* ---------- 3. Agentes: el zigzag ---------- */
+.m2-zigzag {
+  display: grid;
+  gap: var(--l-seccion-espacio);
+  margin-top: var(--spacing-96);
+}
+.m2-agente {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-64);
+  align-items: center;
+}
+/* Fila par: el personaje a la derecha (el texto queda a la izquierda) */
+.m2-agente--derecha .m2-agente__figura {
+  order: 2;
+}
+.m2-agente__figura {
+  display: flex;
+  justify-content: center;
+}
+.m2-agente__personaje {
+  width: min(320px, 70%);
+  height: auto;
+}
+.m2-agente__nombre {
+  margin-top: var(--spacing-16);
+  font-size: var(--l-nombre-tam);
+  font-weight: var(--l-titulo-peso);
+  line-height: 1.04;
+  letter-spacing: var(--l-titulo-track);
+  color: var(--l-texto);
+}
+.m2-agente__lema {
+  margin-top: var(--spacing-16);
+}
+.m2-agente__lista {
+  display: grid;
+  gap: var(--spacing-8);
+  max-width: 30rem;
+  margin-top: var(--spacing-24);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--l-texto-2);
+}
+.m2-agente__lista > li {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+}
+.m2-agente__lista > li::before {
+  content: "–";
+  color: var(--l-tenue);
+}
+.m2-agente__texto .m2-enlace {
+  margin-top: var(--spacing-24);
+}
+
+/* ---------- Celular y tablet ---------- */
+@media (max-width: 899px) {
+  .m2-portada {
+    align-items: flex-start;
+    padding-block: 148px var(--spacing-64);
+  }
+  .m2-portada__rejilla,
+  .m2-agentes__cabeza,
+  .m2-agente {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .m2-portada__hueco {
+    display: none;
+  }
+  .m2-agentes__cabeza {
+    gap: var(--spacing-48);
+  }
+  .m2-agente {
+    gap: var(--spacing-24);
+  }
+  .m2-agente--derecha .m2-agente__figura {
+    order: 0;
+  }
+  .m2-agente__figura {
+    justify-content: flex-start;
+  }
+  .m2-agente__personaje {
+    width: 152px;
+  }
+}
+@media (max-width: 639px) {
+  .m2-corte {
+    display: none;
+  }
+  .m2-portada__intro {
+    margin-top: var(--spacing-24);
+  }
+  .m2-portada__formulario {
+    margin-top: var(--spacing-32);
+  }
+  .m2-registro {
+    font-size: 12.5px;
+  }
+  .m2-registro__linea {
+    column-gap: var(--spacing-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m2-portada__formulario,
+  .m2-portada__condiciones {
+    animation: none;
+  }
+}

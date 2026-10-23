@@ -20,6 +20,7 @@ export type NombreEscena =
   | "globoDerecha"
   | "logoDerecha"
   | "candadoDerecha"
+  | "constelacion"
   | "polvo";
 
 export const ESCENAS: NombreEscena[] = [
@@ -32,6 +33,7 @@ export const ESCENAS: NombreEscena[] = [
   "globoDerecha",
   "logoDerecha",
   "candadoDerecha",
+  "constelacion",
   "polvo",
 ];
 
@@ -98,6 +100,12 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
       if (celular) return { forma, modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.38, h * 0.21), giro, alfa: 0.85, tam: 0.75, ocultarAtras: globo ? 1 : 0.5 };
       return { forma, modo: "objeto", cx: globo ? 0.75 : 0.72, cy: 0.55, escala: Math.min(h * (globo ? 0.36 : 0.34), w * (globo ? 0.2 : 0.22)), giro, alfa: 1, tam: 1, ocultarAtras: globo ? 1 : 0.5 };
     }
+    case "constelacion":
+      // Portada partida (muestra M2): la burbuja a la derecha, lejos del título.
+      // En celular, chica y arriba a la derecha, para no tapar el texto.
+      return celular
+        ? { forma: "burbuja", modo: "objeto", cx: 0.76, cy: 0.14, escala: Math.min(w * 0.24, h * 0.1), giro: quieto(-0.3, 0.12, -0.1), alfa: 0.7, tam: 0.7, ocultarAtras: 0.5 }
+        : { forma: "burbuja", modo: "objeto", cx: 0.75, cy: 0.54, escala: Math.min(h * 0.32, w * 0.19), giro: quieto(-0.3, 0.12, -0.1), alfa: 0.85, tam: 1, ocultarAtras: 0.5 };
     default:
       return polvo("polvo", 1);
   }

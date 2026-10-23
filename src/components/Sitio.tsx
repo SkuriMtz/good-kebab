@@ -16,9 +16,18 @@ import { Escena3D } from "./escena3d/Escena3D";
  * - `fondo="ninguno"`: la página pone su propia escena (el inicio la monta en la portada).
  * El pie siempre llega abajo, aunque la página sea corta.
  */
-export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" }) {
+export function Sitio({
+  children,
+  fondo = "particulas",
+  clase = "",
+}: {
+  children: ReactNode;
+  fondo?: "particulas" | "3d" | "ninguno";
+  /** Una clase más para el marco (p. ej. el inicio la usa para acomodar la escena). */
+  clase?: string;
+}) {
   return (
-    <div className={`sitio sitio--${fondo}`}>
+    <div className={`sitio sitio--${fondo}${clase ? ` ${clase}` : ""}`}>
       {fondo === "3d" ? <Escena3D /> : fondo === "particulas" ? <Escena /> : null}
       <ScrollSuave />
       <Nav />

@@ -13,13 +13,14 @@ import { Seguridad } from "@/components/inicio/Seguridad";
 /*
  * Inicio, en el orden de diseno/plan.md. Cada sección vive en su archivo de
  * src/components/inicio/ y la trabaja su grupo; aquí solo se decide el orden.
- * La portada va en #000 (con la escena 3D adentro); el resto, en #0d1117.
+ * Muestra M2: detrás va la escena de triangulitos de la v7 (fija): la
+ * portada pide la constelación a la derecha y los agentes, polvo suelto.
  * Ritmo: centrado → producto en grande → pestañas → columnas asimétricas →
  * línea de tiempo → pestañas → tarjeta ancha → tarjetas de precio → acordeón → centrado.
  */
 export default function Inicio() {
   return (
-    <Sitio fondo="ninguno">
+    <Sitio clase="sitio--inicio">
       <Portada />
       <ChatEnMarco />
       <Agentes />
