@@ -1,0 +1,8 @@
+# Muestra M2 — "Zigzag y registro"
+
+- **La idea:** una portada partida (título enorme, párrafo, formulario y un solo botón azul a la izquierda; la constelación de triangulitos en forma de burbuja de chat a la derecha) y una sección de agentes que se lee en zigzag: cada agente con su personaje grande, alternando de lado.
+- **El producto se ve en el "registro del día":** lo que hicieron hoy Lola, Clara, Víctor e Iris en una clínica dental de ejemplo, en Geist Mono, con palomitas ✓ verdes. El marcador propio son los cuatro círculos del logo en un solo tono (nunca el ▲); marca la línea de arriba y lo que espera tu visto bueno.
+- **De Dala (oscuro):** negro puro, texto blanco con grises #bdbdbd y #9a9a9a, títulos de 80px en Geist 400 con -0.04em, párrafos ligeros (300), nada de cajas y controles con radio 24px. El registro flota sobre el negro.
+- **De Vercel (claro):** papel #fafafa, tinta #171717 / #4d4d4d / #666, títulos en Geist 450 con -0.06em y altura 1.0, etiquetas Mono de 11px, radio 6px y el registro en una tarjeta con el anillo fino doble; palomitas en #297a3a y partículas en gris suave.
+- **De la v7:** la escena de triangulitos que cambia de figura al bajar (burbuja en la portada, polvo en los agentes), el texto que aparece línea por línea (Revela) y el scroll suave.
+- **Muebles adaptados:** el formulario de la lista se queda sin el botón "Prueba los agentes" en la portada (ya está "Pruébalo" en la barra; así hay un solo botón azul). La vitrina de pestañas de agentes se cambió por el zigzag; cada agente sigue abriendo su ficha ("Todo lo que hace…"). El chat de demostración sigue en su lugar, debajo de la portada. Los datos del registro son de ejemplo y lo dice el panel; no hay cifras de negocio.
