@@ -1,8 +1,6 @@
 import type { CSSProperties } from "react";
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { Halo } from "@/components/base/Halo";
 import { Seccion } from "@/components/base/Seccion";
-import { Personaje } from "@/components/agentes/Personaje";
 import type { IdAgente } from "@/lib/agentes";
 import { AGENTE_POR_ID } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
@@ -40,24 +38,35 @@ const DIA: { hora: string | null; agente: IdAgente; canal: string; texto: string
   },
 ];
 
+/** El marcador propio de Atendel (no el triángulo): los cuatro puntos del logo. */
+function Marcador() {
+  return (
+    <span className="terminal__marca" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+
 /**
- * 4. Qué es Atendel (Grupo 4 · propuesta T3: tipografía protagonista, pocas cajas).
- * Una frase grande a todo lo ancho; debajo, los tres párrafos de siempre y,
- * a la derecha, la lista de un día con la hora en Mono como guía de lectura.
- * Sin tarjetas: la estructura la dan las divisiones de 1px.
+ * 4. Qué es Atendel (estilo diseno/vercel: dos columnas). A la izquierda la
+ * frase y los tres párrafos de siempre; a la derecha, un panel tipo
+ * terminal en Geist Mono con lo que el equipo resolvió hoy: el marcador
+ * propio de Atendel (los cuatro puntos) y palomitas ✓ verdes. Datos de
+ * ejemplo, marcados como tales.
  */
 export function QueEs() {
   return (
-    <Seccion id="que-es" etiquetadaPor="que-es-titulo" halo>
-      <Halo x="16%" y="18%" ancho="min(760px, 120vw)" proporcion="16 / 9" suave />
-      <Etiqueta>Qué es Atendel</Etiqueta>
-      <h2 id="que-es-titulo" className="t-grande que-es__frase">
-        Agentes de IA para negocios que atienden personas.
-      </h2>
-
-      <div className="que-es__cuerpo">
-        <div className="que-es__texto">
-          <p className="t-intro que-es__primero">
+    <Seccion id="que-es" etiquetadaPor="que-es-titulo">
+      <div className="dos-zonas">
+        <div className="dos-zonas__texto">
+          <Etiqueta>Qué es Atendel</Etiqueta>
+          <h2 id="que-es-titulo" className="t-seccion">
+            Agentes de IA para negocios que atienden personas.
+          </h2>
+          <p className="t-intro">
             Atendel es un equipo de cuatro agentes de inteligencia artificial para clínicas, consultorios y estéticas.
           </p>
           <p className="t-intro">
@@ -68,48 +77,54 @@ export function QueEs() {
           </p>
         </div>
 
-        <figure className="dia" aria-labelledby="que-es-dia">
-          <figcaption className="dia__cabeza">
-            <Etiqueta as="span" tono="texto" id="que-es-dia">
-              Un día en la recepción
-            </Etiqueta>
-            <Etiqueta as="span" tono="tenue">
-              Ejemplo · nombres ficticios
-            </Etiqueta>
+        <figure className="terminal" aria-labelledby="que-es-dia">
+          <figcaption className="terminal__barra">
+            <span className="terminal__puntos" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span id="que-es-dia" className="etiqueta">
+              Hoy en la recepción
+            </span>
+            <span className="etiqueta etiqueta--tenue">Ejemplo · nombres ficticios</span>
           </figcaption>
-          <ol className="dia__lista">
+          <ol className="terminal__cuerpo">
+            <li className="terminal__linea">
+              <Marcador />
+              <span className="terminal__comando">atendel hoy</span>
+            </li>
             {DIA.map((d) => {
               const agente = AGENTE_POR_ID[d.agente];
               return (
-                <li key={d.agente} className="dia__fila">
-                  {d.hora ? (
-                    <time className="dia__hora" dateTime={d.hora}>
-                      {d.hora}
-                    </time>
-                  ) : (
-                    <span className="dia__hora dia__hora--sin">
-                      <span aria-hidden="true">—</span>
-                      <span className="sr-only">Sin hora</span>
-                    </span>
-                  )}
-                  <span
-                    className="marca-agente marca-agente--mini dia__personaje"
-                    style={{ "--agente": PERSONAJES[d.agente].color } as CSSProperties}
-                  >
-                    <Personaje agente={d.agente} avatar />
+                <li key={d.agente} className="terminal__linea">
+                  <span className="terminal__ok" aria-hidden="true">
+                    ✓
                   </span>
-                  <div className="dia__texto">
-                    <p className="info-quien">
-                      <span className="info-nombre">{agente.nombre}</span>
-                      <Etiqueta as="span" tono="tenue">
-                        {d.canal}
-                      </Etiqueta>
-                    </p>
-                    <p className="t-cuerpo">{d.texto}</p>
-                  </div>
+                  <span className="terminal__fila">
+                    <span className="terminal__tenue terminal__hora">
+                      {d.hora ? <time dateTime={d.hora}>{d.hora}</time> : <span aria-label="Sin hora">--:--</span>}
+                    </span>
+                    <span className="terminal__quien">
+                      <span
+                        className="terminal__punto"
+                        style={{ "--agente": PERSONAJES[d.agente].color } as CSSProperties}
+                        aria-hidden="true"
+                      />
+                      {agente.nombre}
+                      <span className="sr-only"> · {d.canal}:</span>
+                    </span>
+                    <span className="terminal__texto">{d.texto}</span>
+                  </span>
                 </li>
               );
             })}
+            <li className="terminal__linea">
+              <Marcador />
+              <span className="terminal__tenue">
+                {DIA.length} tareas resueltas · lo importante espera tu visto bueno
+              </span>
+            </li>
           </ol>
         </figure>
       </div>

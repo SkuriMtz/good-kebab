@@ -666,3 +666,314 @@
     gap: var(--spacing-64);
   }
 }
+
+/* =====================================================================
+   Estilo diseno/vercel (lección 14): piezas del inicio.
+   Bandas sin divisores ni cambios de fondo; tarjetas finas (anillo doble,
+   radio 6px); muestras pequeñas del producto dentro de las tarjetas.
+   ===================================================================== */
+
+/* ---------- Encabezado de banda: etiqueta en Mono, título y texto, a la izquierda ---------- */
+.banda-cabeza {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  max-width: 760px;
+  margin-bottom: var(--spacing-48);
+}
+.banda-cabeza .t-intro {
+  max-width: 60ch;
+}
+
+/* ---------- Dos columnas: título a la izquierda, el producto a la derecha ---------- */
+.dos-zonas {
+  display: grid;
+  gap: var(--spacing-40);
+}
+@media (min-width: 1024px) {
+  .dos-zonas {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    align-items: start;
+  }
+}
+.dos-zonas__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+}
+.dos-zonas__texto .t-intro + .t-intro {
+  margin-top: var(--spacing-4);
+}
+.dos-zonas__texto h2 {
+  margin-bottom: var(--spacing-8);
+}
+.dos-zonas__pasos {
+  display: grid;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-16);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+}
+.dos-zonas__num {
+  margin-right: var(--spacing-8);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-etiqueta);
+  letter-spacing: var(--tracking-etiqueta);
+  color: var(--c-tenue);
+}
+.dos-zonas__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+@media (min-width: 1024px) {
+  .dos-zonas__texto {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-32));
+  }
+}
+
+/* ---------- Cuadrícula de tres tarjetas (pasos) ---------- */
+.rejilla-tres {
+  display: grid;
+  gap: var(--spacing-16);
+}
+@media (min-width: 900px) {
+  .rejilla-tres {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-24);
+  }
+}
+.paso-v {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding: var(--spacing-24);
+}
+.paso-v .t-cuerpo {
+  max-width: 40ch;
+}
+.paso-v__muestra {
+  margin-top: auto;
+  padding-top: var(--spacing-16);
+}
+
+/* ---------- Muestras pequeñas del producto ---------- */
+.muestra--relleno {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16);
+}
+.muestra__campo {
+  display: flex;
+  align-items: center;
+  min-height: var(--alto-control-compacto);
+  padding-inline: var(--spacing-12);
+  border-radius: var(--radio-campo);
+  background: var(--c-superficie);
+  box-shadow: inset 0 0 0 1px var(--c-borde);
+  font-size: var(--t-chico);
+  color: var(--c-placeholder);
+}
+.muestra__boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--alto-control-compacto);
+  border-radius: var(--radio-boton);
+  background: var(--c-accion);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  color: var(--c-sobre-accion);
+}
+.muestra-equipo {
+  display: grid;
+  padding: var(--spacing-4) var(--spacing-12);
+}
+.muestra-equipo__fila {
+  display: grid;
+  grid-template-columns: var(--avatar-24) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 40px;
+}
+.muestra-equipo__fila + .muestra-equipo__fila {
+  border-top: 1px solid var(--c-borde);
+}
+.muestra-equipo__personaje {
+  width: var(--avatar-24);
+  height: var(--avatar-24);
+}
+.muestra-equipo__nombre {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  color: var(--c-texto);
+}
+.muestra-equipo__marca {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+}
+.muestra-equipo__marca--si {
+  background: var(--c-texto);
+  box-shadow: none;
+  color: var(--c-fondo);
+}
+
+/* 03 · El visto bueno: dos burbujas y la acción */
+.visto-v {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12);
+}
+.visto-v__burbuja {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 92%;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-tarjeta);
+  font-size: var(--t-chico);
+  line-height: 1.43;
+}
+.visto-v__burbuja--otro {
+  align-self: flex-start;
+  background: var(--c-superficie);
+  box-shadow: inset 0 0 0 1px var(--c-borde);
+  color: var(--c-texto);
+}
+.visto-v__burbuja--agente {
+  align-self: flex-end;
+  border: 1px dashed var(--c-borde-fuerte);
+  background: var(--c-superficie);
+  color: var(--c-texto);
+}
+.visto-v__burbuja--enviada {
+  border-color: transparent;
+  background: var(--c-propio);
+  color: var(--c-sobre-propio);
+  animation: info-aparece var(--dur-micro) var(--ease);
+}
+.visto-v__quien {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-etiqueta);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+.visto-v__personaje {
+  width: 16px;
+  height: 16px;
+}
+.visto-v__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-4);
+}
+.visto-v__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-etiqueta);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
+}
+.visto-v__estado--ok {
+  color: var(--c-palomita, var(--c-exito));
+}
+
+/* ---------- La terminal de "Qué es": hora · agente · lo que hizo ---------- */
+.terminal__fila {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  column-gap: var(--spacing-12);
+}
+.terminal__quien {
+  color: var(--c-texto);
+  white-space: nowrap;
+}
+.terminal__texto {
+  grid-column: 2;
+  color: var(--c-texto-2);
+}
+.terminal__punto {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: var(--spacing-8);
+  border-radius: 9999px;
+  background: var(--agente);
+  vertical-align: 0.15em;
+}
+@media (min-width: 640px) {
+  .terminal__fila {
+    grid-template-columns: 5ch 8ch minmax(0, 1fr);
+  }
+  .terminal__texto {
+    grid-column: 3;
+  }
+}
+.terminal .terminal__barra .etiqueta:nth-child(2) {
+  margin-right: auto;
+}
+
+/* ---------- Para quién es: tareas en tarjetas finas de 2 × 2 ---------- */
+.sitio .negocios__cabeza {
+  margin-bottom: var(--spacing-32);
+}
+.sitio .tareas {
+  gap: var(--spacing-16);
+  border-top: 0;
+}
+.sitio .tarea,
+.sitio .tarea:nth-child(even) {
+  padding: var(--spacing-20);
+  border: 0;
+}
+@media (min-width: 768px) {
+  .sitio .tareas {
+    gap: var(--spacing-16);
+  }
+}
+.sitio .negocio__frase {
+  font-size: var(--t-titulo);
+}
+
+/* ---------- Seguridad: tres tarjetas finas ---------- */
+.sitio .garantias-banda--inicio {
+  border-block: 0;
+}
+.sitio .garantias {
+  gap: var(--spacing-16);
+  margin-top: var(--spacing-48);
+  border-top: 0;
+}
+.sitio .garantia,
+.sitio .garantia:first-child,
+.sitio .garantia:last-child,
+.sitio .garantia + .garantia {
+  padding: var(--spacing-24);
+  border: 0;
+}
+@media (min-width: 768px) {
+  .sitio .garantias {
+    gap: var(--spacing-24);
+  }
+}

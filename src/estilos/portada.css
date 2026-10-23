@@ -1,166 +1,151 @@
 /*
  * Estilos de la portada del inicio (Portada.tsx) y de la escena 3D.
  * Dueño: Grupo 1 · Portada (ver diseno/plan.md, "Reparto de archivos").
- * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
- * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
- * en el ENTREGA.md de la rama y lo agrega el integrador.
+ * Solo reglas de su parte, con los tokens de src/app/globals.css.
  *
- * Propuesta G1-T4 — "el título manda": un solo protagonista (el título),
- * el halo que respira muy lento y un polvo de estrellas casi imperceptible.
+ * Lección 14 — estilo diseno/vercel, "Hero Composition": tres zonas
+ * asimétricas (titular a la izquierda, el símbolo de Atendel al centro y
+ * una pila de etiquetas en Mono a la derecha); debajo, la intro, el
+ * formulario de la lista y las condiciones. Sin halo, sin degradados.
  */
 
-/* ---------- La sección ---------- */
-.portada {
-  display: flex;
-  align-items: center;
-  min-height: calc(100svh - var(--barra-h));
-}
-/* Al pie, la portada se funde con el fondo de la sección siguiente: sin costura
-   entre el negro de la portada y el #0d1117 de la página (o el gris cálido y el blanco) */
-.portada::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  z-index: 0;
-  height: var(--spacing-96);
-  background: linear-gradient(to bottom, transparent, var(--c-fondo));
-  pointer-events: none;
-}
-.portada__contenido {
+.heroe {
   position: relative;
-  z-index: 1;
+  padding-block: var(--spacing-64) var(--espacio-seccion);
+}
+@media (min-width: 1024px) {
+  .heroe {
+    padding-top: var(--spacing-96);
+  }
+}
+
+/* ---------- Las tres zonas ---------- */
+.heroe__rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "titulo titulo"
+    "sellos simbolo";
+  gap: var(--spacing-40) var(--spacing-24);
+  align-items: end;
+}
+@media (min-width: 1024px) {
+  .heroe__rejilla {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 4fr) minmax(0, 3fr);
+    grid-template-areas: "titulo simbolo sellos";
+    gap: var(--spacing-32);
+    align-items: center;
+  }
+}
+
+.heroe__titulo {
+  grid-area: titulo;
+  max-width: 12ch;
+  color: var(--c-texto);
+  font-size: clamp(2.75rem, 1.5rem + 4.4vw, 4rem); /* 44 → 64 */
+  font-weight: var(--peso-display);
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+/* El símbolo: los cuatro círculos del logo, en grande, sin borde ni fondo */
+.heroe__simbolo {
+  grid-area: simbolo;
+  display: grid;
+  place-items: center;
+}
+.heroe__marca {
+  width: 104px;
+  height: 104px;
+}
+@media (min-width: 1024px) {
+  .heroe__marca {
+    width: min(100%, 248px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+
+/* La pila de etiquetas en Mono */
+.heroe__sellos {
+  grid-area: sellos;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-block: var(--spacing-96);
-  text-align: center;
+  gap: var(--spacing-8);
 }
-
-/* ---------- El halo: respira muy lento (atmósfera, no adorno que llame) ---------- */
-.portada__respiro {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  animation: portada-respira calc(var(--dur-grande) * 30) var(--ease) infinite alternate both;
-}
-/* El halo de la base va con z-index -1; aquí vive dentro del respiro */
-.portada__respiro .halo {
-  z-index: 0;
-}
-@keyframes portada-respira {
-  from {
-    opacity: 0.78;
-    transform: scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.04);
+@media (min-width: 1024px) {
+  .heroe__sellos {
+    align-items: flex-end;
+    text-align: right;
   }
 }
-
-/* ---------- El título: cortes y tracking a mano ---------- */
-.portada__titulo {
-  margin-top: var(--spacing-24);
-  font-kerning: normal;
-  font-optical-sizing: auto; /* Mona Sans trae eje opsz: el dibujo se afina al tamaño */
-  text-wrap: wrap; /* los cortes los deciden los <br>, no el balanceo */
+.heroe__sello {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-size: var(--t-etiqueta);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
 }
-.portada__corte--celular {
-  display: none;
-}
-/* Cada palabra entra desde abajo de su propia línea, una sola vez */
-.portada__palabra {
-  display: inline-block;
-  overflow: clip;
-  /* Aire para acentos (ú) y descendentes (q, p) sin cambiar el interlineado */
-  padding-block: 0.12em 0.14em;
-  margin-block: -0.12em -0.14em;
-  vertical-align: top;
-}
-.portada__palabra > span {
-  display: inline-block;
-  animation: portada-sube var(--dur-grande) var(--ease-entrada) both;
-  animation-delay: calc(var(--dur-micro) + var(--i, 0) * var(--dur-micro) / 4);
-}
-@keyframes portada-sube {
-  from {
-    transform: translateY(104%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-/* El resto llega después del título, sin competir con él */
-.portada__entra {
-  animation: portada-aparece var(--dur-grande) var(--ease-entrada) both;
-  animation-delay: calc(var(--dur-grande) * 2);
-}
-.portada__rotulo {
-  animation-delay: var(--dur-micro);
-}
-.portada__formulario {
-  animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro) / 2);
-}
-.portada__condiciones {
-  animation-delay: calc(var(--dur-grande) * 2 + var(--dur-micro));
-}
-@keyframes portada-aparece {
-  from {
-    opacity: 0;
-    transform: translateY(var(--spacing-8));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ---------- Intro, formulario y condiciones ---------- */
-.portada__intro {
-  margin-top: var(--spacing-24);
-  margin-inline: auto;
-  text-wrap: pretty;
-}
-/* Los nombres de los agentes: un paso más de tinta, nunca peso 700 */
-.portada__intro b {
-  font-weight: var(--peso-medio);
+.heroe__sello--fuerte {
+  margin-bottom: var(--spacing-8);
   color: var(--c-texto);
 }
-.portada__formulario {
-  margin-top: var(--spacing-40);
+
+/* ---------- Debajo: intro, formulario y condiciones ---------- */
+.heroe__pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  margin-top: var(--spacing-48);
+  max-width: 680px;
 }
-.portada__condiciones {
-  margin-top: var(--spacing-20);
-  max-width: var(--ancho-texto);
+@media (min-width: 1024px) {
+  .heroe__pie {
+    margin-top: var(--spacing-24);
+  }
 }
-/* Si la línea no cabe, corta en los puntos, nunca a media condición */
-.portada__condicion {
-  white-space: nowrap;
+.heroe__intro {
+  max-width: 60ch;
+  color: var(--c-texto-2);
+  font-size: var(--t-intro);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.heroe__intro b {
+  color: var(--c-texto);
+  font-weight: var(--peso-medio);
+}
+.heroe__condiciones {
+  margin-top: calc(-1 * var(--spacing-8));
 }
 
-/* ---------- Celular ---------- */
-@media (max-width: 639px) {
-  .portada__contenido {
-    padding-block: var(--spacing-64) var(--spacing-80);
+/* Entrada: el titular y lo demás aparecen una sola vez (solo opacidad y 8px) */
+@media (prefers-reduced-motion: no-preference) {
+  .heroe__rejilla > *,
+  .heroe__pie {
+    animation: heroe-aparece var(--dur-grande) var(--ease-entrada) both;
   }
-  .portada__corte--celular {
-    display: inline;
+  .heroe__simbolo {
+    animation-delay: 80ms;
   }
-  .portada__corte--ancho {
-    display: none;
+  .heroe__sellos {
+    animation-delay: 160ms;
   }
-  /* A 38px el tracking del display (-0.035em) aprieta de más: se usa el de
-     la escala siguiente, como pide la curva de tracking de la guía */
-  .portada__titulo {
-    letter-spacing: var(--tracking-grande);
+  .heroe__pie {
+    animation-delay: 240ms;
   }
-  .portada__intro {
-    margin-top: var(--spacing-20);
+}
+@keyframes heroe-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  .portada__formulario {
-    margin-top: var(--spacing-32);
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 

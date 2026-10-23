@@ -1126,3 +1126,217 @@
     backdrop-filter: none;
   }
 }
+
+/* =====================================================================
+   Estilo diseno/vercel (lección 14): agentes en el sitio público.
+   Tarjetas finas (anillo doble, radio 6px), cero color salvo los
+   personajes y el verde de las palomitas de confirmado.
+   ===================================================================== */
+
+/* ---------- Inicio · conversaciones de ejemplo (VitrinaAgentes.tsx) ---------- */
+.vitrina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  min-width: 0;
+}
+.vitrina .pestanas__desliza {
+  margin-inline: calc(-1 * var(--orilla));
+}
+@media (min-width: 1024px) {
+  .vitrina .pestanas__desliza {
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+}
+.vitrina__tarjeta {
+  overflow: hidden;
+}
+.vitrina__barra {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  min-height: var(--spacing-40);
+  padding: var(--spacing-8) var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde);
+  background: var(--c-fondo);
+}
+.vitrina .conv {
+  min-height: 420px;
+}
+
+/* ---------- Inicio · cuadrícula de agentes ---------- */
+.rejilla-agentes {
+  display: grid;
+  gap: var(--spacing-16);
+}
+@media (min-width: 768px) {
+  .rejilla-agentes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-24);
+  }
+}
+.tarjeta-agente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding: var(--spacing-24);
+}
+.tarjeta-agente__cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-8);
+}
+.tarjeta-agente__personaje {
+  width: var(--avatar-40);
+  height: var(--avatar-40);
+  flex-shrink: 0;
+}
+.tarjeta-agente__lema {
+  max-width: 44ch;
+}
+/* La muestra: lo que le pides, escrito en la caja del chat */
+.tarjeta-agente__muestra {
+  position: relative;
+  display: grid;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-48) var(--spacing-12) var(--spacing-16);
+}
+.tarjeta-agente__pide {
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.tarjeta-agente__enviar {
+  position: absolute;
+  right: var(--spacing-12);
+  bottom: var(--spacing-12);
+  display: grid;
+  place-items: center;
+  width: var(--avatar-28);
+  height: var(--avatar-28);
+  border-radius: var(--radio-pildora);
+  background: var(--c-accion);
+  color: var(--c-sobre-accion);
+}
+.tarjeta-agente__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-8);
+}
+.sitio .tarjeta-agente .enlace-flecha {
+  min-height: var(--alto-control-compacto);
+  font-size: var(--t-chico);
+  color: var(--c-texto-2);
+}
+
+/* ---------- Conversación de ejemplo (inicio, /agentes y fichas) ---------- */
+.sitio .conv__nombre {
+  font-weight: var(--peso-medio);
+}
+.sitio .conv__ejemplo,
+.sitio .conv__firma {
+  font-size: var(--t-etiqueta);
+  font-weight: var(--peso-cuerpo);
+}
+.sitio .conv__burbuja {
+  border-radius: 12px;
+  border-top-left-radius: 4px;
+  background: var(--c-fondo);
+  box-shadow: inset 0 0 0 1px var(--c-borde);
+}
+.sitio .conv__burbuja--mia {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 4px;
+  background: var(--c-propio);
+  box-shadow: none;
+}
+.sitio .conv__burbuja--mia .conv__texto {
+  color: var(--c-sobre-propio);
+}
+.sitio .conv__burbuja--mia .conv__hora {
+  color: var(--c-sobre-propio);
+  opacity: 0.6;
+}
+.sitio .conv__hora,
+.sitio .conv__adjunto {
+  font-size: var(--t-etiqueta);
+}
+.sitio .conv__adjunto {
+  border-radius: var(--radio-tarjeta);
+}
+.sitio .conv__adjunto .icono {
+  color: var(--c-texto);
+}
+.sitio .conv__evento {
+  border: 0;
+  border-radius: var(--radio-tarjeta);
+  background: var(--c-fondo);
+  box-shadow: inset 0 0 0 1px var(--c-borde);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  color: var(--c-texto);
+}
+.sitio .conv__evento-icono {
+  width: var(--icono-chico);
+  height: var(--icono-chico);
+  background: transparent;
+  color: var(--c-palomita, var(--c-exito));
+}
+
+/* ---------- /agentes · los cuatro, en tarjetas finas ---------- */
+.sitio .elenco {
+  max-width: none;
+}
+.sitio .elenco__agente {
+  padding: var(--spacing-24) var(--spacing-16);
+  background: var(--c-superficie);
+  box-shadow: var(--anillo);
+}
+.sitio .elenco__agente::before {
+  display: none;
+}
+.sitio .elenco__nombre {
+  font-weight: var(--peso-sub);
+  letter-spacing: var(--tracking-titulo);
+}
+.sitio .elenco__ver {
+  opacity: 1;
+  transform: none;
+  color: var(--c-texto);
+  text-decoration: underline;
+  text-decoration-color: var(--c-borde-fuerte);
+  text-underline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sitio .elenco__agente:hover {
+    transform: translateY(-2px);
+  }
+  .sitio .elenco__agente:hover .elenco__personaje {
+    transform: none;
+  }
+}
+.sitio .agentes-hojas {
+  background: transparent;
+}
+.sitio .hoja {
+  border-top: 0;
+}
+.sitio .nav-agentes__lista {
+  border: 0;
+  background: var(--c-superficie);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--anillo);
+}
+.sitio .funciones__titulo {
+  font-weight: var(--peso-medio);
+}
+.sitio .planes-agente__plan .icono {
+  color: var(--c-palomita, var(--c-exito));
+}

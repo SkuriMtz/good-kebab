@@ -8,13 +8,13 @@ import { GARANTIAS } from "@/lib/contenido";
 const ICONOS: NombreIcono[] = ["candado", "mano", "escudo"];
 
 /**
- * 7. Seguridad (Grupo 4 · propuesta T3): una banda de declaración.
- * La frase grande a la izquierda y las tres garantías debajo, en columnas
- * separadas por líneas de 1px (en celular, una debajo de otra). Sin tarjetas.
+ * 7. Seguridad (estilo diseno/vercel): la frase a la izquierda y las tres
+ * garantías debajo, en una cuadrícula de tres tarjetas finas (en celular,
+ * una debajo de otra), con su ícono de contorno en el color del texto.
  *
  * Se puede reutilizar en /preguntas (sección #seguridad, Grupo 5):
  *   <Seguridad variante="preguntas" />
- * - "inicio" (por defecto): banda con fondo secundario y enlace a /preguntas#seguridad.
+ * - "inicio" (por defecto): con el enlace a /preguntas#seguridad.
  * - "preguntas": sin banda (va dentro de la página de preguntas) y sin el
  *   enlace, porque ya estás ahí. Conserva el ancla id="seguridad".
  */
@@ -30,7 +30,7 @@ export function Seguridad({
     <Seccion
       id={id}
       etiquetadaPor={`${id}-titulo`}
-      fondo={enInicio ? "fondo-2" : "ninguno"}
+      fondo="ninguno"
       className={`garantias-banda${enInicio ? " garantias-banda--inicio" : ""}`}
     >
       <header className="garantias__cabeza">
@@ -53,7 +53,7 @@ export function Seguridad({
 
       <ul className="garantias">
         {GARANTIAS.map(([titulo, texto], i) => (
-          <li key={titulo} className="garantia">
+          <li key={titulo} className="garantia tarjeta-fina">
             <Icono nombre={ICONOS[i]} tono="cielo" tam={24} trazo={1.5} />
             <h3 className="t-titulo garantia__titulo">{titulo}</h3>
             <p className="t-cuerpo">{texto}</p>
