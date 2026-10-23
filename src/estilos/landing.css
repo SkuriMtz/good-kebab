@@ -1,0 +1,530 @@
+/*
+ * Landing nueva (sitio público). Ganó la muestra M1 ("la v7 de regreso")
+ * con la lista de agentes de M3. La estructura es la misma en los dos
+ * modos; solo cambian los tokens:
+ * - Oscuro = Dala (diseno/design.md): negro puro, títulos enormes en Geist
+ *   400 con -0.04em, párrafos ligeros, sin cajas ni bordes, radio 24px.
+ * - Claro = Vercel (diseno/vercel/DESIGN.md): lienzo #fafafa, Geist 450 con
+ *   -0.06em, líneas finas, anillo doble, radio 6px, etiquetas en Mono.
+ * Un solo botón principal por pantalla, en el azul de Atendel.
+ * Todo vale solo en páginas con .sitio (el dashboard, /pruebalo y el chat
+ * llevan .producto y conservan lo suyo). Sin capa, para ganarle a la base.
+ * Solo se animan transform y opacity.
+ */
+
+/* =====================================================================
+   1. Tokens del sitio público
+   ===================================================================== */
+:root:not([data-tema="claro"]):has(.sitio) {
+  --c-fondo: #000;
+  --c-portada: #000;
+  --c-fondo-2: #000;
+  --c-superficie: #0a0a0a;
+  --c-relleno: #0a0a0a;
+  --c-borde: rgb(255 255 255 / 0.12);
+  --c-borde-fuerte: rgb(255 255 255 / 0.28);
+  --c-texto: #fff;
+  --c-texto-2: #bdbdbd;
+  --c-tenue: #9a9a9a;
+  --c-enlace: var(--azul-enlace-noche);
+  --c-acento: var(--azul-enlace-noche);
+  --c-foco: var(--azul-enlace-noche);
+  --c-elevado: #111;
+  /* Sin cajas: las tarjetas de vidrio quedan como texto que flota */
+  --c-vidrio: transparent;
+  --c-vidrio-fuerte: transparent;
+  --c-vidrio-frost: rgb(0 0 0 / 0.85);
+  --c-vidrio-borde: transparent;
+  --vidrio-desenfoque: 0px;
+  --c-sutil-fondo: transparent;
+  --c-sutil-borde: rgb(255 255 255 / 0.28);
+  --c-sutil-texto: #fff;
+  --c-fantasma-texto: #fff;
+  --c-fantasma-borde: rgb(255 255 255 / 0.2);
+  --c-campo-fondo: #000;
+  --c-campo-borde: rgb(255 255 255 / 0.22);
+  --c-campo-borde-hover: rgb(255 255 255 / 0.4);
+  --c-placeholder: #9a9a9a;
+  --c-pildora-borde: rgb(255 255 255 / 0.25);
+  --c-marco-fondo: #050505;
+  --c-marco-barra: #0d0d0d;
+  --c-menu-fondo: rgb(10 10 10 / 0.96);
+  --halo-opacidad: 0;
+  --escena-opacidad: 0.6;
+
+  /* Dala: la escala manda, no el peso */
+  --t-display: clamp(2.75rem, 1.6rem + 4.6vw, 6rem); /* 44 → 96 */
+  --t-grande: clamp(2.5rem, 1.4rem + 3.6vw, 4.875rem); /* 40 → 78 */
+  --t-seccion: clamp(2.25rem, 1.4rem + 2.6vw, 3.5rem); /* 36 → 56 */
+  --peso-display: 400;
+  --peso-grande: 400;
+  --peso-seccion: 400;
+  --peso-sub: 400;
+  --tracking-display: -0.04em;
+  --tracking-grande: -0.04em;
+  --tracking-seccion: -0.035em;
+  --peso-cuerpo: 350;
+  --tracking-intro: 0;
+  --tracking-etiqueta: 0.06em;
+  --radio-boton: 24px;
+  --radio-campo: 24px;
+  --radio-tarjeta: 24px;
+  --radio-imagen: 24px;
+  --radio-panel: 16px;
+  --radio-marco: 16px;
+  --espacio-seccion: clamp(6rem, 4rem + 4vw, 8rem); /* 96 → 128 */
+}
+:root[data-tema="claro"]:has(.sitio) {
+  --c-fondo: #fafafa;
+  --c-portada: #fafafa;
+  --c-fondo-2: #fafafa;
+  --c-superficie: #fff;
+  --c-relleno: #f2f2f2;
+  --c-borde: #ebebeb;
+  --c-borde-fuerte: #c9c9c9;
+  --c-texto: #171717;
+  --c-texto-2: #4d4d4d;
+  --c-tenue: #666;
+  --c-enlace: var(--azul-enlace-dia);
+  --c-acento: var(--azul-enlace-dia);
+  --c-foco: var(--azul-enlace-dia);
+  --c-elevado: #f2f2f2;
+  /* Vercel: tarjetas blancas con línea fina, sin sombras */
+  --c-vidrio: #fff;
+  --c-vidrio-fuerte: #fff;
+  --c-vidrio-frost: rgb(250 250 250 / 0.92);
+  --c-vidrio-borde: #ebebeb;
+  --vidrio-desenfoque: 0px;
+  --c-sutil-fondo: #fff;
+  --c-sutil-borde: #e0e0e0;
+  --c-sutil-texto: #171717;
+  --c-fantasma-texto: #171717;
+  --c-fantasma-borde: #e0e0e0;
+  --c-campo-fondo: #fff;
+  --c-campo-borde: #e0e0e0;
+  --c-campo-borde-hover: #c9c9c9;
+  --c-placeholder: #666;
+  --c-pildora-borde: #e0e0e0;
+  --c-marco-fondo: #fff;
+  --c-marco-barra: #fafafa;
+  --halo-opacidad: 0;
+  --escena-opacidad: 0.7;
+
+  --t-display: clamp(2.5rem, 1.9rem + 2.3vw, 4rem); /* 40 → 64 */
+  --t-grande: clamp(2.25rem, 1.8rem + 1.8vw, 3.5rem); /* 36 → 56 */
+  --t-seccion: clamp(2rem, 1.6rem + 1.4vw, 2.75rem); /* 32 → 44 */
+  --peso-display: 450;
+  --peso-grande: 450;
+  --peso-seccion: 450;
+  --peso-sub: 450;
+  --tracking-display: -0.06em;
+  --tracking-grande: -0.05em;
+  --tracking-seccion: -0.045em;
+  --peso-cuerpo: 400;
+  --tracking-intro: 0;
+  --tracking-etiqueta: 0.071em;
+  --radio-boton: 6px;
+  --radio-campo: 6px;
+  --radio-tarjeta: 6px;
+  --radio-imagen: 6px;
+  --radio-panel: 6px;
+  --radio-marco: 8px;
+  --espacio-seccion: clamp(6rem, 4rem + 4vw, 8rem);
+}
+/* Títulos de una sola familia: renglón cerrado, como Dala y Vercel */
+.sitio .t-display,
+.sitio .t-portada,
+.sitio .t-grande {
+  line-height: 1.02;
+}
+.sitio .t-seccion {
+  line-height: 1.08;
+}
+.sitio .t-etiqueta,
+.sitio .etiqueta {
+  color: var(--c-tenue);
+}
+:root[data-tema="claro"] .sitio .t-etiqueta,
+:root[data-tema="claro"] .sitio .etiqueta {
+  font-size: 11px;
+}
+/* Las tarjetas en claro llevan el anillo doble de Vercel */
+:root[data-tema="claro"] .sitio .vidrio {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.08),
+    0 0 0 2px #fafafa;
+}
+/* En oscuro las tarjetas no tienen caja: el relleno se quita para que el texto se alinee */
+:root:not([data-tema="claro"]) .sitio .vidrio--relleno,
+:root:not([data-tema="claro"]) .sitio .vidrio--relleno-amplio {
+  padding-inline: 0;
+}
+
+/* ---------- La figura de fondo ---------- */
+.sitio--figuras .escena-fondo {
+  opacity: 0.72;
+}
+:root[data-tema="claro"] .sitio--figuras .escena-fondo {
+  opacity: 0.75;
+}
+
+/* =====================================================================
+   2. Piezas del inicio (.m1)
+   ===================================================================== */
+.m1 {
+  --m1-display: var(--t-display);
+  --m1-titulo: var(--t-grande);
+  --m1-etiqueta-tam: 12px;
+  --m1-parrafo-peso: 300;
+  --m1-radio: 24px;
+  --m1-panel-fondo: transparent;
+  --m1-panel-anillo: none;
+  --m1-panel-relleno: 0;
+  --m1-check: #9a9a9a;
+  --m1-linea: transparent;
+  --m1-apagado: 0.3;
+  --m1-sombra-texto: 0 0 24px rgb(0 0 0 / 0.9);
+
+  position: relative;
+  color: var(--c-texto);
+  text-shadow: var(--m1-sombra-texto);
+}
+:root[data-tema="claro"] .m1 {
+  --m1-etiqueta-tam: 11px;
+  --m1-parrafo-peso: 400;
+  --m1-radio: 6px;
+  --m1-panel-fondo: #fff;
+  --m1-panel-anillo: 0 0 0 1px rgb(0 0 0 / 0.08), 0 0 0 2px #fafafa;
+  --m1-panel-relleno: 16px 20px;
+  --m1-check: #297a3a;
+  --m1-linea: #ebebeb;
+  --m1-apagado: 0.35;
+  --m1-sombra-texto: none;
+}
+.m1 .boton {
+  text-shadow: none;
+}
+.m1-marco {
+  width: 100%;
+  max-width: calc(var(--ancho-max) + 2 * var(--orilla));
+  margin-inline: auto;
+  padding-inline: var(--orilla);
+}
+.m1-etiqueta {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m1-etiqueta-tam);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
+}
+.m1-display,
+.m1-titulo {
+  margin-top: 24px;
+  font-weight: var(--peso-display);
+  line-height: 1.02;
+  letter-spacing: var(--tracking-display);
+  color: var(--c-texto);
+}
+.m1-display {
+  max-width: 9.2em;
+  font-size: var(--m1-display);
+}
+.m1-titulo {
+  max-width: 11em;
+  font-size: var(--m1-titulo);
+  text-wrap: balance;
+}
+/* Revela parte el título en palabras con ranura: margen para que no se corten las letras */
+.m1-display .rv-p,
+.m1-titulo .rv-p {
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.m1-parrafo {
+  max-width: 34em;
+  margin-top: 24px;
+  font-size: 18px;
+  font-weight: var(--m1-parrafo-peso);
+  line-height: 1.55;
+  color: var(--c-texto-2);
+  text-wrap: pretty;
+}
+.m1-parrafo b {
+  font-weight: 500;
+  color: var(--c-texto);
+}
+
+/* ---------- 1. Portada ---------- */
+.m1-portada {
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin-top: calc(-1 * var(--barra-h));
+  padding-block: calc(var(--barra-h) + 48px) 96px;
+}
+.m1-portada__texto {
+  max-width: 760px;
+}
+.m1-portada__intro {
+  margin-top: 32px;
+}
+/* Revela envuelve el formulario en un bloque en línea: aquí ocupa todo el ancho */
+.m1-portada__texto > .rv-bloque {
+  display: block;
+}
+.m1-portada__formulario {
+  margin-top: 40px;
+}
+/* El registro: en claro, una tarjeta de anillo fino; en oscuro, solo texto */
+.m1-registro {
+  display: inline-block;
+  margin-top: 24px;
+  padding: var(--m1-panel-relleno);
+  border-radius: var(--m1-radio);
+  background: var(--m1-panel-fondo);
+  box-shadow: var(--m1-panel-anillo);
+}
+.m1-registro__lista {
+  margin-top: 8px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--c-texto-2);
+}
+.m1-registro__check {
+  color: var(--m1-check);
+}
+/* En celular la figura va arriba, chica, y el texto empieza debajo */
+@media (max-width: 899px) {
+  .m1-portada {
+    display: block;
+    padding-top: max(300px, 36svh);
+  }
+}
+
+/* ---------- 2. Tu equipo: la lista tipográfica ---------- */
+.m1-agentes {
+  padding-block: 128px 96px;
+}
+.m1-agentes__cabeza {
+  max-width: 760px;
+}
+.m1-agentes .m1-titulo {
+  font-size: var(--t-seccion);
+  letter-spacing: var(--tracking-seccion);
+  line-height: 1.08;
+}
+.m1-lista {
+  margin: 48px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--m1-linea);
+  text-shadow: none;
+}
+.m1-lista > li {
+  border-bottom: 1px solid var(--m1-linea);
+}
+.m1-agente {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 24px;
+  grid-template-areas:
+    "personaje nombre flecha"
+    "texto texto texto";
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 8px;
+  width: 100%;
+  padding-block: 20px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.25s var(--ease),
+    transform 0.12s var(--ease);
+}
+.m1-agente__num {
+  display: none;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--c-tenue);
+}
+.m1-agente__personaje {
+  grid-area: personaje;
+  display: block;
+  width: 56px;
+  transition: transform 0.35s var(--ease-entrada);
+}
+.m1-agente__personaje svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.m1-agente__nombre {
+  grid-area: nombre;
+  font-size: clamp(44px, 1.6rem + 4.4vw, 88px);
+  font-weight: var(--peso-display);
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  color: var(--c-texto);
+  transition: transform 0.35s var(--ease-entrada);
+}
+:root[data-tema="claro"] .m1-agente__nombre {
+  font-size: clamp(40px, 1.9rem + 2.3vw, 64px);
+}
+.m1-agente__texto {
+  grid-area: texto;
+  display: grid;
+  gap: 4px;
+}
+.m1-agente__area {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m1-etiqueta-tam);
+  font-weight: 500;
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--c-tenue);
+}
+.m1-agente__lema {
+  font-size: 17px;
+  font-weight: var(--m1-parrafo-peso);
+  line-height: 1.45;
+  color: var(--c-texto-2);
+}
+.m1-agente__flecha {
+  grid-area: flecha;
+  justify-self: end;
+  font-size: 20px;
+  color: var(--c-tenue);
+  transition:
+    transform 0.25s var(--ease),
+    opacity 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+/* Resaltar: la fila bajo el mouse (o con el foco) manda y las demás se apagan */
+@media (hover: hover) and (pointer: fine) {
+  .m1-lista:hover .m1-agente {
+    opacity: var(--m1-apagado);
+  }
+  .m1-lista .m1-agente:hover {
+    opacity: 1;
+  }
+  .m1-agente:hover .m1-agente__nombre {
+    transform: translateX(8px);
+  }
+  .m1-agente:hover .m1-agente__personaje {
+    transform: scale(1.08) rotate(-4deg);
+  }
+  .m1-agente:hover .m1-agente__flecha {
+    color: var(--c-texto);
+    transform: translateX(4px);
+  }
+}
+.m1-lista:has(.m1-agente:focus-visible) .m1-agente:not(:focus-visible) {
+  opacity: var(--m1-apagado);
+}
+.m1-agente:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.m1-agente:active {
+  transform: scale(0.99);
+}
+@media (min-width: 1024px) {
+  .m1-lista {
+    max-width: 920px;
+  }
+  .m1-agente {
+    grid-template-columns: 32px 88px minmax(0, 1fr) minmax(0, 330px) 24px;
+    grid-template-areas: "num personaje nombre texto flecha";
+    column-gap: 24px;
+    padding-block: 20px;
+  }
+  .m1-agente__num {
+    display: block;
+    grid-area: num;
+  }
+  .m1-agente__personaje {
+    width: 88px;
+  }
+  .m1-agente__flecha {
+    opacity: 0;
+  }
+  .m1-agente:hover .m1-agente__flecha,
+  .m1-agente:focus-visible .m1-agente__flecha {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .m1-agente,
+  .m1-agente__nombre,
+  .m1-agente__personaje,
+  .m1-agente__flecha {
+    transition: none;
+  }
+}
+
+/* =====================================================================
+   3. Ajustes del resto del sitio público
+   ===================================================================== */
+/* Ningún triángulo encima del texto: en computadora la figura solo se ve
+   del lado derecho (la columna del texto queda limpia); en las páginas sin
+   figura, el centro queda vacío. */
+@media (min-width: 900px) {
+  .sitio--figuras .escena-fondo,
+  .sitio--particulas .escena-fondo {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 6%, transparent 7%, transparent 50%, #000 60%);
+    mask-image: linear-gradient(90deg, #000 0, #000 6%, transparent 7%, transparent 50%, #000 60%);
+  }
+}
+
+/* Precios: el monto en tamaño de título, sin desbordar la columna */
+.sitio .plan__monto {
+  font-size: clamp(2.5rem, 1.9rem + 1.6vw, 3.5rem);
+  font-weight: var(--peso-display);
+  letter-spacing: var(--tracking-display);
+}
+.sitio .plan__monto--pronto {
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+}
+
+/* Entrar: en oscuro, sin caja (el campo flota sobre el negro); en claro, anillo fino */
+.sitio .acceso__titulo {
+  font-size: var(--t-seccion);
+  font-weight: var(--peso-seccion);
+  letter-spacing: var(--tracking-seccion);
+  line-height: 1.08;
+}
+:root:not([data-tema="claro"]) .sitio .acceso__tarjeta,
+:root:not([data-tema="claro"]) .sitio .acceso__nota {
+  padding-inline: 0;
+  border-color: transparent;
+  background: transparent;
+}
+:root[data-tema="claro"] .sitio .acceso__tarjeta,
+:root[data-tema="claro"] .sitio .acceso__nota {
+  border-color: transparent;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.08),
+    0 0 0 2px #fafafa;
+}
+
+/* La ficha de un agente flota sobre la página: superficie sólida con un filo fino */
+.sitio .ficha__caja.vidrio {
+  border-color: var(--c-borde);
+  background: var(--c-fondo);
+}
+:root[data-tema="claro"] .sitio .ficha__caja.vidrio {
+  background: #fff;
+}

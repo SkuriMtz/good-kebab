@@ -13,25 +13,27 @@ import { Seguridad } from "@/components/inicio/Seguridad";
 /*
  * Inicio, en el orden de diseno/plan.md. Cada sección vive en su archivo de
  * src/components/inicio/ y la trabaja su grupo; aquí solo se decide el orden.
- * Muestra M1 ("la v7 de regreso"): el inicio empieza por escenas, como la
- * versión 7. Detrás, la figura de triangulitos (fondo="figuras") cambia de
- * forma por sección: burbuja en la portada y polvo arriba en Tu equipo.
- * Por eso Tu equipo sube justo después de la portada; el chat de
- * demostración sigue enseguida.
+ * El inicio empieza por escenas, como la versión 7: detrás, la figura de
+ * triangulitos (fondo="figuras") cambia de forma por sección: burbuja en la
+ * portada y globo junto a la lista de Tu equipo. Por eso Tu equipo sube
+ * justo después de la portada; el chat de demostración sigue enseguida.
+ * En el resto (data-escena="vacio") la figura se deshace para no tapar texto.
  */
 export default function Inicio() {
   return (
     <Sitio fondo="figuras">
       <Portada />
       <Agentes />
-      <ChatEnMarco />
-      <QueEs />
-      <ComoFunciona />
-      <ParaQuien />
-      <Seguridad />
-      <Precios />
-      <PreguntasInicio />
-      <CtaFinal />
+      <div data-escena="vacio">
+        <ChatEnMarco />
+        <QueEs />
+        <ComoFunciona />
+        <ParaQuien />
+        <Seguridad />
+        <Precios />
+        <PreguntasInicio />
+        <CtaFinal />
+      </div>
     </Sitio>
   );
 }

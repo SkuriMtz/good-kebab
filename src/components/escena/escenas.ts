@@ -21,7 +21,8 @@ export type NombreEscena =
   | "logoDerecha"
   | "candadoDerecha"
   | "portada"
-  | "globoEquipo"
+  | "agentesLista"
+  | "vacio"
   | "polvo";
 
 export const ESCENAS: NombreEscena[] = [
@@ -35,7 +36,8 @@ export const ESCENAS: NombreEscena[] = [
   "logoDerecha",
   "candadoDerecha",
   "portada",
-  "globoEquipo",
+  "agentesLista",
+  "vacio",
   "polvo",
 ];
 
@@ -99,22 +101,25 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
         escena === "burbujaDerecha" ? "burbuja" : escena === "globoDerecha" ? "esfera" : escena === "logoDerecha" ? "marca" : "candado";
       const globo = forma === "esfera";
       const giro = globo ? (t: number): [number, number, number] => [t * 0.015 - 0.05, 0.22, 0.1] : quieto(forma === "burbuja" ? -0.3 : -0.35, 0.12, forma === "burbuja" ? -0.1 : 0);
-      if (celular) return { forma, modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.38, h * 0.21), giro, alfa: 0.85, tam: 0.75, ocultarAtras: globo ? 1 : 0.5 };
-      return { forma, modo: "objeto", cx: globo ? 0.75 : 0.72, cy: 0.55, escala: Math.min(h * (globo ? 0.36 : 0.34), w * (globo ? 0.2 : 0.22)), giro, alfa: 1, tam: 1, ocultarAtras: globo ? 1 : 0.5 };
+      if (celular) return { forma, modo: "objeto", cx: 0.5, cy: 0.27, escala: Math.min(w * 0.38, h * 0.21), giro, alfa: 0.5, tam: 0.75, ocultarAtras: globo ? 1 : 0.5 };
+      return { forma, modo: "objeto", cx: globo ? 0.77 : 0.75, cy: 0.5, escala: Math.min(h * (globo ? 0.3 : 0.29), w * (globo ? 0.17 : 0.18)), giro, alfa: 0.6, tam: 1, ocultarAtras: globo ? 1 : 0.5 };
     }
     case "portada":
       // La portada del inicio: la burbuja a la derecha, con el título a su izquierda.
       // En celular, chica y arriba, para que el título quede en la primera pantalla.
       return celular
-        ? { forma: "burbuja", modo: "objeto", cx: 0.5, cy: 0.215, escala: Math.min(w * 0.29, h * 0.14), giro: quieto(-0.3, 0.1, -0.1), alfa: 0.8, tam: 0.7, ocultarAtras: 0.55 }
-        : { forma: "burbuja", modo: "objeto", cx: 0.765, cy: 0.56, escala: Math.min(h * 0.34, w * 0.2), giro: quieto(-0.34, 0.12, -0.12), alfa: 0.85, tam: 1, ocultarAtras: 0.55 };
-    case "globoEquipo":
-      // Tu equipo del inicio: la burbuja de la portada se vuelve un globo en el
-      // mismo lado (el cambio es corto y no cruza la pantalla, lección 10),
-      // arriba, para dejar libre el carrusel. En celular, solo polvo ralo arriba.
+        ? { forma: "burbuja", modo: "objeto", cx: 0.5, cy: 0.215, escala: Math.min(w * 0.29, h * 0.14), giro: quieto(-0.3, 0.1, -0.1), alfa: 0.6, tam: 0.7, ocultarAtras: 0.55 }
+        : { forma: "burbuja", modo: "objeto", cx: 0.765, cy: 0.56, escala: Math.min(h * 0.34, w * 0.2), giro: quieto(-0.34, 0.12, -0.12), alfa: 0.6, tam: 1, ocultarAtras: 0.55 };
+    case "agentesLista":
+      // La lista de agentes del inicio: la burbuja de la portada se vuelve un
+      // globo del mismo lado (cambio corto, sin cruzar la pantalla, lección 10),
+      // a la derecha de la lista. En celular, solo polvo ralo y tenue.
       return celular
-        ? polvo("polvoArriba", 0.5)
-        : { forma: "esfera", modo: "objeto", cx: 0.8, cy: 0.3, escala: Math.min(h * 0.2, w * 0.125), giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 0.8, tam: 0.9, ocultarAtras: 1 };
+        ? polvo("polvoArriba", 0.2)
+        : { forma: "esfera", modo: "objeto", cx: 0.86, cy: 0.58, escala: Math.min(h * 0.2, w * 0.11), giro: (t) => [t * 0.015 - 0.05, 0.22, 0.1], alfa: 0.55, tam: 0.9, ocultarAtras: 1 };
+    case "vacio":
+      // El resto del inicio: la figura se deshace y no tapa ningún texto
+      return polvo("polvo", 0);
     default:
       return polvo("polvo", 1);
   }

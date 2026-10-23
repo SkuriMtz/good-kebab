@@ -55,7 +55,7 @@ void main() {
 const FRAG = `
 precision mediump float;
 varying vec3 vCol; varying float vAlfa, vTam, vAng;
-uniform float uClaro;
+uniform float uClaro, uGris;
 float tri(vec2 p) {
   const float k = 1.7320508;
   p.x = abs(p.x) - 1.0;
@@ -76,6 +76,10 @@ void main() {
   // En modo claro: colores más oscuros y lo blanco se vuelve violeta (si no, no se vería)
   float blanco = smoothstep(0.6, 0.9, min(min(vCol.r, vCol.g), vCol.b));
   vec3 col = mix(vCol, mix(vCol * 0.62, vec3(0.42, 0.26, 0.85), blanco), uClaro);
+  // Escena sobria: en oscuro, sin blancos fuertes (lección 7); en claro, gris suave (como el lienzo de Vercel)
+  float luz = dot(vCol, vec3(0.299, 0.587, 0.114));
+  col = mix(col, col * 0.72, uGris * (1.0 - uClaro) * blanco);
+  col = mix(col, vec3(0.34 + 0.22 * (1.0 - luz)), uGris * uClaro);
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -101,8 +105,10 @@ const suave = (a: number, b: number, x: number) => {
 };
 
 /**
- * `sobrio`: la versión discreta (lecciones 7 y 11): menos polvo y menos
- * tetraedros sueltos, y sin brillo alrededor de sus líneas.
+ * `sobrio`: la versión discreta del sitio público (lecciones 7, 10 y 11):
+ * menos polvo, un solo tetraedro pegado a la orilla derecha (lejos de la
+ * columna del texto y de la barra), sin destellos, los colores se pintan
+ * encima en vez de sumarse (sin blancos fuertes) y, en modo claro, gris suave.
  */
 export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -139,7 +145,9 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
 
     const ancho0 = window.innerWidth;
     const N = ancho0 < 700 ? 6000 : ancho0 < 1200 ? 9000 : 12000;
-    const NP = sobrio ? (ancho0 < 700 ? 60 : 120) : ancho0 < 700 ? 120 : 260;
+    // Sobria: el polvo suelto y el tetraedro solo caben en las orillas de pantallas anchas (fuera del texto)
+    const orillas = ancho0 >= 1360;
+    const NP = sobrio ? (orillas ? 60 : 0) : ancho0 < 700 ? 120 : 260;
 
     // Las figuras, creadas la primera vez que se necesitan
     const formas = new Map<NombreForma, Float32Array>();
@@ -193,7 +201,8 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       const grande = Math.random() < 0.05;
       const t = grande ? 12 + Math.random() * 8 : 4 + prof * 6 + Math.random() * 2;
       const c = COLORES_POLVO[Math.floor(Math.random() * COLORES_POLVO.length)];
-      polvo.set([Math.random(), Math.random(), prof, t, c[0], c[1], c[2], Math.random()], i * 8);
+      const x = sobrio ? (i % 2 ? 0.005 + Math.random() * 0.045 : 0.95 + Math.random() * 0.045) : Math.random();
+      polvo.set([x, Math.random(), prof, t, c[0], c[1], c[2], Math.random()], i * 8);
     }
     const bufPolvo = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, bufPolvo);
@@ -210,13 +219,13 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       p: at(progPolvo, "aP"),
       c: at(progPolvo, "aC"),
     };
-    const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro"].map((n) => [n, un(progFigura, n)]));
-    const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro"].map((n) => [n, un(progPolvo, n)]));
+    const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro", "uGris"].map((n) => [n, un(progFigura, n)]));
+    const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro", "uGris"].map((n) => [n, un(progPolvo, n)]));
 
     // Tetraedros grandes que flotan
-    const cuantos = sobrio ? (ancho0 < 700 ? 2 : 3) : ancho0 < 700 ? 4 : 7;
+    const cuantos = sobrio ? (orillas ? 1 : 0) : ancho0 < 700 ? 4 : 7;
     const tetras = Array.from({ length: cuantos }, (_, i) => ({
-      x: (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
+      x: sobrio ? 0.965 : (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
       y: Math.random(),
       prof: Math.random(),
       tam: 16 + Math.random() * 22,
@@ -265,9 +274,10 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
           fondo = r.bottom;
         }
       }
-      if (actual === null) return "polvo";
+      // Sin figura (o después de la última): polvo; en la versión sobria, nada que tape el texto
+      if (actual === null) return sobrio ? "vacio" : "polvo";
       // Después de la última figura, la página sigue con polvo
-      if (fondo < h * 0.35) return "polvo";
+      if (fondo < h * 0.35) return sobrio ? "vacio" : "polvo";
       return actual;
     };
 
@@ -433,7 +443,7 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.enable(gl.BLEND);
       // Oscuro: los colores se suman y brillan. Claro: se pintan encima.
-      if (claro) gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      if (claro || sobrio) gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       else gl.blendFunc(gl.ONE, gl.ONE);
 
       // Polvo de fondo
@@ -449,6 +459,7 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       gl.uniform1f(UP.uDpr, dpr);
       gl.uniform1f(UP.uAlfa, claro ? 0.7 : 1);
       gl.uniform1f(UP.uClaro, claro ? 1 : 0);
+      gl.uniform1f(UP.uGris, sobrio ? 1 : 0);
       gl.drawArrays(gl.POINTS, 0, NP);
       gl.disableVertexAttribArray(A.p);
       gl.disableVertexAttribArray(A.c);
@@ -473,6 +484,7 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       gl.uniform1f(U.uDpr, dpr);
       gl.uniform1f(U.uCam, Math.max(h, 600) * 3);
       gl.uniform1f(U.uClaro, claro ? 1 : 0);
+      gl.uniform1f(U.uGris, sobrio ? 1 : 0);
       gl.drawArrays(gl.POINTS, 0, N);
       for (const l of [A.pos, A.prof, A.col, A.tam, A.azar]) gl.disableVertexAttribArray(l);
 
@@ -493,8 +505,8 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
           const y1 = Math.cos(ax) * yy - Math.sin(ax) * z1;
           return [cx + x1 * te.tam, cy - y1 * te.tam];
         });
-        ctx2.globalAlpha = (0.35 + 0.5 * te.prof) * (claro ? 0.6 : 1);
-        ctx2.strokeStyle = te.color;
+        ctx2.globalAlpha = (0.35 + 0.5 * te.prof) * (claro ? 0.6 : 1) * (sobrio ? 0.6 : 1);
+        ctx2.strokeStyle = sobrio && claro ? "#a8a8a8" : te.color;
         ctx2.shadowColor = claro ? "transparent" : te.color;
         ctx2.shadowBlur = claro || sobrio ? 0 : 10;
         ctx2.beginPath();

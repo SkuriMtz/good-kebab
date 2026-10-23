@@ -14,7 +14,7 @@ import "../estilos/conversion.css";
 import "../estilos/estructura.css";
 import "../estilos/tema-claro.css";
 import "../estilos/dashboard.css";
-import "../estilos/inicio-m1.css";
+import "../estilos/landing.css";
 import { SCRIPT_TEMA } from "@/lib/tema";
 
 /*
