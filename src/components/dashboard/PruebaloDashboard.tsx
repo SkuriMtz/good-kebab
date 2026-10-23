@@ -462,15 +462,10 @@ function VistaActividad({
 
 function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedido: Encargo | null }) {
   return (
-    <div className="dash-vista-chat">
-      <header className="dash-vista-chat__cabeza">
-        <div>
-          <h1 className="t-app-titulo">Conversaciones</h1>
-          <p className="dash-vista__texto">Las respuestas son de ejemplo: aquí no se llama a la IA.</p>
-        </div>
-      </header>
+    <div className="dash-vista-chat dash-vista-chat--lleno">
+      <h1 className="sr-only">Conversaciones</h1>
       <div className="dash-vista-chat__marco">
-        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} nuevoGrupo={pedido?.grupo} />
+        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} nuevoGrupo={pedido?.grupo} nombre={DEMO_USUARIA.nombre.split(" ")[0]} />
       </div>
     </div>
   );

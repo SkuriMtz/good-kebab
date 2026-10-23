@@ -2338,6 +2338,16 @@
   height: auto;
   min-height: 0;
 }
+/* /pruebalo: el chat llena la vista, sin título ni márgenes (como una IA de hoy) */
+.dash-vista-chat--lleno {
+  gap: 0;
+  padding: 0;
+}
+.dash-vista-chat__marco > .chat {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
 
 /* El chat real de /panel/chat (Grupo 2) usa position: fixed; este marco lo
    contiene (contain: layout lo vuelve su bloque contenedor) y le quita la
@@ -2670,5 +2680,16 @@
   .dash-control__texto {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+/* Conversaciones: la lista del chat hace de lateral (como una IA de hoy);
+   el menú del dashboard sigue en el ☰ (cajón) */
+@media (min-width: 1024px) {
+  .dash-cuerpo--completo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dash-cuerpo--completo > .dash-lateral {
+    display: none;
   }
 }

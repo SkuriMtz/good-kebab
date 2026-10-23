@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import PromptBar, { type PromptBarCommand, type PromptBarSource } from "./PromptBar";
+import PromptBar, { type PromptBarCommand, type PromptBarModel, type PromptBarSource } from "./PromptBar";
 import { Personaje } from "./agentes/Personaje";
 import { claseBotonBase } from "./base/Boton";
 import { Icono } from "./base/Iconos";
@@ -9,6 +9,7 @@ import { MarcoNavegador } from "./base/MarcoNavegador";
 import { Deslizable } from "./chat/Deslizable";
 import {
   Atajos,
+  Avatar,
   Dia,
   Escribiendo,
   Hilo,
@@ -398,8 +399,11 @@ export function ChatDemo({
   lugar = "pagina",
   pedido,
   nuevoGrupo = false,
+  nombre,
 }: {
   lugar?: "inicio" | "pagina";
+  /** Para el saludo de la portada ("¿En qué te ayuda tu equipo hoy, Ana?"). */
+  nombre?: string;
   /** Lo que se pidió desde la caja del dashboard: se envía una vez al abrir. */
   pedido?: string;
   /** Abre directo "Nuevo grupo" (desde el atajo del dashboard). */
@@ -410,6 +414,10 @@ export function ChatDemo({
   const [activa, setActiva] = useState("recepcion");
   const [pendiente, setPendiente] = useState<{ conv: string; agente: IdAgente } | null>(null);
   const [creando, setCreando] = useState(nuevoGrupo && !enVivo);
+  /** En /pruebalo se entra a la portada (saludo y caja grande) hasta abrir una conversación. */
+  const [portada, setPortada] = useState(!enVivo);
+  /** Un texto que se envía en cuanto su conversación está abierta (desde la portada o el dashboard). */
+  const [porEnviar, setPorEnviar] = useState<{ texto: string; conv?: string } | null>(pedido && !enVivo ? { texto: pedido } : null);
   const [barra, setBarra] = useState(false);
   /** La reproducción del inicio: cuántos mensajes de la recepción se ven y quién escribe. null = terminó. */
   const [vivo, setVivo] = useState<{ revelados: number; escribe: IdAgente | null; corriendo: boolean } | null>(
@@ -511,13 +519,14 @@ export function ChatDemo({
       vista.current = activa;
       el.scrollTop = el.scrollHeight;
     } else el.scrollTop = el.scrollHeight; // la fila nueva ya entra subiendo 8px: no hace falta deslizar
-  }, [activa, mensajes.length, escribiendoAqui]);
+  }, [activa, mensajes.length, escribiendoAqui, portada]);
 
   // "?con=lola" abre directo el chat con ese agente (desde "Háblale a Lola")
   useEffect(() => {
     if (enVivo) return;
     const con = new URLSearchParams(window.location.search).get("con");
     if (!con || !INICIO.some((c) => c.id === con)) return;
+    setPortada(false);
     setActiva(con);
     setConvs((cs) => cs.map((c) => (c.id === con ? { ...c, sinLeer: 0 } : c)));
   }, [enVivo]);
@@ -575,21 +584,29 @@ export function ChatDemo({
     setPendiente(null);
   };
 
-  // Lo pedido en la caja del Resumen (/pruebalo): se envía una sola vez, ya en su chat (?con=…)
-  const pedidoHecho = useRef(false);
+  // Lo que se pidió (en la portada o en la caja del dashboard): se envía una sola vez, ya en su chat
+  const enviado = useRef<object | null>(null);
   useEffect(() => {
-    if (enVivo || !pedido || pedidoHecho.current) return;
-    const con = new URLSearchParams(window.location.search).get("con");
-    if (con && INICIO.some((c) => c.id === con) && activa !== con) return;
-    pedidoHecho.current = true;
-    enviar(pedido);
+    if (!porEnviar || enviado.current === porEnviar) return;
+    const con = porEnviar.conv ?? new URLSearchParams(window.location.search).get("con");
+    if (con && convs.some((c) => c.id === con) && activa !== con) return;
+    enviado.current = porEnviar;
+    setPorEnviar(null);
+    enviar(porEnviar.texto);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activa, pedido, enVivo]);
+  }, [activa, porEnviar]);
+
+  /** Desde la portada: abre esa conversación y le manda el texto. */
+  const empezar = (texto: string, id: string) => {
+    abrir(id);
+    setPorEnviar({ texto, conv: id });
+  };
 
   const abrir = (id: string) => {
     if (id !== activa) terminarVivo();
     animados.current.clear();
     setActiva(id);
+    setPortada(false);
     setBarra(false);
     setConvs((cs) => cs.map((c) => (c.id === id && c.sinLeer ? { ...c, sinLeer: 0 } : c)));
   };
@@ -656,9 +673,64 @@ export function ChatDemo({
     description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
     icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
   }));
+  const todos: PromptBarSource[] = (["lola", "clara", "victor", "iris"] as IdAgente[]).map((id) => ({
+    key: id,
+    name: AGENTE_POR_ID[id].nombre,
+    description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
+    icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
+  }));
+  const destinos: PromptBarModel[] = [...grupos, ...chats].map((c) => ({
+    key: c.id,
+    name: c.nombre,
+    tag: c.agentes.length > 1 ? nombres(c.agentes) : AGENTE_POR_ID[c.agentes[0]].area,
+  }));
+  /** Si el texto menciona a alguien que no está en ese chat (@Clara), va con él. */
+  const destinoDe = (texto: string, id: string) => {
+    const c = convs.find((x) => x.id === id);
+    const mencion = (["lola", "clara", "victor", "iris"] as IdAgente[]).find((a) => texto.includes(`@${AGENTE_POR_ID[a].nombre}`));
+    return mencion && c && !c.agentes.includes(mencion) && convs.some((x) => x.id === mencion) ? mencion : id;
+  };
+  const irPortada = () => {
+    setPortada(true);
+    setBarra(false);
+  };
   const sinLeerTotal = convs.reduce((s, c) => s + (c.id === activa ? 0 : c.sinLeer), 0);
 
   const fila = (c: Conversacion) => {
+    if (!enVivo) {
+      // /pruebalo: una línea por chat (personaje y nombre), como el lateral del dashboard
+      const escribe = pendiente?.conv === c.id;
+      const grupo = c.agentes.length > 1;
+      const simple = (
+        <button type="button" className="chat__item" aria-current={!portada && c.id === activa ? "true" : undefined} onClick={() => abrir(c.id)}>
+          {grupo ? <PilaAvatares agentes={c.agentes} tam={24} /> : <Avatar agente={c.agentes[0]} tam={24} />}
+          <span className="chat__item-nombre">{c.nombre}</span>
+          {grupo ? null : <span className="chat__item-area">{AGENTE_POR_ID[c.agentes[0]].area}</span>}
+          {escribe ? (
+            <span className="chat__item-escribe" role="status" aria-label="Escribiendo">
+              <i />
+              <i />
+              <i />
+            </span>
+          ) : c.sinLeer && c.id !== activa ? (
+            <span className="chat__contador" aria-label={`${c.sinLeer} sin leer`}>
+              {c.sinLeer}
+            </span>
+          ) : null}
+        </button>
+      );
+      return (
+        <li key={c.id}>
+          {grupo ? (
+            <Deslizable etiqueta={`el grupo ${c.nombre}`} alBorrar={() => borrar(c.id)}>
+              {simple}
+            </Deslizable>
+          ) : (
+            simple
+          )}
+        </li>
+      );
+    }
     const vis = visibles(c);
     const escribe = pendiente?.conv === c.id ? pendiente.agente : vivo && c.id === "recepcion" ? vivo.escribe : null;
     const ultimo = vis[vis.length - 1];
@@ -712,20 +784,37 @@ export function ChatDemo({
     >
       {/* ---------- Lista de chats y grupos ---------- */}
       <aside className="chat__barra" data-abierta={barra ? "" : undefined} aria-label="Tus chats">
-        <div className="chat__barra-cabeza">
-          <p className="chat__barra-titulo">Conversaciones</p>
-          <button type="button" className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`} onClick={() => setCreando(true)}>
-            <Icono nombre="mas" tam={16} />
-            Nuevo grupo
-          </button>
-          <button type="button" className="chat__icono chat__solo-celular" onClick={() => setBarra(false)} aria-label="Cerrar la lista">
-            <Icono nombre="cerrar" tam={16} />
-          </button>
-        </div>
+        {enVivo ? (
+          <div className="chat__barra-cabeza">
+            <p className="chat__barra-titulo">Conversaciones</p>
+            <button type="button" className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`} onClick={() => setCreando(true)}>
+              <Icono nombre="mas" tam={16} />
+              Nuevo grupo
+            </button>
+          </div>
+        ) : (
+          <div className="chat__barra-cabeza chat__barra-cabeza--simple">
+            <button type="button" className="chat__item chat__item--nueva" aria-current={portada ? "true" : undefined} onClick={irPortada}>
+              <Icono nombre="mas" tam={16} />
+              <span className="chat__item-nombre">Nueva conversación</span>
+            </button>
+            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setBarra(false)} aria-label="Cerrar la lista">
+              <Icono nombre="cerrar" tam={16} />
+            </button>
+          </div>
+        )}
         <div className="chat__listas" data-lenis-prevent>
+          {enVivo ? null : (
+            <div className="chat__seccion-cabeza">
+              <p className="chat__seccion">Grupos</p>
+              <button type="button" className="chat__icono chat__icono--chico" onClick={() => setCreando(true)} aria-label="Nuevo grupo" title="Nuevo grupo">
+                <Icono nombre="mas" tam={16} />
+              </button>
+            </div>
+          )}
           {grupos.length ? (
             <>
-              <p className="chat__seccion">Grupos</p>
+              {enVivo ? <p className="chat__seccion">Grupos</p> : null}
               <ul className="chat__lista">{grupos.map(fila)}</ul>
             </>
           ) : null}
@@ -742,7 +831,37 @@ export function ChatDemo({
         tabIndex={-1}
       />
 
-      {/* ---------- Conversación abierta ---------- */}
+      {/* ---------- Portada (/pruebalo): el saludo y la caja grande ---------- */}
+      {portada && !enVivo ? (
+        <section className="chat__principal chat__portada" aria-label="Nueva conversación">
+          <div className="chat__portada-barra">
+            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setBarra(true)} aria-label="Ver chats">
+              <Icono nombre="mensaje" tam={20} />
+              {sinLeerTotal ? <span className="chat__punto" aria-label={`${sinLeerTotal} sin leer`} /> : null}
+            </button>
+          </div>
+          <div className="chat__portada-centro">
+            <h2 className="chat__saludo">
+              <PilaAvatares agentes={["lola", "clara", "victor", "iris"]} tam={28} />
+              <span>{nombre ? `¿En qué te ayuda tu equipo hoy, ${nombre}?` : "¿En qué te ayuda tu equipo hoy?"}</span>
+            </h2>
+            <PromptBar
+              key="portada"
+              className="chat__portada-caja"
+              placeholder="Escríbele a tu equipo…"
+              sources={todos}
+              commands={ACCIONES}
+              models={destinos}
+              defaultModel="recepcion"
+              modelLabel="A quién le escribes"
+              efforts={[]}
+              onSend={(texto, { model }) => empezar(texto, destinoDe(texto, model?.key ?? "recepcion"))}
+              maxRows={8}
+            />
+            <p className="chat__portada-nota">Respuestas de ejemplo: aquí no se llama a la IA.</p>
+          </div>
+        </section>
+      ) : (
       <section className="chat__principal" aria-label={`Chat: ${conv.nombre}`}>
         <header className="chat__cabeza">
           <button type="button" className="chat__icono chat__solo-celular" onClick={() => setBarra(true)} aria-label="Ver chats">
@@ -764,7 +883,7 @@ export function ChatDemo({
               )}
             </p>
           </div>
-          <span className="chat__demo">Guion de ejemplo</span>
+          <span className="chat__demo">{enVivo ? "Guion de ejemplo" : "Respuestas de ejemplo"}</span>
         </header>
 
         <div ref={listaRef} className="chat__mensajes" data-lenis-prevent role="log" aria-live="polite" aria-label={`Mensajes de ${conv.nombre}`}>
@@ -791,14 +910,16 @@ export function ChatDemo({
         </div>
 
         <div className="chat__pie">
-          <div className="chat__sugerencias" aria-label="Prueba una acción">
-            {sugerencias.map((a) => (
-              <button key={a.key} type="button" className="chat__sugerencia" disabled={ocupado} onClick={() => enviar(a.name)}>
-                <code>{a.name}</code>
-                <span>{a.description}</span>
-              </button>
-            ))}
-          </div>
+          {enVivo ? (
+            <div className="chat__sugerencias" aria-label="Prueba una acción">
+              {sugerencias.map((a) => (
+                <button key={a.key} type="button" className="chat__sugerencia" disabled={ocupado} onClick={() => enviar(a.name)}>
+                  <code>{a.name}</code>
+                  <span>{a.description}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
           <PromptBar
             key={conv.id}
             placeholder={esGrupo ? "Escribe al grupo · @ para mencionar" : `Escríbele a ${conv.nombre} · / para acciones`}
@@ -811,9 +932,10 @@ export function ChatDemo({
             onStop={detener}
             maxRows={5}
           />
-          <Atajos />
+          {enVivo ? <Atajos /> : null}
         </div>
       </section>
+      )}
 
       {creando ? <NuevoGrupo onCrear={crearGrupo} onCerrar={() => setCreando(false)} /> : null}
     </div>
@@ -838,6 +960,9 @@ export function ChatDemo({
       ),
     activa: c.id === activa,
   }));
+
+  // En /pruebalo el chat va directo en el armazón del dashboard, sin marco de navegador
+  if (!enVivo) return app;
 
   return (
     <MarcoNavegador

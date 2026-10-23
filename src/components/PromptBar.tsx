@@ -45,6 +45,8 @@ type Props = {
   sources?: PromptBarSource[];
   commands?: PromptBarCommand[];
   models?: PromptBarModel[];
+  /** Cómo se lee el selector de `models` (en Atendel: a quién le escribes). */
+  modelLabel?: string;
   defaultModel?: string;
   efforts?: string[];
   defaultEffort?: string;
@@ -148,6 +150,7 @@ export default function PromptBar({
   sources = [],
   commands = [],
   models = [],
+  modelLabel = "Elegir modelo",
   defaultModel = "",
   efforts = [],
   defaultEffort = "",
@@ -655,11 +658,12 @@ export default function PromptBar({
             data-on={plusOpen ? "" : undefined}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
+              // Primero el foco: al enfocar el campo se cierran los menús (y este no se abriría)
+              focusInput();
               setModelOpen(false);
               setEffortOpen(false);
               setActive(0);
-              setPlusOpen((v) => !v);
-              focusInput();
+              setPlusOpen(!plusOpen);
             }}
           >
             <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
@@ -668,16 +672,16 @@ export default function PromptBar({
             <button
               type="button"
               className="prompt-bar__pick"
-              aria-label="Elegir modelo"
+              aria-label={`${modelLabel}: ${model.name}`}
               aria-expanded={modelOpen}
               data-on={modelOpen ? "" : undefined}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                focusInput();
                 setPlusOpen(false);
                 setEffortOpen(false);
                 setActive(Math.max(0, models.indexOf(model)));
-                setModelOpen((v) => !v);
-                focusInput();
+                setModelOpen(!modelOpen);
               }}
             >
               <span>{model.name}</span>
@@ -694,10 +698,10 @@ export default function PromptBar({
               data-max={maxed ? "" : undefined}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                focusInput();
                 setPlusOpen(false);
                 setModelOpen(false);
-                setEffortOpen((v) => !v);
-                focusInput();
+                setEffortOpen(!effortOpen);
               }}
             >
               <HugeiconsIcon icon={SparklesIcon} size={13} strokeWidth={2} />

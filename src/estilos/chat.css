@@ -1247,3 +1247,411 @@
     margin-right: auto;
   }
 }
+
+/* =====================================================================
+   6. Chat moderno (/pruebalo y /panel/chat; lecciones 13 y 14)
+   Como una IA de hoy y con los colores del dashboard: fondo plano, lista
+   simple a la izquierda (una línea por chat), el agente escribe sin caja
+   (personaje pequeño y nombre arriba, líneas de ~68 caracteres), lo tuyo en
+   una burbuja suave a la derecha, tarjetas con borde fino y la caja amplia
+   abajo. El chat del inicio (.chat--inicio) no cambia.
+   ===================================================================== */
+.chat:not(.chat--inicio) {
+  --chat-lado: var(--c-lateral);
+  --chat-fondo: var(--c-fondo);
+  --chat-activo: var(--c-activo);
+  --chat-hover: var(--c-activo);
+  font-size: var(--t-app-cuerpo);
+}
+@media (min-width: 768px) {
+  .chat:not(.chat--inicio) {
+    grid-template-columns: 272px minmax(0, 1fr);
+  }
+}
+
+/* ---------- Lista ---------- */
+.chat:not(.chat--inicio) .chat__barra-cabeza {
+  min-height: 0;
+  padding: var(--spacing-12) var(--spacing-8) var(--spacing-4);
+  border-bottom: 0;
+}
+.chat:not(.chat--inicio) .chat__barra-titulo {
+  font-size: var(--t-app-cuerpo);
+}
+.chat:not(.chat--inicio) .chat__listas {
+  padding: 0 var(--spacing-8) var(--spacing-16);
+}
+.chat:not(.chat--inicio) .chat__seccion {
+  padding: var(--spacing-16) var(--spacing-8) var(--spacing-4);
+  color: var(--c-texto-2);
+  font-family: inherit;
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-titulo);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.chat__seccion-cabeza {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.chat__icono--chico {
+  width: var(--alto-control-compacto);
+  height: var(--alto-control-compacto);
+}
+.chat:not(.chat--inicio) .chat__lista {
+  gap: 2px;
+}
+.chat__item,
+.chat:not(.chat--inicio) .chat__conv {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  width: 100%;
+  min-height: var(--alto-control-chico);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--radio-app-control);
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  text-align: left;
+}
+@media (pointer: coarse) {
+  .chat__item,
+  .chat:not(.chat--inicio) .chat__conv {
+    min-height: var(--spacing-44);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .chat__item:hover {
+    background: var(--chat-hover);
+  }
+}
+.chat__item[aria-current],
+.chat:not(.chat--inicio) .chat__conv[aria-current] {
+  background: var(--chat-activo);
+  font-weight: var(--peso-app-titulo);
+}
+.chat:not(.chat--inicio) .chat__conv[aria-current]::before {
+  display: none;
+}
+.chat__item:active {
+  transform: scale(0.99);
+}
+.chat__item:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: -2px;
+}
+.chat__item--nueva {
+  flex: 1;
+  color: var(--c-texto);
+}
+.chat__item--nueva > .icono {
+  color: var(--c-texto-2);
+}
+.chat__item-nombre {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.chat__item-area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-cuerpo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.chat__item .chat__contador,
+.chat__item-escribe {
+  margin-left: auto;
+}
+.chat__item .chat__pila,
+.chat__item > .chat__avatar {
+  flex-shrink: 0;
+}
+.chat__item .chat__pila[data-varios] .chat__avatar {
+  width: 20px;
+  height: 20px;
+}
+.chat__item-escribe {
+  display: inline-flex;
+  gap: 3px;
+}
+.chat__item-escribe i {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radio-circulo);
+  background: var(--c-texto-2);
+  animation: chat-app-punto 1.2s var(--ease) infinite;
+}
+.chat__item-escribe i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.chat__item-escribe i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+/* En /panel/chat, la misma lista: una línea, sin vista previa ni hora */
+.chat:not(.chat--inicio) .chat__conv .chat__pila {
+  width: auto;
+}
+.chat:not(.chat--inicio) .chat__conv .chat__avatar {
+  width: 24px;
+  height: 24px;
+}
+.chat:not(.chat--inicio) .chat__conv-texto {
+  flex-direction: row;
+}
+.chat:not(.chat--inicio) .chat__conv-linea + .chat__conv-linea,
+.chat:not(.chat--inicio) .chat__conv-hora {
+  display: none;
+}
+.chat:not(.chat--inicio) .chat__conv-nombre {
+  font-size: var(--t-app-cuerpo);
+  font-weight: inherit;
+}
+
+/* ---------- Cabeza de la conversación ---------- */
+.chat:not(.chat--inicio) .chat__cabeza {
+  min-height: var(--barra-app-h);
+  padding: var(--spacing-8) var(--spacing-16);
+}
+.chat:not(.chat--inicio) .chat__cabeza .chat__avatar {
+  width: 28px;
+  height: 28px;
+}
+.chat:not(.chat--inicio) .chat__cabeza-titulo {
+  font-size: var(--t-app-cuerpo);
+}
+.chat:not(.chat--inicio) .chat__cabeza-sub,
+.chat:not(.chat--inicio) .chat__demo {
+  color: var(--c-texto-2);
+  font-family: inherit;
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-cuerpo);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.chat:not(.chat--inicio) .chat__demo {
+  padding: 0;
+  border: 0;
+}
+.chat:not(.chat--inicio) .chat__escribe {
+  color: var(--c-texto-2);
+}
+
+/* ---------- El hilo: sin línea de tiempo, columna centrada ---------- */
+.chat:not(.chat--inicio) .chat__hilo {
+  max-width: 736px;
+  padding-block: var(--spacing-32) var(--spacing-24);
+}
+.chat:not(.chat--inicio) .chat__hilo::before {
+  display: none;
+}
+.chat:not(.chat--inicio) .chat__fila {
+  display: block;
+  margin-top: var(--spacing-8);
+}
+.chat:not(.chat--inicio) .chat__fila--bloque {
+  margin-top: var(--spacing-32);
+}
+/* El agente: personaje pequeño junto a su nombre, arriba del texto */
+.chat:not(.chat--inicio) .chat__fila--agente .chat__carril {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.chat:not(.chat--inicio) .chat__carril .chat__avatar {
+  width: 24px;
+  height: 24px;
+}
+.chat:not(.chat--inicio) .chat__cabeza-msj {
+  gap: 0 var(--spacing-8);
+  min-height: 24px;
+  padding-left: var(--spacing-32);
+}
+.chat:not(.chat--inicio) .chat__nombre {
+  font-size: var(--t-app-cuerpo);
+}
+.chat:not(.chat--inicio) .chat__area,
+.chat:not(.chat--inicio) .chat__sello {
+  color: var(--c-texto-2);
+  font-family: inherit;
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-cuerpo);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.chat:not(.chat--inicio) .chat__columna {
+  gap: var(--spacing-12);
+  max-width: 68ch;
+}
+.chat:not(.chat--inicio) .chat__texto {
+  font-size: var(--t-app-mediano);
+  line-height: 1.65;
+}
+/* Lo tuyo: burbuja suave, sin borde */
+.chat:not(.chat--inicio) .chat__tu {
+  margin-left: auto;
+  max-width: min(80%, 560px);
+}
+.chat:not(.chat--inicio) .chat__burbuja {
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 0;
+  border-radius: 18px;
+  background: var(--c-activo);
+  font-size: var(--t-app-mediano);
+  line-height: 1.55;
+}
+/* Pasos y avisos: una línea discreta con su ícono */
+.chat:not(.chat--inicio) .chat__evento {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.chat:not(.chat--inicio) .chat__nodo {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--c-texto-2);
+}
+.chat:not(.chat--inicio) .chat__evento-texto {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.chat:not(.chat--inicio) .chat__dia {
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* "Escribiendo…": tres puntos chicos y grises */
+.chat:not(.chat--inicio) .chat__puntos i {
+  width: 5px;
+  height: 5px;
+}
+/* Las respuestas aparecen con un fundido corto (sin movimiento con "reducir movimiento") */
+.chat:not(.chat--inicio) .chat__entra {
+  animation: chat-entra var(--dur-grande) var(--ease-entrada) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat:not(.chat--inicio) .chat__entra,
+  .chat:not(.chat--inicio) .chat__puntos i,
+  .chat__item-escribe i {
+    animation: none;
+  }
+}
+/* Tarjetas de resultado: borde fino, sin relleno de color */
+.chat:not(.chat--inicio) .chat__tarjeta {
+  max-width: 420px;
+  border-color: var(--c-borde-fuerte);
+  border-radius: var(--radio-app-tarjeta);
+  background: transparent;
+}
+.chat:not(.chat--inicio) .chat__tarjeta-cabeza {
+  min-height: 36px;
+}
+.chat:not(.chat--inicio) .chat__tarjeta-cabeza .icono {
+  color: var(--c-texto-2);
+}
+.chat:not(.chat--inicio) .chat__tarjeta-sello {
+  font-family: inherit;
+  font-size: var(--t-app-etiqueta);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.chat:not(.chat--inicio) .chat__estado {
+  padding: 0;
+  border: 0;
+}
+
+/* ---------- Pie: la caja amplia, centrada como el hilo ---------- */
+.chat:not(.chat--inicio) .chat__pie {
+  max-width: calc(736px + 2 * var(--spacing-24));
+}
+.chat:not(.chat--inicio) .chat__sugerencias,
+.chat:not(.chat--inicio) .chat__atajos {
+  display: none;
+}
+.chat:not(.chat--inicio) .prompt-bar {
+  --pb-bg: var(--c-superficie);
+  --pb-radius: var(--radio-app-tarjeta);
+}
+.chat:not(.chat--inicio) .prompt-bar__field {
+  padding: var(--spacing-12) var(--spacing-8) var(--spacing-8) var(--spacing-12);
+  border-color: var(--c-borde-fuerte);
+}
+.chat:not(.chat--inicio) .prompt-bar__input {
+  min-height: 44px;
+  font-size: var(--t-app-mediano);
+}
+.chat:not(.chat--inicio) .prompt-bar__sparks,
+.chat:not(.chat--inicio) .prompt-bar__field::before {
+  display: none;
+}
+
+/* ---------- Portada: saludo grande centrado y la caja amplia ---------- */
+.chat__portada {
+  position: relative;
+}
+.chat__portada-barra {
+  display: flex;
+  min-height: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-16) 0;
+}
+.chat__portada-centro {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-24);
+  width: 100%;
+  max-width: 736px;
+  margin-inline: auto;
+  padding: 0 var(--spacing-16) 12vh;
+}
+.chat__saludo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-12);
+  color: var(--c-texto);
+  font-size: var(--t-app-saludo);
+  font-weight: var(--peso-app-titulo);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-wrap: balance;
+}
+.chat__saludo .chat__pila {
+  flex-shrink: 0;
+}
+@media (max-width: 639px) {
+  .chat__saludo {
+    flex-direction: column;
+    gap: var(--spacing-16);
+  }
+}
+.chat:not(.chat--inicio) .chat__portada-caja .prompt-bar__input {
+  min-height: 72px;
+}
+.chat__portada-nota {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  text-align: center;
+}
+
+/* ---------- /panel/chat: el estado vacío como la portada ---------- */
+.chat:not(.chat--inicio) .chat__vacio {
+  justify-content: center;
+  min-height: 100%;
+  padding-bottom: 8vh;
+}
+.chat:not(.chat--inicio) .chat__vacio-titulo {
+  font-size: var(--t-app-saludo);
+  font-weight: var(--peso-app-titulo);
+  letter-spacing: -0.02em;
+}
