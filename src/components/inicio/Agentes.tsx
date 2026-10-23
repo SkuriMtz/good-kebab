@@ -1,22 +1,28 @@
-import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
-import { VitrinaAgentes } from "@/components/agentes/VitrinaAgentes";
+import { Revela } from "@/components/escena/Revela";
+import { CarruselEquipo } from "./CarruselEquipo";
 
 /**
- * 3. Los cuatro agentes (Grupo 3 · G3-T1). Como la fila de funciones de la
- * portada de GitHub: pestañas en píldora con el personaje de cada agente y,
- * debajo, un panel de vidrio con qué hace y su conversación de ejemplo dentro
- * de una ventana del producto.
+ * 2. Tu equipo (muestra M1). Segunda escena: la burbuja de la portada se
+ * vuelve un globo arriba a la derecha (data-escena="globoEquipo"; en celular,
+ * polvo ralo) y deja libre el carrusel de los cuatro agentes, a todo lo
+ * ancho, como en la versión 7. El texto, a la izquierda, línea por línea.
  */
 export function Agentes() {
   return (
-    <Seccion id="agentes" etiquetadaPor="agentes-titulo">
-      <EncabezadoSeccion
-        id="agentes-titulo"
-        etiqueta="Tu equipo"
-        titulo="Cuatro agentes, cada uno con su trabajo"
-        texto="Uno contesta WhatsApp y agenda, otra lleva tu correo, otro trae de regreso a tus clientes y otra hace el trabajo de oficina. Elige uno para ver cómo trabaja."
-      />
-      <VitrinaAgentes />
-    </Seccion>
+    <section id="agentes" aria-labelledby="agentes-titulo" className="m1 m1-equipo" data-escena="globoEquipo">
+      <div className="m1-marco">
+        <Revela className="m1-equipo__cabeza">
+          <p className="m1-etiqueta">Tu equipo</p>
+          <h2 id="agentes-titulo" className="m1-titulo">
+            Cuatro agentes, cada uno con su trabajo
+          </h2>
+          <p className="m1-parrafo m1-equipo__texto">
+            Uno contesta WhatsApp y agenda, otra lleva tu correo, otro trae de regreso a tus clientes y otra hace el trabajo de oficina.
+            Toca a cada uno para ver su ficha.
+          </p>
+        </Revela>
+      </div>
+      <CarruselEquipo />
+    </section>
   );
 }

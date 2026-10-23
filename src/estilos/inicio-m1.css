@@ -1,0 +1,408 @@
+/*
+ * Muestra M1 de la landing: "la v7 de regreso". Solo la portada y Tu equipo
+ * del inicio (src/components/inicio/Portada.tsx, Agentes.tsx y
+ * CarruselEquipo.tsx). La estructura es la misma en los dos modos; solo
+ * cambian los tokens de .m1:
+ * - Oscuro = Dala (diseno/design.md): negro puro, títulos enormes en Geist
+ *   400 con -0.04em, párrafos ligeros, sin cajas ni bordes, radio 24px.
+ * - Claro = Vercel (diseno/vercel/DESIGN.md): lienzo #fafafa, Geist 450 con
+ *   -0.06em, anillos finos dobles, radio 6px, etiquetas en Mono.
+ * El botón principal va en el azul de Atendel en los dos modos.
+ * Sin capa, para ganarle a la base. Solo se animan transform y opacity.
+ */
+
+/* ---------- Lienzo del inicio y la figura de fondo ---------- */
+:root:not([data-tema="claro"]):has(.sitio--figuras) {
+  --c-fondo: #000;
+}
+:root[data-tema="claro"]:has(.sitio--figuras) {
+  --c-fondo: #fafafa;
+}
+/* La figura: brillo bajo (lecciones 7 y 11); en claro, gris suave */
+.sitio--figuras .escena-fondo {
+  opacity: 0.72;
+}
+:root[data-tema="claro"] .sitio--figuras .escena-fondo {
+  opacity: 0.42;
+  filter: grayscale(1);
+}
+
+/* ---------- Tokens (oscuro = Dala) ---------- */
+.m1 {
+  --m1-texto: #fff;
+  --m1-texto-2: #bdbdbd;
+  --m1-tenue: #9a9a9a;
+  --m1-display: clamp(44px, 1.6rem + 5vw, 96px);
+  --m1-titulo: clamp(40px, 1.4rem + 3.6vw, 78px);
+  --m1-titulo-peso: 400;
+  --m1-titulo-tracking: -0.04em;
+  --m1-titulo-alto: 1.02;
+  --m1-parrafo-peso: 300;
+  --m1-etiqueta-tam: 12px;
+  --m1-etiqueta-tracking: 0.06em;
+  --m1-radio: 24px;
+  --m1-panel-fondo: transparent;
+  --m1-panel-anillo: none;
+  --m1-panel-relleno: 0;
+  --m1-check: #9a9a9a;
+  --m1-retrato-anillo: none;
+  --m1-linea: rgb(255 255 255 / 0.22);
+  --m1-sombra-texto: 0 0 24px rgb(0 0 0 / 0.9);
+  --m1-punto: rgb(255 255 255 / 0.28);
+
+  /* Los controles de la base (FormularioLista, Boton, Campo) toman estos */
+  --c-texto: var(--m1-texto);
+  --c-accion: var(--azul-accion);
+  --c-accion-hover: var(--azul-accion-hover);
+  --c-sobre-accion: #fff;
+  --radio-boton: var(--m1-radio);
+  --radio-campo: var(--m1-radio);
+  --c-campo-fondo: rgb(255 255 255 / 0.04);
+  --c-campo-borde: rgb(255 255 255 / 0.22);
+  --c-sutil-fondo: transparent;
+  --c-sutil-borde: rgb(255 255 255 / 0.28);
+  --c-sutil-texto: #fff;
+
+  position: relative;
+  color: var(--m1-texto);
+  text-shadow: var(--m1-sombra-texto);
+}
+
+/* ---------- Tokens (claro = Vercel) ---------- */
+:root[data-tema="claro"] .m1 {
+  --m1-texto: #171717;
+  --m1-texto-2: #4d4d4d;
+  --m1-tenue: #666;
+  --m1-display: clamp(40px, 1.9rem + 2.3vw, 64px);
+  --m1-titulo: clamp(36px, 1.6rem + 2vw, 56px);
+  --m1-titulo-peso: 450;
+  --m1-titulo-tracking: -0.06em;
+  --m1-titulo-alto: 1;
+  --m1-parrafo-peso: 400;
+  --m1-etiqueta-tam: 11px;
+  --m1-etiqueta-tracking: 0.071em;
+  --m1-radio: 6px;
+  --m1-panel-fondo: #fff;
+  --m1-panel-anillo: 0 0 0 1px rgb(0 0 0 / 0.08), 0 0 0 2px #fafafa;
+  --m1-panel-relleno: 16px 20px;
+  --m1-check: #297a3a;
+  --m1-retrato-anillo: 0 0 0 1px rgb(0 0 0 / 0.08), 0 0 0 2px #fafafa;
+  --m1-linea: rgb(0 0 0 / 0.12);
+  --m1-sombra-texto: none;
+  --m1-punto: rgb(0 0 0 / 0.18);
+
+  --c-campo-fondo: #fff;
+  --c-campo-borde: rgb(0 0 0 / 0.12);
+  --c-sutil-fondo: #fff;
+  --c-sutil-borde: rgb(0 0 0 / 0.12);
+  --c-sutil-texto: #171717;
+}
+
+/* ---------- Piezas de texto ---------- */
+.m1-marco {
+  width: 100%;
+  max-width: calc(1280px + 2 * var(--orilla));
+  margin-inline: auto;
+  padding-inline: var(--orilla);
+}
+.m1-etiqueta {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m1-etiqueta-tam);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: var(--m1-etiqueta-tracking);
+  text-transform: uppercase;
+  color: var(--m1-tenue);
+}
+.m1-display,
+.m1-titulo {
+  margin-top: 24px;
+  font-weight: var(--m1-titulo-peso);
+  line-height: var(--m1-titulo-alto);
+  letter-spacing: var(--m1-titulo-tracking);
+  color: var(--m1-texto);
+}
+.m1-display {
+  max-width: 9.2em;
+  font-size: var(--m1-display);
+}
+.m1-titulo {
+  max-width: 11em;
+  font-size: var(--m1-titulo);
+  text-wrap: balance;
+}
+/* Revela parte el título en palabras con ranura: el renglón alto evita que se corten las letras */
+.m1-display .rv-p,
+.m1-titulo .rv-p {
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.m1-parrafo {
+  max-width: 34em;
+  font-size: 18px;
+  font-weight: var(--m1-parrafo-peso);
+  line-height: 1.55;
+  color: var(--m1-texto-2);
+  text-wrap: pretty;
+}
+.m1-parrafo b {
+  font-weight: 500;
+  color: var(--m1-texto);
+}
+
+/* ---------- 1. Portada ---------- */
+.m1-portada {
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin-top: calc(-1 * var(--barra-h));
+  padding-block: calc(var(--barra-h) + 48px) 96px;
+}
+.m1-portada__texto {
+  max-width: 760px;
+}
+.m1-portada__intro {
+  margin-top: 32px;
+}
+/* Revela envuelve el formulario en un bloque en línea: aquí ocupa todo el ancho */
+.m1-portada__texto > .rv-bloque {
+  display: block;
+}
+.m1-portada__formulario {
+  margin-top: 40px;
+}
+.m1-portada .boton {
+  text-shadow: none;
+}
+/* El registro: en claro, una tarjeta de anillo fino; en oscuro, solo texto */
+.m1-registro {
+  display: inline-block;
+  margin-top: 24px;
+  padding: var(--m1-panel-relleno);
+  border-radius: var(--m1-radio);
+  background: var(--m1-panel-fondo);
+  box-shadow: var(--m1-panel-anillo);
+}
+.m1-registro__lista {
+  margin-top: 8px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--m1-texto-2);
+}
+.m1-registro__check {
+  color: var(--m1-check);
+}
+/* En celular la figura va arriba, chica, y el texto empieza debajo */
+@media (max-width: 899px) {
+  .m1-portada {
+    display: block;
+    padding-top: max(300px, 36svh);
+  }
+}
+
+/* ---------- 2. Tu equipo ---------- */
+.m1-equipo {
+  padding-block: clamp(96px, 10vw, 128px) 96px;
+  overflow-x: clip;
+}
+.m1-equipo__texto {
+  margin-top: 24px;
+}
+
+/* El carrusel a todo lo ancho (como la v7) */
+.m1-carrusel {
+  --tw: clamp(200px, 16.5vw, 250px);
+  --th: calc(var(--tw) * 1.3);
+  --paso: calc(var(--tw) * 1.3);
+  /* En computadora, las tarjetas de la derecha se recorren para dejar libre el nombre */
+  --hueco: 250px;
+  position: relative;
+  height: calc(var(--th) + 96px);
+  margin-top: 64px;
+  text-shadow: none;
+}
+.m1-carrusel__pista {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--th);
+}
+.m1-carrusel__tarjeta {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 0;
+  width: var(--tw);
+  opacity: 0.22;
+  filter: grayscale(0.6);
+  transform: translateX(calc(-50% + var(--k) * var(--paso) + clamp(0, var(--k), 1) * var(--hueco))) scale(0.84);
+  transition:
+    transform 1s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 1s ease,
+    filter 1s ease;
+}
+.m1-carrusel__tarjeta[data-centro="true"] {
+  z-index: 1;
+  opacity: 1;
+  filter: none;
+  transform: translateX(-50%) scale(1);
+}
+.m1-carrusel__boton {
+  display: block;
+  width: 100%;
+  border-radius: var(--m1-radio);
+}
+.m1-carrusel__boton:focus-visible {
+  outline: 2px solid var(--azul-accion);
+  outline-offset: 4px;
+}
+.m1-carrusel__retrato {
+  display: grid;
+  place-items: center;
+  height: var(--th);
+  border-radius: var(--m1-radio);
+  /* El color del agente solo como velo, para que mande el personaje */
+  background: color-mix(in srgb, var(--agente) 16%, #0a0a0a);
+  box-shadow: var(--m1-retrato-anillo);
+}
+:root[data-tema="claro"] .m1-carrusel__retrato {
+  background: color-mix(in srgb, var(--agente) 16%, #fff);
+}
+.m1-carrusel__retrato > svg {
+  width: 70%;
+  height: auto;
+}
+.m1-carrusel__datos {
+  position: absolute;
+  top: calc(var(--th) * 0.16);
+  left: calc(50% + var(--tw) / 2 + 28px);
+  z-index: 2;
+  width: 230px;
+  animation: m1-datos 0.8s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.m1-carrusel__nombre {
+  margin-top: 12px;
+  font-size: clamp(32px, 1.2rem + 1.6vw, 44px);
+  font-weight: var(--m1-titulo-peso);
+  line-height: 1.05;
+  letter-spacing: var(--m1-titulo-tracking);
+  color: var(--m1-texto);
+}
+.m1-carrusel__abarca {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: var(--m1-parrafo-peso);
+  line-height: 1.5;
+  color: var(--m1-texto-2);
+}
+.m1-carrusel__ficha {
+  margin-top: 16px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--m1-etiqueta-tam);
+  font-weight: 500;
+  letter-spacing: var(--m1-etiqueta-tracking);
+  text-transform: uppercase;
+  color: var(--m1-texto);
+  text-decoration: underline;
+  text-decoration-color: var(--m1-linea);
+  text-underline-offset: 5px;
+  transition: text-decoration-color 150ms ease;
+}
+.m1-carrusel__ficha:hover {
+  text-decoration-color: currentColor;
+}
+.m1-carrusel__control {
+  position: absolute;
+  top: calc(var(--th) + 40px);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transform: translateX(-50%);
+}
+.m1-carrusel__flecha {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--m1-linea);
+  border-radius: var(--m1-radio);
+  background: var(--c-sutil-fondo);
+  color: var(--m1-texto);
+  font-size: 16px;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.m1-carrusel__flecha:hover {
+  border-color: var(--m1-texto);
+}
+.m1-carrusel__flecha:active {
+  transform: scale(0.96);
+}
+.m1-carrusel__puntos {
+  display: flex;
+  gap: 4px;
+}
+.m1-carrusel__punto {
+  position: relative;
+  width: 20px;
+  height: 44px;
+}
+.m1-carrusel__punto::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--m1-punto);
+  transform: translate(-50%, -50%);
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+.m1-carrusel__punto:hover::after {
+  background: var(--m1-tenue);
+}
+.m1-carrusel__punto[aria-current="true"]::after {
+  background: var(--m1-texto);
+}
+.m1-carrusel__flecha:focus-visible,
+.m1-carrusel__punto:focus-visible,
+.m1-carrusel__ficha:focus-visible {
+  outline: 2px solid var(--azul-accion);
+  outline-offset: 2px;
+}
+@keyframes m1-datos {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (max-width: 899px) {
+  .m1-carrusel {
+    --tw: min(52vw, 230px);
+    --paso: calc(var(--tw) * 1.16);
+    --hueco: 0px;
+    height: calc(var(--th) + 250px);
+    margin-top: 48px;
+  }
+  .m1-carrusel__datos {
+    top: calc(var(--th) + 20px);
+    left: calc(50% - var(--tw) / 2);
+    width: var(--tw);
+  }
+  .m1-carrusel__nombre {
+    margin-top: 8px;
+  }
+  .m1-carrusel__control {
+    top: calc(var(--th) + 196px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .m1-carrusel__tarjeta {
+    transition: none;
+  }
+  .m1-carrusel__datos {
+    animation: none;
+  }
+}

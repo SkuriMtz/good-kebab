@@ -100,7 +100,11 @@ const suave = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
-export function Escena() {
+/**
+ * `sobrio`: la versión discreta (lecciones 7 y 11): menos polvo y menos
+ * tetraedros sueltos, y sin brillo alrededor de sus líneas.
+ */
+export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const refLineas = useRef<HTMLCanvasElement>(null);
   const refCaja = useRef<HTMLDivElement>(null);
@@ -135,7 +139,7 @@ export function Escena() {
 
     const ancho0 = window.innerWidth;
     const N = ancho0 < 700 ? 6000 : ancho0 < 1200 ? 9000 : 12000;
-    const NP = ancho0 < 700 ? 120 : 260;
+    const NP = sobrio ? (ancho0 < 700 ? 60 : 120) : ancho0 < 700 ? 120 : 260;
 
     // Las figuras, creadas la primera vez que se necesitan
     const formas = new Map<NombreForma, Float32Array>();
@@ -210,7 +214,7 @@ export function Escena() {
     const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro"].map((n) => [n, un(progPolvo, n)]));
 
     // Tetraedros grandes que flotan
-    const cuantos = ancho0 < 700 ? 4 : 7;
+    const cuantos = sobrio ? (ancho0 < 700 ? 2 : 3) : ancho0 < 700 ? 4 : 7;
     const tetras = Array.from({ length: cuantos }, (_, i) => ({
       x: (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
       y: Math.random(),
@@ -492,7 +496,7 @@ export function Escena() {
         ctx2.globalAlpha = (0.35 + 0.5 * te.prof) * (claro ? 0.6 : 1);
         ctx2.strokeStyle = te.color;
         ctx2.shadowColor = claro ? "transparent" : te.color;
-        ctx2.shadowBlur = claro ? 0 : 10;
+        ctx2.shadowBlur = claro || sobrio ? 0 : 10;
         ctx2.beginPath();
         for (const [a, b] of ARISTAS) {
           ctx2.moveTo(pts[a][0], pts[a][1]);
@@ -558,7 +562,7 @@ export function Escena() {
       gl.deleteProgram(progFigura);
       gl.deleteProgram(progPolvo);
     };
-  }, []);
+  }, [sobrio]);
 
   return (
     <div ref={refCaja} className="escena-fondo" aria-hidden="true">

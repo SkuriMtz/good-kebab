@@ -13,16 +13,18 @@ import { Seguridad } from "@/components/inicio/Seguridad";
 /*
  * Inicio, en el orden de diseno/plan.md. Cada sección vive en su archivo de
  * src/components/inicio/ y la trabaja su grupo; aquí solo se decide el orden.
- * La portada va en #000 (con la escena 3D adentro); el resto, en #0d1117.
- * Ritmo: centrado → producto en grande → pestañas → columnas asimétricas →
- * línea de tiempo → pestañas → tarjeta ancha → tarjetas de precio → acordeón → centrado.
+ * Muestra M1 ("la v7 de regreso"): el inicio empieza por escenas, como la
+ * versión 7. Detrás, la figura de triangulitos (fondo="figuras") cambia de
+ * forma por sección: burbuja en la portada y polvo arriba en Tu equipo.
+ * Por eso Tu equipo sube justo después de la portada; el chat de
+ * demostración sigue enseguida.
  */
 export default function Inicio() {
   return (
-    <Sitio fondo="ninguno">
+    <Sitio fondo="figuras">
       <Portada />
-      <ChatEnMarco />
       <Agentes />
+      <ChatEnMarco />
       <QueEs />
       <ComoFunciona />
       <ParaQuien />
