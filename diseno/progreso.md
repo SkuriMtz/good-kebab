@@ -19,6 +19,8 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **2026-10-21 02:50 UTC — Plan nuevo del dueño (21 oct, ver CLAUDE.md lección 14 y `/root/.claude/plans/vivid-fluttering-dusk.md`):** se paró todo. La integración quedó en e792607 (los 7 ganadores juntos + lección 13 en la base; no se terminó el resto del encargo del integrador). Desde aquí: un trabajador por pantalla, un revisor ligero, y el dueño aprueba capturas antes de seguir. Orden: (1) letra Geist en todo — hecho (0daa9ab); (2) dashboard — hecho 2026-10-23 01:53 UTC (2e85f54, capturas en `diseno/capturas/paso7b/dashboard/`), el dueño pidió cambios ("literal GitHub", más simple, agentes fuertes) → segunda pasada 2026-10-23 04:24 UTC (1d5fd5e, capturas en `diseno/capturas/paso7b/dashboard-2/` con comparativa contra la referencia), esperando aprobación del dueño; (3) chat tipo IA moderna; (4) landing con `diseno/vercel/`; (5) cierre.
 
+- **2026-10-23 18:49 UTC:** chat aprobado en su segunda versión (abf47ca, como `chat-referencia-2.webp`). La landing estilo Vercel (a9ec4cb…0fb9b17) no le gustó al dueño ("me gustó más el otro landing"): se revirtieron sus 4 commits de código y el sitio público vuelve a como estaba en abf47ca. Las capturas de la versión Vercel quedan como registro. Lección 15 en CLAUDE.md. Falta el cierre: arreglos chicos del dashboard que diga el dueño y la revisión final.
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)

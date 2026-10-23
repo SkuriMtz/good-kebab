@@ -10,11 +10,11 @@ import { SEGMENTOS } from "@/lib/contenido";
 import { PERSONAJES } from "@/lib/personajes";
 
 /**
- * 6. Para quién es (estilo diseno/vercel: pestañas en píldora y tarjetas finas).
+ * 6. Para quién es (Grupo 4 · propuesta T3).
  * Pestañas en píldora, una por negocio. Cada una en dos columnas: a la
  * izquierda cómo es ese negocio (texto de ejemplo, marcado como borrador) y,
  * a la derecha, la tarea concreta de cada agente con su personaje, en una
- * rejilla de 2 × 2 de tarjetas finas.
+ * rejilla de 2 × 2 separada por líneas de 1px (sin tarjetas).
  */
 export function ParaQuien() {
   const pestanas = SEGMENTOS.map((s) => ({
@@ -37,7 +37,7 @@ export function ParaQuien() {
             if (!esIdAgente(id)) return null;
             const agente = AGENTE_POR_ID[id];
             return (
-              <li key={id} className="tarea tarjeta-fina">
+              <li key={id} className="tarea">
                 <span className="marca-agente marca-agente--chica" style={{ "--agente": PERSONAJES[id].color } as CSSProperties}>
                   <Personaje agente={id} avatar />
                 </span>
@@ -60,10 +60,10 @@ export function ParaQuien() {
 
   return (
     <Seccion id="para-quien-es" etiquetadaPor="para-quien-titulo">
-      <header className="banda-cabeza negocios__cabeza">
+      <header className="negocios__cabeza">
         <Etiqueta>Para quién es</Etiqueta>
         <h2 id="para-quien-titulo" className="t-seccion">
-          Para negocios que viven de atender, agendar y que sus clientes regresen.
+          Para negocios que viven de atender, agendar y que sus clientes regresen
         </h2>
       </header>
       <Pestanas etiqueta="Tipos de negocio" pestanas={pestanas} alineacion="izquierda" classNamePanel="negocios__panel" />

@@ -11,17 +11,15 @@ import { QueEs } from "@/components/inicio/QueEs";
 import { Seguridad } from "@/components/inicio/Seguridad";
 
 /*
- * Inicio con el estilo de diseno/vercel (lección 14). Cada sección vive en su
- * archivo de src/components/inicio/; aquí solo se decide el orden. Un solo
- * lienzo (sin cambios de fondo entre bandas) y los fragmentos de fondo fijos
- * y en gris, en las orillas. Ritmo: portada en tres zonas → dos columnas con
- * el producto → cuadrícula de agentes → dos columnas con la terminal →
- * cuadrícula de pasos → pestañas → cuadrícula de garantías → precios →
- * preguntas → cierre.
+ * Inicio, en el orden de diseno/plan.md. Cada sección vive en su archivo de
+ * src/components/inicio/ y la trabaja su grupo; aquí solo se decide el orden.
+ * La portada va en #000 (con la escena 3D adentro); el resto, en #0d1117.
+ * Ritmo: centrado → producto en grande → pestañas → columnas asimétricas →
+ * línea de tiempo → pestañas → tarjeta ancha → tarjetas de precio → acordeón → centrado.
  */
 export default function Inicio() {
   return (
-    <Sitio>
+    <Sitio fondo="ninguno">
       <Portada />
       <ChatEnMarco />
       <Agentes />

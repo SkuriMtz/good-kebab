@@ -31,20 +31,18 @@
 }
 
 /* Los fragmentos de fondo se quedan fijos (solo se mueve el contenido) y
-   discretos (lecciones 7, 8, 11 y 13; estilo Vercel, lección 14): en gris
-   muy suave (sin el color de los triangulitos), sin brillo, y solo en las
-   orillas, lejos del texto. La máscara solo usa transparencia. */
+   discretos: opacidad baja y casi invisibles en el centro, donde va el
+   texto (lecciones 7, 8, 11 y 13). La máscara solo usa transparencia. */
 .sitio--particulas .escena-fondo {
   opacity: var(--escena-opacidad);
-  filter: grayscale(1);
-  -webkit-mask-image: linear-gradient(90deg, rgb(0 0 0 / 1), rgb(0 0 0 / 0) 24%, rgb(0 0 0 / 0) 76%, rgb(0 0 0 / 1));
-  mask-image: linear-gradient(90deg, rgb(0 0 0 / 1), rgb(0 0 0 / 0) 24%, rgb(0 0 0 / 0) 76%, rgb(0 0 0 / 1));
+  -webkit-mask-image: radial-gradient(ellipse 50% 62% at 50% 50%, rgb(0 0 0 / 0.16), rgb(0 0 0 / 1));
+  mask-image: radial-gradient(ellipse 50% 62% at 50% 50%, rgb(0 0 0 / 0.16), rgb(0 0 0 / 1));
 }
 @media (max-width: 767px) {
   .sitio--particulas .escena-fondo {
-    opacity: calc(var(--escena-opacidad) * 0.7);
-    -webkit-mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0) 18%, rgb(0 0 0 / 0) 82%, rgb(0 0 0 / 0.8));
-    mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0) 18%, rgb(0 0 0 / 0) 82%, rgb(0 0 0 / 0.8));
+    opacity: calc(var(--escena-opacidad) * 0.9);
+    -webkit-mask-image: linear-gradient(rgb(0 0 0 / 1), rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.3) 70%, rgb(0 0 0 / 1));
+    mask-image: linear-gradient(rgb(0 0 0 / 1), rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.3) 70%, rgb(0 0 0 / 1));
   }
 }
 
@@ -1038,208 +1036,4 @@
 }
 .hoja-nav__titulo--suelto {
   margin-top: var(--spacing-32);
-}
-
-/* =====================================================================
-   6. Estilo Vercel del sitio público (lección 14; diseno/vercel/DESIGN.md)
-   Solo dentro de .sitio: la barra genérica de la app (NavApp) no cambia.
-   ===================================================================== */
-
-/* ---------- Barra: 64px, fija, lienzo con desenfoque, sin línea abajo ---------- */
-.sitio .cabecera::before {
-  border-bottom: 0;
-  background: color-mix(in srgb, var(--c-fondo) 82%, transparent);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  opacity: 1;
-}
-.sitio .cabecera[data-hoja="true"]::before {
-  background: var(--c-fondo);
-}
-.sitio .cabecera__fila {
-  gap: var(--spacing-8);
-}
-.sitio .cabecera__logo {
-  gap: var(--spacing-8);
-  padding-right: var(--spacing-8);
-}
-.sitio .cabecera__marca {
-  width: 20px;
-  height: 20px;
-}
-.sitio .cabecera__nombre {
-  font-size: var(--t-chico);
-  font-weight: var(--peso-medio);
-  letter-spacing: -0.01em;
-}
-@media (min-width: 1024px) {
-  .sitio .cabecera__nav {
-    margin-left: var(--spacing-8);
-  }
-}
-.sitio .cabecera__lista {
-  gap: 0;
-}
-.sitio .cabecera__nav .cabecera__enlace {
-  min-height: var(--alto-control-compacto);
-  padding-inline: var(--spacing-12);
-  border-radius: var(--radio-pildora);
-  font-size: var(--t-chico);
-  color: var(--c-texto-2);
-  transition:
-    color var(--dur-micro) var(--ease),
-    background-color var(--dur-micro) var(--ease);
-}
-@media (hover: hover) and (pointer: fine) {
-  .sitio .cabecera__nav .cabecera__enlace:hover,
-  .sitio .cabecera__disparador[aria-expanded="true"] {
-    opacity: 1;
-    background: var(--c-hover);
-    color: var(--c-texto);
-  }
-}
-.sitio .cabecera__nav .cabecera__enlace:active {
-  opacity: 1;
-  background: var(--c-activo);
-}
-.sitio .cabecera__nav .cabecera__enlace[aria-current="page"],
-.sitio .cabecera__disparador[data-actual="true"] {
-  text-decoration: none;
-  color: var(--c-texto);
-}
-.sitio .cabecera__chevron {
-  color: currentColor;
-}
-.sitio .cabecera__division {
-  display: none;
-}
-/* Derecha: tema (ícono), "Entrar" (píldora fantasma) y "Pruébalo" (píldora rellena) */
-.sitio .cabecera__acciones {
-  gap: var(--spacing-8);
-}
-.sitio .cabecera__acciones > .cabecera__enlace {
-  min-height: var(--alto-control-compacto);
-  padding-inline: var(--spacing-12);
-  border-radius: var(--radio-pildora);
-  box-shadow: inset 0 0 0 1px var(--c-fantasma-borde);
-  font-size: var(--t-chico);
-  font-weight: var(--peso-medio);
-  line-height: 1;
-  transition: background-color var(--dur-micro) var(--ease);
-}
-@media (hover: hover) and (pointer: fine) {
-  .sitio .cabecera__acciones > .cabecera__enlace:hover {
-    opacity: 1;
-    background: var(--c-hover);
-  }
-}
-.sitio .cabecera__acciones > .cabecera__enlace:active {
-  opacity: 1;
-  background: var(--c-activo);
-}
-.sitio .cabecera__acciones > .cabecera__enlace[aria-current="page"] {
-  text-decoration: none;
-  background: var(--c-activo);
-}
-.sitio .cabecera__probar {
-  --boton-capa: var(--c-accion-hover);
-  --boton-capa-hover: 1;
-  --boton-capa-activa: 1;
-  border-color: transparent;
-  border-radius: var(--radio-pildora);
-  background: var(--c-accion);
-  color: var(--c-sobre-accion);
-  line-height: 1;
-}
-.sitio .cabecera__probar:active:not([aria-disabled="true"])::before {
-  background: var(--c-accion-presion);
-}
-.sitio .tema-boton,
-.sitio .cabecera__hamburguesa {
-  border-color: transparent;
-  border-radius: var(--radio-pildora);
-  box-shadow: inset 0 0 0 1px var(--c-fantasma-borde);
-}
-.sitio .cabecera .tema-boton {
-  box-shadow: none;
-}
-
-/* ---------- Panel desplegable: tarjeta fina, sin vidrio ---------- */
-.sitio .desplegable {
-  border: 0;
-  border-radius: var(--radio-tarjeta);
-  background: var(--c-superficie);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: var(--anillo);
-}
-.sitio .desplegable__titulo,
-.sitio .hoja-nav__titulo {
-  font-size: var(--t-etiqueta);
-  font-weight: var(--peso-cuerpo);
-}
-.sitio .desplegable__nombre {
-  font-weight: var(--peso-medio);
-}
-
-/* ---------- Pie sobrio: columnas de enlaces en 14px, sin franjas de color ---------- */
-.sitio .pie-sitio {
-  border-top: 1px solid var(--c-borde);
-  background: transparent;
-}
-.sitio .pie-sitio__logo {
-  font-size: var(--t-chico);
-  font-weight: var(--peso-medio);
-  letter-spacing: -0.01em;
-}
-.sitio .pie-sitio__logo-marca {
-  width: 20px;
-  height: 20px;
-}
-.sitio .pie-sitio__lema {
-  color: var(--c-tenue);
-}
-.sitio .pie-sitio__sello {
-  font-size: var(--t-etiqueta);
-  font-weight: var(--peso-cuerpo);
-}
-.sitio .pie-sitio__titulo {
-  font-size: var(--t-chico);
-  font-weight: var(--peso-medio);
-}
-.sitio .pie-sitio__enlace {
-  color: var(--c-tenue);
-}
-.sitio .pie-sitio__franja {
-  border-top: 0;
-  background: transparent;
-}
-.sitio .pie-sitio__franja-fila {
-  padding-top: 0;
-}
-.sitio .pie-sitio__derechos {
-  color: var(--c-tenue);
-}
-
-/* ---------- /entrar: la tarjeta con el anillo doble ---------- */
-.sitio .acceso__titulo {
-  font-size: var(--t-titulo);
-  font-weight: var(--peso-sub);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-titulo);
-}
-.sitio .acceso__tarjeta {
-  --c-campo-fondo: var(--c-superficie);
-  border: 0;
-  border-radius: var(--radio-tarjeta);
-  background: var(--c-superficie);
-  box-shadow: var(--anillo);
-}
-.sitio .acceso__nota {
-  border-radius: var(--radio-tarjeta);
-}
-.sitio .acceso__sello {
-  font-size: var(--t-etiqueta);
-  font-weight: var(--peso-cuerpo);
-  color: var(--c-palomita);
 }
