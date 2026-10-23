@@ -2693,3 +2693,12 @@
     display: none;
   }
 }
+
+/* En el celular, dentro de Conversaciones el título no se corta: sobran el
+   logo (está en el ☰) y el botón de conversaciones (ya estás ahí) */
+@media (max-width: 639px) {
+  .dash--completo .dash-logo,
+  .dash--completo .dash-barra__conv {
+    display: none;
+  }
+}

@@ -211,7 +211,7 @@ export function MensajeAgente({
 export function Escribiendo({ agente, sigue, enGrupo = true }: { agente: IdAgente; sigue: boolean; enGrupo?: boolean }) {
   const info = AGENTE_POR_ID[agente];
   return (
-    <div className={clasesFila("chat__fila--agente", { nueva: true, bloque: !sigue })}>
+    <div className={clasesFila("chat__fila--agente chat__fila--escribe", { nueva: true, bloque: !sigue })}>
       <span className="chat__carril">{sigue ? null : <Avatar agente={agente} tam={32} />}</span>
       <div className="chat__columna">
         {sigue ? null : <Cabeza agente={agente} area={enGrupo} />}
@@ -219,6 +219,10 @@ export function Escribiendo({ agente, sigue, enGrupo = true }: { agente: IdAgent
           <i />
           <i />
           <i />
+        </span>
+        {/* En el chat de /pruebalo y del panel se ve esta línea de estado en vez de los puntos */}
+        <span className="chat__trabajando" aria-hidden="true">
+          {info.nombre} está trabajando en tu pedido
         </span>
       </div>
     </div>
@@ -243,16 +247,17 @@ export type Tarjeta = {
 const ICONO_TARJETA: Record<Tarjeta["tipo"], NombreIcono> = { cita: "calendario", programado: "reloj", archivo: "documento" };
 
 /** Una pieza de trabajo terminada: la cita agendada, el mensaje listo para salir, el archivo. */
-export function TarjetaTrabajo({ tarjeta }: { tarjeta: Tarjeta }) {
-  const lista = tarjeta.tipo !== "programado";
+export function TarjetaTrabajo({ tarjeta, aprobable = false }: { tarjeta: Tarjeta; /** Muestra "Aprobar" en lo que espera tu visto bueno (solo en el demo). */ aprobable?: boolean }) {
+  const [aprobado, setAprobado] = useState(false);
+  const lista = tarjeta.tipo !== "programado" || aprobado;
   return (
     <div className="chat__tarjeta">
       <div className="chat__tarjeta-cabeza">
         <Icono nombre={ICONO_TARJETA[tarjeta.tipo]} tam={16} tono="cielo" />
         <span className="chat__tarjeta-sello">{tarjeta.sello}</span>
-        <span className={`chat__estado${lista ? " chat__estado--listo" : ""}`}>
+        <span className={`chat__estado${lista ? " chat__estado--listo" : ""}`} aria-live="polite">
           {lista ? <Icono nombre="check" tam={16} trazo={2} /> : null}
-          {tarjeta.estado}
+          {aprobado ? "Aprobado" : tarjeta.estado}
         </span>
       </div>
       <div className="chat__tarjeta-cuerpo">
@@ -268,6 +273,11 @@ export function TarjetaTrabajo({ tarjeta }: { tarjeta: Tarjeta }) {
           </dl>
         ) : null}
         {tarjeta.cita ? <blockquote className="chat__cita">{tarjeta.cita}</blockquote> : null}
+        {aprobable && tarjeta.tipo === "programado" && !aprobado ? (
+          <button type="button" className="chat__tarjeta-boton" onClick={() => setAprobado(true)}>
+            Aprobar
+          </button>
+        ) : null}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import PromptBar, { type PromptBarCommand, type PromptBarModel, type PromptBarSource } from "./PromptBar";
 import { Personaje } from "./agentes/Personaje";
@@ -821,6 +822,13 @@ export function ChatDemo({
           <p className="chat__seccion">Agentes</p>
           <ul className="chat__lista">{chats.map(fila)}</ul>
         </div>
+        {enVivo ? null : (
+          <div className="chat__barra-pie">
+            <Link href="/entrar" className="chat__cta">
+              Probarlo de verdad
+            </Link>
+          </div>
+        )}
       </aside>
       <button
         type="button"
@@ -848,7 +856,7 @@ export function ChatDemo({
             <PromptBar
               key="portada"
               className="chat__portada-caja"
-              placeholder="Escríbele a tu equipo…"
+              placeholder="Pídele algo a tu equipo…"
               sources={todos}
               commands={ACCIONES}
               models={destinos}
@@ -899,7 +907,7 @@ export function ChatDemo({
               return (
                 <Fragment key={msg.id}>
                   {nuevoDia ? <Dia>{dia}</Dia> : null}
-                  <Pieza mensaje={msg} primero={primero} ultimo={ultimo} nueva={nueva} enGrupo={esGrupo} bloque={primero && !nuevoDia} />
+                  <Pieza mensaje={msg} aprobable={!enVivo} primero={primero} ultimo={ultimo} nueva={nueva} enGrupo={esGrupo} bloque={primero && !nuevoDia} />
                 </Fragment>
               );
             })}
@@ -922,7 +930,7 @@ export function ChatDemo({
           ) : null}
           <PromptBar
             key={conv.id}
-            placeholder={esGrupo ? "Escribe al grupo · @ para mencionar" : `Escríbele a ${conv.nombre} · / para acciones`}
+            placeholder={enVivo ? (esGrupo ? "Escribe al grupo · @ para mencionar" : `Escríbele a ${conv.nombre} · / para acciones`) : esGrupo ? "Pídele algo a tu equipo…" : `Pídele algo a ${conv.nombre}…`}
             sources={fuentes}
             commands={comandos}
             models={[]}
@@ -980,9 +988,11 @@ export function ChatDemo({
 /** Un mensaje del guion con la pieza que le toca. */
 function Pieza({
   mensaje,
+  aprobable,
   ...fila
 }: {
   mensaje: Mensaje;
+  aprobable: boolean;
   primero: boolean;
   ultimo: boolean;
   nueva: boolean;
@@ -1000,7 +1010,7 @@ function Pieza({
       agente={mensaje.de}
       texto={mensaje.texto}
       {...comun}
-      tarjeta={mensaje.tarjeta ? <TarjetaTrabajo tarjeta={mensaje.tarjeta} /> : undefined}
+      tarjeta={mensaje.tarjeta ? <TarjetaTrabajo tarjeta={mensaje.tarjeta} aprobable={aprobable} /> : undefined}
     />
   );
 }

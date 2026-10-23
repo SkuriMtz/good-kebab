@@ -82,7 +82,7 @@ export function Armazon(props: PropsArmazon) {
   );
 
   return (
-    <div className="producto dash">
+    <div className={`producto dash${completo ? " dash--completo" : ""}`}>
       {/* Los fragmentos de fondo, discretos (sin figura: solo polvo) */}
       <Escena />
       <a href="#contenido" className="dash-saltar">
@@ -210,13 +210,13 @@ function BotonConversaciones({ accion }: { accion: Accion & { sinLeer?: number }
   const etiqueta = accion.sinLeer ? `Conversaciones: ${accion.sinLeer} sin leer` : "Conversaciones";
   if (accion.href) {
     return (
-      <Link href={accion.href} className="boton-icono boton-icono--capa boton-icono--compacto dash-barra__icono" aria-label={etiqueta} title="Conversaciones">
+      <Link href={accion.href} className="boton-icono boton-icono--capa boton-icono--compacto dash-barra__icono dash-barra__conv" aria-label={etiqueta} title="Conversaciones">
         <Icono nombre="conversaciones" tam={20} />
         {accion.sinLeer ? <Insignia punto tono="azul" sobre /> : null}
       </Link>
     );
   }
-  return <BotonIcono etiqueta="Conversaciones" icono="conversaciones" punto={Boolean(accion.sinLeer)} etiquetaContador={etiqueta} onClick={accion.alElegir} />;
+  return <BotonIcono etiqueta="Conversaciones" icono="conversaciones" punto={Boolean(accion.sinLeer)} etiquetaContador={etiqueta} onClick={accion.alElegir} className="dash-barra__conv" />;
 }
 
 const UTILIDAD = [

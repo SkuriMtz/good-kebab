@@ -458,8 +458,10 @@ export function Chat({
           </div>
 
           <div className="chat__plan">
-            <p className="chat__plan-nombre">{plan.nombre}</p>
             <Uso usados={usados} plan={plan} compacto />
+            <Link href="/panel/agentes#plan" className="chat__cta">
+              Tu cuenta · {plan.nombre}
+            </Link>
           </div>
         </aside>
         <button
@@ -607,7 +609,7 @@ export function Chat({
               <PromptBar
                 key={grupo ? grupo.join("-") : agente}
                 initialText={textoInicial}
-                placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
+                placeholder={grupo ? "Pídele algo a tu equipo…" : `Pídele algo a ${info.nombre}…`}
                 sources={fuentes}
                 commands={comandosDe(participantes)}
                 models={[]}

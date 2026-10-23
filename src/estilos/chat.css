@@ -1655,3 +1655,269 @@
   font-weight: var(--peso-app-titulo);
   letter-spacing: -0.02em;
 }
+
+/* =====================================================================
+   7. Chat · referencia 2 del dueño (manda sobre la sección 6)
+   Negro puro con la lista en un panel gris aparte (una línea fina los
+   divide), filas grandes, tu mensaje en una píldora gris, el agente
+   trabajando en una línea de estado azul, tarjetas grises sin borde de
+   radio 24, la caja de escribir ancha y redondeada, letra de 17px y mucho
+   aire. En claro: blanco y grises suaves. Solo el estilo de la referencia.
+   ===================================================================== */
+.chat:not(.chat--inicio) {
+  --chat-fondo: var(--noche-negro);
+  --chat-lado: var(--noche-panel);
+  --chat-panel: var(--noche-panel);
+  --chat-pildora: var(--noche-pildora);
+  --chat-caja: var(--noche-caja);
+  --chat-linea: var(--noche-linea);
+  --chat-activo: var(--noche-pildora);
+  --chat-hover: color-mix(in srgb, var(--noche-pildora) 60%, transparent);
+  font-size: var(--t-chat);
+}
+:root[data-tema="claro"] .chat:not(.chat--inicio) {
+  --chat-fondo: var(--primer-blanco);
+  --chat-lado: var(--primer-gris-0);
+  --chat-panel: var(--primer-gris-0);
+  --chat-pildora: var(--primer-gris-1);
+  --chat-caja: var(--primer-gris-0);
+  --chat-linea: var(--primer-borde);
+  --chat-activo: var(--primer-gris-1);
+  --chat-hover: var(--primer-gris-1);
+}
+@media (min-width: 768px) {
+  .chat:not(.chat--inicio) {
+    grid-template-columns: 288px minmax(0, 1fr);
+  }
+}
+
+/* ---------- La lista: panel gris, filas grandes ---------- */
+.chat:not(.chat--inicio) .chat__barra {
+  border-right: 1px solid var(--chat-linea);
+  background: var(--chat-lado);
+}
+.chat:not(.chat--inicio) .chat__barra-cabeza {
+  padding: var(--spacing-12) var(--spacing-8) var(--spacing-8);
+}
+.chat:not(.chat--inicio) .chat__item,
+.chat:not(.chat--inicio) .chat__conv {
+  gap: var(--spacing-12);
+  min-height: var(--spacing-44);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-app-tarjeta);
+  font-size: var(--t-chat);
+  font-weight: var(--peso-app-medio);
+}
+.chat:not(.chat--inicio) .chat__item[aria-current],
+.chat:not(.chat--inicio) .chat__conv[aria-current] {
+  background: var(--chat-activo);
+}
+.chat:not(.chat--inicio) .chat__item--nueva {
+  background: var(--chat-pildora);
+  font-weight: var(--peso-app-titulo);
+}
+.chat:not(.chat--inicio) .chat__item--nueva > .icono {
+  --icono-tam: var(--spacing-20);
+  color: var(--c-texto);
+}
+.chat:not(.chat--inicio) .chat__item-area {
+  display: none;
+}
+.chat:not(.chat--inicio) .chat__item .chat__contador,
+.chat:not(.chat--inicio) .chat__item-escribe {
+  margin-left: auto;
+}
+.chat:not(.chat--inicio) .chat__seccion {
+  padding: var(--spacing-20) var(--spacing-12) var(--spacing-4);
+}
+.chat:not(.chat--inicio) .chat__lista {
+  gap: var(--spacing-4);
+}
+/* Abajo, el botón ancho y redondeado (Probarlo de verdad / Tu cuenta) */
+.chat__barra-pie,
+.chat:not(.chat--inicio) .chat__plan {
+  display: grid;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) var(--spacing-12) var(--spacing-16);
+  border-top: 0;
+}
+.chat__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-48);
+  padding: 0 var(--spacing-20);
+  border-radius: var(--radio-pildora);
+  background: var(--c-accion);
+  color: var(--c-sobre-accion);
+  font-size: var(--t-chat);
+  font-weight: var(--peso-app-titulo);
+  text-align: center;
+  transition:
+    background-color var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chat__cta:hover {
+    background: var(--c-accion-hover);
+  }
+}
+.chat__cta:active {
+  transform: scale(0.98);
+}
+.chat__cta:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 2px;
+}
+
+/* ---------- Cabeza: sin línea, en el negro ---------- */
+.chat:not(.chat--inicio) .chat__cabeza {
+  border-bottom: 0;
+}
+
+/* ---------- Mensajes: 17px y mucho aire ---------- */
+.chat:not(.chat--inicio) .chat__fila--bloque {
+  margin-top: var(--spacing-40);
+}
+.chat:not(.chat--inicio) .chat__texto {
+  font-size: var(--t-chat);
+  line-height: 1.65;
+}
+.chat:not(.chat--inicio) .chat__nombre {
+  font-size: var(--t-app-cuerpo);
+}
+/* Tu mensaje: píldora gris muy redondeada */
+.chat:not(.chat--inicio) .chat__burbuja {
+  padding: var(--spacing-12) var(--spacing-20);
+  border-radius: var(--spacing-24);
+  background: var(--chat-pildora);
+  font-size: var(--t-chat);
+}
+/* El agente trabajando: su personaje y una línea azul (en vez de los puntos) */
+.chat__trabajando {
+  display: none;
+}
+.chat:not(.chat--inicio) .chat__fila--escribe .chat__cabeza-msj {
+  display: none;
+}
+.chat:not(.chat--inicio) .chat__fila--escribe .chat__puntos {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.chat:not(.chat--inicio) .chat__trabajando {
+  display: block;
+  min-height: 24px;
+  padding-left: var(--spacing-32);
+  color: var(--c-enlace);
+  font-size: var(--t-app-mediano);
+  line-height: 24px;
+  animation: chat-trabajando 1.6s var(--ease) infinite alternate;
+}
+@keyframes chat-trabajando {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat:not(.chat--inicio) .chat__trabajando {
+    animation: none;
+  }
+}
+
+/* ---------- Tarjetas: grises, sin borde, radio 24 ---------- */
+.chat:not(.chat--inicio) .chat__tarjeta {
+  max-width: 440px;
+  padding: var(--spacing-20) var(--spacing-24) var(--spacing-24);
+  border: 0;
+  border-radius: var(--spacing-24);
+  background: var(--chat-panel);
+}
+.chat:not(.chat--inicio) .chat__tarjeta-cabeza {
+  min-height: 0;
+  padding: 0 0 var(--spacing-12);
+  border-bottom: 0;
+}
+.chat:not(.chat--inicio) .chat__tarjeta-cuerpo {
+  gap: var(--spacing-8);
+  padding: 0;
+}
+.chat:not(.chat--inicio) .chat__tarjeta-titulo {
+  font-size: var(--t-chat);
+  font-weight: var(--peso-app-titulo);
+}
+.chat:not(.chat--inicio) .chat__datos {
+  font-size: var(--t-app-mediano);
+}
+.chat:not(.chat--inicio) .chat__datos dt,
+.chat:not(.chat--inicio) .chat__datos dd,
+.chat:not(.chat--inicio) .chat__cita {
+  color: var(--c-texto-2);
+}
+.chat:not(.chat--inicio) .chat__cita {
+  padding-left: 0;
+  border-left: 0;
+  font-size: var(--t-app-mediano);
+}
+.chat__tarjeta-boton {
+  justify-self: start;
+  min-height: var(--alto-control);
+  margin-top: var(--spacing-8);
+  padding: 0 var(--spacing-20);
+  border-radius: var(--radio-pildora);
+  background: var(--c-accion);
+  color: var(--c-sobre-accion);
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chat__tarjeta-boton:hover {
+    background: var(--c-accion-hover);
+  }
+}
+.chat__tarjeta-boton:active {
+  transform: scale(0.98);
+}
+.chat__tarjeta-boton:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 2px;
+}
+
+/* ---------- La caja: ancha, muy redondeada, gris y sin borde ---------- */
+.chat:not(.chat--inicio) .prompt-bar {
+  --pb-bg: var(--chat-caja);
+  --pb-radius: 28px;
+}
+.chat:not(.chat--inicio) .prompt-bar__field {
+  padding: var(--spacing-16) var(--spacing-12) var(--spacing-12) var(--spacing-20);
+  border-color: transparent;
+}
+.chat:not(.chat--inicio) .prompt-bar__field:hover {
+  border-color: transparent;
+}
+.chat:not(.chat--inicio) .prompt-bar__field:focus-within {
+  border-color: transparent;
+  outline: 1px solid var(--chat-linea);
+}
+.chat:not(.chat--inicio) .prompt-bar__input {
+  font-size: var(--t-chat);
+}
+.chat:not(.chat--inicio) .prompt-bar__send {
+  width: var(--alto-control);
+  height: var(--alto-control);
+  border-radius: var(--radio-circulo);
+  background: var(--chat-pildora);
+  color: var(--c-texto-2);
+}
+.chat:not(.chat--inicio) .prompt-bar__send[data-armed] {
+  background: var(--c-accion);
+  color: var(--c-sobre-accion);
+}
+.chat:not(.chat--inicio) .chat__pie {
+  padding-bottom: var(--spacing-24);
+}
