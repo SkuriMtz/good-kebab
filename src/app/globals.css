@@ -520,6 +520,187 @@
 }
 
 /* ---------------------------------------------------------------------
+   2d. SITIO PÚBLICO — estilo de diseno/vercel (lección 14, "igual a la
+   landing de Vercel"). Solo en páginas con .sitio (Sitio.tsx): el dashboard
+   (/pruebalo, /panel) y el chat no llevan .sitio y no cambian.
+   Monocromo: lienzo #fafafa / #0a0a0a, tarjetas #fff / #111, texto
+   #171717 · #4d4d4d · #666, bordes finos de anillo doble, sin sombras ni
+   azul. Color SOLO en el logo, los personajes y el verde de las palomitas
+   de confirmado (#297a3a). Va en :root:has(.sitio) para que también tome
+   el fondo de <html>, la barra y las fichas (que viven dentro de .sitio).
+   --------------------------------------------------------------------- */
+:root {
+  /* Primitivos (diseno/vercel/variables.css) */
+  --v-papel: #fafafa;
+  --v-blanco: #ffffff;
+  --v-hilo: #ebebeb;
+  --v-ceniza: #c9c9c9;
+  --v-grafito: #8f8f8f;
+  --v-piedra: #666666;
+  --v-carbon: #4d4d4d;
+  --v-obsidiana: #171717;
+  --v-verde: #297a3a;
+  /* El mismo sistema invertido para el modo oscuro */
+  --v-noche: #0a0a0a;
+  --v-noche-tarjeta: #111111;
+  --v-noche-elevado: #171717;
+  --v-noche-hilo: #242424;
+  --v-noche-ceniza: #3d3d3d;
+  --v-noche-texto: #ededed;
+  --v-noche-texto-2: #a1a1a1;
+  --v-noche-tenue: #8f8f8f;
+}
+:root:has(.sitio),
+.sitio {
+  --c-fondo: var(--v-noche);
+  --c-portada: var(--v-noche);
+  --c-fondo-2: var(--v-noche); /* sin cambios de fondo entre bandas */
+  --c-superficie: var(--v-noche-tarjeta);
+  --c-relleno: var(--v-noche-elevado);
+  --c-borde: var(--v-noche-hilo);
+  --c-borde-fuerte: var(--v-noche-ceniza);
+  --c-anillo: rgba(255, 255, 255, 0.1);
+  --c-scrim: rgba(0, 0, 0, 0.7);
+  --c-texto: var(--v-noche-texto);
+  --c-texto-2: var(--v-noche-texto-2);
+  --c-tenue: var(--v-noche-tenue);
+  --c-terciario: var(--v-noche-tenue);
+  --c-enlace: var(--v-noche-texto);
+  --c-acento: var(--v-noche-texto);
+  --c-destacada: var(--v-noche-texto);
+  --c-foco: var(--v-noche-texto-2);
+  --c-exito: var(--color-verde-oscuro);
+  --c-palomita: var(--color-verde-oscuro);
+  --c-accion: var(--v-noche-texto);
+  --c-accion-hover: var(--v-blanco);
+  --c-accion-presion: var(--v-noche-texto-2);
+  --c-accion-texto: var(--v-noche-texto);
+  --c-accion-fondo: rgba(255, 255, 255, 0.08);
+  --c-sobre-accion: var(--v-noche);
+  --c-hover: rgba(255, 255, 255, 0.06);
+  --c-activo: rgba(255, 255, 255, 0.1);
+  --c-elevado: var(--v-noche-elevado);
+  --c-propio: var(--v-noche-texto);
+  --c-sobre-propio: var(--v-noche);
+  --sombra-flotante: 0 0 0 1px var(--c-anillo);
+  --c-menu-fondo: var(--v-noche-tarjeta);
+  --c-vidrio: var(--v-noche-tarjeta);
+  --c-vidrio-fuerte: var(--v-noche-tarjeta);
+  --c-vidrio-frost: var(--v-noche-tarjeta);
+  --c-vidrio-borde: var(--v-noche-hilo);
+  --vidrio-desenfoque: 0px;
+  --halo-opacidad: 0;
+  --haz-opacidad: 0;
+  --rastro-opacidad: 0;
+  --escena-opacidad: 0.32;
+  --c-sutil-fondo: transparent;
+  --c-sutil-texto: var(--v-noche-texto);
+  --c-sutil-borde: var(--v-noche-hilo);
+  --c-fantasma-texto: var(--v-noche-texto);
+  --c-fantasma-borde: var(--v-noche-hilo);
+  --c-campo-fondo: var(--v-noche-tarjeta);
+  --c-campo-borde: var(--v-noche-hilo);
+  --c-campo-borde-hover: var(--v-noche-ceniza);
+  --c-placeholder: var(--v-noche-tenue);
+  --c-pildora-borde: var(--v-noche-hilo);
+  --c-pildora-activa: var(--v-noche-texto);
+  --c-sobre-pildora-activa: var(--v-noche);
+  --c-marco-fondo: var(--v-noche-tarjeta);
+  --c-marco-barra: var(--v-noche);
+  /* Bordes de anillo doble (Bordered Card): el filo sobrevive a cualquier fondo */
+  --anillo: 0 0 0 1px var(--c-anillo), 0 0 0 2px var(--c-fondo);
+  --anillo-fino: 0 0 0 1px var(--c-borde);
+  /* Letra (diseno/vercel: Geist 400–450, tracking cerrado, interlineado 1.0) */
+  --t-display: clamp(2.5rem, 1.6rem + 3.2vw, 4rem); /* 40 → 64 */
+  --t-grande: clamp(2.5rem, 1.85rem + 2.2vw, 3.5rem); /* 40 → 56 */
+  --t-seccion: clamp(2rem, 1.55rem + 1.6vw, 3rem); /* 32 → 48 */
+  --t-titulo: clamp(1.5rem, 1.35rem + 0.5vw, 1.875rem); /* 24 → 30 */
+  --t-sub: clamp(1.5rem, 1.35rem + 0.5vw, 1.875rem);
+  --t-intro: 1rem; /* 16 */
+  --t-cuerpo: 0.875rem; /* 14 */
+  --t-chico: 0.875rem;
+  --t-caption: 0.8125rem; /* 13 */
+  --t-etiqueta: 0.6875rem; /* 11 · Geist Mono, mayúsculas */
+  --peso-display: 450;
+  --peso-grande: 450;
+  --peso-seccion: 450;
+  --peso-sub: 400;
+  --peso-titulo: 500;
+  --tracking-display: -0.06em;
+  --tracking-grande: -0.06em;
+  --tracking-seccion: -0.05em;
+  --tracking-titulo: -0.05em;
+  --tracking-intro: 0;
+  --tracking-etiqueta: 0.071em;
+  /* Espacios: bandas a 96–128px, sin divisores */
+  --espacio-seccion: clamp(3rem, 2.2rem + 2.2vw, 4rem); /* 48 → 64 por lado */
+  --espacio-bloque: var(--spacing-48);
+  --relleno-tarjeta: var(--spacing-24);
+  /* Radios: 6px en tarjetas, botones y campos; 9999px solo en píldoras */
+  --radio-boton: 6px;
+  --radio-campo: 6px;
+  --radio-tarjeta: 6px;
+  --radio-imagen: 6px;
+  --radio-marco: 6px;
+  --radio-panel: 6px;
+  --radio-pildora: 9999px;
+  color-scheme: dark;
+}
+:root[data-tema="claro"]:has(.sitio),
+[data-tema="claro"] .sitio {
+  --c-fondo: var(--v-papel);
+  --c-portada: var(--v-papel);
+  --c-fondo-2: var(--v-papel);
+  --c-superficie: var(--v-blanco);
+  --c-relleno: var(--v-hilo);
+  --c-borde: var(--v-hilo);
+  --c-borde-fuerte: var(--v-ceniza);
+  --c-anillo: rgba(0, 0, 0, 0.08);
+  --c-scrim: rgba(0, 0, 0, 0.32);
+  --c-texto: var(--v-obsidiana);
+  --c-texto-2: var(--v-carbon);
+  --c-tenue: var(--v-piedra);
+  --c-terciario: var(--v-grafito);
+  --c-enlace: var(--v-obsidiana);
+  --c-acento: var(--v-obsidiana);
+  --c-destacada: var(--v-obsidiana);
+  --c-foco: var(--v-carbon);
+  --c-exito: var(--v-verde);
+  --c-palomita: var(--v-verde);
+  --c-accion: var(--v-obsidiana);
+  --c-accion-hover: #383838;
+  --c-accion-presion: #000000;
+  --c-accion-texto: var(--v-obsidiana);
+  --c-accion-fondo: rgba(0, 0, 0, 0.05);
+  --c-sobre-accion: var(--v-blanco);
+  --c-hover: rgba(0, 0, 0, 0.04);
+  --c-activo: rgba(0, 0, 0, 0.07);
+  --c-elevado: var(--v-papel);
+  --c-propio: var(--v-obsidiana);
+  --c-sobre-propio: var(--v-blanco);
+  --c-menu-fondo: var(--v-blanco);
+  --c-vidrio: var(--v-blanco);
+  --c-vidrio-fuerte: var(--v-blanco);
+  --c-vidrio-frost: var(--v-blanco);
+  --c-vidrio-borde: var(--v-hilo);
+  --escena-opacidad: 0.22;
+  --c-sutil-texto: var(--v-obsidiana);
+  --c-sutil-borde: var(--v-hilo);
+  --c-fantasma-texto: var(--v-obsidiana);
+  --c-fantasma-borde: var(--v-hilo);
+  --c-campo-fondo: var(--v-blanco);
+  --c-campo-borde: var(--v-hilo);
+  --c-campo-borde-hover: var(--v-ceniza);
+  --c-placeholder: var(--v-grafito);
+  --c-pildora-borde: var(--v-hilo);
+  --c-pildora-activa: var(--v-obsidiana);
+  --c-sobre-pildora-activa: var(--v-blanco);
+  --c-marco-fondo: var(--v-blanco);
+  --c-marco-barra: var(--v-papel);
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------
    3. CAPA BASE
    --------------------------------------------------------------------- */
 @layer base {
@@ -3040,5 +3221,244 @@
   }
   .cajon[data-abierto="true"] .cajon__panel {
     opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. SITIO PÚBLICO — la base con el estilo de diseno/vercel (ver 2d).
+   Solo dentro de .sitio: el dashboard y el chat no cambian.
+   --------------------------------------------------------------------- */
+@layer components {
+  /* Sin cambios de fondo entre bandas: el lienzo es uno y deja ver los
+     fragmentos de fondo (fijos, detrás de todo) */
+  .sitio .seccion--fondo,
+  .sitio .seccion--fondo-2,
+  .sitio .seccion--portada {
+    background: transparent;
+  }
+  .sitio .halo {
+    display: none;
+  }
+
+  /* ---------- Letra: Geist 400–450, tracking cerrado, interlineado 1.0 ---------- */
+  .sitio .t-display,
+  .sitio .t-display--enorme,
+  .sitio .t-portada,
+  .sitio .t-grande {
+    line-height: 1;
+  }
+  .sitio .t-seccion {
+    line-height: 1.05;
+  }
+  .sitio .t-titulo,
+  .sitio .t-sub {
+    font-weight: var(--peso-sub);
+    line-height: 1.1;
+    letter-spacing: var(--tracking-titulo);
+  }
+  .sitio .t-cuerpo,
+  .sitio .t-chico {
+    line-height: 1.5;
+  }
+  .sitio strong,
+  .sitio b {
+    font-weight: var(--peso-titulo);
+  }
+  /* Etiquetas: SIEMPRE Geist Mono 11px, mayúsculas, 0.071em */
+  .sitio .etiqueta,
+  .sitio .t-etiqueta,
+  .sitio .t-rol,
+  .sitio .pildora {
+    font-size: var(--t-etiqueta);
+    font-weight: var(--peso-cuerpo);
+    line-height: 1.5;
+    letter-spacing: var(--tracking-etiqueta);
+  }
+  .sitio .etiqueta,
+  .sitio .t-etiqueta,
+  .sitio .etiqueta--cielo,
+  .sitio .t-rol {
+    color: var(--c-texto);
+  }
+  .sitio .etiqueta--tenue {
+    color: var(--c-tenue);
+  }
+  .sitio .encabezado {
+    gap: var(--spacing-12);
+  }
+  .sitio .encabezado .t-intro {
+    color: var(--c-texto-2);
+  }
+
+  /* ---------- Botones: relleno #171717 (en oscuro, al revés), fantasma con filo, radio 6px ---------- */
+  .sitio .boton {
+    min-height: var(--alto-control);
+    padding: 0 var(--spacing-16);
+    font-size: var(--t-chico);
+    font-weight: var(--peso-medio);
+    letter-spacing: 0;
+  }
+  .sitio .boton--grande {
+    min-height: var(--alto-control-grande);
+    padding: 0 var(--spacing-20);
+  }
+  .sitio .boton--chico,
+  .sitio .boton--compacto {
+    min-height: var(--alto-control-compacto);
+    padding: 0 var(--spacing-12);
+    font-size: var(--t-chico);
+    font-weight: var(--peso-medio);
+  }
+  .sitio .boton--fantasma,
+  .sitio .boton--sutil {
+    --boton-capa-hover: 0.05;
+    --boton-capa-activa: 0.09;
+  }
+
+  /* ---------- Tarjetas, marcos y vidrios: anillo doble, sin sombra ni desenfoque ---------- */
+  .sitio .vidrio,
+  .sitio .marco {
+    border-color: transparent;
+    background: var(--c-superficie);
+    box-shadow: var(--anillo);
+  }
+  .sitio .marco__barra {
+    background: var(--c-fondo);
+  }
+
+  /* ---------- Píldoras y pestañas ---------- */
+  .sitio .pestanas__pestana {
+    min-height: var(--alto-control-chico);
+    padding: 4px 14px;
+    font-size: var(--t-chico);
+  }
+  .sitio .pestanas__pestana:has(.pestanas__adorno) {
+    padding-left: 6px;
+  }
+
+  /* ---------- Campos ---------- */
+  .sitio .entrada__control {
+    box-shadow: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7b. TARJETA FINA y PANEL DE TERMINAL (sitio público, diseno/vercel)
+   - .tarjeta-fina: "Bordered Card" — #fff / #111, radio 6px, anillo doble.
+   - .terminal: "CLI Output Panel" en Geist Mono 13px, con el marcador
+     propio de Atendel (los cuatro puntos) y palomitas ✓ verdes.
+   --------------------------------------------------------------------- */
+@layer components {
+  .tarjeta-fina {
+    position: relative;
+    min-width: 0;
+    border-radius: var(--radio-tarjeta);
+    background: var(--c-superficie);
+    box-shadow: var(--anillo, 0 0 0 1px var(--c-borde));
+  }
+  .tarjeta-fina--relleno {
+    padding: var(--relleno-tarjeta);
+  }
+  /* Muestra del producto dentro de una tarjeta: un escalón abajo, en el lienzo */
+  .muestra {
+    border-radius: var(--radio-tarjeta);
+    background: var(--c-fondo);
+    box-shadow: var(--anillo-fino, 0 0 0 1px var(--c-borde));
+  }
+
+  .terminal {
+    overflow: hidden;
+    border-radius: var(--radio-tarjeta);
+    background: var(--c-superficie);
+    box-shadow: var(--anillo, 0 0 0 1px var(--c-borde));
+    color: var(--c-texto);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-ligatures: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8125rem; /* 13 */
+    line-height: 1.6;
+  }
+  .terminal__barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-12);
+    min-height: var(--spacing-44);
+    padding: var(--spacing-8) var(--spacing-16);
+    border-bottom: 1px solid var(--c-borde);
+  }
+  .terminal__puntos {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .terminal__puntos > span {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  }
+  .terminal__cuerpo {
+    display: grid;
+    gap: var(--spacing-8);
+    margin: 0;
+    padding: var(--spacing-16);
+    overflow-x: auto;
+  }
+  .terminal__linea {
+    display: grid;
+    grid-template-columns: var(--spacing-16) minmax(0, 1fr);
+    column-gap: var(--spacing-12);
+    align-items: baseline;
+  }
+  /* El marcador propio: los cuatro puntos del logo, en el color del texto */
+  .terminal__marca {
+    display: inline-grid;
+    grid-template-columns: repeat(2, 4px);
+    gap: 2px;
+    align-self: center;
+    justify-self: start;
+  }
+  .terminal__marca > span {
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: currentColor;
+  }
+  .terminal__ok {
+    color: var(--c-palomita, var(--c-exito));
+  }
+  .terminal__tenue {
+    color: var(--c-tenue);
+  }
+  .terminal__comando {
+    color: var(--c-texto);
+  }
+}
+
+/* Sitio público: los puntos del marco de navegador en gris (cero color) */
+@layer components {
+  .sitio .marco__punto,
+  .sitio .marco__punto:nth-child(n) {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--c-borde-fuerte);
+  }
+}
+
+/* Sitio público: el encabezado con escena, sin sombra en el texto ni pantalla
+   completa (estilo diseno/vercel: el texto se lee solo sobre el lienzo) */
+@layer components {
+  .sitio .encabezado-escena,
+  :root:not([data-tema="claro"]) .sitio .encabezado-escena {
+    min-height: 0;
+    padding-block: var(--spacing-96) var(--spacing-64);
+    text-shadow: none;
+  }
+  .sitio .encabezado-escena__texto {
+    margin-left: 0;
+  }
+  @media (max-width: 899px) {
+    .sitio .encabezado-escena {
+      padding-top: var(--spacing-64);
+    }
   }
 }

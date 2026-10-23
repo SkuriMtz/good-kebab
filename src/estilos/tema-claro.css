@@ -1,24 +1,17 @@
 /*
- * Ajustes del modo claro que no resuelven solos los tokens de globals.css
- * ([data-tema="claro"]: Primer #ffffff, #f6f8fa, #1f2328, #59636e, #d1d9e0
- * con grises cálidos, lección 9).
+ * Ajustes del modo claro que no resuelven solos los tokens de globals.css.
  * Dueño: Grupo 6 · Estructura (ver diseno/plan.md, "Reparto de archivos").
  * Solo tokens de la base; nada de colores sueltos.
+ *
+ * Sitio público (lección 14, estilo diseno/vercel): el lienzo claro es
+ * #fafafa y las tarjetas #ffffff; lo resuelven los tokens de .sitio en
+ * globals.css (sección 2d). El dashboard (.producto) conserva lo suyo.
  */
 
-/* Barra al bajar: blanco translúcido, como los materiales claros de Apple */
+/* Barra genérica de la app (NavApp) al bajar: blanco translúcido */
 [data-tema="claro"] .cabecera::before {
   background: color-mix(in srgb, var(--c-fondo) 72%, transparent);
 }
 [data-tema="claro"] .cabecera[data-hoja="true"]::before {
   background: var(--c-fondo);
-}
-
-/* Los fragmentos de fondo ya bajan solos en claro (--escena-opacidad: 0.4 en globals.css). */
-
-/* Lección 9 + G6-T2: en el sitio PÚBLICO el lienzo claro es el gris cálido de
-   la portada (#f7f6f3) y las superficies se quedan en blanco Primer. Solo en
-   páginas con .sitio: el dashboard (.producto) conserva su #f5f5f7. */
-:root[data-tema="claro"]:has(.sitio) {
-  --c-fondo: var(--c-portada);
 }
