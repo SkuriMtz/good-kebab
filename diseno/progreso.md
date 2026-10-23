@@ -21,6 +21,9 @@ Rama de trabajo principal: `rediseno-11`.
 
 - **2026-10-23 18:49 UTC:** chat aprobado en su segunda versión (abf47ca, como `chat-referencia-2.webp`). La landing estilo Vercel (a9ec4cb…0fb9b17) no le gustó al dueño ("me gustó más el otro landing"): se revirtieron sus 4 commits de código y el sitio público vuelve a como estaba en abf47ca. Las capturas de la versión Vercel quedan como registro. Lección 15 en CLAUDE.md. Falta el cierre: arreglos chicos del dashboard que diga el dueño y la revisión final.
 
+- **2026-10-23 20:15 UTC — Cierre:** el dueño aprobó la landing revertida ("me gustó"). Las tres pantallas quedan aprobadas: landing estilo GitHub con Geist (d4f4d63), dashboard literal GitHub (1d5fd5e) y chat como `chat-referencia-2.webp` (abf47ca). La revisión final, ligera y hecha sin agentes, fueron 44 capturas en `diseno/capturas/cierre/`: inicio, `/agentes`, `/precios`, `/preguntas`, `/para-quien-es`, `/lista`, `/contacto`, `/entrar`, y en `/pruebalo` el inicio, el chat y los agentes, en 1440 y 390, oscuro y claro. Además, una revisión automática de cada pantalla: 0 páginas que se salen de lado, 0 elementos fuera de la pantalla, 0 textos cortados (solo los ocultos para lectores de pantalla, que es lo correcto) y 0 errores de la página. El único aviso es la conexión externa de `/entrar` hacia Supabase, que este contenedor no tiene. No hubo defectos claros que corregir. Los arreglos chicos del dashboard quedan a la espera de que el dueño diga cuáles. Los pasos 8 y 9 de abajo (rondas de revisión con varios revisores) los reemplazó el plan del 21 oct y no se hacen.
+- **Pendientes del dueño (no se hacen sin él):** correr la migración `0005_solicitudes.sql` en Supabase (lista de espera y contacto); probar `/panel` y `/panel/chat` con una cuenta real; decidir si elegir equipo se permite en One o solo en Max (hoy lo permite en One); decidir el orden de AL_FRENTE en `/para-quien-es`.
+
 ## Paso 0 — Archivos y respaldo
 
 - [x] 0.1 Guardar los 4 archivos en `diseno/github/` (DESIGN.md, tokens.json, theme.css, variables.css) y verificar que están completos — **2026-10-05 05:19 UTC** — evidencia: `diseno/github/` (DESIGN.md 437 líneas, tokens.json JSON válido, theme.css 73, variables.css 106; idénticos byte a byte a los adjuntos; commit 1a99ec9)
@@ -149,6 +152,8 @@ Cada trabajador: rama `prop/gN-tM` en su propio worktree, capturas en `diseno/ca
 
 ## Paso 8 — Revisión final independiente (máximo 4 rondas)
 
+> Reemplazado por el plan del 21 oct (un trabajador por pantalla y aprobación del dueño); ver el cierre del 23 oct arriba.
+
 Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/paso8/ronda-N/`.
 
 ### Ronda 1
@@ -186,6 +191,8 @@ Capturas de cada página en 1440 y 390px, oscuro y claro → `diseno/capturas/pa
 - [ ] 8.L Lecciones nuevas de las revisiones agregadas a `CLAUDE.md`
 
 ## Paso 9 — Cierre
+
+> Hecho a la manera del plan del 21 oct; ver el cierre del 23 oct arriba.
 
 - [ ] 9.1 Revisar el inventario página por página: todo presente y funcionando (`diseno/verificacion-final.md`)
 - [ ] 9.2 Reporte: skills usadas, instalaciones, ganador por grupo y por qué, ideas incorporadas, calificaciones finales, problemas y correcciones, lo que no encajó

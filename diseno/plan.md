@@ -136,3 +136,17 @@ El dueño pidió gastar menos del límite semanal y del de 5 horas ("lo que pien
 - **Revisores de los grupos 3 a 6:** A y B califican con las capturas y el código de cada trabajador; no levantan cada propuesta ni hacen capturas propias. (Los del Grupo 7 ya trabajaban completos.)
 - **Paso 8: 2 revisores nuevos por ronda** (en vez de 3), hasta 4 rondas, meta ≥ 9 en todo.
 - Totales: 27 trabajadores (G1 ×5, G2 ×5, G7 ×5, G3–G6 ×3); revisores de grupo: 14 (2 por grupo); no se juntan grupos.
+
+## Estado final (23 oct)
+Desde el 21 oct manda el plan nuevo del dueño: un trabajador por pantalla, un revisor ligero y la aprobación del dueño antes de pasar a la siguiente (lecciones 14 y 15 de `CLAUDE.md`).
+- **Letra:** Geist y Geist Mono en todo (0daa9ab).
+- **Dashboard** (`/pruebalo` y `/panel`): literal GitHub y simple. Aprobado (1d5fd5e).
+- **Chat:** como `diseno/referencias/chat-referencia-2.webp`. Aprobado (abf47ca).
+- **Landing:** se probó el estilo Vercel y el dueño prefirió la de GitHub. Se regresó a esa, ya con Geist, y quedó aprobada (d4f4d63). `diseno/vercel/` queda solo como referencia.
+- **Revisión final:** 44 capturas en `diseno/capturas/cierre/` sin defectos claros.
+- **Pendientes del dueño:**
+  - Los arreglos chicos del dashboard que él diga.
+  - La migración `0005_solicitudes.sql`.
+  - Probar el panel con una cuenta real.
+  - Decidir One o Max para elegir equipo.
+  - Decidir el orden de AL_FRENTE en `/para-quien-es`.
