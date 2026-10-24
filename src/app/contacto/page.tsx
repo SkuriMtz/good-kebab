@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const ATAJOS = [
-  { href: "/preguntas", titulo: "Preguntas frecuentes", texto: "Cómo se empieza y qué hace cada agente" },
+  { href: "/preguntas", titulo: "Posibles preguntas", texto: "Cómo se empieza y qué hace cada agente" },
   { href: "/precios", titulo: "Precios", texto: "Qué trae Free, One y Max" },
   { href: "/preguntas#seguridad", titulo: "Tus datos", texto: "Cómo cuidamos la información de tu negocio" },
 ];

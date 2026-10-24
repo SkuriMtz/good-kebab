@@ -18,8 +18,8 @@ export function PreguntasInicio() {
           <EncabezadoSeccion
             id="preguntas-titulo"
             alineacion="izquierda"
-            etiqueta="Preguntas frecuentes"
-            titulo="Lo que más nos preguntan"
+            etiqueta="Posibles preguntas"
+            titulo="Lo que quizá te preguntes"
             className="faq-doble__encabezado"
           />
           <IndiceTemas

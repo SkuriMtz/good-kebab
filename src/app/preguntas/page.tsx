@@ -9,7 +9,7 @@ import { GARANTIAS } from "@/lib/contenido";
 import { IndiceTemas } from "./IndiceTemas";
 
 export const metadata: Metadata = {
-  title: "Preguntas frecuentes",
+  title: "Posibles preguntas",
   description: "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
 };
 
@@ -34,8 +34,8 @@ export default function PreguntasFrecuentes() {
       <div className="contenedor faq-pagina">
         <aside className="faq-pagina__lado">
           <Etiqueta tono="cielo">Ayuda</Etiqueta>
-          <h1 className="t-grande">Preguntas frecuentes</h1>
-          <p className="t-cuerpo">Lo que nos preguntan dueños de clínicas, estéticas y consultorios antes de empezar.</p>
+          <h1 className="t-grande">Posibles preguntas</h1>
+          <p className="t-cuerpo">Dudas que puedes tener antes de empezar, si tienes una clínica, estética o consultorio.</p>
           <IndiceTemas etiqueta="Temas" entradas={entradas} />
           <div className="faq-pagina__pie">
             <NoEstaTuPregunta />
