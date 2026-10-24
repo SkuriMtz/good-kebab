@@ -13,6 +13,8 @@ import { CON_MOVIMIENTO, CURVA, DUR, ESCALONADO, SUBIDA, prepararGsap } from "@/
  * - Solo opacidad (no visibility): lo que todavía no entra se puede enfocar
  *   con el teclado y leer con el lector de pantalla.
  * - Al terminar se quitan los estilos en línea: manda otra vez el CSS.
+ * - Lo que ya está a la vista al montar no se esconde, y si la página cambia
+ *   de alto se vuelve a medir.
  * - Con "reducir movimiento" no hace nada: todo está a la vista.
  */
 export function AlBajar({ selector }: { selector: string }) {
@@ -24,7 +26,11 @@ export function AlBajar({ selector }: { selector: string }) {
     mm.add(
       CON_MOVIMIENTO,
       () => {
-        const piezas = Array.from(raiz.querySelectorAll<HTMLElement>(selector));
+        // Lo que ya está a la vista al llegar (a media página, al volver atrás) se queda quieto: sin parpadeo
+        const limite = window.innerHeight * 0.9;
+        const piezas = Array.from(raiz.querySelectorAll<HTMLElement>(selector)).filter(
+          (p) => p.getBoundingClientRect().top > limite,
+        );
         if (!piezas.length) return;
         gsap.set(piezas, { opacity: 0, y: SUBIDA });
         const disparadores = ScrollTrigger.batch(piezas, {
@@ -42,8 +48,18 @@ export function AlBajar({ selector }: { selector: string }) {
               clearProps: "opacity,transform",
             }),
         });
+        // Si algo cambia de alto (pestañas, acordeón, el chat), se vuelve a medir: nada se queda invisible
+        let espera: number | undefined;
+        const ro = new ResizeObserver(() => {
+          window.clearTimeout(espera);
+          espera = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+        });
+        ro.observe(raiz);
         return () => {
+          ro.disconnect();
+          window.clearTimeout(espera);
           disparadores.forEach((d) => d.kill());
+          gsap.killTweensOf(piezas);
           gsap.set(piezas, { clearProps: "opacity,transform" });
         };
       },

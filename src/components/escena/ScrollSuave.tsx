@@ -47,6 +47,7 @@ export function ScrollSuave() {
     return () => {
       mo.disconnect();
       gsap.ticker.remove(latido);
+      gsap.ticker.lagSmoothing(500, 33); // el valor de fábrica, para el panel y el chat
       lenis.destroy();
     };
   }, []);

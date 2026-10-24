@@ -744,3 +744,9 @@
     position: relative;
   }
 }
+
+/* El chat de demostración del inicio no atrapa la rueda: al llegar al final, sigue bajando la página */
+.sitio .chat__mensajes,
+.sitio .chat__listas {
+  overscroll-behavior: auto;
+}
