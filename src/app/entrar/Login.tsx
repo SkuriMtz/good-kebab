@@ -1,21 +1,14 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
-import { Arrow, Roll, TriSpinner } from "@/components/Buttons";
-import { Nav } from "@/components/Nav";
-import { ParticleShape } from "@/components/particles/ParticleShape";
-import { Reveal, SplitText } from "@/components/Reveal";
-import { Field } from "@/components/ui/Field";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Marca } from "@/components/Logo";
+import { Boton } from "@/components/base/Boton";
+import { CampoCorreo } from "@/components/base/Campo";
+import { Halo } from "@/components/base/Halo";
+import { Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { createClient } from "@/lib/supabase/client";
-
-const SECCIONES = [
-  { href: "/#que-es", label: "Qué es" },
-  { href: "/#agentes", label: "Agentes" },
-  { href: "/#planes", label: "Planes" },
-  { href: "/#preguntas", label: "Preguntas" },
-];
-const COLORES = ["var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-silver-mist)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-bone-white)", "var(--color-signal)"];
 
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;
@@ -28,6 +21,13 @@ function traducirError(error: { message: string; code?: string }) {
   return `No se pudo enviar el link: ${error.message}`;
 }
 
+/**
+ * Entrar con un link al correo (sin contraseña) o con Google si está disponible.
+ * Presentación como la página de inicio de sesión de GitHub (solo el estilo):
+ * la marca arriba, el título, un aviso de error encima de la tarjeta, la
+ * tarjeta centrada con el formulario y, abajo, una nota para quien entra por
+ * primera vez. La lógica de Supabase es la de siempre.
+ */
 export function Login({ errorInicial }: { errorInicial: boolean }) {
   const supabase = useMemo(() => createClient(), []);
   const google = useGoogleDisponible();
@@ -36,7 +36,20 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   const [error, setError] = useState<string | null>(
     errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
   );
-  const [intento, setIntento] = useState(0);
+  const tituloRef = useRef<HTMLHeadingElement>(null);
+  const correoRef = useRef<HTMLInputElement>(null);
+  const venimosDeEnviado = useRef(false);
+
+  // Al cambiar de paso, el foco va a lo nuevo (el título del aviso, o el correo al volver)
+  useEffect(() => {
+    if (estado === "enviado") {
+      venimosDeEnviado.current = true;
+      tituloRef.current?.focus();
+    } else if (estado === "idle" && venimosDeEnviado.current) {
+      venimosDeEnviado.current = false;
+      correoRef.current?.focus();
+    }
+  }, [estado]);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -50,7 +63,6 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     if (error) {
       setEstado("idle");
       setError(traducirError(error));
-      setIntento((n) => n + 1);
     } else {
       setEstado("enviado");
     }
@@ -67,97 +79,77 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     });
   }
 
+  const enviado = estado === "enviado";
+
   return (
-    <>
-      <Nav items={SECCIONES} />
-      <main className="mx-auto grid min-h-[100svh] max-w-page grid-cols-1 items-center gap-14 px-6 pb-16 pt-[136px] sm:px-10 lg:grid-cols-2 lg:gap-24 lg:px-16 lg:pt-[72px]">
-        <div aria-live="polite">
-          {estado !== "enviado" ? (
-            <div key="formulario">
-              <Reveal as="p" className="eyebrow">
-                Entrar
-              </Reveal>
-              <SplitText as="h1" className="editorial mt-5 text-heading-lg" text="Entra a Atendel." />
-              <Reveal as="p" delay={200} className="mt-6 max-w-[440px] text-body text-silver">
-                Escribe tu correo y te mandamos un link para entrar. Sin contraseñas.
-              </Reveal>
-              <Reveal delay={320}>
-                <form onSubmit={enviar} className="mt-10 max-w-[440px] space-y-8">
-                  <Field
-                    label="Tu correo"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={setEmail}
-                    placeholder="tu@correo.com"
-                    autoComplete="email"
-                    inputMode="email"
-                    required
-                  />
-                  <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-                    <button
-                      key={intento}
-                      type="submit"
-                      className={`btn-pill min-w-[236px] ${intento ? "shake" : ""}`}
-                      disabled={estado === "enviando"}
-                    >
-                      {estado === "enviando" ? (
-                        <>
-                          <TriSpinner />
-                          <span>Enviando</span>
-                        </>
-                      ) : (
-                        <>
-                          <Roll>Enviarme el link</Roll>
-                          <Arrow />
-                        </>
-                      )}
-                    </button>
-                    {google ? (
-                      <button type="button" className="btn-ghost" onClick={entrarConGoogle}>
-                        <Roll>Continuar con Google</Roll>
-                      </button>
-                    ) : null}
-                  </div>
-                  {error ? (
-                    <p key={`e${intento}`} role="alert" className="swap-in flex items-start gap-3 text-body text-saffron">
-                      <svg className="mt-1.5 h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 2 20.66 17H3.34Z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-                      </svg>
-                      {error}
-                    </p>
-                  ) : null}
-                </form>
-              </Reveal>
-            </div>
+    <section className="acceso con-halo" aria-labelledby="acceso-titulo">
+      <Halo suave y="32%" />
+      <div className="acceso__columna">
+        <Link href="/" className="acceso__marca" aria-label="Atendel, inicio">
+          <Marca className="acceso__marca-svg" />
+        </Link>
+        <h1 id="acceso-titulo" ref={tituloRef} tabIndex={-1} className="acceso__titulo">
+          {enviado ? "Revisa tu correo" : "Entra a Atendel"}
+        </h1>
+
+        {error && !enviado ? (
+          <div role="alert" className="acceso__aviso">
+            <Icono nombre="alerta" tam={16} className="acceso__aviso-icono" />
+            <p>{error}</p>
+          </div>
+        ) : null}
+
+        <div className="acceso__tarjeta" aria-live="polite">
+          {!enviado ? (
+            <form key="formulario" onSubmit={enviar} className="acceso__formulario">
+              <CampoCorreo
+                ref={correoRef}
+                etiqueta="Correo electrónico"
+                name="email"
+                value={email}
+                alCambiar={setEmail}
+                required
+                ayuda="Te mandamos un link para entrar. Sin contraseña."
+              />
+              <Boton type="submit" variante="principal" tam="grande" bloque cargando={estado === "enviando"}>
+                {estado === "enviando" ? "Enviando" : "Enviarme el link"}
+              </Boton>
+              {google ? (
+                <>
+                  <p className="acceso__o">
+                    <span>o</span>
+                  </p>
+                  <Boton variante="sutil" tam="grande" bloque onClick={entrarConGoogle}>
+                    Continuar con Google
+                  </Boton>
+                </>
+              ) : null}
+            </form>
           ) : (
-            <div key="enviado" className="swap-in">
-              <p className="eyebrow">Link enviado</p>
-              <h1 className="editorial mt-5 text-heading-lg">Revisa tu correo.</h1>
-              <p className="mt-6 max-w-[460px] text-body text-silver">
-                Te mandamos un link a <span className="font-normal text-bone">{email}</span>. Ábrelo en este mismo
-                navegador para entrar.
+            <div key="enviado" className="acceso__enviado">
+              <p className="acceso__sello">
+                <Icono nombre="correo" tam={16} />
+                Link enviado
               </p>
-              <p className="mt-4 max-w-[460px] text-body text-ash">
-                ¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.
+              <p className="acceso__texto">
+                Te mandamos un link a <strong className="acceso__correo">{email}</strong>. Ábrelo en este mismo navegador
+                para entrar.
               </p>
-              <button type="button" className="btn-ghost mt-8" onClick={() => setEstado("idle")}>
-                <Roll>Usar otro correo</Roll>
-              </button>
+              <p className="acceso__pista">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
+              <Boton variante="fantasma" tam="grande" bloque onClick={() => setEstado("idle")}>
+                Usar otro correo
+              </Boton>
             </div>
           )}
         </div>
 
-        <div className="relative mx-auto aspect-square w-full max-w-[300px] lg:max-w-[520px]">
-          <ParticleShape
-            shape={estado === "enviado" ? "check" : "mail"}
-            busy={estado === "enviando"}
-            scrollLinked={false}
-            colors={COLORES}
-            className="absolute inset-0 h-full w-full"
-          />
-        </div>
-      </main>
-    </>
+        <p className="acceso__nota">
+          ¿Primera vez? Escribe tu correo y tu cuenta se crea al entrar, con el plan Free.{" "}
+          <Link href="/precios" className="acceso__enlace">
+            Ver los planes
+          </Link>
+        </p>
+      </div>
+    </section>
   );
 }

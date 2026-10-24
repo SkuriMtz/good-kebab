@@ -1,61 +1,107 @@
-import { PillLink } from "./Buttons";
-import { PLANES } from "@/lib/planes";
+import type { CSSProperties } from "react";
+import { Boton } from "./base/Boton";
+import { Etiqueta } from "./base/Etiqueta";
+import { Icono } from "./base/Iconos";
+import { Personaje } from "./agentes/Personaje";
+import { AGENTE_POR_ID } from "@/lib/agentes";
+import { PERSONAJES } from "@/lib/personajes";
+import { PLANES, type Plan } from "@/lib/planes";
 
-const NOMBRE_CORTO: Record<string, string> = { free: "Free", one: "One", max: "Max" };
+const NOMBRE_CORTO: Record<Plan["id"], string> = { free: "Free", one: "One", max: "Max" };
 
-/** Free → One → Max, como tres columnas unidas por una línea que avanza. */
-export function Planes() {
+/** Las líneas de "incluye" que nombran agentes ya se ven en la fila del equipo (con sus personajes). */
+const NOMBRA_AGENTES = /^(Lola|Clara|Víctor|Iris),|^Los \d agentes/;
+
+function listaNombres(nombres: string[]) {
+  if (nombres.length <= 1) return nombres.join("");
+  return `${nombres.slice(0, -1).join(", ")} ${nombres.length > 2 ? "e" : "y"} ${nombres[nombres.length - 1]}`;
+}
+
+/**
+ * Los tres planes (Free, One, Max) de src/lib/planes.ts en UN solo panel de
+ * vidrio: tres columnas separadas por líneas de 1px, con las filas alineadas
+ * entre columnas (subgrid): nombre, precio, equipo, lo que incluye y botón.
+ * Free —el único que se puede usar hoy— va resaltado con sutileza (filo
+ * #8c93fb arriba y una capa más de vidrio) y lleva el único botón principal.
+ * One y Max, sin precio publicado, invitan a la lista de espera con botón
+ * fantasma. No hay ningún botón que cambie el plan de una cuenta.
+ */
+export function Planes({
+  hrefLista = "/lista",
+  nivelTitulo = 3,
+}: {
+  /** A dónde lleva "Avísame cuando abra" (en el inicio, al formulario de la misma página). */
+  hrefLista?: string;
+  nivelTitulo?: 2 | 3;
+}) {
+  const Titulo = `h${nivelTitulo}` as "h2" | "h3";
   return (
-    <div>
-      <ol className="grid grid-cols-1 border-b hairline md:grid-cols-3">
-        {PLANES.map((p, i) => {
-          const destacado = p.id === "one";
-          return (
-            <li
-              key={p.id}
-              className={`plan relative flex flex-col border-t hairline py-12 md:px-10 md:py-16 ${
-                i > 0 ? "md:border-l" : "md:pl-0"
-              } ${i === PLANES.length - 1 ? "md:pr-0" : ""}`}
-            >
-              <div className="flex items-baseline justify-between gap-4">
-                <p className="font-cond text-base uppercase tracking-[0.03em] text-ash">Atendel</p>
-                {destacado ? (
-                  <p className="flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.06em] text-bone">
-                    <span className="h-1.5 w-1.5 bg-signal" aria-hidden="true" />
-                    Desbloquea todo
-                  </p>
-                ) : null}
-              </div>
-              <h3 className="editorial mt-1 text-[clamp(4rem,8vw,7rem)] leading-[0.9]">{NOMBRE_CORTO[p.id]}</h3>
-              <p className="mt-5 text-heading-2xs">{p.precio ?? "Precio muy pronto"}</p>
-              <p className="mt-2 text-body text-silver">{p.resumen}</p>
-              <ul className="mt-8 flex flex-col gap-3.5 border-t hairline pt-7 text-body">
-                {p.incluye.map((x) => (
-                  <li key={x} className="flex items-start gap-3">
-                    <svg className="mt-[0.45em] h-3 w-3 shrink-0 text-silver" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                      <path d="M2 6.4 4.8 9 10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
-                    </svg>
-                    {x}
+    <ol className="planes" aria-label="Planes de Atendel">
+      {PLANES.map((p) => {
+        const hoy = p.id === "free";
+        const nombres = p.agentes.map((a) => AGENTE_POR_ID[a].nombre);
+        const resto = p.incluye.filter((x) => !NOMBRA_AGENTES.test(x));
+        return (
+          <li key={p.id} className={`plan${hoy ? " plan--hoy" : ""}`} aria-labelledby={`plan-${p.id}`}>
+            <div className="plan__cabeza">
+              <Etiqueta tono={hoy ? "cielo" : "tenue"}>{hoy ? "Disponible hoy" : `Atendel · ${p.nivel}`}</Etiqueta>
+              <Titulo id={`plan-${p.id}`} className="plan__nombre">
+                <span className="sr-only">Atendel </span>
+                {NOMBRE_CORTO[p.id]}
+              </Titulo>
+            </div>
+
+            <div className="plan__precio">
+              <p className={`plan__monto${p.precio ? "" : " plan__monto--pronto"}`}>{p.precio ?? "Próximamente"}</p>
+              <p className="t-cuerpo">{p.resumen}</p>
+            </div>
+
+            <div className="plan__equipo">
+              <ul className="plan__caras" aria-label={`Agentes: ${listaNombres(nombres)}`}>
+                {p.agentes.map((a) => (
+                  <li
+                    key={a}
+                    className="marca-agente marca-agente--chica"
+                    style={{ "--agente": PERSONAJES[a].color } as CSSProperties}
+                    title={`${AGENTE_POR_ID[a].nombre} · ${AGENTE_POR_ID[a].area}`}
+                  >
+                    <Personaje agente={a} avatar />
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-12">
-                {p.id === "free" ? (
-                  <PillLink href="/entrar">Empezar gratis</PillLink>
-                ) : (
-                  <p className="text-[0.875rem] text-ash">
-                    Muy pronto. Mientras, empieza con Free.
-                  </p>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <p className="mt-8 text-[0.875rem] leading-relaxed text-ash">
-        Todos los planes: entras con tu correo, sin contraseña · funciona en celular y computadora · cada negocio ve solo
-        lo suyo.
-      </p>
-    </div>
+              <p className="t-chico" aria-hidden="true">
+                {p.agentes.length === 1
+                  ? `${nombres[0]} · ${AGENTE_POR_ID[p.agentes[0]].area}`
+                  : p.agentes.length === 4
+                    ? "Los cuatro agentes"
+                    : listaNombres(nombres)}
+              </p>
+            </div>
+
+            <ul className="plan__incluye">
+              {resto.map((x) => (
+                <li key={x}>
+                  <Icono nombre="check" tam={16} tono="cielo" />
+                  <span>{x}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="plan__accion">
+              {hoy ? (
+                <Boton href="/entrar" tam="grande" bloque>
+                  Empieza gratis
+                </Boton>
+              ) : (
+                <Boton href={hrefLista} variante="fantasma" tam="grande" bloque>
+                  Avísame cuando abra
+                </Boton>
+              )}
+              <p className="t-caption">{hoy ? "Entras con tu correo, sin contraseña." : "Precio por anunciar."}</p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

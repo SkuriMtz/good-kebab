@@ -1,37 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { Arrow, TriSpinner } from "@/components/Buttons";
-import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
-import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
-import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
+import { Boton } from "@/components/base/Boton";
+import { Icono } from "@/components/base/Iconos";
+import { Insignia } from "@/components/base/Insignia";
+import { PuntoEstado } from "@/components/base/PuntoEstado";
+import { FilaAgente } from "@/components/dashboard/FilaAgente";
+import { PilaAgentes } from "@/components/dashboard/Piezas";
+import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
+import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 
-const dos = (n: number) => String(n).padStart(2, "0");
-
-function Candado() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" stroke="currentColor" />
-      <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
-    </svg>
-  );
-}
-
 /**
- * "Mis agentes": la persona arma su equipo. En Free solo trabaja Clara;
- * con One o Max elige a quien quiera (al menos uno).
+ * Agentes ("Mis agentes"): la persona arma su equipo. En Free solo trabaja
+ * Clara; en One y Max elige entre los agentes de su plan (al menos uno).
+ * El plan no se cambia desde aquí: lo que el plan no incluye se ve con
+ * candado y lleva a los precios.
  */
 export function MisAgentes({
-  email,
   userId,
   planId,
   elegidosIniciales,
   usados,
 }: {
-  email: string;
   userId: string;
   planId: IdPlan;
   elegidosIniciales: IdAgente[];
@@ -39,7 +31,9 @@ export function MisAgentes({
 }) {
   const plan = PLAN_POR_ID[planId];
   const libre = plan.id !== "free";
-  const [elegidos, setElegidos] = useState<IdAgente[]>(libre ? elegidosIniciales : ["clara"]);
+  // Lo elegido que su plan permite; si ya no queda nada, todo lo que el plan incluye
+  const validos = elegidosIniciales.filter((id) => plan.agentes.includes(id));
+  const [elegidos, setElegidos] = useState<IdAgente[]>(libre ? (validos.length ? validos : [...plan.agentes]) : ["clara"]);
   const [guardando, setGuardando] = useState<IdAgente | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,98 +59,134 @@ export function MisAgentes({
     }
   }
 
+  const equipo = AGENTES_INFO.filter((a) => plan.agentes.includes(a.id) && elegidos.includes(a.id)).map((a) => a.id);
+
   return (
-    <>
-      <NavApp email={email} />
-      <main className="page-enter mx-auto max-w-page px-6 pb-[96px] pt-[120px] lg:px-10 lg:pt-[150px]">
-        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-7">
-            <p className="font-cond text-base uppercase tracking-[0.03em] text-ash">{plan.nombre}</p>
-            <h1 className="editorial mt-3 text-heading-lg">Tu equipo.</h1>
-            <p className="mt-5 max-w-[520px] text-body text-silver">
-              {libre
-                ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
-                : "Con Atendel Free trabajas con Clara. Con Atendel One desbloqueas a todo el equipo y eliges a quien quieras."}
+    <div className="dash-pagina dash-vista">
+      <header className="dash-vista__cabeza">
+        <div>
+          <h1 className="t-app-titulo-grande">Agentes</h1>
+          <p className="dash-vista__texto">
+            {libre
+              ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
+              : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."}
+          </p>
+        </div>
+      </header>
+
+      <div className="dash-rejilla">
+        <div className="dash-centro">
+          {error ? (
+            <p role="alert" className="dash-alerta">
+              <Icono nombre="alerta" tam={16} />
+              {error}
             </p>
-          </div>
-          <div className="lg:col-span-5">
-            <Uso usados={usados} plan={plan} />
-          </div>
+          ) : null}
+
+          <ul className="dash-lista dash-lista--borde dash-agentes">
+            {AGENTES_INFO.map((a) => {
+              const permitido = plan.agentes.includes(a.id);
+              const enEquipo = permitido && elegidos.includes(a.id);
+              return (
+                <FilaAgente
+                  key={a.id}
+                  id={a.id}
+                  bloqueado={!permitido}
+                  insignias={
+                    !permitido ? (
+                      <Insignia>
+                        <Icono nombre="candado" tam={16} />
+                        Con {planMinimo(a.id).nombre}
+                      </Insignia>
+                    ) : enEquipo ? (
+                      <Insignia tono="exito" conPunto>
+                        En tu equipo
+                      </Insignia>
+                    ) : (
+                      <Insignia>Fuera de tu equipo</Insignia>
+                    )
+                  }
+                  estado={
+                    permitido ? (
+                      <PuntoEstado
+                        tono={enEquipo ? "exito" : "neutro"}
+                        etiqueta={enEquipo ? "Aparece en tu chat" : "No aparece en tu chat"}
+                        mostrarEtiqueta
+                      />
+                    ) : (
+                      <span className="dash-nota">Tu plan no lo incluye. Así trabajaría contigo.</span>
+                    )
+                  }
+                  acciones={
+                    !permitido ? (
+                      <Boton variante="fantasma" tam="compacto" href="/precios" flecha>
+                        Ver los planes
+                      </Boton>
+                    ) : (
+                      <>
+                        {libre ? (
+                          <Boton
+                            variante="sutil"
+                            tam="compacto"
+                            aria-pressed={enEquipo}
+                            cargando={guardando === a.id}
+                            disabled={guardando !== null && guardando !== a.id}
+                            icono={<Icono nombre={enEquipo ? "check" : "mas"} tam={16} />}
+                            onClick={() => alternar(a.id)}
+                            className="dash-alternar"
+                          >
+                            {enEquipo ? "En tu equipo" : "Agregar"}
+                          </Boton>
+                        ) : null}
+                        {enEquipo ? (
+                          <Boton variante="sutil" tam="compacto" href={`/panel/chat?agente=${a.id}`} icono={<Icono nombre="mensaje" tam={16} />}>
+                            Hablar con {AGENTE_POR_ID[a.id].nombre}
+                          </Boton>
+                        ) : null}
+                      </>
+                    )
+                  }
+                />
+              );
+            })}
+          </ul>
+
+          {plan.id !== "max" ? (
+            <p className="dash-correo__chat dash-agentes__mas">
+              {plan.id === "free"
+                ? "Con Atendel One se suma Lola, que atiende tu WhatsApp y tus citas. Con Atendel Max tienes a los cuatro: Víctor trae de regreso a tus clientes e Iris se encarga de la oficina."
+                : "Con Atendel Max tienes a los cuatro: Víctor trae de regreso a tus clientes e Iris se encarga de la oficina."}
+            </p>
+          ) : null}
         </div>
 
-        {error ? (
-          <p role="alert" className="mt-8 text-body text-signal">
-            {error}
-          </p>
-        ) : null}
-
-        <ul className="mt-12 border-b hairline lg:mt-16">
-          {AGENTES_INFO.map((a, i) => {
-            const permitido = plan.agentes.includes(a.id);
-            const enEquipo = permitido && elegidos.includes(a.id);
-            return (
-              <li
-                key={a.id}
-                className="grid grid-cols-1 gap-x-8 gap-y-4 border-t hairline py-7 md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_270px] md:items-center"
-              >
-                <div className="flex items-baseline gap-4">
-                  <span className={`font-cond text-base ${enEquipo ? "text-signal" : "text-ash"}`}>{dos(i + 1)}</span>
-                  <div>
-                    <p className={`editorial text-[clamp(2.25rem,4vw,3.5rem)] leading-none ${permitido ? "" : "text-ash"}`}>
-                      {a.nombre}
-                    </p>
-                    <p className="mt-2 font-cond text-base uppercase tracking-[0.03em] text-ash">{a.area}</p>
-                  </div>
-                </div>
-                <div className="pl-[34px] md:pl-0">
-                  <p className="text-body text-silver">{a.lema}</p>
-                  <p className="mt-2 text-[0.875rem] text-ash">{a.capacidades.join(" · ")}</p>
-                </div>
-                <div className="flex items-center gap-6 pl-[34px] md:justify-end md:pl-0">
-                  {!permitido ? (
-                    <Link href="/#planes" className="btn-ghost">
-                      <Candado />
-                      Con Atendel One
-                    </Link>
-                  ) : libre ? (
-                    <button
-                      type="button"
-                      className={enEquipo ? "btn-pill !min-h-[44px]" : "btn-ghost"}
-                      aria-pressed={enEquipo}
-                      onClick={() => alternar(a.id)}
-                      disabled={guardando !== null}
-                    >
-                      {guardando === a.id ? <TriSpinner className="h-3 w-3" /> : null}
-                      {enEquipo ? "En tu equipo" : "+ Agregar"}
-                    </button>
-                  ) : (
-                    <span className="text-nav font-medium uppercase text-silver">En tu equipo</span>
-                  )}
-                  {enEquipo ? (
-                    <Link href={`/panel/chat?agente=${a.id}`} className="btn-ghost !text-bone">
-                      Hablar
-                      <Arrow />
-                    </Link>
-                  ) : null}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-        {!libre ? (
-          <div className="mt-12 flex flex-col items-start gap-4 border hairline p-6 md:flex-row md:items-center md:justify-between lg:p-8">
-            <p className="max-w-[560px] text-body text-silver">
-              Con <span className="text-bone">Atendel One</span> tienes a los cuatro: Lola atiende tu WhatsApp y tus citas,
-              Víctor trae de regreso a tus clientes e Iris se encarga de la oficina.
+        <aside className="dash-derecha" aria-label="Tu plan">
+          <section id="plan" className="dash-tarjeta dash-plan" aria-labelledby="plan-titulo">
+            <div className="dash-plan__fila dash-plan__fila--arriba">
+              <h2 id="plan-titulo" className="dash-plan__plan">
+                {plan.nombre}
+              </h2>
+              <Insignia tono="azul">Activo</Insignia>
+            </div>
+            <p className="dash-nota">{plan.resumen}</p>
+            <Uso usados={usados} plan={plan} />
+            <p className="dash-plan__equipo">
+              <PilaAgentes ids={equipo} tam={20} />
+              <span>
+                {equipo.length === 1 ? "1 agente" : `${equipo.length} agentes`} en tu equipo
+              </span>
             </p>
-            <Link href="/#planes" className="btn-pill">
-              Ver planes
-              <Arrow />
-            </Link>
-          </div>
-        ) : null}
-      </main>
-    </>
+            <ul className="dash-plan__incluye">
+              {plan.incluye.map((i) => (
+                <li key={i}>
+                  <Icono nombre="check" tam={16} />
+                  {i}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
   );
 }

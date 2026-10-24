@@ -1,0 +1,668 @@
+/*
+ * Estilos de Qué es, Cómo funciona, Para quién es y Seguridad (inicio y /para-quien-es).
+ * Dueño: Grupo 4 · Informativas (ver diseno/plan.md, "Reparto de archivos").
+ * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
+ * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
+ * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Propuesta G4-T3 · "GitHub con la calma de Apple": la tipografía manda y
+ * casi no hay cajas. La estructura la hacen las divisiones de 1px, los
+ * números y horas en Mona Sans Mono (guía de lectura) y el aire entre bloques.
+ * Las únicas superficies son la banda de Seguridad y la muestra del panel.
+ */
+
+/* ---------- Piezas compartidas ---------- */
+
+/* "Nombre del agente + canal o área" sobre cada texto (día, tareas, equipo) */
+.info-quien {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-4) var(--spacing-8);
+}
+.info-nombre {
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-medio);
+  line-height: 1.5;
+  color: var(--c-texto);
+}
+.info-quien + .t-cuerpo {
+  margin-top: var(--spacing-4);
+}
+
+/* Entrada al bajar: cada fila aparece cuando llega a la pantalla (solo
+   opacidad y desplazamiento). Va atada al scroll, sin JavaScript; donde el
+   navegador no lo soporta o con "reducir movimiento", ya está ahí. */
+@keyframes info-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-12));
+  }
+}
+@keyframes info-aparece {
+  from {
+    opacity: 0;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dia__fila,
+    .paso,
+    .garantia {
+      animation: info-entra linear both;
+      animation-timing-function: var(--ease-entrada);
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
+/* ---------- 4. Qué es Atendel ---------- */
+
+.que-es__frase {
+  max-width: 24ch;
+  margin-top: var(--spacing-16);
+}
+.que-es__cuerpo {
+  display: grid;
+  gap: var(--spacing-48);
+  margin-top: var(--spacing-48);
+}
+.que-es__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.que-es__primero {
+  color: var(--c-texto);
+}
+@media (min-width: 1024px) {
+  .que-es__cuerpo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+    margin-top: var(--spacing-64);
+  }
+}
+
+/* La lista del día: hora en Mono · personaje · qué resolvió */
+.dia {
+  margin: 0;
+}
+.dia__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-4) var(--spacing-16);
+  padding-bottom: var(--spacing-16);
+  border-bottom: 1px solid var(--c-borde-fuerte);
+}
+.dia__fila {
+  display: grid;
+  grid-template-columns: var(--spacing-48) var(--spacing-28) minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--spacing-16);
+  padding-block: var(--spacing-20);
+  border-bottom: 1px solid var(--c-borde);
+}
+.dia__hora {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  /* misma altura de línea que el nombre (16px × 1.5) para que queden a nivel */
+  line-height: calc(var(--t-cuerpo) * 1.5);
+  color: var(--c-texto-2);
+}
+.dia__hora--sin {
+  color: var(--c-tenue);
+}
+.dia__personaje {
+  /* 28px contra la línea de 24px: se centra con el nombre */
+  margin-top: calc(var(--spacing-4) * -0.5);
+}
+@media (min-width: 640px) {
+  .dia__fila {
+    grid-template-columns: var(--spacing-64) var(--spacing-28) minmax(0, 1fr);
+  }
+}
+
+/* ---------- 5. Cómo funciona ---------- */
+
+.pasos__cabeza {
+  display: grid;
+  gap: var(--spacing-16);
+  margin-bottom: var(--espacio-bloque);
+}
+.pasos__cabeza .t-intro {
+  max-width: 40ch;
+}
+@media (min-width: 1024px) {
+  .pasos__cabeza {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+    align-items: last baseline;
+    gap: var(--spacing-64);
+  }
+}
+
+.pasos {
+  display: grid;
+  gap: var(--spacing-48);
+}
+/* Número en Mono y una línea de 1px que corre hasta el siguiente paso */
+.paso__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-24);
+}
+.paso__marca::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-borde-fuerte);
+}
+.paso__numero {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-medio);
+  line-height: 1.5;
+  color: var(--c-enlace);
+}
+.paso__texto {
+  max-width: 40ch;
+  margin-top: var(--spacing-8);
+}
+@media (min-width: 1024px) {
+  .pasos {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+    gap: 0;
+  }
+  .paso:not(.paso--trabajo) .paso__marca {
+    margin-right: var(--spacing-16);
+  }
+  .paso > :not(.paso__marca) {
+    padding-right: var(--spacing-40);
+  }
+  .paso--trabajo > :not(.paso__marca) {
+    padding-right: 0;
+  }
+}
+
+/* La muestra del panel: un mensaje que espera tu visto bueno.
+   Va con .producto: letra, superficies y radios del dashboard. */
+.visto {
+  margin-top: var(--spacing-32);
+}
+.visto__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding: var(--spacing-16);
+  background: var(--c-superficie);
+}
+.visto__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+}
+.visto__quien {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--spacing-8);
+  min-width: 0;
+}
+.visto__nombre {
+  font-weight: var(--peso-app-titulo);
+  color: var(--c-texto);
+}
+.visto__para {
+  color: var(--c-texto-2);
+}
+.visto__estado > * {
+  animation: info-aparece var(--dur-micro) var(--ease);
+}
+.visto__hilo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-16);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-fondo);
+}
+.visto__burbuja {
+  max-width: 88%;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-burbuja);
+  color: var(--c-texto);
+  text-wrap: pretty;
+}
+.visto__burbuja--otro {
+  align-self: flex-start;
+  border-bottom-left-radius: var(--radio-burbuja-esquina);
+  background: var(--c-elevado);
+}
+.visto__burbuja--agente {
+  align-self: flex-end;
+  border-bottom-right-radius: var(--radio-burbuja-esquina);
+  background: var(--c-propio);
+  /* Mientras es borrador, contorno punteado: todavía no sale */
+  outline: 1px dashed var(--c-borde-fuerte);
+  outline-offset: -1px;
+}
+.visto__burbuja--enviada {
+  outline-color: transparent;
+}
+.visto__borrador {
+  display: block;
+  margin-bottom: var(--spacing-4);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+  line-height: var(--interlineado-app-etiqueta);
+  color: var(--c-texto-2);
+}
+.visto__hora {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+  font-size: var(--t-app-etiqueta);
+  line-height: var(--interlineado-app-etiqueta);
+  color: var(--c-texto-2);
+}
+.visto__burbuja--enviada .visto__hora {
+  animation: info-aparece var(--dur-micro) var(--ease);
+}
+.visto__burbuja--enviada .visto__hora svg {
+  color: var(--c-accion-texto);
+}
+.visto__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+}
+.visto__acciones > * {
+  animation: info-aparece var(--dur-micro) var(--ease);
+}
+.visto__nota {
+  color: var(--c-texto-2);
+}
+@media (min-width: 640px) {
+  .visto__cuerpo {
+    padding: var(--spacing-20);
+  }
+}
+
+/* ---------- 6. Para quién es ---------- */
+
+.negocios__cabeza {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-40);
+}
+.negocios__cabeza .t-seccion {
+  max-width: 34ch;
+}
+.negocio {
+  display: grid;
+  gap: var(--spacing-40);
+}
+.negocio__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+}
+.negocio__frase {
+  max-width: 30ch;
+}
+.negocio__enlace {
+  margin-top: var(--spacing-8);
+}
+@media (min-width: 1024px) {
+  .negocio {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--spacing-64);
+  }
+}
+
+/* Tareas por agente: lista en celular, rejilla de 2 × 2 con líneas de 1px desde tableta */
+.tareas {
+  display: grid;
+  border-top: 1px solid var(--c-borde);
+}
+.tarea {
+  display: grid;
+  grid-template-columns: var(--spacing-40) minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  gap: var(--spacing-16);
+  padding-block: var(--spacing-20);
+  border-bottom: 1px solid var(--c-borde);
+}
+@media (min-width: 768px) {
+  .tareas {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .tarea {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-16);
+    padding: var(--spacing-24) var(--spacing-24) var(--spacing-24) 0;
+  }
+  .tarea:nth-child(even) {
+    padding-right: 0;
+    padding-left: var(--spacing-24);
+    border-left: 1px solid var(--c-borde);
+  }
+  .tarea:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}
+
+/* ---------- 7. Seguridad ---------- */
+
+.garantias-banda--inicio {
+  border-block: 1px solid var(--c-borde);
+}
+.garantias__cabeza {
+  display: grid;
+  gap: var(--spacing-24);
+}
+.garantias__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.garantias__frase {
+  margin-top: var(--spacing-16);
+}
+.garantias__enlace {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control-chico);
+}
+.garantias__enlace svg {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .garantias__enlace:hover svg {
+    transform: translateX(var(--spacing-4));
+  }
+}
+@media (min-width: 1024px) {
+  .garantias__cabeza {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--spacing-64);
+  }
+}
+
+.garantias {
+  display: grid;
+  margin-top: var(--spacing-48);
+  border-top: 1px solid var(--c-borde-fuerte);
+}
+.garantia {
+  padding-block: var(--spacing-32);
+}
+.garantia + .garantia {
+  border-top: 1px solid var(--c-borde);
+}
+.garantia__titulo {
+  margin-top: var(--spacing-16);
+}
+.garantia .t-cuerpo {
+  max-width: 44ch;
+  margin-top: var(--spacing-8);
+}
+@media (min-width: 768px) {
+  .garantias {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: var(--spacing-64);
+  }
+  .garantia {
+    padding: var(--spacing-32) var(--spacing-32) 0;
+  }
+  .garantia:first-child {
+    padding-left: 0;
+  }
+  .garantia:last-child {
+    padding-right: 0;
+  }
+  .garantia + .garantia {
+    border-top: 0;
+    border-left: 1px solid var(--c-borde);
+  }
+}
+
+/* ---------- /para-quien-es: lectura larga ---------- */
+
+/* La escena de partículas se luce en el encabezado; debajo, la lectura va
+   sobre el fondo liso (lección 11: el texto siempre legible). El paso es un
+   fundido de 96px, sin borde duro. */
+.pqe-cuerpo {
+  position: relative;
+  background: linear-gradient(to bottom, transparent, var(--c-fondo) var(--spacing-96));
+}
+
+.pqe-lectura {
+  display: grid;
+  gap: var(--spacing-40);
+  padding-bottom: var(--espacio-seccion);
+}
+@media (min-width: 1024px) {
+  .pqe-lectura {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: var(--spacing-64);
+  }
+}
+
+/* Índice: fila de píldoras en celular; lista fija con línea a la izquierda en computadora */
+.pqe-indice__titulo {
+  margin-bottom: var(--spacing-12);
+}
+.pqe-indice__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.pqe-indice__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control);
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  font-size: var(--t-chico);
+  color: var(--c-texto);
+  transition: opacity var(--dur-micro) var(--ease);
+}
+.pqe-indice__enlace:active {
+  opacity: 0.7;
+}
+.pqe-indice__numero {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  color: var(--c-tenue);
+}
+@media (min-width: 1024px) {
+  .pqe-indice {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-48));
+    align-self: start;
+    padding-top: var(--spacing-4);
+  }
+  .pqe-indice__lista {
+    flex-direction: column;
+    gap: 0;
+    border-left: 1px solid var(--c-borde);
+  }
+  .pqe-indice__enlace {
+    position: relative;
+    display: flex;
+    gap: var(--spacing-12);
+    min-height: var(--alto-control);
+    padding: var(--spacing-8) var(--spacing-16);
+    border: 0;
+    border-radius: 0;
+    font-size: var(--t-cuerpo);
+    color: var(--c-texto-2);
+  }
+  /* El negocio que estás leyendo: texto en blanco y la línea marcada a su lado */
+  .pqe-indice__enlace::before {
+    content: "";
+    position: absolute;
+    top: var(--spacing-8);
+    bottom: var(--spacing-8);
+    left: -1px;
+    width: 2px;
+    border-radius: var(--radio-circulo);
+    background: var(--c-texto);
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease);
+  }
+  .pqe-indice__enlace[aria-current] {
+    color: var(--c-texto);
+  }
+  .pqe-indice__enlace[aria-current]::before {
+    opacity: 1;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .pqe-indice__enlace:hover {
+    color: var(--c-texto);
+  }
+}
+
+.pqe-bloque {
+  padding-block: var(--spacing-64);
+  border-top: 1px solid var(--c-borde);
+  scroll-margin-top: calc(var(--barra-h) + var(--spacing-16));
+}
+.pqe-bloque:first-child {
+  padding-top: var(--spacing-16);
+  border-top: 0;
+}
+.pqe-bloque__cabeza {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.pqe-bloque__numero {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  color: var(--c-enlace);
+}
+.pqe-bloque__numero span {
+  color: var(--c-tenue);
+}
+@media (min-width: 1024px) {
+  .pqe-bloque {
+    padding-block: var(--spacing-80);
+  }
+  .pqe-bloque:first-child {
+    padding-top: 0;
+  }
+}
+
+/* El agente al frente: personaje grande y su tarea como frase; cambia de lado en cada bloque */
+.pqe-frente {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-16);
+  /* el personaje no se aleja de su frase aunque cambie de lado */
+  max-width: calc(var(--ancho-texto) + var(--spacing-80) * 2 + var(--spacing-40));
+  margin: var(--spacing-48) 0 0;
+}
+.pqe-frente__personaje {
+  display: block;
+  width: var(--spacing-80);
+}
+@media (min-width: 768px) {
+  .pqe-frente__personaje {
+    width: 100%;
+  }
+}
+.pqe-frente__personaje svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pqe-frente__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.pqe-frente__texto .t-sub {
+  max-width: 36ch;
+}
+@media (min-width: 768px) {
+  .pqe-frente {
+    grid-template-columns: calc(var(--spacing-80) * 2) minmax(0, 1fr);
+    gap: var(--spacing-40);
+  }
+  .pqe-frente--invertido {
+    grid-template-columns: minmax(0, 1fr) calc(var(--spacing-80) * 2);
+  }
+  .pqe-frente--invertido .pqe-frente__personaje {
+    order: 2;
+  }
+}
+
+.pqe-equipo {
+  margin-top: var(--spacing-48);
+  border-top: 1px solid var(--c-borde);
+}
+.pqe-equipo__fila {
+  display: grid;
+  grid-template-columns: var(--spacing-40) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-16);
+  padding-block: var(--spacing-20);
+  border-bottom: 1px solid var(--c-borde);
+}
+
+/* Cierre de la página */
+.pqe-cierre-negocios {
+  border-top: 1px solid var(--c-borde);
+}
+.pqe-cierre-negocios__fila {
+  display: grid;
+  gap: var(--spacing-32);
+}
+.pqe-cierre-negocios__titulo {
+  margin-top: var(--spacing-16);
+}
+.pqe-cierre-negocios__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+@media (min-width: 1024px) {
+  .pqe-cierre-negocios__fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--spacing-64);
+  }
+}

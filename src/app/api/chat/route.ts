@@ -5,6 +5,7 @@ import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { cargarCuenta } from "@/lib/cuenta";
+import { planMinimo } from "@/lib/planes";
 
 /**
  * CHAT CON LOS AGENTES
@@ -82,8 +83,8 @@ export async function POST(request: NextRequest) {
   const fuera = participantes.find((id) => !cuenta.activos.includes(id));
   if (fuera) {
     return error(
-      cuenta.plan.id === "free"
-        ? `${AGENTE_POR_ID[fuera].nombre} está disponible con Atendel One.`
+      !cuenta.plan.agentes.includes(fuera)
+        ? `${AGENTE_POR_ID[fuera].nombre} está disponible con ${planMinimo(fuera).nombre}.`
         : `${AGENTE_POR_ID[fuera].nombre} no está en tu equipo. Agrégalo en "Mis agentes".`,
       403,
     );
