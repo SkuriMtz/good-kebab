@@ -150,3 +150,9 @@ Desde el 21 oct manda el plan nuevo del dueño: un trabajador por pantalla, un r
   - Probar el panel con una cuenta real.
   - Decidir One o Max para elegir equipo.
   - Decidir el orden de AL_FRENTE en `/para-quien-es`.
+
+## Landing nueva (24 oct)
+- El dueño pidió un cambio radical: oscuro = Dala, claro = Vercel y botón azul de Atendel (lección 16 de `CLAUDE.md`).
+- Se hicieron 3 muestras con un inspector. El dueño eligió la portada de M1 y los agentes de M3, y el mismo estilo se llevó a todo el sitio público. Aprobada y junta en `rediseno-11` (97b50d1).
+- "Preguntas frecuentes" pasa a "Posibles preguntas".
+- Pendiente nuevo: confirmar el dominio "atendel.mx" del marco del chat de demostración.
