@@ -17,6 +17,8 @@ const { lola, clara, victor, iris } = AGENTE_POR_ID;
  * izquierda: etiqueta en Mono, título enorme, párrafo ligero, el formulario
  * (único botón principal, en azul) y el "registro" de lo que cuesta empezar.
  * Oscuro = Dala (negro, sin cajas); claro = Vercel (#fafafa, anillos finos).
+ * Entrada: una sola secuencia de menos de 1.2 s (etiqueta → título por
+ * línea → párrafo → formulario → registro, que entra completo).
  */
 export function Portada() {
   return (
@@ -32,7 +34,7 @@ export function Portada() {
             de regreso a tus clientes e <b>{iris.nombre}</b> lleva el trabajo de oficina. Lo importante no sale sin tu visto bueno.
           </p>
           <FormularioLista className="m1-portada__formulario" />
-          <div className="m1-registro">
+          <div className="m1-registro" data-rv-unidad="">
             <p className="m1-etiqueta m1-registro__titulo">Para empezar</p>
             <ul className="m1-registro__lista">
               {REGISTRO.map((linea) => (

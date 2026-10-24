@@ -1,4 +1,5 @@
 import { Sitio } from "@/components/Sitio";
+import { AlBajar } from "@/components/escena/AlBajar";
 import { Agentes } from "@/components/inicio/Agentes";
 import { ChatEnMarco } from "@/components/inicio/ChatEnMarco";
 import { ComoFunciona } from "@/components/inicio/ComoFunciona";
@@ -8,6 +9,7 @@ import { Portada } from "@/components/inicio/Portada";
 import { Precios } from "@/components/inicio/Precios";
 import { PreguntasInicio } from "@/components/inicio/PreguntasInicio";
 import { QueEs } from "@/components/inicio/QueEs";
+import { APARECEN_INICIO } from "@/lib/movimiento";
 import { Seguridad } from "@/components/inicio/Seguridad";
 
 /*
@@ -18,6 +20,8 @@ import { Seguridad } from "@/components/inicio/Seguridad";
  * portada y globo junto a la lista de Tu equipo. Por eso Tu equipo sube
  * justo después de la portada; el chat de demostración sigue enseguida.
  * En el resto (data-escena="vacio") la figura se deshace para no tapar texto.
+ * Movimiento (src/lib/movimiento.ts): la portada entra en una secuencia
+ * corta y, al bajar, lo demás entra una sola vez con un escalonado corto.
  */
 export default function Inicio() {
   return (
@@ -34,6 +38,7 @@ export default function Inicio() {
         <PreguntasInicio />
         <CtaFinal />
       </div>
+      <AlBajar selector={APARECEN_INICIO} />
     </Sitio>
   );
 }

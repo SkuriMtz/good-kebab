@@ -13,6 +13,31 @@
  */
 
 /* =====================================================================
+   0. Sistema de movimiento (mismos valores que src/lib/movimiento.ts)
+   Pocas duraciones: 150–250 ms para estados y 400–700 ms para entradas.
+   Dos curvas de salida: power2.out (estados) y power3.out (entradas).
+   Los nombres de la base (--ease, --dur-micro…) toman estos valores solo
+   en el sitio público; el dashboard y el chat conservan los suyos.
+   ===================================================================== */
+.sitio {
+  --mov-presion: 150ms;
+  --mov-estado: 200ms;
+  --mov-estado-largo: 250ms;
+  --mov-entrada-corta: 450ms;
+  --mov-entrada: 600ms;
+  --mov-entrada-larga: 700ms;
+  --mov-escalonado: 60ms;
+  --mov-curva-estado: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* power2.out */
+  --mov-curva-entrada: cubic-bezier(0.215, 0.61, 0.355, 1); /* power3.out */
+
+  --ease: var(--mov-curva-estado);
+  --ease-entrada: var(--mov-curva-entrada);
+  --dur-micro: var(--mov-estado);
+  --dur-grande: var(--mov-entrada-corta);
+  --dur-salida: var(--mov-presion);
+}
+
+/* =====================================================================
    1. Tokens del sitio público
    ===================================================================== */
 :root:not([data-tema="claro"]):has(.sitio) {
@@ -347,8 +372,8 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
-    opacity 0.25s var(--ease),
-    transform 0.12s var(--ease);
+    opacity var(--mov-estado-largo) var(--mov-curva-estado),
+    transform var(--mov-presion) var(--mov-curva-estado);
 }
 .m1-agente__num {
   display: none;
@@ -361,7 +386,7 @@
   grid-area: personaje;
   display: block;
   width: 56px;
-  transition: transform 0.35s var(--ease-entrada);
+  transition: transform var(--mov-estado-largo) var(--mov-curva-entrada);
 }
 .m1-agente__personaje svg {
   display: block;
@@ -375,7 +400,7 @@
   line-height: 1;
   letter-spacing: var(--tracking-display);
   color: var(--c-texto);
-  transition: transform 0.35s var(--ease-entrada);
+  transition: transform var(--mov-estado-largo) var(--mov-curva-entrada);
 }
 :root[data-tema="claro"] .m1-agente__nombre {
   font-size: clamp(40px, 1.9rem + 2.3vw, 64px);
@@ -405,9 +430,9 @@
   font-size: 20px;
   color: var(--c-tenue);
   transition:
-    transform 0.25s var(--ease),
-    opacity 0.25s var(--ease),
-    color 0.25s var(--ease);
+    transform var(--mov-estado-largo) var(--mov-curva-entrada),
+    opacity var(--mov-estado) var(--mov-curva-estado),
+    color var(--mov-estado) var(--mov-curva-estado);
 }
 /* Resaltar: la fila bajo el mouse (o con el foco) manda y las demás se apagan */
 @media (hover: hover) and (pointer: fine) {
@@ -421,7 +446,7 @@
     transform: translateX(8px);
   }
   .m1-agente:hover .m1-agente__personaje {
-    transform: scale(1.08) rotate(-4deg);
+    transform: translateY(-2px) scale(1.04) rotate(-3deg);
   }
   .m1-agente:hover .m1-agente__flecha {
     color: var(--c-texto);
@@ -436,11 +461,59 @@
   outline-offset: 4px;
   border-radius: 6px;
 }
+/* Con el teclado, el personaje reacciona igual que con el mouse */
+.m1-agente:focus-visible .m1-agente__personaje {
+  transform: translateY(-2px) scale(1.04) rotate(-3deg);
+}
+.m1-agente:focus-visible .m1-agente__nombre {
+  transform: translateX(8px);
+}
+/* Al tocar (celular) o presionar: la fila se hunde apenas y se aclara */
 .m1-agente:active {
   transform: scale(0.99);
 }
+@media (pointer: coarse) {
+  .m1-agente:active {
+    opacity: 0.6;
+  }
+}
+
+/* El resaltado que sigue al mouse (ListaAgentes.tsx, gsap.quickTo): una banda
+   tenue detrás de la fila, un poco más ancha que el texto. Solo se mueven
+   transform (y, scaleY) y opacity; en táctil no aparece. */
+.m1-lista-caja {
+  position: relative;
+}
+.m1-lista-caja > .m1-lista {
+  position: relative;
+  z-index: 1;
+}
+.m1-resalte {
+  --m1-resalte-sangria: 20px;
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--m1-resalte-sangria));
+  z-index: 0;
+  width: calc(100% + 2 * var(--m1-resalte-sangria));
+  border-radius: var(--m1-radio);
+  background: rgb(255 255 255 / 0.045);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 0;
+  will-change: transform, opacity;
+}
+:root[data-tema="claro"] .m1-resalte {
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08);
+}
+@media (hover: none), (pointer: coarse) {
+  .m1-resalte {
+    display: none;
+  }
+}
 @media (min-width: 1024px) {
-  .m1-lista {
+  .m1-lista,
+  .m1-lista-caja {
     max-width: 920px;
   }
   .m1-agente {
@@ -548,5 +621,126 @@
 @media (max-width: 899px) {
   .sitio .encabezado-escena {
     padding-top: 32svh;
+  }
+}
+
+/* =====================================================================
+   4. Movimiento y estados del sitio público (sistema de la sección 0)
+   ===================================================================== */
+/* Botones: hover con su capa, presión a 0.97 en 150 ms y foco visible.
+   La presión responde rápido y suelta con la misma curva. */
+.sitio .boton,
+.sitio .btn {
+  transition: transform var(--mov-presion) var(--mov-curva-estado);
+}
+.sitio .boton:focus-visible,
+.sitio .btn:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 2px;
+}
+
+/* Campos: el borde y el anillo de foco cambian en 150 ms (sin animar tamaños) */
+.sitio .entrada__control {
+  transition:
+    border-color var(--mov-presion) var(--mov-curva-estado),
+    outline-color var(--mov-presion) var(--mov-curva-estado);
+}
+/* El error aparece con un fundido corto, no de golpe */
+.sitio .entrada__nota--error {
+  animation: aparecer var(--mov-estado) var(--mov-curva-estado);
+}
+/* Éxito y aviso de la lista de espera y del contacto: suben 6px al llegar */
+.sitio .formulario-lista__listo,
+.sitio .formulario-lista__aviso,
+.sitio .contacto-listo {
+  animation: mov-llega var(--mov-entrada-corta) var(--mov-curva-entrada) both;
+}
+@keyframes mov-llega {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* "¿Te equivocaste de correo?": 44px de área para tocar sin mover nada */
+.sitio .formulario-lista__corregir {
+  position: relative;
+}
+.sitio .formulario-lista__corregir::after {
+  content: "";
+  position: absolute;
+  inset: -6px -4px;
+}
+
+/* Hoja del celular: al abrir, las filas bajan de la barra una tras otra
+   (60 ms); al cerrar, todo se va junto y más rápido (150 ms). */
+.sitio .hoja-nav__cuerpo,
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__cuerpo {
+  transform: none;
+}
+.sitio .hoja-nav__grupo,
+.sitio .hoja-nav__pie {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--mov-presion) var(--mov-curva-estado),
+    transform var(--mov-presion) var(--mov-curva-estado);
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__grupo,
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__pie {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--mov-entrada-corta);
+  transition-timing-function: var(--mov-curva-entrada);
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__grupo:nth-child(2) {
+  transition-delay: calc(1 * var(--mov-escalonado));
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__grupo:nth-child(3) {
+  transition-delay: calc(2 * var(--mov-escalonado));
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__grupo:nth-child(4) {
+  transition-delay: calc(3 * var(--mov-escalonado));
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__grupo:nth-child(n + 5) {
+  transition-delay: calc(4 * var(--mov-escalonado));
+}
+.sitio .hoja-nav[data-abierta="true"] .hoja-nav__pie {
+  transition-delay: calc(5 * var(--mov-escalonado));
+}
+
+/* Con "reducir movimiento": nada se desplaza ni espera; solo fundidos cortos */
+@media (prefers-reduced-motion: reduce) {
+  .sitio .hoja-nav__grupo,
+  .sitio .hoja-nav__pie {
+    transform: none;
+    transition-delay: 0s !important;
+  }
+  .sitio .formulario-lista__listo,
+  .sitio .formulario-lista__aviso,
+  .sitio .contacto-listo {
+    animation-name: aparecer;
+  }
+  .m1-agente:focus-visible .m1-agente__personaje,
+  .m1-agente:focus-visible .m1-agente__nombre {
+    transform: none;
+  }
+}
+
+/* Zonas de toque: en pantallas táctiles, lo que mide menos de 44px de alto
+   crece hacia afuera con una capa invisible (no se mueve nada de lugar). */
+@media (pointer: coarse) {
+  .sitio .boton:not(.boton--grande):not(.boton--compacto)::after,
+  .sitio .pestanas__pestana::after,
+  .sitio .garantias__enlace::after,
+  .sitio .temas__enlace::after,
+  .sitio .selector-tema__opcion::after {
+    content: "";
+    position: absolute;
+    inset: -5px 0;
+  }
+  .sitio .garantias__enlace,
+  .sitio .temas__enlace,
+  .sitio .selector-tema__opcion {
+    position: relative;
   }
 }

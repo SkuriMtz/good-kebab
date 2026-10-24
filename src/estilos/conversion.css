@@ -863,7 +863,7 @@
   border-radius: var(--radio-boton);
 }
 
-eyframes sacude-a {
+@keyframes sacude-a {
   0%,
   100% {
     transform: translateX(0);

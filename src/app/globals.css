@@ -2687,7 +2687,9 @@
     }
   }
 
-  /* ---------- El texto que aparece (Revela.tsx) ---------- */
+  /* ---------- El texto que aparece (Revela.tsx) ----------
+     GSAP mueve las piezas (sin transiciones de CSS que peleen con él).
+     Aquí solo va el estado escondido mientras llegan a la pantalla. */
   .rv-p {
     display: inline-block;
     overflow: hidden;
@@ -2695,30 +2697,20 @@
     padding-bottom: 0.14em;
     margin-bottom: -0.14em;
   }
-  .rv-i {
-    display: inline-block;
-    transition: transform 1.1s var(--ease-entrada);
-    transition-delay: calc(var(--rv-l, 0) * 0.1s);
-  }
-  .rv-w {
-    transition: opacity 0.7s var(--ease);
-    transition-delay: calc(0.25s + var(--rv-l, 0) * 0.12s + var(--rv-x, 0) * 0.5s);
-  }
+  .rv-i,
   .rv-bloque {
     display: inline-block;
-    transition:
-      opacity 0.8s var(--ease),
-      transform 0.8s var(--ease-entrada);
-    transition-delay: calc(0.3s + var(--rv-l, 0) * 0.12s);
   }
   [data-rv="off"] .rv-i {
     transform: translateY(110%);
   }
   [data-rv="off"] .rv-w,
-  [data-rv="off"] .rv-bloque {
+  [data-rv="off"] .rv-bloque,
+  [data-rv="off"] [data-rv-unidad] {
     opacity: 0;
   }
-  [data-rv="off"] .rv-bloque {
+  [data-rv="off"] .rv-bloque,
+  [data-rv="off"] [data-rv-unidad] {
     transform: translateY(12px);
   }
   .js [data-revela]:not([data-rv]) .rv-i {
@@ -2726,7 +2718,8 @@
     animation: rv-rescate-i 0.01s 4s forwards;
   }
   .js [data-revela]:not([data-rv]) .rv-w,
-  .js [data-revela]:not([data-rv]) .rv-bloque {
+  .js [data-revela]:not([data-rv]) .rv-bloque,
+  .js [data-revela]:not([data-rv]) [data-rv-unidad] {
     opacity: 0;
     animation: rv-rescate 0.01s 4s forwards;
   }
@@ -3006,12 +2999,14 @@
   }
   .t-stagger-line,
   .rv-i,
-  .rv-bloque {
+  .rv-bloque,
+  [data-rv-unidad] {
     transform: none !important;
     filter: none !important;
   }
   .js [data-revela]:not([data-rv]) .rv-w,
-  .js [data-revela]:not([data-rv]) .rv-bloque {
+  .js [data-revela]:not([data-rv]) .rv-bloque,
+  .js [data-revela]:not([data-rv]) [data-rv-unidad] {
     opacity: 1;
     animation: none;
   }
