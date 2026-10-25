@@ -1,0 +1,165 @@
+/* =====================================================================
+   Transiciones entre páginas (src/lib/transiciones.ts)
+   Sobrias y rápidas, con curvas de salida: lo que sale se desvanece en
+   150 ms; lo que entra aparece en 300 ms y sube 8px. Solo opacidad y
+   transform. Nada de rebotes, giros, barridos ni cortinas.
+   ===================================================================== */
+:root {
+  /* Lo que sale: más rápido que lo que entra */
+  --vt-sale: var(--dur-salida); /* 150 ms */
+  --vt-entra: 0.3s;
+  /* Lo nuevo espera apenas a que lo viejo casi se haya ido (sin encimarse) */
+  --vt-espera: 0.05s;
+  /* Curva de salida fuerte: arranca rápido y frena suave, nunca rebota */
+  --vt-curva: var(--ease-entrada); /* cubic-bezier(0.16, 1, 0.3, 1) */
+  --vt-subida: var(--spacing-8);
+}
+
+/* ---------- Lo que se queda quieto: el mismo nombre antes y después ----------
+   Como la foto de salida y la de llegada son iguales, el fundido cruzado
+   entre las dos no se nota. Solo mientras dura el cambio de página
+   (.vt-pagina): el cambio claro/oscuro sigue siendo un fundido de todo. */
+:root.vt-pagina:not(.vt-capa) .sitio > .escena-fondo,
+:root.vt-pagina:not(.vt-capa) .dash > .escena-fondo {
+  view-transition-name: vt-escena;
+}
+:root.vt-pagina:not(.vt-capa) .cabecera {
+  view-transition-name: vt-barra;
+}
+:root.vt-pagina:not(.vt-capa) .hoja-nav {
+  view-transition-name: vt-hoja;
+}
+:root.vt-pagina:not(.vt-capa) .dash-barra {
+  view-transition-name: vt-panel-barra;
+}
+:root.vt-pagina:not(.vt-capa) .dash-lateral {
+  view-transition-name: vt-panel-lateral;
+}
+
+/* ---------- Lo que cambia: el contenido (y el pie) ----------
+   Lo que sale y lo que entra llevan nombres distintos: así la foto de
+   salida se queda donde estaba (aunque la página estuviera a la mitad) y
+   no viaja hasta el lugar de la nueva. */
+:root.vt-pagina:not(.vt-capa):not(.vt-nueva) :is(.sitio__contenido, .dash-principal) {
+  view-transition-name: vt-sale;
+}
+:root.vt-pagina:not(.vt-capa):not(.vt-nueva) .sitio > div.sobre-escena {
+  view-transition-name: vt-sale-pie;
+}
+:root.vt-pagina.vt-nueva :is(.sitio__contenido, .dash-principal) {
+  view-transition-name: vt-entra;
+}
+:root.vt-pagina.vt-nueva .sitio > div.sobre-escena {
+  view-transition-name: vt-entra-pie;
+}
+/* Con la hoja del celular abierta, el contenido de atrás no se veía: no se
+   fotografía aparte y la foto de salida del fondo se quita de una vez (la
+   hoja, que sí se veía, es la que se desvanece encima de la página nueva). */
+:root.vt-pagina .sitio:has(> .hoja-nav[data-abierta="true"]) > :is(.sitio__contenido, div.sobre-escena) {
+  view-transition-name: none;
+}
+:root.vt-tapada::view-transition-old(root) {
+  display: none;
+}
+:root.vt-tapada::view-transition-new(root) {
+  animation: none;
+}
+
+/* ---------- Orden de las capas durante la transición ---------- */
+::view-transition-group(vt-escena) {
+  z-index: 0;
+}
+::view-transition-group(vt-sale),
+::view-transition-group(vt-sale-pie) {
+  z-index: 1;
+}
+::view-transition-group(vt-entra),
+::view-transition-group(vt-entra-pie) {
+  z-index: 2;
+}
+::view-transition-group(vt-panel-lateral) {
+  z-index: 3;
+}
+::view-transition-group(vt-hoja) {
+  z-index: 4;
+}
+::view-transition-group(vt-barra),
+::view-transition-group(vt-panel-barra) {
+  z-index: 5;
+}
+
+/* ---------- Tiempos y curvas ---------- */
+/* El fondo de la página y las piezas fijas: fundido cruzado parejo (lo idéntico no cambia) */
+:root.vt-pagina::view-transition-old(root),
+:root.vt-pagina::view-transition-new(root),
+::view-transition-old(vt-barra),
+::view-transition-new(vt-barra),
+::view-transition-old(vt-hoja),
+::view-transition-new(vt-hoja),
+::view-transition-old(vt-panel-barra),
+::view-transition-new(vt-panel-barra),
+::view-transition-old(vt-panel-lateral),
+::view-transition-new(vt-panel-lateral) {
+  animation-duration: var(--vt-sale);
+  animation-timing-function: var(--vt-curva);
+}
+/* Los fragmentos: si son los mismos no se nota; del sitio al panel se cruzan sin prisa */
+::view-transition-old(vt-escena),
+::view-transition-new(vt-escena) {
+  animation-duration: var(--vt-entra);
+  animation-timing-function: var(--vt-curva);
+}
+/* Si una pieza fija cambia de tamaño (el panel con el chat a lo ancho), se acomoda sin rebote */
+::view-transition-group(vt-panel-lateral),
+::view-transition-group(vt-panel-barra),
+::view-transition-group(vt-barra) {
+  animation-duration: var(--vt-entra);
+  animation-timing-function: var(--vt-curva);
+}
+
+/* Lo que sale: se desvanece en su lugar, rápido */
+::view-transition-old(vt-sale),
+::view-transition-old(vt-sale-pie) {
+  animation: vt-sale var(--vt-sale) var(--vt-curva) both;
+}
+/* Lo que entra: aparece y sube 8px */
+::view-transition-new(vt-entra),
+::view-transition-new(vt-entra-pie) {
+  animation: vt-entra var(--vt-entra) var(--vt-curva) var(--vt-espera) both;
+}
+@keyframes vt-sale {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-entra {
+  from {
+    opacity: 0;
+    transform: translateY(var(--vt-subida));
+  }
+}
+
+/* ---------- Respaldo: sin View Transitions (y al abrir la página) ----------
+   template.tsx pone .page-enter. Solo entra el contenido (la barra y el
+   fondo no parpadean). En el panel y en Pruébalo, que traen su propio
+   armazón, solo opacidad: un transform rompería su barra pegada arriba. */
+.page-enter > .sitio > :is(.sitio__contenido, div.sobre-escena) {
+  animation: vt-entra var(--vt-entra) var(--vt-curva) backwards;
+}
+.page-enter > :not(.sitio) {
+  animation: aparecer var(--vt-entra) var(--vt-curva) backwards;
+}
+
+/* ---------- Reducir movimiento ----------
+   No hay transición de página (src/lib/transiciones.ts no la arranca): el
+   contenido aparece con un fundido mínimo, sin desplazamiento. */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter > .sitio > :is(.sitio__contenido, div.sobre-escena),
+  .page-enter > :not(.sitio) {
+    animation: aparecer var(--dur-micro) var(--ease) backwards !important;
+  }
+  ::view-transition-new(vt-entra),
+  ::view-transition-new(vt-entra-pie) {
+    animation-name: aparecer;
+  }
+}

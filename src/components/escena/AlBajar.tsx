@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect } from "react";
 import { CON_MOVIMIENTO, CURVA, DUR, ESCALONADO, SUBIDA, prepararGsap } from "@/lib/movimiento";
+import { trasLaTransicion } from "@/lib/transiciones";
 
 /**
  * Al bajar, cada pieza (`selector`, dentro de <main>) entra una sola vez:
@@ -16,6 +17,7 @@ import { CON_MOVIMIENTO, CURVA, DUR, ESCALONADO, SUBIDA, prepararGsap } from "@/
  * - Lo que ya está a la vista al montar no se esconde, y si la página cambia
  *   de alto se vuelve a medir.
  * - Con "reducir movimiento" no hace nada: todo está a la vista.
+ * - Si se llegó de otra página, nada entra encima de la transición de página.
  */
 export function AlBajar({ selector }: { selector: string }) {
   useEffect(() => {
@@ -33,19 +35,23 @@ export function AlBajar({ selector }: { selector: string }) {
         );
         if (!piezas.length) return;
         gsap.set(piezas, { opacity: 0, y: SUBIDA });
+        let vivo = true;
         const disparadores = ScrollTrigger.batch(piezas, {
           start: "top 90%",
           once: true,
           interval: 0.1,
           onEnter: (lote) =>
-            gsap.to(lote, {
-              opacity: 1,
-              y: 0,
-              duration: DUR.entrada,
-              ease: CURVA.entrada,
-              stagger: ESCALONADO,
-              overwrite: true,
-              clearProps: "opacity,transform",
+            trasLaTransicion().then(() => {
+              if (!vivo) return;
+              gsap.to(lote, {
+                opacity: 1,
+                y: 0,
+                duration: DUR.entrada,
+                ease: CURVA.entrada,
+                stagger: ESCALONADO,
+                overwrite: true,
+                clearProps: "opacity,transform",
+              });
             }),
         });
         // Si algo cambia de alto (pestañas, acordeón, el chat), se vuelve a medir: nada se queda invisible
@@ -56,6 +62,7 @@ export function AlBajar({ selector }: { selector: string }) {
         });
         ro.observe(raiz);
         return () => {
+          vivo = false;
           ro.disconnect();
           window.clearTimeout(espera);
           disparadores.forEach((d) => d.kill());

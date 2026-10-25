@@ -15,8 +15,10 @@ import "../estilos/estructura.css";
 import "../estilos/tema-claro.css";
 import "../estilos/dashboard.css";
 import "../estilos/landing.css";
+import "../estilos/transiciones.css";
 import { DESCRIPCION_INICIO, OG_INICIO, TITULO_INICIO } from "@/lib/seo";
 import { SCRIPT_TEMA } from "@/lib/tema";
+import { TransicionPaginas } from "@/components/TransicionPaginas";
 
 /*
  * Tipografías servidas desde nuestro propio dominio (la política de seguridad
@@ -80,7 +82,10 @@ export default function RootLayout({
         {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
-      <body className={`${FUENTES} font-sans`}>{children}</body>
+      <body className={`${FUENTES} font-sans`}>
+        {children}
+        <TransicionPaginas />
+      </body>
     </html>
   );
 }

@@ -104,6 +104,93 @@ const suave = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
+type Tetra = { x: number; y: number; prof: number; tam: number; color: string; giro: number[]; vel: number[] };
+
+/**
+ * Lo que la escena recuerda entre páginas. Cada página pública monta su
+ * propia escena; sin memoria, al cambiar de página el fondo se apagaba y
+ * volvía con otros triangulitos. Con ella, la escena nueva sigue justo
+ * donde iba la anterior (mismo polvo, mismas figuras, mismo reloj): el
+ * fondo se queda quieto y solo cambia el contenido (src/lib/transiciones.ts).
+ */
+type Memoria = {
+  formas: Map<NombreForma, Float32Array>;
+  pos: Float32Array;
+  vel: Float32Array;
+  col: Float32Array;
+  alfa: Float32Array;
+  tam: Float32Array;
+  rigidez: Float32Array;
+  fase: Float32Array;
+  tamBase: Float32Array;
+  estatico: Float32Array;
+  polvo: Float32Array;
+  tetras: Tetra[];
+  mouse: { x: number; y: number; sx: number; sy: number };
+  activa: NombreEscena | null;
+  agitacion: number;
+};
+const MEMORIA = new Map<string, Memoria>();
+
+/** Crea lo que la escena recuerda: el azar de cada triangulito, el polvo y los tetraedros. */
+function crearMemoria(N: number, NP: number, cuantos: number, sobrio: boolean): Memoria {
+  const rigidez = new Float32Array(N);
+  const fase = new Float32Array(N);
+  const tamBase = new Float32Array(N);
+  const estatico = new Float32Array(N * 2);
+  for (let i = 0; i < N; i++) {
+    rigidez[i] = 7 + Math.random() * 13;
+    fase[i] = Math.random() * Math.PI * 2;
+    tamBase[i] = 3.2 + Math.random() * 5.5;
+    estatico[i * 2] = Math.random();
+    estatico[i * 2 + 1] = (Math.random() - 0.5) * 0.5;
+  }
+  // El polvo de fondo: posición en pantalla (0 a 1), profundidad, tamaño, color y fase
+  const COLORES_POLVO = [
+    [1, 0.72, 0.16],
+    [0.5, 0.32, 1],
+    [0.18, 0.84, 0.66],
+    [1, 1, 1],
+    [1, 0.54, 0.42],
+  ];
+  const polvo = new Float32Array(NP * 8);
+  for (let i = 0; i < NP; i++) {
+    const prof = Math.random();
+    const grande = Math.random() < 0.05;
+    const t = grande ? 12 + Math.random() * 8 : 4 + prof * 6 + Math.random() * 2;
+    const c = COLORES_POLVO[Math.floor(Math.random() * COLORES_POLVO.length)];
+    const x = sobrio ? (i % 2 ? 0.005 + Math.random() * 0.045 : 0.95 + Math.random() * 0.045) : Math.random();
+    polvo.set([x, Math.random(), prof, t, c[0], c[1], c[2], Math.random()], i * 8);
+  }
+  // Tetraedros grandes que flotan
+  const tetras: Tetra[] = Array.from({ length: cuantos }, (_, i) => ({
+    x: sobrio ? 0.965 : (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
+    y: Math.random(),
+    prof: Math.random(),
+    tam: 16 + Math.random() * 22,
+    color: ["#ffb829", "#d9d4e8", "#8052ff", "#ffb829", "#2fd6a8", "#d9d4e8", "#8052ff"][i],
+    giro: [Math.random() * 6, Math.random() * 6],
+    vel: [(Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.3],
+  }));
+  return {
+    formas: new Map(),
+    pos: new Float32Array(N * 3),
+    vel: new Float32Array(N * 3),
+    col: new Float32Array(N * 3),
+    alfa: new Float32Array(N),
+    tam: new Float32Array(N),
+    rigidez,
+    fase,
+    tamBase,
+    estatico,
+    polvo,
+    tetras,
+    mouse: { x: 0, y: 0, sx: 0, sy: 0 },
+    activa: null,
+    agitacion: 0,
+  };
+}
+
 /**
  * `sobrio`: la versión discreta del sitio público (lecciones 7, 10 y 11):
  * menos polvo, un solo tetraedro pegado a la orilla derecha (lejos de la
@@ -149,8 +236,16 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
     const orillas = ancho0 >= 1360;
     const NP = sobrio ? (orillas ? 60 : 0) : ancho0 < 700 ? 120 : 260;
 
+    const cuantos = sobrio ? (orillas ? 1 : 0) : ancho0 < 700 ? 4 : 7;
+
+    // La memoria de esta escena (si ya se vio en otra página del mismo tamaño, se retoma)
+    const clave = `${sobrio ? "s" : "c"}-${N}-${NP}-${cuantos}`;
+    const previa = MEMORIA.get(clave);
+    const m: Memoria = previa ?? crearMemoria(N, NP, cuantos, sobrio);
+    MEMORIA.set(clave, m);
+
     // Las figuras, creadas la primera vez que se necesitan
-    const formas = new Map<NombreForma, Float32Array>();
+    const formas = m.formas;
     const forma = (nombre: NombreForma) => {
       let f = formas.get(nombre);
       if (!f) {
@@ -160,24 +255,9 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       return f;
     };
 
-    // Estado de cada triangulito: dónde está, a qué velocidad va, su color, opacidad y tamaño
-    const pos = new Float32Array(N * 3);
-    const vel = new Float32Array(N * 3);
-    const col = new Float32Array(N * 3);
-    const alfa = new Float32Array(N);
-    const tam = new Float32Array(N);
-    // Lo propio de cada uno: qué tan rápido llega (resorte), su fase y su tamaño
-    const rigidez = new Float32Array(N);
-    const fase = new Float32Array(N);
-    const tamBase = new Float32Array(N);
-    const estatico = new Float32Array(N * 2);
-    for (let i = 0; i < N; i++) {
-      rigidez[i] = 7 + Math.random() * 13;
-      fase[i] = Math.random() * Math.PI * 2;
-      tamBase[i] = 3.2 + Math.random() * 5.5;
-      estatico[i * 2] = Math.random();
-      estatico[i * 2 + 1] = (Math.random() - 0.5) * 0.5;
-    }
+    // Estado de cada triangulito: dónde está, a qué velocidad va, su color, opacidad y tamaño;
+    // y lo propio de cada uno: qué tan rápido llega (resorte), su fase y su tamaño
+    const { pos, vel, col, alfa, tam, rigidez, fase, tamBase, estatico, polvo, tetras } = m;
     const datos = new Float32Array(N * 8);
 
     const bufDatos = gl.createBuffer()!;
@@ -187,23 +267,6 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
     gl.bindBuffer(gl.ARRAY_BUFFER, bufEstatico);
     gl.bufferData(gl.ARRAY_BUFFER, estatico, gl.STATIC_DRAW);
 
-    // El polvo de fondo: posición en pantalla (0 a 1), profundidad, tamaño, color y fase
-    const COLORES_POLVO = [
-      [1, 0.72, 0.16],
-      [0.5, 0.32, 1],
-      [0.18, 0.84, 0.66],
-      [1, 1, 1],
-      [1, 0.54, 0.42],
-    ];
-    const polvo = new Float32Array(NP * 8);
-    for (let i = 0; i < NP; i++) {
-      const prof = Math.random();
-      const grande = Math.random() < 0.05;
-      const t = grande ? 12 + Math.random() * 8 : 4 + prof * 6 + Math.random() * 2;
-      const c = COLORES_POLVO[Math.floor(Math.random() * COLORES_POLVO.length)];
-      const x = sobrio ? (i % 2 ? 0.005 + Math.random() * 0.045 : 0.95 + Math.random() * 0.045) : Math.random();
-      polvo.set([x, Math.random(), prof, t, c[0], c[1], c[2], Math.random()], i * 8);
-    }
     const bufPolvo = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, bufPolvo);
     gl.bufferData(gl.ARRAY_BUFFER, polvo, gl.STATIC_DRAW);
@@ -221,18 +284,6 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
     };
     const U = Object.fromEntries(["uRes", "uTiempo", "uDpr", "uCam", "uClaro", "uGris"].map((n) => [n, un(progFigura, n)]));
     const UP = Object.fromEntries(["uRes", "uTiempo", "uScroll", "uDpr", "uAlfa", "uClaro", "uGris"].map((n) => [n, un(progPolvo, n)]));
-
-    // Tetraedros grandes que flotan
-    const cuantos = sobrio ? (orillas ? 1 : 0) : ancho0 < 700 ? 4 : 7;
-    const tetras = Array.from({ length: cuantos }, (_, i) => ({
-      x: sobrio ? 0.965 : (i + 0.5) / cuantos + (Math.random() - 0.5) * 0.1,
-      y: Math.random(),
-      prof: Math.random(),
-      tam: 16 + Math.random() * 22,
-      color: ["#ffb829", "#d9d4e8", "#8052ff", "#ffb829", "#2fd6a8", "#d9d4e8", "#8052ff"][i],
-      giro: [Math.random() * 6, Math.random() * 6],
-      vel: [(Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.3],
-    }));
 
     let w = 0;
     let h = 0;
@@ -282,15 +333,19 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
     };
 
     // Inclinación hacia el cursor (muy poca)
-    const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+    const mouse = m.mouse;
     const alMover = (e: PointerEvent) => {
       mouse.x = (e.clientX / w) * 2 - 1;
       mouse.y = (e.clientY / h) * 2 - 1;
     };
 
+    // De otra página: el polvo y los tetraedros siguen igual. Si la figura es la
+    // misma, también sigue; si es otra, se forma en su lugar desde una nube suave
+    // (como al abrir la página), sin cruzar la pantalla (lección 10).
     let activa: NombreEscena = escenaActual();
-    let agitacion = 0;
-    let primera = true;
+    const sigue = previa !== undefined && m.activa === activa;
+    let agitacion = sigue ? m.agitacion : 0;
+    let primera = !sigue;
     let antes = 0;
 
     /** Avanza a cada triangulito hacia su lugar en la figura de la escena activa. */
@@ -564,13 +619,17 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
       }
       canvas.dataset.lista = "true";
     };
-    const conReposo = typeof window.requestIdleCallback === "function";
-    const espera = conReposo ? window.requestIdleCallback(arrancar, { timeout: 600 }) : window.setTimeout(arrancar, 150);
+    // Si viene de otra página ya está todo hecho: sigue de inmediato, sin apagarse.
+    const conReposo = !previa && typeof window.requestIdleCallback === "function";
+    const espera = previa ? 0 : conReposo ? window.requestIdleCallback(arrancar, { timeout: 600 }) : window.setTimeout(arrancar, 150);
+    if (previa) arrancar();
 
     return () => {
       if (conReposo) window.cancelIdleCallback(espera);
       else window.clearTimeout(espera);
       detener();
+      m.activa = activa;
+      m.agitacion = agitacion;
       mo.disconnect();
       moTema.disconnect();
       window.removeEventListener("resize", alRedimensionar);

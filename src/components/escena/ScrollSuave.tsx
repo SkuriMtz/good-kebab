@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect } from "react";
 import { prefiereQuieto, prepararGsap, salidaCubica } from "@/lib/movimiento";
+import { enTransicion, trasLaTransicion } from "@/lib/transiciones";
 
 /**
  * Scroll suave: con la rueda del mouse o el trackpad, la página se desliza y
@@ -19,10 +20,14 @@ import { prefiereQuieto, prepararGsap, salidaCubica } from "@/lib/movimiento";
  * - Lo que tiene su propio scroll (el chat, las fichas, el menú) se mueve normal.
  * - Con "reducir movimiento" no se activa.
  * - Cuando cargan las letras y las imágenes, ScrollTrigger vuelve a medir (prepararGsap).
+ * - Al llegar de otra página: Next ya la dejó arriba antes de la foto de
+ *   llegada (sin salto visible) y, al terminar la transición, ScrollTrigger
+ *   vuelve a medir una vez.
  */
 export function ScrollSuave() {
   useEffect(() => {
     prepararGsap();
+    if (enTransicion()) trasLaTransicion().then(() => ScrollTrigger.refresh());
     if (prefiereQuieto()) return;
     const lenis = new Lenis({
       lerp: 0.1,

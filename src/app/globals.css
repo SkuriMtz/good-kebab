@@ -2967,10 +2967,7 @@
     opacity: 0.4;
   }
 }
-/* Cada página entra con un fundido (template.tsx) */
-.page-enter {
-  animation: aparecer var(--dur-grande) var(--ease-entrada);
-}
+/* La entrada de cada página (template.tsx) vive en src/estilos/transiciones.css */
 /* Cambio de modo claro/oscuro: fundido cruzado de toda la página (tema.ts) */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -2992,7 +2989,6 @@
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
-  .page-enter,
   .pestanas__panel,
   .formulario-lista__listo {
     animation-duration: var(--dur-micro) !important;

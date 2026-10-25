@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cloneElement, createElement, isValidElement, useEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { CON_MOVIMIENTO, CURVA, DUR, ENTRADA_MAXIMA, ESCALONADO, SIN_MOVIMIENTO, esperarLetras, prepararGsap } from "@/lib/movimiento";
+import { trasLaTransicion } from "@/lib/transiciones";
 
 /**
  * El texto aparece como en Dala cuando llega a la pantalla, en una sola
@@ -13,7 +14,8 @@ import { CON_MOVIMIENTO, CURVA, DUR, ENTRADA_MAXIMA, ESCALONADO, SIN_MOVIMIENTO,
  * - Los párrafos se pintan línea por línea, de izquierda a derecha.
  * - Los componentes (botones, formularios) y lo marcado con data-rv-unidad
  *   entran completos: fundido y 12px hacia arriba.
- * La secuencia completa dura menos de 1.2 s (ENTRADA_MAXIMA).
+ * La secuencia completa dura menos de 1.2 s (ENTRADA_MAXIMA). Si se llegó
+ * de otra página, arranca cuando la transición de página ya terminó.
  * Uso: <Revela><h2>…</h2><p>…</p></Revela>. Con "reducir movimiento", el texto ya está.
  */
 
@@ -167,19 +169,22 @@ export function Revela({
         start: "top 85%",
         once: true,
         onEnter: () => {
-          // Con las letras ya puestas y dos cuadros después (lo pesado de la carga ya pasó),
-          // para que la secuencia no se coma sus primeros cuadros
-          esperarLetras().then(() =>
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => {
-                if (!vivo) return;
-                // CSS suelta su estado escondido y GSAP pone el suyo en el mismo cuadro (sin parpadeo)
-                el.dataset.rv = "on";
-                tl = secuencia(el);
-                tl.play();
-              }),
-            ),
-          );
+          // Con las letras ya puestas, la transición de página terminada y dos cuadros
+          // después (lo pesado de la carga ya pasó), para que la secuencia no se coma
+          // sus primeros cuadros ni se encime con la transición
+          esperarLetras()
+            .then(trasLaTransicion)
+            .then(() =>
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                  if (!vivo) return;
+                  // CSS suelta su estado escondido y GSAP pone el suyo en el mismo cuadro (sin parpadeo)
+                  el.dataset.rv = "on";
+                  tl = secuencia(el);
+                  tl.play();
+                }),
+              ),
+            );
         },
       });
       return () => {
