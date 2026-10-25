@@ -131,7 +131,7 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
           </div>
         ) : null}
 
-        <div className="acceso__tarjeta" aria-live="polite">
+        <div className="acceso__tarjeta">
           {!enviado ? (
             <form key="formulario" noValidate onSubmit={enviar} className="acceso__formulario" aria-label="Entrar con tu correo">
               <CampoCorreo
@@ -163,7 +163,7 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
               ) : null}
             </form>
           ) : (
-            <div key="enviado" className="acceso__enviado">
+            <div key="enviado" role="status" className="acceso__enviado">
               <p className="acceso__sello">
                 <Icono nombre="correo" tam={16} />
                 Link enviado

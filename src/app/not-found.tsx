@@ -10,7 +10,6 @@ import { metadatos } from "@/lib/seo";
 export const metadata: Metadata = metadatos(
   "Página no encontrada",
   "Esta dirección no existe en Atendel. Vuelve al inicio o sigue a los agentes, los precios o las posibles preguntas.",
-  { robots: { index: false } },
 );
 
 /** A dónde seguir: las páginas principales del sitio, con una línea de qué hay en cada una. */
