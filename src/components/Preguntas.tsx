@@ -95,26 +95,34 @@ export const TEMAS_TODAS: Tema[] = [
   { id: "datos", nombre: "Tus datos", preguntas: [...DATOS, ...SUELTAS] },
 ].filter((t) => t.preguntas.length > 0);
 
-/** Un grupo de preguntas con su rótulo en Mono (destino de cada enlace del índice). */
+/**
+ * Un grupo de preguntas con su rótulo en Mono (destino de cada enlace del índice).
+ * `nivel`: el rótulo es h3 dentro de una sección con h2 (inicio) y h2 en una
+ * página cuyo único título mayor es el h1 (/preguntas). Las preguntas van un
+ * nivel abajo, así los títulos nunca se saltan un nivel.
+ */
 export function GrupoPreguntas({
   tema,
   abiertaInicial = null,
   pie,
+  nivel = 3,
 }: {
   tema: Tema;
   abiertaInicial?: number | null;
   pie?: ReactNode;
+  nivel?: 2 | 3;
 }) {
   const idTitulo = `${tema.id}-titulo`;
+  const Rotulo = nivel === 2 ? "h2" : "h3";
   return (
     <section id={tema.id} aria-labelledby={idTitulo} className="faq-grupo">
-      <h3 id={idTitulo} className="faq-grupo__titulo etiqueta">
+      <Rotulo id={idTitulo} className="faq-grupo__titulo etiqueta">
         {tema.nombre}
         <span className="etiqueta--tenue" aria-hidden="true">
           {String(tema.preguntas.length).padStart(2, "0")}
         </span>
-      </h3>
-      <Preguntas preguntas={tema.preguntas} abiertaInicial={abiertaInicial} nivelTitulo={4} />
+      </Rotulo>
+      <Preguntas preguntas={tema.preguntas} abiertaInicial={abiertaInicial} nivelTitulo={nivel === 2 ? 3 : 4} />
       {pie}
     </section>
   );

@@ -6,11 +6,12 @@ import { Halo } from "@/components/base/Halo";
 import { Icono } from "@/components/base/Iconos";
 import { TarjetaVidrio } from "@/components/base/TarjetaVidrio";
 import { FormularioContacto } from "./FormularioContacto";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description: "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo.",
-};
+export const metadata: Metadata = metadatos(
+  "Contacto",
+  "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo.",
+);
 
 const ATAJOS = [
   { href: "/preguntas", titulo: "Posibles preguntas", texto: "Cómo se empieza y qué hace cada agente" },

@@ -550,17 +550,26 @@ export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
     const alBajar = () => dibujar(0);
 
     window.addEventListener("resize", alRedimensionar);
-    if (quieto) {
-      window.addEventListener("scroll", alBajar, { passive: true });
-      dibujar(0);
-    } else {
-      window.addEventListener("pointermove", alMover, { passive: true });
-      document.addEventListener("visibilitychange", alVisibilidad);
-      iniciar();
-    }
-    canvas.dataset.lista = "true";
+    // La figura arranca cuando el navegador queda libre: así no compite con
+    // la primera pantalla (el texto de la portada, los botones, el chat).
+    // Formar la primera figura es lo más pesado; como mucho espera 600 ms.
+    const arrancar = () => {
+      if (quieto) {
+        window.addEventListener("scroll", alBajar, { passive: true });
+        dibujar(0);
+      } else {
+        window.addEventListener("pointermove", alMover, { passive: true });
+        document.addEventListener("visibilitychange", alVisibilidad);
+        if (!document.hidden) iniciar();
+      }
+      canvas.dataset.lista = "true";
+    };
+    const conReposo = typeof window.requestIdleCallback === "function";
+    const espera = conReposo ? window.requestIdleCallback(arrancar, { timeout: 600 }) : window.setTimeout(arrancar, 150);
 
     return () => {
+      if (conReposo) window.cancelIdleCallback(espera);
+      else window.clearTimeout(espera);
       detener();
       mo.disconnect();
       moTema.disconnect();

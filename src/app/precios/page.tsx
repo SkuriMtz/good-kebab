@@ -7,11 +7,12 @@ import { Etiqueta } from "@/components/base/Etiqueta";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
 import { PREGUNTAS } from "@/lib/contenido";
 import { Comparacion } from "./Comparacion";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Precios",
-  description: "Atendel Free es gratis y trae a Clara, tu agente de correo. One suma a Lola; Max, a los cuatro agentes.",
-};
+export const metadata: Metadata = metadatos(
+  "Precios",
+  "Atendel Free es gratis y trae a Clara, tu agente de correo. One suma a Lola; Max, a los cuatro agentes.",
+);
 
 const QUE_CAMBIA = PREGUNTAS.filter((q) => q.p.startsWith("¿Qué cambia entre"));
 

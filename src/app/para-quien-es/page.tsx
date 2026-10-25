@@ -10,8 +10,12 @@ import { AGENTE_POR_ID, esIdAgente } from "@/lib/agentes";
 import { SEGMENTOS } from "@/lib/contenido";
 import { PERSONAJES } from "@/lib/personajes";
 import { Indice } from "./Indice";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Para quién es" };
+export const metadata: Metadata = metadatos(
+  "Para quién es",
+  "Clínicas, estéticas, consultorios y negocios de servicios: qué hace Lola, Clara, Víctor e Iris en cada uno.",
+);
 
 /**
  * El agente que va al frente de cada negocio: el que responde a la frase

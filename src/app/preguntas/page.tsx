@@ -7,11 +7,12 @@ import { Etiqueta } from "@/components/base/Etiqueta";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { GARANTIAS } from "@/lib/contenido";
 import { IndiceTemas } from "./IndiceTemas";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Posibles preguntas",
-  description: "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
-};
+export const metadata: Metadata = metadatos(
+  "Posibles preguntas",
+  "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
+);
 
 const ICONOS_GARANTIA: NombreIcono[] = ["candado", "mano", "escudo"];
 
@@ -51,7 +52,7 @@ export default function PreguntasFrecuentes() {
         </aside>
         <div className="faq-pagina__preguntas" id="preguntas">
           {TEMAS_TODAS.map((t, i) => (
-            <GrupoPreguntas key={t.id} tema={t} abiertaInicial={i === 0 ? 0 : null} />
+            <GrupoPreguntas key={t.id} tema={t} nivel={2} abiertaInicial={i === 0 ? 0 : null} />
           ))}
         </div>
       </div>

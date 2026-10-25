@@ -8,11 +8,12 @@ import { NavAgentes } from "@/components/agentes/NavAgentes";
 import { Personaje } from "@/components/agentes/Personaje";
 import { TarjetasAgentes } from "@/components/agentes/TarjetasAgentes";
 import { AGENTES_INFO } from "@/lib/agentes";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Agentes",
-  description: "Lola, Clara, Víctor e Iris: qué hace cada agente de Atendel, cómo habla y en qué plan viene.",
-};
+export const metadata: Metadata = metadatos(
+  "Agentes",
+  "Lola, Clara, Víctor e Iris: qué hace cada agente de Atendel, cómo habla y en qué plan viene.",
+);
 
 /*
  * /agentes (G3-T1): el encabezado con los cuatro personajes de pie (cada uno

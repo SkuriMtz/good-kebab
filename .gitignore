@@ -16,3 +16,6 @@
 npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
+
+# caché de Python (scripts de las skills)
+__pycache__/

@@ -16,6 +16,7 @@ import { DETALLE } from "@/components/agentes/detalle";
 import { PlanesDelAgente } from "@/components/agentes/piezas";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { PLANES, planMinimo } from "@/lib/planes";
+import { metadatos } from "@/lib/seo";
 
 /** Las cuatro páginas se generan al construir el sitio; otra dirección da 404. */
 export const dynamicParams = false;
@@ -26,7 +27,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { agente: string } }): Metadata {
   if (!esIdAgente(params.agente)) return {};
   const a = AGENTE_POR_ID[params.agente];
-  return { title: `${a.nombre} · ${a.area}`, description: `${a.nombre}, agente de ${a.area.toLowerCase()} de Atendel. ${a.lema}` };
+  return metadatos(`${a.nombre} · ${a.area}`, `${a.nombre}, agente de ${a.area.toLowerCase()} de Atendel. ${a.lema}`);
 }
 
 /** Título de la conversación de ejemplo, según lo que pasa en ella (detalle.ts). */

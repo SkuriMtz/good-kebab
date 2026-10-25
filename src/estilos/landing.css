@@ -750,3 +750,74 @@
 .sitio .chat__listas {
   overscroll-behavior: auto;
 }
+
+/* =====================================================================
+   5. Pase de UI/UX (diseno/capturas/uiux/AUDITORIA.md)
+   Accesibilidad, toque y lectura, sin tocar el estilo aprobado.
+   ===================================================================== */
+/* Foco nunca tapado por la barra fija (WCAG 2.4.11): al llevar el foco o
+   un ancla a la pantalla, el navegador (y Lenis) dejan libre el alto de la
+   barra. Las anclas quedan donde estaban (barra + 24px): el margen propio
+   de cada destino baja lo mismo que sube el colchón. */
+html:has(.sitio) {
+  scroll-padding-top: calc(var(--barra-h) + var(--spacing-16));
+}
+/* En /agentes además va pegada la fila de los agentes (12px + 48px) */
+html:has(.sitio .nav-agentes) {
+  scroll-padding-top: calc(var(--barra-h) + var(--spacing-12) + var(--spacing-48) + var(--spacing-16));
+}
+.sitio [id] {
+  scroll-margin-top: var(--spacing-8);
+}
+.sitio .pqe-bloque,
+.sitio .seguridad-preguntas {
+  scroll-margin-top: 0;
+}
+.sitio .faq-grupo {
+  scroll-margin-top: var(--spacing-16);
+}
+
+/* "Saltar al contenido": 44px de alto, como cualquier control */
+.sitio .saltar {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--spacing-44);
+}
+
+/* Contador de cada tema de las preguntas: gris del sistema, sin opacidad
+   (en claro quedaba en 3.7:1; ahora 5.5:1 en claro y 7.5:1 en oscuro).
+   En el tema marcado (píldora rellena en celular) se queda como estaba. */
+.sitio .temas__enlace:not([aria-current]) .temas__cuenta {
+  color: var(--c-tenue);
+  opacity: 1;
+}
+
+/* Respuestas del acordeón: renglones de lectura cómoda (~70 caracteres) */
+.sitio .acordeon__contenido p {
+  max-width: 33em;
+}
+
+/* Zonas de toque de 44px en celular (crecen con una capa invisible, nada se mueve) */
+@media (pointer: coarse) {
+  .sitio .nav-agentes__enlace::after,
+  .sitio .pqe-indice__enlace::after,
+  .sitio .ruta__enlace::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+  }
+  .sitio .ruta__enlace,
+  .sitio .pqe-indice__enlace {
+    position: relative;
+  }
+  .sitio .ruta__enlace::after {
+    inset: -13px -8px;
+  }
+}
+
+/* 404: los atajos alineados con el título, debajo del botón */
+.sitio .pagina-404__atajos {
+  width: 100%;
+  max-width: 560px;
+  margin: var(--spacing-64) 0 0;
+}

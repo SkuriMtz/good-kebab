@@ -15,6 +15,7 @@ import "../estilos/estructura.css";
 import "../estilos/tema-claro.css";
 import "../estilos/dashboard.css";
 import "../estilos/landing.css";
+import { DESCRIPCION_INICIO, OG_INICIO, TITULO_INICIO } from "@/lib/seo";
 import { SCRIPT_TEMA } from "@/lib/tema";
 
 /*
@@ -45,11 +46,12 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Atendel — Agentes de IA para clínicas y estéticas",
+    default: TITULO_INICIO,
     template: "%s · Atendel",
   },
-  description:
-    "Atendel lee tus correos, entiende qué necesita cada cliente y te dice qué hacer. Agentes de inteligencia artificial para clínicas, consultorios y estéticas.",
+  description: DESCRIPCION_INICIO,
+  openGraph: OG_INICIO,
+  twitter: { card: "summary", title: TITULO_INICIO, description: DESCRIPCION_INICIO },
   applicationName: "Atendel",
   appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
 };

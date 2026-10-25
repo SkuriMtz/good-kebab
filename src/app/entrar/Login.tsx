@@ -8,17 +8,25 @@ import { CampoCorreo } from "@/components/base/Campo";
 import { Halo } from "@/components/base/Halo";
 import { Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
+import { correoValido } from "@/lib/lista";
 import { createClient } from "@/lib/supabase/client";
 
+/** Este error es del correo escrito: va junto al campo, no en el aviso de arriba. */
+const CORREO_NO_VALIDO = "Ese correo no parece válido. Revisa que esté bien escrito.";
+
+/** Lo que dice Supabase, en español y con qué hacer (nunca el texto técnico en inglés). */
 function traducirError(error: { message: string; code?: string }) {
   const texto = `${error.code ?? ""} ${error.message}`;
   if (/rate|seconds|segundos/i.test(texto)) {
     return "Pediste varios links seguidos. Espera un minuto y vuelve a intentar.";
   }
-  if (/invalid|email/i.test(texto)) {
-    return "Ese correo no parece válido. Revisa que esté bien escrito.";
+  if (/fetch|network|conex/i.test(texto)) {
+    return "No hay conexión. Revisa tu internet e intenta de nuevo.";
   }
-  return `No se pudo enviar el link: ${error.message}`;
+  if (/invalid|email/i.test(texto)) {
+    return CORREO_NO_VALIDO;
+  }
+  return "No se pudo enviar el link. Intenta de nuevo en un momento.";
 }
 
 /**
@@ -36,6 +44,8 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   const [error, setError] = useState<string | null>(
     errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
   );
+  /** Error del correo escrito: se muestra junto al campo (aria-invalid y aria-describedby los pone Campo). */
+  const [errorCampo, setErrorCampo] = useState<string | null>(null);
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const correoRef = useRef<HTMLInputElement>(null);
   const venimosDeEnviado = useRef(false);
@@ -54,15 +64,37 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
   async function enviar(e: FormEvent) {
     e.preventDefault();
     if (estado === "enviando") return;
+    // Se revisa aquí, en español, antes de pedir el link (sin el globo del navegador)
+    const problema = !email.trim()
+      ? "Escribe tu correo para mandarte el link."
+      : !correoValido(email)
+        ? "Revisa tu correo: parece que le falta algo (por ejemplo, nombre@negocio.com)."
+        : null;
+    if (problema) {
+      setError(null);
+      setErrorCampo(problema);
+      correoRef.current?.focus();
+      return;
+    }
     setEstado("enviando");
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
+    setErrorCampo(null);
+    // Si algo truena (sin red, sin servicio), el botón no se queda girando: vuelve con un aviso
+    const { error } = await supabase.auth
+      .signInWithOtp({
+        email: email.trim(),
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      })
+      .catch((e: unknown) => ({ error: { message: e instanceof Error ? e.message : "fetch" } }));
     if (error) {
       setEstado("idle");
-      setError(traducirError(error));
+      const texto = traducirError(error);
+      if (texto === CORREO_NO_VALIDO) {
+        setErrorCampo(texto);
+        correoRef.current?.focus();
+      } else {
+        setError(texto);
+      }
     } else {
       setEstado("enviado");
     }
@@ -101,18 +133,23 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
 
         <div className="acceso__tarjeta" aria-live="polite">
           {!enviado ? (
-            <form key="formulario" onSubmit={enviar} className="acceso__formulario">
+            <form key="formulario" noValidate onSubmit={enviar} className="acceso__formulario" aria-label="Entrar con tu correo">
               <CampoCorreo
                 ref={correoRef}
                 etiqueta="Correo electrónico"
                 name="email"
                 value={email}
-                alCambiar={setEmail}
+                alCambiar={(v) => {
+                  setEmail(v);
+                  if (errorCampo) setErrorCampo(null);
+                }}
+                error={errorCampo}
+                readOnly={estado === "enviando"}
                 required
                 ayuda="Te mandamos un link para entrar. Sin contraseña."
               />
               <Boton type="submit" variante="principal" tam="grande" bloque cargando={estado === "enviando"}>
-                {estado === "enviando" ? "Enviando" : "Enviarme el link"}
+                {estado === "enviando" ? "Enviando…" : "Enviarme el link"}
               </Boton>
               {google ? (
                 <>

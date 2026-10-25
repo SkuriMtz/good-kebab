@@ -55,18 +55,19 @@ let preparado = false;
 
 /**
  * Registra ScrollTrigger, pone los valores por defecto de GSAP y recalcula
- * las posiciones cuando ya cargaron las letras y las imágenes (si no, los
- * disparadores quedan medidos con la letra de respaldo). Se puede llamar
- * muchas veces: solo hace algo la primera.
+ * las posiciones cuando ya cargaron las letras (si no, los disparadores
+ * quedan medidos con la letra de respaldo). Al terminar de cargar la página
+ * (imágenes incluidas) ScrollTrigger ya se vuelve a medir solo (su evento
+ * "load" de fábrica): no se pide otra vez, porque cada medida fuerza a
+ * recalcular el diseño de toda la página. Se puede llamar muchas veces:
+ * solo hace algo la primera.
  */
 export function prepararGsap() {
   if (preparado || typeof window === "undefined") return;
   preparado = true;
   gsap.registerPlugin(ScrollTrigger);
   gsap.defaults({ duration: DUR.entrada, ease: CURVA.entrada });
-  const refrescar = () => ScrollTrigger.refresh();
-  document.fonts?.ready.then(refrescar).catch(() => {});
-  if (document.readyState !== "complete") window.addEventListener("load", refrescar, { once: true });
+  document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
 }
 
 /** Espera a que estén las letras, sin detener la entrada más de `maximo` ms. */

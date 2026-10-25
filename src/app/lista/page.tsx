@@ -9,11 +9,12 @@ import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { IDS_AGENTES } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
+import { metadatos } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Lista de espera",
-  description: "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel.",
-};
+export const metadata: Metadata = metadatos(
+  "Lista de espera",
+  "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel.",
+);
 
 /** Qué pasa después de anotarte. Solo lo que de verdad pasa (ver src/app/api/lista y las preguntas frecuentes). */
 const DESPUES = [
