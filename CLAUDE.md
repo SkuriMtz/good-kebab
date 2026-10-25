@@ -1,7 +1,7 @@
 # Atendel — instrucciones para Claude
 
 Atendel es una suscripción de agentes de IA para microempresas mexicanas
-(clínicas, consultorios, estéticas y negocios de servicios). Cuatro agentes:
+que atienden personas (cualquier negocio de servicios; no se nombran tipos de negocio). Cuatro agentes:
 **Lola** (Atención, WhatsApp y citas), **Clara** (Correo), **Víctor** (Clientes)
 e **Iris** (Oficina). Stack: Next.js 14 (App Router), TypeScript, Tailwind v3,
 Supabase. El dueño del proyecto no es técnico y habla español: explica todo en
@@ -62,6 +62,8 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 
 16. (24 oct) **Pidió un "cambio radical" de la landing con los archivos de Dala y Vercel; de 3 muestras eligió mezclar dos.** → Manda sobre la 15 en la landing. **Sitio público: oscuro = Dala** (`diseno/design.md`: negro puro, títulos enormes Geist 400, sin cajas) **y claro = Vercel** (`diseno/vercel/DESIGN.md`: #fafafa, líneas finas, etiquetas Mono), con la misma estructura y tokens por tema en `src/estilos/landing.css`; **un solo botón principal, en azul de Atendel**. Portada de M1 (figura de triangulitos de la v7 que cambia al bajar; la escena 3D queda en `/vista-3d`) y agentes como lista tipográfica de M3. **Nada de "lo que nos preguntan" ni "preguntas frecuentes" mientras no haya clientes: "Posibles preguntas".** Forma de trabajar que funcionó: 3 muestras cortas + un inspector ligero, el dueño elige y se termina la elegida.
 
+17. (25 oct) **"Quita lo de 'es para estéticas, clínicas, etc.': puede ser para cualquier negocio que tenga servicio"; "cambia las preguntas a unas menos raras".** → Nunca nombrar tipos de negocio (ni clínicas, estéticas, consultorios, spas…): "negocios que atienden personas". "Para quién es" va por situaciones (citas, mensajes, clientes que regresan, papeleo). Los ejemplos (chat de demostración, Pruébalo, panel) son de un negocio neutro ("Estudio Luna", "cliente", "sesión de 1 hora"). Preguntas cortas y naturales, como las haría el dueño de un negocio ("¿Es difícil de usar?", "¿Sirve para mi negocio?").
+
 ### Lo que se aprendió del historial (git log)
 - Hubo más de 10 rediseños (editorial "título de cine", "cuarto oscuro" nogal y crema, cuaderno de papel cálido, Dala negro/violeta/ámbar, escena 3D). Los que se rechazaron cambiaban el estilo pero no la composición: se sentían como la misma página con otra piel.
 - Efectos de adorno se quitaron por estorbar: fondo FlowField de la portada, el Dock, el menú lateral de ramas, nombres con TrueFocus. Están en `componentes-pendientes/`. → Un solo momento protagonista por pantalla.
@@ -72,7 +74,7 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 - No repetir el mismo patrón en todas las secciones (título centrado + 3 tarjetas con ícono). Variar: pestañas, columnas asimétricas, el producto en grande, listas, acordeones.
 - Nada de íconos dentro de círculos de colores en cada tarjeta, ni emojis como íconos.
 - Nada de texto con degradado, brillos o destellos sin propósito, ni muchos efectos compitiendo. Un solo momento protagonista por pantalla.
-- Nada de frases de marketing genéricas ("revoluciona tu negocio", "lleva tu negocio al siguiente nivel", "la solución todo en uno", "descubre el poder de la IA", "potencia tu productividad"). Textos concretos para clínicas, estéticas y consultorios, en español natural de México.
+- Nada de frases de marketing genéricas ("revoluciona tu negocio", "lleva tu negocio al siguiente nivel", "la solución todo en uno", "descubre el poder de la IA", "potencia tu productividad"). Textos concretos para negocios que atienden personas (sin nombrar tipos de negocio), en español natural de México.
 - Mostrar el producto real (el chat, conversaciones de los agentes, citas agendadas, correos resumidos), no ilustraciones abstractas.
 - Ningún componente con el aspecto por defecto de una librería sin personalizar.
 - Ningún dato inventado.
