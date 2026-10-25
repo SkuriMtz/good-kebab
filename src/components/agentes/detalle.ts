@@ -28,15 +28,15 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
     ],
     canal: "WhatsApp",
     conversacion: [
-      { de: "otro", quien: "Mariana", hora: "10:42", texto: "Hola! cuánto cuesta la limpieza facial? tienen lugar el jueves?" },
+      { de: "otro", quien: "Mariana", hora: "10:42", texto: "Hola! cuánto cuesta la sesión de una hora? tienen lugar el jueves?" },
       {
         de: "agente",
         hora: "10:42",
-        texto: "¡Hola, Mariana! La limpieza facial profunda cuesta $850 y dura una hora. El jueves tengo 11:00 o 16:30, ¿cuál te acomoda?",
+        texto: "¡Hola, Mariana! La sesión de una hora cuesta $850. El jueves tengo 11:00 o 16:30, ¿cuál te acomoda?",
       },
       { de: "otro", quien: "Mariana", hora: "10:44", texto: "16:30 porfa" },
       { de: "agente", hora: "10:44", texto: "Listo, te esperamos el jueves a las 16:30. Un día antes te mando un recordatorio." },
-      { de: "nota", texto: "Cita creada: jueves 16:30 · limpieza facial" },
+      { de: "nota", texto: "Cita creada: jueves 16:30 · sesión de 1 hora" },
     ],
   },
   clara: {
@@ -97,10 +97,10 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
     ],
     canal: "Chat con Iris",
     conversacion: [
-      { de: "otro", quien: "Tú", texto: "¿Cuánto cobran otras clínicas de la zona por depilación láser?" },
+      { de: "otro", quien: "Tú", texto: "¿Cuánto cobran otros negocios de la zona por una sesión de 1 hora?" },
       {
         de: "agente",
-        texto: "Revisé 4 clínicas cercanas: por sesión de axilas cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-laser.xlsx.",
+        texto: "Revisé 4 negocios cercanos: por una sesión de 1 hora cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-zona.xlsx.",
       },
       { de: "otro", quien: "Tú", texto: "Perfecto. ¿Y el reporte de septiembre?" },
       {

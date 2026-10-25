@@ -46,20 +46,20 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
     r: `${free.nombre} es gratis. Los precios de ${one.nombre} y ${max.nombre} todavía no se publican: déjanos tu correo en la lista de espera y te avisamos cuando abran.`,
   },
   {
-    p: "¿Necesito tarjeta para empezar con Free?",
+    p: "¿Necesito tarjeta para empezar?",
     r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo.",
   },
   {
-    p: "¿Qué pasa si llego al límite de mensajes?",
+    p: "¿Qué pasa si se me acaban los mensajes?",
     r: `El chat te avisa que llegaste a los mensajes del mes (${n(free.mensajesMes)} en Free, ${n(one.mensajesMes)} en One y ${n(max.mensajesMes)} en Max) y deja de enviar hasta el mes siguiente, cuando el conteo empieza de nuevo.`,
   },
   {
-    p: "¿Puedo cambiar de plan desde mi cuenta?",
-    r: "No. El plan no se cambia desde tu panel: One y Max abren por etapas. Anótate en la lista de espera y te escribimos cuando abramos tu lugar.",
+    p: "¿Cómo cambio de plan?",
+    r: "Por ahora no se cambia desde tu cuenta: One y Max abren por etapas. Anótate en la lista de espera y te escribimos cuando abramos tu lugar.",
   },
   {
-    p: "Con Max, ¿cómo elijo a mi equipo?",
-    r: "En tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
+    p: "¿Puedo elegir qué agentes uso?",
+    r: "Sí, con Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
   },
 ];
 
@@ -72,10 +72,10 @@ export type Tema = { id: string; nombre: string; preguntas: Pregunta[] };
 
 const buscar = (inicio: string) => PREGUNTAS.filter((q) => q.p.startsWith(inicio));
 
-const EMPEZAR = [...buscar("¿Necesito saber"), ...buscar("¿Qué funciona hoy")];
-const CLIENTES = [...buscar("¿Mis clientes"), ...buscar("¿Y si se equivoca")];
-const DATOS = buscar("¿Qué pasa con los datos");
-const PLANES_BASE = buscar("¿Qué cambia entre");
+const EMPEZAR = [...buscar("¿Es difícil"), ...buscar("¿Sirve para mi negocio"), ...buscar("¿Qué puedo usar")];
+const CLIENTES = [...buscar("¿Mis clientes"), ...buscar("¿Qué pasa si un agente")];
+const DATOS = buscar("¿Qué pasa con mis datos");
+const PLANES_BASE = buscar("¿Qué incluye cada plan");
 // Lo que no haya quedado en un tema (si alguien agrega preguntas) va al final
 const SUELTAS = PREGUNTAS.filter((q) => ![...EMPEZAR, ...CLIENTES, ...DATOS, ...PLANES_BASE].includes(q));
 

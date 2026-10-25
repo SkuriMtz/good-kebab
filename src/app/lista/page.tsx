@@ -60,7 +60,7 @@ export default function Lista() {
             Anótate y te avisamos cuando abramos tu lugar
           </h1>
           <p className="t-intro">
-            Para clínicas, estéticas, consultorios y negocios que atienden personas. Solo necesitamos tu correo.
+            Para negocios que atienden personas. Solo necesitamos tu correo.
           </p>
           <FormularioLista centrado conSecundario={false} className="pagina-sobria__formulario" />
         </div>

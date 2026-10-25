@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Atendel",
     short_name: "Atendel",
-    description: "Agentes de IA para clínicas, consultorios y estéticas.",
+    description: "Agentes de IA para negocios que atienden personas.",
     start_url: "/panel",
     display: "standalone",
     background_color: "#000000",

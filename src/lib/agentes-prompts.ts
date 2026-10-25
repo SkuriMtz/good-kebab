@@ -38,7 +38,7 @@ function acciones(ids: readonly IdAgente[]) {
 
 export function instruccionesDe(id: IdAgente, negocio: string) {
   const a = AGENTE_POR_ID[id];
-  return `Eres ${a.nombre}, el agente de ${a.area} de Atendel: un equipo de agentes de inteligencia artificial para clínicas, consultorios y estéticas en México. Trabajas para el negocio "${negocio}".
+  return `Eres ${a.nombre}, el agente de ${a.area} de Atendel: un equipo de agentes de inteligencia artificial para negocios que atienden personas en México. Trabajas para el negocio "${negocio}".
 
 ${EXTRA[id]}${acciones([id])}
 
@@ -54,7 +54,7 @@ ${REGLAS}
  */
 export function instruccionesGrupo(ids: readonly IdAgente[], negocio: string, tema: string | null) {
   const quienes = ids.map((id) => `- @@${id} es ${AGENTE_POR_ID[id].nombre}, agente de ${AGENTE_POR_ID[id].area}. ${EXTRA[id]}`).join("\n");
-  return `Este es un chat de grupo de Atendel, un equipo de agentes de inteligencia artificial para clínicas, consultorios y estéticas en México. Trabajan para el negocio "${negocio}".${
+  return `Este es un chat de grupo de Atendel, un equipo de agentes de inteligencia artificial para negocios que atienden personas en México. Trabajan para el negocio "${negocio}".${
     tema ? `\n\nTema del grupo: ${tema}` : ""
   }
 

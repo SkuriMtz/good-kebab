@@ -25,7 +25,7 @@ export function Portada() {
     <section aria-labelledby="portada-titulo" className="m1 m1-portada" data-escena="portada">
       <div className="m1-marco">
         <Revela className="m1-portada__texto">
-          <p className="m1-etiqueta">Para clínicas, consultorios y estéticas</p>
+          <p className="m1-etiqueta">Para negocios que atienden personas</p>
           <h1 id="portada-titulo" className="m1-display">
             Que ningún cliente se quede sin respuesta
           </h1>

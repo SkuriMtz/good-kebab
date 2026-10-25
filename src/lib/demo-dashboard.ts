@@ -12,11 +12,11 @@ import type { IdAgente } from "./agentes";
 import type { IdPlan } from "./planes";
 
 /**
- * DATOS DE EJEMPLO del dashboard de /pruebalo: una clínica de dermatología
- * y estética inventada para la demostración (se marca en pantalla como
+ * DATOS DE EJEMPLO del dashboard de /pruebalo: un negocio de servicios
+ * inventado para la demostración (se marca en pantalla como
  * "Datos de ejemplo"). Nada de esto es un cliente real ni una cifra real
  * de Atendel. Cuenta la misma historia que el chat de ejemplo (ChatDemo):
- * Sofía Ramírez agenda su primera limpieza, Carla Díaz cambia de hora,
+ * Sofía Ramírez agenda su primera cita, Carla Díaz cambia de hora,
  * Rosa Peña no ha confirmado, Clara leyó 23 correos, Víctor siguió a quien
  * preguntó por botox e Iris dejó el reporte de septiembre en Excel.
  *
@@ -29,8 +29,8 @@ export type Destino = { vista: IdVista; con?: string; pestana?: IdPestana };
 export type IdPestana = "actividad" | "visto-bueno" | "destacados";
 
 export const DEMO_NEGOCIO = {
-  nombre: "Clínica Luna",
-  giro: "Dermatología y estética",
+  nombre: "Estudio Luna",
+  giro: "Servicios con cita",
   ciudad: "Guadalajara, Jal.",
   plan: "max" as IdPlan,
   mensajesUsados: 1284,
@@ -39,7 +39,7 @@ export const DEMO_NEGOCIO = {
 export const DEMO_USUARIA = {
   nombre: "Ana López",
   // Dominio reservado para ejemplos: no es el correo de nadie
-  correo: "ana@clinicaluna.example",
+  correo: "ana@estudioluna.example",
   estado: { tono: "exito" as const, etiqueta: "Disponible" },
 };
 
@@ -108,12 +108,12 @@ export const DEMO_DIA: { id: string; icono: "calendario" | "correo" | "reloj"; t
 /* ---------- Actividad (línea de tiempo) ---------- */
 
 const RECORDATORIOS: ElementoLista[] = [
-  { id: "r1", titulo: "Mariana Ruiz", detalle: "Limpieza facial profunda · 11:30", insignia: { tono: "exito", texto: "Confirmó" } },
-  { id: "r2", titulo: "Jorge Peña", detalle: "Valoración para láser · 13:00", insignia: { tono: "exito", texto: "Confirmó" } },
-  { id: "r3", titulo: "Carla Díaz", detalle: "Peeling químico · pasó de 16:00 a 17:00", insignia: { tono: "azul", texto: "Cambió de hora" } },
-  { id: "r4", titulo: "Rosa Peña", detalle: "Consulta dermatológica · 10:00", insignia: { tono: "atencion", texto: "Sin respuesta" } },
-  { id: "r5", titulo: "Daniela Torres", detalle: "Depilación láser · 9:00", insignia: { tono: "exito", texto: "Confirmó" } },
-  { id: "r6", titulo: "Lucía Herrera", detalle: "Hidrafacial · 12:00", insignia: { tono: "exito", texto: "Confirmó" } },
+  { id: "r1", titulo: "Mariana Ruiz", detalle: "Sesión de 1 hora · 11:30", insignia: { tono: "exito", texto: "Confirmó" } },
+  { id: "r2", titulo: "Jorge Peña", detalle: "Primera visita · 13:00", insignia: { tono: "exito", texto: "Confirmó" } },
+  { id: "r3", titulo: "Carla Díaz", detalle: "Revisión · pasó de 16:00 a 17:00", insignia: { tono: "azul", texto: "Cambió de hora" } },
+  { id: "r4", titulo: "Rosa Peña", detalle: "Asesoría · 10:00", insignia: { tono: "atencion", texto: "Sin respuesta" } },
+  { id: "r5", titulo: "Daniela Torres", detalle: "Sesión de seguimiento · 9:00", insignia: { tono: "exito", texto: "Confirmó" } },
+  { id: "r6", titulo: "Lucía Herrera", detalle: "Sesión de 1 hora · 12:00", insignia: { tono: "exito", texto: "Confirmó" } },
 ];
 
 export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
@@ -126,7 +126,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     haceMin: 12,
     tarjeta: {
       tipo: "cita",
-      titulo: "Limpieza facial profunda · primera visita",
+      titulo: "Sesión de 1 hora · primera visita",
       detalle: "Viernes 10:00 · 60 min · Cabina 2 · $850",
       insignia: { tono: "exito", texto: "Confirmada" },
     },
@@ -143,7 +143,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     haceMin: 14,
     tarjeta: {
       tipo: "mensaje",
-      texto: "El sábado le escribo para ver cómo sintió su piel y, si quedó contenta, le pido su reseña en Google.",
+      texto: "El sábado le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña en Google.",
       pie: "Víctor · en el grupo Recepción",
     },
   },
@@ -182,8 +182,8 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
         },
         {
           id: "c3",
-          titulo: "Dr. Vela",
-          detalle: "Te recomienda a una paciente para valoración",
+          titulo: "Mario Vela",
+          detalle: "Te recomienda a un cliente nuevo",
           insignia: { tono: "neutra", texto: "Esta semana" },
         },
       ],
@@ -203,7 +203,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     tarjeta: {
       tipo: "mensaje",
       para: "Para Laura y 30 clientes más, cada uno con su nombre",
-      texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu limpieza facial va con 20% menos, ¿te aparto un lugar?",
+      texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu siguiente sesión va con 20% menos, ¿te aparto un lugar?",
     },
     accion: { etiqueta: "Revisar y aprobar" },
     ir: { vista: "actividad", pestana: "visto-bueno" },
@@ -261,8 +261,8 @@ export const DEMO_ACTIVIDAD_ANTERIOR: (Evento & { ir?: Destino })[] = [
     id: "iris-laser",
     agente: "iris",
     verbo: "comparó precios de",
-    objeto: "depilación láser",
-    complemento: "en 4 clínicas cercanas",
+    objeto: "la sesión de 1 hora",
+    complemento: "en 4 negocios cercanos",
     haceMin: 2 * 24 * 60 + 5 * 60,
     tarjeta: {
       tipo: "mensaje",
@@ -294,7 +294,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
     agente: "victor",
     titulo: "Mensaje para 31 clientes que no vienen desde junio",
     para: "Laura y 30 clientes más, cada uno con su nombre",
-    texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu limpieza facial va con 20% menos, ¿te aparto un lugar?",
+    texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu siguiente sesión va con 20% menos, ¿te aparto un lugar?",
     alAprobar: "Víctor lo manda hoy a mediodía y te avisa quién regresa.",
     haceMin: 128,
     ir: { vista: "conversaciones", con: "victor" },
@@ -303,8 +303,8 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
     id: "rosa",
     agente: "lola",
     titulo: "Volver a escribirle a Rosa Peña",
-    para: "Rosa Peña · consulta dermatológica de mañana, 10:00",
-    texto: "Hola, Rosa. ¿Nos confirmas tu consulta de mañana a las 10:00? Si no puedes, te busco otro horario esta semana.",
+    para: "Rosa Peña · asesoría de mañana, 10:00",
+    texto: "Hola, Rosa. ¿Nos confirmas tu cita de mañana a las 10:00? Si no puedes, te busco otro horario esta semana.",
     alAprobar: "Lola le escribe a las 18:00.",
     haceMin: 47,
     ir: { vista: "conversaciones", con: "lola" },
@@ -326,7 +326,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
 export const DEMO_DESTACADOS: { id: string; agente: IdAgente; titulo: string; detalle: string; ir: Destino }[] = [
   { id: "reporte", agente: "iris", titulo: "Reporte de septiembre", detalle: "Excel · en el grupo Cierre de mes", ir: { vista: "conversaciones", con: "cierre" } },
   { id: "recepcion", agente: "lola", titulo: "Grupo Recepción", detalle: "Lola y Víctor · citas y reseñas", ir: { vista: "conversaciones", con: "recepcion" } },
-  { id: "laser", agente: "iris", titulo: "Precios de depilación láser", detalle: "Comparación con 4 clínicas cercanas", ir: { vista: "conversaciones", con: "iris" } },
+  { id: "laser", agente: "iris", titulo: "Precios de la sesión de 1 hora", detalle: "Comparación con 4 negocios cercanos", ir: { vista: "conversaciones", con: "iris" } },
 ];
 
 /* ---------- Conversaciones recientes con clientes ---------- */
@@ -395,10 +395,10 @@ export const DEMO_CONVERSACIONES: ConversacionDemo[] = [
 /* ---------- Columna derecha ---------- */
 
 export const DEMO_CITAS: Cita[] = [
-  { id: "daniela", paciente: "Daniela Torres", servicio: "Depilación láser", hora: "9:00", estado: { tono: "exito", texto: "Confirmó" } },
-  { id: "rosa", paciente: "Rosa Peña", servicio: "Consulta dermatológica", hora: "10:00", estado: { tono: "atencion", texto: "Sin respuesta" } },
-  { id: "mariana", paciente: "Mariana Ruiz", servicio: "Limpieza facial profunda", hora: "11:30", estado: { tono: "exito", texto: "Confirmó" } },
-  { id: "carla", paciente: "Carla Díaz", servicio: "Peeling químico", hora: "17:00", estado: { tono: "azul", texto: "Cambió de hora" } },
+  { id: "daniela", paciente: "Daniela Torres", servicio: "Sesión de seguimiento", hora: "9:00", estado: { tono: "exito", texto: "Confirmó" } },
+  { id: "rosa", paciente: "Rosa Peña", servicio: "Asesoría", hora: "10:00", estado: { tono: "atencion", texto: "Sin respuesta" } },
+  { id: "mariana", paciente: "Mariana Ruiz", servicio: "Sesión de 1 hora", hora: "11:30", estado: { tono: "exito", texto: "Confirmó" } },
+  { id: "carla", paciente: "Carla Díaz", servicio: "Revisión", hora: "17:00", estado: { tono: "azul", texto: "Cambió de hora" } },
 ];
 
 export const DEMO_METRICAS: Metrica[] = [
@@ -447,7 +447,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
     id: "a-lola",
     agente: "lola",
     titulo: "Rosa Peña no ha confirmado",
-    detalle: "Su consulta es mañana a las 10:00",
+    detalle: "Su cita es mañana a las 10:00",
     haceMin: 47,
     ir: { vista: "actividad", pestana: "visto-bueno" },
   },
@@ -486,10 +486,10 @@ export const DEMO_CORREOS: CorreoDemo[] = [
   },
   {
     id: "vela",
-    remitente: "Dr. Vela",
-    asunto: "Paciente para valoración",
-    resumen: "Te recomienda a una paciente con manchas en la cara para una valoración.",
-    accion: "Contéstale para agradecer y agendar la valoración.",
+    remitente: "Mario Vela",
+    asunto: "Un cliente nuevo para ti",
+    resumen: "Te recomienda a un amigo que quiere agendar su primera cita.",
+    accion: "Contéstale para agradecer y agendar su primera cita.",
     prioridad: "semana",
     haceMin: 140,
   },

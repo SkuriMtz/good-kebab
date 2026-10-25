@@ -10,7 +10,7 @@ import { IDS_AGENTES } from "@/lib/agentes";
  * Como el editor en la página de GitHub: el producto real, grande, dentro de
  * un marco de navegador que flota sobre el halo morado. Adentro, la
  * conversación de la recepción se reproduce sola al aparecer: Lola agenda a
- * una paciente, le pasa el seguimiento a Víctor y queda un mensaje esperando
+ * un cliente, le pasa el seguimiento a Víctor y queda un mensaje esperando
  * tu visto bueno. Después la persona puede escribir (guion local, sin IA).
  */
 export function ChatEnMarco() {
@@ -26,8 +26,8 @@ export function ChatEnMarco() {
           </span>
         }
         etiqueta="En vivo · guion de ejemplo"
-        titulo="Una paciente escribe y tu equipo se pasa el trabajo"
-        texto="Sofía pidió su primera limpieza facial por WhatsApp. Mira cómo Lola le da cita y le pasa el seguimiento a Víctor. Luego escríbeles tú: nada sale de esta página."
+        titulo="Un cliente escribe y tu equipo se pasa el trabajo"
+        texto="Sofía pidió su primera cita por WhatsApp. Mira cómo Lola le da cita y le pasa el seguimiento a Víctor. Luego escríbeles tú: nada sale de esta página."
       />
       <div className="en-vivo__escenario">
         <Halo y="45%" ancho="min(1760px, 190vw)" proporcion="16 / 10" />

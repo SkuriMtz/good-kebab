@@ -12,10 +12,10 @@ const COLUMNAS = [
     enlaces: [{ href: "/agentes", label: titulo("/agentes") }, PRUEBALO, { href: "/precios", label: titulo("/precios") }],
   },
   {
-    titulo: "Negocios",
+    titulo: "Para quién es",
     enlaces: SEGMENTOS.map((s) => ({
       href: `/para-quien-es#${s.id}`,
-      label: s.id === "servicios" ? "Servicios" : s.nombre,
+      label: s.corto,
     })),
   },
   {
@@ -56,8 +56,7 @@ export function Footer() {
             <span aria-hidden="true">Atendel</span>
           </Link>
           <p className="pie-sitio__lema">
-            Lola, Clara, Víctor e Iris: cuatro agentes de IA para la recepción y la oficina de tu clínica, consultorio o
-            estética.
+            Lola, Clara, Víctor e Iris: cuatro agentes de IA para la recepción y la oficina de tu negocio.
           </p>
           <p className="pie-sitio__sello">Entras con tu correo · sin contraseña</p>
         </div>

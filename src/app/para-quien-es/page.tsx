@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
-import { Borrador, EncabezadoPagina } from "@/components/Encabezado";
+import { EncabezadoPagina } from "@/components/Encabezado";
 import { Sitio } from "@/components/Sitio";
 import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
@@ -14,24 +14,11 @@ import { metadatos } from "@/lib/seo";
 
 export const metadata: Metadata = metadatos(
   "Para quién es",
-  "Clínicas, estéticas, consultorios y negocios de servicios: qué hace Lola, Clara, Víctor e Iris en cada uno.",
+  "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Lola, Clara, Víctor e Iris por ti.",
 );
 
-/**
- * El agente que va al frente de cada negocio: el que responde a la frase
- * clave de su introducción (que es texto de ejemplo, marcado como borrador).
- * No se agrega nada nuevo: su tarea sale tal cual de SEGMENTOS.
- * - Clínicas, "citas y proveedores" → Clara (facturas de proveedores).
- * - Estéticas, "lo que más vende es que regresen" → Víctor.
- * - Consultorios, "la parte de recepción y oficina" → Iris (documentos y trámites).
- * - Negocios de servicios, "vive de agendar" → Lola.
- */
-const AL_FRENTE: Record<string, IdAgente> = {
-  clinicas: "clara",
-  esteticas: "victor",
-  consultorios: "iris",
-  servicios: "lola",
-};
+/** El agente que va al frente de cada situación (SEGMENTOS en contenido.ts). */
+const alFrente = (frente: string): IdAgente => (esIdAgente(frente) ? frente : "lola");
 
 const color = (id: IdAgente) =>
   ({ "--agente": PERSONAJES[id].color }) as CSSProperties;
@@ -39,8 +26,8 @@ const color = (id: IdAgente) =>
 /**
  * Para quién es (Grupo 4 · propuesta T3): lectura larga y ordenada.
  * Encabezado con la escena de partículas (la burbuja a la derecha); luego un
- * índice fijo a la izquierda y un bloque por negocio: número en Mono, nombre,
- * introducción (borrador), el agente que va al frente con su personaje en
+ * índice fijo a la izquierda y un bloque por situación: número en Mono, nombre,
+ * introducción, el agente que va al frente con su personaje en
  * grande y su tarea como frase, y el resto del equipo en una lista con
  * divisiones de 1px. El personaje grande cambia de lado en cada bloque.
  */
@@ -49,8 +36,8 @@ export default function ParaQuienEs() {
     <Sitio>
       <EncabezadoPagina
         escena="burbujaDerecha"
-        etiqueta="Para quién es · Negocios que atienden personas"
-        titulo="Clínicas, estéticas, consultorios y negocios de servicios."
+        etiqueta="Para quién es"
+        titulo="Para negocios que atienden personas."
         texto="Si tu negocio vive de atender, agendar y que tus clientes regresen, el equipo de Atendel hace esa parte contigo."
         acciones={
           <Boton href="/pruebalo" variante="principal">
@@ -67,7 +54,7 @@ export default function ParaQuienEs() {
 
           <div className="pqe-lectura__bloques">
             {SEGMENTOS.map((s, i) => {
-              const frente = AL_FRENTE[s.id] ?? "lola";
+              const frente = alFrente(s.frente);
               const tareaFrente = s.ayuda.find(([id]) => id === frente)?.[1];
               const resto = s.ayuda.filter(([id]) => id !== frente);
               const a = AGENTE_POR_ID[frente];
@@ -87,9 +74,6 @@ export default function ParaQuienEs() {
                       {s.nombre}
                     </h2>
                     <p className="t-intro pqe-bloque__intro">{s.intro}</p>
-                    <p>
-                      <Borrador />
-                    </p>
                   </header>
 
                   <figure
@@ -111,7 +95,7 @@ export default function ParaQuienEs() {
 
                   <ul
                     className="pqe-equipo"
-                    aria-label={`El resto del equipo en ${s.nombre.toLowerCase()}`}
+                    aria-label="El resto del equipo"
                   >
                     {resto.map(([id, texto]) => {
                       if (!esIdAgente(id)) return null;

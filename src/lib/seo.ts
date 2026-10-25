@@ -26,5 +26,5 @@ export function metadatos(titulo: string, descripcion: string, extra: Metadata =
 /** Los del inicio (y los que heredan las páginas que no ponen los suyos). */
 export const TITULO_INICIO = "Atendel — Agentes de IA para clínicas y estéticas";
 export const DESCRIPCION_INICIO =
-  "Lola contesta tu WhatsApp y agenda citas, Clara ordena tu correo, Víctor trae de regreso a tus clientes e Iris lleva el trabajo de oficina. Agentes de IA para clínicas, consultorios y estéticas.";
+  "Lola contesta tu WhatsApp y agenda citas, Clara ordena tu correo, Víctor trae de regreso a tus clientes e Iris lleva el trabajo de oficina. Agentes de IA para negocios que atienden personas.";
 export const OG_INICIO: Metadata["openGraph"] = { ...BASE_OG, title: TITULO_INICIO, description: DESCRIPCION_INICIO };

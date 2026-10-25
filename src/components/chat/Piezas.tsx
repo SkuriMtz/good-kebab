@@ -238,7 +238,7 @@ export type Tarjeta = {
   /** Estado corto ("Confirmada", "Espera tu visto bueno", "Listo"). */
   estado: string;
   titulo?: string;
-  /** Pares etiqueta/valor ("Paciente", "Sofía Ramírez"). */
+  /** Pares etiqueta/valor ("Cliente", "Sofía Ramírez"). */
   datos?: [string, string][];
   /** Texto citado (el mensaje que se va a mandar). */
   cita?: string;

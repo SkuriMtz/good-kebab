@@ -14,7 +14,7 @@ export const metadata: Metadata = metadatos(
   "Atendel Free es gratis y trae a Clara, tu agente de correo. One suma a Lola; Max, a los cuatro agentes.",
 );
 
-const QUE_CAMBIA = PREGUNTAS.filter((q) => q.p.startsWith("¿Qué cambia entre"));
+const QUE_CAMBIA = PREGUNTAS.filter((q) => q.p.startsWith("¿Qué incluye cada plan"));
 
 /**
  * /precios: encabezado con la escena del globo a la derecha (fondo de

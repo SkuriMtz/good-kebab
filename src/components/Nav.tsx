@@ -50,13 +50,6 @@ type Grupo = {
   explora: { href: string; nombre: string }[];
 };
 
-/** Frases cortas tomadas de la introducción de cada negocio (SEGMENTOS en contenido.ts). */
-const RESUMEN_NEGOCIO: Record<string, string> = {
-  clinicas: "Pacientes, citas y proveedores",
-  esteticas: "Precios, horarios y clientas que regresan",
-  consultorios: "La recepción, mientras tú atiendes",
-  servicios: "Spas, fisioterapia y nutrición",
-};
 
 const GRUPOS: Grupo[] = [
   {
@@ -84,16 +77,16 @@ const GRUPOS: Grupo[] = [
     etiqueta: titulo("/para-quien-es"),
     ruta: "/para-quien-es",
     principal: {
-      titulo: "Por tipo de negocio",
+      titulo: "Según tu día a día",
       enlaces: SEGMENTOS.map((s) => ({
         href: `/para-quien-es#${s.id}`,
         nombre: s.nombre,
-        detalle: RESUMEN_NEGOCIO[s.id] ?? "",
+        detalle: s.resumen,
       })),
     },
     explora: [
       { href: "/para-quien-es", nombre: "Cómo ayuda cada agente" },
-      { href: "/preguntas#seguridad", nombre: "Tus datos y los de tus pacientes" },
+      { href: "/preguntas#seguridad", nombre: "Tus datos y los de tus clientes" },
     ],
   },
 ];

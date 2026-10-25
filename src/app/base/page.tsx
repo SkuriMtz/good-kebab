@@ -423,7 +423,7 @@ export default function Base() {
               <CampoCorreo name="m-vacio" />
             </Muestra>
             <Muestra etiqueta="Con valor">
-              <CampoCorreo name="m-valor" defaultValue="recepcion@clinicaluna.mx" />
+              <CampoCorreo name="m-valor" defaultValue="recepcion@estudioluna.mx" />
             </Muestra>
             <Muestra etiqueta="Con placeholder y ayuda">
               <Campo etiqueta="Nombre de tu negocio" name="m-negocio" placeholder="Ej. Estética Coral" ayuda="Así te llamarán tus agentes." />
@@ -451,9 +451,9 @@ export default function Base() {
               etiqueta="Tipos de negocio (muestrario)"
               alineacion="izquierda"
               pestanas={[
-                { id: "clinicas", etiqueta: "Clínicas", contenido: <p className="t-cuerpo">Clínicas: pestaña activa.</p> },
-                { id: "esteticas", etiqueta: "Estéticas", contenido: <p className="t-cuerpo">Estéticas.</p> },
-                { id: "consultorios", etiqueta: "Consultorios", contenido: <p className="t-cuerpo">Consultorios.</p> },
+                { id: "citas", etiqueta: "Citas", contenido: <p className="t-cuerpo">Citas: pestaña activa.</p> },
+                { id: "mensajes", etiqueta: "Mensajes", contenido: <p className="t-cuerpo">Mensajes.</p> },
+                { id: "papeleo", etiqueta: "Papeleo", contenido: <p className="t-cuerpo">Papeleo.</p> },
                 { id: "pronto", etiqueta: "Muy pronto", deshabilitada: true, contenido: null },
               ]}
             />

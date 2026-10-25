@@ -14,7 +14,7 @@ import { PERSONAJES } from "@/lib/personajes";
  * protagoniza la portada y cómo se acomoda.
  */
 
-const ETIQUETA = "Para clínicas, consultorios y estéticas";
+const ETIQUETA = "Para negocios que atienden personas";
 const TITULO = "Agentes de inteligencia artificial para negocios que atienden personas.";
 const TEXTO =
   "Cuatro agentes de inteligencia artificial que atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo de oficina.";

@@ -36,7 +36,7 @@ export default function PreguntasFrecuentes() {
         <aside className="faq-pagina__lado">
           <Etiqueta tono="cielo">Ayuda</Etiqueta>
           <h1 className="t-grande">Posibles preguntas</h1>
-          <p className="t-cuerpo">Dudas que puedes tener antes de empezar, si tienes una clínica, estética o consultorio.</p>
+          <p className="t-cuerpo">Dudas que puedes tener antes de empezar con tu negocio.</p>
           <IndiceTemas etiqueta="Temas" entradas={entradas} />
           <div className="faq-pagina__pie">
             <NoEstaTuPregunta />

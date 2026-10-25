@@ -33,7 +33,7 @@ import { PuntoEstado, type TonoEstado } from "./PuntoEstado";
  *
  *   <Menu etiqueta="Tu cuenta" aspecto="avatar" alineacion="fin"
  *     disparador={<Avatar nombre="Ana López" tam={32} />}
- *     encabezado={{ nombre: "Ana López", correo: "ana@clinicaluna.mx", estado: { tono: "exito", etiqueta: "Disponible" } }}
+ *     encabezado={{ nombre: "Ana López", correo: "ana@estudioluna.mx", estado: { tono: "exito", etiqueta: "Disponible" } }}
  *     elementos={[{ id: "perfil", etiqueta: "Perfil", icono: "perfil", href: "/panel/perfil" }, { tipo: "separador" },
  *                 { id: "salir", etiqueta: "Cerrar sesión", icono: "cerrar-sesion", peligroso: true, alElegir: salir }]} />
  */

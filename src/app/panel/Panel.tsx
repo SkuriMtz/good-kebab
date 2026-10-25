@@ -25,25 +25,25 @@ type Guardado = {
 // Correos de ejemplo para probar sin tener que escribir uno
 const EJEMPLOS = [
   {
-    etiqueta: "Paciente quiere cita",
+    etiqueta: "Cliente quiere cita",
     remitente: "Laura Méndez <laura.mendez@gmail.com>",
-    asunto: "Cita para limpieza dental",
+    asunto: "Quiero agendar una cita",
     contenido:
-      "Hola, buenas tardes. Quisiera agendar una limpieza dental para la próxima semana, de preferencia el martes o jueves por la tarde después de las 5. ¿Tienen disponibilidad? También quería saber si aceptan seguro de gastos médicos. Gracias.",
+      "Hola, buenas tardes. Quisiera agendar una cita para la próxima semana, de preferencia el martes o jueves por la tarde después de las 5. ¿Tienen disponibilidad? También quería saber qué formas de pago aceptan. Gracias.",
   },
   {
     etiqueta: "Pregunta de precios",
     remitente: "Andrea Ruiz <andrea.ruiz@hotmail.com>",
-    asunto: "Precio de depilación láser",
+    asunto: "Precio del paquete",
     contenido:
-      "Hola! Vi su publicación en Instagram. ¿Cuánto cuesta el paquete de depilación láser de piernas completas? ¿Tienen promoción este mes? Y cuántas sesiones se necesitan normalmente.",
+      "Hola! Vi su publicación en Instagram. ¿Cuánto cuesta el paquete de sesiones? ¿Tienen promoción este mes? Y cuántas sesiones se necesitan normalmente.",
   },
   {
     etiqueta: "Cancelación",
     remitente: "Roberto Salinas <rsalinas@empresa.com.mx>",
     asunto: "No podré ir mañana",
     contenido:
-      "Buenos días, les escribo para avisar que no podré asistir a mi consulta de mañana a las 10:00 am por un tema de trabajo. ¿Me podrían reprogramar para el viernes? Una disculpa por el aviso tan tarde.",
+      "Buenos días, les escribo para avisar que no podré asistir a mi cita de mañana a las 10:00 am por un tema de trabajo. ¿Me podrían reprogramar para el viernes? Una disculpa por el aviso tan tarde.",
   },
 ];
 

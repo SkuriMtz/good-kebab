@@ -35,7 +35,7 @@ export const AGENTES_INFO: AgenteInfo[] = [
       "Te avisa cuando alguien quiere hablar con una persona",
     ],
     sugerencias: [
-      "Escribe la respuesta para alguien que pregunta precios de limpieza facial",
+      "Escribe la respuesta para alguien que pregunta precios y horarios",
       "Hazme un mensaje para confirmar las citas de mañana",
       "¿Cuándo conviene pasarle la conversación a una persona?",
     ],
@@ -85,7 +85,7 @@ export const AGENTES_INFO: AgenteInfo[] = [
       "Prepara documentos",
     ],
     sugerencias: [
-      "¿Qué debo revisar antes de comprar un equipo de láser?",
+      "¿Qué debo revisar antes de cambiar de proveedor?",
       "Te pego un contrato: resúmemelo en 5 puntos",
       "Arma una tabla para el reporte mensual de citas, lista para Excel",
     ],

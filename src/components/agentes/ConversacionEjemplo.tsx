@@ -5,7 +5,7 @@ import { Personaje } from "./Personaje";
 import { DETALLE, type MensajeEjemplo } from "./detalle";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 
-/** Archivos que el agente menciona en su mensaje ("precios-laser.xlsx"): se muestran como adjunto. */
+/** Archivos que el agente menciona en su mensaje ("precios-zona.xlsx"): se muestran como adjunto. */
 const ARCHIVO = /\b[\w-]+\.(?:xlsx|pdf|docx)\b/g;
 
 /**

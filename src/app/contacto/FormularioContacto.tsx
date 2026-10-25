@@ -152,7 +152,7 @@ export function FormularioContacto() {
           maxLength={LIMITES.negocio}
           value={negocio}
           alCambiar={setNegocio}
-          ayuda="Por ejemplo: Clínica dental en Puebla."
+          ayuda="El nombre de tu negocio y tu ciudad."
           readOnly={enviando}
         />
       </div>

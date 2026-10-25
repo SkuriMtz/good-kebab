@@ -24,7 +24,7 @@ const DIA: { hora: string | null; agente: IdAgente; canal: string; texto: string
     hora: "10:44",
     agente: "lola",
     canal: "WhatsApp",
-    texto: "Agendó a Mariana el jueves a las 16:30 para limpieza facial. Un día antes le manda un recordatorio.",
+    texto: "Agendó a Mariana el jueves a las 16:30 para su primera visita. Un día antes le manda un recordatorio.",
   },
   {
     hora: "11:20",
@@ -58,7 +58,7 @@ export function QueEs() {
       <div className="que-es__cuerpo">
         <div className="que-es__texto">
           <p className="t-intro que-es__primero">
-            Atendel es un equipo de cuatro agentes de inteligencia artificial para clínicas, consultorios y estéticas.
+            Atendel es un equipo de cuatro agentes de inteligencia artificial para negocios que atienden personas.
           </p>
           <p className="t-intro">
             Atienden tu WhatsApp y tus citas, ordenan tu correo, traen de regreso a tus clientes y hacen el trabajo de oficina.

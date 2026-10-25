@@ -48,7 +48,7 @@ export default function Vista3D() {
           <p className="t-etiqueta">Qué es Atendel</p>
           <h2 className="t-display mt-[var(--spacing-18)]">Un equipo que piensa contigo</h2>
           <p className="t-cuerpo mt-[var(--spacing-24)]">
-            Atendel es un equipo de cuatro agentes de inteligencia artificial para clínicas, consultorios y estéticas.
+            Atendel es un equipo de cuatro agentes de inteligencia artificial para negocios que atienden personas.
           </p>
           <p className="t-cuerpo mt-[var(--spacing-12)]">Les hablas como a una persona y te entregan el trabajo hecho.</p>
         </Tramo>

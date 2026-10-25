@@ -29,83 +29,99 @@ export const GARANTIAS = [
 
 export const PREGUNTAS = [
   {
-    p: "¿Necesito saber de tecnología?",
+    p: "¿Es difícil de usar?",
     r: "No. Entras con tu correo, sin contraseña, y lo usas desde el celular, la tablet o la computadora. No hay nada que instalar.",
   },
   {
-    p: "¿Qué cambia entre Free, One y Max?",
+    p: "¿Sirve para mi negocio?",
+    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Lola, Clara, Víctor e Iris hacen esa parte del trabajo.",
+  },
+  {
+    p: "¿Qué incluye cada plan?",
     r: "Con Free trabajas con Clara, tu agente de correo, y tienes pocos mensajes al mes. One suma a Lola, tu agente de atención para WhatsApp y citas. Max desbloquea a los cuatro agentes, eliges quién está en tu equipo y tienes muchos más mensajes y respuestas más elaboradas.",
   },
   {
-    p: "¿Qué funciona hoy?",
+    p: "¿Qué puedo usar desde hoy?",
     r: "Clara ya lee y resume tu correo, y puedes hablar por chat con todo el equipo. La conexión directa de Lola con tu WhatsApp y tu agenda llega por etapas.",
   },
   {
-    p: "¿Mis clientes van a saber que les contesta una inteligencia artificial?",
+    p: "¿Mis clientes sabrán que es un agente de IA?",
     r: "Tú decides cómo se presenta. Te recomendamos decirlo con claridad, y cuando una conversación necesita a una persona, Lola te avisa y te la pasa.",
   },
   {
-    p: "¿Y si se equivoca?",
+    p: "¿Qué pasa si un agente se equivoca?",
     r: "Puede pasar, como con cualquier persona nueva en el equipo. Por eso lo importante no sale sin tu aprobación y todo queda guardado para que lo revises.",
   },
   {
-    p: "¿Qué pasa con los datos de mis pacientes?",
+    p: "¿Qué pasa con mis datos y los de mis clientes?",
     r: "Son tuyos. Cada negocio solo ve lo suyo, todo viaja cifrado y no vendemos tu información a nadie.",
   },
 ];
 
 /**
- * "Para quién es": cada tipo de negocio y cómo le ayuda cada agente.
- * Las tareas salen de lo que los agentes ya hacen en el sitio; la
- * introducción de cada negocio es texto de ejemplo para revisar.
+ * "Para quién es": no por tipo de negocio (Atendel sirve a cualquier negocio
+ * que atiende personas), sino por situación. Cada una lleva al frente al
+ * agente que más ayuda en ella; las tareas salen de lo que los agentes ya hacen.
  */
 export const SEGMENTOS = [
   {
-    id: "clinicas",
-    nombre: "Clínicas",
+    id: "citas",
+    nombre: "Trabajas con citas",
+    corto: "Citas",
+    resumen: "Agendar, confirmar y recordar",
     pastel: "durazno",
-    intro: "Mucho movimiento de pacientes, citas y proveedores: el equipo se encarga de que nada se quede sin respuesta.",
+    frente: "lola",
+    intro: "Agendar, confirmar y reagendar se come el día. El equipo lo lleva y te avisa cuando algo necesita a una persona.",
     ayuda: [
       ["lola", "Contesta el WhatsApp a cualquier hora, agenda, confirma y recuerda las citas, y te avisa cuando un caso necesita a una persona."],
-      ["clara", "Te resume el correo del día, lo ordena por urgencia y detecta las facturas de proveedores con su fecha límite."],
-      ["victor", "Escribe a quien faltó a su cita o preguntó y no agendó, y pide reseñas después de cada consulta."],
-      ["iris", "Arma el reporte mensual de citas y pacientes, y te ayuda a redactar consentimientos y cartas."],
+      ["clara", "Te dice qué correo es urgente, como un cambio de cita, y te propone la respuesta."],
+      ["victor", "Escribe a quien faltó a su cita o preguntó y no agendó."],
+      ["iris", "Arma el reporte mensual de citas y clientes."],
     ],
   },
   {
-    id: "esteticas",
-    nombre: "Estéticas",
+    id: "mensajes",
+    nombre: "Te escriben a todas horas",
+    corto: "Mensajes",
+    resumen: "Precios, horarios y formas de pago",
     pastel: "mantequilla",
-    intro: "Tus clientas preguntan precios y horarios a todas horas, y lo que más vende es que regresen.",
+    frente: "lola",
+    intro: "Precios, horarios, ubicación y formas de pago: las mismas preguntas todo el día, también de noche.",
     ayuda: [
-      ["lola", "Responde precios, horarios y formas de pago por WhatsApp y aparta el lugar para cada tratamiento."],
-      ["victor", "Trae de regreso a quien no viene desde hace meses con un mensaje personal, y pide su reseña después de cada cita."],
-      ["iris", "Compara tus precios con los de otros negocios cercanos y te lo deja en una tabla."],
-      ["clara", "Ordena tu correo y te avisa de pagos y cobros pendientes."],
+      ["lola", "Responde precios, horarios y formas de pago por WhatsApp y aparta el lugar de cada quien."],
+      ["victor", "Da seguimiento a quien preguntó y no agendó."],
+      ["clara", "Ordena tu correo por urgencia y te resume lo importante del día."],
+      ["iris", "Redacta documentos, cartas y resúmenes cuando los necesitas."],
     ],
   },
   {
-    id: "consultorios",
-    nombre: "Consultorios",
+    id: "regresan",
+    nombre: "Vives de que tus clientes regresen",
+    corto: "Clientes que regresan",
+    resumen: "Seguimiento y reseñas",
     pastel: "cielo",
-    intro: "Atiendes tú mismo y no tienes tiempo de estar en el teléfono: el equipo hace la parte de recepción y oficina.",
+    frente: "victor",
+    intro: "Lo que más vende es que vuelvan. El equipo se acuerda de cada cliente por ti.",
     ayuda: [
-      ["lola", "Confirma las citas del día siguiente y reagenda a quien no puede, sin que tengas que escribir un solo mensaje."],
-      ["clara", "Te dice qué correo es urgente, como la recomendación de un colega o un cambio de cita, y te propone la respuesta."],
-      ["iris", "Redacta documentos, cartas y resúmenes, y te explica trámites con la recomendación de confirmarlos."],
-      ["victor", "Da seguimiento a quien preguntó por una consulta y no agendó."],
+      ["victor", "Trae de regreso a quien no viene desde hace meses con un mensaje personal, y pide su reseña después de cada visita."],
+      ["lola", "Confirma las citas del día siguiente y reagenda a quien no puede."],
+      ["clara", "Te avisa de pagos y cobros pendientes."],
+      ["iris", "Compara tus precios con los de otros negocios cercanos y te lo deja en una tabla."],
     ],
   },
   {
-    id: "servicios",
-    nombre: "Negocios de servicios",
+    id: "oficina",
+    nombre: "El papeleo te quita tiempo",
+    corto: "Papeleo",
+    resumen: "Correo, facturas y documentos",
     pastel: "menta",
-    intro: "Spas, fisioterapia, nutrición y cualquier negocio que vive de agendar y de que sus clientes regresen.",
+    frente: "iris",
+    intro: "Atiendes tú y la oficina se acumula: correos, facturas, documentos y reportes.",
     ayuda: [
-      ["lola", "Atiende a tus clientes por WhatsApp y lleva tu agenda."],
-      ["victor", "Hace el seguimiento y la reactivación de clientes, y te ayuda a conseguir reseñas."],
-      ["clara", "Lleva tu correo, tus facturas y tus pagos."],
-      ["iris", "Investiga, compara proveedores y te arma reportes y documentos."],
+      ["iris", "Redacta documentos, cartas y resúmenes, arma reportes y te explica trámites con la recomendación de confirmarlos."],
+      ["clara", "Te resume el correo del día, lo ordena por urgencia y detecta las facturas de proveedores con su fecha límite."],
+      ["lola", "Atiende el WhatsApp mientras tú trabajas y te pasa lo que necesita a una persona."],
+      ["victor", "Hace el seguimiento de clientes y te ayuda a conseguir reseñas."],
     ],
   },
 ] as const;

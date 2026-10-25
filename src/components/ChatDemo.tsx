@@ -37,7 +37,7 @@ const ACCIONES: Accion[] = [
     description: "Agenda una cita",
     agente: "lola",
     respuesta:
-      "Claro. Para **limpieza facial** (1 hora) tengo libre esta semana:\n\n- Jueves 11:00\n- Jueves 16:30\n- Viernes 10:00\n\nDime para quién es y le aparto el lugar. Le mando la confirmación por WhatsApp y un recordatorio un día antes.",
+      "Claro. Para una **sesión de 1 hora** tengo libre esta semana:\n\n- Jueves 11:00\n- Jueves 16:30\n- Viernes 10:00\n\nDime para quién es y le aparto el lugar. Le mando la confirmación por WhatsApp y un recordatorio un día antes.",
   },
   {
     key: "confirmar",
@@ -53,7 +53,7 @@ const ACCIONES: Accion[] = [
     description: "Lo importante del correo de hoy",
     agente: "clara",
     respuesta:
-      "Hoy llegaron **23 correos**. Lo importante:\n\n1. **Urgente** · Insumos Médicos del Bajío: factura de $8,450 que vence el jueves.\n2. **Hoy** · Andrea Solís quiere pasar su cita del martes a la tarde. Le ofrecí 17:00 o 18:30.\n3. **Esta semana** · El Dr. Vela te recomienda a una paciente para valoración.\n\nLos otros 20 son promociones y avisos; no necesitan nada.",
+      "Hoy llegaron **23 correos**. Lo importante:\n\n1. **Urgente** · Proveedora del Bajío: factura de $8,450 que vence el jueves.\n2. **Hoy** · Andrea Solís quiere pasar su cita del martes a la tarde. Le ofrecí 17:00 o 18:30.\n3. **Esta semana** · Mario Vela te recomienda a un cliente nuevo.\n\nLos otros 20 son promociones y avisos; no necesitan nada.",
   },
   {
     key: "facturas",
@@ -61,7 +61,7 @@ const ACCIONES: Accion[] = [
     description: "Facturas y pagos del mes",
     agente: "clara",
     respuesta:
-      "Este mes llegaron 4 movimientos:\n\n- **Insumos Médicos del Bajío** · $8,450, vence el jueves\n- **CFE** · $2,180, vence el 15\n- **Software de agenda** · $599, se cobra el día 20\n- **Karla Vega** · pago recibido, +$4,200\n\nPor pagar: **$11,229**.",
+      "Este mes llegaron 4 movimientos:\n\n- **Proveedora del Bajío** · $8,450, vence el jueves\n- **CFE** · $2,180, vence el 15\n- **Software de agenda** · $599, se cobra el día 20\n- **Karla Vega** · pago recibido, +$4,200\n\nPor pagar: **$11,229**.",
   },
   {
     key: "seguimiento",
@@ -88,7 +88,7 @@ const ACCIONES: Accion[] = [
       tipo: "programado",
       sello: "WhatsApp · 31 clientes",
       estado: "Espera tu visto bueno",
-      cita: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu limpieza facial va con 20% menos, ¿te aparto un lugar?",
+      cita: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu siguiente sesión va con 20% menos, ¿te aparto un lugar?",
     },
   },
   {
@@ -97,7 +97,7 @@ const ACCIONES: Accion[] = [
     description: "Reporte del mes: citas y clientes",
     agente: "iris",
     respuesta:
-      "Septiembre contra agosto:\n\n- **Citas:** 342 (agosto: 324)\n- **Clientes nuevos:** 47 (agosto: 39)\n- **Faltas:** 21 (agosto: 26)\n\nLo más agendado fue **depilación láser**, con 96 citas.",
+      "Septiembre contra agosto:\n\n- **Citas:** 342 (agosto: 324)\n- **Clientes nuevos:** 47 (agosto: 39)\n- **Faltas:** 21 (agosto: 26)\n\nLo más agendado fue la **sesión de 1 hora**, con 96 citas.",
     tarjeta: {
       tipo: "archivo",
       sello: "Excel y PDF",
@@ -112,7 +112,7 @@ const ACCIONES: Accion[] = [
     description: "Compara precios o proveedores",
     agente: "iris",
     respuesta:
-      "Revisé 4 clínicas cercanas. Depilación láser de axilas:\n\n- **Clínica A** · $590 la sesión, 8 por $3,900\n- **Tú** · $750 la sesión, 6 por $3,900\n- **Clínica C** · $990 la sesión, 6 por $4,800\n\nEstás a la mitad del rango. Los precios pueden cambiar; conviene confirmarlos.",
+      "Revisé 4 negocios cercanos. Sesión de 1 hora:\n\n- **Negocio A** · $590 la sesión, 8 por $3,900\n- **Tú** · $750 la sesión, 6 por $3,900\n- **Negocio C** · $990 la sesión, 6 por $4,800\n\nEstás a la mitad del rango. Los precios pueden cambiar; conviene confirmarlos.",
   },
 ];
 
@@ -138,7 +138,7 @@ const COMPLEMENTO: Record<string, Partial<Record<IdAgente, string>>> = {
     clara: "De pagos: quedan **2 facturas** por pagar, $10,630 en total. La más próxima vence el jueves.",
   },
   investigar: {
-    victor: "Con esto armo un paquete para quienes preguntaron por láser y no agendaron.",
+    victor: "Con esto armo un paquete para quienes preguntaron y no agendaron.",
   },
 };
 
@@ -202,7 +202,7 @@ const INICIO: Conversacion[] = [
     orden: 9,
     mensajes: [
       m("sistema", "09:58", "Creaste el grupo «Recepción» con Lola y Víctor."),
-      m("tu", "10:02", "Escribió Sofía Ramírez por WhatsApp: quiere su primera limpieza facial. ¿Quién la atiende?"),
+      m("tu", "10:02", "Escribió Sofía Ramírez por WhatsApp: quiere agendar su primera cita. ¿Quién la atiende?"),
       m(
         "lola",
         "10:02",
@@ -212,9 +212,9 @@ const INICIO: Conversacion[] = [
             tipo: "cita",
             sello: "Cita · WhatsApp",
             estado: "Confirmada",
-            titulo: "Limpieza facial · primera vez",
+            titulo: "Primera cita · 1 hora",
             datos: [
-              ["Paciente", "Sofía Ramírez"],
+              ["Cliente", "Sofía Ramírez"],
               ["Cuándo", "Viernes 10:00"],
               ["Dura", "1 hora"],
             ],
@@ -228,14 +228,14 @@ const INICIO: Conversacion[] = [
         "10:03",
         "Yo me encargo de después: el sábado le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña en Google.",
       ),
-      m("victor", "10:03", "Y en 4 semanas le recuerdo agendar su siguiente limpieza. ¿Te parece?"),
+      m("victor", "10:03", "Y en 4 semanas le recuerdo agendar su siguiente cita. ¿Te parece?"),
       m("tu", "10:04", "Perfecto. @Víctor que el mensaje sea corto"),
       m("victor", "10:04", "Va, este le mandaría:", {
         tarjeta: {
           tipo: "programado",
           sello: "WhatsApp · Sábado",
           estado: "Espera tu visto bueno",
-          cita: "Hola, Sofía. ¿Cómo sentiste tu piel después de la limpieza? Si te gustó, nos ayudas mucho con una reseña. ¡Te esperamos pronto!",
+          cita: "Hola, Sofía. ¿Cómo te fue en tu primera cita? Si te gustó, nos ayudas mucho con una reseña. ¡Te esperamos pronto!",
         },
       }),
       m("lola", "10:05", "Lo anoté en su ficha para que no le lleguen dos mensajes el mismo día."),

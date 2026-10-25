@@ -39,7 +39,7 @@ export const MENU_CREAR: ElementoMenu[] = [
 
 const ENCABEZADO = {
   nombre: "Ana López",
-  correo: "ana@clinicaluna.mx",
+  correo: "ana@estudioluna.mx",
   estado: { tono: "exito" as const, etiqueta: "Disponible" },
 };
 
@@ -140,7 +140,7 @@ const AGENTES_DEMO: { id: IdAgente; nombre: string; tono: TonoEstado; estado: st
 const ACTIVIDAD: { agente: IdAgente; quien: string; texto: string; hora: string; insignia?: { tono: "exito" | "atencion" | "azul"; texto: string } }[] = [
   { agente: "lola", quien: "Lola", texto: "agendó a Mariana Ruiz: limpieza facial, jueves 16:30", hora: "10:44", insignia: { tono: "exito", texto: "Cita confirmada" } },
   { agente: "clara", quien: "Clara", texto: "resumió 6 correos de proveedores", hora: "09:12" },
-  { agente: "victor", quien: "Víctor", texto: "preparó un mensaje para 4 pacientes que no vuelven desde abril", hora: "08:30", insignia: { tono: "atencion", texto: "Espera tu visto bueno" } },
+  { agente: "victor", quien: "Víctor", texto: "preparó un mensaje para 4 clientes que no vuelven desde abril", hora: "08:30", insignia: { tono: "atencion", texto: "Espera tu visto bueno" } },
 ];
 
 function LogoApp({ seccion }: { seccion: string }) {
