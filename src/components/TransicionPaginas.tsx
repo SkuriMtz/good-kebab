@@ -36,18 +36,21 @@ export function TransicionPaginas() {
         return false;
       }
     };
+    const destino = (href: string) => new URL(href, window.location.href).pathname;
     r.push = (href, opciones) => {
-      if (otraRuta(href)) conTransicion(actual.current, () => push(href, opciones));
+      if (otraRuta(href)) conTransicion(actual.current, () => push(href, opciones), destino(href));
       else push(href, opciones);
     };
     r.replace = (href, opciones) => {
-      if (otraRuta(href)) conTransicion(actual.current, () => replace(href, opciones));
+      if (otraRuta(href)) conTransicion(actual.current, () => replace(href, opciones), destino(href));
       else replace(href, opciones);
     };
 
     let reenviando = false;
     const alVolver = (e: PopStateEvent) => {
       if (reenviando) return;
+      // Deslizar para volver (iPhone, Android) ya trae su propia animación: no se le encima otra
+      if ((e as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition) return;
       const estado = e.state as { __NA?: boolean } | null;
       if (!estado?.__NA || window.location.pathname === actual.current || !puedeTransicion()) return;
       e.stopImmediatePropagation();
@@ -58,7 +61,7 @@ export function TransicionPaginas() {
         } finally {
           reenviando = false;
         }
-      });
+      }, window.location.pathname);
     };
     // En captura: corre antes que el de Next (que escucha sin captura)
     window.addEventListener("popstate", alVolver, true);

@@ -127,6 +127,11 @@
 ::view-transition-new(vt-entra-pie) {
   animation: vt-entra var(--vt-entra) var(--vt-curva) var(--vt-espera) both;
 }
+/* Dentro del panel (de una página a otra): solo un fundido corto, sin subir */
+:root.vt-app::view-transition-new(vt-entra),
+:root.vt-app::view-transition-new(vt-entra-pie) {
+  animation: aparecer var(--vt-sale) var(--vt-curva) both;
+}
 @keyframes vt-sale {
   to {
     opacity: 0;

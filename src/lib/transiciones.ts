@@ -33,13 +33,15 @@ const CAPA = "vt-capa";
  * no se veía, así que tampoco se asoma mientras la hoja se desvanece.
  */
 const TAPADA = "vt-tapada";
+/** De una página del panel a otra: solo un fundido corto (se usa muchas veces al día). */
+const APP = "vt-app";
 const HOJA_ABIERTA = '.hoja-nav[data-abierta="true"]';
 /**
  * Mientras Next trae la página nueva, la pantalla se queda en la foto. Si
  * tarda más que esto (una página que pide datos al servidor), se suelta la
  * transición: la pantalla vuelve a responder y la página llega sin ella.
  */
-const TOPE_MS = 400;
+const TOPE_MS = 300;
 
 let enCurso: Promise<void> | null = null;
 let esperando: { desde: string; soltar: () => void } | null = null;
@@ -65,11 +67,11 @@ export function trasLaTransicion(): Promise<void> {
 }
 
 /**
- * Cambia de página con la transición. `desde` es la ruta que se ve ahora;
- * `navegar` hace el cambio de verdad (router.push de Next, o el "atrás" del
- * navegador) y se llama ya con la foto de salida tomada.
+ * Cambia de página con la transición. `desde` es la ruta que se ve ahora y
+ * `hacia` la que sigue; `navegar` hace el cambio de verdad (router.push de
+ * Next, o el "atrás" del navegador) y se llama ya con la foto de salida tomada.
  */
-export function conTransicion(desde: string, navegar: () => void) {
+export function conTransicion(desde: string, navegar: () => void, hacia = "") {
   const doc = document as DocumentoVT;
   if (!puedeTransicion() || enCurso || !doc.startViewTransition) {
     navegar();
@@ -77,6 +79,8 @@ export function conTransicion(desde: string, navegar: () => void) {
   }
   const html = document.documentElement;
   html.classList.add(PAGINA);
+  const enPanel = (r: string) => r === "/panel" || r.startsWith("/panel/");
+  if (enPanel(desde) && enPanel(hacia)) html.classList.add(APP);
   if (document.querySelector("dialog[open]")) html.classList.add(CAPA);
   else if (document.querySelector(HOJA_ABIERTA)) html.classList.add(TAPADA);
 
@@ -98,7 +102,7 @@ export function conTransicion(desde: string, navegar: () => void) {
       return pintada.then(() => window.clearTimeout(tope));
     });
   } catch {
-    html.classList.remove(PAGINA, CAPA, TAPADA);
+    html.classList.remove(PAGINA, CAPA, TAPADA, APP);
     navegar();
     return;
   }
@@ -107,7 +111,7 @@ export function conTransicion(desde: string, navegar: () => void) {
   enCurso = vt.finished
     .catch(() => {})
     .then(() => {
-      html.classList.remove(PAGINA, NUEVA, CAPA, TAPADA);
+      html.classList.remove(PAGINA, NUEVA, CAPA, TAPADA, APP);
       enCurso = null;
       esperando = null;
     });

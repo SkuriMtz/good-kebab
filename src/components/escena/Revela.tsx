@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cloneElement, createElement, isValidElement, useEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { CON_MOVIMIENTO, CURVA, DUR, ENTRADA_MAXIMA, ESCALONADO, SIN_MOVIMIENTO, esperarLetras, prepararGsap } from "@/lib/movimiento";
-import { trasLaTransicion } from "@/lib/transiciones";
+import { enTransicion, trasLaTransicion } from "@/lib/transiciones";
 
 /**
  * El texto aparece como en Dala cuando llega a la pantalla, en una sola
@@ -160,6 +160,11 @@ export function Revela({
     });
     mm.add(CON_MOVIMIENTO, () => {
       if (el.dataset.rv === "on") return;
+      // Al llegar de otra página, lo que ya está a la vista entra con la transición de página: sin segunda entrada
+      if (enTransicion() && el.getBoundingClientRect().top < window.innerHeight) {
+        el.dataset.rv = "on";
+        return;
+      }
       // Escondido por CSS mientras llega a la pantalla (sin el rescate de 4 s: aquí ya hay JavaScript)
       el.dataset.rv = "off";
       let tl: gsap.core.Timeline | null = null;
