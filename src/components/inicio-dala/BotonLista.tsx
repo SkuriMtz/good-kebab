@@ -12,14 +12,14 @@ export function BotonLista({ children = "Únete a la lista", className = "" }: {
   return (
     <a
       href="/lista"
-      className={`pildora ${className}`}
+      className={`boton-lista ${className}`}
       onClick={(e) => {
         if (!document.documentElement.hasAttribute("data-lista")) return;
         e.preventDefault();
         window.dispatchEvent(new CustomEvent(EVENTO_LISTA));
       }}
     >
-      <span className="pildora__texto">{children}</span>
+      <span className="boton-lista__texto">{children}</span>
     </a>
   );
 }

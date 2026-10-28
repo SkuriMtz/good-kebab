@@ -153,7 +153,7 @@ export const FORMA_INICIO: Record<EscenaInicio, NombreForma> = {
 export function colocarInicio(escena: EscenaInicio, w: number, h: number): Colocacion {
   const forma = FORMA_INICIO[escena];
   const celular = w < 900;
-  const pantalla = (alfa: number): Colocacion => ({
+  const pantalla = (alfa: number, tam = 1): Colocacion => ({
     forma,
     modo: "pantalla",
     cx: 0.5,
@@ -161,7 +161,7 @@ export function colocarInicio(escena: EscenaInicio, w: number, h: number): Coloc
     escala: 1,
     giro: () => [0, 0, 0],
     alfa,
-    tam: celular ? 0.8 : 1,
+    tam: (celular ? 0.8 : 1) * tam,
     ocultarAtras: 0,
   });
   const objeto = (cx: number, cy: number, escala: number, giro: Colocacion["giro"], alfa = 1, ocultarAtras = 0.55): Colocacion => ({
@@ -198,8 +198,8 @@ export function colocarInicio(escena: EscenaInicio, w: number, h: number): Coloc
       // Cerebro de lado: caja x 42.7–97.8 %, y 16.8–83.5 % → centro (70 %, 50 %), ≈ 668×500 px a 1212×750
       return objeto(0.7, 0.5, Math.min(h * 0.333, w * 0.206), quieto(-0.34, 0.12, -0.12));
     case "decisiones":
-      // Más grande y a la izquierda, cortado por la orilla: centro (30 %, 50 %), 1.4×
-      return objeto(0.3, 0.5, Math.min(h * 0.47, w * 0.29), quieto(0.3, 0.18, 0.08));
+      // Más grande y a la izquierda, cortado por la orilla: caja x < 0–60.6 %, y 8–97 %
+      return objeto(0.27, 0.53, Math.min(h * 0.5, w * 0.31), quieto(0.3, 0.18, 0.08));
     case "foco":
       // Inclinado ~35°: caja x 5.9–45.5 %, y 10–86 % → centro (26 %, 48 %)
       return objeto(0.26, 0.48, Math.min(h * 0.385, w * 0.24), quieto(-0.3, 0.1, 0.6));
@@ -210,8 +210,9 @@ export function colocarInicio(escena: EscenaInicio, w: number, h: number): Coloc
       // Remolino detrás del texto: caja x 28–62 %, y 9–82 % → centro (45 %, 45 %)
       return objeto(0.45, 0.45, Math.min(h * 0.36, w * 0.22), quieto(-0.42, 0.14, 0, 0.08), 0.6, 0.4);
     case "caos":
-      return pantalla(1);
+      // El polvo del video es denso y de triangulitos de 8–14 px
+      return pantalla(1.6, 1.7);
     default:
-      return pantalla(0.85);
+      return pantalla(0.85, 1.3);
   }
 }

@@ -151,7 +151,7 @@
 }
 .barra__enlace:focus-visible,
 .barra__logo:focus-visible,
-.pildora:focus-visible,
+.boton-lista:focus-visible,
 .barra__hamburguesa:focus-visible {
   outline: 2px solid var(--c-foco);
   outline-offset: 2px;
@@ -164,7 +164,7 @@
 }
 
 /* La píldora violeta (barra, portada y cierre): 124×30 a 1212, texto de 11 px */
-.pildora {
+.boton-lista {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,11 +183,11 @@
     background-color 200ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .pildora:hover {
+  .boton-lista:hover {
     background: #8f66ff;
   }
 }
-.pildora:active {
+.boton-lista:active {
   transform: scale(0.97);
 }
 
@@ -370,6 +370,7 @@
 .ini-equipo__texto {
   top: 32.65vh;
   width: 30vw;
+  z-index: 2; /* encima de las fichas apagadas, como en el video */
 }
 .ini-equipo .ini-sub {
   margin-top: 4.17vw;
@@ -404,14 +405,10 @@
   width: var(--ficha-w);
   height: var(--ficha-h);
   transform: translateX(calc(var(--k) * var(--paso))) scale(0.843);
-  opacity: 0.22;
-  transition:
-    transform 600ms var(--ini-salida),
-    opacity 600ms var(--ini-salida);
+  transition: transform 600ms var(--ini-salida);
 }
 .carrusel__ficha[data-centro="true"] {
   transform: translateX(0) scale(1);
-  opacity: 1;
   z-index: 1;
 }
 .carrusel__retrato {
@@ -428,8 +425,10 @@
 .carrusel__ficha[data-centro="true"] .carrusel__retrato {
   background: var(--ini-ficha);
 }
+/* Las apagadas: tarjeta gris oscura (#111 en el video) con el personaje casi apagado */
 .carrusel__ficha:not([data-centro="true"]) .carrusel__personaje {
   filter: grayscale(1);
+  opacity: 0.28;
 }
 .carrusel__retrato:active {
   transform: scale(0.98);
@@ -441,8 +440,9 @@
   outline-offset: 3px;
 }
 .carrusel__personaje {
-  width: 78%;
+  width: 92%;
   height: auto;
+  transition: opacity 600ms var(--ini-salida);
 }
 .carrusel__datos {
   position: absolute;
@@ -520,63 +520,63 @@
   top: 0;
   left: 0;
 }
-.planes-iconos {
+.ini-planes-iconos {
   position: absolute;
   inset: 0;
 }
-.plan {
+.ini-plan {
   position: absolute;
   display: flex;
   align-items: center;
   gap: 0.91vw;
 }
-.plan[data-i="0"] {
+.ini-plan[data-i="0"] {
   left: 8.66vw;
   top: 33.07vh;
 }
-.plan[data-i="1"] {
+.ini-plan[data-i="1"] {
   left: 24.09vw;
   top: 42.67vh;
 }
-.plan[data-i="2"] {
+.ini-plan[data-i="2"] {
   left: 8.66vw;
   top: 57.6vh;
 }
-.plan[data-i="3"] {
+.ini-plan[data-i="3"] {
   left: 42.24vw;
   top: 64.53vh;
 }
-.plan-icono {
+.ini-plan__icono {
   flex-shrink: 0;
   width: 4.4vw; /* 53 px */
   height: 4.4vw;
   color: var(--c);
 }
-.plan-icono svg {
+.ini-plan__icono svg {
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-.plan-icono__trazo {
+.ini-plan__trazo {
   fill: none;
   stroke: currentColor;
   stroke-width: 5.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
-.plan__textos {
+.ini-plan__textos {
   display: flex;
   flex-direction: column;
   gap: 0.35vw;
 }
-.plan__nombre {
+.ini-plan__nombre {
   display: block;
   font-size: 1.57vw; /* 19 px */
   font-weight: 300;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-.plan__sub {
+.ini-plan__sub {
   display: block;
   max-width: 22vw;
   color: var(--ini-gris);
@@ -595,7 +595,7 @@
   align-items: center;
   text-align: center;
 }
-.ini-cierre__centro .pildora {
+.ini-cierre__centro .boton-lista {
   margin-top: 1.69vw;
 }
 
@@ -851,6 +851,10 @@
     margin-inline: -20px;
     padding-bottom: 72px;
   }
+  .carrusel__pista {
+    height: auto;
+    padding-top: var(--ficha-h);
+  }
   .carrusel__datos {
     position: static;
     width: auto;
@@ -876,25 +880,25 @@
     bottom: 16px;
     gap: 10px;
   }
-  .planes-iconos {
+  .ini-planes-iconos {
     position: static;
     display: flex;
     flex-direction: column;
     gap: 24px;
     margin-top: 40px;
   }
-  .plan {
+  .ini-plan {
     position: static;
     gap: 14px;
   }
-  .plan-icono {
+  .ini-plan__icono {
     width: 48px;
     height: 48px;
   }
-  .plan__nombre {
+  .ini-plan__nombre {
     font-size: 20px;
   }
-  .plan__sub {
+  .ini-plan__sub {
     max-width: none;
     font-size: 14px;
   }
@@ -902,7 +906,7 @@
     position: static;
     width: 100%;
   }
-  .ini-cierre__centro .pildora {
+  .ini-cierre__centro .boton-lista {
     margin-top: 24px;
   }
   .pie-delgado {

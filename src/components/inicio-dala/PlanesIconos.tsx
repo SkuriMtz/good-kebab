@@ -71,7 +71,7 @@ export function PlanesIconos() {
     if (!lista) return;
     prepararGsap();
     gsap.registerPlugin(SplitText);
-    const caminos = Array.from(lista.querySelectorAll<SVGPathElement>(".plan-icono__trazo"));
+    const caminos = Array.from(lista.querySelectorAll<SVGPathElement>(".ini-plan__trazo"));
     const giros = caminos.map((_, i) => ({ ay: 0.6 + i * 1.3, ax: 0.4 + i * 0.7, vy: 0.22 + i * 0.05, vx: 0.15 - i * 0.03 }));
     const pintar = (t: number) => caminos.forEach((c, i) => c.setAttribute("d", trazo(giros[i].ay + t * giros[i].vy, giros[i].ax + t * giros[i].vx)));
     pintar(0);
@@ -92,9 +92,9 @@ export function PlanesIconos() {
       });
       io.observe(lista);
 
-      const iconos = Array.from(lista.querySelectorAll<HTMLElement>(".plan-icono"));
-      const textos = Array.from(lista.querySelectorAll<HTMLElement>(".plan__textos"));
-      const partes = Array.from(lista.querySelectorAll<HTMLElement>(".plan__nombre, .plan__sub"));
+      const iconos = Array.from(lista.querySelectorAll<HTMLElement>(".ini-plan__icono"));
+      const textos = Array.from(lista.querySelectorAll<HTMLElement>(".ini-plan__textos"));
+      const partes = Array.from(lista.querySelectorAll<HTMLElement>(".ini-plan__nombre, .ini-plan__sub"));
       const split = SplitText.create(partes, { type: "lines,words,chars", mask: "lines", charsClass: "rt-letra", aria: "auto" });
       gsap.set(split.chars, { yPercent: 105 });
       // Llegan desde arriba y un poco de lado (como en el video, 10.1–10.6 s)
@@ -119,17 +119,17 @@ export function PlanesIconos() {
   }, []);
 
   return (
-    <ul ref={ref} className="planes-iconos" aria-label="Planes">
+    <ul ref={ref} className="ini-planes-iconos" aria-label="Planes">
       {items.map((it, i) => (
-        <li key={it.id} className="plan" data-i={i} style={{ "--c": it.color } as CSSProperties}>
-          <span className="plan-icono" aria-hidden="true">
+        <li key={it.id} className="ini-plan" data-i={i} style={{ "--c": it.color } as CSSProperties}>
+          <span className="ini-plan__icono" aria-hidden="true">
             <svg viewBox="0 0 100 100">
-              <path className="plan-icono__trazo" d={trazo(0.6 + i * 1.3, 0.4 + i * 0.7)} />
+              <path className="ini-plan__trazo" d={trazo(0.6 + i * 1.3, 0.4 + i * 0.7)} />
             </svg>
           </span>
-          <span className="plan__textos">
-            <span className="plan__nombre">{it.nombre}</span>
-            <span className="plan__sub">{it.sub}</span>
+          <span className="ini-plan__textos">
+            <span className="ini-plan__nombre">{it.nombre}</span>
+            <span className="ini-plan__sub">{it.sub}</span>
           </span>
         </li>
       ))}
