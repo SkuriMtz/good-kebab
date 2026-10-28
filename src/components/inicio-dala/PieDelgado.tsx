@@ -17,7 +17,7 @@ const ENLACES = [
 export function PieDelgado() {
   return (
     <footer className="pie-delgado">
-      <p className="pie-delgado__aviso">© {new Date().getFullYear()} Atendel</p>
+      <p className="pie-delgado__aviso">© Atendel</p>
       <nav aria-label="Pie de página" className="pie-delgado__nav">
         <ul className="pie-delgado__lista">
           {ENLACES.map((e) => (

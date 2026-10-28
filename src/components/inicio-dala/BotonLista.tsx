@@ -14,7 +14,8 @@ export function BotonLista({ children = "Únete a la lista", className = "" }: {
       href="/lista"
       className={`boton-lista ${className}`}
       onClick={(e) => {
-        if (!document.documentElement.hasAttribute("data-lista")) return;
+        // Sin la ventana en la página, o con Cmd/Ctrl/Shift (otra pestaña o ventana), el enlace normal
+        if (!document.documentElement.hasAttribute("data-lista") || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
         window.dispatchEvent(new CustomEvent(EVENTO_LISTA));
       }}

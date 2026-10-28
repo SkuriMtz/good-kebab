@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
@@ -15,6 +16,14 @@ import { TextoDala } from "@/components/inicio-dala/TextoDala";
  * El chat de demostración vive en /pruebalo (enlazado desde la ficha de
  * cada agente, la hoja del celular y la lista de espera).
  */
+/** La barra del navegador del celular, del color del fondo del inicio (negro puro u #fafafa). */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+  ],
+};
+
 export default function Inicio() {
   return (
     <Sitio fondo="inicio">

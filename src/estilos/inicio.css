@@ -520,6 +520,13 @@
   top: 0;
   left: 0;
 }
+/* Los enlaces de la barra dejan la escena tal como reposa en el video: el margen
+   negativo devuelve el colchón de la barra fija (scroll-padding-top de landing.css),
+   que se queda para que el foco del teclado nunca quede debajo de la barra. */
+.sitio--inicio .ini-bloque,
+.sitio--inicio .ini-ancla {
+  scroll-margin-top: calc(-1 * (var(--barra-h) + var(--spacing-16)));
+}
 .ini-planes-iconos {
   position: absolute;
   inset: 0;
@@ -706,6 +713,7 @@
     padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
     background: var(--c-fondo);
     overflow-y: auto;
+    overscroll-behavior: contain;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
