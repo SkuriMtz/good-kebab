@@ -2,15 +2,16 @@
  * El inicio, escena por escena, igual que los videos de referencia
  * (medidas en diseno/capturas/dala/MEDIDAS.md, a 1212×750).
  *
- * - Las 8 escenas tienen el mismo nombre en la página y en el fondo de
- *   figuras: <FondoFiguras escena="caos" />.
+ * - Las 8 escenas tienen el mismo nombre en la página (<section
+ *   data-escena="caos">) y en el fondo de figuras (FondoFiguras).
  * - En computadora la página mide lo mismo que la del video: 10 090 px a
  *   750 de alto de ventana (1345.3vh). Cada bloque empieza donde el video se
  *   detiene en esa escena (los "reposos"), así que con el mismo scroll todo
  *   queda en el mismo lugar.
- * - El fondo cambia de figura donde el video la cambia: cuando el borde de
- *   arriba del bloque de la escena cruza una línea de la pantalla (CAMBIOS).
- *   Así funciona igual en celular, donde los bloques miden otra cosa.
+ * - El fondo lee esas secciones: entre el reposo de una escena y el de la
+ *   siguiente avanza su historia de 0 a 1 y hace los cambios en los mismos
+ *   tramos que el video (src/components/escena/figuras/motor.ts). Así
+ *   funciona igual en celular, donde los bloques miden otra cosa.
  * - La barra enciende sus enlaces donde el video enciende los suyos.
  */
 
@@ -39,25 +40,6 @@ export const REPOSOS = {
   cierre: 9340,
   fin: 10090,
 } as const;
-
-/**
- * Cuándo cambia la figura del fondo: cuando el borde de arriba del bloque
- * de la escena llega a `linea` (fracción del alto de la pantalla, desde
- * arriba). Sale de los cambios del video:
- * - decisiones a 40 px de scroll: en cuanto se empieza a bajar (el cerebro gira y se va a la izquierda);
- * - caos a 1260: al salir del reposo de decisiones (el cerebro se hunde en polvo);
- * - foco a 4510: al salir del reposo del polvo; el foco se forma en el siguiente tramo;
- * - globo a 5640, equipo a 7050, planes a 7800 y cierre a 8560: donde el video empieza a deshacer la figura anterior.
- */
-export const CAMBIOS: { escena: Exclude<EscenaInicio, "portada">; linea: number }[] = [
-  { escena: "decisiones", linea: (REPOSOS.decisiones - 40) / ALTO_VIDEO },
-  { escena: "caos", linea: (REPOSOS.caos - 1260) / ALTO_VIDEO },
-  { escena: "foco", linea: (REPOSOS.foco - 4510) / ALTO_VIDEO },
-  { escena: "globo", linea: (REPOSOS.globo - 5640) / ALTO_VIDEO },
-  { escena: "equipo", linea: (REPOSOS.equipo - 7050) / ALTO_VIDEO },
-  { escena: "planes", linea: (REPOSOS.planes - 7800) / ALTO_VIDEO },
-  { escena: "cierre", linea: (REPOSOS.cierre - 8560) / ALTO_VIDEO },
-];
 
 export type EnlaceActivo = "" | "agentes" | "precios";
 

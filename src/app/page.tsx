@@ -8,8 +8,8 @@ import { TextoDala } from "@/components/inicio-dala/TextoDala";
  * El inicio, igual a los videos de referencia (diseno/capturas/dala/MEDIDAS.md):
  * ocho escenas a pantalla completa sobre el fondo de figuras. Cada bloque
  * mide lo mismo que su escena en el video y dice qué escena es
- * (data-bloque); FondoInicio decide, según el scroll, qué figura toca y qué
- * enlace de la barra se enciende (src/lib/inicio.ts).
+ * (data-escena): el fondo de figuras la lee para saber qué figura toca y
+ * FondoInicio, qué enlace de la barra se enciende (src/lib/inicio.ts).
  * 1. portada (cerebro) · 2. decisiones (cerebro a la izquierda) · 3. caos
  * (polvo) · 4. foco · 5. globo · 6. equipo · 7. planes · 8. cierre.
  * El chat de demostración vive en /pruebalo (enlazado desde la ficha de
@@ -19,7 +19,7 @@ export default function Inicio() {
   return (
     <Sitio fondo="inicio">
       {/* 1. Portada */}
-      <section className="ini-bloque ini-portada" data-bloque="portada" aria-labelledby="portada-titulo">
+      <section className="ini-bloque ini-portada" data-escena="portada" aria-labelledby="portada-titulo">
         <div className="ini-col ini-col--izq ini-portada__texto">
           <TextoDala como="h1" tipo="titulo" id="portada-titulo" className="ini-display">
             Que ningún cliente se quede sin respuesta.
@@ -36,7 +36,7 @@ export default function Inicio() {
       </section>
 
       {/* 2. Decisiones: atender sin perder un mensaje */}
-      <section className="ini-bloque ini-decisiones" data-bloque="decisiones" aria-labelledby="decisiones-titulo">
+      <section className="ini-bloque ini-decisiones" data-escena="decisiones" aria-labelledby="decisiones-titulo">
         <div className="ini-col ini-col--der ini-escena__texto">
           <TextoDala como="h2" tipo="titulo" id="decisiones-titulo" className="ini-titulo">
             Atiende sin perder un mensaje
@@ -48,7 +48,7 @@ export default function Inicio() {
       </section>
 
       {/* 3. El caos: así es tu día hoy */}
-      <section className="ini-bloque ini-caos" data-bloque="caos" aria-label="Así es tu día hoy">
+      <section className="ini-bloque ini-caos" data-escena="caos" aria-label="Así es tu día hoy">
         <div className="ini-caos__grupo">
           <TextoDala className="ini-caos__texto">
             Así es tu día hoy. Mensajes de WhatsApp, correos, citas y pendientes regados entre el celular, la libreta y tu cabeza.
@@ -65,7 +65,7 @@ export default function Inicio() {
       </section>
 
       {/* 4. Foco: tu equipo, listo a cualquier hora */}
-      <section className="ini-bloque ini-foco" data-bloque="foco" aria-labelledby="foco-titulo">
+      <section className="ini-bloque ini-foco" data-escena="foco" aria-labelledby="foco-titulo">
         <div className="ini-col ini-col--der ini-escena__texto">
           <TextoDala como="h2" tipo="titulo" id="foco-titulo" className="ini-titulo">
             Tu equipo, listo a cualquier hora
@@ -83,7 +83,7 @@ export default function Inicio() {
       </section>
 
       {/* 5. Globo: que tu negocio crezca */}
-      <section className="ini-bloque ini-globo" data-bloque="globo" aria-labelledby="globo-titulo">
+      <section className="ini-bloque ini-globo" data-escena="globo" aria-labelledby="globo-titulo">
         <div className="ini-col ini-col--izq ini-escena__texto">
           <TextoDala como="h2" tipo="titulo" id="globo-titulo" className="ini-titulo">
             Que tu negocio crezca, no tu trabajo
@@ -101,7 +101,7 @@ export default function Inicio() {
       </section>
 
       {/* 6. Tu equipo (carrusel de los agentes) */}
-      <section id="agentes" className="ini-bloque ini-equipo" data-bloque="equipo" aria-labelledby="equipo-titulo">
+      <section id="agentes" className="ini-bloque ini-equipo" data-escena="equipo" aria-labelledby="equipo-titulo">
         <div className="ini-col ini-col--izq ini-equipo__texto">
           <TextoDala como="h2" tipo="titulo" id="equipo-titulo" className="ini-grande">
             Tu equipo
@@ -119,7 +119,7 @@ export default function Inicio() {
       </section>
 
       {/* 7. Planes (y cuándo sale) */}
-      <section id="precios" className="ini-bloque ini-planes" data-bloque="planes" aria-labelledby="planes-titulo">
+      <section id="precios" className="ini-bloque ini-planes" data-escena="planes" aria-labelledby="planes-titulo">
         <span id="cuando-sale" className="ini-ancla" aria-hidden="true" />
         <div className="ini-col ini-planes__texto">
           <TextoDala como="h2" tipo="titulo" id="planes-titulo" className="ini-grande">
@@ -133,7 +133,7 @@ export default function Inicio() {
       </section>
 
       {/* 8. Cierre */}
-      <section id="unete" className="ini-bloque ini-cierre" data-bloque="cierre" aria-labelledby="cierre-titulo">
+      <section id="unete" className="ini-bloque ini-cierre" data-escena="cierre" aria-labelledby="cierre-titulo">
         <div className="ini-cierre__centro">
           <TextoDala como="h2" tipo="titulo" id="cierre-titulo" className="ini-cierre__texto">
             Tu negocio ya tiene quién atienda.

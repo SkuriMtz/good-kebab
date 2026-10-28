@@ -1,0 +1,907 @@
+import { REPOSO_VIDEO } from "./escenas";
+import { azar, cerebro, foco, globo, mezcla, PALETA, remolino, suave, type Color, type Forma } from "./formas";
+
+/**
+ * El motor del fondo del inicio (técnica de la versión 7): miles de
+ * triangulitos (tetraedros de alambre) dibujados como puntos en WebGL. Cada
+ * uno es un resorte que persigue su lugar en la figura de la escena; la
+ * posición en la historia (0 = portada … 7 = cierre) decide esos lugares, así
+ * que los cambios van atados al scroll: si la persona deja de bajar a la
+ * mitad, la figura se queda a la mitad (como en el video).
+ *
+ * Medidas: todo está pensado para la pantalla del video (1212 × 750) y se
+ * escala al tamaño real. Los números salen de diseno/capturas/dala/MEDIDAS.md.
+ */
+
+/* ---------------------------------------------------------------------- */
+/* Shaders                                                                 */
+/* ---------------------------------------------------------------------- */
+
+const VERT = `
+attribute vec2 aPos; attribute float aTam; attribute vec4 aCol; attribute vec3 aRot;
+uniform vec2 uRes; uniform float uDpr;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam;
+void main() {
+  gl_Position = vec4(aPos.x / uRes.x * 2.0 - 1.0, 1.0 - aPos.y / uRes.y * 2.0, 0.0, 1.0);
+  gl_PointSize = max(aTam * uDpr, 1.0);
+  vTam = gl_PointSize;
+  vCol = aCol;
+  float cx = cos(aRot.x), sx = sin(aRot.x);
+  float cy = cos(aRot.y), sy = sin(aRot.y);
+  float cz = cos(aRot.z), sz = sin(aRot.z);
+  mat3 R = mat3(
+    cz * cy, sz * cy, -sy,
+    cz * sy * sx - sz * cx, sz * sy * sx + cz * cx, cy * sx,
+    cz * sy * cx + sz * sx, sz * sy * cx - cz * sx, cy * cx);
+  vec3 v0 = R * vec3(0.0, 0.0, 1.0);
+  vec3 v1 = R * vec3(0.0, 0.943, -0.333);
+  vec3 v2 = R * vec3(-0.816, -0.471, -0.333);
+  vec3 v3 = R * vec3(0.816, -0.471, -0.333);
+  vA = vec4(v0.x, -v0.y, v1.x, -v1.y);
+  vB = vec4(v2.x, -v2.y, v3.x, -v3.y);
+  vZ = vec4(v0.z, v1.z, v2.z, v3.z);
+}`;
+
+const FRAG = `
+precision mediump float;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam;
+uniform float uTrazo; uniform float uClaro;
+float seg(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a, ba = b - a;
+  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+float arista(vec2 p, vec2 a, vec2 b, float za, float zb, float w, float px) {
+  float d = seg(p, a, b);
+  float luz = mix(0.42, 1.0, clamp((za + zb) * 0.25 + 0.5, 0.0, 1.0));
+  return (1.0 - smoothstep(w - px * 0.75, w + px * 0.75, d)) * luz;
+}
+void main() {
+  vec2 p = (gl_PointCoord * 2.0 - 1.0) / 0.94;
+  float px = 2.0 / (vTam * 0.94);
+  float w = uTrazo * px;
+  vec2 a0 = vA.xy, a1 = vA.zw, a2 = vB.xy, a3 = vB.zw;
+  float a = arista(p, a0, a1, vZ.x, vZ.y, w, px);
+  a = max(a, arista(p, a0, a2, vZ.x, vZ.z, w, px));
+  a = max(a, arista(p, a0, a3, vZ.x, vZ.w, w, px));
+  a = max(a, arista(p, a1, a2, vZ.y, vZ.z, w, px));
+  a = max(a, arista(p, a2, a3, vZ.z, vZ.w, w, px));
+  a = max(a, arista(p, a3, a1, vZ.w, vZ.y, w, px));
+  a *= vCol.a;
+  if (a < 0.004) discard;
+  vec3 col = vCol.rgb;
+  // Modo claro: colores más hondos y lo blanco pasa a gris violáceo (si no, no se vería)
+  float blanco = smoothstep(0.62, 0.9, min(min(col.r, col.g), col.b));
+  col = mix(col, mix(col * 0.72, vec3(0.36, 0.30, 0.52), blanco), uClaro);
+  gl_FragColor = vec4(col * a, a);
+}`;
+
+/* ---------------------------------------------------------------------- */
+/* Colocación de una figura en 3D                                          */
+/* ---------------------------------------------------------------------- */
+
+export type Colocacion = {
+  /** Centro en px del video (1212 × 750). */
+  cx: number;
+  cy: number;
+  /** px del video por unidad de la figura. */
+  escala: number;
+  /** Giros en grados: hacia los lados (eje vertical), hacia adelante y en el plano de la pantalla. */
+  yaw: number;
+  pitch: number;
+  roll: number;
+  /** Ancho de un triangulito en px del video. */
+  tam: number;
+};
+type Llave = [number, Colocacion];
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const G = Math.PI / 180;
+const C = (cx: number, cy: number, escala: number, yaw: number, pitch: number, roll: number, tam: number): Colocacion => ({ cx, cy, escala, yaw, pitch, roll, tam });
+
+/** Interpola entre colocaciones clave con una curva sin quiebres (Catmull-Rom). */
+export function entre(llaves: Llave[], p: number): Colocacion {
+  if (p <= llaves[0][0]) return llaves[0][1];
+  for (let i = 0; i < llaves.length - 1; i++) {
+    const [p0, a] = llaves[i];
+    const [p1, b] = llaves[i + 1];
+    if (p <= p1) {
+      const t = (p - p0) / (p1 - p0);
+      const a0 = llaves[Math.max(0, i - 1)][1];
+      const b1 = llaves[Math.min(llaves.length - 1, i + 2)][1];
+      const cr = (k: keyof Colocacion) => {
+        const v0 = a0[k];
+        const v1 = a[k];
+        const v2 = b[k];
+        const v3 = b1[k];
+        const t2 = t * t;
+        const t3 = t2 * t;
+        return 0.5 * (2 * v1 + (-v0 + v2) * t + (2 * v0 - 5 * v1 + 4 * v2 - v3) * t2 + (-v0 + 3 * v1 - 3 * v2 + v3) * t3);
+      };
+      return { cx: cr("cx"), cy: cr("cy"), escala: cr("escala"), yaw: cr("yaw"), pitch: cr("pitch"), roll: cr("roll"), tam: cr("tam") };
+    }
+  }
+  return llaves[llaves.length - 1][1];
+}
+function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
+  return { cx: lerp(a.cx, b.cx, t), cy: lerp(a.cy, b.cy, t), escala: lerp(a.escala, b.escala, t), yaw: lerp(a.yaw, b.yaw, t), pitch: lerp(a.pitch, b.pitch, t), roll: lerp(a.roll, b.roll, t), tam: lerp(a.tam, b.tam, t) };
+}
+
+/* ---------------------------------------------------------------------- */
+/* El guion (medido en el video)                                           */
+/* ---------------------------------------------------------------------- */
+
+/** Cerebro de la portada → decisiones (p = avance del tramo 0 → 1). */
+export const CEREBRO_A: Llave[] = [
+  [0.0, C(851, 376.5, 334, -90, 0, 0, 9.5)],
+  [0.08, C(800, 377, 335, -78, 0, 0, 9.5)],
+  [0.2, C(690, 379, 342, -45, 0, 0, 9.6)],
+  [0.36, C(540, 378, 357, 0, 0, 0, 9.8)],
+  [0.48, C(433, 376, 374, 8, 1, 0, 10)],
+  [0.65, C(335, 377, 400, 18, 4, 0, 10.5)],
+  [0.82, C(300, 380, 420, 26, 7, 0, 11)],
+  [1.0, C(330, 386, 434, 32, 9, 0, 11.2)],
+];
+/** Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). */
+export const CEREBRO_B: Llave[] = [
+  [0.0, C(330, 386, 434, 32, 9, 0, 11.2)],
+  [0.25, C(560, 420, 470, 62, 26, 0, 11.4)],
+  [0.45, C(610, 440, 500, 72, 36, 0, 11.6)],
+  [0.7, C(610, 480, 520, 78, 46, 0, 11.8)],
+  [1.0, C(600, 540, 530, 82, 52, 0, 12)],
+];
+export const FOCO: Colocacion = C(318, 312, 243, -12, 6, 28, 7.6);
+export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 7.6);
+export const GLOBO: Colocacion = C(850, 500, 385, -18, -12, 0, 10.5);
+export const GLOBO_SUBE: Colocacion = C(820, 300, 400, -14, -12, 0, 10.5);
+export const REMOLINO: Colocacion = C(548, 335, 290, -32, 14, -8, 6.2);
+
+/* ---------------------------------------------------------------------- */
+/* Polvo (en fracciones de la pantalla)                                    */
+/* ---------------------------------------------------------------------- */
+
+type Campo = "suelto" | "caos" | "junto" | "equipo" | "planes" | "centro";
+
+/** Dónde cae el polvo de cada partícula y si se ve, según el reparto. */
+function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, number] {
+  switch (c) {
+    case "suelto":
+      return [hx, hy, vis < 0.018 ? 1 : 0];
+    case "caos":
+      return [hx * 1.04 - 0.02, hy * 1.04 - 0.02, vis < 0.085 ? 1 : 0];
+    case "junto": {
+      // Nube recargada arriba a la izquierda y al centro (centro de masa ≈ 39 %, 47 %)
+      const dx = hx * 2 - 1;
+      const dy = hy * 2 - 1;
+      const r = Math.max(Math.abs(dx), Math.abs(dy));
+      const k = r > 0 ? Math.pow(r, 1.7) / r : 0;
+      const dens = 0.05 + 0.2 * (1 - r) ** 1.2;
+      return [0.36 + dx * k * 0.42, 0.42 + dy * k * 0.5, vis < dens ? 1 : 0];
+    }
+    case "equipo": {
+      // Recargado arriba (y 8-35 %) y ralo en lo demás
+      const arriba = hy < 0.8;
+      const y = arriba ? 0.07 + 0.3 * Math.pow(hy / 0.8, 1.3) : 0.35 + ((hy - 0.8) / 0.2) * 0.65;
+      return [hx, y, vis < (arriba ? 0.06 : 0.012) ? 1 : 0];
+    }
+    case "planes": {
+      const x = Math.pow(hx, 1.25);
+      const y = Math.pow(hy, 1.15);
+      return [x, y, vis < 0.012 + 0.03 * (1 - x) * (1 - y) ? 1 : 0];
+    }
+    case "centro": {
+      const dx = hx * 2 - 1;
+      const dy = hy * 2 - 1;
+      const r = Math.max(Math.abs(dx), Math.abs(dy));
+      const k = r > 0 ? Math.pow(r, 1.5) / r : 0;
+      return [0.47 + dx * k * 0.34, 0.45 + dy * k * 0.42, vis < 0.03 + 0.12 * (1 - r) ? 1 : 0];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* El motor                                                                */
+/* ---------------------------------------------------------------------- */
+
+type Objetivo = { x: Float32Array; y: Float32Array; r: Float32Array; g: Float32Array; b: Float32Array; a: Float32Array; t: Float32Array; m: Float32Array };
+type Proy = { x: Float32Array; y: Float32Array; f: Float32Array; nz: Float32Array; fr: Float32Array };
+
+/** Tetraedro grande: lugar en la pantalla del video cuando el scroll del video vale `ancla`; k = paralaje. */
+type TetraGrande = { x: number; y: number; ancla: number; k: number; tam: number; color: string; alfa: number; g0: number[]; gv: number[] };
+
+/** Scroll del video para una posición de la historia (para el paralaje de los tetraedros grandes). */
+function scrollVideo(P: number) {
+  const r = REPOSO_VIDEO;
+  const i = Math.min(r.length - 2, Math.max(0, Math.floor(P)));
+  return lerp(r[i], r[i + 1], clamp01(P - i));
+}
+
+export class MotorFiguras {
+  readonly N: number;
+  private gl: WebGLRenderingContext;
+  private ctx2: CanvasRenderingContext2D;
+  private prog: WebGLProgram;
+  private buf: WebGLBuffer;
+  private datos: Float32Array;
+  private A: Record<string, number>;
+  private U: Record<string, WebGLUniformLocation | null>;
+  private w = 1212;
+  private h = 750;
+  private dpr = 1;
+  claro = false;
+
+  private formas: { cerebro: Forma; foco: Forma | null; globo: Forma | null; remolino: Forma | null };
+
+  // Lo propio de cada partícula
+  private hx: Float32Array;
+  private hy: Float32Array;
+  private vis: Float32Array;
+  private fase: Float32Array;
+  private rigidez: Float32Array;
+  private tamPolvo: Float32Array;
+  private colPolvo: Float32Array;
+  private giro0: Float32Array;
+  private giroVel: Float32Array;
+  private azarDes: Float32Array;
+
+  // Estado de cada partícula
+  private pos: Float32Array;
+  private vel: Float32Array;
+  private col: Float32Array;
+  private alfa: Float32Array;
+  private tam: Float32Array;
+  private rot: Float32Array;
+
+  // Objetivos (lo llena el guion en cada cuadro) y proyecciones temporales
+  private o1: Objetivo;
+  private o2: Objetivo;
+  private pr: Proy;
+  private pr2: Proy;
+
+  /** Posición en la historia: la que se pide y la que se ve (con su retraso). */
+  objetivo = 0;
+  posicion = 0;
+  private velPos = 0;
+  private reloj = 0;
+  private primera = true;
+
+  private tetras: TetraGrande[];
+
+  constructor(canvas: HTMLCanvasElement, lineas: HTMLCanvasElement, opciones: { claro?: boolean; n?: number } = {}) {
+    const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true, preserveDrawingBuffer: false });
+    const ctx2 = lineas.getContext("2d");
+    if (!gl || !ctx2) throw new Error("sin WebGL");
+    this.gl = gl;
+    this.ctx2 = ctx2;
+    this.claro = !!opciones.claro;
+    const ancho = window.innerWidth;
+    this.N = opciones.n ?? (ancho < 700 ? 6000 : ancho < 1100 ? 9000 : 11000);
+    const N = this.N;
+
+    const p = gl.createProgram()!;
+    for (const [tipo, src] of [
+      [gl.VERTEX_SHADER, VERT],
+      [gl.FRAGMENT_SHADER, FRAG],
+    ] as const) {
+      const s = gl.createShader(tipo)!;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      gl.attachShader(p, s);
+    }
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("shader");
+    this.prog = p;
+    this.A = { pos: gl.getAttribLocation(p, "aPos"), tam: gl.getAttribLocation(p, "aTam"), col: gl.getAttribLocation(p, "aCol"), rot: gl.getAttribLocation(p, "aRot") };
+    this.U = Object.fromEntries(["uRes", "uDpr", "uTrazo", "uClaro"].map((n) => [n, gl.getUniformLocation(p, n)]));
+    this.datos = new Float32Array(N * 10);
+    this.buf = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, this.datos.byteLength, gl.DYNAMIC_DRAW);
+
+    const rnd = azar(7);
+    const f32 = () => new Float32Array(N);
+    this.hx = f32();
+    this.hy = f32();
+    this.vis = f32();
+    this.fase = f32();
+    this.rigidez = f32();
+    this.tamPolvo = f32();
+    this.colPolvo = new Float32Array(N * 3);
+    this.giro0 = new Float32Array(N * 3);
+    this.giroVel = new Float32Array(N * 3);
+    this.azarDes = f32();
+    // El lugar de polvo de cada partícula sigue el mismo orden por bandas que las
+    // figuras (ordenarPorPantalla): la partícula i cae en la misma zona en todas.
+    const bandas = Math.max(1, Math.round(Math.sqrt(N / 1.6)));
+    for (let i = 0; i < N; i++) {
+      const b = Math.floor((i * bandas) / N);
+      const de = Math.floor((b * N) / bandas);
+      const a = Math.floor(((b + 1) * N) / bandas);
+      this.hy[i] = (b + rnd()) / bandas;
+      this.hx[i] = (i - de + rnd()) / Math.max(1, a - de);
+    }
+    const coloresPolvo: [Color, number][] = [
+      [PALETA.ambar, 53],
+      [PALETA.blanco, 28],
+      [PALETA.violeta, 9],
+      [PALETA.amarillo, 6],
+      [PALETA.verdeAzul, 2],
+      [PALETA.rosa, 2],
+    ];
+    for (let i = 0; i < N; i++) {
+      this.vis[i] = rnd();
+      this.fase[i] = rnd() * Math.PI * 2;
+      this.rigidez[i] = 0.75 + rnd() * 0.5;
+      const u = rnd();
+      this.tamPolvo[i] = u < 0.75 ? 5 + rnd() * 4.5 : u < 0.96 ? 9 + rnd() * 5 : 14 + rnd() * 8;
+      let k = rnd() * 100;
+      let c: Color = PALETA.ambar;
+      for (const [cc, pe] of coloresPolvo) {
+        if (k < pe) {
+          c = cc;
+          break;
+        }
+        k -= pe;
+      }
+      this.colPolvo.set(c, i * 3);
+      for (let j = 0; j < 3; j++) {
+        this.giro0[i * 3 + j] = rnd() * Math.PI * 2;
+        this.giroVel[i * 3 + j] = (rnd() - 0.5) * 0.5;
+      }
+      this.azarDes[i] = rnd();
+    }
+
+    this.pos = new Float32Array(N * 2);
+    this.vel = new Float32Array(N * 2);
+    this.col = new Float32Array(N * 3);
+    this.alfa = f32();
+    this.tam = f32();
+    this.rot = new Float32Array(N * 3);
+    const objetivo = (): Objetivo => ({ x: f32(), y: f32(), r: f32(), g: f32(), b: f32(), a: f32(), t: f32(), m: f32() });
+    this.o1 = objetivo();
+    this.o2 = objetivo();
+    this.pr = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32() };
+    this.pr2 = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32() };
+
+    this.formas = { cerebro: cerebro(N), foco: null, globo: null, remolino: null };
+
+    const T = (x: number, y: number, ancla: number, k: number, tam: number, color: string, alfa: number): TetraGrande => ({
+      x,
+      y,
+      ancla,
+      k,
+      tam,
+      color,
+      alfa,
+      g0: [rnd() * 6, rnd() * 6, rnd() * 6],
+      gv: [(rnd() - 0.5) * 0.4, (rnd() - 0.5) * 0.35, (rnd() - 0.5) * 0.2],
+    });
+    // Medidos en el video (MEDIDAS.md §6): lugar en la pantalla cuando el scroll del video vale `ancla`
+    this.tetras = [
+      T(38, 218, 0, 0.35, 34, "#ffb829", 0.85),
+      T(505, 45, 0, 0.5, 20, "#ffb829", 0.75),
+      T(545, 640, 0, 0.55, 18, "#8052ff", 0.75),
+      T(82, 460, 0, 0.45, 14, "#ffb829", 0.6),
+      T(1132, 439, 1235, 0.35, 32, "#d9d4e8", 0.75),
+      T(432, 625, 1235, 0.3, 30, "#d9d4e8", 0.8),
+      T(708, 208, 2023, 0.2, 22, "#d9d4e8", 0.75),
+      T(1000, 630, 2023, 0.25, 34, "#d9d4e8", 0.7),
+      T(296, 622, 5571, 0.3, 32, "#d9d4e8", 0.8),
+      T(540, 210, 6830, 0.3, 34, "#ffb829", 0.8),
+      T(1005, 625, 7770, 0.25, 30, "#d9d4e8", 0.75),
+      T(30, 292, 8485, 0.25, 40, "#ffb829", 0.8),
+      T(1000, 614, 8485, 0.3, 36, "#d9d4e8", 0.75),
+      T(1085, 612, 9340, 0.3, 32, "#d9d4e8", 0.75),
+      T(25, 395, 9340, 0.2, 30, "#ffb829", 0.75),
+    ];
+  }
+
+  /** Las figuras que faltan (se crean cuando hacen falta o cuando el navegador está libre). */
+  prepararResto() {
+    if (!this.formas.foco) this.formas.foco = foco(this.N);
+    if (!this.formas.globo) this.formas.globo = globo(this.N);
+    if (!this.formas.remolino) this.formas.remolino = remolino(this.N);
+  }
+
+  medir(w: number, h: number, dpr: number) {
+    this.w = w;
+    this.h = h;
+    this.dpr = dpr;
+    const c = this.gl.canvas as HTMLCanvasElement;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(h * dpr);
+    this.ctx2.canvas.width = c.width;
+    this.ctx2.canvas.height = c.height;
+    this.gl.viewport(0, 0, c.width, c.height);
+  }
+
+  private get sx() {
+    return this.w / 1212;
+  }
+  private get sy() {
+    return this.h / 750;
+  }
+  private get s() {
+    return Math.sqrt(this.sx * this.sy);
+  }
+
+  /* ---------- Proyección de una figura ---------- */
+
+  private proyectar(F: Forma, c: Colocacion, out: Proy) {
+    const N = this.N;
+    const s = this.s;
+    const S = c.escala * s;
+    const D = 2300 * s; // distancia de la cámara (perspectiva moderada)
+    const yaw = c.yaw * G + Math.sin(this.reloj * 0.21) * 0.02;
+    const pitch = c.pitch * G + Math.sin(this.reloj * 0.17 + 1) * 0.012;
+    const roll = c.roll * G;
+    const cy = Math.cos(yaw);
+    const sy = Math.sin(yaw);
+    const cp = Math.cos(pitch);
+    const sp = Math.sin(pitch);
+    const cr = Math.cos(roll);
+    const sr = Math.sin(roll);
+    const X0 = c.cx * this.sx;
+    const Y0 = c.cy * this.sy;
+    const P = F.pos;
+    const Nn = F.nor;
+    for (let i = 0; i < N; i++) {
+      const o = i * 3;
+      const x1 = P[o] * cy + P[o + 2] * sy;
+      const z1 = -P[o] * sy + P[o + 2] * cy;
+      const y1 = P[o + 1];
+      const y2 = y1 * cp - z1 * sp;
+      const z2 = y1 * sp + z1 * cp;
+      const x3 = x1 * cr - y2 * sr;
+      const y3 = x1 * sr + y2 * cr;
+      const nx1 = Nn[o] * cy + Nn[o + 2] * sy;
+      const nz1 = -Nn[o] * sy + Nn[o + 2] * cy;
+      const ny1 = Nn[o + 1];
+      const ny2 = ny1 * cp - nz1 * sp;
+      const nz2 = ny1 * sp + nz1 * cp;
+      const f = D / (D - z2 * S);
+      out.x[i] = X0 + x3 * S * f;
+      out.y[i] = Y0 - y3 * S * f;
+      out.f[i] = f;
+      out.nz[i] = nz2;
+      out.fr[i] = Math.min(1, Math.hypot(nx1, ny2));
+    }
+  }
+
+  /* ---------- Escribir objetivos ---------- */
+
+  /** La partícula i como polvo del reparto c, en el objetivo O. */
+  private polvo(O: Objetivo, i: number, c: Campo) {
+    const [fx, fy, v] = campo(c, this.hx[i], this.hy[i], this.vis[i]);
+    const t = this.reloj;
+    const ph = this.fase[i];
+    O.x[i] = (fx + Math.sin(t * 0.13 + ph) * 0.006) * this.w;
+    O.y[i] = (fy + Math.cos(t * 0.11 + ph * 1.3) * 0.006) * this.h;
+    const cc = this.colPolvo;
+    O.r[i] = cc[i * 3];
+    O.g[i] = cc[i * 3 + 1];
+    O.b[i] = cc[i * 3 + 2];
+    O.a[i] = v * (0.45 + 0.55 * ((this.vis[i] * 977) % 1));
+    O.t[i] = this.tamPolvo[i] * this.s;
+    O.m[i] = 1;
+  }
+
+  /** Todas las partículas como polvo del reparto c. */
+  private todoPolvo(O: Objetivo, c: Campo) {
+    for (let i = 0; i < this.N; i++) this.polvo(O, i, c);
+  }
+
+  /**
+   * Una figura en 3D en el objetivo O. Las partículas de sobra (alfa 0) quedan
+   * como polvo del reparto `sobra`.
+   */
+  private figura(O: Objetivo, F: Forma, c: Colocacion, color: (i: number, pr: Proy) => Color, ocultarAtras: number, sobra: Campo, pr: Proy) {
+    this.proyectar(F, c, pr);
+    const s = this.s;
+    for (let i = 0; i < this.N; i++) {
+      if (F.alfa[i] <= 0) {
+        this.polvo(O, i, sobra);
+        continue;
+      }
+      const atras = ocultarAtras > 0 ? 1 - ocultarAtras * (1 - suave(-0.32, 0.18, pr.nz[i])) : 1;
+      const cc = color(i, pr);
+      O.x[i] = pr.x[i];
+      O.y[i] = pr.y[i];
+      O.r[i] = cc[0];
+      O.g[i] = cc[1];
+      O.b[i] = cc[2];
+      O.a[i] = F.alfa[i] * atras;
+      O.t[i] = c.tam * s * F.tam[i] * pr.f[i];
+      O.m[i] = 0;
+    }
+  }
+
+  /** o1[i] ← mezcla de o1[i] y o2[i] (k = 1 deja o2). */
+  private mezclar(i: number, k: number) {
+    const a = this.o1;
+    const b = this.o2;
+    a.x[i] += (b.x[i] - a.x[i]) * k;
+    a.y[i] += (b.y[i] - a.y[i]) * k;
+    a.r[i] += (b.r[i] - a.r[i]) * k;
+    a.g[i] += (b.g[i] - a.g[i]) * k;
+    a.b[i] += (b.b[i] - a.b[i]) * k;
+    a.a[i] += (b.a[i] - a.a[i]) * k;
+    a.t[i] += (b.t[i] - a.t[i]) * k;
+    a.m[i] += (b.m[i] - a.m[i]) * k;
+  }
+
+  /* ---------- Colores con brillo de orilla ---------- */
+
+  private colorCerebro = (i: number, pr: Proy): Color => {
+    const F = this.formas.cerebro;
+    const base: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
+    // Medido: en la orilla ~52 % ámbar; en el centro ~10 %
+    const pa = 0.08 + 0.52 * suave(0.42, 0.95, pr.fr[i]);
+    const u = F.umbral[i];
+    return mezcla(base, PALETA.ambar, suave(u - 0.06, u + 0.06, pa));
+  };
+
+  private colorFoco = (i: number, pr: Proy): Color => {
+    const F = this.formas.foco!;
+    const base: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
+    // Ámbar en la orilla de arriba a la izquierda del vidrio
+    const y = F.pos[i * 3 + 1];
+    const x = F.pos[i * 3];
+    const arco = suave(-0.3, 0.5, y * 0.85 - x * 0.5);
+    const w = suave(0.15, 0.85, pr.fr[i] * 0.55 + arco * 0.6) * suave(-1.2, 0.2, y);
+    const u = F.umbral[i];
+    return mezcla(base, PALETA.ambar, suave(u - 0.25, u + 0.25, w));
+  };
+
+  private colorGlobo = (i: number, pr: Proy): Color => {
+    const F = this.formas.globo!;
+    let c: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
+    if (F.clave[i] > 0.5) {
+      // Parche blanco (reflejo) en el lado izquierdo
+      const x = (pr.x[i] - GLOBO.cx * this.sx) / (GLOBO.escala * this.s);
+      const y = (pr.y[i] - GLOBO.cy * this.sy) / (GLOBO.escala * this.s);
+      const brillo = suave(0.26, 0.1, Math.hypot((x + 0.6) * 0.95, (y - 0.05) * 0.8));
+      c = mezcla(c, PALETA.blanco, brillo * (0.55 + 0.45 * F.umbral[i]));
+    }
+    const orilla = suave(0.8, 0.99, pr.fr[i]);
+    return mezcla(c, mezcla(PALETA.ambar, PALETA.blanco, 0.35), orilla * 0.5);
+  };
+
+  private colorRemolino = (i: number): Color => {
+    const F = this.formas.remolino!;
+    return [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
+  };
+
+  /* ---------- El guion ---------- */
+
+  /** Llena o1 (el objetivo de cada partícula) para la posición P (0 a 7). */
+  private componer(P: number) {
+    const N = this.N;
+    const fm = this.formas;
+    const seg = Math.min(6, Math.max(0, Math.floor(P)));
+    const p = clamp01(P - seg);
+    const h = this.h;
+    const o1 = this.o1;
+    const o2 = this.o2;
+
+    if (seg === 0) {
+      // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
+      // Al llegar, abajo a la derecha se deshace en una cola de polvo.
+      this.figura(o1, fm.cerebro, entre(CEREBRO_A, p), this.colorCerebro, 0.92, "suelto", this.pr);
+      this.cola(suave(0.82, 1.0, p));
+      return;
+    }
+    if (seg === 1) {
+      // Decisiones → caos: el cerebro va al centro, se ve desde arriba y se deshace
+      // de abajo hacia arriba hasta llenar la pantalla de polvo.
+      this.figura(o1, fm.cerebro, entre(CEREBRO_B, p), this.colorCerebro, 0.92, "suelto", this.pr);
+      this.cola(1 - suave(0.0, 0.3, p) * 0.4);
+      this.todoPolvo(o2, "caos");
+      for (let i = 0; i < N; i++) {
+        const y = o1.y[i] / h;
+        const umbral = 0.08 + 0.62 * clamp01(1.05 - y) + 0.14 * this.azarDes[i];
+        const k = suave(umbral, umbral + 0.22, p);
+        if (k > 0) this.mezclar(i, k);
+      }
+      return;
+    }
+    if (seg === 2) {
+      // Caos (quieto) → el polvo se junta → se forma el foco
+      if (p < 0.642) {
+        this.todoPolvo(o1, "caos");
+        return;
+      }
+      if (p < 0.704) {
+        const k0 = suave(0.642, 0.704, p);
+        this.todoPolvo(o1, "caos");
+        this.todoPolvo(o2, "junto");
+        for (let i = 0; i < N; i++) this.mezclar(i, suave(this.azarDes[i] * 0.4, 0.6 + this.azarDes[i] * 0.4, k0));
+        return;
+      }
+      const q = suave(0.704, 0.95, p);
+      this.prepararResto();
+      this.todoPolvo(o1, "junto");
+      if (q <= 0) return;
+      this.figura(o2, fm.foco!, FOCO, this.colorFoco, 0.88, "suelto", this.pr);
+      // Se arma del vidrio (arriba) hacia la rosca, con escalonado
+      for (let i = 0; i < N; i++) {
+        const umbral = fm.foco!.clave[i] * 0.55 + this.azarDes[i] * 0.2;
+        this.mezclar(i, suave(umbral, umbral + 0.25, q));
+      }
+      return;
+    }
+    this.prepararResto();
+    if (seg === 3) {
+      // Foco → globo: el foco se corre a la derecha y se deshace; el globo se forma a la derecha
+      const q = suave(0.05, 0.45, p);
+      this.figura(o1, fm.foco!, entre2(FOCO, FOCO_SALE, suave(0.0, 0.3, p)), this.colorFoco, 0.88, "suelto", this.pr);
+      if (q <= 0) return;
+      this.figura(o2, fm.globo!, GLOBO, this.colorGlobo, 1, "suelto", this.pr2);
+      for (let i = 0; i < N; i++) {
+        const umbral = 0.1 + this.azarDes[i] * 0.45;
+        const k = suave(umbral, umbral + 0.45, q);
+        this.mezclar(i, k);
+        // A mitad del cambio, una nube suave
+        const nube = Math.sin(k * Math.PI);
+        o1.x[i] += (this.hx[i] - 0.5) * 110 * nube * this.s;
+        o1.y[i] += (this.hy[i] - 0.5) * 80 * nube * this.s;
+      }
+      return;
+    }
+    if (seg === 4) {
+      // Globo → equipo: el globo sube, se vacía en un anillo y queda polvo arriba
+      const q = suave(0.25, 1.0, p);
+      this.figura(o1, fm.globo!, entre2(GLOBO, GLOBO_SUBE, suave(0.25, 0.75, p)), this.colorGlobo, 1, "suelto", this.pr);
+      if (q <= 0) return;
+      this.todoPolvo(o2, "equipo");
+      for (let i = 0; i < N; i++) {
+        // Primero se va lo del frente (el centro), al final la orilla
+        const frente = clamp01(this.pr.nz[i]);
+        const umbral = 0.05 + 0.5 * (1 - frente) + 0.15 * this.azarDes[i];
+        this.mezclar(i, suave(umbral, umbral + 0.25, q));
+      }
+      return;
+    }
+    if (seg === 5) {
+      // Equipo → planes: el polvo se reparte ralo (más arriba a la izquierda)
+      const q = suave(0.04, 0.9, p);
+      this.todoPolvo(o1, "equipo");
+      if (q <= 0) return;
+      this.todoPolvo(o2, "planes");
+      for (let i = 0; i < N; i++) {
+        const umbral = this.azarDes[i] * 0.5;
+        this.mezclar(i, suave(umbral, umbral + 0.5, q));
+      }
+      return;
+    }
+    // Planes → cierre: el polvo se junta al centro y forma el remolino
+    const q1 = suave(0.15, 0.7, p);
+    const q2 = suave(0.62, 1.0, p);
+    this.todoPolvo(o1, "planes");
+    this.todoPolvo(o2, "centro");
+    for (let i = 0; i < N; i++) {
+      const umbral = this.azarDes[i] * 0.4;
+      this.mezclar(i, suave(umbral, umbral + 0.6, q1));
+    }
+    if (q2 <= 0) return;
+    this.figura(o2, fm.remolino!, REMOLINO, this.colorRemolino, 0, "suelto", this.pr);
+    for (let i = 0; i < N; i++) {
+      const umbral = clamp01(fm.remolino!.clave[i]) * 0.45 + this.azarDes[i] * 0.3;
+      this.mezclar(i, suave(umbral, umbral + 0.3, q2));
+    }
+  }
+
+  /** La cola de polvo abajo a la derecha del cerebro grande (decisiones). */
+  private cola(k: number) {
+    if (k <= 0) return;
+    const o = this.o1;
+    for (let i = 0; i < this.N; i++) {
+      if (o.m[i] > 0.5) continue;
+      const y = o.y[i] / this.h;
+      const x = o.x[i] / this.w;
+      // Solo lo de abajo (y > 75 %) y del lado derecho del cerebro
+      const zona = suave(0.74, 0.92, y) * suave(0.2, 0.42, x);
+      if (zona <= 0) continue;
+      const a = this.azarDes[i];
+      const kk = k * zona * (0.4 + 0.6 * a);
+      o.x[i] += (60 + 260 * a) * kk * this.s;
+      o.y[i] += (30 + 120 * ((a * 7.3) % 1)) * kk * this.s;
+      o.a[i] *= 1 - 0.35 * kk;
+    }
+  }
+
+  /* ---------- Simulación ---------- */
+
+  /** Avanza dt segundos. Con `quieto` (movimiento reducido) todo llega de inmediato. */
+  paso(dt: number, quieto = false) {
+    dt = Math.min(Math.max(dt, 0), 1 / 15);
+    this.reloj += dt;
+    if (quieto || this.primera) {
+      this.posicion = this.objetivo;
+      this.velPos = 0;
+    } else {
+      // La figura sigue al scroll con su propio retraso (resorte sin rebote)
+      const w = 7.5;
+      const sub = Math.max(1, Math.round(dt * 120));
+      const hh = dt / sub;
+      for (let k = 0; k < sub; k++) {
+        const acc = w * w * (this.objetivo - this.posicion) - 2 * w * this.velPos;
+        this.velPos += acc * hh;
+        this.posicion += this.velPos * hh;
+      }
+    }
+    this.componer(this.posicion);
+    const o = this.o1;
+    const N = this.N;
+    const kc = 1 - Math.exp(-dt * 9);
+    if (this.primera || quieto) {
+      for (let i = 0; i < N; i++) {
+        this.pos[i * 2] = o.x[i];
+        this.pos[i * 2 + 1] = o.y[i];
+        this.vel[i * 2] = this.vel[i * 2 + 1] = 0;
+        this.col[i * 3] = o.r[i];
+        this.col[i * 3 + 1] = o.g[i];
+        this.col[i * 3 + 2] = o.b[i];
+        this.alfa[i] = o.a[i];
+        this.tam[i] = o.t[i];
+      }
+    } else {
+      const sub = Math.max(1, Math.min(6, Math.round(dt * 120)));
+      const hh = dt / sub;
+      for (let i = 0; i < N; i++) {
+        const w = 13 * this.rigidez[i];
+        const k = w * w;
+        const am = 2 * w;
+        const ix = i * 2;
+        let x = this.pos[ix];
+        let y = this.pos[ix + 1];
+        let vx = this.vel[ix];
+        let vy = this.vel[ix + 1];
+        for (let s = 0; s < sub; s++) {
+          vx += ((o.x[i] - x) * k - vx * am) * hh;
+          vy += ((o.y[i] - y) * k - vy * am) * hh;
+          x += vx * hh;
+          y += vy * hh;
+        }
+        this.pos[ix] = x;
+        this.pos[ix + 1] = y;
+        this.vel[ix] = vx;
+        this.vel[ix + 1] = vy;
+        this.col[i * 3] += (o.r[i] - this.col[i * 3]) * kc;
+        this.col[i * 3 + 1] += (o.g[i] - this.col[i * 3 + 1]) * kc;
+        this.col[i * 3 + 2] += (o.b[i] - this.col[i * 3 + 2]) * kc;
+        this.alfa[i] += (o.a[i] - this.alfa[i]) * kc;
+        this.tam[i] += (o.t[i] - this.tam[i]) * kc;
+      }
+    }
+    // Giro de cada tetraedro: alineado en la figura (punta arriba; en el foco, al revés), suelto en el polvo
+    const t = this.reloj;
+    const enFoco = suave(2.72, 2.85, this.posicion) * (1 - suave(3.1, 3.3, this.posicion));
+    const vuelta = (a: number) => a - Math.round(a / (Math.PI * 2)) * Math.PI * 2;
+    const kr = this.primera || quieto ? 1 : kc;
+    for (let i = 0; i < N; i++) {
+      const m = o.m[i];
+      const j = i * 3;
+      const az = this.giro0[j];
+      const fx = Math.sin(az) * 0.22;
+      const fy = Math.cos(az * 1.7) * 0.22;
+      const fz = Math.sin(az * 2.3) * 0.2 + enFoco * Math.PI;
+      const px = this.giro0[j] + t * this.giroVel[j];
+      const py = this.giro0[j + 1] + t * this.giroVel[j + 1];
+      const pz = this.giro0[j + 2] + t * this.giroVel[j + 2];
+      const ax = fx + vuelta(px - fx) * m;
+      const ay = fy + vuelta(py - fy) * m;
+      const az2 = fz + vuelta(pz - fz) * m;
+      this.rot[j] += vuelta(ax - this.rot[j]) * kr;
+      this.rot[j + 1] += vuelta(ay - this.rot[j + 1]) * kr;
+      this.rot[j + 2] += vuelta(az2 - this.rot[j + 2]) * kr;
+    }
+    this.primera = false;
+  }
+
+  /* ---------- Dibujo ---------- */
+
+  dibujar() {
+    const gl = this.gl;
+    const N = this.N;
+    const d = this.datos;
+    for (let i = 0; i < N; i++) {
+      const o = i * 10;
+      d[o] = this.pos[i * 2];
+      d[o + 1] = this.pos[i * 2 + 1];
+      // El triangulito mide tam px de ancho; el punto tiene que ser un poco más grande
+      d[o + 2] = this.tam[i] / 0.77;
+      d[o + 3] = this.col[i * 3];
+      d[o + 4] = this.col[i * 3 + 1];
+      d[o + 5] = this.col[i * 3 + 2];
+      d[o + 6] = this.alfa[i];
+      d[o + 7] = this.rot[i * 3];
+      d[o + 8] = this.rot[i * 3 + 1];
+      d[o + 9] = this.rot[i * 3 + 2];
+    }
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    if (this.claro) gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    else gl.blendFunc(gl.ONE, gl.ONE);
+    gl.useProgram(this.prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, d);
+    const A = this.A;
+    gl.enableVertexAttribArray(A.pos);
+    gl.vertexAttribPointer(A.pos, 2, gl.FLOAT, false, 40, 0);
+    gl.enableVertexAttribArray(A.tam);
+    gl.vertexAttribPointer(A.tam, 1, gl.FLOAT, false, 40, 8);
+    gl.enableVertexAttribArray(A.col);
+    gl.vertexAttribPointer(A.col, 4, gl.FLOAT, false, 40, 12);
+    gl.enableVertexAttribArray(A.rot);
+    gl.vertexAttribPointer(A.rot, 3, gl.FLOAT, false, 40, 28);
+    gl.uniform2f(this.U.uRes, this.w, this.h);
+    gl.uniform1f(this.U.uDpr, this.dpr);
+    gl.uniform1f(this.U.uTrazo, 0.72);
+    gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
+    gl.drawArrays(gl.POINTS, 0, N);
+    for (const l of [A.pos, A.tam, A.col, A.rot]) gl.disableVertexAttribArray(l);
+    this.dibujarTetras();
+  }
+
+  /** Los tetraedros grandes de contorno que flotan (lienzo 2D), con paralaje según el scroll del video. */
+  private dibujarTetras() {
+    const ctx = this.ctx2;
+    const dpr = this.dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, this.w, this.h);
+    ctx.lineJoin = "round";
+    const t = this.reloj;
+    const s = this.s;
+    const sv = scrollVideo(this.objetivo);
+    for (const te of this.tetras) {
+      const yv = te.y - (sv - te.ancla) * te.k;
+      const x = te.x * this.sx + Math.sin(t * 0.2 + te.g0[0]) * 8 * s;
+      const y = yv * this.sy + Math.cos(t * 0.17 + te.g0[1]) * 6 * s;
+      if (y < -90 || y > this.h + 90) continue;
+      const ay = te.g0[0] + t * te.gv[0];
+      const ax = te.g0[1] + t * te.gv[1];
+      const az = te.g0[2] + t * te.gv[2];
+      const V = [
+        [0, 1, 0],
+        [0.943, -0.333, 0],
+        [-0.471, -0.333, 0.816],
+        [-0.471, -0.333, -0.816],
+      ].map(([vx, vy, vz]) => {
+        const x1 = Math.cos(ay) * vx + Math.sin(ay) * vz;
+        const z1 = -Math.sin(ay) * vx + Math.cos(ay) * vz;
+        const y1 = Math.cos(ax) * vy - Math.sin(ax) * z1;
+        const x2 = Math.cos(az) * x1 - Math.sin(az) * y1;
+        const y2 = Math.sin(az) * x1 + Math.cos(az) * y1;
+        return [x + x2 * te.tam * s, y - y2 * te.tam * s];
+      });
+      ctx.globalAlpha = te.alfa * (this.claro ? 0.7 : 1);
+      ctx.strokeStyle = this.claro && te.color === "#d9d4e8" ? "#8a83a3" : te.color;
+      ctx.lineWidth = 2 * Math.max(0.8, s);
+      ctx.shadowColor = this.claro ? "transparent" : te.color;
+      ctx.shadowBlur = this.claro ? 0 : 6;
+      ctx.beginPath();
+      for (const [a, b] of [
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [1, 2],
+        [2, 3],
+        [3, 1],
+      ]) {
+        ctx.moveTo(V[a][0], V[a][1]);
+        ctx.lineTo(V[b][0], V[b][1]);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  destruir() {
+    this.gl.deleteBuffer(this.buf);
+    this.gl.deleteProgram(this.prog);
+  }
+}

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { crearForma, POR_PUNTO, type NombreForma } from "./formas";
-import { colocar, colocarInicio, esEscena, type NombreEscena } from "./escenas";
-import type { EscenaInicio } from "@/lib/inicio";
+import { colocar, esEscena, type NombreEscena } from "./escenas";
 
 /**
  * El fondo vivo del sitio (como el de Dala): una figura en 3D hecha de miles
@@ -15,8 +14,6 @@ import type { EscenaInicio } from "@/lib/inicio";
  *   es un resorte suave: arranca despacio, acelera y frena sin rebotar.
  * - Alrededor flotan triangulitos sueltos y unos tetraedros grandes.
  * - Con "reducir movimiento" la figura cambia sin animación.
- * - En el inicio la página dice qué escena toca (`escena`, una de las 8 de
- *   src/lib/inicio.ts) y la figura sale de FORMA_INICIO y colocarInicio().
  * - Fuera de la pestaña no dibuja. Si el navegador no tiene WebGL, no hay fondo.
  */
 
@@ -130,14 +127,9 @@ type Memoria = {
   polvo: Float32Array;
   tetras: Tetra[];
   mouse: { x: number; y: number; sx: number; sy: number };
-  activa: Clave | null;
+  activa: NombreEscena | null;
   agitacion: number;
 };
-
-/** La escena activa: una de las de las páginas (data-escena) o "i:" + una del inicio. */
-type Clave = NombreEscena | `i:${EscenaInicio}`;
-const colocarClave = (c: Clave, w: number, h: number) =>
-  c.startsWith("i:") ? colocarInicio(c.slice(2) as EscenaInicio, w, h) : colocar(c as NombreEscena, w, h);
 const MEMORIA = new Map<string, Memoria>();
 
 /** Crea lo que la escena recuerda: el azar de cada triangulito, el polvo y los tetraedros. */
@@ -205,13 +197,8 @@ function crearMemoria(N: number, NP: number, cuantos: number, sobrio: boolean): 
  * columna del texto y de la barra), sin destellos, los colores se pintan
  * encima en vez de sumarse (sin blancos fuertes) y, en modo claro, gris suave.
  */
-export function Escena({ sobrio = false, escena }: { sobrio?: boolean; escena?: EscenaInicio } = {}) {
+export function Escena({ sobrio = false }: { sobrio?: boolean } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
-  /** La escena que pide la página (el inicio); sin ella, se lee de las secciones con data-escena. */
-  const pedida = useRef<EscenaInicio | undefined>(escena);
-  useEffect(() => {
-    pedida.current = escena;
-  }, [escena]);
   const refLineas = useRef<HTMLCanvasElement>(null);
   const refCaja = useRef<HTMLDivElement>(null);
 
@@ -325,8 +312,7 @@ export function Escena({ sobrio = false, escena }: { sobrio?: boolean; escena?: 
     let claro = document.documentElement.dataset.tema === "claro";
 
     /** La escena que toca según dónde va la página. */
-    const escenaActual = (): Clave => {
-      if (pedida.current) return `i:${pedida.current}`;
+    const escenaActual = (): NombreEscena => {
       let actual: NombreEscena | null = null;
       let fondo = Infinity;
       for (const el of secciones) {
@@ -356,7 +342,7 @@ export function Escena({ sobrio = false, escena }: { sobrio?: boolean; escena?: 
     // De otra página: el polvo y los tetraedros siguen igual. Si la figura es la
     // misma, también sigue; si es otra, se forma en su lugar desde una nube suave
     // (como al abrir la página), sin cruzar la pantalla (lección 10).
-    let activa: Clave = escenaActual();
+    let activa: NombreEscena = escenaActual();
     const sigue = previa !== undefined && m.activa === activa;
     let agitacion = sigue ? m.agitacion : 0;
     let primera = !sigue;
@@ -364,7 +350,7 @@ export function Escena({ sobrio = false, escena }: { sobrio?: boolean; escena?: 
 
     /** Avanza a cada triangulito hacia su lugar en la figura de la escena activa. */
     const avanzar = (tiempo: number, dt: number, saltar: boolean) => {
-      const C = colocarClave(activa, w, h);
+      const C = colocar(activa, w, h);
       const F = forma(C.forma);
       let [yaw, pitch] = C.giro(tiempo);
       const roll = C.giro(tiempo)[2];

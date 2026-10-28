@@ -1,0 +1,120 @@
+/* Laboratorio de figuras: fondo negro puro (como el video) y controles discretos abajo. */
+.lab-figuras {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+:root[data-tema="claro"] .lab-figuras {
+  background: #fafafa;
+  color: #111;
+}
+.lab-figuras .fondo-figuras {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.lab-figuras .fondo-figuras canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.lab-figuras__panel {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(12px);
+}
+:root[data-tema="claro"] .lab-figuras__panel {
+  border-color: rgb(0 0 0 / 0.1);
+  background: rgb(255 255 255 / 0.8);
+}
+.lab-figuras__titulo {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.lab-figuras__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lab-figuras__boton {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+:root[data-tema="claro"] .lab-figuras__boton {
+  border-color: rgb(0 0 0 / 0.16);
+}
+.lab-figuras__boton:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+:root[data-tema="claro"] .lab-figuras__boton:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+.lab-figuras__boton:focus-visible {
+  outline: 2px solid #8052ff;
+  outline-offset: 2px;
+}
+.lab-figuras__boton[aria-pressed="true"] {
+  border-color: #8052ff;
+  background: #8052ff;
+  color: #fff;
+}
+.lab-figuras__num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  opacity: 0.6;
+}
+.lab-figuras__barra {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.lab-figuras__barra input {
+  width: 100%;
+  accent-color: #8052ff;
+}
+.lab-figuras__valor,
+.lab-figuras__ayuda {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  opacity: 0.7;
+}
+@media (max-width: 700px) {
+  .lab-figuras__barra {
+    grid-template-columns: 1fr auto;
+  }
+  .lab-figuras__barra span {
+    grid-column: 1 / -1;
+  }
+  .lab-figuras__ayuda {
+    display: none;
+  }
+}
