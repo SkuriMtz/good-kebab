@@ -148,6 +148,9 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
                   <Boton href="/entrar" onClick={onClose}>
                     {enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}
                   </Boton>
+                  <Boton href={`/pruebalo?con=${id}#conversaciones`} variante="sutil" onClick={onClose}>
+                    Pruébalo con {info.nombre}
+                  </Boton>
                   <Boton href={`/agentes/${id}`} variante="sutil" onClick={onClose}>
                     Su página
                   </Boton>

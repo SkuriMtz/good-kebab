@@ -1,4 +1,5 @@
 import type { NombreForma } from "./formas";
+import type { EscenaInicio } from "@/lib/inicio";
 
 /**
  * Dónde y cómo se ve cada figura. Cada sección de una página dice qué
@@ -126,3 +127,91 @@ export function colocar(escena: NombreEscena, w: number, h: number): Colocacion 
 }
 
 export const esEscena = (s: string | undefined): s is NombreEscena => !!s && (ESCENAS as string[]).includes(s);
+
+/* =====================================================================
+   El inicio (src/app/page.tsx): 8 escenas con el mismo nombre que usa la
+   página (src/lib/inicio.ts). La figura de cada escena se elige SOLO en
+   FORMA_INICIO: el grupo de Figuras cambia aquí "burbuja" por "cerebro",
+   "foco", "globo"… sin tocar la página. Las colocaciones salen de los
+   videos (diseno/capturas/dala/MEDIDAS.md, §6): centro en fracción de la
+   pantalla y `escala` como el radio de la figura en px.
+   ===================================================================== */
+
+/** La figura de cada escena del inicio (provisionales del motor de la v7). */
+export const FORMA_INICIO: Record<EscenaInicio, NombreForma> = {
+  portada: "burbuja", // cerebro de lado, a la derecha
+  decisiones: "burbuja", // el mismo cerebro, más grande y a la izquierda
+  caos: "polvo", // polvo por toda la pantalla
+  foco: "burbuja", // foco inclinado a la izquierda
+  globo: "esfera", // globo con continentes a la derecha
+  equipo: "polvoArriba", // polvo recargado arriba
+  planes: "polvoIzquierda", // polvo ralo arriba a la izquierda
+  cierre: "marca", // remolino detrás del texto del cierre
+};
+
+/** Dónde va la figura de cada escena del inicio. En celular, abajo y tenue para no tapar el texto. */
+export function colocarInicio(escena: EscenaInicio, w: number, h: number): Colocacion {
+  const forma = FORMA_INICIO[escena];
+  const celular = w < 900;
+  const pantalla = (alfa: number): Colocacion => ({
+    forma,
+    modo: "pantalla",
+    cx: 0.5,
+    cy: 0.5,
+    escala: 1,
+    giro: () => [0, 0, 0],
+    alfa,
+    tam: celular ? 0.8 : 1,
+    ocultarAtras: 0,
+  });
+  const objeto = (cx: number, cy: number, escala: number, giro: Colocacion["giro"], alfa = 1, ocultarAtras = 0.55): Colocacion => ({
+    forma,
+    modo: "objeto",
+    cx,
+    cy,
+    escala,
+    giro,
+    alfa,
+    tam: celular ? 0.75 : 1,
+    ocultarAtras,
+  });
+  const globo = (t: number): [number, number, number] => [t * 0.015 - 0.05, 0.22, 0.1];
+  if (celular) {
+    switch (escena) {
+      case "portada":
+      case "decisiones":
+        return objeto(0.5, 0.78, Math.min(w * 0.4, h * 0.2), quieto(-0.34, 0.12, -0.12), 0.55);
+      case "foco":
+        return objeto(0.5, 0.8, Math.min(w * 0.38, h * 0.19), quieto(-0.3, 0.1, -0.5), 0.55);
+      case "globo":
+        return objeto(0.62, 0.86, w * 0.48, globo, 0.55, 1);
+      case "cierre":
+        return objeto(0.5, 0.5, Math.min(w * 0.4, h * 0.22), quieto(-0.42, 0.14, 0, 0.08), 0.35, 0.4);
+      case "caos":
+        return pantalla(0.7);
+      default:
+        return pantalla(0.55);
+    }
+  }
+  switch (escena) {
+    case "portada":
+      // Cerebro de lado: caja x 42.7–97.8 %, y 16.8–83.5 % → centro (70 %, 50 %), ≈ 668×500 px a 1212×750
+      return objeto(0.7, 0.5, Math.min(h * 0.333, w * 0.206), quieto(-0.34, 0.12, -0.12));
+    case "decisiones":
+      // Más grande y a la izquierda, cortado por la orilla: centro (30 %, 50 %), 1.4×
+      return objeto(0.3, 0.5, Math.min(h * 0.47, w * 0.29), quieto(0.3, 0.18, 0.08));
+    case "foco":
+      // Inclinado ~35°: caja x 5.9–45.5 %, y 10–86 % → centro (26 %, 48 %)
+      return objeto(0.26, 0.48, Math.min(h * 0.385, w * 0.24), quieto(-0.3, 0.1, 0.6));
+    case "globo":
+      // Centro (850, 500) px = (70 %, 67 %), radio ≈ 385 px: cortado a la derecha y abajo
+      return objeto(0.7, 0.667, Math.min(h * 0.513, w * 0.318), globo, 1, 1);
+    case "cierre":
+      // Remolino detrás del texto: caja x 28–62 %, y 9–82 % → centro (45 %, 45 %)
+      return objeto(0.45, 0.45, Math.min(h * 0.36, w * 0.22), quieto(-0.42, 0.14, 0, 0.08), 0.6, 0.4);
+    case "caos":
+      return pantalla(1);
+    default:
+      return pantalla(0.85);
+  }
+}

@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
+import { Barra } from "./Barra";
 import { Footer } from "./Footer";
-import { Nav } from "./Nav";
 import { FichasAgentes } from "./agentes/FichasAgentes";
 import { Escena } from "./escena/Escena";
 import { ScrollSuave } from "./escena/ScrollSuave";
 import { Escena3D } from "./escena3d/Escena3D";
+import { DialogoLista } from "./inicio-dala/DialogoLista";
+import { FondoInicio } from "./inicio-dala/FondoInicio";
+import { PieDelgado } from "./inicio-dala/PieDelgado";
 
 /**
  * El marco de cada página pública: los fragmentos de fondo (fijos: solo se
@@ -17,21 +20,32 @@ import { Escena3D } from "./escena3d/Escena3D";
  * - `fondo="figuras"`: el inicio por escenas (como la versión 7): la figura
  *   de triangulitos cambia de forma según la sección (data-escena), en su
  *   versión sobria.
- * El pie siempre llega abajo, aunque la página sea corta.
+ * - `fondo="inicio"`: el inicio igual a los videos de referencia: el fondo
+ *   de figuras que sigue las 8 escenas (FondoInicio), el scroll suave del
+ *   video (Lenis lerp 0.08), la barra encima del contenido y el pie delgado.
+ * El pie siempre llega abajo, aunque la página sea corta. La barra es la
+ * misma en todas las páginas públicas y "Únete a la lista" abre la lista de
+ * espera ahí mismo (DialogoLista).
  */
-export function Sitio({ children, fondo = "particulas" }: { children: ReactNode; fondo?: "particulas" | "3d" | "ninguno" | "figuras" }) {
+export function Sitio({
+  children,
+  fondo = "particulas",
+}: {
+  children: ReactNode;
+  fondo?: "particulas" | "3d" | "ninguno" | "figuras" | "inicio";
+}) {
+  const inicio = fondo === "inicio";
   return (
     <div className={`sitio sitio--${fondo}`}>
-      {fondo === "3d" ? <Escena3D /> : fondo === "particulas" || fondo === "figuras" ? <Escena sobrio /> : null}
-      <ScrollSuave />
-      <Nav />
+      {fondo === "3d" ? <Escena3D /> : inicio ? <FondoInicio /> : fondo === "particulas" || fondo === "figuras" ? <Escena sobrio /> : null}
+      <ScrollSuave lerp={inicio ? 0.08 : undefined} />
+      <Barra inicio={inicio} />
       <main id="contenido" tabIndex={-1} className="sitio__contenido sobre-escena">
         {children}
       </main>
-      <div className="sobre-escena">
-        <Footer />
-      </div>
+      <div className="sobre-escena">{inicio ? <PieDelgado /> : <Footer />}</div>
       <FichasAgentes />
+      <DialogoLista />
     </div>
   );
 }

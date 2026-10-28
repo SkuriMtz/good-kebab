@@ -12,7 +12,8 @@ import { enTransicion, trasLaTransicion } from "@/lib/transiciones";
  * frena despacio en vez de saltar.
  * - Corre en el reloj de GSAP (el mismo de la escena 3D) y le avisa a
  *   ScrollTrigger en cada movimiento.
- * - Firmeza: lerp 0.1 (el valor de Lenis), sin multiplicar la rueda: se
+ * - Firmeza: lerp 0.1 (el valor de Lenis; el inicio usa 0.08, el del video
+ *   de referencia), sin multiplicar la rueda: se
  *   siente como el scroll del sistema, solo que sin tirones.
  * - Anclas (#lista, #precios…): bajan en 1.1 s con power3.out y quedan con
  *   el margen de scroll-margin-top (la barra + 24px), que Lenis ya respeta.
@@ -24,13 +25,13 @@ import { enTransicion, trasLaTransicion } from "@/lib/transiciones";
  *   llegada (sin salto visible) y, al terminar la transición, ScrollTrigger
  *   vuelve a medir una vez.
  */
-export function ScrollSuave() {
+export function ScrollSuave({ lerp = 0.1 }: { lerp?: number } = {}) {
   useEffect(() => {
     prepararGsap();
     if (enTransicion()) trasLaTransicion().then(() => ScrollTrigger.refresh());
     if (prefiereQuieto()) return;
     const lenis = new Lenis({
-      lerp: 0.1,
+      lerp,
       wheelMultiplier: 1,
       smoothWheel: true,
       syncTouch: false,
@@ -55,6 +56,6 @@ export function ScrollSuave() {
       gsap.ticker.lagSmoothing(500, 33); // el valor de fábrica, para el panel y el chat
       lenis.destroy();
     };
-  }, []);
+  }, [lerp]);
   return null;
 }
