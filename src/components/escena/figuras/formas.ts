@@ -2,7 +2,7 @@ import { esTierra } from "./tierra";
 
 /**
  * Las figuras del fondo del inicio (como los videos de referencia): el
- * cerebro, el foco, el globo con continentes y el remolino del cierre, más
+ * cerebro, el foco, el globo con continentes y la marca de Atendel del cierre, más
  * los repartos de polvo. Todas usan el mismo número de puntos (N) para que
  * cada triangulito pase de una figura a otra.
  *
@@ -303,7 +303,7 @@ export function cerebro(N: number, semilla = 11): Forma {
     const l = Math.hypot(n[0], n[1], n[2]) / (e * e);
     return { p, n: n.map((k) => k / (l * e * e || 1)) as [number, number, number], l };
   };
-  const total = Math.round(N * 3.2);
+  const total = Math.round(Math.min(N * 0.6, 5600) * 3.4);
   let maxA = 0;
   for (let k = 0; k < 400; k++) maxA = Math.max(maxA, area(-Y1 + rnd() * 2 * Y1, rnd() * Math.PI * 2).l);
   while (cands.length < total) {
@@ -334,8 +334,9 @@ export function cerebro(N: number, semilla = 11): Forma {
     cands.push({ x: p[0], y: p[1], z: p[2], nx, ny, nz, dato: s });
   }
   // Medido en el video: en el centro del cerebro de la portada hay un triangulito por cada ~308 px²
-  // (separación de ~19 px a 334 px por unidad): unos 3 700 en toda la superficie.
-  const sup = separarHasta(cands, Math.min(Math.round(N * 0.94), 3700), 0.056);
+  // contando los de adelante y los de atrás, que se ven a través (el cerebro es transparente):
+  // unos 5 600 en toda la superficie.
+  const sup = separarHasta(cands, Math.min(Math.round(N * 0.6), 5600), 0.045);
 
   // El tallo: un cilindro que baja desde abajo del cerebro hasta salir de la pantalla
   const tallo: Candidato[] = [];
@@ -538,55 +539,63 @@ export function globo(N: number, semilla = 37): Forma {
 }
 
 /* ====================================================================== */
-/* Remolino del cierre                                                      */
+/* La marca de Atendel (el cierre)                                          */
 /* ====================================================================== */
 
 /**
- * Un rehilete de cuatro aspas (cuartos de disco con la esquina en el centro),
- * cada una torcida en 3D como un abanico, con los colores del video: verde
- * azulado arriba a la derecha, naranja y durazno abajo, azul a la izquierda y
- * violeta en medio. No copia el logo de nadie: es un remolino.
+ * En el cierre del video, el polvo se junta y forma la marca del sitio. Aquí es
+ * la marca de Atendel (src/components/Logo.tsx): cuatro círculos, uno por agente
+ * y con su color (Lola, Clara, Víctor e Iris). Cada círculo va un poco inclinado,
+ * como aspa, para que al girar se vea en 3D. Unidad: la mitad del ancho de la marca.
  */
-export function remolino(N: number, semilla = 53): Forma {
+const MARCA_CIRCULOS: { x: number; y: number; color: Color; inclina: number }[] = [
+  { x: -0.44, y: 0.44, color: hex("#ff8a6b"), inclina: 0.38 }, // Lola, arriba a la izquierda
+  { x: 0.44, y: 0.44, color: hex("#7fb2ff"), inclina: -0.38 }, // Clara, arriba a la derecha
+  { x: -0.44, y: -0.44, color: hex("#5fd09f"), inclina: -0.38 }, // Víctor, abajo a la izquierda
+  { x: 0.44, y: -0.44, color: hex("#f6c64a"), inclina: 0.38 }, // Iris, abajo a la derecha
+];
+const MARCA_R = 0.38;
+
+export function marca(N: number, semilla = 53): Forma {
   const rnd = azar(semilla);
   const n = Math.min(N, 9000);
-  const aspas: { de: number; colores: [Color, Color, Color]; giro: number; radio: number }[] = [
-    { de: 0, colores: [PALETA.verdeAzul, PALETA.azul, PALETA.violeta], giro: 0.5, radio: 1 }, // arriba a la derecha
-    { de: Math.PI / 2, colores: [PALETA.violeta, PALETA.magenta, PALETA.lila], giro: -0.45, radio: 0.72 }, // arriba a la izquierda
-    { de: Math.PI, colores: [PALETA.azul, PALETA.azul, PALETA.violeta], giro: 0.42, radio: 0.86 }, // abajo a la izquierda
-    { de: (3 * Math.PI) / 2, colores: [PALETA.violeta, PALETA.rosa, PALETA.ambar], giro: -0.5, radio: 1 }, // abajo a la derecha
-  ];
   const cands: Candidato[] = [];
   while (cands.length < n * 3) {
     const k = Math.floor(rnd() * 4);
-    const asp = aspas[k];
-    // Punto en el cuarto de disco: densidad pareja (con un poco más hacia la orilla, como en el video)
-    const rho = asp.radio * (0.06 + 0.94 * Math.pow(rnd(), 0.42));
-    const f = rnd();
-    const ang = asp.de + f * (Math.PI / 2);
-    const bis = asp.de + Math.PI / 4;
-    const ex = Math.cos(bis);
-    const ey = Math.sin(bis);
+    const c = MARCA_CIRCULOS[k];
+    // Punto parejo en el círculo, un poco más denso hacia la orilla (como en el video)
+    const rho = MARCA_R * Math.pow(rnd(), 0.42);
+    const ang = rnd() * Math.PI * 2;
     const lx = Math.cos(ang) * rho;
     const ly = Math.sin(ang) * rho;
-    // Torcer el aspa alrededor de su eje (la bisectriz): un lado sale hacia el frente y el otro se va atrás
+    // Inclinar el círculo alrededor del eje que va del centro de la marca a su centro
+    const largo = Math.hypot(c.x, c.y);
+    const ex = c.x / largo;
+    const ey = c.y / largo;
     const along = lx * ex + ly * ey;
     const perp = -lx * ey + ly * ex;
-    const giro = asp.giro * (0.4 + 0.6 * (rho / asp.radio));
-    const p2 = perp * Math.cos(giro);
-    const z = perp * Math.sin(giro);
-    cands.push({ x: along * ex - p2 * ey, y: along * ey + p2 * ex, z, nx: 0, ny: 0, nz: 1, dato: k * 10 + f + 0.001 * rho });
+    const co = Math.cos(c.inclina);
+    const si = Math.sin(c.inclina);
+    cands.push({
+      x: c.x + along * ex - perp * co * ey,
+      y: c.y + along * ey + perp * co * ex,
+      z: perp * si,
+      nx: ey * si,
+      ny: -ex * si,
+      nz: co,
+      dato: k * 10 + rho / MARCA_R,
+    });
   }
   const sup = separarHasta(cands, n, 0.02);
   const puntos: PuntoFinal[] = sup.map((c) => {
     const k = Math.floor(c.dato / 10);
-    const asp = aspas[k];
-    const f = c.dato - k * 10;
-    const rho = Math.hypot(c.x, c.y) / asp.radio;
-    // Del borde de afuera hacia el centro: color 0 → 1 → 2; cerca del centro, violeta
-    let col = rho > 0.55 ? mezcla(asp.colores[1], asp.colores[0], suave(0.55, 1, rho) * (0.6 + 0.4 * f)) : mezcla(asp.colores[2], asp.colores[1], suave(0.15, 0.55, rho));
-    col = mezcla(col, PALETA.violeta, suave(0.3, 0.05, rho) * 0.6);
-    return { ...c, col, alfa: 0.85 + rnd() * 0.15, tam: 0.75 + rnd() * 0.25, clave: rho, umbral: rnd() };
+    const orilla = c.dato - k * 10;
+    const base = MARCA_CIRCULOS[k].color;
+    const u = rnd();
+    // El color del agente, con matices: algunos más claros y algunos hacia el violeta
+    let col = u < 0.14 ? mezcla(base, PALETA.violeta, 0.5) : u < 0.28 ? mezcla(base, PALETA.blanco, 0.45) : mezcla(base, PALETA.blanco, rnd() * 0.2);
+    col = mezcla(col, base, suave(0.75, 1, orilla) * 0.5);
+    return { ...c, col, alfa: 0.85 + rnd() * 0.15, tam: 0.75 + rnd() * 0.25, clave: Math.hypot(c.x, c.y) / 0.82, umbral: rnd() };
   });
   return armar(N, puntos, (p) => [p.x, -p.y], rnd);
 }

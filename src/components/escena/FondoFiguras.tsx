@@ -37,7 +37,7 @@ type Props = {
 const enS = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * t * (t * (t * 6 - 15) + 10));
 
 /**
- * El fondo de figuras del inicio: cerebro, polvo, foco, globo y remolino de
+ * El fondo de figuras del inicio: cerebro, polvo, foco, globo y la marca de Atendel hecha de
  * triangulitos, con los mismos cambios que los videos de referencia.
  * Uso: <FondoFiguras escena="globo" /> o <FondoFiguras escena="foco" progreso={0.3} />.
  */
