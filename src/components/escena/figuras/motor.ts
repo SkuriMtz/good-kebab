@@ -150,8 +150,8 @@ export const CEREBRO_A: Llave[] = [
   [0.391, C(498.5, 374, 354, 3, 2, 0, 8.85)],
   [0.477, C(428.5, 372, 358, 7, 3, 0, 9.0)],
   [0.65, C(335, 377, 382, 18, 4, 0, 9.13)],
-  [0.82, C(300, 380, 401.1, 26, 7, 0, 9.57)],
-  [1.0, C(330, 386, 414.5, 32, 9, 0, 9.74)],
+  [0.82, C(290, 380, 395, 26, 7, 0, 9.57)],
+  [1.0, C(295, 386, 400, 32, 9, 0, 9.74)],
 ];
 /**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
@@ -159,8 +159,8 @@ export const CEREBRO_A: Llave[] = [
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
  */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(330, 386, 414.5, 32, 9, 0, 9.74)],
-  [0.25, C(425, 395, 432, 52, 18, 0, 9.92)],
+  [0.0, C(295, 386, 400, 32, 9, 0, 9.74)],
+  [0.25, C(405, 395, 425, 52, 18, 0, 9.92)],
   [0.45, C(500, 425, 460, 66, 30, 0, 10.09)],
   [0.7, C(550, 470, 490, 76, 44, 0, 10.27)],
   [1.0, C(570, 530, 506.1, 82, 52, 0, 10.44)],
@@ -177,7 +177,10 @@ export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
 /** El cerebro del video es transparente: los triangulitos de atrás se ven, más tenues. */
 const ATRAS_CEREBRO = 0.5;
 
-/** Cuánto copia cada partícula la velocidad de su lugar (1 = nada de retraso al moverse la figura). */
+/**
+ * Cuánto copia cada partícula la velocidad de su lugar (1 = sin retraso): cuando la figura
+ * solo se mueve o gira, va pegada al scroll; en los cambios, el resorte da la llegada suave.
+ */
 const SEGUIR = 0.9;
 
 const LUZ = { cerebro: 0.6, foco: 0.62, globo: 0.68, marca: 0.72 };
@@ -196,14 +199,14 @@ function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, 
     case "caos":
       return [hx * 1.04 - 0.02, hy * 1.04 - 0.02, vis < 0.085 ? 1 : 0];
     case "junto": {
-      // Nube recargada arriba a la izquierda y al centro (centro de masa ≈ 39 %, 47 %)
+      // Nube recargada a la izquierda y al centro (centro de masa ≈ 39 %, 47 %), con polvo ralo hasta la orilla derecha
       const dx = hx * 2 - 1;
       const dy = hy * 2 - 1;
       const r = Math.max(Math.abs(dx), Math.abs(dy));
       // (difusa, sin un punto brillante en medio: en el video la nube se ve pareja)
       const k = r > 0 ? Math.pow(r, 1.35) / r : 0;
       const dens = 0.05 + 0.11 * (1 - r) ** 1.2;
-      return [0.36 + dx * k * 0.42, 0.42 + dy * k * 0.5, vis < dens ? 1 : 0];
+      return [0.33 + dx * k * 0.6, 0.45 + dy * k * 0.55, vis < dens ? 1 : 0];
     }
     case "equipo": {
       // Recargado arriba (y 8-35 %) y ralo en lo demás
@@ -287,7 +290,11 @@ export class MotorFiguras {
   private pr: Proy;
   private pr2: Proy;
 
-  /** Posición en la historia: la que se pide y la que se ve (con su retraso). */
+  /**
+   * Posición en la historia: la que se pide (el scroll del texto) y la que se ve, casi
+   * sin retraso propio. Los tramos de cada cambio ya están medidos contra el scroll del
+   * texto del video (MEDIDAS §8), donde la figura va adelante del texto o con él.
+   */
   objetivo = 0;
   posicion = 0;
   private velPos = 0;
@@ -640,6 +647,11 @@ export class MotorFiguras {
 
   /* ---------- El guion ---------- */
 
+  /** Lugar del cerebro para una posición de la historia (0 a 2), continuo entre los dos tramos. */
+  private cerebroEn(P: number): Colocacion {
+    return P < 1 ? entre(CEREBRO_A, clamp01(P)) : entre(CEREBRO_B, clamp01(P - 1));
+  }
+
   /** Llena o1 (el objetivo de cada partícula) para la posición P (0 a 7). */
   private componer(P: number) {
     const N = this.N;
@@ -653,14 +665,14 @@ export class MotorFiguras {
     if (seg === 0) {
       // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
       // Al llegar, abajo a la derecha se deshace en una cola de polvo.
-      this.figura(o1, fm.cerebro, entre(CEREBRO_A, p), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
+      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
       this.cola(suave(0.82, 1.0, p));
       return;
     }
     if (seg === 1) {
       // Decisiones → caos: el cerebro va al centro, se ve desde arriba y se deshace
       // de abajo hacia arriba hasta llenar la pantalla de polvo.
-      this.figura(o1, fm.cerebro, entre(CEREBRO_B, p), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
+      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
       this.cola(1 - suave(0.0, 0.3, p) * 0.4);
       this.todoPolvo(o2, "caos");
       for (let i = 0; i < N; i++) {
@@ -742,8 +754,10 @@ export class MotorFiguras {
     }
     // Planes → cierre: el polvo se junta al centro y forma la marca de Atendel, que
     // llega girando (como la marca del video) y después sigue girando despacio.
+    // Medido: el polvo se junta hasta los 15.0 s (p 0.79) y la marca se forma de 15.4 a
+    // 16.1 s, cuando el texto ya casi llegó (p 0.97 → 1).
     const q1 = suave(0.15, 0.7, p);
-    const q2 = suave(0.62, 1.0, p);
+    const q2 = suave(0.95, 1.0, p);
     this.todoPolvo(o1, "planes");
     this.todoPolvo(o2, "centro");
     for (let i = 0; i < N; i++) {
@@ -795,8 +809,7 @@ export class MotorFiguras {
       this.posicion = this.objetivo;
       this.velPos = 0;
     } else {
-      // La figura sigue al scroll casi sin retraso propio (resorte rápido, sin rebote):
-      // en el video la figura va con el scroll y llega antes que el texto.
+      // Resorte rápido y sin rebote (apenas suaviza): la figura va con el scroll
       const w = 40;
       const sub = Math.max(1, Math.round(dt * 120));
       const hh = dt / sub;
