@@ -28,6 +28,8 @@ export type Forma = {
   clave: Float32Array; // N
   /** Umbral propio de cada punto para el brillo de la orilla (0 a 1). */
   umbral: Float32Array; // N
+  /** Manchas de color (0 a 1): dónde se juntan los triangulitos de color. */
+  grupo: Float32Array; // N
 };
 
 /* ---------- Azar con semilla (mulberry32) ---------- */
@@ -153,7 +155,7 @@ function separarHasta(cands: Candidato[], n: number, d0: number): Candidato[] {
 }
 
 /* ---------- Construir la forma final (N puntos, ordenados para que los cambios sean ordenados) ---------- */
-type PuntoFinal = Candidato & { col: Color; alfa: number; tam: number; clave: number; umbral: number };
+type PuntoFinal = Candidato & { col: Color; alfa: number; tam: number; clave: number; umbral: number; grupo?: number };
 
 /**
  * Completa hasta N con puntos de sobra (copias invisibles de puntos reales,
@@ -179,6 +181,7 @@ function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [numbe
     tam: new Float32Array(N),
     clave: new Float32Array(N),
     umbral: new Float32Array(N),
+    grupo: new Float32Array(N),
   };
   for (let i = 0; i < N; i++) {
     const p = todos[orden[i]];
@@ -189,6 +192,7 @@ function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [numbe
     f.tam[i] = p.tam;
     f.clave[i] = p.clave;
     f.umbral[i] = p.umbral;
+    f.grupo[i] = p.grupo ?? 0;
   }
   return f;
 }
@@ -324,16 +328,18 @@ export function cerebro(N: number, semilla = 11): Forma {
     const zc = p[2];
     const ySilvio = -0.12 + 0.22 * suave(0.6, -0.4, zc);
     if (Math.abs(p[0]) > 0.55 && zc > -0.45 && zc < 0.75 && Math.abs(p[1] - ySilvio) < 0.022) continue;
-    // Surcos: líneas finas sin puntos (circunvoluciones)
+    // Surcos: líneas finas con menos puntos (circunvoluciones)
     const s = ruido(p[0] * 3.1 + 7, p[1] * 3.1 + 3, p[2] * 3.1 + 1) * 0.7 + ruido(p[0] * 6.3, p[1] * 6.3 + 9, p[2] * 6.3) * 0.3;
-    if (Math.abs(s - 0.5) < 0.016) continue;
+    if (Math.abs(s - 0.5) < 0.012 && rnd() < 0.7) continue;
     cands.push({ x: p[0], y: p[1], z: p[2], nx, ny, nz, dato: s });
   }
-  const sup = separarHasta(cands, Math.round(N * 0.94), 0.045);
+  // Medido en el video: en el centro del cerebro de la portada hay un triangulito por cada ~308 px²
+  // (separación de ~19 px a 334 px por unidad): unos 3 700 en toda la superficie.
+  const sup = separarHasta(cands, Math.min(Math.round(N * 0.94), 3700), 0.056);
 
   // El tallo: un cilindro que baja desde abajo del cerebro hasta salir de la pantalla
   const tallo: Candidato[] = [];
-  const nTallo = Math.round(N * 0.06);
+  const nTallo = Math.min(Math.round(N * 0.06), 260);
   for (let k = 0; k < nTallo * 3; k++) {
     const t = rnd();
     const y = -0.62 - t * 0.95;
@@ -343,7 +349,7 @@ export function cerebro(N: number, semilla = 11): Forma {
     const cz = -0.14 - t * 0.12;
     tallo.push({ x: cx + Math.cos(ang) * r, y, z: cz + Math.sin(ang) * r, nx: Math.cos(ang), ny: 0, nz: Math.sin(ang), dato: -1 });
   }
-  const talloSep = separarHasta(tallo, nTallo, 0.03);
+  const talloSep = separarHasta(tallo, nTallo, 0.04);
 
   const puntos: PuntoFinal[] = [];
   for (const c of [...sup, ...talloSep]) {
@@ -351,47 +357,47 @@ export function cerebro(N: number, semilla = 11): Forma {
     // Color propio del punto (manchas: grupos del mismo color); el ámbar de la orilla se agrega en el motor
     const mancha = ruido(c.x * 2.2 + 11, c.y * 2.2 + 5, c.z * 2.2 + 2);
     const u = rnd();
+    // Medido (sin contar blanco ni ámbar): amarillo, violeta, coral y rosa ~4-5 % cada uno,
+    // magenta ~3 %, azul y verde azulado ~1-2 %. En las manchas, más violeta y verde azulado.
     const col = esTallo
       ? elegir(
           [
-            ["blanco", 5],
             ["violeta", 2],
             ["verdeAzul", 1],
             ["azul", 1],
           ],
           u,
         )
-      : mancha > 0.62
+      : mancha > 0.66
         ? elegir(
             [
               ["violeta", 4],
               ["magenta", 2],
               ["verdeAzul", 3],
               ["azul", 1],
-              ["blanco", 4],
             ],
             u,
           )
         : elegir(
             [
-              ["blanco", 70],
-              ["amarillo", 6],
-              ["violeta", 6],
+              ["amarillo", 5],
+              ["violeta", 5],
               ["magenta", 3],
-              ["rosa", 5],
+              ["rosa", 4],
               ["coral", 5],
               ["azul", 2],
-              ["verdeAzul", 3],
+              ["verdeAzul", 1],
             ],
             u,
           );
     puntos.push({
       ...c,
       col,
-      alfa: esTallo ? 0.55 : 1,
-      tam: esTallo ? 0.7 : 0.85 + rnd() * 0.3,
+      alfa: esTallo ? 0.5 : 1,
+      tam: esTallo ? 0.75 : 0.85 + rnd() * 0.3,
       clave: (c.y + 1.6) / 2.4,
       umbral: rnd(),
+      grupo: esTallo ? 0.3 : suave(0.6, 0.75, mancha),
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
@@ -431,7 +437,7 @@ const FOCO_S1 = 2.77;
 export function foco(N: number, semilla = 23): Forma {
   const rnd = azar(semilla);
   const cands: Candidato[] = [];
-  const total = Math.round(N * 3.2);
+  const total = Math.round(Math.min(N, 5200) * 3.2);
   const e = 0.003;
   // densidad pareja: peso = radio × largo de la curva
   const peso = (s: number) => {
@@ -460,7 +466,9 @@ export function foco(N: number, semilla = 23): Forma {
     nz /= l;
     cands.push({ x, y, z, nx, ny, nz, dato: s });
   }
-  const sup = separarHasta(cands, N, 0.042);
+  // Medido: en el centro del foco hay un triangulito por cada ~181 px² (separación de ~14.5 px a
+  // 243 px por unidad): unos 5 200 en toda la superficie.
+  const sup = separarHasta(cands, Math.min(N, 5200), 0.06);
   const puntos: PuntoFinal[] = sup.map((c) => {
     const s = c.dato;
     // Degradado a lo largo del eje: durazno y blanco en el vidrio, lila y violeta en el cuello,
@@ -487,8 +495,9 @@ export function globo(N: number, semilla = 37): Forma {
   const rnd = azar(semilla);
   const puntos: PuntoFinal[] = [];
   const dorado = Math.PI * (3 - Math.sqrt(5));
-  // Red de Fibonacci: puntos parejos sobre la esfera
-  const M = N;
+  // Red de Fibonacci: puntos parejos sobre la esfera. Medido: en la tierra hay un triangulito por
+  // cada ~222 px² (separación de ~16 px a 372 px por unidad): unos 7 800 en toda la esfera.
+  const M = Math.min(N, 7800);
   for (let j = 0; j < M; j++) {
     const y = 1 - ((j + 0.5) / M) * 2;
     const r = Math.sqrt(1 - y * y);
@@ -518,8 +527,9 @@ export function globo(N: number, semilla = 37): Forma {
       nz: z,
       dato: tierra ? 1 : 0,
       col,
-      alfa: tierra ? 1 : rnd() < 0.55 ? 0.3 : 0,
-      tam: tierra ? 0.95 + rnd() * 0.2 : 0.45,
+      // El mar: puntitos ralos y muy tenues
+      alfa: tierra ? 1 : rnd() < 0.4 ? 0.22 : 0,
+      tam: tierra ? 0.95 + rnd() * 0.2 : 0.36,
       clave: tierra ? 1 : 0,
       umbral: rnd(),
     });
@@ -532,55 +542,51 @@ export function globo(N: number, semilla = 37): Forma {
 /* ====================================================================== */
 
 /**
- * Un rehilete de cuatro aspas (cuartos de disco), cada una un poco torcida en
- * 3D, con los colores del video: verde azulado arriba, azul a la izquierda,
- * naranja y durazno abajo y violeta al centro y a la derecha. No es el logo
- * de nadie: es un remolino.
+ * Un rehilete de cuatro aspas (cuartos de disco con la esquina en el centro),
+ * cada una torcida en 3D como un abanico, con los colores del video: verde
+ * azulado arriba a la derecha, naranja y durazno abajo, azul a la izquierda y
+ * violeta en medio. No copia el logo de nadie: es un remolino.
  */
 export function remolino(N: number, semilla = 53): Forma {
   const rnd = azar(semilla);
-  const puntos: PuntoFinal[] = [];
-  const aspas: { centro: number; colores: [Color, Color]; giro: number }[] = [
-    { centro: Math.PI / 2, colores: [PALETA.verdeAzul, PALETA.violeta], giro: 0.55 }, // arriba
-    { centro: Math.PI, colores: [PALETA.azul, PALETA.violeta], giro: -0.45 }, // izquierda
-    { centro: (3 * Math.PI) / 2, colores: [PALETA.ambar, PALETA.durazno], giro: 0.5 }, // abajo
-    { centro: 0, colores: [PALETA.violeta, PALETA.magenta], giro: -0.5 }, // derecha
+  const n = Math.min(N, 9000);
+  const aspas: { de: number; colores: [Color, Color, Color]; giro: number; radio: number }[] = [
+    { de: 0, colores: [PALETA.verdeAzul, PALETA.azul, PALETA.violeta], giro: 0.5, radio: 1 }, // arriba a la derecha
+    { de: Math.PI / 2, colores: [PALETA.violeta, PALETA.magenta, PALETA.lila], giro: -0.45, radio: 0.72 }, // arriba a la izquierda
+    { de: Math.PI, colores: [PALETA.azul, PALETA.azul, PALETA.violeta], giro: 0.42, radio: 0.86 }, // abajo a la izquierda
+    { de: (3 * Math.PI) / 2, colores: [PALETA.violeta, PALETA.rosa, PALETA.ambar], giro: -0.5, radio: 1 }, // abajo a la derecha
   ];
   const cands: Candidato[] = [];
-  const total = Math.round(N * 3);
-  while (cands.length < total) {
+  while (cands.length < n * 3) {
     const k = Math.floor(rnd() * 4);
     const asp = aspas[k];
-    // Punto en el cuarto de disco: radio con densidad pareja, ángulo dentro del aspa
-    const rho = 0.12 + 0.88 * Math.sqrt(rnd());
-    const fi = (rnd() - 0.5) * (Math.PI / 2) * 0.96;
-    const ang = asp.centro + fi;
-    // Cada aspa se tuerce alrededor de su eje (como un abanico)
+    // Punto en el cuarto de disco: densidad pareja (con un poco más hacia la orilla, como en el video)
+    const rho = asp.radio * (0.06 + 0.94 * Math.pow(rnd(), 0.42));
+    const f = rnd();
+    const ang = asp.de + f * (Math.PI / 2);
+    const bis = asp.de + Math.PI / 4;
+    const ex = Math.cos(bis);
+    const ey = Math.sin(bis);
     const lx = Math.cos(ang) * rho;
     const ly = Math.sin(ang) * rho;
-    const torsion = asp.giro * (fi / (Math.PI / 4));
-    // eje del aspa: dirección del centro
-    const ex = Math.cos(asp.centro);
-    const ey = Math.sin(asp.centro);
-    // componente perpendicular al eje dentro del plano
-    const perp = -lx * ey + ly * ex;
+    // Torcer el aspa alrededor de su eje (la bisectriz): un lado sale hacia el frente y el otro se va atrás
     const along = lx * ex + ly * ey;
-    const z = perp * Math.sin(torsion) + along * 0.18 * Math.sin(asp.giro * 2);
-    const perp2 = perp * Math.cos(torsion);
-    const x = along * ex - perp2 * ey;
-    const y = along * ey + perp2 * ex;
-    cands.push({ x, y, z, nx: 0, ny: 0, nz: 1, dato: k * 10 + (fi / (Math.PI / 2) + 0.5) + rho * 0.001 });
+    const perp = -lx * ey + ly * ex;
+    const giro = asp.giro * (0.4 + 0.6 * (rho / asp.radio));
+    const p2 = perp * Math.cos(giro);
+    const z = perp * Math.sin(giro);
+    cands.push({ x: along * ex - p2 * ey, y: along * ey + p2 * ex, z, nx: 0, ny: 0, nz: 1, dato: k * 10 + f + 0.001 * rho });
   }
-  const sup = separarHasta(cands, N, 0.022);
-  for (const c of sup) {
+  const sup = separarHasta(cands, n, 0.02);
+  const puntos: PuntoFinal[] = sup.map((c) => {
     const k = Math.floor(c.dato / 10);
     const asp = aspas[k];
     const f = c.dato - k * 10;
-    const rho = Math.hypot(c.x, c.y);
-    let col = mezcla(asp.colores[0], asp.colores[1], suave(0, 1, f));
-    // Hacia el centro, todo tira a violeta
-    col = mezcla(col, PALETA.violeta, suave(0.45, 0.1, rho) * 0.7);
-    puntos.push({ ...c, col, alfa: 0.9, tam: 0.75 + rnd() * 0.25, clave: rho, umbral: rnd() });
-  }
+    const rho = Math.hypot(c.x, c.y) / asp.radio;
+    // Del borde de afuera hacia el centro: color 0 → 1 → 2; cerca del centro, violeta
+    let col = rho > 0.55 ? mezcla(asp.colores[1], asp.colores[0], suave(0.55, 1, rho) * (0.6 + 0.4 * f)) : mezcla(asp.colores[2], asp.colores[1], suave(0.15, 0.55, rho));
+    col = mezcla(col, PALETA.violeta, suave(0.3, 0.05, rho) * 0.6);
+    return { ...c, col, alfa: 0.85 + rnd() * 0.15, tam: 0.75 + rnd() * 0.25, clave: rho, umbral: rnd() };
+  });
   return armar(N, puntos, (p) => [p.x, -p.y], rnd);
 }

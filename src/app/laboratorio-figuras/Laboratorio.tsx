@@ -33,6 +33,8 @@ declare global {
       irA: (P: number) => void;
       /** Corre el video v desde t0 hasta t1 en pasos de 1/60 s (para capturas). */
       video: (v: 1 | 2, t0: number, t1: number) => number;
+      /** Deja la historia en P y corre `segundos` para que todo se asiente. */
+      asentar: (P: number, segundos: number) => number;
       posicion: () => number;
     };
   }
@@ -99,6 +101,11 @@ export function Laboratorio() {
           const t = t0 + (k / pasos) * (t1 - t0);
           c.avanzar((t1 - t0) / pasos, posicionDesdeScrollVideo(scrollEn(curva, t)));
         }
+        return c.motor.posicion;
+      },
+      asentar: (P: number, segundos: number) => {
+        const pasos = Math.max(1, Math.round(segundos * 60));
+        for (let k = 0; k < pasos; k++) c.avanzar(1 / 60, P);
         return c.motor.posicion;
       },
       posicion: () => c.motor.posicion,

@@ -134,28 +134,32 @@ function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
 
 /** Cerebro de la portada → decisiones (p = avance del tramo 0 → 1). */
 export const CEREBRO_A: Llave[] = [
-  [0.0, C(851, 376.5, 334, -90, 0, 0, 9.5)],
-  [0.08, C(800, 377, 335, -78, 0, 0, 9.5)],
-  [0.2, C(690, 379, 342, -45, 0, 0, 9.6)],
-  [0.36, C(540, 378, 357, 0, 0, 0, 9.8)],
-  [0.48, C(433, 376, 374, 8, 1, 0, 10)],
-  [0.65, C(335, 377, 400, 18, 4, 0, 10.5)],
-  [0.82, C(300, 380, 420, 26, 7, 0, 11)],
-  [1.0, C(330, 386, 434, 32, 9, 0, 11.2)],
+  [0.0, C(851, 376.5, 319, -90, 0, 0, 8.27)],
+  [0.08, C(800, 377, 319.9, -78, 0, 0, 8.27)],
+  [0.2, C(690, 379, 326.6, -45, 0, 0, 8.35)],
+  [0.36, C(540, 378, 340.9, 0, 0, 0, 8.53)],
+  [0.48, C(433, 376, 357.2, 8, 1, 0, 8.7)],
+  [0.65, C(335, 377, 382, 18, 4, 0, 9.13)],
+  [0.82, C(300, 380, 401.1, 26, 7, 0, 9.57)],
+  [1.0, C(330, 386, 414.5, 32, 9, 0, 9.74)],
 ];
 /** Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(330, 386, 434, 32, 9, 0, 11.2)],
-  [0.25, C(560, 420, 470, 62, 26, 0, 11.4)],
-  [0.45, C(610, 440, 500, 72, 36, 0, 11.6)],
-  [0.7, C(610, 480, 520, 78, 46, 0, 11.8)],
-  [1.0, C(600, 540, 530, 82, 52, 0, 12)],
+  [0.0, C(330, 386, 414.5, 32, 9, 0, 9.74)],
+  [0.25, C(560, 420, 448.8, 62, 26, 0, 9.92)],
+  [0.45, C(610, 440, 477.5, 72, 36, 0, 10.09)],
+  [0.7, C(610, 480, 496.6, 78, 46, 0, 10.27)],
+  [1.0, C(600, 540, 506.1, 82, 52, 0, 10.44)],
 ];
-export const FOCO: Colocacion = C(318, 312, 243, -12, 6, 28, 7.6);
-export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 7.6);
-export const GLOBO: Colocacion = C(850, 500, 385, -18, -12, 0, 10.5);
-export const GLOBO_SUBE: Colocacion = C(820, 300, 400, -14, -12, 0, 10.5);
-export const REMOLINO: Colocacion = C(548, 335, 290, -32, 14, -8, 6.2);
+export const FOCO: Colocacion = C(318, 312, 243, -12, 6, 28, 7);
+export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 7);
+/** Globo: círculo ajustado al borde del video (centro 857, 488; radio ~372) y giro que iguala los continentes. */
+export const GLOBO: Colocacion = C(857, 488, 368, -23, 0, -9, 9.2);
+export const GLOBO_SUBE: Colocacion = C(830, 300, 380, -20, 0, -9, 9.2);
+export const REMOLINO: Colocacion = C(548, 335, 290, -32, 14, -8, 4.6);
+
+/** Qué tanto brilla cada figura (medido: el pico de un triangulito del cerebro es ~122 de 255). */
+const LUZ = { cerebro: 0.6, foco: 0.62, globo: 0.68, remolino: 0.5 };
 
 /* ---------------------------------------------------------------------- */
 /* Polvo (en fracciones de la pantalla)                                    */
@@ -267,6 +271,8 @@ export class MotorFiguras {
   private primera = true;
 
   private tetras: TetraGrande[];
+  /** La colocación con la que se está dibujando la figura (ya adaptada a la pantalla). */
+  private actual: Colocacion = GLOBO;
 
   constructor(canvas: HTMLCanvasElement, lineas: HTMLCanvasElement, opciones: { claro?: boolean; n?: number } = {}) {
     const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true, preserveDrawingBuffer: false });
@@ -425,6 +431,20 @@ export class MotorFiguras {
   private get s() {
     return Math.sqrt(this.sx * this.sy);
   }
+  /** Pantalla vertical (celular): la figura va centrada y abajo, sin tapar el texto. */
+  private get vertical() {
+    return this.w < 700 || this.w / this.h < 0.8;
+  }
+
+  /**
+   * En pantallas verticales, la figura va centrada (x 0.5) y abajo (centro en y 0.72),
+   * con ~0.85 del ancho (cabe entre y 0.52 y 0.92); el giro y los cambios son los mismos.
+   */
+  private adaptar(c: Colocacion): Colocacion {
+    if (!this.vertical) return c;
+    const S = (0.85 * this.w) / 2.1; // px por unidad: la figura mide ~2.1 unidades de ancho
+    return { ...c, cx: 606, cy: 540, escala: S / this.s, tam: c.tam * 0.8 };
+  }
 
   /* ---------- Proyección de una figura ---------- */
 
@@ -496,7 +516,10 @@ export class MotorFiguras {
    * Una figura en 3D en el objetivo O. Las partículas de sobra (alfa 0) quedan
    * como polvo del reparto `sobra`.
    */
-  private figura(O: Objetivo, F: Forma, c: Colocacion, color: (i: number, pr: Proy) => Color, ocultarAtras: number, sobra: Campo, pr: Proy) {
+  private figura(O: Objetivo, F: Forma, c0: Colocacion, color: (i: number, pr: Proy) => Color, ocultarAtras: number, sobra: Campo, pr: Proy, luz = 1) {
+    const c = this.adaptar(c0);
+    this.actual = c;
+    if (this.vertical) luz *= 0.8;
     this.proyectar(F, c, pr);
     const s = this.s;
     for (let i = 0; i < this.N; i++) {
@@ -504,14 +527,16 @@ export class MotorFiguras {
         this.polvo(O, i, sobra);
         continue;
       }
-      const atras = ocultarAtras > 0 ? 1 - ocultarAtras * (1 - suave(-0.32, 0.18, pr.nz[i])) : 1;
+      // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
+      const nz = pr.nz[i];
+      const atras = ocultarAtras > 0 ? (1 - ocultarAtras * (1 - suave(-0.12, 0.22, nz))) * (1 - ocultarAtras * 0.4 * (1 - suave(0.0, 0.42, nz))) : 1;
       const cc = color(i, pr);
       O.x[i] = pr.x[i];
       O.y[i] = pr.y[i];
       O.r[i] = cc[0];
       O.g[i] = cc[1];
       O.b[i] = cc[2];
-      O.a[i] = F.alfa[i] * atras;
+      O.a[i] = F.alfa[i] * atras * luz;
       O.t[i] = c.tam * s * F.tam[i] * pr.f[i];
       O.m[i] = 0;
     }
@@ -535,23 +560,37 @@ export class MotorFiguras {
 
   private colorCerebro = (i: number, pr: Proy): Color => {
     const F = this.formas.cerebro;
-    const base: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
-    // Medido: en la orilla ~52 % ámbar; en el centro ~10 %
-    const pa = 0.08 + 0.52 * suave(0.42, 0.95, pr.fr[i]);
+    const fr = pr.fr[i];
     const u = F.umbral[i];
-    return mezcla(base, PALETA.ambar, suave(u - 0.06, u + 0.06, pa));
+    // Medido por distancia a la orilla: ámbar ~52 % en la orilla, ~37 % en medio y ~10 % en el centro;
+    // de color (violeta, coral, rosa, amarillo…) ~23 % en la orilla y ~11 % en el centro; lo demás, blanco.
+    const pa = 0.08 + 0.47 * suave(0.6, 0.97, fr);
+    const pc = 0.1 + 0.12 * suave(0.55, 0.9, fr) + 0.35 * F.grupo[i];
+    const wA = 1 - suave(pa - 0.04, pa + 0.04, u);
+    const wC = (1 - wA) * (1 - suave(pa + pc - 0.04, pa + pc + 0.04, u));
+    const wB = Math.max(0, 1 - wA - wC);
+    const o = i * 3;
+    const A = PALETA.ambar;
+    const B = PALETA.blanco;
+    return [A[0] * wA + F.col[o] * wC + B[0] * wB, A[1] * wA + F.col[o + 1] * wC + B[1] * wB, A[2] * wA + F.col[o + 2] * wC + B[2] * wB];
   };
 
   private colorFoco = (i: number, pr: Proy): Color => {
     const F = this.formas.foco!;
     const base: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
-    // Ámbar en la orilla de arriba a la izquierda del vidrio
+    // Ámbar solo en la orilla del vidrio, en el arco de arriba a la izquierda (de las 12 a las 8)
     const y = F.pos[i * 3 + 1];
-    const x = F.pos[i * 3];
-    const arco = suave(-0.3, 0.5, y * 0.85 - x * 0.5);
-    const w = suave(0.15, 0.85, pr.fr[i] * 0.55 + arco * 0.6) * suave(-1.2, 0.2, y);
+    if (y < -0.75) return base;
+    const cx = this.actual.cx * this.sx;
+    const cy = this.actual.cy * this.sy;
+    const dx = pr.x[i] - cx;
+    const dy = pr.y[i] - cy;
+    const d = Math.hypot(dx, dy) || 1;
+    const arco = suave(-0.35, 0.45, (-dx * 0.62 - dy * 0.78) / d);
+    const orilla = suave(0.62, 0.95, pr.fr[i]);
+    const w = orilla * arco * suave(-0.75, -0.2, y);
     const u = F.umbral[i];
-    return mezcla(base, PALETA.ambar, suave(u - 0.25, u + 0.25, w));
+    return mezcla(base, PALETA.ambar, suave(u - 0.15, u + 0.15, w * 1.15));
   };
 
   private colorGlobo = (i: number, pr: Proy): Color => {
@@ -559,13 +598,14 @@ export class MotorFiguras {
     let c: Color = [F.col[i * 3], F.col[i * 3 + 1], F.col[i * 3 + 2]];
     if (F.clave[i] > 0.5) {
       // Parche blanco (reflejo) en el lado izquierdo
-      const x = (pr.x[i] - GLOBO.cx * this.sx) / (GLOBO.escala * this.s);
-      const y = (pr.y[i] - GLOBO.cy * this.sy) / (GLOBO.escala * this.s);
-      const brillo = suave(0.26, 0.1, Math.hypot((x + 0.6) * 0.95, (y - 0.05) * 0.8));
+      const x = (pr.x[i] - this.actual.cx * this.sx) / (this.actual.escala * this.s);
+      const y = (pr.y[i] - this.actual.cy * this.sy) / (this.actual.escala * this.s);
+      // Medido: el parche está en x 540-700, y 330-510 (centro ≈ -0.63, -0.18 en radios del globo)
+      const brillo = suave(0.27, 0.08, Math.hypot((x + 0.62) * 0.95, (y + 0.17) * 0.85));
       c = mezcla(c, PALETA.blanco, brillo * (0.55 + 0.45 * F.umbral[i]));
     }
-    const orilla = suave(0.8, 0.99, pr.fr[i]);
-    return mezcla(c, mezcla(PALETA.ambar, PALETA.blanco, 0.35), orilla * 0.5);
+    const orilla = suave(0.85, 0.99, pr.fr[i]);
+    return mezcla(c, mezcla(PALETA.ambar, PALETA.blanco, 0.3), orilla * 0.45);
   };
 
   private colorRemolino = (i: number): Color => {
@@ -588,14 +628,14 @@ export class MotorFiguras {
     if (seg === 0) {
       // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
       // Al llegar, abajo a la derecha se deshace en una cola de polvo.
-      this.figura(o1, fm.cerebro, entre(CEREBRO_A, p), this.colorCerebro, 0.92, "suelto", this.pr);
+      this.figura(o1, fm.cerebro, entre(CEREBRO_A, p), this.colorCerebro, 0.95, "suelto", this.pr, LUZ.cerebro);
       this.cola(suave(0.82, 1.0, p));
       return;
     }
     if (seg === 1) {
       // Decisiones → caos: el cerebro va al centro, se ve desde arriba y se deshace
       // de abajo hacia arriba hasta llenar la pantalla de polvo.
-      this.figura(o1, fm.cerebro, entre(CEREBRO_B, p), this.colorCerebro, 0.92, "suelto", this.pr);
+      this.figura(o1, fm.cerebro, entre(CEREBRO_B, p), this.colorCerebro, 0.95, "suelto", this.pr, LUZ.cerebro);
       this.cola(1 - suave(0.0, 0.3, p) * 0.4);
       this.todoPolvo(o2, "caos");
       for (let i = 0; i < N; i++) {
@@ -623,7 +663,7 @@ export class MotorFiguras {
       this.prepararResto();
       this.todoPolvo(o1, "junto");
       if (q <= 0) return;
-      this.figura(o2, fm.foco!, FOCO, this.colorFoco, 0.88, "suelto", this.pr);
+      this.figura(o2, fm.foco!, FOCO, this.colorFoco, 0.9, "suelto", this.pr, LUZ.foco);
       // Se arma del vidrio (arriba) hacia la rosca, con escalonado
       for (let i = 0; i < N; i++) {
         const umbral = fm.foco!.clave[i] * 0.55 + this.azarDes[i] * 0.2;
@@ -635,9 +675,9 @@ export class MotorFiguras {
     if (seg === 3) {
       // Foco → globo: el foco se corre a la derecha y se deshace; el globo se forma a la derecha
       const q = suave(0.05, 0.45, p);
-      this.figura(o1, fm.foco!, entre2(FOCO, FOCO_SALE, suave(0.0, 0.3, p)), this.colorFoco, 0.88, "suelto", this.pr);
+      this.figura(o1, fm.foco!, entre2(FOCO, FOCO_SALE, suave(0.0, 0.3, p)), this.colorFoco, 0.9, "suelto", this.pr, LUZ.foco);
       if (q <= 0) return;
-      this.figura(o2, fm.globo!, GLOBO, this.colorGlobo, 1, "suelto", this.pr2);
+      this.figura(o2, fm.globo!, GLOBO, this.colorGlobo, 1, "suelto", this.pr2, LUZ.globo);
       for (let i = 0; i < N; i++) {
         const umbral = 0.1 + this.azarDes[i] * 0.45;
         const k = suave(umbral, umbral + 0.45, q);
@@ -652,7 +692,7 @@ export class MotorFiguras {
     if (seg === 4) {
       // Globo → equipo: el globo sube, se vacía en un anillo y queda polvo arriba
       const q = suave(0.25, 1.0, p);
-      this.figura(o1, fm.globo!, entre2(GLOBO, GLOBO_SUBE, suave(0.25, 0.75, p)), this.colorGlobo, 1, "suelto", this.pr);
+      this.figura(o1, fm.globo!, entre2(GLOBO, GLOBO_SUBE, suave(0.25, 0.75, p)), this.colorGlobo, 1, "suelto", this.pr, LUZ.globo);
       if (q <= 0) return;
       this.todoPolvo(o2, "equipo");
       for (let i = 0; i < N; i++) {
@@ -685,7 +725,7 @@ export class MotorFiguras {
       this.mezclar(i, suave(umbral, umbral + 0.6, q1));
     }
     if (q2 <= 0) return;
-    this.figura(o2, fm.remolino!, REMOLINO, this.colorRemolino, 0, "suelto", this.pr);
+    this.figura(o2, fm.remolino!, REMOLINO, this.colorRemolino, 0, "suelto", this.pr, LUZ.remolino);
     for (let i = 0; i < N; i++) {
       const umbral = clamp01(fm.remolino!.clave[i]) * 0.45 + this.azarDes[i] * 0.3;
       this.mezclar(i, suave(umbral, umbral + 0.3, q2));
@@ -839,7 +879,7 @@ export class MotorFiguras {
     gl.vertexAttribPointer(A.rot, 3, gl.FLOAT, false, 40, 28);
     gl.uniform2f(this.U.uRes, this.w, this.h);
     gl.uniform1f(this.U.uDpr, this.dpr);
-    gl.uniform1f(this.U.uTrazo, 0.72);
+    gl.uniform1f(this.U.uTrazo, 0.64);
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
     gl.drawArrays(gl.POINTS, 0, N);
     for (const l of [A.pos, A.tam, A.col, A.rot]) gl.disableVertexAttribArray(l);
