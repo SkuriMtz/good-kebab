@@ -1098,4 +1098,7 @@
   .barra__nombre {
     transition: none;
   }
+  .carrusel__datos {
+    animation: none;
+  }
 }
