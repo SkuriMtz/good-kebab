@@ -40,9 +40,13 @@ type Fila = PromptBarSource | PromptBarCommand | PromptBarModel;
 
 type Props = {
   placeholder?: string;
+  /** Texto con el que arranca la caja (lo que se pidió desde el dashboard). */
+  initialText?: string;
   sources?: PromptBarSource[];
   commands?: PromptBarCommand[];
   models?: PromptBarModel[];
+  /** Cómo se lee el selector de `models` (en Atendel: a quién le escribes). */
+  modelLabel?: string;
   defaultModel?: string;
   efforts?: string[];
   defaultEffort?: string;
@@ -142,9 +146,11 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
  */
 export default function PromptBar({
   placeholder = "Escribe tu mensaje",
+  initialText = "",
   sources = [],
   commands = [],
   models = [],
+  modelLabel = "Elegir modelo",
   defaultModel = "",
   efforts = [],
   defaultEffort = "",
@@ -154,13 +160,13 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
-  background = "#27272a",
-  color = "#f5f5f5",
-  menuBackground = "#323236",
-  sparkColor = "#b39dff",
+  background,
+  color,
+  menuBackground,
+  sparkColor,
   sparkBoost = 1,
-  width = 400,
-  radius = 16,
+  width,
+  radius,
   maxRows = 5,
   morphDuration = 240,
   squash = 0.12,
@@ -182,7 +188,7 @@ export default function PromptBar({
   const latest = useRef({ onSend, onStop, onAttach, onDictate, onEffortChange });
   latest.current = { onSend, onStop, onAttach, onDictate, onEffortChange };
 
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialText);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [modelKey, setModelKey] = useState(defaultModel);
   const [plusOpen, setPlusOpen] = useState(false);
@@ -324,8 +330,8 @@ export default function PromptBar({
         if (parts.length < 30) spawn(false);
       }
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = sparkColor;
-      ctx.shadowColor = sparkColor;
+      ctx.fillStyle = chispa;
+      ctx.shadowColor = chispa;
       ctx.shadowBlur = 6 + energy * 10 + pulse * 6;
       for (let i = parts.length - 1; i >= 0; i -= 1) {
         const p = parts[i];
@@ -356,6 +362,8 @@ export default function PromptBar({
       raf = requestAnimationFrame(tick);
     };
     resize();
+    // El color sale del token (--pb-spark): el canvas no entiende var()
+    const chispa = getComputedStyle(canvas).getPropertyValue("--pb-spark").trim() || "currentColor";
     for (let i = 0; i < 26; i += 1) spawn(true);
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
@@ -365,7 +373,7 @@ export default function PromptBar({
       ro.disconnect();
       ctx.clearRect(0, 0, w, h);
     };
-  }, [maxed, reduce, sparkColor]);
+  }, [maxed, reduce]);
 
   const setEffort = (i: number) => {
     const next = Math.max(0, Math.min(efforts.length - 1, i));
@@ -485,13 +493,14 @@ export default function PromptBar({
   };
   const up = () => setPressed(false);
 
+  // Sin props, los colores y radios salen de los tokens (PromptBar.css)
   const vars: Variables = {
-    "--pb-bg": background,
-    "--pb-ink": color,
-    "--pb-menu": menuBackground,
-    "--pb-w": `${width}px`,
-    "--pb-radius": `${radius}px`,
-    "--pb-spark": sparkColor,
+    ...(background ? { "--pb-bg": background } : null),
+    ...(color ? { "--pb-ink": color } : null),
+    ...(menuBackground ? { "--pb-menu": menuBackground } : null),
+    ...(width ? { "--pb-w": `${width}px` } : null),
+    ...(radius ? { "--pb-radius": `${radius}px` } : null),
+    ...(sparkColor ? { "--pb-spark": sparkColor } : null),
     "--pb-press": pressScale,
   };
 
@@ -622,6 +631,7 @@ export default function PromptBar({
 
         <textarea
           ref={inputRef}
+          enterKeyHint="send"
           className="prompt-bar__input"
           rows={1}
           value={draft}
@@ -648,29 +658,30 @@ export default function PromptBar({
             data-on={plusOpen ? "" : undefined}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
+              // Primero el foco: al enfocar el campo se cierran los menús (y este no se abriría)
+              focusInput();
               setModelOpen(false);
               setEffortOpen(false);
               setActive(0);
-              setPlusOpen((v) => !v);
-              focusInput();
+              setPlusOpen(!plusOpen);
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
           </button>
           {models.length > 0 && model ? (
             <button
               type="button"
               className="prompt-bar__pick"
-              aria-label="Elegir modelo"
+              aria-label={`${modelLabel}: ${model.name}`}
               aria-expanded={modelOpen}
               data-on={modelOpen ? "" : undefined}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                focusInput();
                 setPlusOpen(false);
                 setEffortOpen(false);
                 setActive(Math.max(0, models.indexOf(model)));
-                setModelOpen((v) => !v);
-                focusInput();
+                setModelOpen(!modelOpen);
               }}
             >
               <span>{model.name}</span>
@@ -687,10 +698,10 @@ export default function PromptBar({
               data-max={maxed ? "" : undefined}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                focusInput();
                 setPlusOpen(false);
                 setModelOpen(false);
-                setEffortOpen((v) => !v);
-                focusInput();
+                setEffortOpen(!effortOpen);
               }}
             >
               <HugeiconsIcon icon={SparklesIcon} size={13} strokeWidth={2} />

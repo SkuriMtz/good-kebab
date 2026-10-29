@@ -1,0 +1,8 @@
+# Landing final — M1 con la lista de agentes de M3
+
+- **Portada:** la de M1. La figura de triangulitos de la v7 forma una burbuja a la derecha del título y, al bajar, se vuelve un globo del mismo lado junto a la lista de agentes. Los textos aparecen línea por línea. La escena 3D sigue solo en /vista-3d.
+- **Tu equipo:** la lista tipográfica de M3. Muestra el número, el personaje (ahora de 88px), el nombre en tamaño de título y una línea de lo que hace. Al pasar el mouse se resalta una fila y las demás se apagan. Al tocarla se abre la ficha.
+- **Todo el sitio público** (el resto del inicio, /agentes, /precios, /preguntas, /para-quien-es, /lista, /contacto, /entrar, la barra, el pie y la ficha) toma los mismos tokens, en `src/estilos/landing.css`. En oscuro va el estilo Dala: negro puro, títulos enormes, sin cajas y radio de 24px. En claro va el estilo Vercel: #fafafa, líneas finas, anillo doble y radio de 6px. Hay un solo botón principal azul.
+- **Precios:** en oscuro son columnas tipográficas sin caja. En claro son tarjetas con línea fina.
+- **Partículas** (arreglos del inspector): brillo de 0.5 a 0.6, sin blancos fuertes y sin destello. Del lado del texto no se dibuja nada. El polvo suelto y el único tetraedro solo aparecen en las orillas de pantallas anchas. Después de la lista de agentes, la figura se deshace.
+- **Lo que se adaptó:** el chat de demostración va enseguida de los agentes. La vitrina y el carrusel de agentes se cambiaron por la lista; la conversación de ejemplo sigue en la ficha. Los componentes del resto del sitio no se rehicieron: cambian por los tokens y por unos pocos ajustes (precio, /entrar y la ficha).

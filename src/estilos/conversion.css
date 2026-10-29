@@ -1,0 +1,895 @@
+/*
+ * Estilos de Precios, Preguntas, CTA final, FormularioLista, /precios, /preguntas, /contacto y /lista.
+ * Dueño: Grupo 5 · Conversión (ver diseno/plan.md, "Reparto de archivos").
+ * Solo reglas de su parte, con los tokens de src/app/globals.css (nada de
+ * colores, tamaños ni radios inventados). Si falta algo en la base, se pide
+ * en el ENTREGA.md de la rama y lo agrega el integrador.
+ *
+ * Dirección G5-T3: "GitHub con la calma de Apple". Los planes son UN panel
+ * de vidrio con columnas separadas por líneas de 1px; las preguntas, dos
+ * columnas (temas | preguntas); el cierre, un titular grande con el
+ * formulario; /lista y /contacto, páginas centradas con mucho aire.
+ * Movimiento: 0.2s micro / 0.4s grande, solo transform y opacity.
+ */
+
+/* =====================================================================
+   Enlace con flecha (Apple: "Comparar planes ›" del otro lado del título)
+   ===================================================================== */
+.enlace-flecha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-height: var(--spacing-44);
+  color: var(--c-enlace);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.enlace-flecha .icono {
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .enlace-flecha:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .enlace-flecha:hover .icono {
+    transform: translateX(var(--spacing-4));
+  }
+}
+.enlace-flecha:active .icono {
+  transform: translateX(var(--spacing-4));
+}
+.enlace-flecha:focus-visible {
+  border-radius: var(--radio-boton);
+}
+
+/* =====================================================================
+   8. Precios (inicio): encabezado a la izquierda, enlace del otro lado
+   ===================================================================== */
+.precios-cabeza {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  margin-bottom: var(--espacio-bloque);
+}
+.precios-cabeza .encabezado {
+  margin-bottom: 0;
+}
+@media (min-width: 1024px) {
+  .precios-cabeza {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--spacing-64);
+  }
+}
+
+/* ---------- El panel de los planes (Planes.tsx) ---------- */
+.planes {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--c-vidrio);
+  -webkit-backdrop-filter: blur(var(--vidrio-desenfoque));
+  backdrop-filter: blur(var(--vidrio-desenfoque));
+}
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  min-width: 0;
+  padding: var(--spacing-32) var(--spacing-24);
+}
+.plan + .plan {
+  border-top: 1px solid var(--c-borde);
+}
+/* La recomendada (Free, la que se usa hoy): una capa más de vidrio y un filo #8c93fb arriba */
+.plan--hoy {
+  background: var(--c-vidrio);
+}
+.plan--hoy::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--c-destacada);
+}
+@media (min-width: 1024px) {
+  .planes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
+    row-gap: var(--spacing-24);
+  }
+  /* Las filas (cabeza, precio, equipo, incluye, botón) quedan alineadas entre columnas */
+  .plan {
+    display: grid;
+    grid-row: span 5;
+    grid-template-rows: subgrid;
+    gap: inherit;
+    padding: var(--spacing-40) var(--spacing-32);
+  }
+  .plan + .plan {
+    border-top: 0;
+    border-left: 1px solid var(--c-borde);
+  }
+}
+[data-tema="claro"] .planes {
+  background: var(--c-fondo-2);
+}
+[data-tema="claro"] .plan--hoy {
+  background: var(--c-superficie);
+}
+
+.plan__cabeza {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.plan__nombre {
+  color: var(--c-texto);
+  font-size: var(--t-titulo);
+  font-weight: var(--peso-titulo);
+  line-height: 1.3;
+}
+.plan__precio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+.plan__monto {
+  color: var(--c-texto);
+  font-size: var(--t-grande);
+  font-weight: var(--peso-grande);
+  line-height: 1.08;
+  letter-spacing: var(--tracking-grande);
+  font-variant-numeric: tabular-nums;
+}
+.plan__monto--pronto {
+  color: var(--c-texto-2);
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .plan__monto--pronto {
+    font-size: var(--t-seccion);
+  }
+}
+.plan__equipo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding-top: var(--spacing-24);
+  border-top: 1px solid var(--c-borde);
+}
+.plan__caras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.plan__incluye {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+.plan__incluye li {
+  display: grid;
+  grid-template-columns: var(--spacing-16) minmax(0, 1fr);
+  gap: var(--spacing-12);
+  align-items: start;
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.plan__incluye .icono {
+  margin-top: var(--spacing-4);
+}
+.plan__accion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  align-self: end;
+  padding-top: var(--spacing-8);
+}
+.plan__accion .t-caption {
+  text-align: center;
+}
+.planes-nota {
+  max-width: var(--ancho-texto);
+  margin-top: var(--spacing-24);
+}
+
+/* =====================================================================
+   9. Preguntas: dos columnas (temas | preguntas)
+   ===================================================================== */
+.faq-doble {
+  display: grid;
+  gap: var(--spacing-40);
+}
+.faq-doble__lado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  min-width: 0;
+}
+.faq-doble__encabezado {
+  margin-bottom: 0;
+}
+.faq-doble__pie {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+@media (min-width: 1024px) {
+  .faq-doble {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--spacing-96);
+    align-items: start;
+  }
+  .faq-doble__lado {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-32));
+    gap: var(--spacing-32);
+  }
+}
+
+/* ---------- Índice de temas (IndiceTemas.tsx) ----------
+   Celular: fila de píldoras de 60px que se desliza (filtros de GitHub).
+   Computadora: lista vertical con una línea de 1px a la izquierda; el
+   tema que lees se marca con la línea en blanco (como "En esta página"). */
+.temas__lista {
+  display: flex;
+  gap: var(--spacing-8);
+  margin-inline: calc(var(--orilla) * -1);
+  padding: var(--spacing-4) var(--orilla);
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.temas__lista::-webkit-scrollbar {
+  display: none;
+}
+.temas__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: var(--alto-control);
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--c-pildora-borde);
+  border-radius: var(--radio-pildora);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: transform var(--dur-micro) var(--ease);
+}
+.temas__enlace:active {
+  transform: scale(0.97);
+}
+.temas__enlace[aria-current] {
+  border-color: var(--c-pildora-activa);
+  background: var(--c-pildora-activa);
+  color: var(--c-sobre-pildora-activa);
+}
+.temas__cuenta {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+@media (min-width: 1024px) {
+  .temas__lista {
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border-left: 1px solid var(--c-borde);
+  }
+  .temas__enlace {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    min-height: var(--alto-control);
+    margin-left: -1px;
+    padding: var(--spacing-8) var(--spacing-16);
+    border: 0;
+    border-left: 1px solid transparent;
+    border-radius: 0;
+    color: var(--c-texto-2);
+    font-size: var(--t-cuerpo);
+  }
+  .temas__enlace:active {
+    transform: none;
+    opacity: 0.7;
+  }
+  .temas__enlace[aria-current] {
+    border-left-color: var(--c-texto);
+    background: transparent;
+    color: var(--c-texto);
+  }
+  .temas__enlace:focus-visible {
+    border-radius: var(--radio-boton);
+  }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .temas__enlace:hover {
+    color: var(--c-texto);
+  }
+}
+
+/* ---------- Grupos de preguntas ---------- */
+.faq-grupo {
+  scroll-margin-top: calc(var(--barra-h) + var(--spacing-32));
+}
+.faq-grupo + .faq-grupo {
+  margin-top: var(--spacing-48);
+}
+.faq-grupo__titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-12);
+}
+.faq .acordeon__contenido p {
+  max-width: 64ch;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+
+/* =====================================================================
+   10. CTA final: el equipo, un titular grande y el formulario
+   ===================================================================== */
+.cta-final__centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-20);
+  max-width: 880px;
+  margin-inline: auto;
+  padding-block: var(--spacing-32);
+  text-align: center;
+}
+.cta-final__equipo {
+  display: flex;
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-12);
+}
+.cta-final__titulo {
+  max-width: 16ch;
+}
+.cta-final__texto {
+  margin-inline: auto;
+}
+.cta-final__formulario {
+  margin-top: var(--spacing-16);
+}
+.cta-final__duda {
+  margin-top: var(--spacing-8);
+}
+
+/* =====================================================================
+   FormularioLista: aviso amable, corregir el correo y la sacudida
+   ===================================================================== */
+.formulario-lista__listo p {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+.formulario-lista__corregir {
+  min-height: var(--spacing-32);
+  color: var(--c-enlace);
+  font-size: var(--t-chico);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .formulario-lista__corregir:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+.formulario-lista__corregir:focus-visible {
+  border-radius: var(--radio-boton);
+}
+.formulario-lista__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+  padding: var(--spacing-16) var(--spacing-20);
+  border: 1px solid var(--c-vidrio-borde);
+  border-radius: var(--radio-campo);
+  background: var(--c-vidrio);
+  color: var(--c-texto);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+  text-align: left;
+  animation: aparecer var(--dur-grande) var(--ease-entrada);
+}
+.formulario-lista__aviso .icono {
+  margin-top: 0;
+  color: var(--c-enlace);
+}
+.formulario-lista__aviso--falla .icono {
+  color: var(--c-error);
+}
+[data-tema="claro"] .formulario-lista__aviso {
+  background: var(--c-fondo-2);
+}
+/* Sacudida apenas visible del campo con error (solo transform). Dos nombres
+   iguales para que se repita en cada intento. Con movimiento reducido el
+   bloque global la apaga. */
+.sacude-a .entrada__caja {
+  animation: sacude-a var(--dur-grande) var(--ease);
+}
+.sacude-b .entrada__caja {
+  animation: sacude-b var(--dur-grande) var(--ease);
+}
+
+/* =====================================================================
+   /precios
+   ===================================================================== */
+/* Encabezado con la escena del globo a la derecha (computadora) o arriba (celular) */
+.pagina-cabeza {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(var(--barra-h) + var(--spacing-64));
+  padding-bottom: var(--spacing-64);
+}
+.pagina-cabeza__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  max-width: var(--ancho-texto);
+}
+@media (min-width: 900px) {
+  .pagina-cabeza--escena {
+    min-height: 72svh;
+  }
+}
+@media (max-width: 899px) {
+  /* La figura se dibuja arriba al centro: el texto empieza debajo de ella */
+  .pagina-cabeza--escena {
+    padding-top: 46svh;
+  }
+}
+
+/* ---------- Comparación por agente (Comparacion.tsx) ---------- */
+.comparar {
+  overflow-x: auto;
+  border-radius: var(--radio-panel);
+}
+.comparar__tabla {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.comparar__tabla th,
+.comparar__tabla td {
+  padding: var(--spacing-16) var(--spacing-12);
+  border-bottom: 1px solid var(--c-borde);
+  text-align: center;
+  vertical-align: middle;
+}
+.comparar__tabla th[scope="row"] {
+  width: 40%;
+  padding-left: 0;
+  text-align: left;
+  font-weight: var(--peso-cuerpo);
+}
+.comparar__tabla thead th {
+  padding-top: 0;
+  border-bottom-color: var(--c-borde-fuerte);
+  vertical-align: bottom;
+}
+.comparar__plan {
+  display: block;
+  color: var(--c-texto);
+  font-size: var(--t-sub);
+  font-weight: var(--peso-sub);
+  line-height: 1.4;
+}
+.comparar__precio {
+  display: block;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-cuerpo);
+}
+.comparar__hoy {
+  background: var(--c-vidrio);
+}
+[data-tema="claro"] .comparar__hoy {
+  background: var(--c-fondo-2);
+}
+.comparar__tabla thead .comparar__hoy {
+  border-radius: var(--radio-panel) var(--radio-panel) 0 0;
+  padding-top: var(--spacing-16);
+}
+.comparar__hoy .comparar__plan {
+  color: var(--c-enlace);
+}
+.comparar__grupo th {
+  padding: var(--spacing-32) 0 var(--spacing-12);
+  color: var(--c-texto-2);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-align: left;
+  text-transform: uppercase;
+}
+.comparar__agente {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+.comparar__nombre {
+  display: block;
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-medio);
+  line-height: 1.4;
+}
+.comparar__area {
+  color: var(--c-tenue);
+  font-weight: var(--peso-cuerpo);
+}
+.comparar__abarca {
+  display: block;
+  color: var(--c-tenue);
+  font-size: var(--t-chico);
+  line-height: 1.5;
+}
+.comparar__funcion {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+}
+.comparar__no {
+  color: var(--c-tenue);
+}
+.comparar__cifra {
+  color: var(--c-texto);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+}
+
+/* Cierre de /precios */
+.cierre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-16);
+  text-align: center;
+}
+.cierre .t-intro {
+  margin-inline: auto;
+}
+.cierre__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-16);
+}
+
+/* =====================================================================
+   /preguntas
+   ===================================================================== */
+.faq-pagina {
+  display: grid;
+  gap: var(--spacing-48);
+  padding-top: calc(var(--barra-h) + var(--spacing-48));
+  padding-bottom: var(--espacio-seccion);
+}
+.faq-pagina__lado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  min-width: 0;
+}
+.faq-pagina__lado .t-cuerpo {
+  max-width: 40ch;
+}
+.faq-pagina__pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+.faq-pagina__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+}
+@media (min-width: 1024px) {
+  .faq-pagina {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--spacing-96);
+    align-items: start;
+    padding-top: calc(var(--barra-h) + var(--spacing-80));
+  }
+  .faq-pagina__lado {
+    position: sticky;
+    top: calc(var(--barra-h) + var(--spacing-32));
+  }
+  .faq-pagina__pie {
+    margin-top: var(--spacing-12);
+  }
+}
+
+/* #seguridad con la escena del candado a la derecha */
+.seguridad-preguntas {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--espacio-seccion);
+  scroll-margin-top: var(--barra-h);
+}
+.seguridad-preguntas__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  max-width: 560px;
+}
+.seguridad-preguntas__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  margin-block: var(--spacing-12);
+}
+.seguridad-preguntas__lista li {
+  display: grid;
+  grid-template-columns: var(--spacing-24) minmax(0, 1fr);
+  gap: var(--spacing-16);
+  align-items: start;
+}
+.seguridad-preguntas__lista .t-titulo {
+  font-size: var(--t-intro);
+}
+.seguridad-preguntas__lista .t-cuerpo {
+  margin-top: var(--spacing-4);
+}
+@media (min-width: 900px) {
+  .seguridad-preguntas {
+    min-height: 80svh;
+  }
+}
+@media (max-width: 899px) {
+  .seguridad-preguntas {
+    padding-top: 50svh;
+  }
+}
+
+/* =====================================================================
+   /lista y /contacto: páginas sobrias, centradas, con mucho aire
+   ===================================================================== */
+.pagina-sobria {
+  padding: calc(var(--barra-h) + var(--spacing-64)) var(--orilla) var(--espacio-seccion);
+}
+.pagina-sobria__centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-20);
+  max-width: 720px;
+  margin-inline: auto;
+  text-align: center;
+}
+.pagina-sobria__centro .t-intro {
+  margin-inline: auto;
+}
+.pagina-sobria__equipo {
+  display: flex;
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-8);
+}
+.pagina-sobria__formulario {
+  margin-top: var(--spacing-20);
+}
+.pagina-sobria--siguiente {
+  padding-top: 0;
+}
+.pagina-sobria__columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-32);
+  max-width: 600px;
+  margin-inline: auto;
+  padding-top: var(--spacing-48);
+  border-top: 1px solid var(--c-borde);
+}
+.pagina-sobria__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+}
+@media (min-width: 1024px) {
+  .pagina-sobria {
+    padding-top: calc(var(--barra-h) + var(--spacing-96));
+  }
+}
+
+/* Pasos de "Qué pasa después": número en Mono en una tecla de 6px y una línea de 1px que los une */
+.pasos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-32);
+}
+.pasos-lista__paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--spacing-32) minmax(0, 1fr);
+  gap: var(--spacing-20);
+  align-items: start;
+}
+.pasos-lista__paso:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-40);
+  bottom: calc(var(--spacing-8) - var(--spacing-32));
+  left: calc(var(--spacing-16) - 0.5px);
+  width: 1px;
+  background: var(--c-borde);
+}
+.pasos-lista__num {
+  display: grid;
+  place-items: center;
+  width: var(--spacing-32);
+  height: var(--spacing-32);
+  border: 1px solid var(--c-borde-fuerte);
+  border-radius: var(--radio-boton);
+  color: var(--c-texto);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--t-caption);
+  font-weight: var(--peso-medio);
+  font-variant-numeric: tabular-nums;
+}
+.pasos-lista__paso .t-sub {
+  font-size: var(--t-intro);
+  font-weight: var(--peso-titulo);
+  line-height: 1.5;
+}
+.pasos-lista__paso .t-cuerpo {
+  margin-top: var(--spacing-4);
+}
+
+/* ---------- /contacto ---------- */
+.contacto-tarjeta {
+  max-width: 680px;
+  margin: var(--spacing-48) auto 0;
+}
+.contacto-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+.contacto-form__par {
+  display: grid;
+  gap: var(--spacing-20);
+  align-items: start;
+}
+@media (min-width: 640px) {
+  .contacto-form__par {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.contacto-form .formulario-lista__aviso {
+  margin-top: 0;
+}
+.contacto-form__pie {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--spacing-16);
+  margin-top: var(--spacing-4);
+}
+@media (min-width: 640px) {
+  .contacto-form__pie {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+.contacto-listo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  animation: aparecer var(--dur-grande) var(--ease-entrada);
+}
+.contacto-listo h2:focus {
+  outline: none;
+}
+.contacto-listo .boton {
+  margin-top: var(--spacing-12);
+}
+.contacto-atajos {
+  max-width: 680px;
+  margin: var(--spacing-48) auto 0;
+}
+.contacto-atajos > .etiqueta {
+  margin-bottom: var(--spacing-12);
+}
+.contacto-atajos ul {
+  border-top: 1px solid var(--c-borde);
+}
+.contacto-atajos li {
+  border-bottom: 1px solid var(--c-borde);
+}
+.contacto-atajo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  min-height: 64px;
+  padding-block: var(--spacing-12);
+}
+.contacto-atajo > span {
+  display: flex;
+  flex-direction: column;
+}
+.contacto-atajo__titulo {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: var(--peso-medio);
+  line-height: 1.5;
+}
+.contacto-atajo__flecha {
+  color: var(--c-texto-2);
+  transition: transform var(--dur-micro) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .contacto-atajo:hover .contacto-atajo__titulo {
+    color: var(--c-enlace);
+  }
+  .contacto-atajo:hover .contacto-atajo__flecha {
+    transform: translateX(var(--spacing-4));
+  }
+}
+.contacto-atajo:active .contacto-atajo__flecha {
+  transform: translateX(var(--spacing-4));
+}
+.contacto-atajo:focus-visible {
+  border-radius: var(--radio-boton);
+}
+
+eyframes sacude-a {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(var(--spacing-4));
+  }
+  50% {
+    transform: translateX(calc(var(--spacing-4) * -1));
+  }
+  75% {
+    transform: translateX(calc(var(--spacing-4) / 2));
+  }
+}
+@keyframes sacude-b {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(var(--spacing-4));
+  }
+  50% {
+    transform: translateX(calc(var(--spacing-4) * -1));
+  }
+  75% {
+    transform: translateX(calc(var(--spacing-4) / 2));
+  }
+}

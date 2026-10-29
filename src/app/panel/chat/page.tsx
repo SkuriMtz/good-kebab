@@ -7,7 +7,7 @@ import { Chat, type Conversacion } from "./Chat";
 
 export const metadata: Metadata = { title: "Hablar con mi equipo" };
 
-export default async function ChatPage({ searchParams }: { searchParams: { agente?: string; c?: string } }) {
+export default async function ChatPage({ searchParams }: { searchParams: { agente?: string; c?: string; pide?: string } }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,7 +30,7 @@ export default async function ChatPage({ searchParams }: { searchParams: { agent
 
   return (
     <Chat
-      key={`${searchParams.agente ?? ""}-${searchParams.c ?? ""}`}
+      key={`${searchParams.agente ?? ""}-${searchParams.c ?? ""}-${searchParams.pide ?? ""}`}
       email={user.email ?? ""}
       planId={cuenta.plan.id}
       activos={cuenta.activos}
@@ -38,6 +38,7 @@ export default async function ChatPage({ searchParams }: { searchParams: { agent
       conversacionesIniciales={conversaciones}
       agenteInicial={agenteInicial}
       conversacionInicial={typeof searchParams.c === "string" ? searchParams.c : null}
+      textoInicial={typeof searchParams.pide === "string" ? searchParams.pide.slice(0, 2000) : undefined}
     />
   );
 }

@@ -1,0 +1,112 @@
+/* Estilos del carrusel del equipo (antes en src/app/globals.css, dentro de @layer components).
+   Se guardaron aquí al integrar el rediseño (Paso 7): ninguna página monta CarruselEquipo. */
+  /* ---------- Carrusel del equipo (CarruselEquipo.tsx; hoy ninguna página lo monta,
+     se queda para el grupo 3). Sus medidas viven en .equipo. ---------- */
+  .equipo {
+    --tw: clamp(200px, 20.4vw, 300px);
+    --th: calc(var(--tw) * 1.46);
+    --paso: calc(var(--tw) * 1.31);
+    position: relative;
+    height: calc(var(--th) + 90px);
+    overflow-x: clip;
+  }
+  .equipo__pista {
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--th);
+  }
+  .equipo__tarjeta {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 0;
+    width: var(--tw);
+    opacity: 0.2;
+    transform: translateX(calc(-50% + var(--k) * var(--paso))) scale(0.84);
+    transition:
+      transform var(--dur-grande) var(--ease-entrada),
+      opacity var(--dur-grande) var(--ease);
+  }
+  .equipo__tarjeta[data-centro="true"] {
+    z-index: 1;
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  .equipo__boton {
+    display: block;
+    width: 100%;
+  }
+  .equipo__retrato {
+    aspect-ratio: auto;
+    height: var(--th);
+    border-radius: var(--radio-tarjeta);
+  }
+  .equipo__retrato > svg {
+    width: 70%;
+    height: auto;
+  }
+  .equipo__datos {
+    position: absolute;
+    top: calc(var(--th) * 0.18);
+    left: calc(50% + var(--tw) / 2 + 24px);
+    z-index: 2;
+    width: 220px;
+    animation: aparecer var(--dur-grande) var(--ease-entrada) both;
+  }
+  .equipo__nombre {
+    margin-top: var(--spacing-12);
+    font-size: var(--t-seccion);
+    font-weight: var(--peso-seccion);
+    line-height: 1.2;
+    color: var(--c-texto);
+  }
+  .equipo__abarca {
+    margin-top: var(--spacing-12);
+    font-size: var(--t-chico);
+    color: var(--c-tenue);
+  }
+  .equipo__ficha {
+    margin-top: var(--spacing-12);
+    font-family: var(--font-mona-sans-mono), ui-monospace, monospace;
+    font-size: var(--t-caption);
+    font-weight: var(--peso-medio);
+    letter-spacing: var(--tracking-etiqueta);
+    text-transform: uppercase;
+    color: var(--c-enlace);
+  }
+  .equipo__flechas {
+    position: absolute;
+    top: calc(var(--th) + 40px);
+    left: 50%;
+    display: flex;
+    gap: var(--spacing-8);
+    transform: translateX(-50%);
+  }
+  .equipo__flecha {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--c-sutil-borde);
+    border-radius: var(--radio-boton);
+    background: var(--c-sutil-fondo);
+    color: var(--c-sutil-texto);
+  }
+  @media (max-width: 899px) {
+    .equipo {
+      --tw: min(58vw, 260px);
+      --paso: calc(var(--tw) * 1.18);
+      position: relative;
+      height: calc(var(--th) + 200px);
+      margin-top: var(--spacing-40);
+    }
+    .equipo__datos {
+      top: calc(var(--th) + 20px);
+      left: calc(50% - var(--tw) / 2);
+      width: var(--tw);
+    }
+    .equipo__flechas {
+      top: calc(var(--th) + 152px);
+    }
+  }
+

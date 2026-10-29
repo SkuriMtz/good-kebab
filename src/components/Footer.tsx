@@ -1,57 +1,105 @@
 import Link from "next/link";
+import { BotonTema } from "./BotonTema";
+import { Marca } from "./Logo";
+import { PAGINAS, PRUEBALO, SEGMENTOS } from "@/lib/contenido";
 
-const PRODUCTO = [
-  { href: "/#que-es", label: "Qué es" },
-  { href: "/#agentes", label: "Agentes" },
-  { href: "/#planes", label: "Planes" },
-  { href: "/#preguntas", label: "Preguntas" },
-];
-const CUENTA = [
-  { href: "/entrar", label: "Entrar" },
-  { href: "/panel/chat", label: "Mi panel" },
+const titulo = (href: string) => PAGINAS.find((p) => p.href === href)?.label ?? href;
+
+/** Las cuatro columnas del pie, como el pie del sitio de GitHub (solo el estilo). */
+const COLUMNAS = [
+  {
+    titulo: "Producto",
+    enlaces: [{ href: "/agentes", label: titulo("/agentes") }, PRUEBALO, { href: "/precios", label: titulo("/precios") }],
+  },
+  {
+    titulo: "Negocios",
+    enlaces: SEGMENTOS.map((s) => ({
+      href: `/para-quien-es#${s.id}`,
+      label: s.id === "servicios" ? "Servicios" : s.nombre,
+    })),
+  },
+  {
+    titulo: "Ayuda",
+    enlaces: [
+      { href: "/preguntas", label: titulo("/preguntas") },
+      { href: "/preguntas#seguridad", label: "Tus datos" },
+      { href: "/contacto", label: "Contacto" },
+    ],
+  },
+  {
+    titulo: "Cuenta",
+    enlaces: [
+      { href: "/entrar", label: "Entrar" },
+      { href: "/panel", label: "Mi panel" },
+    ],
+  },
 ];
 
-/** Pie como créditos finales: línea fina, columnas y el nombre gigante al final. */
+/** Enlaces de la franja de abajo (los de ayuda y datos, como los legales del pie de GitHub). */
+const FRANJA = [
+  { href: "/preguntas#seguridad", label: "Tus datos" },
+  { href: "/contacto", label: "Contacto" },
+];
+
+/**
+ * Pie del sitio: arriba, la marca con una línea de qué es Atendel y cuatro
+ * columnas de enlaces; abajo, una franja con el logo, el año, los enlaces de
+ * ayuda y el selector de tema.
+ */
 export function Footer() {
   return (
-    <footer className="mt-[160px] overflow-hidden lg:mt-[260px]">
-      <div className="mx-auto max-w-page px-6 sm:px-10 lg:px-16">
-        <div className="border-t hairline pt-14">
-          <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr]">
-            <p className="max-w-[340px] text-body text-silver">
-              Agentes de inteligencia artificial para negocios que atienden personas: clínicas, consultorios y
-              estéticas.
-            </p>
-            {[
-              { titulo: "Producto", links: PRODUCTO },
-              { titulo: "Cuenta", links: CUENTA },
-            ].map((grupo) => (
-              <nav key={grupo.titulo} aria-label={grupo.titulo}>
-                <p className="eyebrow-plain">{grupo.titulo}</p>
-                <ul className="mt-2">
-                  {grupo.links.map((l) => (
-                    <li key={l.href}>
-                      <Link href={l.href} className="btn-ghost">
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            ))}
+    <footer className="pie-sitio">
+      <div className="pie-sitio__arriba">
+        <div className="pie-sitio__marca">
+          <Link href="/" className="pie-sitio__logo" aria-label="Atendel, inicio">
+            <Marca className="pie-sitio__logo-marca" />
+            <span aria-hidden="true">Atendel</span>
+          </Link>
+          <p className="pie-sitio__lema">
+            Lola, Clara, Víctor e Iris: cuatro agentes de IA para la recepción y la oficina de tu clínica, consultorio o
+            estética.
+          </p>
+          <p className="pie-sitio__sello">Entras con tu correo · sin contraseña</p>
+        </div>
+
+        <nav className="pie-sitio__columnas" aria-label="Pie de página">
+          {COLUMNAS.map((c) => (
+            <div key={c.titulo} className="pie-sitio__columna">
+              <h2 className="pie-sitio__titulo" id={`pie-${c.titulo.toLowerCase()}`}>
+                {c.titulo}
+              </h2>
+              <ul className="pie-sitio__lista" aria-labelledby={`pie-${c.titulo.toLowerCase()}`}>
+                {c.enlaces.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="pie-sitio__enlace">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </div>
+
+      <div className="pie-sitio__franja">
+        <div className="pie-sitio__franja-fila">
+          <div className="pie-sitio__legal">
+            <Marca className="pie-sitio__franja-marca" />
+            <p className="pie-sitio__derechos">© {new Date().getFullYear()} Atendel</p>
+            <ul className="pie-sitio__franja-enlaces" aria-label="Ayuda y datos">
+              {FRANJA.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="pie-sitio__enlace pie-sitio__enlace--chico">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="mt-16 flex items-center justify-between font-cond text-base tracking-[0.03em] text-ash">
-            <span>© {new Date().getFullYear()} Atendel</span>
-            <span>Agentes de IA</span>
-          </div>
+          <BotonTema variante="selector" />
         </div>
       </div>
-      <p
-        className="editorial pointer-events-none mt-10 select-none text-center text-[27vw] leading-[0.78] tracking-[-0.03em] text-bone"
-        aria-hidden="true"
-      >
-        atendel
-      </p>
     </footer>
   );
 }

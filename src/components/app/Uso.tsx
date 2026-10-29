@@ -1,31 +1,31 @@
 import Link from "next/link";
+import { BarraProgreso } from "@/components/base/BarraProgreso";
 import type { Plan } from "@/lib/planes";
 
-/** Cuántos mensajes llevas este mes, con una línea que se va llenando. */
+const formato = new Intl.NumberFormat("es-MX");
+
+/**
+ * Cuántos mensajes llevas este mes, con la barra de progreso de la base
+ * (ámbar desde el 80%, rojo al tope; el color nunca va solo: hay texto).
+ * Lo usan "Agentes" del panel y la lista del chat (`compacto`).
+ * El plan no se cambia desde aquí: "Ver los planes" solo informa.
+ */
 export function Uso({ usados, plan, compacto = false }: { usados: number; plan: Plan; compacto?: boolean }) {
-  const proporcion = Math.min(1, usados / plan.mensajesMes);
-  const casi = proporcion >= 0.85;
+  const restantes = Math.max(0, plan.mensajesMes - usados);
   return (
-    <div className={compacto ? "" : "border-t hairline pt-4"}>
-      <div
-        className={`flex text-[0.8125rem] ${compacto ? "flex-col items-start gap-1" : "items-baseline justify-between gap-4"}`}
-      >
-        <span className="text-ash">
-          <span className={`tabular-nums ${casi ? "text-signal" : "text-bone"}`}>{usados.toLocaleString("es-MX")}</span> de{" "}
-          {plan.mensajesMes.toLocaleString("es-MX")} mensajes este mes
-        </span>
-        {plan.id !== "max" ? (
-          <Link href="/#planes" className="uppercase tracking-[0.04em] text-silver underline-offset-4 hover:text-bone hover:underline">
-            Mejorar plan
-          </Link>
-        ) : null}
-      </div>
-      <span className="mt-2 block h-px w-full bg-bone/15" aria-hidden="true">
-        <span
-          className={`block h-px ${casi ? "bg-signal" : "bg-bone"}`}
-          style={{ width: `${Math.max(proporcion * 100, usados > 0 ? 2 : 0)}%` }}
-        />
-      </span>
+    <div className={`uso${compacto ? " uso--compacto" : ""}`}>
+      <BarraProgreso
+        etiqueta="Mensajes este mes"
+        valor={usados}
+        max={plan.mensajesMes}
+        unidad="mensajes"
+        detalle={usados >= plan.mensajesMes ? "Llegaste al tope de tu plan este mes." : `Te quedan ${formato.format(restantes)}.`}
+      />
+      {plan.id !== "max" ? (
+        <Link href="/precios" className="dash-enlace dash-enlace--chico uso__planes">
+          Ver los planes
+        </Link>
+      ) : null}
     </div>
   );
 }

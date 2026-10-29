@@ -2,31 +2,30 @@
 
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon } from "@hugeicons/core-free-icons";
-import { TriSpinner } from "@/components/Buttons";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
-import SwipeRow from "@/components/SwipeRow";
 import { NavApp } from "@/components/app/NavApp";
 import { Uso } from "@/components/app/Uso";
 import { Personaje } from "@/components/agentes/Personaje";
+import { claseBotonBase } from "@/components/base/Boton";
+import { Giro, Icono } from "@/components/base/Iconos";
+import { Deslizable } from "@/components/chat/Deslizable";
 import {
-  Caras,
+  Atajos,
+  Avatar,
   Dia,
   Escribiendo,
-  IconoCerrar,
-  IconoLista,
-  IconoMas,
+  Hilo,
   MensajeAgente,
   MensajeTuyo,
   NuevoGrupo,
+  PilaAvatares,
   Sistema,
   nombres,
 } from "@/components/chat/Piezas";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
-import { PLAN_POR_ID, type IdPlan } from "@/lib/planes";
+import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 
 export type Conversacion = {
@@ -88,14 +87,7 @@ const integrantes = (c: Conversacion): IdAgente[] | null => {
   return p.length >= 2 ? p : null;
 };
 
-function Candado() {
-  return (
-    <svg className="h-3 w-3 shrink-0" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <rect x="2.5" y="6" width="9" height="6.5" rx="1.5" stroke="currentColor" />
-      <path d="M4.5 6V4.2a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" />
-    </svg>
-  );
-}
+const Candado = () => <Icono nombre="candado" tam={16} />;
 
 /**
  * Chat con los agentes, como una app de mensajería: a la izquierda tus
@@ -111,6 +103,7 @@ export function Chat({
   conversacionesIniciales,
   agenteInicial,
   conversacionInicial,
+  textoInicial,
 }: {
   email: string;
   planId: IdPlan;
@@ -119,6 +112,8 @@ export function Chat({
   conversacionesIniciales: Conversacion[];
   agenteInicial: IdAgente;
   conversacionInicial: string | null;
+  /** Lo que se pidió desde la caja del Resumen: llega escrito, listo para enviar. */
+  textoInicial?: string;
 }) {
   const plan = PLAN_POR_ID[planId];
   const [agente, setAgente] = useState<IdAgente>(agenteInicial);
@@ -133,7 +128,6 @@ export function Chat({
   const [usados, setUsados] = useState(usadosIniciales);
   const [lista, setLista] = useState(false); // lista de chats en celular
   const [aviso, setAviso] = useState<string | null>(null);
-  const [reintentos, setReintentos] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortar = useRef<AbortController | null>(null);
   const pegado = useRef(true); // ¿la vista está hasta abajo?
@@ -222,13 +216,12 @@ export function Chat({
     return () => window.removeEventListener("keydown", tecla);
   }, [lista]);
 
-  /** Con la ✕ pregunta antes; al deslizar la fila hasta el fondo ya es la confirmación. */
-  async function borrar(c: Conversacion, preguntar = true) {
-    if (preguntar && !window.confirm(`¿Borrar "${c.titulo}"?`)) return;
+  /** Deslizar (o la ✕): pregunta antes de borrar. */
+  async function borrar(c: Conversacion) {
+    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return;
     const { error } = await createClient().from("conversaciones").delete().eq("id", c.id);
     if (error) {
       setAviso("No se pudo borrar la conversación.");
-      setReintentos((n) => n + 1); // la fila deslizada vuelve a aparecer
       return;
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
@@ -352,7 +345,7 @@ export function Chat({
     key: id,
     name: AGENTE_POR_ID[id].nombre,
     description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
-    icon: <Personaje agente={id} avatar className="h-5 w-5" />,
+    icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
   }));
   const sugerencias = grupo ? grupo.slice(0, 3).map((id) => AGENTE_POR_ID[id].sugerencias[0]) : info.sugerencias;
   const gruposGuardados = conversaciones.filter((c) => integrantes(c));
@@ -361,37 +354,21 @@ export function Chat({
   const filaConversacion = (c: Conversacion) => {
     const ids = integrantes(c) ?? [c.agente];
     return (
-      <li key={c.id} className="group relative">
-        <SwipeRow
-          key={`${c.id}-${reintentos}`}
-          label={c.titulo}
-          actions={[{ id: "borrar", label: "Borrar", icon: <HugeiconsIcon icon={Delete02Icon} size={18} strokeWidth={1.8} /> }]}
-          onCommit={() => borrar(c, false)}
-          actionColor="#e5484d"
-          drawerColor="var(--chat-barra)"
-          rowColor="var(--chat-barra)"
-          textColor="var(--color-bone-white)"
-          height={68}
-          radius={16}
-          actionWidth={76}
-          className="chat-app__deslizar"
-        >
-          <button type="button" className="chat-app__conv h-full" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
-            <Caras agentes={ids} tam={44} />
-            <span className="min-w-0 flex-1">
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="truncate text-[0.9375rem] font-medium text-bone">{c.titulo}</span>
-                <span className="shrink-0 text-[0.75rem] tabular-nums text-ash">{cuando(c.actualizado_en)}</span>
+      <li key={c.id}>
+        <Deslizable etiqueta={c.titulo} alBorrar={() => borrar(c)}>
+          <button type="button" className="chat__conv" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
+            <PilaAvatares agentes={ids} tam={ids.length > 1 ? 28 : 40} />
+            <span className="chat__conv-texto">
+              <span className="chat__conv-linea">
+                <span className="chat__conv-nombre">{c.titulo}</span>
+                <span className="chat__conv-hora">{cuando(c.actualizado_en)}</span>
               </span>
-              <span className="mt-0.5 block truncate text-[0.8125rem] text-ash">
-                {ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}
+              <span className="chat__conv-linea">
+                <span className="chat__conv-previa">{ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}</span>
               </span>
             </span>
           </button>
-          <button type="button" className="chat-app__borrar" aria-label={`Borrar ${c.titulo}`} onClick={() => borrar(c)}>
-            <IconoCerrar />
-          </button>
-        </SwipeRow>
+        </Deslizable>
       </li>
     );
   };
@@ -399,59 +376,52 @@ export function Chat({
   return (
     <>
       <NavApp email={email} />
-      <div className="chat-app chat-app--pantalla fixed inset-x-0 bottom-0 top-[72px]">
+      <div className="chat chat--panel" data-lenis-prevent>
         {/* ---------- Agentes, grupos y conversaciones ---------- */}
-        <aside className="chat-app__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
-          <div className="flex items-center justify-between px-5 pb-4 pt-6 sm:px-6">
-            <p className="text-[1.125rem] font-medium tracking-[-0.01em]">Chats</p>
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(false)} aria-label="Cerrar la lista">
-              <IconoCerrar />
-            </button>
-          </div>
-          <div className="px-4 sm:px-5">
+        <aside className="chat__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
+          <div className="chat__barra-cabeza">
+            <p className="chat__barra-titulo">Tu equipo</p>
             {puedeGrupos ? (
               <button
                 type="button"
-                className="chat-app__nuevo"
+                className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`}
                 onClick={() => {
                   setCreando(true);
                   setLista(false);
                 }}
               >
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <IconoMas />
-                </span>
+                <Icono nombre="mas" tam={16} />
                 Nuevo grupo
               </button>
             ) : (
-              <Link href="/#planes" className="chat-app__nuevo chat-app__nuevo--bloqueado">
-                <span className="chat-app__nuevo-mas" aria-hidden="true">
-                  <Candado />
-                </span>
-                Grupos con Atendel One
+              <Link href="/precios" className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`} title="Los grupos vienen con Atendel One">
+                <Candado />
+                Grupos con One
               </Link>
             )}
+            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setLista(false)} aria-label="Cerrar la lista">
+              <Icono nombre="cerrar" tam={16} />
+            </button>
           </div>
 
-          <div className="chat-app__listas">
-            <p className="chat-app__seccion">Tu equipo</p>
-            <ul>
+          <div className="chat__listas" data-lenis-prevent>
+            <p className="chat__seccion">Agentes</p>
+            <ul className="chat__lista">
               {AGENTES_INFO.map((a) => {
                 const activo = activos.includes(a.id);
                 const elegido = a.id === agente && !grupo && !actual;
                 const contenido = (
                   <>
-                    <Caras agentes={[a.id]} tam={44} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.9375rem] font-medium text-bone">{a.nombre}</span>
-                      <span className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-ash">
-                        {activo ? (
-                          `${a.area} · ${a.abarca}`
-                        ) : (
-                          <>
-                            <Candado /> Con Atendel One
-                          </>
-                        )}
+                    <PilaAvatares agentes={[a.id]} tam={40} />
+                    <span className="chat__conv-texto">
+                      <span className="chat__conv-linea">
+                        <span className="chat__conv-nombre">{a.nombre}</span>
+                      </span>
+                      <span className="chat__conv-linea">
+                        <span className="chat__conv-previa">
+                          {activo ? `${a.area} · ${a.abarca}` : `Con ${planMinimo(a.id).nombre}`}
+                        </span>
+                        {activo ? null : <Candado />}
                       </span>
                     </span>
                   </>
@@ -459,11 +429,11 @@ export function Chat({
                 return (
                   <li key={a.id}>
                     {activo ? (
-                      <button type="button" className="chat-app__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
+                      <button type="button" className="chat__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
                         {contenido}
                       </button>
                     ) : (
-                      <Link href="/#planes" className="chat-app__conv opacity-50" title="Disponible con Atendel One">
+                      <Link href="/precios" className="chat__conv chat__conv--bloqueada" title={`Disponible con ${planMinimo(a.id).nombre}`}>
                         {contenido}
                       </Link>
                     )}
@@ -474,27 +444,29 @@ export function Chat({
 
             {gruposGuardados.length ? (
               <>
-                <p className="chat-app__seccion">Grupos</p>
-                <ul>{gruposGuardados.map(filaConversacion)}</ul>
+                <p className="chat__seccion">Grupos</p>
+                <ul className="chat__lista">{gruposGuardados.map(filaConversacion)}</ul>
               </>
             ) : null}
 
-            <p className="chat-app__seccion">Conversaciones</p>
+            <p className="chat__seccion">Conversaciones</p>
             {chatsGuardados.length ? (
-              <ul>{chatsGuardados.map(filaConversacion)}</ul>
+              <ul className="chat__lista">{chatsGuardados.map(filaConversacion)}</ul>
             ) : (
-              <p className="px-3 text-[0.8125rem] text-ash">Aquí aparecerán tus conversaciones.</p>
+              <p className="chat__vacia-lista">Aquí aparecerán tus conversaciones.</p>
             )}
           </div>
 
-          <div className="chat-app__plan">
-            <p className="mb-2 text-[0.8125rem] font-medium text-bone">{plan.nombre}</p>
+          <div className="chat__plan">
             <Uso usados={usados} plan={plan} compacto />
+            <Link href="/panel/agentes#plan" className="chat__cta">
+              Tu cuenta · {plan.nombre}
+            </Link>
           </div>
         </aside>
         <button
           type="button"
-          className="chat-app__velo md:hidden"
+          className="chat__velo"
           data-abierta={lista ? "" : undefined}
           onClick={() => setLista(false)}
           aria-hidden="true"
@@ -502,19 +474,17 @@ export function Chat({
         />
 
         {/* ---------- Conversación abierta ---------- */}
-        <section className="chat-app__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
-          <header className="chat-app__cabeza">
-            <button type="button" className="chat-app__icono md:hidden" onClick={() => setLista(true)} aria-label="Ver chats">
-              <IconoLista />
+        <section className="chat__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
+          <header className="chat__cabeza">
+            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setLista(true)} aria-label="Ver chats">
+              <Icono nombre="mensaje" tam={20} />
             </button>
-            <Caras agentes={participantes} tam={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[1rem] font-medium leading-tight">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
-              <p className="truncate text-[0.8125rem] leading-snug text-ash" aria-live="polite">
+            <PilaAvatares agentes={participantes} tam={32} />
+            <div className="chat__cabeza-texto">
+              <p className="chat__cabeza-titulo">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
+              <p className="chat__cabeza-sub" aria-live="polite">
                 {enCurso ? (
-                  <span className="chat-app__escribe">
-                    {grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "escribiendo…"}
-                  </span>
+                  <span className="chat__escribe">{grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "Escribiendo…"}</span>
                 ) : grupo ? (
                   `Grupo · ${nombres(grupo)}`
                 ) : (
@@ -523,8 +493,12 @@ export function Chat({
               </p>
             </div>
             {actual ? (
-              <button type="button" className="chat-app__probar inline-flex" onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}>
-                <IconoMas />
+              <button
+                type="button"
+                className={`${claseBotonBase("fantasma", "chico")} chat__accion-cabeza`}
+                onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}
+              >
+                <Icono nombre="mas" tam={16} />
                 Nueva
               </button>
             ) : null}
@@ -532,48 +506,51 @@ export function Chat({
 
           <div
             ref={scrollRef}
-            className="chat-app__mensajes"
+            className="chat__mensajes"
+            data-lenis-prevent
             onScroll={(e) => {
               const el = e.currentTarget;
               pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
             }}
           >
-            <div className="mx-auto flex min-h-full w-full max-w-[880px] flex-col">
-              {cargando ? (
-                <p className="m-auto flex items-center gap-2 text-[0.875rem] text-ash">
-                  <TriSpinner className="h-3 w-3" /> Abriendo conversación…
+            {cargando ? (
+              <Hilo>
+                <p className="chat__cargando" role="status">
+                  <Giro /> Abriendo conversación…
                 </p>
-              ) : mensajes.length === 0 ? (
-                <div className="chat-app__vacio">
-                  {grupo ? <Caras agentes={grupo} tam={92} /> : <Personaje agente={agente} className="h-28 w-28" />}
-                  <p className="mt-6 text-[1.75rem] font-medium leading-tight tracking-[-0.02em] sm:text-[2rem]">
-                    {grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}
+              </Hilo>
+            ) : mensajes.length === 0 ? (
+              <div className="chat__vacio">
+                {grupo ? <PilaAvatares agentes={grupo} tam={40} /> : <Avatar agente={agente} tam={64} />}
+                <p className="chat__vacio-titulo">{grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}</p>
+                <p className="chat__vacio-texto">
+                  {grupo
+                    ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se pasan el trabajo entre ellos. Usa @ para pedirle algo a alguien en especial.`
+                    : info.lema}
+                </p>
+                {disponible ? (
+                  <div className="chat__vacio-sugerencias">
+                    {sugerencias.map((s) => (
+                      <button key={s} type="button" className="chat__sugerencia chat__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="chat__vacio-texto">
+                    {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
+                    <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"}>
+                      {!participantes.every((id) => plan.agentes.includes(id))
+                        ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
+                        : "Agrégalo en Mis agentes"}
+                    </Link>
+                    .
                   </p>
-                  <p className="mt-3 max-w-[460px] text-[0.9375rem] leading-relaxed text-silver">
-                    {grupo
-                      ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se complementan entre ellos. Usa @ para pedirle algo a alguien en especial.`
-                      : info.lema}
-                  </p>
-                  {disponible ? (
-                    <div className="mt-8 flex max-w-[620px] flex-wrap justify-center gap-2">
-                      {sugerencias.map((s) => (
-                        <button key={s} type="button" className="chat-app__sugerencia chat-app__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-8 text-[0.9375rem] text-silver">
-                      {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                      <Link href={planId === "free" ? "/#planes" : "/panel/agentes"} className="text-bone underline underline-offset-4">
-                        {planId === "free" ? "Desbloquéalo con Atendel One" : "Agrégalo en Mis agentes"}
-                      </Link>
-                      .
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="chat-app__hilo" role="log" aria-live="polite">
+                )}
+              </div>
+            ) : (
+              <Hilo>
+                <div role="log" aria-live="polite" className="chat__log">
                   {visibles.map((p, i) => {
                     const antes = visibles[i - 1];
                     const despues = visibles[i + 1];
@@ -584,7 +561,7 @@ export function Chat({
                     let pieza;
                     if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
                     else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
-                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error {...fila} />;
+                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error nueva={p.nuevo} />;
                     else
                       pieza = (
                         <MensajeAgente
@@ -595,7 +572,7 @@ export function Chat({
                           hora={p.enCurso ? undefined : fila.hora}
                           pie={
                             p.error ? (
-                              <p role="alert" className="chat-app__error">
+                              <p role="alert" className="chat__error">
                                 {p.error}
                               </p>
                             ) : !p.enCurso && ultimo ? (
@@ -612,29 +589,27 @@ export function Chat({
                     );
                   })}
                 </div>
-              )}
-              {aviso ? (
-                <p role="alert" className="chat-app__fila chat-app__sistema chat-app__sistema--error">
-                  <span>{aviso}</span>
-                </p>
-              ) : null}
-            </div>
+                {aviso ? <Sistema texto={aviso} error /> : null}
+              </Hilo>
+            )}
+            {aviso && (cargando || mensajes.length === 0) ? (
+              <p role="alert" className="chat__aviso chat__error">
+                {aviso}
+              </p>
+            ) : null}
           </div>
 
-          <div className="chat-app__pie mx-auto w-full max-w-[944px] pb-[max(18px,env(safe-area-inset-bottom))]">
+          <div className="chat__pie">
             {sinMensajes ? (
-              <p className="mb-3 text-center text-[0.875rem] text-silver">
-                Llegaste a los {plan.mensajesMes} mensajes de este mes.{" "}
-                <Link href="/#planes" className="text-bone underline underline-offset-4">
-                  Ver planes
-                </Link>
+              <p className="chat__aviso">
+                Llegaste a los {plan.mensajesMes} mensajes de este mes. <Link href="/precios">Ver planes</Link>
               </p>
             ) : null}
             {disponible && !sinMensajes ? (
               <PromptBar
                 key={grupo ? grupo.join("-") : agente}
-                className="prompt-bar--suave"
-                placeholder={grupo ? "Escribe al grupo · @ para mencionar, / para acciones" : `Escríbele a ${info.nombre} · / para acciones`}
+                initialText={textoInicial}
+                placeholder={grupo ? "Pídele algo a tu equipo…" : `Pídele algo a ${info.nombre}…`}
                 sources={fuentes}
                 commands={comandosDe(participantes)}
                 models={[]}
@@ -642,15 +617,11 @@ export function Chat({
                 busy={enviando}
                 onSend={(t) => enviar(t)}
                 onStop={() => abortar.current?.abort()}
-                background="var(--chat-campo)"
-                color="var(--color-bone-white)"
-                menuBackground="var(--chat-menu)"
-                width={4000}
-                radius={22}
                 maxRows={8}
               />
             ) : null}
-            <p className="mt-3 text-center text-[0.75rem] text-ash">
+            <Atajos />
+            <p className="chat__legal">
               {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
             </p>
           </div>
@@ -676,7 +647,7 @@ function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
   return (
     <button
       type="button"
-      className={`chat-app__copiar${fijo ? " chat-app__copiar--fijo" : ""}`}
+      className={`chat__copiar${fijo ? " chat__copiar--fijo" : ""}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(texto);

@@ -12,6 +12,6 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#000000",
     lang: "es",
     // Los íconos se agregan cuando el logo esté decidido
-    icons: [],
+    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }
