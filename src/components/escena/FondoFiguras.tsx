@@ -78,8 +78,10 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-escena]")).filter((el) => esEscenaFiguras(el.dataset.escena));
       if (!secciones.length) return null;
       const y = window.scrollY;
+      // Ninguna escena puede reposar más abajo de donde llega el scroll (si no, la última nunca termina)
+      const maximo = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
       const anclas = secciones
-        .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: el.getBoundingClientRect().top + y }))
+        .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: Math.min(maximo, el.getBoundingClientRect().top + y) }))
         .sort((a, b) => a.top - b.top);
       if (y <= anclas[0].top) return anclas[0].i;
       for (let k = 0; k < anclas.length - 1; k++) {

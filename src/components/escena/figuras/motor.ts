@@ -139,19 +139,19 @@ function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
  * del texto: a los 2.0 s ya giró 18° cuando el texto apenas bajó 12 px.
  */
 export const CEREBRO_A: Llave[] = [
-  [0.0, C(847.5, 378, 320, -90, 0, 0, 8.27)],
-  [0.01, C(831.5, 376.5, 320, -72, 0, 0, 8.27)],
-  [0.028, C(810.5, 375.5, 320, -55, 0, 0, 8.3)],
-  [0.062, C(776.5, 375, 320.5, -42, 0, 0, 8.35)],
-  [0.108, C(732, 375.5, 324, -35, 0, 0, 8.4)],
-  [0.165, C(676, 377.5, 332, -27, 0, 0, 8.5)],
-  [0.232, C(620, 377, 340, -14, 0, 0, 8.6)],
-  [0.31, C(560, 376, 348.5, -2, 1, 0, 8.7)],
-  [0.391, C(498.5, 374, 354, 3, 2, 0, 8.85)],
-  [0.477, C(428.5, 372, 358, 7, 3, 0, 9.0)],
-  [0.65, C(335, 377, 382, 18, 4, 0, 9.13)],
-  [0.82, C(290, 380, 395, 26, 7, 0, 9.57)],
-  [1.0, C(295, 386, 400, 32, 9, 0, 9.74)],
+  [0.0, C(847.5, 378, 320, -90, 0, 0, 9.26)],
+  [0.01, C(831.5, 376.5, 320, -72, 0, 0, 9.26)],
+  [0.028, C(810.5, 375.5, 320, -55, 0, 0, 9.3)],
+  [0.062, C(776.5, 375, 320.5, -42, 0, 0, 9.35)],
+  [0.108, C(732, 375.5, 324, -35, 0, 0, 9.41)],
+  [0.165, C(676, 377.5, 332, -27, 0, 0, 9.52)],
+  [0.232, C(620, 377, 340, -14, 0, 0, 9.63)],
+  [0.31, C(560, 376, 348.5, -2, 1, 0, 9.74)],
+  [0.391, C(498.5, 374, 354, 3, 2, 0, 9.91)],
+  [0.477, C(428.5, 372, 358, 7, 3, 0, 10.08)],
+  [0.65, C(335, 377, 382, 18, 4, 0, 10.23)],
+  [0.82, C(290, 380, 395, 26, 7, 0, 10.72)],
+  [1.0, C(295, 386, 400, 32, 9, 0, 10.91)],
 ];
 /**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
@@ -159,14 +159,14 @@ export const CEREBRO_A: Llave[] = [
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
  */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(295, 386, 400, 32, 9, 0, 9.74)],
-  [0.25, C(405, 395, 425, 52, 18, 0, 9.92)],
-  [0.45, C(500, 425, 460, 66, 30, 0, 10.09)],
-  [0.7, C(550, 470, 490, 76, 44, 0, 10.27)],
-  [1.0, C(570, 530, 506.1, 82, 52, 0, 10.44)],
+  [0.0, C(295, 386, 400, 32, 9, 0, 10.91)],
+  [0.25, C(405, 395, 425, 52, 18, 0, 11.11)],
+  [0.45, C(500, 425, 460, 66, 30, 0, 11.3)],
+  [0.7, C(550, 470, 490, 76, 44, 0, 11.5)],
+  [1.0, C(570, 530, 506.1, 82, 52, 0, 11.69)],
 ];
-export const FOCO: Colocacion = C(318, 312, 243, -12, 6, 28, 7);
-export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 7);
+export const FOCO: Colocacion = C(310, 312, 238, -16, 6, 29, 6.4);
+export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 6.4);
 /** Globo: círculo ajustado al borde del video (centro 857, 488; radio ~372) y giro que iguala los continentes. */
 export const GLOBO: Colocacion = C(857, 488, 368, -23, 0, -9, 9.2);
 export const GLOBO_SUBE: Colocacion = C(830, 300, 380, -20, 0, -9, 9.2);
@@ -174,16 +174,19 @@ export const GLOBO_SUBE: Colocacion = C(830, 300, 380, -20, 0, -9, 9.2);
 export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
 
 /** Qué tanto brilla cada figura (medido: el pico de un triangulito del cerebro es ~122 de 255). */
-/** El cerebro del video es transparente: los triangulitos de atrás se ven, más tenues. */
-const ATRAS_CEREBRO = 0.5;
-
 /**
  * Cuánto copia cada partícula la velocidad de su lugar (1 = sin retraso): cuando la figura
  * solo se mueve o gira, va pegada al scroll; en los cambios, el resorte da la llegada suave.
  */
 const SEGUIR = 0.9;
 
-const LUZ = { cerebro: 0.6, foco: 0.62, globo: 0.68, marca: 0.72 };
+const LUZ = { cerebro: 0.8, foco: 0.7, globo: 0.68, marca: 0.72 };
+
+/** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
+type Volumen = { atras: number; prof: number; radio: number };
+const VOL_CEREBRO: Volumen = { atras: 0.32, prof: 1, radio: 1 };
+/** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
+const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
 /* ---------------------------------------------------------------------- */
 /* Polvo (en fracciones de la pantalla)                                    */
@@ -220,11 +223,13 @@ function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, 
       return [x, y, vis < 0.012 + 0.03 * (1 - x) * (1 - y) ? 1 : 0];
     }
     case "centro": {
+      // Nube redonda al centro (como el polvo del video a los 15.0 s), más densa en medio
       const dx = hx * 2 - 1;
       const dy = hy * 2 - 1;
       const r = Math.max(Math.abs(dx), Math.abs(dy));
-      const k = r > 0 ? Math.pow(r, 1.5) / r : 0;
-      return [0.47 + dx * k * 0.34, 0.45 + dy * k * 0.42, vis < 0.03 + 0.12 * (1 - r) ? 1 : 0];
+      const a = Math.atan2(dy, dx);
+      const rr = Math.pow(r, 1.15);
+      return [0.47 + Math.cos(a) * rr * 0.3, 0.45 + Math.sin(a) * rr * 0.4, vis < 0.04 + 0.08 * (1 - r) ? 1 : 0];
     }
   }
 }
@@ -234,7 +239,8 @@ function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, 
 /* ---------------------------------------------------------------------- */
 
 type Objetivo = { x: Float32Array; y: Float32Array; r: Float32Array; g: Float32Array; b: Float32Array; a: Float32Array; t: Float32Array; m: Float32Array };
-type Proy = { x: Float32Array; y: Float32Array; f: Float32Array; nz: Float32Array; fr: Float32Array };
+/** Proyección: lugar en pantalla, perspectiva, normal vista desde la cámara (x a la derecha, y arriba, z hacia ti) y profundidad. */
+type Proy = { x: Float32Array; y: Float32Array; f: Float32Array; nz: Float32Array; fr: Float32Array; nx: Float32Array; ny: Float32Array; z: Float32Array };
 
 /** Tetraedro grande: lugar en la pantalla del video cuando el scroll del video vale `ancla`; k = paralaje. */
 type TetraGrande = { x: number; y: number; ancla: number; k: number; tam: number; color: string; alfa: number; g0: number[]; gv: number[] };
@@ -399,8 +405,8 @@ export class MotorFiguras {
     const objetivo = (): Objetivo => ({ x: f32(), y: f32(), r: f32(), g: f32(), b: f32(), a: f32(), t: f32(), m: f32() });
     this.o1 = objetivo();
     this.o2 = objetivo();
-    this.pr = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32() };
-    this.pr2 = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32() };
+    this.pr = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32(), nx: f32(), ny: f32(), z: f32() };
+    this.pr2 = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32(), nx: f32(), ny: f32(), z: f32() };
 
     this.formas = { cerebro: cerebro(N), foco: null, globo: null, marca: null };
 
@@ -485,8 +491,9 @@ export class MotorFiguras {
     const s = this.s;
     const S = c.escala * s;
     const D = 2300 * s; // distancia de la cámara (perspectiva moderada)
-    const yaw = c.yaw * G + Math.sin(this.reloj * 0.21) * 0.02;
-    const pitch = c.pitch * G + Math.sin(this.reloj * 0.17 + 1) * 0.012;
+    // Giro lento y continuo (la figura "respira" girando apenas, como en el video)
+    const yaw = c.yaw * G + Math.sin(this.reloj * 0.26) * 0.055;
+    const pitch = c.pitch * G + Math.sin(this.reloj * 0.19 + 1) * 0.02;
     const roll = c.roll * G;
     const cy = Math.cos(yaw);
     const sy = Math.sin(yaw);
@@ -518,6 +525,9 @@ export class MotorFiguras {
       out.f[i] = f;
       out.nz[i] = nz2;
       out.fr[i] = Math.min(1, Math.hypot(nx1, ny2));
+      out.nx[i] = nx1 * cr - ny2 * sr;
+      out.ny[i] = nx1 * sr + ny2 * cr;
+      out.z[i] = z2;
     }
   }
 
@@ -548,7 +558,17 @@ export class MotorFiguras {
    * Una figura en 3D en el objetivo O. Las partículas de sobra (alfa 0) quedan
    * como polvo del reparto `sobra`.
    */
-  private figura(O: Objetivo, F: Forma, c0: Colocacion, color: (i: number, pr: Proy) => Color, ocultarAtras: number, sobra: Campo, pr: Proy, luz = 1) {
+  private figura(
+    O: Objetivo,
+    F: Forma,
+    c0: Colocacion,
+    color: (i: number, pr: Proy) => Color,
+    ocultarAtras: number,
+    sobra: Campo,
+    pr: Proy,
+    luz = 1,
+    volumen: Volumen | null = null,
+  ) {
     const c = this.adaptar(c0);
     this.actual = c;
     if (this.vertical) luz *= 0.8;
@@ -559,9 +579,18 @@ export class MotorFiguras {
         this.polvo(O, i, sobra);
         continue;
       }
-      // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
       const nz = pr.nz[i];
-      const atras = ocultarAtras > 0 ? (1 - ocultarAtras * (1 - suave(-0.12, 0.22, nz))) * (1 - ocultarAtras * 0.4 * (1 - suave(0.0, 0.42, nz))) : 1;
+      let atras: number;
+      let tam = 1;
+      if (volumen) {
+        // Volumen: lo de enfrente más grande y brillante; lo de atrás se ve a través, tenue y chico
+        const prof = Math.min(1, Math.max(0, (pr.z[i] / volumen.radio + 1) / 2));
+        atras = (volumen.atras + (1 - volumen.atras) * suave(-0.2, 0.15, nz)) * (1 - volumen.prof * 0.55 * (1 - prof));
+        tam = 1 + volumen.prof * 0.55 * (prof - 0.5);
+      } else {
+        // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
+        atras = ocultarAtras > 0 ? (1 - ocultarAtras * (1 - suave(-0.12, 0.22, nz))) * (1 - ocultarAtras * 0.4 * (1 - suave(0.0, 0.42, nz))) : 1;
+      }
       const cc = color(i, pr);
       O.x[i] = pr.x[i];
       O.y[i] = pr.y[i];
@@ -569,7 +598,7 @@ export class MotorFiguras {
       O.g[i] = cc[1];
       O.b[i] = cc[2];
       O.a[i] = F.alfa[i] * atras * luz;
-      O.t[i] = c.tam * s * F.tam[i] * pr.f[i];
+      O.t[i] = c.tam * s * F.tam[i] * pr.f[i] * tam;
       O.m[i] = 0;
     }
   }
@@ -590,21 +619,42 @@ export class MotorFiguras {
 
   /* ---------- Colores con brillo de orilla ---------- */
 
+  /**
+   * Color del cerebro por orientación y por zona, como en el video (medido por la
+   * dirección hacia la orilla más cercana): ámbar en la orilla y en las caras de abajo
+   * (orilla de abajo ~75 %, derecha ~69 %, arriba ~50 %, frente ~36 %; centro ~23 %),
+   * blanco donde la cara mira a la cámara y a la luz, y zonas verde azulado y violeta
+   * que giran con el cerebro. Cada triangulito elige su color con su propio umbral
+   * (con bordes suaves para que no parpadee al girar).
+   */
   private colorCerebro = (i: number, pr: Proy): Color => {
     const F = this.formas.cerebro;
+    const nx = pr.nx[i];
+    const ny = pr.ny[i];
+    const nz = pr.nz[i];
+    // La orilla es solo la franja de afuera (medido: ~25 px de ~330 → de canto, fr > 0.9)
     const fr = pr.fr[i];
+    const rim = suave(0.86, 0.98, fr);
+    const medio = suave(0.76, 0.92, fr);
+    const abajo = suave(0.2, 0.85, -ny) * medio;
+    const arriba = suave(0.3, 0.9, ny);
+    const izquierda = suave(0.3, 0.9, -nx);
+    const derecha = suave(0.3, 0.9, nx) * medio;
+    const luzBlanca = suave(0.45, 0.95, 0.3 * nx + 0.25 * ny + 0.92 * nz);
+    const pA = Math.min(0.88, 0.13 + (0.22 * medio + 0.26 * rim) * (1 - 0.6 * izquierda) * (1 - 0.15 * arriba) + 0.14 * abajo + 0.14 * derecha);
+    const g = F.grupo[i];
+    const pWrel = (0.45 + 0.35 * (1 - medio) + 0.12 * luzBlanca) * (1 - 0.65 * g);
+    const pW = pA + (1 - pA) * pWrel;
     const u = F.umbral[i];
-    // Medido por distancia a la orilla: ámbar ~52 % en la orilla, ~37 % en medio y ~10 % en el centro;
-    // de color (violeta, coral, rosa, amarillo…) ~23 % en la orilla y ~11 % en el centro; lo demás, blanco.
-    const pa = 0.08 + 0.47 * suave(0.6, 0.97, fr);
-    const pc = 0.1 + 0.12 * suave(0.55, 0.9, fr) + 0.35 * F.grupo[i];
-    const wA = 1 - suave(pa - 0.04, pa + 0.04, u);
-    const wC = (1 - wA) * (1 - suave(pa + pc - 0.04, pa + pc + 0.04, u));
-    const wB = Math.max(0, 1 - wA - wC);
+    const wA = 1 - suave(pA - 0.03, pA + 0.03, u);
+    const wW = (1 - wA) * (1 - suave(pW - 0.03, pW + 0.03, u));
+    const wC = Math.max(0, 1 - wA - wW);
     const o = i * 3;
     const A = PALETA.ambar;
     const B = PALETA.blanco;
-    return [A[0] * wA + F.col[o] * wC + B[0] * wB, A[1] * wA + F.col[o + 1] * wC + B[1] * wB, A[2] * wA + F.col[o + 2] * wC + B[2] * wB];
+    // Luz: lo que mira a la luz brilla más; lo de canto, un poco menos
+    const l = 0.72 + 0.38 * Math.max(luzBlanca, rim * 0.8);
+    return [(A[0] * wA + B[0] * wW + F.col[o] * wC) * l, (A[1] * wA + B[1] * wW + F.col[o + 1] * wC) * l, (A[2] * wA + B[2] * wW + F.col[o + 2] * wC) * l];
   };
 
   private colorFoco = (i: number, pr: Proy): Color => {
@@ -618,11 +668,16 @@ export class MotorFiguras {
     const dx = pr.x[i] - cx;
     const dy = pr.y[i] - cy;
     const d = Math.hypot(dx, dy) || 1;
-    const arco = suave(-0.35, 0.45, (-dx * 0.62 - dy * 0.78) / d);
-    const orilla = suave(0.62, 0.95, pr.fr[i]);
+    const arco = suave(-0.2, 0.55, (-dx * 0.85 - dy * 0.52) / d);
+    const orilla = suave(0.62, 0.97, pr.fr[i]);
     const w = orilla * arco * suave(-0.75, -0.2, y);
     const u = F.umbral[i];
-    return mezcla(base, PALETA.ambar, suave(u - 0.15, u + 0.15, w * 1.15));
+    // Luz de frente, un poco desde arriba a la derecha: reflejo blanco y lado de sombra más tenue
+    const lam = Math.max(0, 0.3 * pr.nx[i] + 0.35 * pr.ny[i] + 0.88 * pr.nz[i]);
+    const conLuz = mezcla(base, PALETA.blanco, suave(0.72, 0.98, lam) * 0.5);
+    const c = mezcla(conLuz, PALETA.ambar, suave(u - 0.15, u + 0.15, w * 1.15));
+    const k = 0.55 + 0.6 * lam + 0.25 * orilla;
+    return [c[0] * k, c[1] * k, c[2] * k];
   };
 
   private colorGlobo = (i: number, pr: Proy): Color => {
@@ -665,14 +720,14 @@ export class MotorFiguras {
     if (seg === 0) {
       // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
       // Al llegar, abajo a la derecha se deshace en una cola de polvo.
-      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
+      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, 0, "suelto", this.pr, LUZ.cerebro, VOL_CEREBRO);
       this.cola(suave(0.82, 1.0, p));
       return;
     }
     if (seg === 1) {
       // Decisiones → caos: el cerebro va al centro, se ve desde arriba y se deshace
       // de abajo hacia arriba hasta llenar la pantalla de polvo.
-      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, ATRAS_CEREBRO, "suelto", this.pr, LUZ.cerebro);
+      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, 0, "suelto", this.pr, LUZ.cerebro, VOL_CEREBRO);
       this.cola(1 - suave(0.0, 0.3, p) * 0.4);
       this.todoPolvo(o2, "caos");
       for (let i = 0; i < N; i++) {
@@ -700,7 +755,7 @@ export class MotorFiguras {
       this.prepararResto();
       this.todoPolvo(o1, "junto");
       if (q <= 0) return;
-      this.figura(o2, fm.foco!, FOCO, this.colorFoco, 0.9, "suelto", this.pr, LUZ.foco);
+      this.figura(o2, fm.foco!, FOCO, this.colorFoco, 0, "suelto", this.pr, LUZ.foco, VOL_FOCO);
       // Se arma del vidrio (arriba) hacia la rosca, con escalonado
       for (let i = 0; i < N; i++) {
         const umbral = fm.foco!.clave[i] * 0.55 + this.azarDes[i] * 0.2;
@@ -712,7 +767,7 @@ export class MotorFiguras {
     if (seg === 3) {
       // Foco → globo: el foco se corre a la derecha y se deshace; el globo se forma a la derecha
       const q = suave(0.05, 0.45, p);
-      this.figura(o1, fm.foco!, entre2(FOCO, FOCO_SALE, suave(0.0, 0.3, p)), this.colorFoco, 0.9, "suelto", this.pr, LUZ.foco);
+      this.figura(o1, fm.foco!, entre2(FOCO, FOCO_SALE, suave(0.0, 0.3, p)), this.colorFoco, 0, "suelto", this.pr, LUZ.foco, VOL_FOCO);
       if (q <= 0) return;
       this.figura(o2, fm.globo!, GLOBO, this.colorGlobo, 1, "suelto", this.pr2, LUZ.globo);
       for (let i = 0; i < N; i++) {
@@ -752,17 +807,29 @@ export class MotorFiguras {
       }
       return;
     }
-    // Planes → cierre: el polvo se junta al centro y forma la marca de Atendel, que
-    // llega girando (como la marca del video) y después sigue girando despacio.
-    // Medido: el polvo se junta hasta los 15.0 s (p 0.79) y la marca se forma de 15.4 a
-    // 16.1 s, cuando el texto ya casi llegó (p 0.97 → 1).
-    const q1 = suave(0.15, 0.7, p);
-    const q2 = suave(0.95, 1.0, p);
+    // Planes → cierre: el polvo se junta al centro y forma la marca de Atendel, que llega
+    // girando y después sigue girando despacio. Todo va atado al scroll y es continuo:
+    // - el polvo se junta de p 0.05 a 0.65 y la marca se arma de p 0.55 a 1, con el mismo
+    //   avance para todas las partículas (apenas escalonado del centro hacia afuera);
+    // - las partículas de la marca ya se ven en la nube, así que al armarse solo se mueven y
+    //   toman su color: no aparecen una por una.
+    // (Antes la marca se armaba en el último 5 % del tramo, los últimos ~40 px de scroll
+    // pegados al final de la página: con el frenado del scroll suave avanzaba a pasitos.)
+    this.prepararResto();
+    const M = fm.marca!;
+    const q1 = suave(0.05, 0.65, p);
+    const q2 = suave(0.55, 1.0, p);
     this.todoPolvo(o1, "planes");
     this.todoPolvo(o2, "centro");
+    const s = this.s;
     for (let i = 0; i < N; i++) {
-      const umbral = this.azarDes[i] * 0.4;
-      this.mezclar(i, suave(umbral, umbral + 0.6, q1));
+      if (M.alfa[i] > 0) {
+        // En la nube ya va la partícula de la marca (con el color del polvo y su tamaño)
+        o2.a[i] = Math.max(o2.a[i] * 0.6, 0.42 * LUZ.marca);
+        o2.t[i] = MARCA.tam * s * M.tam[i] * 1.1;
+      }
+      const umbral = this.azarDes[i] * 0.2;
+      this.mezclar(i, suave(umbral, umbral + 0.8, q1));
     }
     if (q2 <= 0) return;
     const falta = (1 - q2) * (1 - q2);
@@ -773,10 +840,10 @@ export class MotorFiguras {
       pitch: MARCA.pitch + 3 * Math.sin(t * 0.29 + 1),
       roll: MARCA.roll + 30 * falta,
     };
-    this.figura(o2, fm.marca!, lugar, this.colorMarca, 0, "suelto", this.pr, LUZ.marca);
+    this.figura(o2, M, lugar, this.colorMarca, 0, "suelto", this.pr, LUZ.marca);
     for (let i = 0; i < N; i++) {
-      const umbral = clamp01(fm.marca!.clave[i]) * 0.45 + this.azarDes[i] * 0.3;
-      this.mezclar(i, suave(umbral, umbral + 0.3, q2));
+      const umbral = clamp01(M.clave[i]) * 0.12 + this.azarDes[i] * 0.08;
+      this.mezclar(i, suave(umbral, umbral + 0.8, q2));
     }
   }
 

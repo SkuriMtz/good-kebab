@@ -1,5 +1,27 @@
 # Figuras A — nota
 
+## Cambios pedidos por el dueño (29 oct)
+
+- **Cerebro 3D de verdad** (`hoja-cerebro.jpg`): dos hemisferios hechos de lóbulos (frontal,
+  parietal, occipital, temporal y cerebelo) ajustados a las siluetas del video (IoU 0.90–0.94 de
+  lado, girando y de frente), con surcos donde se juntan los lóbulos, circunvoluciones con ruido,
+  fisura entre hemisferios y tronco. Perspectiva y giro lento; lo de enfrente es más grande y
+  brillante y lo de atrás se ve a través, tenue. Color por orientación y por zona, medido en el
+  video: ámbar en la orilla y en las caras de abajo, blanco donde la cara mira a la luz, y zonas
+  verde azulado y violeta que giran con el cerebro (ya no sale todo ámbar parejo). De lado ya no
+  se ve cuadrado.
+- **Foco 3D** (`hoja-foco.jpg`): vidrio transparente (se ven los triangulitos de atrás, tenues),
+  luz de frente con reflejo blanco y lado de sombra, ámbar solo en la orilla de arriba a la izquierda.
+- **Planes → cierre fluido** (`tira-planes-a-cierre.jpg`). La causa: la marca se armaba solo en el
+  último 5 % del tramo, que son los últimos ~40 px de scroll pegados al final de la página; ahí el
+  scroll suave ya va frenando y llegaba a pasitos (y casi todas las partículas aparecían una por
+  una). Arreglo: el polvo se junta de p 0.05 a 0.65 y la marca se arma de p 0.55 a 1, con un
+  solo avance para todas (apenas escalonado), y las partículas de la marca ya se ven en la nube,
+  así que al armarse solo se mueven. En modo automático ninguna escena reposa más abajo de donde
+  llega el scroll (la última siempre termina). Probado en la página: la posición sube pareja de
+  6.05 a 7.00 al bajar con la rueda.
+
+
 Motor WebGL de la versión 7 (triangulitos como puntos, cada uno un resorte), ahora con
 tetraedros de alambre como en el video, figuras con azar de semilla (siempre iguales) y
 cambios atados al scroll. Laboratorio: `/laboratorio-figuras` (sin índice): botones por

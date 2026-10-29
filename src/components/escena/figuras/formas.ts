@@ -100,6 +100,14 @@ export function ruido(x: number, y: number, z: number) {
   return l(l(l(c(0, 0, 0), c(1, 0, 0), ux), l(c(0, 1, 0), c(1, 1, 0), ux), uy), l(l(c(0, 0, 1), c(1, 0, 1), ux), l(c(0, 1, 1), c(1, 1, 1), ux), uy), uz);
 }
 
+/** Dirección al azar (pareja) sobre la esfera. */
+function direccion(rnd: () => number): [number, number, number] {
+  const u = rnd() * 2 - 1;
+  const a = rnd() * Math.PI * 2;
+  const r = Math.sqrt(1 - u * u);
+  return [r * Math.cos(a), u, r * Math.sin(a)];
+}
+
 /* ---------- Puntos parejos (sin amontonarse): "ruido azul" en 3D ---------- */
 type Candidato = { x: number; y: number; z: number; nx: number; ny: number; nz: number; dato: number };
 
@@ -221,184 +229,150 @@ export function ordenarPorPantalla(xy: [number, number][]): number[] {
 /* Cerebro                                                                 */
 /* ====================================================================== */
 
-/*
- * Perfiles medidos en el video: de lado (portada, 1.0 s) y de frente (2.7 s).
- * Por cada altura (de 0.75 a -0.75): dónde empieza y termina el cerebro de
- * atrás (z negativo) hacia el frente (z positivo), y el medio ancho de frente.
- * Unidad: la mitad del largo del cerebro (334 px en la portada del video).
+/**
+ * El cerebro en 3D: dos hemisferios hechos de lóbulos (frontal, parietal,
+ * occipital y temporal) más el cerebelo y el tronco. Cada lóbulo es un
+ * elipsoide; donde se juntan quedan los surcos (la cisura lateral, el surco
+ * central y la fisura entre hemisferios) y encima van circunvoluciones con
+ * ruido. Las medidas salen de igualar las siluetas del video de lado,
+ * girando y de frente (IoU 0.90-0.94 en cinco poses).
+ * Unidad: la mitad del largo del cerebro (336 px en la portada del video).
+ * Coordenadas: x hacia el hemisferio izquierdo, y hacia arriba, z hacia el frente.
  */
-const C_Y0 = 0.75;
-const C_PASO = 1.5 / 42;
-const C_ATRAS = [
-  -0.383, -0.461, -0.536, -0.584, -0.62, -0.686, -0.722, -0.772, -0.808, -0.823, -0.832, -0.853, -0.883, -0.922, -0.949, -0.967, -0.979, -0.991, -1.006,
-  -1.015, -1.03, -1.033, -1.036, -1.036, -1.036, -1.036, -1.036, -1.036, -1.033, -1.024, -1.012, -1.009, -0.997, -0.985, -0.97, -0.973, -0.97, -0.955,
-  -0.928, -0.916, -0.904, -0.877, -0.832,
+type Lobulo = { c: [number, number, number]; r: [number, number, number]; inc: number };
+/** Lóbulos del hemisferio izquierdo (x > 0); el derecho es su espejo. inc: inclinación en grados (eje x). */
+const LOBULOS: Lobulo[] = [
+  { c: [0.295, 0.04, 0.38], r: [0.56, 0.43, 0.5], inc: -6 }, // frontal
+  { c: [0.285, 0.24, -0.18], r: [0.4, 0.48, 0.76], inc: -15 }, // parietal
+  { c: [0.375, -0.06, -0.63], r: [0.44, 0.44, 0.34], inc: 6 }, // occipital
+  { c: [0.51, -0.36, 0.22], r: [0.34, 0.34, 0.74], inc: -15 }, // temporal
+  { c: [0.39, -0.47, -0.6], r: [0.38, 0.24, 0.4], inc: 16 }, // cerebelo
 ];
-const C_FRENTE = [
-  0.225, 0.323, 0.404, 0.518, 0.578, 0.626, 0.656, 0.701, 0.74, 0.769, 0.799, 0.826, 0.85, 0.874, 0.895, 0.922, 0.943, 0.964, 0.97, 0.97, 0.994, 1.009,
-  1.018, 1.03, 1.03, 1.03, 1.042, 1.051, 1.057, 1.051, 1.03, 1.009, 1.012, 1.009, 1.0, 0.982, 0.955, 0.913, 0.868, 0.716, 0.677, 0.38, 0.308,
-];
-const C_ANCHO = [
-  0.396, 0.492, 0.528, 0.55, 0.565, 0.585, 0.621, 0.657, 0.686, 0.712, 0.745, 0.766, 0.821, 0.875, 0.898, 0.909, 0.906, 0.901, 0.905, 0.915, 0.93, 0.939,
-  0.945, 0.952, 0.958, 0.964, 0.967, 0.975, 0.987, 0.997, 0.994, 0.986, 0.964, 0.919, 0.901, 0.883, 0.857, 0.814, 0.779, 0.743, 0.703, 0.595, 0.444,
-];
-/** Lo que se encoge la orilla de un poco más afuera de la medida (para cerrar arriba y abajo). */
-const C_FIN = 0.03;
 
-function perfilCerebro(y: number): [number, number, number, number] {
-  // [atrás, frente, ancho, escala de cierre]
-  let cierre = 1;
-  let yy = y;
-  if (y > C_Y0) {
-    cierre = Math.sqrt(Math.max(0, 1 - ((y - C_Y0) / C_FIN) ** 2));
-    yy = C_Y0;
-  } else if (y < -C_Y0) {
-    cierre = Math.sqrt(Math.max(0, 1 - ((-C_Y0 - y) / C_FIN) ** 2));
-    yy = -C_Y0;
-  }
-  const t = (C_Y0 - yy) / C_PASO;
-  const i = Math.min(C_ATRAS.length - 2, Math.max(0, Math.floor(t)));
-  const f = t - i;
-  const l = (a: number[]) => a[i] + (a[i + 1] - a[i]) * f;
-  return [l(C_ATRAS), l(C_FRENTE), l(C_ANCHO), cierre];
-}
+type Parte = { c: [number, number, number]; r: [number, number, number]; ca: number; sa: number; hemi: number };
 
-const C_K = 2.4; // forma del corte horizontal (2 = elipse; más = más cuadrado)
-
-/** Punto de la superficie del cerebro para la altura y y el ángulo a (alrededor del eje vertical). */
-function superficieCerebro(y: number, a: number): [number, number, number] {
-  const [atras, frente, ancho, cierre] = perfilCerebro(y);
-  const zm = (atras + frente) / 2;
-  const zh = ((frente - atras) / 2) * cierre;
-  const c = Math.cos(a);
-  const s = Math.sin(a);
-  const ex = 2 / C_K;
-  const z = zm + zh * Math.sign(s) * Math.abs(s) ** ex;
-  // El frente es un poco más angosto (lóbulos frontales); atrás, un poco también
-  const zn = (z - zm) / Math.max(zh, 1e-3);
-  const angosto = 1 - 0.13 * suave(0.35, 1, zn) - 0.06 * suave(-0.5, -1, zn);
-  const x = ancho * cierre * angosto * Math.sign(c) * Math.abs(c) ** ex;
-  // Fisura entre hemisferios: la parte de arriba se hunde hacia el centro
-  const m = Math.abs(x);
-  if (y > -0.2 && m < 0.16) {
-    const hund = (1 - m / 0.16) ** 2 * 0.07 * suave(-0.2, 0.25, y);
-    return [x, y - hund, z];
-  }
-  return [x, y, z];
+/** Qué tan afuera del elipsoide está p (0 en la superficie, negativo adentro). */
+function fuera(p: [number, number, number], e: Parte) {
+  const dx = p[0] - e.c[0];
+  const dy = p[1] - e.c[1];
+  const dz = p[2] - e.c[2];
+  const y = dy * e.ca + dz * e.sa;
+  const z = -dy * e.sa + dz * e.ca;
+  return Math.sqrt((dx / e.r[0]) ** 2 + (y / e.r[1]) ** 2 + (z / e.r[2]) ** 2) - 1;
 }
 
 export function cerebro(N: number, semilla = 11): Forma {
   const rnd = azar(semilla);
-  const cands: Candidato[] = [];
-  const Y1 = C_Y0 + C_FIN;
-  // Candidatos con densidad pareja: se acepta según el área local
-  const area = (y: number, a: number) => {
-    const e = 0.004;
-    const p = superficieCerebro(y, a);
-    const py = superficieCerebro(y + e, a);
-    const pa = superficieCerebro(y, a + e);
-    const u = [py[0] - p[0], py[1] - p[1], py[2] - p[2]];
-    const v = [pa[0] - p[0], pa[1] - p[1], pa[2] - p[2]];
-    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
-    const l = Math.hypot(n[0], n[1], n[2]) / (e * e);
-    return { p, n: n.map((k) => k / (l * e * e || 1)) as [number, number, number], l };
-  };
-  const total = Math.round(Math.min(N * 0.6, 5600) * 3.4);
-  let maxA = 0;
-  for (let k = 0; k < 400; k++) maxA = Math.max(maxA, area(-Y1 + rnd() * 2 * Y1, rnd() * Math.PI * 2).l);
-  while (cands.length < total) {
-    const y = -Y1 + rnd() * 2 * Y1;
-    const a = rnd() * Math.PI * 2;
-    const { p, n, l } = area(y, a);
-    if (rnd() * maxA * 1.1 > l) continue;
-    // la normal apunta hacia afuera
-    let [nx, ny, nz] = n;
-    const len = Math.hypot(nx, ny, nz) || 1;
-    nx /= len;
-    ny /= len;
-    nz /= len;
-    if (nx * p[0] + ny * (p[1] - 0) + nz * (p[2] - 0) < 0) {
-      nx = -nx;
-      ny = -ny;
-      nz = -nz;
+  const partes: Parte[] = [];
+  for (const hemi of [1, -1])
+    for (const l of LOBULOS) {
+      const a = (l.inc * Math.PI) / 180;
+      partes.push({ c: [l.c[0] * hemi, l.c[1], l.c[2]], r: l.r, ca: Math.cos(a), sa: Math.sin(a), hemi });
     }
-    // Fisura: nada justo en la línea del medio (arriba y al frente)
-    if (Math.abs(p[0]) < 0.03 && p[1] > -0.3) continue;
-    // Cisura lateral: separa el lóbulo temporal (una línea sin puntos a cada lado)
-    const zc = p[2];
-    const ySilvio = -0.12 + 0.22 * suave(0.6, -0.4, zc);
-    if (Math.abs(p[0]) > 0.55 && zc > -0.45 && zc < 0.75 && Math.abs(p[1] - ySilvio) < 0.022) continue;
-    // Surcos: líneas finas con menos puntos (circunvoluciones)
-    const s = ruido(p[0] * 3.1 + 7, p[1] * 3.1 + 3, p[2] * 3.1 + 1) * 0.7 + ruido(p[0] * 6.3, p[1] * 6.3 + 9, p[2] * 6.3) * 0.3;
-    if (Math.abs(s - 0.5) < 0.012 && rnd() < 0.7) continue;
-    cands.push({ x: p[0], y: p[1], z: p[2], nx, ny, nz, dato: s });
-  }
-  // Medido en el video: en el centro del cerebro de la portada hay un triangulito por cada ~308 px²
-  // contando los de adelante y los de atrás, que se ven a través (el cerebro es transparente):
-  // unos 5 600 en toda la superficie.
-  const sup = separarHasta(cands, Math.min(Math.round(N * 0.6), 5600), 0.045);
+  // Superficie: puntos en cada lóbulo que no quedan dentro de otro (la unión)
+  const meta = Math.min(Math.round(N * 0.64), 6800);
+  const areas = partes.map(({ r }) => 4 * Math.PI * (((r[0] * r[1]) ** 1.6 + (r[0] * r[2]) ** 1.6 + (r[1] * r[2]) ** 1.6) / 3) ** (1 / 1.6));
+  const sumA = areas.reduce((a, b) => a + b, 0);
+  const cands: Candidato[] = [];
+  partes.forEach((e, k) => {
+    const m = Math.round((meta * 4.2 * areas[k]) / sumA);
+    const wmax = Math.max(e.r[1] * e.r[2], e.r[0] * e.r[2], e.r[0] * e.r[1]);
+    let hechos = 0;
+    while (hechos < m) {
+      const [ux, uy, uz] = direccion(rnd);
+      // Área pareja en el elipsoide: se acepta según cuánto estira el mapa esfera → elipsoide
+      const w = e.r[0] * e.r[1] * e.r[2] * Math.hypot(ux / e.r[0], uy / e.r[1], uz / e.r[2]);
+      if (rnd() * wmax > w) continue;
+      hechos++;
+      const qx = ux * e.r[0];
+      const qy = uy * e.r[1];
+      const qz = uz * e.r[2];
+      let nx = ux / e.r[0];
+      let ny = uy / e.r[1];
+      let nz = uz / e.r[2];
+      const ln = Math.hypot(nx, ny, nz);
+      nx /= ln;
+      ny /= ln;
+      nz /= ln;
+      const p: [number, number, number] = [e.c[0] + qx, e.c[1] + qy * e.ca - qz * e.sa, e.c[2] + qy * e.sa + qz * e.ca];
+      const n: [number, number, number] = [nx, ny * e.ca - nz * e.sa, ny * e.sa + nz * e.ca];
+      // La unión: fuera de los demás lóbulos. Cerca de otro lóbulo hay un surco.
+      let otro = Infinity;
+      let dentro = false;
+      for (let j = 0; j < partes.length; j++) {
+        if (j === k) continue;
+        const f = fuera(p, partes[j]);
+        if (f < 0) {
+          dentro = true;
+          break;
+        }
+        if (partes[j].hemi === e.hemi) otro = Math.min(otro, f);
+      }
+      if (dentro) continue;
+      // La fisura entre hemisferios: nada en la línea del medio
+      if (Math.abs(p[0]) < 0.035 && p[1] > -0.4) continue;
+      const pliegue = 0.6 * (1 - suave(0.0, 0.04, otro));
+      // Circunvoluciones: surcos finos con ruido
+      const g = ruido(p[0] * 4.4 + 7, p[1] * 4.4 + 3, p[2] * 4.4 + 1) * 0.7 + ruido(p[0] * 8.3, p[1] * 8.3 + 9, p[2] * 8.3) * 0.3;
+      const surco = 1 - suave(0.0, 0.055, Math.abs(g - 0.5));
+      const hondo = Math.max(pliegue, surco * 0.85);
+      if (hondo > 0.6 && rnd() < 0.35 * hondo) continue;
+      // Los surcos se hunden un poco; donde dos lóbulos se juntan, la superficie se rellena
+      // (como una unión suave) para que se vean pliegues y no globos pegados
+      const relleno = 0.07 * (1 - suave(0.0, 0.12, otro)) ** 2;
+      const baja = 0.03 * surco - relleno;
+      // Normal: 80 % la de la forma general (elipsoide del cerebro) y 20 % la del lóbulo, para que
+      // el brillo de la orilla siga la silueta y cada lóbulo solo dé volumen (no un aro por lóbulo)
+      let gx = p[0] / 1.0;
+      let gy = (p[1] + 0.03) / (0.78 * 0.78);
+      let gz = (p[2] + 0.05) / (1.03 * 1.03);
+      const lg = Math.hypot(gx, gy, gz) || 1;
+      gx = (gx / lg) * 0.8 + n[0] * 0.2;
+      gy = (gy / lg) * 0.8 + n[1] * 0.2;
+      gz = (gz / lg) * 0.8 + n[2] * 0.2;
+      const lm = Math.hypot(gx, gy, gz) || 1;
+      cands.push({ x: p[0] - n[0] * baja, y: p[1] - n[1] * baja, z: p[2] - n[2] * baja, nx: gx / lm, ny: gy / lm, nz: gz / lm, dato: hondo });
+    }
+  });
+  const sup = separarHasta(cands, meta, 0.045);
 
-  // El tallo: un cilindro que baja desde abajo del cerebro hasta salir de la pantalla
+  // El tronco: baja desde abajo del cerebro hasta salir de la pantalla
   const tallo: Candidato[] = [];
   const nTallo = Math.min(Math.round(N * 0.06), 260);
   for (let k = 0; k < nTallo * 3; k++) {
     const t = rnd();
-    const y = -0.62 - t * 0.95;
     const ang = rnd() * Math.PI * 2;
-    const r = 0.088 + 0.02 * (1 - t);
-    const cx = 0.0;
-    const cz = -0.14 - t * 0.12;
-    tallo.push({ x: cx + Math.cos(ang) * r, y, z: cz + Math.sin(ang) * r, nx: Math.cos(ang), ny: 0, nz: Math.sin(ang), dato: -1 });
+    const r = 0.09 + 0.025 * (1 - t);
+    tallo.push({ x: Math.cos(ang) * r, y: -0.55 - t * 1.05, z: -0.17 - t * 0.12 + Math.sin(ang) * r, nx: Math.cos(ang), ny: 0, nz: Math.sin(ang), dato: -1 });
   }
   const talloSep = separarHasta(tallo, nTallo, 0.04);
 
   const puntos: PuntoFinal[] = [];
   for (const c of [...sup, ...talloSep]) {
     const esTallo = c.dato < 0;
-    // Color propio del punto (manchas: grupos del mismo color); el ámbar de la orilla se agrega en el motor
-    const mancha = ruido(c.x * 2.2 + 11, c.y * 2.2 + 5, c.z * 2.2 + 2);
+    // Zonas de color que giran con el cerebro (como en el video): verde azulado, violeta y magenta
+    const z1 = ruido(c.x * 1.9 + 11, c.y * 1.9 + 5, c.z * 1.9 + 2);
+    const z2 = ruido(c.x * 1.9 + 31, c.y * 1.9 + 17, c.z * 1.9 + 23);
     const u = rnd();
-    // Medido (sin contar blanco ni ámbar): amarillo, violeta, coral y rosa ~4-5 % cada uno,
-    // magenta ~3 %, azul y verde azulado ~1-2 %. En las manchas, más violeta y verde azulado.
-    const col = esTallo
-      ? elegir(
-          [
-            ["violeta", 2],
-            ["verdeAzul", 1],
-            ["azul", 1],
-          ],
-          u,
-        )
-      : mancha > 0.66
-        ? elegir(
-            [
-              ["violeta", 4],
-              ["magenta", 2],
-              ["verdeAzul", 3],
-              ["azul", 1],
-            ],
-            u,
-          )
-        : elegir(
-            [
-              ["amarillo", 5],
-              ["violeta", 5],
-              ["magenta", 3],
-              ["rosa", 4],
-              ["coral", 5],
-              ["azul", 2],
-              ["verdeAzul", 1],
-            ],
-            u,
-          );
+    let col: Color;
+    let grupo = 0;
+    if (esTallo) col = elegir([["violeta", 2], ["verdeAzul", 1], ["azul", 1]], u);
+    else if (z1 > 0.7) {
+      col = u < 0.7 ? PALETA.verdeAzul : PALETA.azul;
+      grupo = suave(0.68, 0.78, z1);
+    } else if (z2 > 0.69) {
+      col = u < 0.65 ? PALETA.violeta : PALETA.magenta;
+      grupo = suave(0.67, 0.77, z2);
+    } else col = elegir([["violeta", 5], ["magenta", 3], ["rosa", 4], ["coral", 5], ["amarillo", 4], ["azul", 2], ["verdeAzul", 2]], u);
     puntos.push({
       ...c,
       col,
-      alfa: esTallo ? 0.5 : 1,
+      // la opacidad guarda la sombra de los surcos (adentro de un surco se ve más oscuro)
+      alfa: esTallo ? 0.55 : 1 - 0.38 * Math.max(0, c.dato),
       tam: esTallo ? 0.75 : 0.85 + rnd() * 0.3,
       clave: (c.y + 1.6) / 2.4,
       umbral: rnd(),
-      grupo: esTallo ? 0.3 : suave(0.6, 0.75, mancha),
+      grupo,
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
@@ -438,7 +412,7 @@ const FOCO_S1 = 2.77;
 export function foco(N: number, semilla = 23): Forma {
   const rnd = azar(semilla);
   const cands: Candidato[] = [];
-  const total = Math.round(Math.min(N, 5200) * 3.2);
+  const total = Math.round(Math.min(N, 7600) * 3.2);
   const e = 0.003;
   // densidad pareja: peso = radio × largo de la curva
   const peso = (s: number) => {
@@ -469,7 +443,7 @@ export function foco(N: number, semilla = 23): Forma {
   }
   // Medido: en el centro del foco hay un triangulito por cada ~181 px² (separación de ~14.5 px a
   // 243 px por unidad): unos 5 200 en toda la superficie.
-  const sup = separarHasta(cands, Math.min(N, 5200), 0.06);
+  const sup = separarHasta(cands, Math.min(N, 7600), 0.05);
   const puntos: PuntoFinal[] = sup.map((c) => {
     const s = c.dato;
     // Degradado a lo largo del eje: durazno y blanco en el vidrio, lila y violeta en el cuello,
