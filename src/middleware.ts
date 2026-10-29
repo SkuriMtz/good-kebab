@@ -30,7 +30,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // /pruebalo sigue en español (lo lee el layout para <html lang>)
+  if (pathname.startsWith("/pruebalo")) return NextResponse.next({ request: { headers: idiomaFijo(request) } });
+
   return sesion(request);
+}
+
+/** El panel y /pruebalo siguen en español aunque el sitio público esté en inglés. */
+function idiomaFijo(request: NextRequest) {
+  const cabeceras = new Headers(request.headers);
+  cabeceras.set("x-idioma-fijo", "es");
+  return cabeceras;
 }
 
 function cors(request: NextRequest) {
@@ -72,7 +82,9 @@ function cors(request: NextRequest) {
  * en cookies, y protege las páginas: sin sesión no se entra al panel.
  */
 async function sesion(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // El panel sigue en español (el layout lo lee para <html lang>)
+  const cabeceras = request.nextUrl.pathname.startsWith("/panel") ? idiomaFijo(request) : new Headers(request.headers);
+  let response = NextResponse.next({ request: { headers: cabeceras } });
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
@@ -81,7 +93,8 @@ async function sesion(request: NextRequest) {
       },
       setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        cabeceras.set("cookie", request.headers.get("cookie") ?? "");
+        response = NextResponse.next({ request: { headers: cabeceras } });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
@@ -108,5 +121,5 @@ async function sesion(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/api/:path*", "/panel/:path*", "/entrar"],
+  matcher: ["/", "/api/:path*", "/panel/:path*", "/entrar", "/pruebalo"],
 };

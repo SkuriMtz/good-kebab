@@ -17,9 +17,13 @@ import "../estilos/dashboard.css";
 import "../estilos/landing.css";
 import "../estilos/inicio.css";
 import "../estilos/transiciones.css";
-import { DESCRIPCION_INICIO, OG_INICIO, TITULO_INICIO } from "@/lib/seo";
+import { headers } from "next/headers";
+import { metadatosInicio } from "@/lib/seo";
 import { SCRIPT_TEMA } from "@/lib/tema";
 import { TransicionPaginas } from "@/components/TransicionPaginas";
+import { IdiomaProvider } from "@/i18n/Idioma";
+import { idiomaServidor } from "@/i18n/servidor";
+import type { Idioma } from "@/i18n";
 
 /*
  * Tipografías servidas desde nuestro propio dominio (la política de seguridad
@@ -47,17 +51,23 @@ const geistMono = localFont({
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: TITULO_INICIO,
-    template: "%s · Atendel",
-  },
-  description: DESCRIPCION_INICIO,
-  openGraph: OG_INICIO,
-  twitter: { card: "summary", title: TITULO_INICIO, description: DESCRIPCION_INICIO },
-  applicationName: "Atendel",
-  appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
-};
+/** Título y descripción del sitio en el idioma de la persona (cookie atendel-idioma). */
+export function generateMetadata(): Metadata {
+  return {
+    ...metadatosInicio(idiomaActual()),
+    applicationName: "Atendel",
+    appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
+  };
+}
+
+/**
+ * El idioma de la página: el que eligió la persona (inglés si no eligió).
+ * El panel y /pruebalo siguen en español: el middleware los marca con
+ * x-idioma-fijo.
+ */
+function idiomaActual(): Idioma {
+  return headers().get("x-idioma-fijo") === "es" ? "es" : idiomaServidor();
+}
 
 export const viewport: Viewport = {
   themeColor: "#0d1117",
@@ -77,15 +87,18 @@ const FUENTES = `${geist.variable} ${geistMono.variable}`;
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const idioma = idiomaActual();
   return (
-    <html lang="es" className={FUENTES} suppressHydrationWarning>
+    <html lang={idioma} className={FUENTES} suppressHydrationWarning>
       <head>
         {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
       <body className={`${FUENTES} font-sans`}>
-        {children}
-        <TransicionPaginas />
+        <IdiomaProvider idioma={idioma}>
+          {children}
+          <TransicionPaginas />
+        </IdiomaProvider>
       </body>
     </html>
   );

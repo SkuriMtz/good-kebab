@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { BotonIcono } from "@/components/base/Boton";
 import { FormularioLista } from "@/components/FormularioLista";
 import { EVENTO_LISTA } from "@/lib/inicio";
+import { useIdioma } from "@/i18n/Idioma";
 
 /**
  * La lista de espera en una ventana (la misma de las fichas de los agentes:
@@ -13,6 +14,7 @@ import { EVENTO_LISTA } from "@/lib/inicio";
 export function DialogoLista() {
   const ref = useRef<HTMLDialogElement>(null);
   const [abierto, setAbierto] = useState(false);
+  const { d } = useIdioma();
 
   useEffect(() => {
     const html = document.documentElement;
@@ -59,11 +61,11 @@ export function DialogoLista() {
       <div className="ficha__caja vidrio vidrio--frost dialogo-lista">
         <header className="dialogo-lista__cabeza">
           <h2 id="dialogo-lista-titulo" className="dialogo-lista__titulo">
-            Únete a la lista
+            {d.listaEspera.titulo}
           </h2>
-          <BotonIcono etiqueta="Cerrar" icono="cerrar" tam="normal" className="ficha__cerrar" onClick={() => setAbierto(false)} />
+          <BotonIcono etiqueta={d.listaEspera.cerrar} icono="cerrar" tam="normal" className="ficha__cerrar" onClick={() => setAbierto(false)} />
         </header>
-        <p className="dialogo-lista__texto">Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel.</p>
+        <p className="dialogo-lista__texto">{d.listaEspera.texto}</p>
         <FormularioLista />
       </div>
     </dialog>

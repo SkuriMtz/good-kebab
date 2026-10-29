@@ -2,13 +2,15 @@
 
 import type { ReactNode } from "react";
 import { EVENTO_LISTA } from "@/lib/inicio";
+import { useIdioma } from "@/i18n/Idioma";
 
 /**
  * "Únete a la lista": la píldora violeta. Abre el formulario de la lista de
  * espera ahí mismo (DialogoLista) y, si la página no lo tiene o no hay
  * JavaScript, lleva a /lista.
  */
-export function BotonLista({ children = "Únete a la lista", className = "" }: { children?: ReactNode; className?: string }) {
+export function BotonLista({ children, className = "" }: { children?: ReactNode; className?: string }) {
+  const { d } = useIdioma();
   return (
     <a
       href="/lista"
@@ -20,7 +22,7 @@ export function BotonLista({ children = "Únete a la lista", className = "" }: {
         window.dispatchEvent(new CustomEvent(EVENTO_LISTA));
       }}
     >
-      <span className="boton-lista__texto">{children}</span>
+      <span className="boton-lista__texto">{children ?? d.barra.unete}</span>
     </a>
   );
 }

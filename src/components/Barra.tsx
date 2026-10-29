@@ -8,12 +8,14 @@ import { Marca } from "./Logo";
 import { Icono } from "./base/Iconos";
 import { BotonLista } from "./inicio-dala/BotonLista";
 import { PRUEBALO } from "@/lib/contenido";
+import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
 
 /*
  * La barra del sitio público, como la del video de referencia (MEDIDAS.md §3):
  * - Izquierda: la marca de los cuatro agentes y "Atendel".
  * - Derecha: Agentes, Precios, Cuándo sale y Preguntas en mayúsculas chicas
- *   (gris; blanco el encendido) y la píldora violeta "Únete a la lista".
+ *   (gris; blanco el encendido), el cambio de idioma EN / ES y la píldora
+ *   violeta "Únete a la lista". Los textos salen de src/i18n.
  * - Al empezar a bajar, la barra sube 11 px, el nombre se desvanece y
  *   aparece una franja oscura con desenfoque (57 px a 1212×750).
  * - En el inicio los enlaces bajan a su escena y se encienden según la
@@ -24,22 +26,24 @@ import { PRUEBALO } from "@/lib/contenido";
  *   es, Entrar y el tema.
  */
 
-type Enlace = { id: "agentes" | "precios" | "cuando" | "preguntas"; texto: string; inicio: string; otra: string };
+type Enlace = { id: "agentes" | "precios" | "cuando" | "preguntas"; inicio: string; otra: string };
 
 const ENLACES: Enlace[] = [
-  { id: "agentes", texto: "Agentes", inicio: "#agentes", otra: "/agentes" },
-  { id: "precios", texto: "Precios", inicio: "#precios", otra: "/precios" },
-  { id: "cuando", texto: "Cuándo sale", inicio: "#cuando-sale", otra: "/#cuando-sale" },
-  { id: "preguntas", texto: "Preguntas", inicio: "/preguntas", otra: "/preguntas" },
+  { id: "agentes", inicio: "#agentes", otra: "/agentes" },
+  { id: "precios", inicio: "#precios", otra: "/precios" },
+  { id: "cuando", inicio: "#cuando-sale", otra: "/#cuando-sale" },
+  { id: "preguntas", inicio: "/preguntas", otra: "/preguntas" },
 ];
 
 const EXTRA_HOJA = [
-  { href: PRUEBALO.href, texto: "Pruébalo" },
-  { href: "/para-quien-es", texto: "Para quién es" },
-];
+  { href: PRUEBALO.href, id: "pruebalo" },
+  { href: "/para-quien-es", id: "paraQuien" },
+] as const;
 
 export function Barra({ inicio = false }: { inicio?: boolean }) {
   const pathname = usePathname();
+  const { d } = useIdioma();
+  const b = d.barra;
   const [bajando, setBajando] = useState(false);
   const [hoja, setHoja] = useState(false);
   const hamburguesa = useRef<HTMLButtonElement>(null);
@@ -101,39 +105,40 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
         data-hoja={hoja ? "true" : "false"}
       >
         <a href="#contenido" className="saltar">
-          Saltar al contenido
+          {b.saltar}
         </a>
         <div className="barra__fila">
-          <Link href="/" className="barra__logo" aria-label="Atendel, inicio">
+          <Link href="/" className="barra__logo" aria-label={b.inicio}>
             <Marca className="barra__marca" />
             <span className="barra__nombre" aria-hidden="true">
               Atendel
             </span>
           </Link>
-          <nav className="barra__nav" aria-label="Principal">
+          <nav className="barra__nav" aria-label={b.principal}>
             <ul className="barra__lista">
               {ENLACES.map((e) => (
                 <li key={e.id}>
                   {href(e).startsWith("#") ? (
                     // Ancla de la misma página: la baja Lenis (ScrollSuave), sin el router
                     <a href={href(e)} className="barra__enlace" data-enlace={e.id}>
-                      {e.texto}
+                      {b[e.id]}
                     </a>
                   ) : (
                     <Link href={href(e)} className="barra__enlace" data-enlace={e.id} aria-current={actual(e)}>
-                      {e.texto}
+                      {b[e.id]}
                     </Link>
                   )}
                 </li>
               ))}
             </ul>
           </nav>
-          <BotonLista className="barra__pildora" />
+          <BotonIdioma className="barra__idioma" />
+          <BotonLista className="barra__pildora">{b.unete}</BotonLista>
           <button
             ref={hamburguesa}
             type="button"
             className="barra__hamburguesa"
-            aria-label={hoja ? "Cerrar la navegación" : "Abrir la navegación"}
+            aria-label={hoja ? b.cerrar : b.abrir}
             aria-expanded={hoja}
             aria-controls="hoja-barra"
             onClick={() => setHoja((h) => !h)}
@@ -144,17 +149,17 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
       </header>
 
       <div id="hoja-barra" ref={hojaRef} className="hoja-barra" data-abierta={hoja ? "true" : "false"} aria-hidden={!hoja} data-lenis-prevent>
-        <nav aria-label="Principal en celular">
+        <nav aria-label={b.principalCelular}>
           <ul className="hoja-barra__lista">
             {ENLACES.map((e) => (
               <li key={e.id}>
                 {href(e).startsWith("#") ? (
                   <a href={href(e)} className="hoja-barra__enlace" tabIndex={hoja ? 0 : -1} onClick={() => setHoja(false)}>
-                    {e.texto}
+                    {b[e.id]}
                   </a>
                 ) : (
                   <Link href={href(e)} className="hoja-barra__enlace" aria-current={actual(e)} tabIndex={hoja ? 0 : -1} onClick={() => setHoja(false)}>
-                    {e.texto}
+                    {b[e.id]}
                   </Link>
                 )}
               </li>
@@ -167,7 +172,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
                   aria-current={pathname === e.href ? "page" : undefined}
                   tabIndex={hoja ? 0 : -1}
                 >
-                  {e.texto}
+                  {b[e.id]}
                 </Link>
               </li>
             ))}
@@ -175,10 +180,14 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
         </nav>
         <div className="hoja-barra__pie">
           <Link href="/entrar" className="hoja-barra__entrar" tabIndex={hoja ? 0 : -1}>
-            Entrar
+            {b.entrar}
           </Link>
           <div className="hoja-barra__tema">
-            <span id="hoja-barra-tema">Tema</span>
+            <span id="hoja-barra-idioma">{b.idioma}</span>
+            <BotonIdioma />
+          </div>
+          <div className="hoja-barra__tema">
+            <span id="hoja-barra-tema">{b.tema}</span>
             <BotonTema variante="selector" etiquetadoPor="hoja-barra-tema" />
           </div>
         </div>

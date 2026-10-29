@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Icono } from "./base/Iconos";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, seguirSistema, temaActual, type PreferenciaTema, type Tema } from "@/lib/tema";
+import { useIdioma } from "@/i18n/Idioma";
 
-const OPCIONES: { id: PreferenciaTema; etiqueta: string; icono: "luna" | "sol" | "monitor" }[] = [
-  { id: "oscuro", etiqueta: "Oscuro", icono: "luna" },
-  { id: "claro", etiqueta: "Claro", icono: "sol" },
-  { id: "sistema", etiqueta: "Sistema", icono: "monitor" },
+const OPCIONES: { id: PreferenciaTema; icono: "luna" | "sol" | "monitor" }[] = [
+  { id: "oscuro", icono: "luna" },
+  { id: "claro", icono: "sol" },
+  { id: "sistema", icono: "monitor" },
 ];
 
 /**
@@ -30,6 +31,7 @@ export function BotonTema({
   /** id del texto que nombra al selector (si no, se llama "Tema"). */
   etiquetadoPor?: string;
 }) {
+  const { d } = useIdioma();
   const [tema, setTema] = useState<Tema>("oscuro");
   const [preferencia, setPreferencia] = useState<PreferenciaTema>("oscuro");
   const opcionesRef = useRef<(HTMLButtonElement | null)[]>([]);
@@ -60,7 +62,7 @@ export function BotonTema({
     return (
       <div
         role="radiogroup"
-        aria-label={etiquetadoPor ? undefined : "Tema"}
+        aria-label={etiquetadoPor ? undefined : d.tema.grupo}
         aria-labelledby={etiquetadoPor}
         className={`selector-tema ${className}`}
         onKeyDown={alTeclear}
@@ -80,7 +82,7 @@ export function BotonTema({
             onClick={() => ponerTema(o.id)}
           >
             <Icono nombre={o.icono} tam={16} />
-            <span>{o.etiqueta}</span>
+            <span>{d.tema[o.id]}</span>
           </button>
         ))}
       </div>
@@ -93,8 +95,8 @@ export function BotonTema({
       type="button"
       className={`tema-boton ${className}`}
       onClick={() => ponerTema(siguiente)}
-      aria-label={siguiente === "claro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      title={siguiente === "claro" ? "Modo claro" : "Modo oscuro"}
+      aria-label={siguiente === "claro" ? d.tema.aClaro : d.tema.aOscuro}
+      title={siguiente === "claro" ? d.tema.modoClaro : d.tema.modoOscuro}
     >
       <Icono nombre="sol" tam={16} className="tema-boton__sol" />
       <Icono nombre="luna" tam={16} className="tema-boton__luna" />

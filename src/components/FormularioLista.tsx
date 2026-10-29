@@ -7,6 +7,7 @@ import { CampoCorreo } from "./base/Campo";
 import { Icono } from "./base/Iconos";
 import { normalizarCorreo, revisarSolicitud, type Solicitud } from "@/lib/lista";
 import { PRUEBALO } from "@/lib/contenido";
+import { useIdioma } from "@/i18n/Idioma";
 
 /* ---------------------------------------------------------------------
    Envío a /api/lista (lista de espera y contacto).
@@ -60,7 +61,7 @@ type Estado = "editando" | "enviando" | "enviado" | "error" | "aviso";
  */
 export function FormularioLista({
   centrado = false,
-  etiquetaBoton = "Únete a la lista",
+  etiquetaBoton,
   conSecundario = true,
   className = "",
 }: {
@@ -70,6 +71,8 @@ export function FormularioLista({
   conSecundario?: boolean;
   className?: string;
 }) {
+  const { d } = useIdioma();
+  const L = d.listaEspera;
   const [correo, setCorreo] = useState("");
   const [trampa, setTrampa] = useState("");
   const [estado, setEstado] = useState<Estado>("editando");
@@ -92,8 +95,9 @@ export function FormularioLista({
   const enviar = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (estado === "enviando") return;
-    const problema = revisarSolicitud({ tipo: "lista", correo });
-    if (problema) return marcarError(problema);
+    // Se revisa aquí, en el idioma de la página
+    if (!correo.trim()) return marcarError(L.errores.vacio);
+    if (revisarSolicitud({ tipo: "lista", correo })) return marcarError(L.errores.invalido);
     setError(null);
     setEstado("enviando");
     const r = await mandarSolicitud({ tipo: "lista", correo }, trampa);
@@ -102,9 +106,9 @@ export function FormularioLista({
       setAviso(null);
       setEstado("enviado");
     } else if (r.motivo === "datos") {
-      marcarError(r.error);
+      marcarError(L.errores.datos);
     } else {
-      setAviso({ motivo: r.motivo, texto: r.error });
+      setAviso({ motivo: r.motivo, texto: L.errores[r.motivo] });
       setEstado("aviso");
     }
   };
@@ -124,11 +128,12 @@ export function FormularioLista({
             <Icono nombre="check-circulo" />
             <p>
               <span className="block">
-                Listo. Te escribimos a <strong className="break-all font-medium">{enviadoA}</strong> en cuanto abramos
-                tu lugar.
+                {L.listoA}
+                <strong className="break-all font-medium">{enviadoA}</strong>
+                {L.listoB}
               </span>
               <button type="button" className="formulario-lista__corregir" onClick={corregir}>
-                ¿Te equivocaste de correo? Corrígelo
+                {L.corregir}
               </button>
             </p>
           </div>
@@ -136,10 +141,11 @@ export function FormularioLista({
       </div>
 
       {estado !== "enviado" ? (
-        <form noValidate onSubmit={enviar} aria-label="Lista de espera de Atendel" aria-describedby={aviso ? idAviso : undefined}>
+        <form noValidate onSubmit={enviar} aria-label={L.formulario} aria-describedby={aviso ? idAviso : undefined}>
           <div className="formulario-lista__fila">
             <CampoCorreo
               ref={campo}
+              etiqueta={L.correo}
               name="correo"
               className={`formulario-lista__campo${sacudidas ? (sacudidas % 2 ? " sacude-a" : " sacude-b") : ""}`}
               value={correo}
@@ -156,17 +162,17 @@ export function FormularioLista({
               required
             />
             <Boton type="submit" tam="grande" cargando={estado === "enviando"} className="max-sm:w-full">
-              {estado === "enviando" ? "Anotando…" : reintento ? "Intentar de nuevo" : etiquetaBoton}
+              {estado === "enviando" ? L.anotando : reintento ? L.reintentar : etiquetaBoton ?? L.boton}
             </Boton>
             {conSecundario ? (
               <Boton href={PRUEBALO.href} variante="sutil" tam="grande" className="max-sm:w-full">
-                Prueba los agentes
+                {L.pruebaAgentes}
               </Boton>
             ) : null}
           </div>
           {/* Campo trampa contra bots: invisible para las personas y fuera del orden de tabulación */}
           <div className="formulario-lista__trampa" aria-hidden="true">
-            <label htmlFor={idTrampa}>No llenes este campo</label>
+            <label htmlFor={idTrampa}>{L.trampa}</label>
             <input
               id={idTrampa}
               type="text"
@@ -188,7 +194,7 @@ export function FormularioLista({
               {aviso.texto}{" "}
               {aviso.motivo === "pausa" ? (
                 <Link href={PRUEBALO.href} className="enlace">
-                  Ir a Pruébalo
+                  {L.irPruebalo}
                 </Link>
               ) : null}
             </p>

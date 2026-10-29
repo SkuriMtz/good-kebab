@@ -1,45 +1,46 @@
 import Link from "next/link";
 import { BotonTema } from "./BotonTema";
 import { Marca } from "./Logo";
-import { PAGINAS, PRUEBALO, SEGMENTOS } from "@/lib/contenido";
-
-const titulo = (href: string) => PAGINAS.find((p) => p.href === href)?.label ?? href;
+import { PRUEBALO } from "@/lib/contenido";
+import type { Diccionario } from "@/i18n";
+import { textosServidor } from "@/i18n/servidor";
 
 /** Las cuatro columnas del pie, como el pie del sitio de GitHub (solo el estilo). */
-const COLUMNAS = [
-  {
-    titulo: "Producto",
-    enlaces: [{ href: "/agentes", label: titulo("/agentes") }, PRUEBALO, { href: "/precios", label: titulo("/precios") }],
-  },
-  {
-    titulo: "Para quién es",
-    enlaces: SEGMENTOS.map((s) => ({
-      href: `/para-quien-es#${s.id}`,
-      label: s.corto,
-    })),
-  },
-  {
-    titulo: "Ayuda",
-    enlaces: [
-      { href: "/preguntas", label: titulo("/preguntas") },
-      { href: "/preguntas#seguridad", label: "Tus datos" },
-      { href: "/contacto", label: "Contacto" },
-    ],
-  },
-  {
-    titulo: "Cuenta",
-    enlaces: [
-      { href: "/entrar", label: "Entrar" },
-      { href: "/panel", label: "Mi panel" },
-    ],
-  },
-];
-
-/** Enlaces de la franja de abajo (los de ayuda y datos, como los legales del pie de GitHub). */
-const FRANJA = [
-  { href: "/preguntas#seguridad", label: "Tus datos" },
-  { href: "/contacto", label: "Contacto" },
-];
+function columnas(d: Diccionario) {
+  return [
+    {
+      id: "producto",
+      titulo: d.pie.producto,
+      enlaces: [
+        { href: "/agentes", label: d.pie.agentes },
+        { href: PRUEBALO.href, label: d.pie.pruebalo },
+        { href: "/precios", label: d.pie.precios },
+      ],
+    },
+    {
+      id: "para-quien",
+      titulo: d.pie.paraQuien,
+      enlaces: d.paraQuien.segmentos.map((s) => ({ href: `/para-quien-es#${s.id}`, label: s.corto })),
+    },
+    {
+      id: "ayuda",
+      titulo: d.pie.ayuda,
+      enlaces: [
+        { href: "/preguntas", label: d.pie.preguntas },
+        { href: "/preguntas#seguridad", label: d.pie.tusDatos },
+        { href: "/contacto", label: d.pie.contacto },
+      ],
+    },
+    {
+      id: "cuenta",
+      titulo: d.pie.cuenta,
+      enlaces: [
+        { href: "/entrar", label: d.pie.entrar },
+        { href: "/panel", label: d.pie.miPanel },
+      ],
+    },
+  ];
+}
 
 /**
  * Pie del sitio: arriba, la marca con una línea de qué es Atendel y cuatro
@@ -47,27 +48,30 @@ const FRANJA = [
  * ayuda y el selector de tema.
  */
 export function Footer() {
+  const d = textosServidor();
+  const FRANJA = [
+    { href: "/preguntas#seguridad", label: d.pie.tusDatos },
+    { href: "/contacto", label: d.pie.contacto },
+  ];
   return (
     <footer className="pie-sitio">
       <div className="pie-sitio__arriba">
         <div className="pie-sitio__marca">
-          <Link href="/" className="pie-sitio__logo" aria-label="Atendel, inicio">
+          <Link href="/" className="pie-sitio__logo" aria-label={d.barra.inicio}>
             <Marca className="pie-sitio__logo-marca" />
             <span aria-hidden="true">Atendel</span>
           </Link>
-          <p className="pie-sitio__lema">
-            Lola, Clara, Víctor e Iris: cuatro agentes de IA para la recepción y la oficina de tu negocio.
-          </p>
-          <p className="pie-sitio__sello">Entras con tu correo · sin contraseña</p>
+          <p className="pie-sitio__lema">{d.pie.lema}</p>
+          <p className="pie-sitio__sello">{d.pie.sello}</p>
         </div>
 
-        <nav className="pie-sitio__columnas" aria-label="Pie de página">
-          {COLUMNAS.map((c) => (
-            <div key={c.titulo} className="pie-sitio__columna">
-              <h2 className="pie-sitio__titulo" id={`pie-${c.titulo.toLowerCase()}`}>
+        <nav className="pie-sitio__columnas" aria-label={d.pie.aria}>
+          {columnas(d).map((c) => (
+            <div key={c.id} className="pie-sitio__columna">
+              <h2 className="pie-sitio__titulo" id={`pie-${c.id}`}>
                 {c.titulo}
               </h2>
-              <ul className="pie-sitio__lista" aria-labelledby={`pie-${c.titulo.toLowerCase()}`}>
+              <ul className="pie-sitio__lista" aria-labelledby={`pie-${c.id}`}>
                 {c.enlaces.map((l) => (
                   <li key={l.href}>
                     <Link href={l.href} className="pie-sitio__enlace">
@@ -86,7 +90,7 @@ export function Footer() {
           <div className="pie-sitio__legal">
             <Marca className="pie-sitio__franja-marca" />
             <p className="pie-sitio__derechos">© {new Date().getFullYear()} Atendel</p>
-            <ul className="pie-sitio__franja-enlaces" aria-label="Ayuda y datos">
+            <ul className="pie-sitio__franja-enlaces" aria-label={d.pie.franja}>
               {FRANJA.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="pie-sitio__enlace pie-sitio__enlace--chico">
