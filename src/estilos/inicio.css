@@ -28,6 +28,8 @@
   --ini-ficha-apagada: #111;
   --ini-velo: rgb(0 0 0 / 0.55);
   --ini-linea-pie: rgb(255 255 255 / 0.06);
+  --ini-linea: rgb(255 255 255 / 0.14);
+  --ini-tarjeta: rgb(10 10 10 / 0.72);
 }
 :root[data-tema="claro"] .sitio--inicio {
   --ini-fondo: #fafafa;
@@ -39,6 +41,8 @@
   --ini-ficha-apagada: #ececec;
   --ini-velo: rgb(250 250 250 / 0.7);
   --ini-linea-pie: rgb(0 0 0 / 0.08);
+  --ini-linea: rgb(0 0 0 / 0.12);
+  --ini-tarjeta: rgb(255 255 255 / 0.8);
 }
 
 /* =====================================================================
@@ -189,6 +193,66 @@
 }
 .boton-lista:active {
   transform: scale(0.97);
+}
+.boton-lista--contorno {
+  border: 1px solid var(--ini-linea, rgb(255 255 255 / 0.14));
+  background: transparent;
+  color: var(--ini-texto, #fff);
+}
+@media (hover: hover) and (pointer: fine) {
+  .boton-lista--contorno:hover {
+    border-color: var(--ini-violeta);
+    background: transparent;
+  }
+}
+
+/* EN / ES: dos opciones en una píldora (barra y hoja del celular) */
+.boton-idioma {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: clamp(28px, 2.31vw, 32px);
+  padding: 2px;
+  border: 1px solid var(--c-borde);
+  border-radius: 999px;
+}
+.boton-idioma__opcion {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 100%;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: var(--c-texto-2);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease;
+}
+.boton-idioma__opcion[aria-pressed="true"] {
+  background: var(--c-texto);
+  color: var(--c-fondo);
+}
+@media (hover: hover) and (pointer: fine) {
+  .boton-idioma__opcion[aria-pressed="false"]:hover {
+    color: var(--c-texto);
+  }
+}
+.boton-idioma__opcion:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 2px;
+}
+.boton-idioma[data-cambiando] {
+  opacity: 0.6;
+}
+.barra__idioma {
+  margin-left: clamp(16px, 2.23vw, 34px);
+}
+.barra__idioma + .barra__pildora {
+  margin-left: clamp(10px, 1.1vw, 16px);
 }
 
 /* Hoja del celular */
@@ -381,21 +445,28 @@
 }
 .ini-equipo__carrusel {
   position: absolute;
-  top: 36vh;
+  top: 29vh;
   left: 0;
   width: 98.76vw;
 }
 
-/* Carrusel: ficha 249×366 centrada, apagadas cada 307 px a 0.84 */
+/*
+ * Carrusel: la ficha del centro y, debajo de ella y centrados, el nombre
+ * (grande) y su cargo en Mono gris; abajo, las flechas con "Ver su ficha"
+ * entre ellas. A los lados, las fichas apagadas, más chicas.
+ */
 .carrusel {
-  --ficha-w: 20.54vw;
-  --ficha-h: 30.2vw;
-  --paso: 25.33vw;
+  --ficha-w: 16.5vw;
+  --ficha-h: 22.4vw;
+  --paso: 20.6vw;
   position: relative;
-  height: calc(var(--ficha-h) + 6.2vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .carrusel__pista {
   position: relative;
+  width: 100%;
   height: var(--ficha-h);
 }
 .carrusel__ficha {
@@ -404,7 +475,7 @@
   left: calc(50% - var(--ficha-w) / 2);
   width: var(--ficha-w);
   height: var(--ficha-h);
-  transform: translateX(calc(var(--k) * var(--paso))) scale(0.843);
+  transform: translateX(calc(var(--k) * var(--paso))) scale(0.86);
   transition: transform 600ms var(--ini-salida);
 }
 .carrusel__ficha[data-centro="true"] {
@@ -416,7 +487,7 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  border-radius: 1.98vw; /* 24 px */
+  border-radius: clamp(16px, 1.65vw, 24px);
   background: var(--ini-ficha-apagada);
   cursor: pointer;
   overflow: hidden;
@@ -425,7 +496,7 @@
 .carrusel__ficha[data-centro="true"] .carrusel__retrato {
   background: var(--ini-ficha);
 }
-/* Las apagadas: tarjeta gris oscura (#111 en el video) con el personaje casi apagado */
+/* Las apagadas: tarjeta gris oscura con el personaje casi apagado */
 .carrusel__ficha:not([data-centro="true"]) .carrusel__personaje {
   filter: grayscale(1);
   opacity: 0.28;
@@ -445,54 +516,68 @@
   transition: opacity 600ms var(--ini-salida);
 }
 .carrusel__datos {
-  position: absolute;
-  top: 5.2vw; /* el cargo en y 333: 63 px abajo del borde de la ficha */
-  left: calc(50% + var(--ficha-w) / 2 + 1.9vw);
-  width: 18vw;
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 0.6vw, 10px);
+  margin-top: clamp(16px, 1.65vw, 24px);
+  text-align: center;
+  animation: carrusel-datos 420ms var(--ini-salida) both;
 }
-.carrusel__cargo {
-  color: var(--ini-violeta);
-  font-size: 0.87vw; /* 10.5 px */
-  font-weight: 600;
-  line-height: 1.2;
-  text-transform: uppercase;
+@keyframes carrusel-datos {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .carrusel__nombre {
-  margin-top: 1.4vw;
-  font-size: 2.97vw; /* 36 px */
-  font-weight: 350;
-  line-height: 1.22;
-  letter-spacing: -0.035em;
+  font-size: clamp(26px, 2.48vw, 36px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.carrusel__cargo {
+  color: var(--ini-gris);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(10px, 0.83vw, 12px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.carrusel__flechas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.1vw, 16px);
+  margin-top: clamp(16px, 1.65vw, 24px);
 }
 .carrusel__ver {
-  margin-top: 1.1vw;
-  color: var(--ini-gris);
-  font-size: 0.87vw;
+  min-height: clamp(32px, 2.97vw, 40px);
+  padding: 0 clamp(14px, 1.3vw, 18px);
+  border: 1px solid var(--ini-linea);
+  border-radius: 999px;
+  color: var(--ini-texto);
+  font-size: clamp(11px, 0.91vw, 13px);
   font-weight: 500;
-  text-transform: uppercase;
-  min-height: 24px;
-  transition: color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .carrusel__ver:hover {
-    color: var(--ini-texto);
+    border-color: var(--ini-gris);
+    background: var(--ini-ficha-apagada);
   }
 }
-.carrusel__flechas {
-  position: absolute;
-  top: calc(var(--ficha-h) + 2.97vw); /* centro en y 690 */
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 0.83vw;
+.carrusel__ver:active {
+  transform: scale(0.97);
 }
 .carrusel__flecha {
   display: grid;
   place-items: center;
-  width: clamp(32px, 2.97vw, 44px);
-  height: clamp(32px, 2.97vw, 44px);
+  width: clamp(32px, 2.97vw, 40px);
+  height: clamp(32px, 2.97vw, 40px);
   border-radius: 50%;
   background: var(--ini-violeta);
   color: #fff;
@@ -505,16 +590,97 @@
   transform: scaleX(-1);
 }
 
-/* 7. Planes */
-.ini-planes__texto {
-  top: 27.72vh;
-  left: 58.91vw; /* x 714 */
-  width: 25vw;
+/* 7. Planes: las tarjetas de siempre (Planes.tsx) con el estilo del inicio */
+.ini-planes.ini-planes--tarjetas {
+  height: auto;
+  min-height: 100vh;
+  padding: clamp(96px, 17vh, 150px) 7.51vw clamp(64px, 12vh, 112px);
 }
-.ini-planes .ini-cuerpo--chico {
-  margin-top: 0.8vw;
-  max-width: 23.8vw;
+.ini-planes__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 48px;
+  margin-bottom: clamp(28px, 3.3vw, 48px);
 }
+.ini-planes__cabeza .ini-cuerpo {
+  max-width: 30rem;
+  color: var(--ini-gris);
+}
+.ini-cuando {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-top: clamp(20px, 2.2vw, 32px);
+  color: var(--ini-gris);
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.5;
+}
+.ini-cuando__titulo {
+  color: var(--ini-texto);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Las tarjetas en el inicio: negro, líneas finas, Geist; el violeta solo en los botones */
+.sitio--inicio .planes--inicio {
+  border-color: var(--ini-linea);
+  border-radius: 16px;
+  background: var(--ini-tarjeta);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.sitio--inicio .planes--inicio .plan--hoy {
+  background: transparent;
+}
+.sitio--inicio .planes--inicio .plan--hoy::before {
+  display: none;
+}
+.sitio--inicio .planes--inicio .plan + .plan,
+.sitio--inicio .planes--inicio .plan__equipo {
+  border-color: var(--ini-linea);
+}
+.sitio--inicio .planes--inicio .etiqueta {
+  color: var(--ini-gris);
+}
+.sitio--inicio .planes--inicio .plan__nombre {
+  color: var(--ini-texto);
+  font-size: clamp(20px, 1.65vw, 24px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.sitio--inicio .planes--inicio .plan__monto {
+  color: var(--ini-texto);
+  font-size: clamp(32px, 2.9vw, 44px);
+  font-weight: 450;
+  letter-spacing: -0.04em;
+}
+.sitio--inicio .planes--inicio .plan__monto--pronto {
+  color: var(--ini-gris);
+}
+.sitio--inicio .planes--inicio .t-cuerpo,
+.sitio--inicio .planes--inicio .t-chico,
+.sitio--inicio .planes--inicio .t-caption {
+  color: var(--ini-gris);
+}
+.sitio--inicio .planes--inicio .plan__incluye li {
+  color: var(--ini-texto);
+  font-size: 15px;
+}
+.sitio--inicio .planes--inicio .plan__incluye .icono {
+  color: var(--ini-gris);
+}
+.planes--inicio .plan__boton {
+  width: 100%;
+  height: 44px;
+  font-size: 13px;
+}
+
 .ini-ancla {
   position: absolute;
   top: 0;
@@ -686,10 +852,12 @@
   .barra {
     --b-alto: 56px;
   }
-  .barra__nav {
+  .barra__nav,
+  .barra__idioma {
     display: none;
   }
-  .barra__pildora {
+  .barra__pildora,
+  .barra__idioma + .barra__pildora {
     margin-left: auto;
   }
   .barra__hamburguesa {
@@ -852,41 +1020,28 @@
   }
   .carrusel {
     --ficha-w: min(62vw, 260px);
-    --ficha-h: calc(var(--ficha-w) * 1.47);
+    --ficha-h: calc(var(--ficha-w) * 1.36);
     --paso: calc(var(--ficha-w) * 1.12);
-    height: auto;
     overflow: hidden;
     margin-inline: -20px;
-    padding-bottom: 72px;
-  }
-  .carrusel__pista {
-    height: auto;
-    padding-top: var(--ficha-h);
-  }
-  .carrusel__datos {
-    position: static;
-    width: auto;
-    margin-top: 20px;
-    padding-inline: 20px;
-    text-align: center;
-  }
-  .carrusel__cargo {
-    font-size: 12px;
-  }
-  .carrusel__nombre {
-    margin-top: 8px;
-    font-size: 32px;
-  }
-  .carrusel__ver {
-    font-size: 12px;
   }
   .carrusel__retrato {
     border-radius: 24px;
   }
-  .carrusel__flechas {
-    top: auto;
-    bottom: 16px;
-    gap: 10px;
+  .carrusel__nombre {
+    font-size: 30px;
+  }
+  .carrusel__cargo {
+    font-size: 11px;
+    padding-inline: 20px;
+  }
+  .carrusel__ver {
+    min-height: 40px;
+    font-size: 13px;
+  }
+  .carrusel__flecha {
+    width: 40px;
+    height: 40px;
   }
   .ini-planes-iconos {
     position: static;

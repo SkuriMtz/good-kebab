@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { createElement, useEffect, useRef, type ReactNode } from "react";
 import { CON_MOVIMIENTO, SIN_MOVIMIENTO, esperarLetras, prepararGsap } from "@/lib/movimiento";
+import { useIdioma } from "@/i18n/Idioma";
 
 /**
  * El texto entra como en el video de referencia (MEDIDAS.md §7):
@@ -34,6 +35,8 @@ type Props = {
 
 export function TextoDala({ children, tipo = "parrafo", como = "p", className, id, retraso = 0, inicio }: Props) {
   const ref = useRef<HTMLElement>(null);
+  // Al cambiar de idioma el texto se vuelve a montar (SplitText ya partió el anterior)
+  const { idioma } = useIdioma();
 
   useEffect(() => {
     const el = ref.current;
@@ -94,7 +97,7 @@ export function TextoDala({ children, tipo = "parrafo", como = "p", className, i
       };
     });
     return () => mm.revert();
-  }, [tipo, retraso, inicio]);
+  }, [tipo, retraso, inicio, idioma]);
 
-  return createElement(como, { ref, id, className: `rt${className ? ` ${className}` : ""}` }, children);
+  return createElement(como, { key: idioma, ref, id, className: `rt${className ? ` ${className}` : ""}` }, children);
 }

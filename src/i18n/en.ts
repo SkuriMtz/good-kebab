@@ -474,7 +474,7 @@ export const en: Diccionario = {
   planes: {
     free: {
       nivel: "Free",
-      precio: "Free",
+      precio: "$0",
       resumen: "Get to know Atendel with your email agent.",
       incluye: ["Clara, your email agent", "30 chat messages a month", "Email summaries"],
     },
