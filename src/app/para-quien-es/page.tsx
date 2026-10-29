@@ -6,16 +6,17 @@ import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Personaje } from "@/components/agentes/Personaje";
 import type { IdAgente } from "@/lib/agentes";
-import { AGENTE_POR_ID, esIdAgente } from "@/lib/agentes";
-import { SEGMENTOS } from "@/lib/contenido";
+import { esIdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
 import { Indice } from "./Indice";
-import { metadatos } from "@/lib/seo";
+import { agenteDe, t } from "@/i18n";
+import { idiomaServidor } from "@/i18n/servidor";
+import { metadatosDe } from "@/lib/seo";
 
-export const metadata: Metadata = metadatos(
-  "Para quién es",
-  "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Lola, Clara, Víctor e Iris por ti.",
-);
+export function generateMetadata(): Metadata {
+  const idioma = idiomaServidor();
+  return metadatosDe(idioma, t(idioma).meta.paraQuien);
+}
 
 /** El agente que va al frente de cada situación (SEGMENTOS en contenido.ts). */
 const alFrente = (frente: string): IdAgente => (esIdAgente(frente) ? frente : "lola");
@@ -32,32 +33,33 @@ const color = (id: IdAgente) =>
  * divisiones de 1px. El personaje grande cambia de lado en cada bloque.
  */
 export default function ParaQuienEs() {
+  const idioma = idiomaServidor();
+  const P = t(idioma).paraQuien;
+  const SEGMENTOS = P.segmentos;
   return (
     <Sitio>
       <EncabezadoPagina
         escena="burbujaDerecha"
-        etiqueta="Para quién es"
-        titulo="Para negocios que atienden personas."
-        texto="Si tu negocio vive de atender, agendar y que tus clientes regresen, el equipo de Atendel hace esa parte contigo."
+        etiqueta={P.etiqueta}
+        titulo={P.titulo}
+        texto={P.texto}
         acciones={
           <Boton href="/pruebalo" variante="principal">
-            Habla con los agentes
+            {P.hablar}
           </Boton>
         }
       />
 
       <div className="pqe-cuerpo">
         <div className="contenedor pqe-lectura">
-          <Indice
-            negocios={SEGMENTOS.map((s) => ({ id: s.id, nombre: s.nombre }))}
-          />
+          <Indice titulo={P.indice} negocios={SEGMENTOS.map((s) => ({ id: s.id, nombre: s.nombre }))} />
 
           <div className="pqe-lectura__bloques">
             {SEGMENTOS.map((s, i) => {
               const frente = alFrente(s.frente);
-              const tareaFrente = s.ayuda.find(([id]) => id === frente)?.[1];
-              const resto = s.ayuda.filter(([id]) => id !== frente);
-              const a = AGENTE_POR_ID[frente];
+              const tareaFrente = s.ayuda.find((x) => x.id === frente)?.texto;
+              const resto = s.ayuda.filter((x) => x.id !== frente);
+              const a = agenteDe(idioma, frente);
               return (
                 <section
                   key={s.id}
@@ -95,11 +97,11 @@ export default function ParaQuienEs() {
 
                   <ul
                     className="pqe-equipo"
-                    aria-label="El resto del equipo"
+                    aria-label={P.resto}
                   >
-                    {resto.map(([id, texto]) => {
+                    {resto.map(({ id, texto }) => {
                       if (!esIdAgente(id)) return null;
-                      const ag = AGENTE_POR_ID[id];
+                      const ag = agenteDe(idioma, id);
                       return (
                         <li key={id} className="pqe-equipo__fila">
                           <span
@@ -134,20 +136,20 @@ export default function ParaQuienEs() {
           <div className="contenedor">
             <div className="pqe-cierre-negocios__fila">
               <div>
-                <Etiqueta>Pruébalo</Etiqueta>
+                <Etiqueta>{P.cierreEtiqueta}</Etiqueta>
                 <h2
                   id="cierre-titulo"
                   className="t-grande pqe-cierre-negocios__titulo"
                 >
-                  Pruébalo con tu negocio en mente.
+                  {P.cierreTitulo}
                 </h2>
               </div>
               <div className="pqe-cierre-negocios__acciones">
                 <Boton href="/pruebalo" variante="principal">
-                  Habla con los agentes
+                  {P.hablar}
                 </Boton>
                 <Boton href="/precios" variante="fantasma" flecha>
-                  Ver precios
+                  {P.verPrecios}
                 </Boton>
               </div>
             </div>

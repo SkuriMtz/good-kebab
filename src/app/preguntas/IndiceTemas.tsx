@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useIdioma } from "@/i18n/Idioma";
 
 /**
  * Índice de temas (columna izquierda de las preguntas): enlaces a cada grupo,
@@ -11,6 +12,7 @@ export type EntradaIndice = { id: string; nombre: string; cuenta?: number };
 
 export function IndiceTemas({ entradas, etiqueta }: { entradas: EntradaIndice[]; etiqueta: string }) {
   const [actual, setActual] = useState(entradas[0]?.id ?? "");
+  const { d } = useIdioma();
   const claves = entradas.map((e) => e.id).join("|");
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function IndiceTemas({ entradas, etiqueta }: { entradas: EntradaIndice[];
               {e.cuenta !== undefined ? (
                 <span className="temas__cuenta">
                   {e.cuenta}
-                  <span className="sr-only"> {e.cuenta === 1 ? "pregunta" : "preguntas"}</span>
+                  <span className="sr-only"> {e.cuenta === 1 ? d.preguntas.pregunta : d.preguntas.preguntasPalabra}</span>
                 </span>
               ) : null}
             </a>

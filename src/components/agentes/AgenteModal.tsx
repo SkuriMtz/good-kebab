@@ -7,9 +7,9 @@ import { Icono } from "@/components/base/Iconos";
 import { MarcoNavegador } from "@/components/base/MarcoNavegador";
 import { ConversacionEjemplo } from "./ConversacionEjemplo";
 import { Personaje } from "./Personaje";
-import { DETALLE } from "./detalle";
-import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
-import { PLANES, planMinimo } from "@/lib/planes";
+import type { IdAgente } from "@/lib/agentes";
+import { agenteDe, planesDe, planMinimoDe } from "@/i18n";
+import { useIdioma } from "@/i18n/Idioma";
 
 /** Lo que tarda en irse la ficha (--dur-salida); con movimiento reducido es solo un fundido. */
 function duracionSalida() {
@@ -61,10 +61,13 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
     }
   }, [abierto, agente]);
 
+  const { idioma, d } = useIdioma();
+  const F = d.ficha;
   const id = mostrado;
-  const info = id ? AGENTE_POR_ID[id] : null;
-  const detalle = id ? DETALLE[id] : null;
-  const enFree = id ? planMinimo(id).id === "free" : false;
+  const info = id ? agenteDe(idioma, id) : null;
+  const detalle = id ? d.detalle[id] : null;
+  const minimo = id ? planMinimoDe(idioma, id) : null;
+  const enFree = minimo?.id === "free";
 
   return (
     <dialog
@@ -93,17 +96,17 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
               </h2>
               <p className="t-intro">{info.lema}</p>
             </div>
-            <BotonIcono etiqueta="Cerrar la ficha" icono="cerrar" tam="normal" className="ficha__cerrar" onClick={onClose} />
+            <BotonIcono etiqueta={F.cerrar} icono="cerrar" tam="normal" className="ficha__cerrar" onClick={onClose} />
           </header>
 
           <div className="ficha__cuerpo">
             <div className="ficha__columna">
               <section>
-                <h3 className="etiqueta">Qué es y para qué sirve</h3>
+                <h3 className="etiqueta">{F.queEs}</h3>
                 <p className="t-cuerpo ficha__parrafo">{detalle.descripcion}</p>
               </section>
               <section>
-                <h3 className="etiqueta">Todo lo que puede hacer</h3>
+                <h3 className="etiqueta">{F.todo}</h3>
                 <ul className="funciones funciones--compacta">
                   {detalle.funciones.map((f) => (
                     <li key={f.titulo} className="funciones__fila">
@@ -117,45 +120,41 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
 
             <div className="ficha__columna">
               <MarcoNavegador
-                titulo={`Conversación de ejemplo con ${info.nombre}`}
+                titulo={d.paginaAgentes.conversacionCon(info.nombre)}
                 pestanas={[{ etiqueta: `${info.nombre} · ${detalle.canal}`, adorno: <Personaje agente={id} avatar />, activa: true }]}
               >
-                <ConversacionEjemplo agente={id} />
+                <ConversacionEjemplo agente={id} idioma={idioma} />
               </MarcoNavegador>
 
               <section>
-                <h3 className="etiqueta">En qué plan está</h3>
+                <h3 className="etiqueta">{F.enQuePlan}</h3>
                 <ul className="ficha__planes">
-                  {PLANES.map((p) => {
+                  {planesDe(idioma).map((p) => {
                     const incluido = p.agentes.includes(id);
                     return (
                       <li key={p.id} data-incluido={incluido ? "true" : "false"}>
                         <span className="ficha__plan-nombre">{p.nombre.replace("Atendel ", "")}</span>
                         <span className="ficha__plan-estado">
                           <Icono nombre={incluido ? "check" : "cerrar"} tam={14} />
-                          {incluido ? "Incluido" : "No incluido"}
+                          {incluido ? F.incluido : F.noIncluido}
                         </span>
                       </li>
                     );
                   })}
                 </ul>
-                {!enFree ? (
-                  <p className="t-chico ficha__nota">
-                    {info.nombre} llega con {planMinimo(id).nombre}. Mientras, puedes empezar gratis con Clara.
-                  </p>
-                ) : null}
+                {!enFree && minimo ? <p className="t-chico ficha__nota">{F.llegaCon(info.nombre, minimo.nombre)}</p> : null}
                 <div className="ficha__acciones">
                   <Boton href="/entrar" onClick={onClose}>
-                    {enFree ? `Probar a ${info.nombre} gratis` : "Empezar gratis"}
+                    {enFree ? F.probarGratis(info.nombre) : F.empezarGratis}
                   </Boton>
                   <Boton href={`/pruebalo?con=${id}#conversaciones`} variante="sutil" onClick={onClose}>
-                    Pruébalo con {info.nombre}
+                    {F.pruebaloCon(info.nombre)}
                   </Boton>
                   <Boton href={`/agentes/${id}`} variante="sutil" onClick={onClose}>
-                    Su página
+                    {F.suPagina}
                   </Boton>
                   <Boton href="/precios" variante="fantasma" flecha onClick={onClose}>
-                    Ver precios
+                    {F.verPrecios}
                   </Boton>
                 </div>
               </section>

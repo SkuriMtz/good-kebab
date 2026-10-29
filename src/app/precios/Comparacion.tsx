@@ -1,27 +1,25 @@
 import type { CSSProperties } from "react";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono } from "@/components/base/Iconos";
-import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import type { IdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
-import { PLANES, type Plan } from "@/lib/planes";
+import type { Plan } from "@/lib/planes";
+import { agenteDe, numero, planesDe, t, type Idioma } from "@/i18n";
 
 const NOMBRE_CORTO: Record<Plan["id"], string> = { free: "Free", one: "One", max: "Max" };
 
 /** Los agentes en el orden en que se suman: Clara (Free), Lola (One), Víctor e Iris (Max). */
 const ORDEN: IdAgente[] = ["clara", "lola", "victor", "iris"];
 
-/** Funciones del chat que aparecen tal cual en "incluye" de src/lib/planes.ts. */
-const FUNCIONES = ["Chats en grupo con tus agentes", "Eliges quién está en tu equipo", "Respuestas más elaboradas"];
-
-function Celda({ si, plan }: { si: boolean; plan: Plan }) {
+function Celda({ si, plan, incluido, noIncluido }: { si: boolean; plan: Plan; incluido: string; noIncluido: string }) {
   return (
     <td className={plan.id === "free" ? "comparar__hoy" : undefined}>
       {si ? (
-        <Icono nombre="check" tam={20} tono="cielo" titulo="Incluido" />
+        <Icono nombre="check" tam={20} tono="cielo" titulo={incluido} />
       ) : (
         <span className="comparar__no">
           <span aria-hidden="true">—</span>
-          <span className="sr-only">No incluido</span>
+          <span className="sr-only">{noIncluido}</span>
         </span>
       )}
     </td>
@@ -34,20 +32,26 @@ function Celda({ si, plan }: { si: boolean; plan: Plan }) {
  * es un agente con su personaje; las columnas, los planes. Todo sale de
  * src/lib/planes.ts (agentes, mensajes al mes y lo que incluye).
  */
-export function Comparacion() {
+export function Comparacion({ idioma = "es" }: { idioma?: Idioma }) {
+  const d = t(idioma);
+  const C = d.comparacion;
+  /** Funciones del chat que aparecen tal cual en "incluye" de cada plan (src/i18n). */
+  const FUNCIONES = C.funciones;
+  const PLANES = planesDe(idioma);
+  const celda = (p: Plan, si: boolean) => <Celda key={p.id} plan={p} si={si} incluido={C.incluido} noIncluido={C.noIncluido} />;
   return (
     <div className="comparar" role="region" aria-labelledby="comparar-titulo" tabIndex={0}>
       <table className="comparar__tabla">
-        <caption className="sr-only">Qué agentes y funciones trae cada plan de Atendel</caption>
+        <caption className="sr-only">{C.caption}</caption>
         <thead>
           <tr>
             <th scope="col" className="comparar__esquina">
-              <span className="sr-only">Agente o función</span>
+              <span className="sr-only">{C.agenteOFuncion}</span>
             </th>
             {PLANES.map((p) => (
               <th key={p.id} scope="col" className={p.id === "free" ? "comparar__hoy" : undefined}>
                 <span className="comparar__plan">{NOMBRE_CORTO[p.id]}</span>
-                <span className="comparar__precio">{p.precio ?? "Próximamente"}</span>
+                <span className="comparar__precio">{p.precio ?? d.tarjetasPlanes.proximamente}</span>
               </th>
             ))}
           </tr>
@@ -55,11 +59,11 @@ export function Comparacion() {
         <tbody>
           <tr className="comparar__grupo">
             <th scope="colgroup" colSpan={4}>
-              Agentes
+              {C.agentes}
             </th>
           </tr>
           {ORDEN.map((a) => {
-            const info = AGENTE_POR_ID[a];
+            const info = agenteDe(idioma, a);
             return (
               <tr key={a}>
                 <th scope="row">
@@ -79,24 +83,22 @@ export function Comparacion() {
                     </span>
                   </span>
                 </th>
-                {PLANES.map((p) => (
-                  <Celda key={p.id} plan={p} si={p.agentes.includes(a)} />
-                ))}
+                {PLANES.map((p) => celda(p, p.agentes.includes(a)))}
               </tr>
             );
           })}
           <tr className="comparar__grupo">
             <th scope="colgroup" colSpan={4}>
-              En el chat
+              {C.enElChat}
             </th>
           </tr>
           <tr>
             <th scope="row" className="comparar__funcion">
-              Mensajes al mes
+              {C.mensajesMes}
             </th>
             {PLANES.map((p) => (
               <td key={p.id} className={`comparar__cifra${p.id === "free" ? " comparar__hoy" : ""}`}>
-                {p.mensajesMes.toLocaleString("es-MX")}
+                {numero(idioma, p.mensajesMes)}
               </td>
             ))}
           </tr>
@@ -105,9 +107,7 @@ export function Comparacion() {
               <th scope="row" className="comparar__funcion">
                 {f}
               </th>
-              {PLANES.map((p) => (
-                <Celda key={p.id} plan={p} si={p.incluye.includes(f)} />
-              ))}
+              {PLANES.map((p) => celda(p, p.incluye.includes(f)))}
             </tr>
           ))}
         </tbody>

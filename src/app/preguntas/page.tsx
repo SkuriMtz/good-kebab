@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GrupoPreguntas, NoEstaTuPregunta, TEMAS_TODAS } from "@/components/Preguntas";
+import { GrupoPreguntas, NoEstaTuPregunta, temasDe } from "@/components/Preguntas";
 import { Sitio } from "@/components/Sitio";
 import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
-import { GARANTIAS } from "@/lib/contenido";
 import { IndiceTemas } from "./IndiceTemas";
-import { metadatos } from "@/lib/seo";
+import { t } from "@/i18n";
+import { idiomaServidor } from "@/i18n/servidor";
+import { metadatosDe } from "@/lib/seo";
 
-export const metadata: Metadata = metadatos(
-  "Posibles preguntas",
-  "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
-);
+export function generateMetadata(): Metadata {
+  const idioma = idiomaServidor();
+  return metadatosDe(idioma, t(idioma).meta.preguntas);
+}
 
 const ICONOS_GARANTIA: NombreIcono[] = ["candado", "mano", "escudo"];
 
@@ -26,45 +27,48 @@ const ICONOS_GARANTIA: NombreIcono[] = ["candado", "mano", "escudo"];
  * componente <Seguridad variante="preguntas" /> conservando id="seguridad".
  */
 export default function PreguntasFrecuentes() {
+  const idioma = idiomaServidor();
+  const P = t(idioma).preguntas;
+  const temas = temasDe(idioma);
   const entradas = [
-    ...TEMAS_TODAS.map((t) => ({ id: t.id, nombre: t.nombre, cuenta: t.preguntas.length })),
-    { id: "seguridad", nombre: "Cómo cuidamos tus datos" },
+    ...temas.map((x) => ({ id: x.id, nombre: x.nombre, cuenta: x.preguntas.length })),
+    { id: "seguridad", nombre: P.cuidamos },
   ];
   return (
     <Sitio>
       <div className="contenedor faq-pagina">
         <aside className="faq-pagina__lado">
-          <Etiqueta tono="cielo">Ayuda</Etiqueta>
-          <h1 className="t-grande">Posibles preguntas</h1>
-          <p className="t-cuerpo">Dudas que puedes tener antes de empezar con tu negocio.</p>
-          <IndiceTemas etiqueta="Temas" entradas={entradas} />
+          <Etiqueta tono="cielo">{P.etiqueta}</Etiqueta>
+          <h1 className="t-grande">{P.titulo}</h1>
+          <p className="t-cuerpo">{P.texto}</p>
+          <IndiceTemas etiqueta={P.temas} entradas={entradas} />
           <div className="faq-pagina__pie">
-            <NoEstaTuPregunta />
+            <NoEstaTuPregunta idioma={idioma} />
             <div className="faq-pagina__acciones">
               <Boton href="/pruebalo" variante="sutil">
-                Prueba los agentes
+                {P.pruebaAgentes}
               </Boton>
               <Boton href="/precios" variante="fantasma" flecha>
-                Precios
+                {P.precios}
               </Boton>
             </div>
           </div>
         </aside>
         <div className="faq-pagina__preguntas" id="preguntas">
-          {TEMAS_TODAS.map((t, i) => (
-            <GrupoPreguntas key={t.id} tema={t} nivel={2} abiertaInicial={i === 0 ? 0 : null} />
+          {temas.map((tema, i) => (
+            <GrupoPreguntas key={tema.id} tema={tema} nivel={2} abiertaInicial={i === 0 ? 0 : null} />
           ))}
         </div>
       </div>
 
       <section id="seguridad" className="seguridad-preguntas contenedor" data-escena="candadoDerecha" aria-labelledby="seguridad-titulo">
         <div className="seguridad-preguntas__texto">
-          <Etiqueta tono="cielo">Tus datos</Etiqueta>
+          <Etiqueta tono="cielo">{P.seguridadEtiqueta}</Etiqueta>
           <h2 id="seguridad-titulo" className="t-grande">
-            Cada negocio ve solo lo suyo
+            {P.seguridadTitulo}
           </h2>
           <ul className="seguridad-preguntas__lista">
-            {GARANTIAS.map(([titulo, texto], i) => (
+            {P.garantias.map(({ titulo, texto }, i) => (
               <li key={titulo}>
                 <Icono nombre={ICONOS_GARANTIA[i] ?? "check"} tam={24} tono="cielo" />
                 <div>
@@ -75,9 +79,9 @@ export default function PreguntasFrecuentes() {
             ))}
           </ul>
           <p className="t-chico">
-            ¿Algo más sobre tus datos?{" "}
+            {P.algoMas}{" "}
             <Link href="/contacto" className="enlace">
-              Escríbenos
+              {P.escribenos}
             </Link>
           </p>
         </div>

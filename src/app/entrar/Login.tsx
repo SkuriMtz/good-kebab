@@ -10,23 +10,16 @@ import { Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { correoValido } from "@/lib/lista";
 import { createClient } from "@/lib/supabase/client";
+import type { Diccionario } from "@/i18n";
+import { useIdioma } from "@/i18n/Idioma";
 
-/** Este error es del correo escrito: va junto al campo, no en el aviso de arriba. */
-const CORREO_NO_VALIDO = "Ese correo no parece válido. Revisa que esté bien escrito.";
-
-/** Lo que dice Supabase, en español y con qué hacer (nunca el texto técnico en inglés). */
-function traducirError(error: { message: string; code?: string }) {
+/** Lo que dice Supabase, en el idioma de la página y con qué hacer (nunca el texto técnico). */
+function traducirError(error: { message: string; code?: string }, E: Diccionario["entrar"]) {
   const texto = `${error.code ?? ""} ${error.message}`;
-  if (/rate|seconds|segundos/i.test(texto)) {
-    return "Pediste varios links seguidos. Espera un minuto y vuelve a intentar.";
-  }
-  if (/fetch|network|conex/i.test(texto)) {
-    return "No hay conexión. Revisa tu internet e intenta de nuevo.";
-  }
-  if (/invalid|email/i.test(texto)) {
-    return CORREO_NO_VALIDO;
-  }
-  return "No se pudo enviar el link. Intenta de nuevo en un momento.";
+  if (/rate|seconds|segundos/i.test(texto)) return E.variosLinks;
+  if (/fetch|network|conex/i.test(texto)) return E.sinConexion;
+  if (/invalid|email/i.test(texto)) return E.correoNoValido;
+  return E.noSeEnvio;
 }
 
 /**
@@ -37,12 +30,14 @@ function traducirError(error: { message: string; code?: string }) {
  * primera vez. La lógica de Supabase es la de siempre.
  */
 export function Login({ errorInicial }: { errorInicial: boolean }) {
+  const { d } = useIdioma();
+  const E = d.entrar;
   const supabase = useMemo(() => createClient(), []);
   const google = useGoogleDisponible();
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<"idle" | "enviando" | "enviado">("idle");
   const [error, setError] = useState<string | null>(
-    errorInicial ? "No se pudo iniciar sesión. Pide un link nuevo y ábrelo en este mismo navegador." : null,
+    errorInicial ? E.noInicio : null,
   );
   /** Error del correo escrito: se muestra junto al campo (aria-invalid y aria-describedby los pone Campo). */
   const [errorCampo, setErrorCampo] = useState<string | null>(null);
@@ -65,11 +60,7 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     e.preventDefault();
     if (estado === "enviando") return;
     // Se revisa aquí, en español, antes de pedir el link (sin el globo del navegador)
-    const problema = !email.trim()
-      ? "Escribe tu correo para mandarte el link."
-      : !correoValido(email)
-        ? "Revisa tu correo: parece que le falta algo (por ejemplo, nombre@negocio.com)."
-        : null;
+    const problema = !email.trim() ? E.escribeCorreo : !correoValido(email) ? E.revisaCorreo : null;
     if (problema) {
       setError(null);
       setErrorCampo(problema);
@@ -88,8 +79,8 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
       .catch((e: unknown) => ({ error: { message: e instanceof Error ? e.message : "fetch" } }));
     if (error) {
       setEstado("idle");
-      const texto = traducirError(error);
-      if (texto === CORREO_NO_VALIDO) {
+      const texto = traducirError(error, E);
+      if (texto === E.correoNoValido) {
         setErrorCampo(texto);
         correoRef.current?.focus();
       } else {
@@ -117,11 +108,11 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     <section className="acceso con-halo" aria-labelledby="acceso-titulo">
       <Halo suave y="32%" />
       <div className="acceso__columna">
-        <Link href="/" className="acceso__marca" aria-label="Atendel, inicio">
+        <Link href="/" className="acceso__marca" aria-label={E.inicio}>
           <Marca className="acceso__marca-svg" />
         </Link>
         <h1 id="acceso-titulo" ref={tituloRef} tabIndex={-1} className="acceso__titulo">
-          {enviado ? "Revisa tu correo" : "Entra a Atendel"}
+          {enviado ? E.tituloEnviado : E.titulo}
         </h1>
 
         {error && !enviado ? (
@@ -133,10 +124,10 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
 
         <div className="acceso__tarjeta">
           {!enviado ? (
-            <form key="formulario" noValidate onSubmit={enviar} className="acceso__formulario" aria-label="Entrar con tu correo">
+            <form key="formulario" noValidate onSubmit={enviar} className="acceso__formulario" aria-label={E.formulario}>
               <CampoCorreo
                 ref={correoRef}
-                etiqueta="Correo electrónico"
+                etiqueta={E.correo}
                 name="email"
                 value={email}
                 alCambiar={(v) => {
@@ -146,18 +137,18 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
                 error={errorCampo}
                 readOnly={estado === "enviando"}
                 required
-                ayuda="Te mandamos un link para entrar. Sin contraseña."
+                ayuda={E.ayuda}
               />
               <Boton type="submit" variante="principal" tam="grande" bloque cargando={estado === "enviando"}>
-                {estado === "enviando" ? "Enviando…" : "Enviarme el link"}
+                {estado === "enviando" ? E.enviando : E.enviar}
               </Boton>
               {google ? (
                 <>
                   <p className="acceso__o">
-                    <span>o</span>
+                    <span>{E.o}</span>
                   </p>
                   <Boton variante="sutil" tam="grande" bloque onClick={entrarConGoogle}>
-                    Continuar con Google
+                    {E.google}
                   </Boton>
                 </>
               ) : null}
@@ -166,24 +157,25 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
             <div key="enviado" role="status" className="acceso__enviado">
               <p className="acceso__sello">
                 <Icono nombre="correo" tam={16} />
-                Link enviado
+                {E.linkEnviado}
               </p>
               <p className="acceso__texto">
-                Te mandamos un link a <strong className="acceso__correo">{email}</strong>. Ábrelo en este mismo navegador
-                para entrar.
+                {E.mandamosA}
+                <strong className="acceso__correo">{email}</strong>
+                {E.abrelo}
               </p>
-              <p className="acceso__pista">¿No llega? Revisa Spam o Promociones. Puede tardar un par de minutos.</p>
+              <p className="acceso__pista">{E.noLlega}</p>
               <Boton variante="fantasma" tam="grande" bloque onClick={() => setEstado("idle")}>
-                Usar otro correo
+                {E.otroCorreo}
               </Boton>
             </div>
           )}
         </div>
 
         <p className="acceso__nota">
-          ¿Primera vez? Escribe tu correo y tu cuenta se crea al entrar, con el plan Free.{" "}
+          {E.primeraVez}{" "}
           <Link href="/precios" className="acceso__enlace">
-            Ver los planes
+            {E.verPlanes}
           </Link>
         </p>
       </div>

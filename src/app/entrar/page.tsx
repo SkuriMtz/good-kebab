@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Sitio } from "@/components/Sitio";
 import { Login } from "./Login";
-import { metadatos } from "@/lib/seo";
+import { t } from "@/i18n";
+import { idiomaServidor } from "@/i18n/servidor";
+import { metadatosDe } from "@/lib/seo";
 
-export const metadata: Metadata = metadatos(
-  "Entrar",
-  "Entra a Atendel con tu correo, sin contraseña. Si es tu primera vez, tu cuenta se crea al entrar con el plan Free.",
-);
+export function generateMetadata(): Metadata {
+  const idioma = idiomaServidor();
+  return metadatosDe(idioma, t(idioma).meta.entrar);
+}
 
 export default function EntrarPage({ searchParams }: { searchParams: { error?: string } }) {
   return (

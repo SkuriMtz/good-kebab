@@ -9,28 +9,14 @@ import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { IDS_AGENTES } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
-import { metadatos } from "@/lib/seo";
+import { t } from "@/i18n";
+import { idiomaServidor } from "@/i18n/servidor";
+import { metadatosDe } from "@/lib/seo";
 
-export const metadata: Metadata = metadatos(
-  "Lista de espera",
-  "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel.",
-);
-
-/** Qué pasa después de anotarte. Solo lo que de verdad pasa (ver src/app/api/lista y las preguntas frecuentes). */
-const DESPUES = [
-  {
-    titulo: "Tu correo queda en la lista",
-    texto: "No te pedimos nada más: ni teléfono, ni contraseña, ni datos de tu negocio.",
-  },
-  {
-    titulo: "Te escribimos cuando abramos tu lugar",
-    texto: "Atendel abre por etapas: la conexión de Lola con tu WhatsApp y tu agenda llega poco a poco. Te avisamos a ese correo.",
-  },
-  {
-    titulo: "Mientras, ya puedes empezar",
-    texto: "Con Atendel Free entras hoy con tu correo, sin contraseña, y trabajas con Clara en tu correo. Y en Pruébalo platicas con los cuatro.",
-  },
-];
+export function generateMetadata(): Metadata {
+  const idioma = idiomaServidor();
+  return metadatosDe(idioma, t(idioma).meta.lista);
+}
 
 /**
  * /lista: la lista de espera, sobria y centrada. Arriba el equipo, el
@@ -39,12 +25,13 @@ const DESPUES = [
  * línea de 1px que los une).
  */
 export default function Lista() {
+  const P = t(idiomaServidor()).listaEspera.pagina;
   return (
     <Sitio>
       <section className="pagina-sobria con-halo" aria-labelledby="lista-pagina-titulo">
         <Halo y="38%" ancho="min(760px, 120vw)" suave />
         <div className="pagina-sobria__centro">
-          <ul className="pagina-sobria__equipo" aria-label="Lola, Clara, Víctor e Iris">
+          <ul className="pagina-sobria__equipo" aria-label={P.equipo}>
             {IDS_AGENTES.map((a) => (
               <li
                 key={a}
@@ -55,13 +42,11 @@ export default function Lista() {
               </li>
             ))}
           </ul>
-          <Etiqueta tono="cielo">Lista de espera</Etiqueta>
+          <Etiqueta tono="cielo">{P.etiqueta}</Etiqueta>
           <h1 id="lista-pagina-titulo" className="t-grande">
-            Anótate y te avisamos cuando abramos tu lugar
+            {P.titulo}
           </h1>
-          <p className="t-intro">
-            Para negocios que atienden personas. Solo necesitamos tu correo.
-          </p>
+          <p className="t-intro">{P.texto}</p>
           <FormularioLista centrado conSecundario={false} className="pagina-sobria__formulario" />
         </div>
       </section>
@@ -69,10 +54,10 @@ export default function Lista() {
       <section className="pagina-sobria pagina-sobria--siguiente" aria-labelledby="despues-titulo">
         <div className="pagina-sobria__columna">
           <h2 id="despues-titulo" className="etiqueta">
-            Qué pasa después
+            {P.despuesTitulo}
           </h2>
           <ol className="pasos-lista">
-            {DESPUES.map((d, i) => (
+            {P.despues.map((d, i) => (
               <li key={d.titulo} className="pasos-lista__paso">
                 <span className="pasos-lista__num" aria-hidden="true">
                   {String(i + 1).padStart(2, "0")}
@@ -86,16 +71,16 @@ export default function Lista() {
           </ol>
           <div className="pagina-sobria__acciones">
             <Boton href="/pruebalo" variante="sutil">
-              Prueba los agentes
+              {P.pruebaAgentes}
             </Boton>
             <Boton href="/entrar" variante="fantasma" flecha>
-              Empieza con Free
+              {P.empiezaFree}
             </Boton>
           </div>
           <p className="t-chico">
-            ¿Prefieres preguntarnos algo primero?{" "}
+            {P.preguntar}{" "}
             <Link href="/contacto" className="enlace">
-              Escríbenos
+              {P.escribenos}
             </Link>
           </p>
         </div>

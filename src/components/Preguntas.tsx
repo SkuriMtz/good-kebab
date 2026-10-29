@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Acordeon } from "./base/Acordeon";
 import { PREGUNTAS } from "@/lib/contenido";
 import { PLAN_POR_ID } from "@/lib/planes";
+import { t, type Idioma } from "@/i18n";
 
 export type Pregunta = { p: string; r: string };
 
@@ -95,6 +96,17 @@ export const TEMAS_TODAS: Tema[] = [
   { id: "datos", nombre: "Tus datos", preguntas: [...DATOS, ...SUELTAS] },
 ].filter((t) => t.preguntas.length > 0);
 
+/** Temas de /preguntas en el idioma pedido (src/i18n: en español son los de siempre). */
+export function temasDe(idioma: Idioma): Tema[] {
+  const g = t(idioma).preguntas.grupos;
+  return [
+    { id: "empezar", ...g.empezar },
+    { id: "planes", ...g.planes },
+    { id: "clientes", ...g.clientes },
+    { id: "datos", ...g.datos },
+  ].filter((x) => x.preguntas.length > 0);
+}
+
 /**
  * Un grupo de preguntas con su rótulo en Mono (destino de cada enlace del índice).
  * `nivel`: el rótulo es h3 dentro de una sección con h2 (inicio) y h2 en una
@@ -129,12 +141,13 @@ export function GrupoPreguntas({
 }
 
 /** "¿No está tu pregunta? Escríbenos" (a /contacto). */
-export function NoEstaTuPregunta({ className = "" }: { className?: string }) {
+export function NoEstaTuPregunta({ className = "", idioma = "es" }: { className?: string; idioma?: Idioma }) {
+  const P = t(idioma).preguntas;
   return (
     <p className={`t-chico ${className}`}>
-      ¿No está tu pregunta?{" "}
+      {P.noEsta}{" "}
       <Link href="/contacto" className="enlace">
-        Escríbenos
+        {P.escribenos}
       </Link>
     </p>
   );

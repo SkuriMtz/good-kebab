@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Personaje } from "./Personaje";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
+import { useIdioma } from "@/i18n/Idioma";
 
 /**
  * Fila de pestañas en píldora que se queda pegada debajo de la barra mientras
@@ -11,6 +12,7 @@ import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
  */
 export function NavAgentes() {
   const [actual, setActual] = useState<IdAgente | null>(null);
+  const { d } = useIdioma();
 
   useEffect(() => {
     const secciones = AGENTES_INFO.map((a) => document.getElementById(a.id)).filter((s): s is HTMLElement => Boolean(s));
@@ -34,7 +36,7 @@ export function NavAgentes() {
   }, []);
 
   return (
-    <nav className="nav-agentes" aria-label="Ir a un agente">
+    <nav className="nav-agentes" aria-label={d.paginaAgentes.irAgente}>
       <ul className="nav-agentes__lista">
         {AGENTES_INFO.map((a) => (
           <li key={a.id}>

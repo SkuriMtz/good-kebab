@@ -7,12 +7,12 @@ import { Boton } from "@/components/base/Boton";
 import { Campo, CampoCorreo } from "@/components/base/Campo";
 import { Icono } from "@/components/base/Iconos";
 import { LIMITES, correoValido, normalizarCorreo } from "@/lib/lista";
+import { numero } from "@/i18n";
+import { useIdioma } from "@/i18n/Idioma";
 
 type Estado = "editando" | "enviando" | "enviado" | "aviso";
 type Errores = Partial<Record<"nombre" | "correo" | "mensaje", string>>;
 
-/** Mensaje amable cuando el servidor todavía no puede guardar (falta la tabla en Supabase). */
-const PAUSA = "Este formulario todavía no recibe mensajes: lo estamos terminando de abrir. Tu texto sigue aquí; intenta de nuevo en unos días.";
 
 /**
  * Formulario de contacto: nombre, correo, negocio (opcional) y mensaje.
@@ -28,6 +28,8 @@ const PAUSA = "Este formulario todavía no recibe mensajes: lo estamos terminand
  *   porque la tabla aún no existe), con el texto intacto para reintentar.
  */
 export function FormularioContacto() {
+  const { idioma, d } = useIdioma();
+  const F = d.contacto.formulario;
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [negocio, setNegocio] = useState("");
@@ -49,11 +51,11 @@ export function FormularioContacto() {
 
   const revisar = (): Errores => {
     const e: Errores = {};
-    if (!nombre.trim()) e.nombre = "Escribe tu nombre.";
-    if (!correo.trim()) e.correo = "Escribe tu correo para poder contestarte.";
-    else if (!correoValido(correo)) e.correo = "Revisa tu correo: parece que le falta algo (por ejemplo, nombre@negocio.com).";
-    if (!mensaje.trim()) e.mensaje = "Escribe tu mensaje.";
-    else if (mensaje.length > LIMITES.mensaje) e.mensaje = `El mensaje puede tener hasta ${LIMITES.mensaje.toLocaleString("es-MX")} caracteres.`;
+    if (!nombre.trim()) e.nombre = F.nombreFalta;
+    if (!correo.trim()) e.correo = F.correoFalta;
+    else if (!correoValido(correo)) e.correo = F.correoInvalido;
+    if (!mensaje.trim()) e.mensaje = F.mensajeFalta;
+    else if (mensaje.length > LIMITES.mensaje) e.mensaje = F.mensajeLargo(numero(idioma, LIMITES.mensaje));
     return e;
   };
 
@@ -81,7 +83,7 @@ export function FormularioContacto() {
       return;
     }
     setEstado("aviso");
-    setAviso({ motivo: r.motivo, texto: r.motivo === "pausa" ? PAUSA : r.error });
+    setAviso({ motivo: r.motivo, texto: r.motivo === "pausa" ? F.pausa : r.motivo === "datos" ? d.listaEspera.errores.datos : d.listaEspera.errores[r.motivo] });
   };
 
   const otro = () => {
@@ -102,18 +104,19 @@ export function FormularioContacto() {
       <div className="contacto-listo" aria-live="polite">
         <Icono nombre="check-circulo" tam={24} tono="cielo" />
         <h2 ref={titulo} tabIndex={-1} className="t-titulo">
-          Recibimos tu mensaje
+          {F.recibimos}
         </h2>
         <p className="t-cuerpo">
-          Te contestamos a <strong className="break-all font-medium text-[var(--c-texto)]">{enviadoA}</strong>.
-          Mientras, puedes platicar con los agentes en{" "}
+          {F.contestamosA}
+          <strong className="break-all font-medium text-[var(--c-texto)]">{enviadoA}</strong>
+          {F.mientras}
           <Link href="/pruebalo" className="enlace">
-            Pruébalo
+            {F.pruebalo}
           </Link>
           .
         </p>
         <Boton variante="fantasma" onClick={otro}>
-          Escribir otro mensaje
+          {F.otro}
         </Boton>
       </div>
     );
@@ -123,14 +126,14 @@ export function FormularioContacto() {
     <form
       noValidate
       onSubmit={enviar}
-      aria-label="Formulario de contacto"
+      aria-label={F.aria}
       aria-describedby={aviso ? idAviso : undefined}
       className="contacto-form"
     >
       <div className="contacto-form__par">
         <Campo
           ref={refs.nombre}
-          etiqueta="Tu nombre"
+          etiqueta={F.nombre}
           name="nombre"
           autoComplete="name"
           enterKeyHint="next"
@@ -145,19 +148,20 @@ export function FormularioContacto() {
           required
         />
         <Campo
-          etiqueta="Tu negocio (opcional)"
+          etiqueta={F.negocio}
           name="negocio"
           autoComplete="organization"
           enterKeyHint="next"
           maxLength={LIMITES.negocio}
           value={negocio}
           alCambiar={setNegocio}
-          ayuda="El nombre de tu negocio y tu ciudad."
+          ayuda={F.negocioAyuda}
           readOnly={enviando}
         />
       </div>
       <CampoCorreo
         ref={refs.correo}
+        etiqueta={F.correo}
         name="correo"
         enterKeyHint="next"
         value={correo}
@@ -166,14 +170,14 @@ export function FormularioContacto() {
           limpiar("correo");
         }}
         error={errores.correo}
-        ayuda={errores.correo ? undefined : "Ahí te contestamos."}
+        ayuda={errores.correo ? undefined : F.correoAyuda}
         readOnly={enviando}
         required
       />
       <Campo
         ref={refs.mensaje}
         multilinea
-        etiqueta="Tu mensaje"
+        etiqueta={F.mensaje}
         name="mensaje"
         maxLength={LIMITES.mensaje}
         value={mensaje}
@@ -188,7 +192,7 @@ export function FormularioContacto() {
 
       {/* Campo trampa contra bots: invisible para las personas y fuera del orden de tabulación */}
       <div className="formulario-lista__trampa" aria-hidden="true">
-        <label htmlFor={idTrampa}>No llenes este campo</label>
+        <label htmlFor={idTrampa}>{F.trampa}</label>
         <input
           id={idTrampa}
           type="text"
@@ -214,9 +218,9 @@ export function FormularioContacto() {
       </div>
 
       <div className="contacto-form__pie">
-        <p className="t-caption">Todos los campos son necesarios, menos el negocio.</p>
+        <p className="t-caption">{F.todos}</p>
         <Boton type="submit" tam="grande" cargando={enviando} className="max-sm:w-full">
-          {enviando ? "Enviando…" : aviso && aviso.motivo !== "pausa" ? "Intentar de nuevo" : "Enviar mensaje"}
+          {enviando ? F.enviando : aviso && aviso.motivo !== "pausa" ? F.reintentar : F.enviar}
         </Boton>
       </div>
     </form>

@@ -12,11 +12,11 @@ import { TarjetaVidrio } from "@/components/base/TarjetaVidrio";
 import { BotonFicha } from "@/components/agentes/BotonFicha";
 import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
 import { Personaje } from "@/components/agentes/Personaje";
-import { DETALLE } from "@/components/agentes/detalle";
 import { PlanesDelAgente } from "@/components/agentes/piezas";
-import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { PLANES, planMinimo } from "@/lib/planes";
-import { metadatos } from "@/lib/seo";
+import { IDS_AGENTES, esIdAgente } from "@/lib/agentes";
+import { agenteDe, agentesDe, planesDe, planMinimoDe, t } from "@/i18n";
+import { idiomaServidor } from "@/i18n/servidor";
+import { metadatosDe } from "@/lib/seo";
 
 /** Las cuatro páginas se generan al construir el sitio; otra dirección da 404. */
 export const dynamicParams = false;
@@ -26,17 +26,10 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { agente: string } }): Metadata {
   if (!esIdAgente(params.agente)) return {};
-  const a = AGENTE_POR_ID[params.agente];
-  return metadatos(`${a.nombre} · ${a.area}`, `${a.nombre}, agente de ${a.area.toLowerCase()} de Atendel. ${a.lema}`);
+  const idioma = idiomaServidor();
+  const a = agenteDe(idioma, params.agente);
+  return metadatosDe(idioma, t(idioma).meta.agente(a.nombre, a.area, a.lema));
 }
-
-/** Título de la conversación de ejemplo, según lo que pasa en ella (detalle.ts). */
-const TITULO_CONVERSACION: Record<IdAgente, string> = {
-  lola: "Así contesta Lola un WhatsApp",
-  clara: "Así contesta Clara un correo",
-  victor: "Así le da Víctor seguimiento a quien no agendó",
-  iris: "Así le encargas trabajo a Iris",
-};
 
 /*
  * /agentes/[agente] (G3-T1): la página propia de cada agente, como una página
@@ -49,22 +42,25 @@ const TITULO_CONVERSACION: Record<IdAgente, string> = {
 export default function PaginaAgente({ params }: { params: { agente: string } }) {
   if (!esIdAgente(params.agente)) notFound();
   const id = params.agente;
-  const a = AGENTE_POR_ID[id];
-  const detalle = DETALLE[id];
-  const minimo = planMinimo(id);
+  const idioma = idiomaServidor();
+  const d = t(idioma);
+  const P = d.paginaAgente;
+  const a = agenteDe(idioma, id);
+  const detalle = d.detalle[id];
+  const minimo = planMinimoDe(idioma, id);
   const enFree = minimo.id === "free";
-  const otros = AGENTES_INFO.filter((o) => o.id !== id);
+  const otros = agentesDe(idioma).filter((o) => o.id !== id);
 
   return (
     <Sitio>
       {/* Encabezado: el personaje es el protagonista */}
       <section className="seccion con-halo agente-heroe" aria-labelledby="agente-titulo">
         <div className="contenedor">
-          <nav aria-label="Ruta" className="ruta">
+          <nav aria-label={P.ruta} className="ruta">
             <ol>
               <li>
                 <Link href="/agentes" className="ruta__enlace">
-                  Agentes
+                  {P.agentes}
                 </Link>
               </li>
               <li aria-current="page">{a.nombre}</li>
@@ -80,11 +76,11 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
                 {a.nombre}
               </h1>
               <p className="t-intro">{a.lema}</p>
-              <PlanesDelAgente agente={id} />
+              <PlanesDelAgente agente={id} idioma={idioma} />
               <div className="agente-heroe__acciones">
-                <Boton href={`/pruebalo?con=${id}`}>Háblale a {a.nombre}</Boton>
+                <Boton href={`/pruebalo?con=${id}`}>{P.hablale(a.nombre)}</Boton>
                 <BotonFicha agente={id} className={claseBotonBase("sutil")}>
-                  Ver su ficha
+                  {P.verFicha}
                 </BotonFicha>
               </div>
             </div>
@@ -100,15 +96,15 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
       <Seccion etiquetadaPor="agente-conversacion" espacio="normal">
         <EncabezadoSeccion
           id="agente-conversacion"
-          etiqueta={`Conversación de ejemplo · ${detalle.canal}`}
-          titulo={TITULO_CONVERSACION[id]}
+          etiqueta={P.conversacionEtiqueta(detalle.canal)}
+          titulo={P.tituloConversacion[id]}
         />
         <MarcoNavegador
           className="agente-conversacion"
-          titulo={`Conversación de ejemplo con ${a.nombre}`}
+          titulo={d.paginaAgentes.conversacionCon(a.nombre)}
           pestanas={[{ etiqueta: `${a.nombre} · ${detalle.canal}`, adorno: <Personaje agente={id} avatar />, activa: true }]}
         >
-          <ConversacionEjemplo agente={id} />
+          <ConversacionEjemplo agente={id} idioma={idioma} />
         </MarcoNavegador>
       </Seccion>
 
@@ -118,8 +114,8 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
           <EncabezadoSeccion
             id="agente-funciones"
             alineacion="izquierda"
-            etiqueta="Qué hace"
-            titulo={`Todo lo que hace ${a.nombre}`}
+            etiqueta={P.queHace}
+            titulo={P.todoLoQueHace(a.nombre)}
             texto={detalle.descripcion}
             className="agente-funciones__encabezado"
           />
@@ -145,9 +141,9 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
           <EncabezadoSeccion
             id="agente-ideas"
             alineacion="izquierda"
-            etiqueta="Para empezar"
-            titulo={`Pídele algo a ${a.nombre}`}
-            texto="Ideas de lo que le puedes pedir. Escríbeselas en el chat de prueba, como en cualquier chat."
+            etiqueta={P.paraEmpezar}
+            titulo={P.pidele(a.nombre)}
+            texto={P.ideas}
             className="agente-ideas__encabezado"
           />
           <ul className="ideas">
@@ -168,28 +164,24 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
       <Seccion etiquetadaPor="agente-planes">
         <EncabezadoSeccion
           id="agente-planes"
-          etiqueta="Planes"
-          titulo={`En qué plan viene ${a.nombre}`}
-          texto={
-            enFree
-              ? `${a.nombre} viene en los tres planes, también en el gratis: puedes empezar hoy.`
-              : `${a.nombre} llega con ${minimo.nombre}. Mientras, puedes empezar gratis con Clara.`
-          }
+          etiqueta={P.planes}
+          titulo={P.enQuePlan(a.nombre)}
+          texto={enFree ? P.enLosTres(a.nombre) : P.llegaCon(a.nombre, minimo.nombre)}
         />
         <TarjetaVidrio relleno="ninguno" className="planes-fila">
           <ul className="planes-fila__lista">
-            {PLANES.map((p) => {
+            {planesDe(idioma).map((p) => {
               const incluido = p.agentes.includes(id);
               return (
                 <li key={p.id} className="planes-fila__plan" data-incluido={incluido ? "true" : "false"}>
                   <div className="planes-fila__cabeza">
                     <p className="t-titulo">{p.nombre}</p>
-                    {p.id === minimo.id ? <Etiqueta tono="cielo">Desde aquí</Etiqueta> : null}
+                    {p.id === minimo.id ? <Etiqueta tono="cielo">{P.desdeAqui}</Etiqueta> : null}
                   </div>
                   <p className="t-chico">{p.resumen}</p>
                   <p className="planes-fila__estado">
                     <Icono nombre={incluido ? "check-circulo" : "cerrar"} tam={16} />
-                    {incluido ? `Incluye a ${a.nombre}` : "No viene en este plan"}
+                    {incluido ? P.incluye(a.nombre) : P.noViene}
                   </p>
                 </li>
               );
@@ -198,14 +190,14 @@ export default function PaginaAgente({ params }: { params: { agente: string } })
         </TarjetaVidrio>
         <div className="agentes-portada__acciones">
           <Boton href="/precios" variante="fantasma" flecha>
-            Ver precios y lo que trae cada plan
+            {P.verPreciosPlanes}
           </Boton>
         </div>
       </Seccion>
 
       {/* El resto del equipo */}
       <Seccion etiquetadaPor="agente-equipo" className="agente-equipo">
-        <EncabezadoSeccion id="agente-equipo" etiqueta="Tu equipo" titulo="Los otros tres agentes" />
+        <EncabezadoSeccion id="agente-equipo" etiqueta={P.tuEquipo} titulo={P.otrosTres} />
         <ul className="equipo-enlaces">
           {otros.map((o) => (
             <li key={o.id}>

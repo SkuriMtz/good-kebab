@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
  * En computadora se queda fijo a la izquierda y marca el negocio que estás
  * leyendo; en celular es una fila de enlaces arriba de la lectura.
  */
-export function Indice({ negocios }: { negocios: { id: string; nombre: string }[] }) {
+export function Indice({ negocios, titulo }: { negocios: { id: string; nombre: string }[]; titulo: string }) {
   const [actual, setActual] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function Indice({ negocios }: { negocios: { id: string; nombre: string }[
   return (
     <nav aria-labelledby="indice-titulo" className="pqe-indice">
       <p id="indice-titulo" className="etiqueta pqe-indice__titulo">
-        En esta página
+        {titulo}
       </p>
       <ol className="pqe-indice__lista">
         {negocios.map((n, i) => (

@@ -2,8 +2,9 @@ import type { CSSProperties, ReactNode } from "react";
 import { Avatar } from "@/components/base/Avatar";
 import { Icono } from "@/components/base/Iconos";
 import { Personaje } from "./Personaje";
-import { DETALLE, type MensajeEjemplo } from "./detalle";
-import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import type { MensajeEjemplo } from "./detalle";
+import type { IdAgente } from "@/lib/agentes";
+import { agenteDe, t, type Idioma } from "@/i18n";
 
 /** Archivos que el agente menciona en su mensaje ("precios-zona.xlsx"): se muestran como adjunto. */
 const ARCHIVO = /\b[\w-]+\.(?:xlsx|pdf|docx)\b/g;
@@ -21,10 +22,11 @@ const ARCHIVO = /\b[\w-]+\.(?:xlsx|pdf|docx)\b/g;
  * son de ejemplo y así se dice arriba.
  * `animar`: los mensajes entran uno tras otro (al cambiar de pestaña).
  */
-export function ConversacionEjemplo({ agente, animar = false }: { agente: IdAgente; animar?: boolean }) {
-  const detalle = DETALLE[agente];
-  const info = AGENTE_POR_ID[agente];
-  const correo = detalle.canal === "Correo";
+export function ConversacionEjemplo({ agente, animar = false, idioma = "es" }: { agente: IdAgente; animar?: boolean; idioma?: Idioma }) {
+  const d = t(idioma);
+  const detalle = d.detalle[agente];
+  const info = agenteDe(idioma, agente);
+  const correo = agente === "clara";
   const conIris = agente === "iris";
   const otro = detalle.conversacion.find((m) => m.de === "otro")?.quien ?? "";
 
@@ -55,11 +57,11 @@ export function ConversacionEjemplo({ agente, animar = false }: { agente: IdAgen
             <p className="conv__canal">
               <Icono nombre={correo ? "correo" : "mensaje"} tam={14} />
               {detalle.canal}
-              {conIris ? null : ` · lo atiende ${info.nombre}`}
+              {conIris ? null : d.conversacion.loAtiende(info.nombre)}
             </p>
           </div>
         </div>
-        <span className="conv__ejemplo">Nombres de ejemplo</span>
+        <span className="conv__ejemplo">{d.conversacion.ejemplo}</span>
       </div>
 
       <ol className="conv__mensajes">
@@ -86,7 +88,7 @@ export function ConversacionEjemplo({ agente, animar = false }: { agente: IdAgen
                 <div className="min-w-0">
                   <p className="conv__correo-cabeza">
                     <span className="conv__nombre">{quienHabla(m)}</span>
-                    {m.de === "agente" ? <span className="conv__nota-quien">desde tu correo</span> : null}
+                    {m.de === "agente" ? <span className="conv__nota-quien">{d.conversacion.desdeTuCorreo}</span> : null}
                     {m.hora ? <time className="conv__hora">{m.hora}</time> : null}
                   </p>
                   <p className="conv__texto">{m.texto}</p>
