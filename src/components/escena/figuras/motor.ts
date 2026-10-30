@@ -18,14 +18,29 @@ import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla,
 /* ---------------------------------------------------------------------- */
 
 const VERT = `
-attribute vec2 aPos; attribute float aTam; attribute vec4 aCol; attribute vec3 aRot;
-uniform vec2 uRes; uniform float uDpr;
-varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam;
+attribute vec2 aPos; attribute float aTam; attribute vec4 aCol; attribute vec3 aRot; attribute vec3 aExtra;
+uniform vec2 uRes; uniform float uDpr; uniform float uMargen;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra;
 void main() {
   gl_Position = vec4(aPos.x / uRes.x * 2.0 - 1.0, 1.0 - aPos.y / uRes.y * 2.0, 0.0, 1.0);
-  gl_PointSize = max(aTam * uDpr, 1.0);
-  vTam = gl_PointSize;
+  // El punto es más grande que el triangulito: deja lugar al halo y al desenfoque
+  float esc = uMargen * (1.0 + aExtra.x * 0.7);
+  gl_PointSize = max(aTam * uDpr * esc, 1.0);
+  vTam = max(aTam * uDpr, 1.0);
+  vEsc = esc;
   vCol = aCol;
+  vExtra = aExtra;
+  if (aExtra.y > 0.5) {
+    // Rombo: un cuadrado girado, apenas aplastado por la perspectiva
+    float c = cos(aRot.z), s = sin(aRot.z);
+    float k = 0.55 + 0.45 * abs(cos(aRot.x));
+    vec2 e1 = vec2(c, s) * 0.8;
+    vec2 e2 = vec2(-s, c) * 0.8 * k;
+    vA = vec4(e1.x, -e1.y, e2.x, -e2.y);
+    vB = vec4(-e1.x, e1.y, -e2.x, e2.y);
+    vZ = vec4(0.0);
+    return;
+  }
   float cx = cos(aRot.x), sx = sin(aRot.x);
   float cy = cos(aRot.y), sy = sin(aRot.y);
   float cz = cos(aRot.z), sz = sin(aRot.z);
@@ -42,38 +57,87 @@ void main() {
   vZ = vec4(v0.z, v1.z, v2.z, v3.z);
 }`;
 
+/*
+ * Cada partícula: un tetraedro de alambre (visto de frente es un triángulo hueco:
+ * las aristas que van al centro se apagan con `interior`) o un rombo. Lleva un
+ * halo suave (mezcla aditiva, sin bloom de pantalla) y, si está fuera de foco,
+ * se ve más ancha, más tenue y doble.
+ */
 const FRAG = `
 precision mediump float;
-varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam;
-uniform float uTrazo; uniform float uClaro;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra;
+uniform float uTrazo; uniform float uClaro; uniform float uHalo;
 float seg(vec2 p, vec2 a, vec2 b) {
   vec2 pa = p - a, ba = b - a;
   float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
   return length(pa - ba * h);
 }
-float arista(vec2 p, vec2 a, vec2 b, float za, float zb, float w, float px) {
-  float d = seg(p, a, b);
-  float luz = mix(0.42, 1.0, clamp((za + zb) * 0.25 + 0.5, 0.0, 1.0));
-  return (1.0 - smoothstep(w - px * 0.75, w + px * 0.75, d)) * luz;
+// x: cobertura de las líneas, y: distancia a la línea más cercana
+vec2 forma(vec2 p, float w, float suav) {
+  vec2 a0 = vA.xy, a1 = vA.zw, a2 = vB.xy, a3 = vB.zw;
+  if (vExtra.y > 0.5) {
+    float d = min(min(seg(p, a0, a1), seg(p, a1, a2)), min(seg(p, a2, a3), seg(p, a3, a0)));
+    return vec2(1.0 - smoothstep(w - suav, w + suav, d), d);
+  }
+  float dB = min(min(seg(p, a1, a2), seg(p, a2, a3)), seg(p, a3, a1));
+  float dI = min(min(seg(p, a0, a1), seg(p, a0, a2)), seg(p, a0, a3));
+  float luzB = mix(0.45, 1.0, clamp((vZ.y + vZ.z + vZ.w) * 0.17 + 0.5, 0.0, 1.0));
+  float cB = (1.0 - smoothstep(w - suav, w + suav, dB)) * luzB;
+  float cI = (1.0 - smoothstep(w - suav, w + suav, dI)) * vExtra.z;
+  return vec2(max(cB, cI), min(dB, mix(9.0, dI, step(0.05, vExtra.z))));
 }
 void main() {
-  vec2 p = (gl_PointCoord * 2.0 - 1.0) / 0.94;
+  float blur = vExtra.x;
+  vec2 p = (gl_PointCoord * 2.0 - 1.0) * vEsc / 0.94;
   float px = 2.0 / (vTam * 0.94);
-  float w = uTrazo * px;
-  vec2 a0 = vA.xy, a1 = vA.zw, a2 = vB.xy, a3 = vB.zw;
-  float a = arista(p, a0, a1, vZ.x, vZ.y, w, px);
-  a = max(a, arista(p, a0, a2, vZ.x, vZ.z, w, px));
-  a = max(a, arista(p, a0, a3, vZ.x, vZ.w, w, px));
-  a = max(a, arista(p, a1, a2, vZ.y, vZ.z, w, px));
-  a = max(a, arista(p, a2, a3, vZ.z, vZ.w, w, px));
-  a = max(a, arista(p, a3, a1, vZ.w, vZ.y, w, px));
-  a *= vCol.a;
+  float w = uTrazo * px * (1.0 + 1.3 * blur);
+  float suav = px * (0.75 + 2.6 * blur);
+  vec2 f = forma(p, w, suav);
+  float a = f.x;
+  // Fuera de foco: doble, como una estela
+  if (blur > 0.2) {
+    vec2 g = forma(p - vec2(0.3, 0.12) * blur, w, suav);
+    a = max(a, g.x * 0.65);
+  }
+  // Halo suave alrededor de las líneas
+  float r = 0.22 + 0.3 * blur;
+  float halo = uHalo * exp(-(f.y * f.y) / (r * r));
+  a = a + halo * (1.0 - a);
+  a *= vCol.a / (1.0 + 0.45 * blur);
   if (a < 0.004) discard;
   vec3 col = vCol.rgb;
   // Modo claro: colores más hondos y lo blanco pasa a gris violáceo (si no, no se vería)
   float blanco = smoothstep(0.62, 0.9, min(min(col.r, col.g), col.b));
   col = mix(col, mix(col * 0.72, vec3(0.36, 0.30, 0.52), blanco), uClaro);
   gl_FragColor = vec4(col * a, a);
+}`;
+
+/*
+ * Resplandor: cada partícula de la figura deja además una mancha de luz muy
+ * tenue y ancha (mezcla aditiva). Donde hay muchas, el interior de la figura se
+ * ve con el brillo suave del video (medido: el fondo dentro del cerebro vale
+ * ~32 de 255; fuera, ~2). No es un bloom de pantalla: va partícula por partícula.
+ */
+const VERT_RESPLANDOR = `
+attribute vec2 aPos; attribute float aTam; attribute vec4 aCol; attribute vec3 aExtra;
+uniform vec2 uRes; uniform float uDpr; uniform float uAncho;
+varying vec4 vCol;
+void main() {
+  gl_Position = vec4(aPos.x / uRes.x * 2.0 - 1.0, 1.0 - aPos.y / uRes.y * 2.0, 0.0, 1.0);
+  // Solo las partículas de la figura (en el polvo, aExtra.z es alto)
+  float enFigura = 1.0 - smoothstep(0.3, 0.6, aExtra.z);
+  gl_PointSize = aCol.a > 0.01 && enFigura > 0.01 ? aTam * uDpr * uAncho : 0.0;
+  vCol = vec4(aCol.rgb, aCol.a * enFigura);
+}`;
+const FRAG_RESPLANDOR = `
+precision mediump float;
+varying vec4 vCol;
+uniform float uFuerza;
+void main() {
+  vec2 p = gl_PointCoord * 2.0 - 1.0;
+  float a = exp(-dot(p, p) * 3.2) * uFuerza * vCol.a;
+  if (a < 0.002) discard;
+  gl_FragColor = vec4(vCol.rgb * a, a);
 }`;
 
 /* ---------------------------------------------------------------------- */
@@ -140,19 +204,19 @@ function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
  */
 export const CEREBRO_A: Llave[] = [
   // Poses del cerebro de malla real ajustadas a la silueta del video (IoU 0.95-0.96 en 2.0, 2.2, 2.5 y 2.8 s)
-  [0.0, C(847.5, 378, 335.1, -90, 0, 0, 8.15)],
-  [0.01, C(822.5, 376.5, 331.1, -79.5, 0, 0, 8.15)],
-  [0.028, C(800, 376, 334, -58, -0.5, 0, 8.18)],
-  [0.062, C(773.5, 378, 339.6, -30, -1, 0, 8.23)],
-  [0.108, C(732, 377, 342, -24, -2.5, 0, 8.28)],
-  [0.165, C(676, 378, 348, -19, -4, 0, 8.38)],
-  [0.232, C(618.5, 380, 356, -13.2, -5.5, 0, 8.47)],
-  [0.31, C(560, 377, 365, -4, -5, 0, 8.57)],
-  [0.391, C(498.5, 374, 372, 5, -4.5, 0, 8.72)],
-  [0.477, C(428.5, 372, 379.4, 14.5, -4, 0, 8.87)],
-  [0.65, C(335, 377, 400.0, 22, 0, 0, 9.0)],
-  [0.82, C(290, 380, 413.6, 28, 5, 0, 9.43)],
-  [1.0, C(295, 386, 418.8, 32, 9, 0, 9.6)],
+  [0.0, C(847.5, 378, 335.1, -90, 0, 0, 5.47)],
+  [0.01, C(822.5, 376.5, 331.1, -79.5, 0, 0, 5.47)],
+  [0.028, C(800, 376, 334, -58, -0.5, 0, 5.49)],
+  [0.062, C(773.5, 378, 339.6, -30, -1, 0, 5.52)],
+  [0.108, C(732, 377, 342, -24, -2.5, 0, 5.56)],
+  [0.165, C(676, 378, 348, -19, -4, 0, 5.62)],
+  [0.232, C(618.5, 380, 356, -13.2, -5.5, 0, 5.68)],
+  [0.31, C(560, 377, 365, -4, -5, 0, 5.74)],
+  [0.391, C(498.5, 374, 372, 5, -4.5, 0, 5.85)],
+  [0.477, C(428.5, 372, 379.4, 14.5, -4, 0, 5.95)],
+  [0.65, C(335, 377, 400.0, 22, 0, 0, 6.04)],
+  [0.82, C(290, 380, 413.6, 28, 5, 0, 6.33)],
+  [1.0, C(295, 386, 418.8, 32, 9, 0, 6.44)],
 ];
 /**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
@@ -160,14 +224,14 @@ export const CEREBRO_A: Llave[] = [
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
  */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(295, 386, 418.8, 32, 9, 0, 9.6)],
-  [0.25, C(405, 395, 445.0, 52, 18, 0, 9.78)],
-  [0.45, C(500, 425, 481.7, 66, 30, 0, 9.94)],
-  [0.7, C(550, 470, 513.1, 76, 44, 0, 10.12)],
-  [1.0, C(570, 530, 529.9, 82, 52, 0, 10.29)],
+  [0.0, C(295, 386, 418.8, 32, 9, 0, 6.44)],
+  [0.25, C(405, 395, 445.0, 52, 18, 0, 6.56)],
+  [0.45, C(500, 425, 481.7, 66, 30, 0, 6.67)],
+  [0.7, C(550, 470, 513.1, 76, 44, 0, 6.79)],
+  [1.0, C(570, 530, 529.9, 82, 52, 0, 6.91)],
 ];
-export const FOCO: Colocacion = C(310, 312, 238, -16, 6, 29, 6.4);
-export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 6.4);
+export const FOCO: Colocacion = C(285, 297, 221, -16, 6, 29, 5.2);
+export const FOCO_SALE: Colocacion = C(640, 330, 215, 10, 6, 20, 5.2);
 /** Globo: círculo ajustado al borde del video (centro 857, 488; radio ~372) y giro que iguala los continentes. */
 export const GLOBO: Colocacion = C(857, 488, 368, -23, 0, -9, 9.2);
 export const GLOBO_SUBE: Colocacion = C(830, 300, 380, -20, 0, -9, 9.2);
@@ -181,11 +245,15 @@ export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
  */
 const SEGUIR = 0.97;
 
-const LUZ = { cerebro: 0.64, foco: 0.7, globo: 0.68, marca: 0.72 };
+const LUZ = { cerebro: 0.55, foco: 0.42, globo: 0.5, marca: 0.5 };
+/** Intensidad del halo de cada triangulito (medido: el video tiene un resplandor entre partículas). */
+const HALO = 0.13;
+/** Fuerza del resplandor ancho de la figura (el brillo suave del interior). */
+const RESPLANDOR = 0.06;
 
 /** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
-type Volumen = { atras: number; prof: number; radio: number };
-const VOL_CEREBRO: Volumen = { atras: 0.32, prof: 1, radio: 1 };
+type Volumen = { atras: number; prof: number; radio: number; dofIzq?: number };
+const VOL_CEREBRO: Volumen = { atras: 0.2, prof: 1, radio: 1, dofIzq: 0.85 };
 /** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
@@ -239,7 +307,7 @@ function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, 
 /* El motor                                                                */
 /* ---------------------------------------------------------------------- */
 
-type Objetivo = { x: Float32Array; y: Float32Array; r: Float32Array; g: Float32Array; b: Float32Array; a: Float32Array; t: Float32Array; m: Float32Array };
+type Objetivo = { x: Float32Array; y: Float32Array; r: Float32Array; g: Float32Array; b: Float32Array; a: Float32Array; t: Float32Array; m: Float32Array; d: Float32Array };
 /** Proyección: lugar en pantalla, perspectiva, normal vista desde la cámara (x a la derecha, y arriba, z hacia ti) y profundidad. */
 type Proy = { x: Float32Array; y: Float32Array; f: Float32Array; nz: Float32Array; fr: Float32Array; nx: Float32Array; ny: Float32Array; z: Float32Array };
 
@@ -258,6 +326,9 @@ export class MotorFiguras {
   private gl: WebGLRenderingContext;
   private ctx2: CanvasRenderingContext2D;
   private prog: WebGLProgram;
+  private progR: WebGLProgram | null = null;
+  private AR: Record<string, number> = {};
+  private UR: Record<string, WebGLUniformLocation | null> = {};
   private buf: WebGLBuffer;
   private datos: Float32Array;
   private A: Record<string, number>;
@@ -289,6 +360,9 @@ export class MotorFiguras {
   private col: Float32Array;
   private alfa: Float32Array;
   private tam: Float32Array;
+  /** Desenfoque (0 = nítido) y forma (1 = rombo) de cada partícula. */
+  private desen: Float32Array;
+  private rombo: Float32Array;
   private rot: Float32Array;
 
   // Objetivos (lo llena el guion en cada cuadro) y proyecciones temporales
@@ -336,9 +410,28 @@ export class MotorFiguras {
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("shader");
     this.prog = p;
-    this.A = { pos: gl.getAttribLocation(p, "aPos"), tam: gl.getAttribLocation(p, "aTam"), col: gl.getAttribLocation(p, "aCol"), rot: gl.getAttribLocation(p, "aRot") };
-    this.U = Object.fromEntries(["uRes", "uDpr", "uTrazo", "uClaro"].map((n) => [n, gl.getUniformLocation(p, n)]));
-    this.datos = new Float32Array(N * 10);
+    // El resplandor (solo en pantallas grandes: en el celular no hace falta y cuesta)
+    if (ancho >= 700) {
+      const r = gl.createProgram()!;
+      for (const [tipo, src] of [
+        [gl.VERTEX_SHADER, VERT_RESPLANDOR],
+        [gl.FRAGMENT_SHADER, FRAG_RESPLANDOR],
+      ] as const) {
+        const sh = gl.createShader(tipo)!;
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        gl.attachShader(r, sh);
+      }
+      gl.linkProgram(r);
+      if (gl.getProgramParameter(r, gl.LINK_STATUS)) {
+        this.progR = r;
+        this.AR = { pos: gl.getAttribLocation(r, "aPos"), tam: gl.getAttribLocation(r, "aTam"), col: gl.getAttribLocation(r, "aCol"), extra: gl.getAttribLocation(r, "aExtra") };
+        this.UR = Object.fromEntries(["uRes", "uDpr", "uAncho", "uFuerza"].map((n) => [n, gl.getUniformLocation(r, n)]));
+      }
+    }
+    this.A = { pos: gl.getAttribLocation(p, "aPos"), tam: gl.getAttribLocation(p, "aTam"), col: gl.getAttribLocation(p, "aCol"), rot: gl.getAttribLocation(p, "aRot"), extra: gl.getAttribLocation(p, "aExtra") };
+    this.U = Object.fromEntries(["uRes", "uDpr", "uTrazo", "uClaro", "uHalo", "uMargen"].map((n) => [n, gl.getUniformLocation(p, n)]));
+    this.datos = new Float32Array(N * 13);
     this.buf = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
     gl.bufferData(gl.ARRAY_BUFFER, this.datos.byteLength, gl.DYNAMIC_DRAW);
@@ -401,9 +494,12 @@ export class MotorFiguras {
     this.ant = new Float32Array(N * 2);
     this.col = new Float32Array(N * 3);
     this.alfa = f32();
+    this.desen = f32();
+    this.rombo = f32();
+    for (let i = 0; i < N; i++) this.rombo[i] = this.tamPolvo[i] > 13 && this.vis[i] * 7.31 % 1 < 0.45 ? 1 : 0;
     this.tam = f32();
     this.rot = new Float32Array(N * 3);
-    const objetivo = (): Objetivo => ({ x: f32(), y: f32(), r: f32(), g: f32(), b: f32(), a: f32(), t: f32(), m: f32() });
+    const objetivo = (): Objetivo => ({ x: f32(), y: f32(), r: f32(), g: f32(), b: f32(), a: f32(), t: f32(), m: f32(), d: f32() });
     this.o1 = objetivo();
     this.o2 = objetivo();
     this.pr = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32(), nx: f32(), ny: f32(), z: f32() };
@@ -566,6 +662,8 @@ export class MotorFiguras {
     O.a[i] = v * (0.45 + 0.55 * ((this.vis[i] * 977) % 1));
     O.t[i] = this.tamPolvo[i] * this.s;
     O.m[i] = 1;
+    // Las sueltas grandes van un poco fuera de foco (más cerca de la cámara)
+    O.d[i] = this.tamPolvo[i] > 13 ? 0.35 : 0;
   }
 
   /** Todas las partículas como polvo del reparto c. */
@@ -594,32 +692,45 @@ export class MotorFiguras {
     this.proyectar(F, c, pr);
     const s = this.s;
     for (let i = 0; i < this.N; i++) {
-      if (F.alfa[i] <= 0) {
+      // Partículas de sobra: polvo suelto. Las de "solo orilla" (alfa < 0) se encienden donde la
+      // superficie se ve de lado: así la orilla queda apretada y el centro abierto (cáscara hueca).
+      const soloOrilla = F.alfa[i] < 0;
+      if (F.alfa[i] === 0 || (soloOrilla && (!volumen || this.vis[i] < 0.03))) {
         this.polvo(O, i, sobra);
         continue;
       }
       const nz = pr.nz[i];
       let atras: number;
       let tam = 1;
+      let desen = 0;
       if (volumen) {
         // Volumen: lo de enfrente más grande y brillante; lo de atrás se ve a través, tenue y chico
         const prof = Math.min(1, Math.max(0, (pr.z[i] / volumen.radio + 1) / 2));
         // (la orilla, de canto, se ve completa: en el video el contorno es nítido y brillante)
         atras = (volumen.atras + (1 - volumen.atras) * suave(-0.32, 0.02, nz)) * (1 - volumen.prof * 0.55 * (1 - prof));
         tam = 1 + volumen.prof * 0.55 * (prof - 0.5);
+        // Profundidad de campo: lo más cercano (y, en el cerebro, el lado izquierdo) va fuera de foco
+        const izq = volumen.dofIzq ? suave(0.1, 0.85, -(pr.x[i] - c.cx * this.sx) / (c.escala * s)) * volumen.dofIzq : 0;
+        desen = Math.min(0.45, suave(0.93, 1, prof) * 0.3 + izq * suave(0.7, 0.92, prof) * 0.6);
+        tam *= 1 + 0.7 * desen;
       } else {
         // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
         atras = ocultarAtras > 0 ? (1 - ocultarAtras * (1 - suave(-0.12, 0.22, nz))) * (1 - ocultarAtras * 0.4 * (1 - suave(0.0, 0.42, nz))) : 1;
       }
       const cc = color(i, pr);
+      let alfa = Math.abs(F.alfa[i]) * atras * luz;
+      if (soloOrilla) alfa *= suave(0.7, 0.92, pr.fr[i]);
+      // En la orilla se juntan muchas: cada una brilla un poco menos para que la banda no se queme
+      if (volumen) alfa *= 1 - 0.4 * suave(0.8, 1, pr.fr[i]);
       O.x[i] = pr.x[i];
       O.y[i] = pr.y[i];
       O.r[i] = cc[0];
       O.g[i] = cc[1];
       O.b[i] = cc[2];
-      O.a[i] = F.alfa[i] * atras * luz;
+      O.a[i] = alfa;
       O.t[i] = c.tam * s * F.tam[i] * pr.f[i] * tam;
       O.m[i] = 0;
+      O.d[i] = desen;
     }
   }
 
@@ -635,6 +746,7 @@ export class MotorFiguras {
     a.a[i] += (b.a[i] - a.a[i]) * k;
     a.t[i] += (b.t[i] - a.t[i]) * k;
     a.m[i] += (b.m[i] - a.m[i]) * k;
+    a.d[i] += (b.d[i] - a.d[i]) * k;
   }
 
   /* ---------- Colores con brillo de orilla ---------- */
@@ -661,7 +773,7 @@ export class MotorFiguras {
     const izquierda = suave(0.3, 0.9, -nx);
     const derecha = suave(0.3, 0.9, nx) * medio;
     const luzBlanca = suave(0.45, 0.95, 0.3 * nx + 0.25 * ny + 0.92 * nz);
-    const pA = Math.min(0.88, 0.13 + (0.22 * medio + 0.26 * rim) * (1 - 0.6 * izquierda) * (1 - 0.15 * arriba) + 0.14 * abajo + 0.14 * derecha);
+    const pA = Math.min(0.9, 0.32 + (0.16 * medio + 0.16 * rim) * (1 - 0.5 * izquierda) + 0.14 * abajo + 0.06 * derecha);
     const g = F.grupo[i];
     const pWrel = Math.min(0.95, (0.66 + 0.2 * (1 - medio) + 0.1 * luzBlanca) * (1 - 0.5 * g));
     const pW = pA + (1 - pA) * pWrel;
@@ -673,8 +785,15 @@ export class MotorFiguras {
     const A = PALETA.ambar;
     const B = PALETA.blanco;
     // Luz: lo que mira a la luz brilla más; lo de canto, un poco menos
-    const l = 0.72 + 0.38 * Math.max(luzBlanca, rim * 0.8);
-    return [(A[0] * wA + B[0] * wW + F.col[o] * wC) * l, (A[1] * wA + B[1] * wW + F.col[o + 1] * wC) * l, (A[2] * wA + B[2] * wW + F.col[o + 2] * wC) * l];
+    const l = 0.84 + 0.3 * Math.max(luzBlanca, rim * 0.7);
+    // Destellos magenta en el borde de arriba (como en el video)
+    const mag = arriba * medio > 0.3 && (u * 13.7) % 1 < 0.45;
+    const c0 = mag ? PALETA.magenta[0] : F.col[o];
+    const c1 = mag ? PALETA.magenta[1] : F.col[o + 1];
+    const c2 = mag ? PALETA.magenta[2] : F.col[o + 2];
+    // El blanco del interior tira a gris lavanda en las caras que no miran a la luz
+    const Bl = 1 - 0.06 * (1 - luzBlanca);
+    return [(A[0] * wA + B[0] * Bl * wW + c0 * wC) * l, (A[1] * wA + B[1] * Bl * 0.97 * wW + c1 * wC) * l, (A[2] * wA + B[2] * wW + c2 * wC) * l];
   };
 
   private colorFoco = (i: number, pr: Proy): Color => {
@@ -915,6 +1034,7 @@ export class MotorFiguras {
         this.col[i * 3 + 2] = o.b[i];
         this.alfa[i] = o.a[i];
         this.tam[i] = o.t[i];
+        this.desen[i] = o.d[i];
       }
     } else {
       const sub = Math.max(1, Math.min(6, Math.round(dt * 120)));
@@ -959,6 +1079,7 @@ export class MotorFiguras {
         this.col[i * 3 + 2] += (o.b[i] - this.col[i * 3 + 2]) * kc;
         this.alfa[i] += (o.a[i] - this.alfa[i]) * kc;
         this.tam[i] += (o.t[i] - this.tam[i]) * kc;
+        this.desen[i] += (o.d[i] - this.desen[i]) * kc;
       }
     }
     // Giro de cada tetraedro: alineado en la figura (punta arriba; en el foco, al revés), suelto en el polvo
@@ -972,7 +1093,8 @@ export class MotorFiguras {
       const az = this.giro0[j];
       const fx = Math.sin(az) * 0.22;
       const fy = Math.cos(az * 1.7) * 0.22;
-      const fz = Math.sin(az * 2.3) * 0.2 + enFoco * Math.PI;
+      // en el plano: casi todos apuntan arriba, algunos girados (como en el video)
+      const fz = Math.sin(az * 2.3) * 0.42 + enFoco * Math.PI;
       const px = this.giro0[j] + t * this.giroVel[j];
       const py = this.giro0[j + 1] + t * this.giroVel[j + 1];
       const pz = this.giro0[j + 2] + t * this.giroVel[j + 2];
@@ -993,10 +1115,10 @@ export class MotorFiguras {
     const N = this.N;
     const d = this.datos;
     for (let i = 0; i < N; i++) {
-      const o = i * 10;
+      const o = i * 13;
       d[o] = this.pos[i * 2];
       d[o + 1] = this.pos[i * 2 + 1];
-      // El triangulito mide tam px de ancho; el punto tiene que ser un poco más grande
+      // El triangulito mide tam px de ancho (el punto, más grande, se calcula en el shader)
       d[o + 2] = this.tam[i] / 0.77;
       d[o + 3] = this.col[i * 3];
       d[o + 4] = this.col[i * 3 + 1];
@@ -1005,6 +1127,10 @@ export class MotorFiguras {
       d[o + 7] = this.rot[i * 3];
       d[o + 8] = this.rot[i * 3 + 1];
       d[o + 9] = this.rot[i * 3 + 2];
+      d[o + 10] = this.desen[i];
+      d[o + 11] = this.rombo[i] * this.mOrilla(i);
+      // En la figura, triángulo hueco (aristas al centro apagadas); en el polvo, tetraedro
+      d[o + 12] = 0.15 + 0.75 * this.mOrilla(i);
     }
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1016,20 +1142,49 @@ export class MotorFiguras {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, d);
     const A = this.A;
     gl.enableVertexAttribArray(A.pos);
-    gl.vertexAttribPointer(A.pos, 2, gl.FLOAT, false, 40, 0);
+    gl.vertexAttribPointer(A.pos, 2, gl.FLOAT, false, 52, 0);
     gl.enableVertexAttribArray(A.tam);
-    gl.vertexAttribPointer(A.tam, 1, gl.FLOAT, false, 40, 8);
+    gl.vertexAttribPointer(A.tam, 1, gl.FLOAT, false, 52, 8);
     gl.enableVertexAttribArray(A.col);
-    gl.vertexAttribPointer(A.col, 4, gl.FLOAT, false, 40, 12);
+    gl.vertexAttribPointer(A.col, 4, gl.FLOAT, false, 52, 12);
     gl.enableVertexAttribArray(A.rot);
-    gl.vertexAttribPointer(A.rot, 3, gl.FLOAT, false, 40, 28);
+    gl.vertexAttribPointer(A.rot, 3, gl.FLOAT, false, 52, 28);
+    gl.enableVertexAttribArray(A.extra);
+    gl.vertexAttribPointer(A.extra, 3, gl.FLOAT, false, 52, 40);
     gl.uniform2f(this.U.uRes, this.w, this.h);
     gl.uniform1f(this.U.uDpr, this.dpr);
-    gl.uniform1f(this.U.uTrazo, 0.64);
+    gl.uniform1f(this.U.uTrazo, 0.7);
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
+    // Halo suave (en claro no: ahí se pinta encima)
+    gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);
+    gl.uniform1f(this.U.uMargen, 1.45);
     gl.drawArrays(gl.POINTS, 0, N);
-    for (const l of [A.pos, A.tam, A.col, A.rot]) gl.disableVertexAttribArray(l);
+    for (const l of [A.pos, A.tam, A.col, A.rot, A.extra]) gl.disableVertexAttribArray(l);
+    // El resplandor suave de la figura (en oscuro)
+    if (this.progR && !this.claro && RESPLANDOR > 0) {
+      const R = this.AR;
+      gl.useProgram(this.progR);
+      gl.enableVertexAttribArray(R.pos);
+      gl.vertexAttribPointer(R.pos, 2, gl.FLOAT, false, 52, 0);
+      gl.enableVertexAttribArray(R.tam);
+      gl.vertexAttribPointer(R.tam, 1, gl.FLOAT, false, 52, 8);
+      gl.enableVertexAttribArray(R.col);
+      gl.vertexAttribPointer(R.col, 4, gl.FLOAT, false, 52, 12);
+      gl.enableVertexAttribArray(R.extra);
+      gl.vertexAttribPointer(R.extra, 3, gl.FLOAT, false, 52, 40);
+      gl.uniform2f(this.UR.uRes, this.w, this.h);
+      gl.uniform1f(this.UR.uDpr, this.dpr);
+      gl.uniform1f(this.UR.uAncho, 4.2);
+      gl.uniform1f(this.UR.uFuerza, RESPLANDOR);
+      gl.drawArrays(gl.POINTS, 0, N);
+      for (const l of [R.pos, R.tam, R.col, R.extra]) gl.disableVertexAttribArray(l);
+    }
     this.dibujarTetras();
+  }
+
+  /** Cuánto es polvo la partícula i (0 = en la figura, 1 = suelta). */
+  private mOrilla(i: number) {
+    return Math.min(1, Math.max(0, this.o1.m[i]));
   }
 
   /** Los tetraedros grandes de contorno que flotan (lienzo 2D), con paralaje según el scroll del video. */
@@ -1089,5 +1244,6 @@ export class MotorFiguras {
   destruir() {
     this.gl.deleteBuffer(this.buf);
     this.gl.deleteProgram(this.prog);
+    if (this.progR) this.gl.deleteProgram(this.progR);
   }
 }

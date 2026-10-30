@@ -172,12 +172,14 @@ type PuntoFinal = Candidato & { col: Color; alfa: number; tam: number; clave: nu
  * primero. Así el punto i de una figura y el punto i de otra están en la
  * misma zona de la pantalla y los cambios no cruzan la pantalla en desorden.
  */
-function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [number, number], rnd: () => number): Forma {
+function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [number, number], rnd: () => number, alfaCopias = 0): Forma {
   const reales = Math.min(N, puntos.length);
   const todos: PuntoFinal[] = puntos.slice(0, reales);
   while (todos.length < N) {
     const o = puntos[Math.floor(rnd() * reales)];
-    todos.push({ ...o, x: o.x + (rnd() - 0.5) * 0.04, y: o.y + (rnd() - 0.5) * 0.04, z: o.z + (rnd() - 0.5) * 0.04, alfa: 0 });
+    // Copias cerca de un punto real. Con alfaCopias < 0 son "solo orilla": el motor las enciende
+    // donde la superficie se ve de lado (la orilla se aprieta como en el video)
+    todos.push({ ...o, x: o.x + (rnd() - 0.5) * 0.04, y: o.y + (rnd() - 0.5) * 0.04, z: o.z + (rnd() - 0.5) * 0.04, alfa: alfaCopias * (o.alfa > 0 ? 1 : 0) });
   }
   const orden = ordenarPorPantalla(todos.map(vista));
   const f: Forma = {
@@ -423,13 +425,130 @@ export function leerCerebro(buf: ArrayBuffer): DatosCerebro {
   return { n, pos, nor, hondo };
 }
 
-export function cerebroDeMalla(d: DatosCerebro, N: number, semilla = 11): Forma {
+/**
+ * Más puntos sobre la misma superficie: entre cada punto de la malla y un vecino
+ * cercano (medido: el video tiene ~45 % más triangulitos en el centro).
+ */
+function densificar(d: DatosCerebro, extra: number, rnd: () => number): DatosCerebro {
+  if (extra <= 0) return d;
+  const n = d.n;
+  const celda = 0.06;
+  const llave = (x: number, y: number, z: number) => `${Math.floor(x / celda)},${Math.floor(y / celda)},${Math.floor(z / celda)}`;
+  const mapa = new Map<string, number[]>();
+  for (let i = 0; i < n; i++) {
+    const k = llave(d.pos[i * 3], d.pos[i * 3 + 1], d.pos[i * 3 + 2]);
+    const l = mapa.get(k);
+    if (l) l.push(i);
+    else mapa.set(k, [i]);
+  }
+  const pos = new Float32Array((n + extra) * 3);
+  const nor = new Float32Array((n + extra) * 3);
+  const hondo = new Float32Array(n + extra);
+  pos.set(d.pos);
+  nor.set(d.nor);
+  hondo.set(d.hondo);
+  let m = n;
+  for (let intento = 0; m < n + extra && intento < extra * 4; intento++) {
+    const i = Math.floor(rnd() * n);
+    if (d.hondo[i] < 0) continue; // el tronco no se densifica
+    const x = d.pos[i * 3];
+    const y = d.pos[i * 3 + 1];
+    const z = d.pos[i * 3 + 2];
+    const cx = Math.floor(x / celda);
+    const cy = Math.floor(y / celda);
+    const cz = Math.floor(z / celda);
+    const vecinos: number[] = [];
+    for (let a = -1; a <= 1; a++)
+      for (let b = -1; b <= 1; b++)
+        for (let c = -1; c <= 1; c++) {
+          const l = mapa.get(`${cx + a},${cy + b},${cz + c}`);
+          if (!l) continue;
+          for (const j of l) {
+            if (j === i || d.hondo[j] < 0) continue;
+            // nunca entre los dos hemisferios (que la fisura quede abierta)
+            if (d.pos[j * 3] * x < 0 && Math.abs(x) + Math.abs(d.pos[j * 3]) < 0.3) continue;
+            const dd = (d.pos[j * 3] - x) ** 2 + (d.pos[j * 3 + 1] - y) ** 2 + (d.pos[j * 3 + 2] - z) ** 2;
+            if (dd < 0.055 * 0.055) vecinos.push(j);
+          }
+        }
+    if (!vecinos.length) continue;
+    const j = vecinos[Math.floor(rnd() * vecinos.length)];
+    const t = 0.35 + rnd() * 0.3;
+    for (let k = 0; k < 3; k++) {
+      pos[m * 3 + k] = d.pos[i * 3 + k] + (d.pos[j * 3 + k] - d.pos[i * 3 + k]) * t;
+      nor[m * 3 + k] = d.nor[i * 3 + k] + (d.nor[j * 3 + k] - d.nor[i * 3 + k]) * t;
+    }
+    hondo[m] = d.hondo[i] + (d.hondo[j] - d.hondo[i]) * t;
+    m++;
+  }
+  return { n: m, pos: pos.subarray(0, m * 3), nor: nor.subarray(0, m * 3), hondo: hondo.subarray(0, m) };
+}
+
+export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma {
   const rnd = azar(semilla);
   // Si hay más puntos que partículas, se toma una parte pareja (los puntos ya vienen mezclados)
-  const usar = Math.min(d.n, Math.round(N * 0.66));
+  const base = Math.min(d0.n, Math.round(N * 0.6));
+  const sub: DatosCerebro =
+    base < d0.n
+      ? {
+          n: base,
+          pos: Float32Array.from({ length: base * 3 }, (_, k) => d0.pos[Math.floor((Math.floor(k / 3) * d0.n) / base) * 3 + (k % 3)]),
+          nor: Float32Array.from({ length: base * 3 }, (_, k) => d0.nor[Math.floor((Math.floor(k / 3) * d0.n) / base) * 3 + (k % 3)]),
+          hondo: Float32Array.from({ length: base }, (_, k) => d0.hondo[Math.floor((k * d0.n) / base)]),
+        }
+      : d0;
+  // Más puntos en la superficie (el resto de las partículas queda como "solo orilla" y polvo)
+  const d = densificar(sub, Math.min(Math.round(N * 0.86) - base, Math.round(base * 0.45)), rnd);
+  const usar = d.n;
+  // Normal suave (promedio de los vecinos en ~0.12): marca la orilla de la silueta como una
+  // banda pareja y gruesa, sin los aros de cada pliegue
+  const suaveNor = new Float32Array(usar * 3);
+  {
+    const celda = 0.12;
+    const mapa = new Map<string, number[]>();
+    const ll = (x: number, y: number, z: number) => `${Math.floor(x / celda)},${Math.floor(y / celda)},${Math.floor(z / celda)}`;
+    for (let i = 0; i < usar; i++) {
+      const k = ll(d.pos[i * 3], d.pos[i * 3 + 1], d.pos[i * 3 + 2]);
+      const l = mapa.get(k);
+      if (l) l.push(i);
+      else mapa.set(k, [i]);
+    }
+    for (let i = 0; i < usar; i++) {
+      const x = d.pos[i * 3];
+      const y = d.pos[i * 3 + 1];
+      const z = d.pos[i * 3 + 2];
+      const cx = Math.floor(x / celda);
+      const cy = Math.floor(y / celda);
+      const cz = Math.floor(z / celda);
+      let nx = 0;
+      let ny = 0;
+      let nz = 0;
+      for (let a = -1; a <= 1; a++)
+        for (let b = -1; b <= 1; b++)
+          for (let c = -1; c <= 1; c++) {
+            const l = mapa.get(`${cx + a},${cy + b},${cz + c}`);
+            if (!l) continue;
+            for (const j of l) {
+              const dd = (d.pos[j * 3] - x) ** 2 + (d.pos[j * 3 + 1] - y) ** 2 + (d.pos[j * 3 + 2] - z) ** 2;
+              if (dd > celda * celda) continue;
+              if (d.pos[j * 3] * x < 0 && Math.abs(x) + Math.abs(d.pos[j * 3]) < 0.3) continue;
+              // solo los del mismo lado (que la fisura no mezcle los hemisferios)
+              const pdot = d.nor[j * 3] * d.nor[i * 3] + d.nor[j * 3 + 1] * d.nor[i * 3 + 1] + d.nor[j * 3 + 2] * d.nor[i * 3 + 2];
+              if (pdot < -0.2) continue;
+              nx += d.nor[j * 3];
+              ny += d.nor[j * 3 + 1];
+              nz += d.nor[j * 3 + 2];
+            }
+          }
+      const l = Math.hypot(nx, ny, nz) || 1;
+      suaveNor[i * 3] = nx / l;
+      suaveNor[i * 3 + 1] = ny / l;
+      suaveNor[i * 3 + 2] = nz / l;
+    }
+  }
   const puntos: PuntoFinal[] = [];
   for (let k = 0; k < usar; k++) {
-    const i = Math.floor((k * d.n) / usar);
+    const i = k;
     const x = d.pos[i * 3];
     const y = d.pos[i * 3 + 1];
     const z = d.pos[i * 3 + 2];
@@ -441,35 +560,37 @@ export function cerebroDeMalla(d: DatosCerebro, N: number, semilla = 11): Forma 
     const u = rnd();
     let col: Color;
     let grupo = 0;
-    if (esTallo) col = elegir([["violeta", 2], ["verdeAzul", 1], ["azul", 1]], u);
-    else if (z1 > 0.74) {
+    if (esTallo) col = u < 0.75 ? mezcla(PALETA.blanco, PALETA.lila, 0.3) : PALETA.violeta;
+    else if (z1 > 0.77) {
       col = u < 0.7 ? PALETA.verdeAzul : PALETA.azul;
       grupo = suave(0.72, 0.8, z1);
-    } else if (z2 > 0.72) {
+    } else if (z2 > 0.83) {
       col = u < 0.65 ? PALETA.violeta : PALETA.magenta;
       grupo = suave(0.7, 0.8, z2);
-    } else col = elegir([["violeta", 5], ["magenta", 3], ["rosa", 4], ["coral", 5], ["amarillo", 4], ["azul", 2], ["verdeAzul", 2]], u);
+    } else col = elegir([["violeta", 3], ["magenta", 6], ["rosa", 4], ["coral", 4], ["amarillo", 5], ["azul", 2], ["verdeAzul", 1]], u);
     puntos.push({
       x,
       y,
       z,
-      nx: d.nor[i * 3],
-      ny: d.nor[i * 3 + 1],
-      nz: d.nor[i * 3 + 2],
+      nx: suaveNor[i * 3],
+      ny: suaveNor[i * 3 + 1],
+      nz: suaveNor[i * 3 + 2],
       dato: hondo,
       col,
       // la opacidad guarda la sombra de los surcos (en el fondo de un surco se ve más oscuro)
-      alfa: esTallo ? 0.95 : 1 - 0.45 * hondo,
+      // El tronco, más tenue, se apaga hacia abajo hasta perderse
+      // la fisura entre hemisferios queda oscura (de frente se ve la raya del medio)
+      alfa: esTallo ? 0.75 * Math.pow(Math.max(0, Math.min(1, (y + 1.85) / 1.0)), 1.6) : (1 - 0.45 * hondo) * (Math.abs(x) < 0.06 && y > -0.35 ? 0.2 : 1),
       tam: esTallo ? 0.85 : 0.85 + rnd() * 0.3,
       clave: (y + 1.6) / 2.4,
       // El umbral del color va por manchas (como en el video: bandas y parches del mismo color
       // siguiendo los giros), con un poco de azar propio para que no se vea pintado con brocha
-      umbral: Math.min(1, Math.max(0, 0.5 + (ruido(x * 2.6 + 3, y * 2.6 + 7, z * 2.6 + 1) - 0.5) * 1.9 * 0.62 + (rnd() - 0.5) * 0.4)),
+      umbral: Math.min(1, Math.max(0, 0.5 + (ruido(x * 1.7 + 3, y * 1.7 + 7, z * 1.7 + 1) * 0.6 + ruido(x * 3.4 + 9, y * 3.4 + 2, z * 3.4 + 5) * 0.4 - 0.5) * 1.7 + (rnd() - 0.5) * 0.32)),
       grupo,
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
-  return armar(N, puntos, (p) => [-p.z, -p.y], rnd);
+  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.75);
 }
 
 /* ====================================================================== */
@@ -544,12 +665,13 @@ export function foco(N: number, semilla = 23): Forma {
     const t = (s + 1) / 3.77;
     const u = rnd();
     let col: Color;
-    if (s < 0.75) col = u < 0.55 ? PALETA.blanco : u < 0.85 ? PALETA.durazno : PALETA.lila;
-    else if (s < 1.25) col = mezcla(PALETA.lila, PALETA.violeta, suave(0.75, 1.25, s));
+    if (s < 0.75) col = u < 0.42 ? PALETA.blanco : u < 0.92 ? PALETA.durazno : PALETA.lila;
+    else if (s < 1.3) col = mezcla(mezcla(PALETA.durazno, PALETA.lila, 0.6), PALETA.violeta, suave(0.9, 1.3, s));
     else if (s < 1.75) col = mezcla(PALETA.violeta, PALETA.azul, suave(1.3, 1.75, s));
     else if (s < 2.2) col = mezcla(PALETA.azul, PALETA.verdeAzul, suave(1.75, 2.2, s));
     else col = mezcla(PALETA.verdeAzul, u < 0.5 ? PALETA.verde : PALETA.amarillo, suave(2.2, 2.7, s));
-    return { ...c, col, alfa: 1, tam: 0.8 + rnd() * 0.3, clave: t, umbral: rnd() };
+    // El cuello y la rosca, más tenues (en el video casi no se ven)
+    return { ...c, col, alfa: s < 1.1 ? 1 : 0.6, tam: 0.8 + rnd() * 0.3, clave: t, umbral: rnd() };
   });
   // Vista principal: inclinado, el vidrio arriba a la izquierda
   return armar(N, puntos, (p) => [p.x + 0.5 * -p.y, -p.y], rnd);
@@ -565,7 +687,7 @@ export function globo(N: number, semilla = 37): Forma {
   const dorado = Math.PI * (3 - Math.sqrt(5));
   // Red de Fibonacci: puntos parejos sobre la esfera. Medido: en la tierra hay un triangulito por
   // cada ~222 px² (separación de ~16 px a 372 px por unidad): unos 7 800 en toda la esfera.
-  const M = Math.min(N, 7800);
+  const M = N;
   for (let j = 0; j < M; j++) {
     const y = 1 - ((j + 0.5) / M) * 2;
     const r = Math.sqrt(1 - y * y);
@@ -582,9 +704,9 @@ export function globo(N: number, semilla = 37): Forma {
     let col: Color;
     if (tierra) {
       // Manchas de color en la tierra: ámbar dominante, violeta, verde azulado y algo de rosa
-      if (mancha > 0.6) col = elegir([["violeta", 6], ["magenta", 1], ["ambar", 3], ["verdeAzul", 1]], u);
-      else if (mancha2 > 0.62) col = elegir([["verdeAzul", 5], ["ambar", 3], ["violeta", 2]], u);
-      else col = elegir([["ambar", 10], ["amarillo", 2], ["violeta", 2], ["verdeAzul", 1], ["rosa", 1], ["coral", 1], ["blanco", 1]], u);
+      if (mancha > 0.66) col = elegir([["violeta", 6], ["magenta", 2], ["ambar", 3], ["blanco", 1]], u);
+      else if (mancha2 > 0.7) col = elegir([["verdeAzul", 4], ["ambar", 3], ["violeta", 2], ["blanco", 1]], u);
+      else col = elegir([["ambar", 9], ["blanco", 4], ["magenta", 2], ["rosa", 1], ["coral", 1], ["amarillo", 1], ["violeta", 1]], u);
     } else col = u < 0.5 ? PALETA.violeta : u < 0.85 ? PALETA.ambar : PALETA.verdeAzul;
     puntos.push({
       x,
@@ -596,8 +718,9 @@ export function globo(N: number, semilla = 37): Forma {
       dato: tierra ? 1 : 0,
       col,
       // El mar: puntitos ralos y muy tenues
-      alfa: tierra ? 1 : rnd() < 0.4 ? 0.22 : 0,
-      tam: tierra ? 0.95 + rnd() * 0.2 : 0.36,
+      // El mar: puntitos tenues pero presentes (en el video la esfera se ve llena)
+      alfa: tierra ? 1 : rnd() < 0.7 ? 0.42 : 0,
+      tam: tierra ? 0.95 + rnd() * 0.2 : 0.62,
       clave: tierra ? 1 : 0,
       umbral: rnd(),
     });

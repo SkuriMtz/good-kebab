@@ -1,5 +1,53 @@
 # Figuras A — nota
 
+## Más color y más 3D (30 oct, guía: `descripcion-cerebro.md`) → `hoja-color-final.jpg`
+
+**Qué cambió en el motor**
+- **Triángulo hueco:** las aristas que van al centro casi no se ven. Las partículas sueltas siguen
+  siendo tetraedros, y algunas grandes son rombos. El rombo violáceo de abajo a la izquierda va borroso.
+- **Halo suave por triángulo**, con mezcla aditiva.
+- **Resplandor por partícula:** una mancha ancha y muy tenue que da el brillo de adentro del
+  cerebro. No es un bloom de pantalla. En el celular (menos de 700 px) se apaga para que no trabe.
+- **Profundidad de campo:** lo más cercano, sobre todo el lado izquierdo del cerebro, sale más
+  grande, más difuso y doble. Lo de atrás es más chico y nítido. La capa lejana se ve a través,
+  tenue.
+- **Orilla densa y centro abierto (cáscara hueca):**
+  - hay partículas "solo orilla" que se encienden donde la superficie se ve de lado;
+  - la superficie se densificó con puntos intermedios entre vecinos;
+  - la orilla usa una normal suavizada, así sale una banda ámbar pareja y gruesa.
+- **Color por zona y orientación.** El ámbar va en la orilla y abajo; la banda inferior del
+  temporal es la más brillante. Adentro va blanco y gris lavanda en manchas grandes, con violeta,
+  turquesa en grupitos, destellos magenta en el borde de arriba y algo de azul.
+- **Fisura entre hemisferios** oscura (de frente se ve la raya del medio).
+- **Tronco más tenue**, que se apaga hacia abajo.
+- **Foco:** cuerpo durazno y blanco, cuello y rosca más tenues, más chico y en su caja.
+- **Globo:** el mar con puntitos visibles (la esfera se ve llena), más blanco y magenta en la tierra.
+
+**Medidas en los cuadros clave del cerebro** (video / antes, be706e5 / ronda 1 / ronda 2)
+
+| Medida | Video | Antes | Ronda 1 | Ronda 2 |
+|---|---|---|---|---|
+| 1.0 s · ámbar / blanco / violeta / magenta (%) | 46 / 40 / 4 / 5 | 43 / 40 / 8 / 2 | 44 / 41 / 4 / 6 | 44 / 46 / 3 / 2 |
+| 1.0 s · brillo p50 / p90 / p99 | 65 / 152 / 212 | 74 / 148 / 255 | 70 / 142 / 234 | 69 / 141 / 240 |
+| 1.0 s · densidad orilla / centro | 0.79 / 0.24 | 0.53 / 0.21 | 0.64 / 0.28 | 0.62 / 0.28 |
+| 1.0 s · banda ámbar de la orilla (px) | 25 | 35 | 15 | 20 |
+| 1.0 s · resplandor dentro (fondo, p50) | 32 | 3 | — | 23 |
+| 1.0 s · tamaño del triangulito (px) | 9 | 12 | 10 | 10 |
+| 2.2 s · ámbar / blanco (%) | 47 / 41 | — | 46 / 45 | 45 / 50 |
+| 2.2 s · brillo p50 / p90 | 65 / 140 | — | 66 / 147 | 67 / 150 |
+| 2.2 s · densidad orilla / centro | 0.86 / 0.27 | — | 0.57 / 0.30 | 0.57 / 0.28 |
+| 2.8 s · ámbar / blanco (%) | 42 / 45 | — | 60 / 31 | 62 / 33 |
+| 2.8 s · brillo p50 / p90 | 57 / 137 | — | 66 / 148 | 66 / 148 |
+
+- **Dentro de ±10 %:** el color de lado y en 2.2 s, el brillo p50 y p90, la densidad del centro
+  y el tamaño del triangulito.
+- **Fuera de ±10 %:**
+  - la densidad de la orilla es ~20 % menor que en el video;
+  - el p99 es más alto (la banda de abajo satura un poco);
+  - de frente (2.8 s) hay más ámbar que en el video: la cara de abajo se ve de canto y hace una
+    banda horizontal.
+- Las rondas se acortaron a 2 por pedido del dueño (ir más rápido).
+
 ## Cerebro real (30 oct): "parece un corazón" → hoja `hoja-cerebro-2.jpg`
 
 - **Forma de un cerebro humano real.** Viene de la plantilla **MNI ICBM152 2009a simétrica**
