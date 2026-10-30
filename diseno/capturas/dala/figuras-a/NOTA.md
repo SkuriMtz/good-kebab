@@ -1,5 +1,47 @@
 # Figuras A — nota
 
+## Cerebro estilizado y en orden (30 oct, "que se distinga como cerebro") → `hoja-cerebro-3.jpg`
+
+**Forma estilizada**
+- Sale de la misma plantilla MNI ICBM152 (licencia y aviso en `public/figuras/cerebro-LICENCIA.txt`),
+  muy suavizada: solo quedan los lóbulos (frontal, parietal, occipital, temporal, cerebelo) y
+  las cisuras grandes, más el tronco.
+- **Surcos estilizados:** líneas que serpentean (las curvas donde un ruido suave cruza su valor
+  medio), separadas ~1.5 cm. Se hunden apenas y sus paredes se inclinan, así la luz rasante las
+  pinta de ámbar.
+  - De frente, el surco se ve oscuro y casi vacío.
+  - En la orilla se ve completo, así el contorno queda continuo.
+- La cara de adentro de cada hemisferio va siempre tenue: de frente, la fisura es una raya oscura.
+
+**Orden**
+- Una malla geodésica (icosaedro subdividido) envuelve cada hemisferio y se relaja sobre la
+  superficie: cada triangulito va en un vértice, en filas parejas y con el mismo espacio
+  (~4 mm de arista).
+- Todos apuntan hacia arriba, con un giro mínimo.
+- El tronco va en anillos parejos.
+
+**Tamaño y luz**
+- El tamaño va por profundidad: adelante grande (con desenfoque leve), atrás chico.
+- Se ven las dos capas: lo de atrás, tenue, a través.
+- Crestas brillantes y surcos oscuros. Color por zona y orientación, con la banda ámbar de la orilla.
+- De frente (giro de menos de ~20°), el ámbar de los costados se reduce, como en el video.
+
+**Celular:** `cerebro-chico.bin`, con ~3 500 puntos (`cerebro.bin`, el de pantallas grandes, trae ~7 500).
+
+**Medidas** (video / Atendel)
+
+| Momento | Ámbar | Blanco | Brillo p50 / p90 | Densidad orilla / centro |
+|---|---|---|---|---|
+| 1.0 s, de lado | 46 / 45 | 40 / 45 | 65 · 152 / 65 · 132 | 0.79 · 0.24 / 0.51 · 0.20 |
+| 2.2 s | 47 / 41 | 41 / 52 | 65 · 140 / 66 · 145 | 0.86 · 0.27 / 0.52 · 0.18 |
+| 2.8 s, de frente | 42 / 38 | 45 / 56 | 57 · 137 / 65 · 146 | 0.76 · 0.24 / 0.48 · 0.14 |
+| 4.5 s, decisiones | 44 / 56 | 45 / 40 | 55 · 116 / 62 · 125 | 0.39 · 0.20 / 0.38 · 0.13 |
+
+**Falta**
+- La orilla del video es más tupida: la densidad de su banda es ~35 % mayor.
+- De frente, el video se ve más ancho abajo, con los dos hemisferios más abultados.
+- En 4.5 s hay ~25 % más ámbar que en el video.
+
 ## Más color y más 3D (30 oct, guía: `descripcion-cerebro.md`) → `hoja-color-final.jpg`
 
 **Qué cambió en el motor**

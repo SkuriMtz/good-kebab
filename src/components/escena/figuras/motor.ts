@@ -720,13 +720,14 @@ export class MotorFiguras {
       }
       const cc = color(i, pr);
       let alfa = Math.abs(F.alfa[i]) * atras * luz;
-      if (soloOrilla) alfa *= suave(0.7, 0.92, pr.fr[i]);
+      if (soloOrilla) alfa *= suave(0.8, 0.95, pr.fr[i]);
       // Surcos: oscuros y casi vacíos cuando se ven de frente; en la orilla (de canto) se ven
       // completos, así la banda del contorno queda continua
       const h = F.hondo[i];
-      if (h > 0) alfa *= 1 - (1 - suave(0.72, 0.94, pr.fr[i])) * (h > 0.75 ? 0.95 : 0.85 * h);
+      if (h > 0.995) alfa *= 0.12; // la cara de adentro, junto a la fisura: siempre tenue
+      else if (h > 0) alfa *= 1 - (1 - suave(0.72, 0.94, pr.fr[i])) * (h > 0.75 ? 0.95 : 0.85 * h);
       // En la orilla se juntan muchas: cada una brilla un poco menos para que la banda no se queme
-      if (volumen) alfa *= 1 - 0.4 * suave(0.8, 1, pr.fr[i]);
+      if (volumen) alfa *= 1 - 0.15 * suave(0.8, 1, pr.fr[i]);
       O.x[i] = pr.x[i];
       O.y[i] = pr.y[i];
       O.r[i] = cc[0];
@@ -771,14 +772,17 @@ export class MotorFiguras {
     const nz = pr.nz[i];
     // La orilla es solo la franja de afuera (medido: ~25 px de ~330 → de canto, fr > 0.9)
     const fr = pr.fr[i];
-    const rim = suave(0.86, 0.98, fr);
-    const medio = suave(0.76, 0.92, fr);
+    const rim = suave(0.88, 0.98, fr);
+    const medio = suave(0.83, 0.95, fr);
     const abajo = suave(0.2, 0.85, -ny) * medio;
     const arriba = suave(0.3, 0.9, ny);
     const izquierda = suave(0.3, 0.9, -nx);
     const derecha = suave(0.3, 0.9, nx) * medio;
     const luzBlanca = suave(0.45, 0.95, 0.3 * nx + 0.25 * ny + 0.92 * nz);
-    const pA = Math.min(0.9, 0.32 + (0.16 * medio + 0.16 * rim) * (1 - 0.5 * izquierda) + 0.14 * abajo + 0.06 * derecha);
+    // De frente (giro cerca de 0°) los costados quedan de canto y se verían casi todos ámbar;
+    // en el video, de frente, el ámbar es solo la orilla de afuera y abajo
+    const frontal = 1 - suave(16, 30, Math.abs(this.actual.yaw));
+    const pA = Math.min(0.9, (0.3 - 0.1 * frontal) + (0.2 * medio * (1 - 0.65 * frontal) + 0.22 * rim) * (1 - 0.5 * izquierda) + 0.12 * abajo + 0.05 * derecha);
     const g = F.grupo[i];
     const pWrel = Math.min(0.95, (0.66 + 0.2 * (1 - medio) + 0.1 * luzBlanca) * (1 - 0.5 * g));
     const pW = pA + (1 - pA) * pWrel;

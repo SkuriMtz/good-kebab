@@ -600,7 +600,7 @@ export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
-  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.5);
+  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.85);
 }
 
 /* ====================================================================== */
