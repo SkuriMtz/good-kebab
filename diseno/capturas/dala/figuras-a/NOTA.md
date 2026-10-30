@@ -1,5 +1,63 @@
 # Figuras A — nota
 
+## Cerebro real (30 oct): "parece un corazón" → hoja `hoja-cerebro-2.jpg`
+
+- **Forma de un cerebro humano real.** Viene de la plantilla **MNI ICBM152 2009a simétrica**
+  (materia gris + blanca, el promedio de 152 resonancias), que trae el paquete nilearn y que
+  también está en TemplateFlow (`tpl-MNI152NLin2009aSym`).
+  - Se umbralizó, se rellenaron los huecos de adentro y se sacó la superficie: puntos con su
+    normal y la hondura de cada surco.
+  - Se ajustó por eje a las siluetas del video, con un ensanche leve de los temporales.
+  - Los puntos van en `public/figuras/cerebro.bin` (60 KB); el motor los carga al abrir.
+  - Mientras carga se ve polvo. Si el archivo no llega, queda el cerebro de lóbulos de respaldo.
+- **Fuente y licencia.** © 1993-2004 Louis Collins, McConnell Brain Imaging Centre, Montreal
+  Neurological Institute, McGill University.
+  - Licencia permisiva, del tipo de MIT: se permite usar, copiar, modificar y distribuir para
+    cualquier fin y sin pago, siempre que el aviso de copyright vaya en todas las copias.
+  - El aviso completo va en `public/figuras/cerebro-LICENCIA.txt` y en un comentario de
+    `formas.ts`.
+  - Primero intenté la malla de Wikimedia Commons "Brain AS.stl" (CC BY 4.0), pero no bajó:
+    Commons respondió 429 (demasiadas solicitudes) en 10 intentos. NIH 3D solo tenía modelos
+    CC-BY-SA.
+- **IoU contra la silueta del video** (mismo instante, mismo scroll):
+
+  | Momento | IoU |
+  |---|---|
+  | de lado (1.0 s) | 0.94 |
+  | 2.0 s | 0.94 |
+  | 2.2 s | 0.93 |
+  | 2.5 s | 0.91 |
+  | de frente (2.8 s) | 0.93 |
+  | decisiones (4.5 s) | 0.80 (abajo, el video tiene la cola de polvo, que no es cerebro) |
+
+  - De frente es ancho, plano arriba, con la fisura apenas marcada, los temporales a los lados
+    abajo y el tronco al centro.
+  - De lado se ven el frontal, el temporal, el cerebelo y el tronco.
+- **Poses.** Se ajustaron con la malla en 2.0, 2.2, 2.5 y 2.8 s; quedaron −79.5°, −30°, −13° y
+  +14.5°, con una inclinación de −4° a −5°.
+- **Retraso.** La figura iba ~30 px atrás del video al girar. La causa era el retraso propio del
+  motor (~0.05 s) más el 10 % de velocidad que las partículas no copiaban. Ahora va con el
+  scroll suavizado.
+- **Brillo y densidad medidos.** El pico de un triangulito es 125 (el video, 122). En el centro
+  hay 183 triangulitos sueltos (el video, 217).
+- **Color por orientación y por manchas**, como en el video:
+
+  | Zona | Video | Atendel |
+  |---|---|---|
+  | orilla de abajo, ámbar | 63 % | 76 % |
+  | orilla derecha, ámbar | 65 % | 74 % |
+  | orilla de arriba, ámbar | 47 % | 50 % |
+  | centro | 62 % blanco, 23 % ámbar | 50 % blanco, 19 % ámbar |
+
+  - Las caras que miran a la luz van en blanco.
+  - Hay parches violeta y verde azulado que giran con el cerebro.
+  - Los colores van en bandas y manchas, no regados triangulito por triangulito.
+- **Planes más alto que en el video** (`FondoFiguras.tsx`). Si una sección mide más que su tramo
+  en el video (Planes ahora tiene tarjetas), el cambio de figura se hace en el último pedazo,
+  del mismo largo que en el video. Así llega igual cuando aparece el cierre.
+- **Falta.** El video se ve con un brillo suave alrededor de cada triangulito; el nuestro es más
+  nítido. Las bandas ámbar del video son un poco más gruesas.
+
 ## Cambios pedidos por el dueño (29 oct)
 
 - **Cerebro 3D de verdad** (`hoja-cerebro.jpg`): dos hemisferios hechos de lóbulos (frontal,

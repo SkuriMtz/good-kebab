@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ESCENAS_FIGURAS, esEscenaFiguras, type EscenaFiguras } from "./figuras/escenas";
+import { ESCENAS_FIGURAS, esEscenaFiguras, REPOSO_VIDEO, type EscenaFiguras } from "./figuras/escenas";
 import { MotorFiguras } from "./figuras/motor";
 
 export { ESCENAS_FIGURAS, type EscenaFiguras } from "./figuras/escenas";
@@ -84,10 +84,21 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: Math.min(maximo, el.getBoundingClientRect().top + y) }))
         .sort((a, b) => a.top - b.top);
       if (y <= anclas[0].top) return anclas[0].i;
+      const alto = window.innerHeight;
       for (let k = 0; k < anclas.length - 1; k++) {
         const a = anclas[k];
         const b = anclas[k + 1];
-        if (y <= b.top) return a.i + ((y - a.top) / Math.max(1, b.top - a.top)) * (b.i - a.i);
+        if (y > b.top) continue;
+        const tramo = Math.max(1, b.top - a.top);
+        let f = (y - a.top) / tramo;
+        // Si la sección es más alta que su tramo en el video (p. ej., Planes con tarjetas), el
+        // cambio se hace en el último pedazo, del largo del video: mientras se lee, la figura
+        // espera, y llega igual que en el video cuando aparece la siguiente escena.
+        if (b.i === a.i + 1) {
+          const tramoVideo = ((REPOSO_VIDEO[b.i] - REPOSO_VIDEO[a.i]) / 750) * alto;
+          if (tramo > tramoVideo * 1.1) f = 1 - (b.top - y) / tramoVideo;
+        }
+        return a.i + Math.min(1, Math.max(0, f)) * (b.i - a.i);
       }
       return anclas[anclas.length - 1].i;
     };
@@ -152,12 +163,19 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     const libre = typeof window.requestIdleCallback === "function";
     const idle = libre ? window.requestIdleCallback(() => motor.prepararResto(), { timeout: 2500 }) : window.setTimeout(() => motor.prepararResto(), 1200);
 
-    alListoRef.current?.({ motor, avanzar });
+    // El cerebro de malla real llega aparte (archivo de ~60 KB); mientras, hay polvo
+    let vivo = true;
+    motor.cargarCerebro("/figuras/cerebro.bin").then(() => {
+      if (!vivo) return;
+      alListoRef.current?.({ motor, avanzar });
+      caja.dataset.cerebro = "true";
+    });
     if (reloj === "manual") avanzar(1 / 60);
     else if (!document.hidden) iniciar();
     caja.dataset.listo = "true";
 
     return () => {
+      vivo = false;
       if (libre) window.cancelIdleCallback(idle);
       else window.clearTimeout(idle);
       detener();

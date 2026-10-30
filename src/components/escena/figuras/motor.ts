@@ -1,5 +1,5 @@
 import { REPOSO_VIDEO } from "./escenas";
-import { azar, cerebro, foco, globo, marca, mezcla, PALETA, suave, type Color, type Forma } from "./formas";
+import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, suave, type Color, type Forma } from "./formas";
 
 /**
  * El motor del fondo del inicio (técnica de la versión 7): miles de
@@ -139,19 +139,20 @@ function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
  * del texto: a los 2.0 s ya giró 18° cuando el texto apenas bajó 12 px.
  */
 export const CEREBRO_A: Llave[] = [
-  [0.0, C(847.5, 378, 320, -90, 0, 0, 9.26)],
-  [0.01, C(831.5, 376.5, 320, -72, 0, 0, 9.26)],
-  [0.028, C(810.5, 375.5, 320, -55, 0, 0, 9.3)],
-  [0.062, C(776.5, 375, 320.5, -42, 0, 0, 9.35)],
-  [0.108, C(732, 375.5, 324, -35, 0, 0, 9.41)],
-  [0.165, C(676, 377.5, 332, -27, 0, 0, 9.52)],
-  [0.232, C(620, 377, 340, -14, 0, 0, 9.63)],
-  [0.31, C(560, 376, 348.5, -2, 1, 0, 9.74)],
-  [0.391, C(498.5, 374, 354, 3, 2, 0, 9.91)],
-  [0.477, C(428.5, 372, 358, 7, 3, 0, 10.08)],
-  [0.65, C(335, 377, 382, 18, 4, 0, 10.23)],
-  [0.82, C(290, 380, 395, 26, 7, 0, 10.72)],
-  [1.0, C(295, 386, 400, 32, 9, 0, 10.91)],
+  // Poses del cerebro de malla real ajustadas a la silueta del video (IoU 0.95-0.96 en 2.0, 2.2, 2.5 y 2.8 s)
+  [0.0, C(847.5, 378, 335.1, -90, 0, 0, 8.15)],
+  [0.01, C(822.5, 376.5, 331.1, -79.5, 0, 0, 8.15)],
+  [0.028, C(800, 376, 334, -58, -0.5, 0, 8.18)],
+  [0.062, C(773.5, 378, 339.6, -30, -1, 0, 8.23)],
+  [0.108, C(732, 377, 342, -24, -2.5, 0, 8.28)],
+  [0.165, C(676, 378, 348, -19, -4, 0, 8.38)],
+  [0.232, C(618.5, 380, 356, -13.2, -5.5, 0, 8.47)],
+  [0.31, C(560, 377, 365, -4, -5, 0, 8.57)],
+  [0.391, C(498.5, 374, 372, 5, -4.5, 0, 8.72)],
+  [0.477, C(428.5, 372, 379.4, 14.5, -4, 0, 8.87)],
+  [0.65, C(335, 377, 400.0, 22, 0, 0, 9.0)],
+  [0.82, C(290, 380, 413.6, 28, 5, 0, 9.43)],
+  [1.0, C(295, 386, 418.8, 32, 9, 0, 9.6)],
 ];
 /**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
@@ -159,11 +160,11 @@ export const CEREBRO_A: Llave[] = [
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
  */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(295, 386, 400, 32, 9, 0, 10.91)],
-  [0.25, C(405, 395, 425, 52, 18, 0, 11.11)],
-  [0.45, C(500, 425, 460, 66, 30, 0, 11.3)],
-  [0.7, C(550, 470, 490, 76, 44, 0, 11.5)],
-  [1.0, C(570, 530, 506.1, 82, 52, 0, 11.69)],
+  [0.0, C(295, 386, 418.8, 32, 9, 0, 9.6)],
+  [0.25, C(405, 395, 445.0, 52, 18, 0, 9.78)],
+  [0.45, C(500, 425, 481.7, 66, 30, 0, 9.94)],
+  [0.7, C(550, 470, 513.1, 76, 44, 0, 10.12)],
+  [1.0, C(570, 530, 529.9, 82, 52, 0, 10.29)],
 ];
 export const FOCO: Colocacion = C(310, 312, 238, -16, 6, 29, 6.4);
 export const FOCO_SALE: Colocacion = C(640, 330, 230, 10, 6, 20, 6.4);
@@ -178,9 +179,9 @@ export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
  * Cuánto copia cada partícula la velocidad de su lugar (1 = sin retraso): cuando la figura
  * solo se mueve o gira, va pegada al scroll; en los cambios, el resorte da la llegada suave.
  */
-const SEGUIR = 0.9;
+const SEGUIR = 0.97;
 
-const LUZ = { cerebro: 0.8, foco: 0.7, globo: 0.68, marca: 0.72 };
+const LUZ = { cerebro: 0.64, foco: 0.7, globo: 0.68, marca: 0.72 };
 
 /** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
 type Volumen = { atras: number; prof: number; radio: number };
@@ -441,6 +442,24 @@ export class MotorFiguras {
     ];
   }
 
+  /** ¿Ya está el cerebro de la malla real? Mientras no, la portada muestra polvo (nunca el de respaldo a medias). */
+  cerebroListo = false;
+
+  /**
+   * Carga el cerebro de malla real (public/figuras/cerebro.bin, ~60 KB). Si no se puede,
+   * queda el cerebro de respaldo hecho de lóbulos.
+   */
+  async cargarCerebro(url: string) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(String(r.status));
+      this.formas.cerebro = cerebroDeMalla(leerCerebro(await r.arrayBuffer()), this.N);
+    } catch {
+      // sin red o sin archivo: el de respaldo
+    }
+    this.cerebroListo = true;
+  }
+
   /** Las figuras que faltan (se crean cuando hacen falta o cuando el navegador está libre). */
   prepararResto() {
     if (!this.formas.foco) this.formas.foco = foco(this.N);
@@ -492,8 +511,8 @@ export class MotorFiguras {
     const S = c.escala * s;
     const D = 2300 * s; // distancia de la cámara (perspectiva moderada)
     // Giro lento y continuo (la figura "respira" girando apenas, como en el video)
-    const yaw = c.yaw * G + Math.sin(this.reloj * 0.26) * 0.055;
-    const pitch = c.pitch * G + Math.sin(this.reloj * 0.19 + 1) * 0.02;
+    const yaw = c.yaw * G + Math.sin(this.reloj * 0.26) * 0.035;
+    const pitch = c.pitch * G + Math.sin(this.reloj * 0.19 + 1) * 0.012;
     const roll = c.roll * G;
     const cy = Math.cos(yaw);
     const sy = Math.sin(yaw);
@@ -585,7 +604,8 @@ export class MotorFiguras {
       if (volumen) {
         // Volumen: lo de enfrente más grande y brillante; lo de atrás se ve a través, tenue y chico
         const prof = Math.min(1, Math.max(0, (pr.z[i] / volumen.radio + 1) / 2));
-        atras = (volumen.atras + (1 - volumen.atras) * suave(-0.2, 0.15, nz)) * (1 - volumen.prof * 0.55 * (1 - prof));
+        // (la orilla, de canto, se ve completa: en el video el contorno es nítido y brillante)
+        atras = (volumen.atras + (1 - volumen.atras) * suave(-0.32, 0.02, nz)) * (1 - volumen.prof * 0.55 * (1 - prof));
         tam = 1 + volumen.prof * 0.55 * (prof - 0.5);
       } else {
         // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
@@ -643,7 +663,7 @@ export class MotorFiguras {
     const luzBlanca = suave(0.45, 0.95, 0.3 * nx + 0.25 * ny + 0.92 * nz);
     const pA = Math.min(0.88, 0.13 + (0.22 * medio + 0.26 * rim) * (1 - 0.6 * izquierda) * (1 - 0.15 * arriba) + 0.14 * abajo + 0.14 * derecha);
     const g = F.grupo[i];
-    const pWrel = (0.45 + 0.35 * (1 - medio) + 0.12 * luzBlanca) * (1 - 0.65 * g);
+    const pWrel = Math.min(0.95, (0.66 + 0.2 * (1 - medio) + 0.1 * luzBlanca) * (1 - 0.5 * g));
     const pW = pA + (1 - pA) * pWrel;
     const u = F.umbral[i];
     const wA = 1 - suave(pA - 0.03, pA + 0.03, u);
@@ -717,6 +737,10 @@ export class MotorFiguras {
     const o1 = this.o1;
     const o2 = this.o2;
 
+    if (seg <= 1 && !this.cerebroListo) {
+      this.todoPolvo(o1, seg === 0 ? "suelto" : "caos");
+      return;
+    }
     if (seg === 0) {
       // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
       // Al llegar, abajo a la derecha se deshace en una cola de polvo.
@@ -872,20 +896,11 @@ export class MotorFiguras {
   paso(dt: number, quieto = false) {
     dt = Math.min(Math.max(dt, 0), 1 / 15);
     this.reloj += dt;
-    if (quieto || this.primera) {
-      this.posicion = this.objetivo;
-      this.velPos = 0;
-    } else {
-      // Resorte rápido y sin rebote (apenas suaviza): la figura va con el scroll
-      const w = 40;
-      const sub = Math.max(1, Math.round(dt * 120));
-      const hh = dt / sub;
-      for (let k = 0; k < sub; k++) {
-        const acc = w * w * (this.objetivo - this.posicion) - 2 * w * this.velPos;
-        this.velPos += acc * hh;
-        this.posicion += this.velPos * hh;
-      }
-    }
+    // La figura va con el scroll ya suavizado (Lenis), sin retraso propio: en el video incluso
+    // va un poco adelante del texto (eso ya está en las llaves de cada tramo). Si la posición
+    // pedida brinca, los resortes de cada partícula dan la llegada suave.
+    this.posicion = Number.isFinite(this.objetivo) ? this.objetivo : this.posicion;
+    this.velPos = 0;
     this.componer(this.posicion);
     const o = this.o1;
     const N = this.N;

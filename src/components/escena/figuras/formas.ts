@@ -379,6 +379,99 @@ export function cerebro(N: number, semilla = 11): Forma {
   return armar(N, puntos, (p) => [-p.z, -p.y], rnd);
 }
 
+/* ---------- Cerebro real (public/figuras/cerebro.bin) ---------- */
+
+/**
+ * Puntos sobre la superficie de un cerebro humano real: la plantilla MNI ICBM152
+ * 2009a simétrica (materia gris + blanca, el promedio de 152 resonancias), tomada
+ * del paquete nilearn. Se umbralizó, se sacó su superficie (con la hondura de los
+ * surcos y la normal de cada punto) y se ajustó por eje a las siluetas de los videos
+ * de referencia (IoU 0.94 de lado y 0.93 de frente). Licencia (se copia completa en
+ * public/figuras/cerebro-LICENCIA.txt):
+ *
+ *   Copyright (C) 1993-2004 Louis Collins, McConnell Brain Imaging Centre,
+ *   Montreal Neurological Institute, McGill University. Permission to use, copy,
+ *   modify, and distribute this software and its documentation for any purpose
+ *   and without fee is hereby granted, provided that the above copyright notice
+ *   appear in all copies. The authors and McGill University make no
+ *   representations about the suitability of this software for any purpose. It
+ *   is provided "as is" without express or implied warranty.
+ *
+ * Formato del archivo: "CRB1", n (uint32), escala (float32) y luego n × (int16
+ * x, y, z), n × (int8 nx, ny, nz) y n × uint8 hondura (0 = cresta, 200 = fondo
+ * de un surco, 255 = tronco).
+ */
+export type DatosCerebro = { n: number; pos: Float32Array; nor: Float32Array; hondo: Float32Array };
+
+export function leerCerebro(buf: ArrayBuffer): DatosCerebro {
+  const dv = new DataView(buf);
+  const firma = String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3));
+  if (firma !== "CRB1") throw new Error("cerebro: formato");
+  const n = dv.getUint32(4, true);
+  const escala = dv.getFloat32(8, true);
+  const pos = new Float32Array(n * 3);
+  const nor = new Float32Array(n * 3);
+  const hondo = new Float32Array(n);
+  let o = 12;
+  for (let i = 0; i < n * 3; i++, o += 2) pos[i] = dv.getInt16(o, true) * escala;
+  for (let i = 0; i < n * 3; i++, o += 1) nor[i] = dv.getInt8(o) / 127;
+  // 0-200: hondura (0 cresta, 200 fondo de surco); 255: el tronco
+  for (let i = 0; i < n; i++, o += 1) {
+    const v = dv.getUint8(o);
+    hondo[i] = v === 255 ? -1 : v / 200;
+  }
+  return { n, pos, nor, hondo };
+}
+
+export function cerebroDeMalla(d: DatosCerebro, N: number, semilla = 11): Forma {
+  const rnd = azar(semilla);
+  // Si hay más puntos que partículas, se toma una parte pareja (los puntos ya vienen mezclados)
+  const usar = Math.min(d.n, Math.round(N * 0.66));
+  const puntos: PuntoFinal[] = [];
+  for (let k = 0; k < usar; k++) {
+    const i = Math.floor((k * d.n) / usar);
+    const x = d.pos[i * 3];
+    const y = d.pos[i * 3 + 1];
+    const z = d.pos[i * 3 + 2];
+    const esTallo = d.hondo[i] < 0;
+    const hondo = Math.max(0, d.hondo[i]);
+    // Zonas de color que giran con el cerebro (como en el video): verde azulado, violeta y magenta
+    const z1 = ruido(x * 1.9 + 11, y * 1.9 + 5, z * 1.9 + 2);
+    const z2 = ruido(x * 1.9 + 31, y * 1.9 + 17, z * 1.9 + 23);
+    const u = rnd();
+    let col: Color;
+    let grupo = 0;
+    if (esTallo) col = elegir([["violeta", 2], ["verdeAzul", 1], ["azul", 1]], u);
+    else if (z1 > 0.74) {
+      col = u < 0.7 ? PALETA.verdeAzul : PALETA.azul;
+      grupo = suave(0.72, 0.8, z1);
+    } else if (z2 > 0.72) {
+      col = u < 0.65 ? PALETA.violeta : PALETA.magenta;
+      grupo = suave(0.7, 0.8, z2);
+    } else col = elegir([["violeta", 5], ["magenta", 3], ["rosa", 4], ["coral", 5], ["amarillo", 4], ["azul", 2], ["verdeAzul", 2]], u);
+    puntos.push({
+      x,
+      y,
+      z,
+      nx: d.nor[i * 3],
+      ny: d.nor[i * 3 + 1],
+      nz: d.nor[i * 3 + 2],
+      dato: hondo,
+      col,
+      // la opacidad guarda la sombra de los surcos (en el fondo de un surco se ve más oscuro)
+      alfa: esTallo ? 0.95 : 1 - 0.45 * hondo,
+      tam: esTallo ? 0.85 : 0.85 + rnd() * 0.3,
+      clave: (y + 1.6) / 2.4,
+      // El umbral del color va por manchas (como en el video: bandas y parches del mismo color
+      // siguiendo los giros), con un poco de azar propio para que no se vea pintado con brocha
+      umbral: Math.min(1, Math.max(0, 0.5 + (ruido(x * 2.6 + 3, y * 2.6 + 7, z * 2.6 + 1) - 0.5) * 1.9 * 0.62 + (rnd() - 0.5) * 0.4)),
+      grupo,
+    });
+  }
+  // Vista principal para ordenar: de lado, con el frente a la izquierda
+  return armar(N, puntos, (p) => [-p.z, -p.y], rnd);
+}
+
 /* ====================================================================== */
 /* Foco                                                                     */
 /* ====================================================================== */
