@@ -245,15 +245,15 @@ export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
  */
 const SEGUIR = 0.97;
 
-const LUZ = { cerebro: 0.55, foco: 0.42, globo: 0.5, marca: 0.5 };
+const LUZ = { cerebro: 0.62, foco: 0.42, globo: 0.5, marca: 0.5 };
 /** Intensidad del halo de cada triangulito (medido: el video tiene un resplandor entre partículas). */
 const HALO = 0.13;
 /** Fuerza del resplandor ancho de la figura (el brillo suave del interior). */
-const RESPLANDOR = 0.06;
+const RESPLANDOR = 0.045;
 
 /** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
 type Volumen = { atras: number; prof: number; radio: number; dofIzq?: number };
-const VOL_CEREBRO: Volumen = { atras: 0.2, prof: 1, radio: 1, dofIzq: 0.85 };
+const VOL_CEREBRO: Volumen = { atras: 0.42, prof: 1, radio: 1, dofIzq: 0.85 };
 /** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
@@ -708,7 +708,8 @@ export class MotorFiguras {
         const prof = Math.min(1, Math.max(0, (pr.z[i] / volumen.radio + 1) / 2));
         // (la orilla, de canto, se ve completa: en el video el contorno es nítido y brillante)
         atras = (volumen.atras + (1 - volumen.atras) * suave(-0.32, 0.02, nz)) * (1 - volumen.prof * 0.55 * (1 - prof));
-        tam = 1 + volumen.prof * 0.55 * (prof - 0.5);
+        // Perspectiva marcada: adelante grande, atrás chico
+        tam = 0.72 + volumen.prof * 0.6 * prof;
         // Profundidad de campo: lo más cercano (y, en el cerebro, el lado izquierdo) va fuera de foco
         const izq = volumen.dofIzq ? suave(0.1, 0.85, -(pr.x[i] - c.cx * this.sx) / (c.escala * s)) * volumen.dofIzq : 0;
         desen = Math.min(0.45, suave(0.93, 1, prof) * 0.3 + izq * suave(0.7, 0.92, prof) * 0.6);
@@ -720,6 +721,10 @@ export class MotorFiguras {
       const cc = color(i, pr);
       let alfa = Math.abs(F.alfa[i]) * atras * luz;
       if (soloOrilla) alfa *= suave(0.7, 0.92, pr.fr[i]);
+      // Surcos: oscuros y casi vacíos cuando se ven de frente; en la orilla (de canto) se ven
+      // completos, así la banda del contorno queda continua
+      const h = F.hondo[i];
+      if (h > 0) alfa *= 1 - (1 - suave(0.72, 0.94, pr.fr[i])) * (h > 0.75 ? 0.95 : 0.85 * h);
       // En la orilla se juntan muchas: cada una brilla un poco menos para que la banda no se queme
       if (volumen) alfa *= 1 - 0.4 * suave(0.8, 1, pr.fr[i]);
       O.x[i] = pr.x[i];
@@ -1091,10 +1096,10 @@ export class MotorFiguras {
       const m = o.m[i];
       const j = i * 3;
       const az = this.giro0[j];
-      const fx = Math.sin(az) * 0.22;
-      const fy = Math.cos(az * 1.7) * 0.22;
+      const fx = Math.sin(az) * 0.12;
+      const fy = Math.cos(az * 1.7) * 0.12;
       // en el plano: casi todos apuntan arriba, algunos girados (como en el video)
-      const fz = Math.sin(az * 2.3) * 0.42 + enFoco * Math.PI;
+      const fz = Math.sin(az * 2.3) * 0.08 + enFoco * Math.PI;
       const px = this.giro0[j] + t * this.giroVel[j];
       const py = this.giro0[j + 1] + t * this.giroVel[j + 1];
       const pz = this.giro0[j + 2] + t * this.giroVel[j + 2];

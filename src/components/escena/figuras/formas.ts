@@ -30,6 +30,8 @@ export type Forma = {
   umbral: Float32Array; // N
   /** Manchas de color (0 a 1): dónde se juntan los triangulitos de color. */
   grupo: Float32Array; // N
+  /** Hondura (0 = cresta, 1 = fondo de un surco): el motor oscurece los surcos que se ven de frente. */
+  hondo: Float32Array; // N
 };
 
 /* ---------- Azar con semilla (mulberry32) ---------- */
@@ -163,7 +165,7 @@ function separarHasta(cands: Candidato[], n: number, d0: number): Candidato[] {
 }
 
 /* ---------- Construir la forma final (N puntos, ordenados para que los cambios sean ordenados) ---------- */
-type PuntoFinal = Candidato & { col: Color; alfa: number; tam: number; clave: number; umbral: number; grupo?: number };
+type PuntoFinal = Candidato & { col: Color; alfa: number; tam: number; clave: number; umbral: number; grupo?: number; hondo?: number };
 
 /**
  * Completa hasta N con puntos de sobra (copias invisibles de puntos reales,
@@ -192,6 +194,7 @@ function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [numbe
     clave: new Float32Array(N),
     umbral: new Float32Array(N),
     grupo: new Float32Array(N),
+    hondo: new Float32Array(N),
   };
   for (let i = 0; i < N; i++) {
     const p = todos[orden[i]];
@@ -203,6 +206,7 @@ function armar(N: number, puntos: PuntoFinal[], vista: (p: PuntoFinal) => [numbe
     f.clave[i] = p.clave;
     f.umbral[i] = p.umbral;
     f.grupo[i] = p.grupo ?? 0;
+    f.hondo[i] = p.hondo ?? 0;
   }
   return f;
 }
@@ -384,11 +388,13 @@ export function cerebro(N: number, semilla = 11): Forma {
 /* ---------- Cerebro real (public/figuras/cerebro.bin) ---------- */
 
 /**
- * Puntos sobre la superficie de un cerebro humano real: la plantilla MNI ICBM152
- * 2009a simétrica (materia gris + blanca, el promedio de 152 resonancias), tomada
- * del paquete nilearn. Se umbralizó, se sacó su superficie (con la hondura de los
- * surcos y la normal de cada punto) y se ajustó por eje a las siluetas de los videos
- * de referencia (IoU 0.94 de lado y 0.93 de frente). Licencia (se copia completa en
+ * Un cerebro humano estilizado: la plantilla MNI ICBM152 2009a simétrica (materia
+ * gris + blanca, el promedio de 152 resonancias, del paquete nilearn), muy suavizada
+ * (solo quedan los lóbulos grandes), con una malla geodésica envuelta sobre cada
+ * hemisferio y relajada (los puntos van en filas parejas, como en el video), los
+ * surcos grandes marcados por curvatura (hondura) y ajustada por eje a las siluetas
+ * de los videos de referencia. cerebro.bin trae ~7 500 puntos; cerebro-chico.bin,
+ * ~3 500 (celular). Licencia (se copia completa en
  * public/figuras/cerebro-LICENCIA.txt):
  *
  *   Copyright (C) 1993-2004 Louis Collins, McConnell Brain Imaging Centre,
@@ -487,7 +493,7 @@ function densificar(d: DatosCerebro, extra: number, rnd: () => number): DatosCer
 export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma {
   const rnd = azar(semilla);
   // Si hay más puntos que partículas, se toma una parte pareja (los puntos ya vienen mezclados)
-  const base = Math.min(d0.n, Math.round(N * 0.6));
+  const base = Math.min(d0.n, Math.round(N * 0.8));
   const sub: DatosCerebro =
     base < d0.n
       ? {
@@ -498,7 +504,8 @@ export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma
         }
       : d0;
   // Más puntos en la superficie (el resto de las partículas queda como "solo orilla" y polvo)
-  const d = densificar(sub, Math.min(Math.round(N * 0.86) - base, Math.round(base * 0.45)), rnd);
+  // La malla ya viene pareja (en filas): no se densifica al azar, que desordenaría las filas
+  const d = densificar(sub, 0, rnd);
   const usar = d.n;
   // Normal suave (promedio de los vecinos en ~0.12): marca la orilla de la silueta como una
   // banda pareja y gruesa, sin los aros de cada pliegue
@@ -572,15 +579,18 @@ export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma
       x,
       y,
       z,
-      nx: suaveNor[i * 3],
-      ny: suaveNor[i * 3 + 1],
-      nz: suaveNor[i * 3 + 2],
+      // la malla ya es suave: su normal marca bien las orillas de cada lóbulo
+      nx: d.nor[i * 3] * 0.7 + suaveNor[i * 3] * 0.3,
+      ny: d.nor[i * 3 + 1] * 0.7 + suaveNor[i * 3 + 1] * 0.3,
+      nz: d.nor[i * 3 + 2] * 0.7 + suaveNor[i * 3 + 2] * 0.3,
       dato: hondo,
       col,
       // la opacidad guarda la sombra de los surcos (en el fondo de un surco se ve más oscuro)
       // El tronco, más tenue, se apaga hacia abajo hasta perderse
       // la fisura entre hemisferios queda oscura (de frente se ve la raya del medio)
-      alfa: esTallo ? 0.75 * Math.pow(Math.max(0, Math.min(1, (y + 1.85) / 1.0)), 1.6) : (1 - 0.45 * hondo) * (Math.abs(x) < 0.06 && y > -0.35 ? 0.2 : 1),
+      // Surcos oscuros y casi vacíos; crestas con todo su brillo (la fisura viene marcada como surco)
+      alfa: esTallo ? 0.7 * Math.pow(Math.max(0, Math.min(1, (y + 1.85) / 1.1)), 1.6) : 1,
+      hondo: esTallo ? 0 : hondo,
       tam: esTallo ? 0.85 : 0.85 + rnd() * 0.3,
       clave: (y + 1.6) / 2.4,
       // El umbral del color va por manchas (como en el video: bandas y parches del mismo color
@@ -590,7 +600,7 @@ export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
-  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.75);
+  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.5);
 }
 
 /* ====================================================================== */

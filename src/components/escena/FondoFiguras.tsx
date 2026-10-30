@@ -165,7 +165,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
 
     // El cerebro de malla real llega aparte (archivo de ~60 KB); mientras, hay polvo
     let vivo = true;
-    motor.cargarCerebro("/figuras/cerebro.bin").then(() => {
+    motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin").then(() => {
       if (!vivo) return;
       alListoRef.current?.({ motor, avanzar });
       caja.dataset.cerebro = "true";
