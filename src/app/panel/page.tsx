@@ -4,7 +4,7 @@ import { ActividadPanel, AjustesPanel, PendientesPanel, ResumenPanel, type Conve
 import { VistaEstadisticas } from "@/components/dashboard/estadisticas/VistaEstadisticas";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
-import { cargarEstadisticas, inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
+import { cargarEstadisticas, filtrosEstadisticas, inicioDia, resumenDe, sumarDias } from "@/lib/estadisticas";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
 import { Panel } from "./Panel";
@@ -35,9 +35,9 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={typeof searchParams.de === "string" ? searchParams.de : undefined} />;
 
   if (searchParams.vista === "estadisticas") {
-    const periodo = periodoDe(searchParams.periodo);
-    const datos = await cargarEstadisticas(supabase, user.id, periodo, cargarCuenta(supabase, user.id));
-    return <VistaEstadisticas datos={datos} periodo={periodo} base="/panel" />;
+    const f = filtrosEstadisticas(searchParams);
+    const datos = await cargarEstadisticas(supabase, user.id, f.periodo, cargarCuenta(supabase, user.id));
+    return <VistaEstadisticas datos={datos} periodo={f.periodo} base="/panel" metrica={f.metrica} agente={f.agente} />;
   }
 
   // Actividad: lo último que pasó (conversaciones y correos resumidos). Con &dia=, lo de ese día;
@@ -84,7 +84,12 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
   }
 
   // El inicio: los números de 7 días salen de las mismas estadísticas que su vista (solo se piden aquí)
-  const [pendientes, est] = await Promise.all([pendientesPromesa, cargarEstadisticas(supabase, user.id, "7d", datosCuenta).catch(() => null)]);
+  const [pendientes, est] = await Promise.all([
+    pendientesPromesa,
+    cargarEstadisticas(supabase, user.id, "7d", datosCuenta)
+      .then(resumenDe)
+      .catch(() => null),
+  ]);
 
   const meta = user.user_metadata ?? {};
   const nombreCompleto = (meta.full_name as string | undefined) || (meta.name as string | undefined);

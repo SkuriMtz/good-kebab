@@ -1103,6 +1103,9 @@
   display: grid;
   gap: var(--spacing-4);
 }
+.pnl-lbarras > li {
+  min-width: 0;
+}
 .pnl-lbarra {
   position: relative;
   isolation: isolate;

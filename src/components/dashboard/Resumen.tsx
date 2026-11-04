@@ -6,6 +6,7 @@ import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
 import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import { normalizar } from "@/lib/estadisticas";
 import { useCerrable } from "./Centro";
 import { Fragmentos } from "./Fragmentos";
 import { Accionable, Cifra, Dona, EnlaceMas, Hora, Letra, MarcaAgente, Tarjeta, Tendencia, Vacio, VerTodo } from "./Piezas";
@@ -272,11 +273,9 @@ function EstadisticasMini({ periodo, cifras, uso, accion }: PropsResumen["estadi
   );
 }
 
-/** ¿Esta acción sugerida es la que se pidió? (sin acentos ni mayúsculas; una puede contener a la otra). */
+/** ¿Esta acción sugerida es la que se pidió? Igual que en Estadísticas: sin acentos, mayúsculas ni el punto final. */
 export function coincideAccion(accion: string | undefined, buscada: string) {
   if (!accion) return false;
-  const quita = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es-MX").replace(/[\s.,;:!¡?¿…]+$/u, "").replace(/\s+/g, " ").trim();
-  const a = quita(accion);
-  const b = quita(buscada);
-  return Boolean(b) && (a === b || a.includes(b) || b.includes(a));
+  const b = normalizar(buscada);
+  return Boolean(b) && normalizar(accion) === b;
 }

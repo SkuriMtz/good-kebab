@@ -30,7 +30,7 @@ import {
   type Destino,
   type VistaDemo,
 } from "@/lib/demo-dashboard";
-import { cambio, diaLocal, horaLocal, type DatosEstadisticas } from "@/lib/estadisticas";
+import { diaLocal, horaLocal, type ResumenEstadisticas } from "@/lib/estadisticas";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { ponerTema } from "@/lib/tema";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
@@ -44,7 +44,7 @@ import { Accionable, Cifra, Hora, Letra, Tarjeta, Vacio } from "./Piezas";
 import { VistaEstadisticasEjemplo } from "./estadisticas/VistaEstadisticasEjemplo";
 import { ResumenVista, coincideAccion, type FilaPendiente } from "./Resumen";
 import { VistaAjustes } from "./Ajustes";
-import { datosDeEjemplo } from "./estadisticas/ejemplo";
+import { resumenSemanaEjemplo } from "./estadisticas/ejemplo";
 import { rangoHora } from "./estadisticas/formato";
 import { useAhora } from "./tiempo";
 import type { ElementoNav, IdVista, NovedadLateral, PasoInicio, ResultadoBusqueda } from "./tipos";
@@ -178,7 +178,7 @@ export function PruebaloDashboard({ version, inicial }: { version?: string; /** 
   /* ---------- Armazón ---------- */
 
   /** Los números de la semana salen de las mismas estadísticas de ejemplo que la vista Estadísticas (7 días). */
-  const est7 = useMemo(() => datosDeEjemplo("7d"), []);
+  const est7 = useMemo(() => resumenSemanaEjemplo(), []);
   const vistoBueno = DEMO_APROBACIONES.filter((p) => !aprobados.has(p.id)).length;
   const correosConAccion = DEMO_CORREOS.filter((c) => c.accion);
   const sinLeer = DEMO_CONVERSACIONES.filter((c) => c.sinLeer);
@@ -415,8 +415,8 @@ const MODOS: ModoPedido[] = [
 ];
 
 /** Lo que hizo cada agente en los últimos 7 días (las mismas cuentas que Estadísticas). */
-function datoSemana(est: DatosEstadisticas, id: IdAgente) {
-  const fila = est.porAgente.find((f) => f.agente === id);
+function datoSemana(est: ResumenEstadisticas, id: IdAgente) {
+  const fila = est.agentes.find((f) => f.agente === id);
   return { cifra: fila ? fila.mensajes : null, unidad: "mensajes en 7 días" };
 }
 
@@ -476,12 +476,12 @@ function Resumen({
   vistoBueno: number;
   total: number;
   aprobados: Set<string>;
-  /** Las estadísticas de ejemplo de 7 días: los mismos números que en la vista Estadísticas. */
-  est: DatosEstadisticas;
+  /** El resumen de ejemplo de 7 días: los mismos números que en la vista Estadísticas. */
+  est: ResumenEstadisticas;
 }) {
   const filas = filasPendientes(aprobados, a);
   const mezcla = [...filas.vistoBueno.slice(0, 2), ...filas.correos.slice(0, 2), ...filas.conversaciones.slice(0, 1)];
-  const dato = (id: "mensajes" | "conversaciones" | "correos") => ({ valor: est.totales[id], delta: cambio(est.totales[id], est.totalesAnteriores[id]), alElegir: a(aEstadisticas(id)) });
+  const dato = (id: "mensajes" | "conversaciones" | "correos") => ({ ...est.metricas[id], alElegir: a(aEstadisticas(id)) });
 
   return (
     <ResumenVista
@@ -781,7 +781,7 @@ function VistaConversaciones({ montaje, pedido, alAbrir }: { montaje: number; pe
    números de cada uno son los de Estadísticas en 7 días y llevan ahí.
    ===================================================================== */
 
-function VistaAgentes({ ir, enfocado, est }: { ir: (d: Destino) => void; enfocado?: IdAgente; est: DatosEstadisticas }) {
+function VistaAgentes({ ir, enfocado, est }: { ir: (d: Destino) => void; enfocado?: IdAgente; est: ResumenEstadisticas }) {
   useEffect(() => {
     if (!enfocado) return;
     const el = document.getElementById(`agente-${enfocado}`);
@@ -810,7 +810,7 @@ function VistaAgentes({ ir, enfocado, est }: { ir: (d: Destino) => void; enfocad
       </header>
       <ul className="pnl-fichas">
         {IDS_AGENTES.map((id) => {
-          const fila = est.porAgente.find((f) => f.agente === id);
+          const fila = est.agentes.find((f) => f.agente === id);
           const datos = [
             { metrica: "mensajes", icono: "mensaje" as const, valor: fila?.mensajes ?? null, texto: "mensajes en 7 días" },
             { metrica: "conversaciones", icono: "conversaciones" as const, valor: fila?.conversaciones ?? null, texto: "conversaciones en 7 días" },

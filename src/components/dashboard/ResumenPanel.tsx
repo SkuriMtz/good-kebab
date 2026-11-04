@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AGENTE_POR_ID, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { cambio, diaLocal, hayDatos, horaLocal, partirRemitente, type DatosEstadisticas } from "@/lib/estadisticas";
+import { diaLocal, horaLocal, partirRemitente, type ResumenEstadisticas } from "@/lib/estadisticas";
 import type { CorreoPendiente } from "@/lib/pendientes";
 import type { PasoPanel } from "@/lib/pasos";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
@@ -160,7 +160,7 @@ function filasPendientes({ pendientes, activos }: Comun) {
 /** Estadísticas en 7 días, con esa métrica (y ese agente). */
 const aEstadisticas = (metrica: string, agente?: IdAgente) => `/panel?vista=estadisticas&periodo=7d&metrica=${metrica}${agente ? `&agente=${agente}` : ""}`;
 
-export function ResumenPanel({ nombre, negocio, usados, est, ...comun }: Comun & { nombre?: string; negocio: string; usados: number; /** Las estadísticas de 7 días (las mismas que en su vista). null si no se pudieron leer. */ est: DatosEstadisticas | null }) {
+export function ResumenPanel({ nombre, negocio, usados, est, ...comun }: Comun & { nombre?: string; negocio: string; usados: number; /** El resumen de 7 días de Estadísticas (resumenDe): los mismos números que en su vista. null si no se pudo leer. */ est: ResumenEstadisticas | null }) {
   const { planId, activos, conGoogle } = comun;
   const ahora = useAhora();
   const router = useRouter();
@@ -188,8 +188,8 @@ export function ResumenPanel({ nombre, negocio, usados, est, ...comun }: Comun &
   ];
 
   // Lo que hizo cada agente en 7 días: lo mismo que cuenta Estadísticas
-  const conDatos = est !== null && hayDatos(est);
-  const porAgente = (id: IdAgente) => (conDatos ? (est?.porAgente.find((f) => f.agente === id)?.mensajes ?? 0) : null);
+  const conDatos = est !== null && est.metricas.mensajes.valor !== null;
+  const porAgente = (id: IdAgente) => (conDatos ? (est?.agentes.find((f) => f.agente === id)?.mensajes ?? 0) : null);
   const agentes: AgenteResumen[] = IDS_AGENTES.map((id) => {
     const href = `/panel/agentes?agente=${id}`;
     if (!plan.agentes.includes(id)) return { id, href, estado: { tono: "neutro", etiqueta: "No incluido" }, cifra: null, unidad: "", bloqueado: `Con ${planMinimo(id).nombre}` };
@@ -198,8 +198,8 @@ export function ResumenPanel({ nombre, negocio, usados, est, ...comun }: Comun &
     return { id, href, estado: { tono: "exito", etiqueta }, cifra: porAgente(id), unidad: "mensajes en 7 días" };
   });
   const dato = (id: "mensajes" | "conversaciones" | "correos") => ({
-    valor: est ? est.totales[id] : null,
-    delta: est ? cambio(est.totales[id], est.totalesAnteriores[id]) : null,
+    valor: est ? est.metricas[id].valor : null,
+    delta: est ? est.metricas[id].delta : null,
     href: aEstadisticas(id),
   });
 
