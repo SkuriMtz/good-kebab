@@ -795,7 +795,7 @@ export class MotorFiguras {
     // De frente (giro cerca de 0°) los costados quedan de canto y se verían casi todos ámbar;
     // en el video, de frente, el ámbar es solo la orilla de afuera y abajo
     const frontal = 1 - suave(16, 30, Math.abs(this.actual.yaw));
-    const pA = Math.min(0.9, (0.3 - 0.1 * frontal) + (0.2 * medio * (1 - 0.65 * frontal) + 0.22 * rim) * (1 - 0.5 * izquierda) + 0.12 * abajo + 0.05 * derecha);
+    const pA = Math.min(0.9, (0.3 - 0.1 * frontal) + (0.22 * medio * (1 - 0.65 * frontal) + 0.34 * rim) * (1 - 0.4 * izquierda) + 0.12 * abajo + 0.05 * derecha);
     const g = F.grupo[i];
     const u = F.umbral[i];
     const o = i * 3;

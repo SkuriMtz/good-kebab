@@ -1,5 +1,42 @@
 # Figuras A — nota
 
+## Cerebro con la paleta de la guía (4 nov) → `hoja-cerebro-4.jpg`
+
+Guía: `diseno/design.md`, secciones "Hero Constellation Visualization", "Imagery" y "Ambient
+Particle Field". Solo cambió el cerebro: el foco, el globo, el cierre, la página y los textos
+siguen igual.
+
+**Paleta exacta, sin grises**
+- **Ámbar `#ffb829`:** la orilla y la banda de abajo del temporal (lo más brillante).
+- **Violeta `#8052ff` y magenta `#e040fb`:** arriba y en los costados.
+- **Verde azulado `#15846e`, su versión clara `#23d9b5` y azul `#3d7bff`:** manchas por dentro.
+  Hacia los costados pasan a violeta y magenta.
+- **Blanco:** solo como chispa, en el 3.5 % de los triangulitos.
+- **Tronco:** violeta, azul y verde azulado, tenue.
+
+**Contorno de 1–2 px**
+- En el cerebro no hay desenfoque: el contorno mide lo mismo en todos los tamaños.
+- El halo baja a 20 % y el resplandor a 40 % mientras se ve el cerebro; luego vuelven a como estaban.
+- El tamaño sigue la profundidad y se conservan la forma, el orden en filas y las dos capas.
+
+**Partículas sueltas:** alrededor del cerebro van en los mismos colores y con 40 % menos de
+opacidad. Al deshacerse en el caos vuelven a su color normal.
+
+**Píxeles grises en la zona del cerebro** (píxeles con brillo > 60 y saturación < 0.3)
+
+| Momento | Video | Antes (9da23f1) | Ahora |
+|---|---|---|---|
+| 1.0 s, de lado | 42 % | 45 % | **5.3 %** |
+| 2.2 s | 45 % | 52 % | **9.1 %** |
+| 2.8 s, de frente | 45 % | 56 % | **8.0 %** |
+| 4.5 s, decisiones | 42 % | 40 % | **5.5 %** |
+
+- En los cuatro momentos queda debajo de la meta de 10 %. El video mismo tiene ~42-45 % de gris;
+  aquí manda la guía ("never grayscale").
+- **Reparto de color a 1.0 s:** ámbar 35 %, violeta 24 %, magenta 17 %, verde azulado 11 %,
+  azul 7 %, blanco 5 %.
+- **Celular:** sigue la versión ligera (`cerebro-chico.bin`).
+
 ## Cerebro estilizado y en orden (30 oct, "que se distinga como cerebro") → `hoja-cerebro-3.jpg`
 
 **Forma estilizada**
