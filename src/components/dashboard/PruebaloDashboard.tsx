@@ -38,7 +38,8 @@ import { UsoPlan } from "./Columna";
 import { FilaAgente } from "./FilaAgente";
 import { nombresAgentes } from "./nombres";
 import { VistaPendientes, type FiltroPendientes, type GrupoPendientes } from "./Pendientes";
-import { Accionable, Cifra, Hora, Tarjeta, Vacio } from "./Piezas";
+import { Accionable, Cifra, Hora, Tarjeta } from "./Piezas";
+import { VistaEstadisticasEjemplo } from "./estadisticas/VistaEstadisticasEjemplo";
 import { ResumenVista, type FilaPendiente } from "./Resumen";
 import { useAhora } from "./tiempo";
 import type { ElementoNav, IdVista, NovedadLateral, PasoInicio, ResultadoBusqueda } from "./tipos";
@@ -360,7 +361,7 @@ export function PruebaloDashboard({ version }: { version?: string }) {
           <Resumen ahora={ahora} ir={ir} a={a} pedir={pedir} nuevoGrupo={nuevoGrupo} vistoBueno={vistoBueno} total={totalPendientes} aprobados={aprobados} />
         ) : null}
         {vista === "pendientes" ? <VistaPendientesDemo ahora={ahora} a={a} destino={destino} aprobados={aprobados} setAprobados={setAprobados} /> : null}
-        {vista === "estadisticas" ? <VistaEstadisticasDemo /> : null}
+        {vista === "estadisticas" ? <VistaEstadisticasEjemplo ir={ir} insignia={MARCA_EJEMPLO} /> : null}
         {vista === "actividad" ? (
           <VistaActividad
             ahora={ahora}
@@ -615,26 +616,6 @@ function VistaPendientesDemo({
       actividad={{ alElegir: a({ vista: "actividad" }) }}
       marca={MARCA_EJEMPLO}
     />
-  );
-}
-
-/* =====================================================================
-   ESTADÍSTICAS: la vista completa se conecta aquí (src/components/dashboard/estadisticas).
-   ===================================================================== */
-
-function VistaEstadisticasDemo() {
-  return (
-    <div className="pnl-pagina">
-      <header className="pnl-vista__cabeza">
-        <h1 className="pnl-vista__titulo">
-          Estadísticas
-          {MARCA_EJEMPLO}
-        </h1>
-      </header>
-      <section className="pnl-tarjeta">
-        <Vacio icono="grafica" titulo="Aquí verás las estadísticas de tu equipo" texto="Mensajes, conversaciones y correos resumidos, contra el periodo anterior." />
-      </section>
-    </div>
   );
 }
 

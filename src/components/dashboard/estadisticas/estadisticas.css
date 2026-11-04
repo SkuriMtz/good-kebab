@@ -465,20 +465,6 @@
 .est-rejilla > :nth-child(4) { animation-delay: 120ms; }
 .est-rejilla > :nth-child(5) { animation-delay: 160ms; }
 
-/*
- * panel.css usa .pnl-barra para la barra de arriba del armazón y también para
- * las filas de ListaBarras: a las filas se les pegan la altura, la raya de
- * abajo, el fondo y el z-index de la barra. Aquí se neutraliza solo dentro
- * de esta vista (avisado al coordinador; panel.css no se toca).
- */
-.est .pnl-barras .pnl-barra {
-  top: auto;
-  z-index: auto;
-  height: auto;
-  border-bottom: 0;
-  background: none;
-}
-
 .est-nada {
   padding: var(--spacing-8) 0;
   color: var(--c-texto-2);

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ActividadPanel, PendientesPanel, ResumenPanel, type ConversacionReal, type CuentasResumen, type ResumenReal } from "@/components/dashboard/ResumenPanel";
-import { Vacio } from "@/components/dashboard/Piezas";
+import { VistaEstadisticas } from "@/components/dashboard/estadisticas/VistaEstadisticas";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
+import { cargarEstadisticas, periodoDe } from "@/lib/estadisticas";
 import { createClient } from "@/lib/supabase/server";
 import { Panel } from "./Panel";
 
@@ -19,7 +20,7 @@ const DIA = 24 * 60 * 60 * 1000;
  * /panel?vista=actividad: la actividad completa.
  * Solo lee (RLS deja ver a cada quien solo lo suyo); no cambia datos ni la API.
  */
-export default async function PanelPage({ searchParams }: { searchParams: { vista?: string; tipo?: string; de?: string } }) {
+export default async function PanelPage({ searchParams }: { searchParams: { vista?: string; tipo?: string; de?: string; periodo?: string } }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -34,17 +35,9 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} />;
 
   if (searchParams.vista === "estadisticas") {
-    // La vista completa de Estadísticas se conecta aquí (src/components/dashboard/estadisticas)
-    return (
-      <div className="pnl-pagina">
-        <header className="pnl-vista__cabeza">
-          <h1 className="pnl-vista__titulo">Estadísticas</h1>
-        </header>
-        <section className="pnl-tarjeta">
-          <Vacio icono="grafica" titulo="Aquí verás las estadísticas de tu equipo" texto="Mensajes, conversaciones y correos resumidos, contra el periodo anterior." />
-        </section>
-      </div>
-    );
+    const periodo = periodoDe(searchParams.periodo);
+    const datos = await cargarEstadisticas(supabase, user.id, periodo, cargarCuenta(supabase, user.id));
+    return <VistaEstadisticas datos={datos} periodo={periodo} base="/panel" />;
   }
 
   const ahora = Date.now();
