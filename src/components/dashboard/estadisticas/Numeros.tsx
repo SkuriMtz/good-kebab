@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { cambio, METRICAS, type DatosEstadisticas, type IdMetrica } from "@/lib/estadisticas";
+import { cambio, METRICAS, usoDelPlan, type DatosEstadisticas, type IdMetrica } from "@/lib/estadisticas";
 import { Cifra, Tendencia } from "../Piezas";
 import { cifra, cuenta } from "./formato";
 
@@ -9,6 +9,8 @@ import { cifra, cuenta } from "./formato";
  * La fila de números de arriba: cada uno con su cambio contra el periodo
  * anterior (Cifra y Tendencia de Piezas.tsx). Al picar uno, la gráfica
  * cambia a esa métrica (aria-pressed), como en un panel de analítica.
+ * El uso del plan se cuenta por mes: su % es de este mes y su cambio es
+ * contra el mes pasado a la misma fecha, en cualquier periodo.
  */
 
 export function Numeros({
@@ -27,7 +29,8 @@ export function Numeros({
   elegibles?: boolean;
 }) {
   const { plan } = datos;
-  const usoPct = datos.totales.uso === null || !plan.limite ? null : Math.round((plan.usados / plan.limite) * 100);
+  const uso = usoDelPlan(datos);
+  const usoPct = uso.valor;
 
   return (
     <div className="est-numeros" role="group" aria-label={elegibles ? "Elige qué ver en la gráfica" : "Resumen del periodo"}>
@@ -35,20 +38,24 @@ export function Numeros({
         const valor = datos.totales[m.id];
         const esUso = m.id === "uso";
         const detalle = esUso
-          ? `${cifra(plan.usados)} de ${cifra(plan.limite)} mensajes usados este mes.${valor === null ? "" : ` En este periodo, ${cuenta(valor, "mensaje tuyo", "mensajes tuyos")}; el cambio es ${contra}.`}`
+          ? `${cifra(plan.usados)} de ${cifra(plan.limite)} mensajes usados este mes.${uso.delta === null ? "" : " El cambio es contra el mes pasado a la misma fecha."}`
           : valor === null
             ? "Sin datos todavía."
             : `${cuenta(valor, m.una, m.varias)}; el cambio es ${contra}.`;
         const contenido = (
           <>
-            <span className="est-numero__etiqueta">{m.etiqueta}</span>
+            <span className="est-numero__etiqueta">
+              {m.etiqueta}
+              {esUso ? <span className="est-numero__cuando"> · este mes</span> : null}
+            </span>
             <Cifra valor={esUso ? usoPct : valor} sufijo={esUso ? "%" : undefined} indice={i} className="est-numero__valor" />
             {esUso ? (
               <span className="est-numero__avance" aria-hidden="true">
                 <span style={{ transform: `scaleX(${Math.min(1, (usoPct ?? 0) / 100)})` }} data-alto={(usoPct ?? 0) >= 80 || undefined} />
               </span>
             ) : null}
-            <Tendencia delta={cambio(valor, datos.totalesAnteriores[m.id])} />
+            <Tendencia delta={esUso ? uso.delta : cambio(valor, datos.totalesAnteriores[m.id])} />
+            {esUso && uso.delta !== null ? <span className="sr-only">(el uso se compara contra el mes pasado a la misma fecha)</span> : null}
           </>
         );
         return elegibles ? (

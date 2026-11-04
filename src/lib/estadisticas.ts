@@ -73,7 +73,22 @@ export type Dia = string;
 
 export type PuntoDia = { dia: Dia } & Record<IdMetrica, number>;
 
-export type FilaAgenteEst = { agente: IdAgente; mensajes: number; conversaciones: number };
+export type FilaAgenteEst = {
+  agente: IdAgente;
+  mensajes: number;
+  conversaciones: number;
+  /** Lo mismo en el periodo anterior (para su cambio). */
+  mensajesAntes: number;
+  conversacionesAntes: number;
+};
+
+/** Lo que se puede ver de un solo agente en la gráfica (los correos son todos de Clara). */
+export const METRICAS_POR_AGENTE = ["mensajes", "conversaciones", "uso"] as const;
+export type MetricaAgente = (typeof METRICAS_POR_AGENTE)[number];
+export const esMetricaAgente = (m: IdMetrica): m is MetricaAgente => (METRICAS_POR_AGENTE as readonly string[]).includes(m);
+
+/** La gráfica de un agente: un número por día, en el periodo actual y en el anterior. */
+export type SerieAgente = Record<"actual" | "anterior", Record<MetricaAgente, number[]>>;
 export type FilaAccionEst = { texto: string; total: number };
 export type FilaRemitenteEst = { clave: string; nombre: string; correo: string | null; total: number };
 
@@ -99,6 +114,13 @@ export type DatosEstadisticas = {
   porHora: number[];
   /** El plan y su uso del mes en curso (de cargarCuenta). */
   plan: { id: IdPlan; nombre: string; limite: number; usados: number; mes: Dia };
+  /**
+   * El uso del plan se cuenta por mes: tus mensajes del día 1 a hoy, contra
+   * el mes pasado del día 1 al mismo día. `null` = sin de dónde contar.
+   */
+  usoMes: { actual: number | null; anterior: number | null };
+  /** Por agente, día por día (para filtrar la gráfica con ?agente=). */
+  seriesAgente: Partial<Record<IdAgente, SerieAgente>>;
   /** Se leyó el máximo de filas: los números del periodo anterior pueden quedarse cortos. */
   recortado: boolean;
 };
@@ -252,7 +274,7 @@ const SIN_ACCION = new Set(["", "ninguna", "ninguna accion", "no aplica", "sin a
 /** La acción sugerida de un resumen, o null si Clara dijo "ninguna". */
 export function accionValida(texto: string | null | undefined): string | null {
   if (!texto) return null;
-  const limpio = texto.trim().replace(/[\s.]+$/u, "");
+  const limpio = texto.trim().replace(/\s+/g, " ");
   return SIN_ACCION.has(normalizar(limpio)) ? null : limpio;
 }
 
@@ -320,8 +342,31 @@ export function calcularEstadisticas(e: EntradaEstadisticas): DatosEstadisticas 
   const agenteDe = new Map(e.conversaciones.map((c) => [c.id, c.agente]));
   const convDia = [actual.dias.map(() => new Set<string>()), anterior.dias.map(() => new Set<string>())];
   const convTotal = [new Set<string>(), new Set<string>()];
-  const porAgente = new Map<IdAgente, { mensajes: number; convs: Set<string> }>();
   const porHora = Array.from({ length: 24 }, () => 0);
+
+  // Cada agente: mensajes y uso por día, y sus conversaciones por día y en total, en los dos periodos
+  type Acumulado = { mensajes: number[]; uso: number[]; convDia: Set<string>[]; convTotal: Set<string> };
+  const nuevoAcumulado = (n: number): Acumulado => ({
+    mensajes: Array(n).fill(0),
+    uso: Array(n).fill(0),
+    convDia: Array.from({ length: n }, () => new Set<string>()),
+    convTotal: new Set<string>(),
+  });
+  const porAgente = new Map<IdAgente, [Acumulado, Acumulado]>();
+  const acumuladoDe = (id: IdAgente) => {
+    let a = porAgente.get(id);
+    if (!a) {
+      a = [nuevoAcumulado(actual.dias.length), nuevoAcumulado(anterior.dias.length)];
+      porAgente.set(id, a);
+    }
+    return a;
+  };
+
+  // El uso se cuenta por mes, sea cual sea el periodo elegido
+  const meses = rangos("mes", e.hoy);
+  const mesActual = new Set(meses.actual.dias);
+  const mesAnterior = new Set(meses.anterior.dias);
+  const usoMes = [0, 0];
 
   // Día y hora de cada instante. México tiene desfases de horas enteras:
   // basta con calcularlo una vez por hora UTC ("2026-11-04T16")
@@ -346,23 +391,30 @@ export function calcularEstadisticas(e: EntradaEstadisticas): DatosEstadisticas 
   };
 
   let hayMensajes = false;
+  let hayMensajesMes = false;
   for (const m of e.mensajes) {
+    const deLaPersona = m.rol === "user";
+    const [dia] = enZona(m.creado_en);
+    if (mesActual.has(dia) || mesAnterior.has(dia)) {
+      hayMensajesMes = true;
+      if (deLaPersona) usoMes[mesActual.has(dia) ? 0 : 1] += 1;
+    }
     const [cual, i, hora] = ubicar(m.creado_en);
     if (cual < 0) continue;
     hayMensajes = true;
     const punto = (cual === 0 ? serie : serieAnterior)[i];
     punto.mensajes += 1;
-    if (m.rol === "user") punto.uso += 1;
+    if (deLaPersona) punto.uso += 1;
     convDia[cual][i].add(m.conversacion_id);
     convTotal[cual].add(m.conversacion_id);
-    if (cual !== 0) continue;
-    porHora[hora] += 1;
+    if (cual === 0) porHora[hora] += 1;
     const quien = m.rol === "assistant" && esIdAgente(m.agente) ? m.agente : agenteDe.get(m.conversacion_id);
     if (esIdAgente(quien)) {
-      const fila = porAgente.get(quien) ?? { mensajes: 0, convs: new Set<string>() };
-      fila.mensajes += 1;
-      fila.convs.add(m.conversacion_id);
-      porAgente.set(quien, fila);
+      const acc = acumuladoDe(quien)[cual];
+      acc.mensajes[i] += 1;
+      if (deLaPersona) acc.uso[i] += 1;
+      acc.convDia[i].add(m.conversacion_id);
+      acc.convTotal.add(m.conversacion_id);
     }
   }
   convDia[0].forEach((s, i) => (serie[i].conversaciones = s.size));
@@ -403,7 +455,10 @@ export function calcularEstadisticas(e: EntradaEstadisticas): DatosEstadisticas 
   });
 
   const orden = (a: IdAgente) => IDS_AGENTES.indexOf(a);
-  for (const id of e.activos ?? []) if (!porAgente.has(id)) porAgente.set(id, { mensajes: 0, convs: new Set() });
+  for (const id of e.activos ?? []) acumuladoDe(id);
+  const suma = (v: number[]) => v.reduce((t, x) => t + x, 0);
+  const serieDe = (a: Acumulado): Record<MetricaAgente, number[]> => ({ mensajes: a.mensajes, conversaciones: a.convDia.map((c) => c.size), uso: a.uso });
+  const sinUso = !hayMensajesMes && e.usados === 0;
 
   return {
     periodo: e.periodo,
@@ -414,12 +469,20 @@ export function calcularEstadisticas(e: EntradaEstadisticas): DatosEstadisticas 
     totales: total(serie, 0),
     totalesAnteriores: total(serieAnterior, 1),
     porAgente: [...porAgente.entries()]
-      .map(([agente, f]) => ({ agente, mensajes: f.mensajes, conversaciones: f.convs.size }))
+      .map(([agente, [a, b]]) => ({
+        agente,
+        mensajes: suma(a.mensajes),
+        conversaciones: a.convTotal.size,
+        mensajesAntes: suma(b.mensajes),
+        conversacionesAntes: b.convTotal.size,
+      }))
       .sort((a, b) => b.mensajes - a.mensajes || orden(a.agente) - orden(b.agente)),
     acciones: [...acciones.values()].sort((a, b) => b.total - a.total || a.texto.localeCompare(b.texto, "es-MX")).slice(0, tope),
     remitentes: [...remitentes.values()].sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre, "es-MX")).slice(0, tope),
     porHora,
     plan: { ...e.plan, usados: e.usados, mes: `${e.hoy.slice(0, 7)}-01` },
+    usoMes: { actual: sinUso ? null : usoMes[0], anterior: sinUso ? null : usoMes[1] },
+    seriesAgente: Object.fromEntries([...porAgente.entries()].map(([id, [a, b]]) => [id, { actual: serieDe(a), anterior: serieDe(b) }])),
     recortado: Boolean(e.recortado),
   };
 }
@@ -432,26 +495,49 @@ export function hayDatos(d: DatosEstadisticas) {
 /* ---------- A dónde lleva cada cosa ---------- */
 
 export type DestinoEstadisticas =
-  | { tipo: "periodo"; periodo: Periodo }
+  /** Otro periodo, sin perder la métrica ni el agente elegidos. */
+  | { tipo: "periodo"; periodo: Periodo; metrica?: IdMetrica; agente?: IdAgente | null }
   | { tipo: "agente"; agente: IdAgente }
   | { tipo: "chat" }
   /** Correo, filtrado por quién lo mandó (el nombre, como en Pendientes). */
   | { tipo: "correo"; de?: string }
-  /** Los correos que esperan algo de ti (una acción sugerida). */
+  /** Los correos que esperan algo de ti; con `accion`, solo los de esa acción (el texto tal cual). */
   | { tipo: "pendientes"; accion?: string }
+  /** Actividad de esa hora del día (0–23). */
   | { tipo: "hora"; hora: number }
+  /** Actividad de ese día ("2026-11-04"). */
+  | { tipo: "dia"; dia: Dia }
   | { tipo: "plan" };
+
+/** Lo que la vista lee de la URL: ?periodo=7d&metrica=correos&agente=lola */
+export type FiltrosEstadisticas = { periodo: Periodo; metrica: IdMetrica; agente: IdAgente | null };
+
+export const METRICA_INICIAL: IdMetrica = "mensajes";
+
+export function esMetrica(valor: unknown): valor is IdMetrica {
+  return typeof valor === "string" && valor in METRICA_POR_ID;
+}
+
+/** Convierte lo que venga en la URL en filtros válidos (lo que no sirve, al valor de siempre). */
+export function filtrosEstadisticas(q: { periodo?: unknown; metrica?: unknown; agente?: unknown }): FiltrosEstadisticas {
+  return { periodo: periodoDe(q.periodo), metrica: esMetrica(q.metrica) ? q.metrica : METRICA_INICIAL, agente: esIdAgente(q.agente) ? q.agente : null };
+}
 
 /**
  * La dirección de cada destino dentro del panel (`base` = "/panel"). Los
- * filtros van en la URL (de, tipo, hora), así el botón de atrás regresa a
- * la vista anterior.
+ * filtros van en la URL, así el botón de atrás regresa a la vista anterior.
+ * Contrato: estadisticas (periodo, metrica, agente) · pendientes (tipo=correos,
+ * accion) · actividad (hora o dia) · correo (de).
  */
 export function enlaceEstadisticas(d: DestinoEstadisticas, base = "/panel"): string {
   const vista = (q: Record<string, string>) => `${base}?${new URLSearchParams(q)}`;
   switch (d.tipo) {
-    case "periodo":
-      return vista({ vista: "estadisticas", periodo: d.periodo });
+    case "periodo": {
+      const q: Record<string, string> = { vista: "estadisticas", periodo: d.periodo };
+      if (d.metrica && d.metrica !== METRICA_INICIAL) q.metrica = d.metrica;
+      if (d.agente) q.agente = d.agente;
+      return vista(q);
+    }
     case "agente":
       return `${base}/chat?${new URLSearchParams({ agente: d.agente })}`;
     case "chat":
@@ -459,12 +545,56 @@ export function enlaceEstadisticas(d: DestinoEstadisticas, base = "/panel"): str
     case "correo":
       return vista(d.de ? { vista: "correo", de: d.de } : { vista: "correo" });
     case "pendientes":
-      return vista({ vista: "pendientes", tipo: "correos" });
+      return vista(d.accion ? { vista: "pendientes", tipo: "correos", accion: d.accion } : { vista: "pendientes", tipo: "correos" });
     case "hora":
       return vista({ vista: "actividad", hora: String(d.hora) });
+    case "dia":
+      return vista({ vista: "actividad", dia: d.dia });
     case "plan":
       return "/precios";
   }
+}
+
+/* ---------- Resumen corto (para el Inicio y Agentes) ---------- */
+
+export type ResumenEstadisticas = {
+  periodo: Periodo;
+  desde: Dia;
+  hasta: Dia;
+  /**
+   * Cada número de arriba con su cambio en % (null = "—"). En "uso", `valor`
+   * es el % del plan usado este mes y `delta` es contra el mes pasado a la
+   * misma fecha (el uso se cuenta por mes, no por periodo).
+   */
+  metricas: Record<IdMetrica, { valor: number | null; delta: number | null }>;
+  /** Por agente: mensajes y conversaciones del periodo, con el cambio de los mensajes. */
+  agentes: { agente: IdAgente; mensajes: number; conversaciones: number; delta: number | null }[];
+  plan: DatosEstadisticas["plan"];
+};
+
+/** Los mismos números de la vista, en corto: lo que se muestra fuera de Estadísticas cuadra con ella. */
+export function resumenDe(d: DatosEstadisticas): ResumenEstadisticas {
+  const uso = usoDelPlan(d);
+  const metricas = Object.fromEntries(
+    METRICAS.map((m) => [m.id, m.id === "uso" ? uso : { valor: d.totales[m.id], delta: cambio(d.totales[m.id], d.totalesAnteriores[m.id]) }]),
+  ) as ResumenEstadisticas["metricas"];
+  return {
+    periodo: d.periodo,
+    desde: d.actual.desde,
+    hasta: d.actual.hasta,
+    metricas,
+    agentes: d.porAgente.map((a) => ({ agente: a.agente, mensajes: a.mensajes, conversaciones: a.conversaciones, delta: cambio(a.mensajes, a.mensajesAntes) })),
+    plan: d.plan,
+  };
+}
+
+/** El uso del plan como lo muestra la vista: % usado este mes y su cambio contra el mes pasado a la misma fecha. */
+export function usoDelPlan(d: DatosEstadisticas): { valor: number | null; delta: number | null } {
+  const sinDatos = d.usoMes.actual === null && !d.plan.usados;
+  return {
+    valor: sinDatos || !d.plan.limite ? null : Math.round((d.plan.usados / d.plan.limite) * 100),
+    delta: cambio(d.usoMes.actual, d.usoMes.anterior),
+  };
 }
 
 /* ---------- La consulta (servidor) ---------- */
@@ -507,7 +637,9 @@ export async function cargarEstadisticas(
 ): Promise<DatosEstadisticas> {
   const hoy = diaLocal(ahora);
   const { anterior } = rangos(periodo, hoy);
-  const desde = inicioDia(anterior.desde).toISOString();
+  // También el mes pasado desde el día 1: el uso del plan se compara por mes
+  const mesPasado = rangos("mes", hoy).anterior.desde;
+  const desde = inicioDia(anterior.desde < mesPasado ? anterior.desde : mesPasado).toISOString();
 
   const leerMensajes = leerPaginas<FilaMensaje>((a, b) =>
     supabase

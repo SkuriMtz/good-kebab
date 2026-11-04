@@ -1,16 +1,19 @@
 import type { IdAgente } from "@/lib/agentes";
-import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
+import { DEMO_CORREOS, DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 import {
   calcularEstadisticas,
   diaLocal,
+  diasEntre,
   horaLocal,
   inicioDia,
   rangos,
+  resumenDe,
   type DatosEstadisticas,
   type FilaConversacion,
   type FilaMensaje,
   type FilaResumen,
   type Periodo,
+  type ResumenEstadisticas,
 } from "@/lib/estadisticas";
 import { PLAN_POR_ID } from "@/lib/planes";
 
@@ -58,27 +61,15 @@ const HORAS: readonly (readonly [number, number])[] = [
   [15, 7], [16, 9], [17, 9], [18, 7], [19, 5], [20, 4], [21, 2], [22, 1],
 ];
 
-/** Los tres primeros son los mismos de Correo en /pruebalo: así el filtro por remitente encuentra sus correos. */
-const REMITENTES: readonly (readonly [string, number])[] = [
-  ["Andrea Solís <andrea.solis@correo.example>", 9],
-  ["Insumos del Bajío <pedidos@insumos.example>", 7],
-  ["Mario Vela <mario.vela@correo.example>", 6],
-  ["Mariana Torres <mariana.torres@correo.example>", 5],
-  ["Facturación <facturas@proveedor.example>", 4],
-  ["Jorge Ramírez <jorge.ramirez@correo.example>", 3],
-  ["Avisos del banco <avisos@banco.example>", 3],
-  ["Boletín <hola@boletin.example>", 2],
-];
-
-const ACCIONES: readonly (readonly [string, number])[] = [
-  ["Contestar hoy", 10],
-  ["Confirmar la cita", 8],
-  ["Pagar la factura antes del viernes", 6],
-  ["Enviar la cotización", 5],
-  ["Revisar el archivo adjunto", 4],
-  ["Agradecer y dar seguimiento", 3],
-  ["ninguna", 14],
-];
+/**
+ * Quién escribe y qué sugiere Clara: los mismos correos de la vista Correo de
+ * /pruebalo (DEMO_CORREOS), así cada remitente y cada acción llevan a correos
+ * que sí existen. Cada remitente manda su tipo de correo, con su acción
+ * (si la tiene) la mayoría de las veces.
+ */
+const PESOS = [7, 9, 5, 3];
+const CORREOS = DEMO_CORREOS.filter((c) => c.prioridad !== "sin-accion");
+const REMITENTES: readonly (readonly [(typeof CORREOS)[number], number])[] = CORREOS.map((c, i) => [c, PESOS[i] ?? 2] as const);
 
 /** Lo que pesa cada día de la semana (domingo = 0). */
 const SEMANA = [0.3, 1, 1.05, 1, 1.1, 0.95, 0.6];
@@ -91,7 +82,9 @@ export function datosDeEjemplo(periodo: Periodo, ahora: Date = new Date(), usado
   const hoy = diaLocal(ahora);
   const horaAhora = horaLocal(ahora);
   const { actual, anterior } = rangos(periodo, hoy);
-  const dias = [...anterior.dias, ...actual.dias];
+  // También el mes pasado desde el día 1 (el uso del plan se compara por mes), como en cargarEstadisticas
+  const desde = [anterior.desde, rangos("mes", hoy).anterior.desde].sort()[0];
+  const dias = diasEntre(desde, hoy);
   const plan = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 
   const mensajes: FilaMensaje[] = [];
@@ -128,7 +121,8 @@ export function datosDeEjemplo(periodo: Periodo, ahora: Date = new Date(), usado
 
     const correos = Math.round((semana < 0.5 ? 1 : 5) * (0.6 + azar() * 0.9));
     for (let k = 0; k < correos; k++) {
-      resumenes.push({ remitente: elegir(azar, REMITENTES), accion_sugerida: elegir(azar, ACCIONES), creado_en: cuando() });
+      const c = elegir(azar, REMITENTES);
+      resumenes.push({ remitente: c.remitente, accion_sugerida: c.accion && azar() < 0.8 ? c.accion : "ninguna", creado_en: cuando() });
     }
   });
 
@@ -142,4 +136,13 @@ export function datosDeEjemplo(periodo: Periodo, ahora: Date = new Date(), usado
     usados,
     activos: plan.agentes,
   });
+}
+
+/**
+ * Los números de 7 días del ejemplo, en corto (por métrica y por agente), para
+ * el Inicio y Agentes de /pruebalo: salen de los mismos datos que la vista,
+ * así cuadran con Estadísticas a 7 días. Forma estable: ResumenEstadisticas.
+ */
+export function resumenSemanaEjemplo(ahora: Date = new Date()): ResumenEstadisticas {
+  return resumenDe(datosDeEjemplo("7d", ahora));
 }

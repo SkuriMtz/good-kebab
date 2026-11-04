@@ -132,6 +132,10 @@
 .est-numero[aria-pressed="true"] .est-numero__etiqueta {
   color: var(--est-acento);
 }
+.est-numero__cuando {
+  color: var(--c-terciario);
+  font-weight: 400;
+}
 .est .est-numero__valor {
   color: var(--c-texto);
   font-size: clamp(1.5rem, 1.1rem + 1.2cqi, 2rem);
@@ -184,9 +188,30 @@
   gap: var(--spacing-8) var(--spacing-16);
   margin-bottom: var(--spacing-16);
 }
+.est-grafica__titulos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+  min-width: 0;
+}
 .est-grafica__titulo {
   font-size: var(--t-app-mediano);
   font-weight: var(--peso-app-titulo);
+}
+/* El chip del agente (?agente=) con su ×, y la nota cuando la métrica no se separa por agente */
+.est-filtro {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.est-filtro .pnl-filtro {
+  gap: var(--spacing-4);
+}
+.est-filtro__nota {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
 }
 .est-leyenda {
   display: flex;
@@ -243,6 +268,9 @@
   outline-offset: 6px;
   touch-action: pan-y;
   cursor: crosshair;
+}
+.est-grafica__plano[data-picable] {
+  cursor: pointer;
 }
 .est-grafica__svg {
   position: absolute;
@@ -402,6 +430,10 @@
 .est-tip__fila--ant .est-tip__valor {
   color: var(--c-texto-2);
 }
+.est-tip__pista {
+  margin-top: var(--spacing-4);
+  color: var(--est-acento);
+}
 
 /* ---------- Estado vacío (Vacio de Piezas, con sus fragmentos) ---------- */
 
@@ -464,6 +496,20 @@
 .est-rejilla > :nth-child(3) { animation-delay: 80ms; }
 .est-rejilla > :nth-child(4) { animation-delay: 120ms; }
 .est-rejilla > :nth-child(5) { animation-delay: 160ms; }
+
+/* Las filas de ListaBarras viven en una rejilla: sin esto, un texto largo
+   (una acción sugerida) estira la fila más allá de la tarjeta y saca el número */
+.est .pnl-lbarras > li {
+  min-width: 0;
+}
+
+/* La fila del agente que viene en la URL (?agente=), marcada con un anillo */
+.est-marca-1 .pnl-lbarras > li:nth-child(1) .pnl-lbarra,
+.est-marca-2 .pnl-lbarras > li:nth-child(2) .pnl-lbarra,
+.est-marca-3 .pnl-lbarras > li:nth-child(3) .pnl-lbarra,
+.est-marca-4 .pnl-lbarras > li:nth-child(4) .pnl-lbarra {
+  box-shadow: inset 0 0 0 1.5px var(--est-acento);
+}
 
 .est-nada {
   padding: var(--spacing-8) 0;
@@ -613,10 +659,16 @@ button.est-hora:active {
   font-size: var(--t-app-etiqueta);
   line-height: 1.5;
 }
-@container est (max-width: 380px) {
+/* La tarjeta del plan mide su propio ancho (en 3 columnas a 1440 mide ~330 px):
+   si no caben la dona y la leyenda lado a lado, la dona va arriba */
+.est .est-plan-tarjeta {
+  container: est-plan / inline-size;
+}
+@container est-plan (max-width: 380px) {
   .est-plan {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--spacing-16);
   }
   .est .est-dona {
     align-self: center;

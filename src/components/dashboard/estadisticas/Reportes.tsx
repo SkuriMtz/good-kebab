@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { AGENTE_POR_ID } from "@/lib/agentes";
-import type { DatosEstadisticas, DestinoEstadisticas } from "@/lib/estadisticas";
+import { usoDelPlan, type DatosEstadisticas, type DestinoEstadisticas } from "@/lib/estadisticas";
 import { Accionable, Cifra, Dona, EnlaceMas, ListaBarras, Tarjeta, type FilaBarra } from "../Piezas";
 import type { Accion } from "../tipos";
 import { cifra, cuenta, hora, rangoHora, reinicio } from "./formato";
@@ -21,7 +21,10 @@ function Nada({ children }: { children: string }) {
   return <p className="est-nada">{children}</p>;
 }
 
-export function PorAgente({ datos, accionDe }: Props) {
+/** Hasta 4 filas se pueden marcar (una por agente): clases completas para el CSS. */
+const MARCA = ["", "est-marca-1", "est-marca-2", "est-marca-3", "est-marca-4"];
+
+export function PorAgente({ datos, accionDe, marcado = -1 }: Props & { marcado?: number }) {
   const filas: FilaBarra[] = datos.porAgente.map((a) => {
     const info = AGENTE_POR_ID[a.agente];
     return {
@@ -37,7 +40,7 @@ export function PorAgente({ datos, accionDe }: Props) {
     <Tarjeta
       titulo="Por agente"
       subtitulo="Mensajes en el periodo"
-      className="est-area-agente"
+      className={`est-area-agente ${MARCA[marcado + 1] ?? ""}`}
       accion={<EnlaceMas accion={accionDe({ tipo: "chat" })}>Ir al chat</EnlaceMas>}
     >
       {filas.some((f) => f.valor) ? <ListaBarras filas={filas} unidad="mensajes" /> : <Nada>Tus agentes todavía no tienen mensajes en este periodo.</Nada>}
@@ -109,23 +112,24 @@ export function Horas({ datos, accionDe }: Props) {
 
 export function UsoPlan({ datos, accionDe }: Props) {
   const { plan } = datos;
+  const uso = usoDelPlan(datos);
   const proporcion = plan.limite ? plan.usados / plan.limite : 0;
   const color = proporcion >= 1 ? "var(--c-error)" : proporcion >= 0.8 ? "var(--c-atencion)" : "var(--c-accion-texto)";
   const accion = accionDe({ tipo: "plan" });
   const leyenda = `${plan.nombre}: ${cifra(plan.usados)} de ${cifra(plan.limite)} mensajes usados este mes`;
   return (
-    <Tarjeta titulo="Uso del plan" subtitulo={`${plan.nombre} · este mes`} className="est-area-plan" accion={<EnlaceMas accion={accion}>Ver planes</EnlaceMas>}>
+    <Tarjeta titulo="Uso del plan" subtitulo={`${plan.nombre} · este mes`} className="est-area-plan est-plan-tarjeta" accion={<EnlaceMas accion={accion}>Ver planes</EnlaceMas>}>
       <div className="est-plan">
         <Accionable accion={accion} className="est-dona pnl-picable" etiqueta={`${leyenda}. Ver planes.`}>
           <Dona
-            partes={datos.totales.uso === null && !plan.usados ? [] : [{ id: "usados", valor: plan.usados, color }]}
+            partes={uso.valor === null ? [] : [{ id: "usados", valor: plan.usados, color }]}
             total={plan.limite}
             tam={128}
             grosor={12}
             etiqueta={leyenda}
             centro={
               <span className="est-dona__centro">
-                <Cifra valor={datos.totales.uso === null && !plan.usados ? null : Math.round(proporcion * 100)} sufijo="%" className="est-dona__cifra" />
+                <Cifra valor={uso.valor} sufijo="%" className="est-dona__cifra" />
                 <span className="est-dona__texto">usado</span>
               </span>
             }

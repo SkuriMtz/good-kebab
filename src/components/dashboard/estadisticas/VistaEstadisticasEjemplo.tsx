@@ -12,7 +12,8 @@ import { VistaEstadisticas } from "./VistaEstadisticas";
  * lugar de VistaEstadisticasDemo:
  *   <VistaEstadisticasEjemplo ir={ir} insignia={MARCA_EJEMPLO} />
  * - El periodo va en la dirección (/pruebalo?vista=estadisticas&periodo=7d)
- *   y atrás/adelante lo respetan.
+ *   y atrás/adelante lo respetan. La métrica y el agente (&metrica=, &agente=)
+ *   los lee y los escribe la vista misma.
  * - Lo demás se abre con `ir` (sin recargar), en la vista de /pruebalo que
  *   le toca: el chat del agente, Correo filtrado por remitente, Pendientes.
  */
@@ -27,9 +28,11 @@ export function destinoPruebalo(d: DestinoEstadisticas): Destino | null {
     case "correo":
       return d.de ? { vista: "correo", de: d.de } : { vista: "correo" };
     case "pendientes":
-      return { vista: "pendientes", tipo: "correos" };
+      return d.accion ? { vista: "pendientes", tipo: "correos", accion: d.accion } : { vista: "pendientes", tipo: "correos" };
     case "hora":
-      return { vista: "actividad" };
+      return { vista: "actividad", hora: d.hora };
+    case "dia":
+      return { vista: "actividad", dia: d.dia };
     default:
       return null;
   }
