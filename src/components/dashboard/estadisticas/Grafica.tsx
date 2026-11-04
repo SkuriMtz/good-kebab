@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { escalaY, type Dia, type InfoMetrica } from "@/lib/estadisticas";
 import { cifra, cifraCorta, cuenta, fechaConDia, fechaCorta } from "./formato";
 
@@ -12,6 +12,9 @@ import { cifra, cifraCorta, cuenta, fechaConDia, fechaCorta } from "./formato";
  * - La línea se dibuja una sola vez al aparecer (un recorte que se abre con
  *   transform). Al cambiar de número solo se funde.
  * - Burbuja al pasar el mouse o el dedo, y con las flechas del teclado.
+ * - Picar un día lleva a la actividad de ese día (con el dedo: el primer
+ *   toque muestra la burbuja y el segundo, en el mismo día, abre). Enter
+ *   también abre el día elegido.
  */
 
 const W = 1000;
@@ -64,13 +67,21 @@ export type PropsGrafica = {
   diasAnteriores: Dia[];
   /** "los 30 días antes", para la leyenda. */
   contra: string;
+  /** Si la gráfica es de un solo agente: su nombre (va en el título). */
+  deQuien?: string;
+  /** Picar un día (su índice en `dias`). */
+  onElegirDia?: (i: number) => void;
+  /** Junto al título: el chip del filtro activo. */
+  filtro?: ReactNode;
 };
 
-export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contra }: PropsGrafica) {
+export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contra, deQuien, onElegirDia, filtro }: PropsGrafica) {
   const idRecorte = useId().replace(/:/g, "");
   const [activo, setActivo] = useState<number | null>(null);
   // El último día elegido: la burbuja se desvanece en su lugar, sin saltar ni vaciarse
   const ultimo = useRef<number | null>(null);
+  // Con el dedo: el día que estaba elegido antes de tocar (para pedir un segundo toque)
+  const toque = useRef<{ dedo: boolean; antes: number | null }>({ dedo: false, antes: null });
   const n = valores.length;
   const ant = anteriores.slice(0, n);
 
@@ -87,17 +98,32 @@ export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contr
 
   const total = valores.reduce((a, b) => a + b, 0);
   const iMax = valores.indexOf(Math.max(...valores));
+  const titulo = deQuien ? `${info.grafica} · ${deQuien}` : info.grafica;
   const resumen = n
-    ? `${info.grafica}, ${fechaCorta(dias[0])} a ${fechaCorta(dias[n - 1])}. Total: ${cuenta(total, info.una, info.varias)}.${
+    ? `${titulo}, ${fechaCorta(dias[0])} a ${fechaCorta(dias[n - 1])}. Total: ${cuenta(total, info.una, info.varias)}.${
         total ? ` El día con más: ${fechaConDia(dias[iMax])}, con ${cifra(valores[iMax])}.` : ""
-      } Usa las flechas para recorrer los días.`
-    : info.grafica;
+      } Usa las flechas para recorrer los días${onElegirDia ? " y Enter para ver la actividad del día" : ""}.`
+    : titulo;
 
-  const desdePuntero = (e: PointerEvent<HTMLDivElement>) => {
+  const indiceEn = (e: { clientX: number; currentTarget: HTMLDivElement }) => {
     const r = e.currentTarget.getBoundingClientRect();
-    if (!r.width || !n) return;
-    const i = Math.round(((e.clientX - r.left) / r.width) * (n - 1));
-    setActivo(Math.min(n - 1, Math.max(0, i)));
+    if (!r.width || !n) return null;
+    return Math.min(n - 1, Math.max(0, Math.round(((e.clientX - r.left) / r.width) * (n - 1))));
+  };
+  const desdePuntero = (e: PointerEvent<HTMLDivElement>) => {
+    const i = indiceEn(e);
+    if (i !== null) setActivo(i);
+  };
+  const alTocar = (e: PointerEvent<HTMLDivElement>) => {
+    toque.current = { dedo: e.pointerType !== "mouse", antes: activo };
+    desdePuntero(e);
+  };
+  const alPicar = (e: MouseEvent<HTMLDivElement>) => {
+    const i = indiceEn(e);
+    if (i === null || !onElegirDia) return;
+    // Con el dedo, el primer toque solo muestra la burbuja
+    if (toque.current.dedo && toque.current.antes !== i) return;
+    onElegirDia(i);
   };
 
   const conTeclas = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -105,6 +131,10 @@ export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contr
     const actual = activo ?? n - 1;
     const nuevo = { ArrowLeft: actual - 1, ArrowRight: actual + 1, Home: 0, End: n - 1 }[e.key];
     if (e.key === "Escape") return setActivo(null);
+    if (e.key === "Enter" && onElegirDia) {
+      e.preventDefault();
+      return onElegirDia(actual);
+    }
     if (nuevo === undefined) return;
     e.preventDefault();
     setActivo(Math.min(n - 1, Math.max(0, nuevo)));
@@ -123,7 +153,10 @@ export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contr
   return (
     <div className="est-grafica">
       <div className="est-grafica__cabeza">
-        <h2 className="est-grafica__titulo">{info.grafica}</h2>
+        <div className="est-grafica__titulos">
+          <h2 className="est-grafica__titulo">{titulo}</h2>
+          {filtro}
+        </div>
         <ul className="est-leyenda" aria-label="Qué es cada línea">
           <li>
             <span className="est-leyenda__muestra" data-serie="actual" aria-hidden="true" />
@@ -148,11 +181,14 @@ export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contr
         <div
           className="est-grafica__plano"
           data-activo={a !== null || undefined}
+          data-picable={onElegirDia ? "" : undefined}
           tabIndex={0}
-          role="img"
+          role="group"
+          aria-roledescription="gráfica"
           aria-label={resumen}
           onPointerMove={desdePuntero}
-          onPointerDown={desdePuntero}
+          onPointerDown={alTocar}
+          onClick={alPicar}
           onPointerLeave={(e) => e.pointerType === "mouse" && setActivo(null)}
           onKeyDown={conTeclas}
           onFocus={() => setActivo((v) => v ?? (n ? n - 1 : null))}
@@ -194,6 +230,7 @@ export function Grafica({ info, valores, anteriores, dias, diasAnteriores, contr
                     <b className="est-tip__valor">{cifra(ant[m])}</b> el {fechaConDia(diasAnteriores[m])}
                   </p>
                 ) : null}
+                {onElegirDia ? <p className="est-tip__pista">Pica para ver la actividad del día</p> : null}
               </>
             ) : null}
           </div>

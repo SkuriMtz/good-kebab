@@ -18,4 +18,14 @@ Hoja: `hoja-estadisticas.jpg`. De izquierda a derecha: oscuro a 1440 (30 días, 
   - todo dura de 150 a 250 ms y solo anima transform y opacity;
   - con "reducir movimiento" no se desplaza nada, y los fragmentos se quedan quietos.
 - **Nada inventado:** sin datos se ve "—" y un estado vacío con fragmentos y dos acciones (hablar con tu equipo o resumir un correo). En /pruebalo, los datos se generan con una semilla y pasan por el mismo cálculo que los reales.
-- **Pendiente:** Correo (`&de=`) y Actividad (`&hora=`) en /panel todavía no filtran con esos parámetros.
+- **Contrato de URL (ronda del inspector):**
+  - la vista lee `?vista=estadisticas&periodo=7d|30d|mes&metrica=…&agente=<id>`;
+  - al picar un número se cambia `&metrica=` sin recargar;
+  - `agente` marca su fila y filtra la gráfica (mensajes, conversaciones y uso), con un chip × para quitarlo.
+  - Los enlaces llevan a:
+    - acción → `?vista=pendientes&tipo=correos&accion=<texto>`;
+    - hora → `?vista=actividad&hora=H`;
+    - día de la gráfica → `?vista=actividad&dia=AAAA-MM-DD`;
+    - remitente → `?vista=correo&de=<nombre>`.
+- **Uso del plan:** se cuenta por mes. Su cambio es contra el mes pasado a la misma fecha (o "—"), en cualquier periodo.
+- **Remitentes y acciones del ejemplo:** salen de `DEMO_CORREOS`, así cada fila lleva a correos que sí existen.
