@@ -1,0 +1,695 @@
+/*
+ * Estadísticas del panel (?vista=estadisticas). Prefijo .est-
+ * Lo común (tarjeta de 24 px, cifras que suben, tendencia, lista de barras,
+ * dona, fragmentos, filtros en píldora, cabeza de la vista) viene del panel
+ * (src/estilos/panel.css, .pnl-). Aquí solo lo propio de esta vista: la
+ * fila de números que cambia la gráfica, la gráfica, la hora del día, los
+ * datos del plan y cómo se acomodan las tarjetas.
+ * Movimiento (reglas de Emil): 150–250 ms, curva de salida fuerte, solo
+ * transform y opacity. Con "reducir movimiento", nada se desplaza.
+ * Se acomoda al ancho de su contenedor (container queries), no al de la
+ * pantalla: así funciona con el menú abierto, en riel o en cajón.
+ */
+
+.est {
+  --est-acento: var(--c-accion-texto);
+  --est-curva: var(--pnl-curva, cubic-bezier(0.23, 1, 0.32, 1));
+  --est-rapido: var(--pnl-rapido, 160ms);
+  --est-medio: var(--pnl-medio, 220ms);
+  --est-largo: 250ms;
+  container: est / inline-size;
+  min-width: 0;
+}
+
+/* ---------- Encabezado ---------- */
+
+.est-cabeza {
+  position: relative;
+  isolation: isolate;
+}
+.est-cabeza__texto {
+  min-width: 0;
+}
+/* Fragmentos: un detalle sutil, detrás y a la derecha del título */
+.est-cabeza__frag {
+  position: absolute;
+  top: -16px;
+  right: 300px;
+  z-index: -1;
+  width: 220px;
+  height: 72px;
+  opacity: 0.85;
+  pointer-events: none;
+}
+@container est (max-width: 760px) {
+  .est-cabeza__frag {
+    top: -12px;
+    right: 0;
+    width: 150px;
+    height: 56px;
+  }
+}
+.est-periodos {
+  flex-wrap: nowrap;
+}
+@container est (max-width: 480px) {
+  .est-periodos {
+    width: 100%;
+  }
+  .est .est-periodo {
+    flex: 1;
+    justify-content: center;
+    height: var(--alto-control);
+  }
+}
+
+/* ---------- Cuerpo ---------- */
+
+.est-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  transition: opacity var(--est-medio) var(--est-curva);
+}
+/* Mientras llega el periodo nuevo */
+.est-cuerpo[data-cargando] {
+  opacity: 0.55;
+}
+.est .est-principal {
+  gap: 0;
+  padding: var(--spacing-8);
+}
+
+/* ---------- La fila de números ---------- */
+
+.est-numeros {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+@container est (max-width: 720px) {
+  .est-numeros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .est-numero:last-child {
+    grid-column: 1 / -1;
+  }
+}
+.est .est-numero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-width: 0;
+  padding: var(--spacing-16) var(--spacing-16) var(--spacing-20);
+  border-radius: var(--pnl-radio-chico, 16px);
+}
+/* La raya de "elegido" (como el número subrayado de un panel de analítica) */
+.est-numero::after {
+  content: "";
+  position: absolute;
+  right: var(--spacing-16);
+  bottom: 6px;
+  left: var(--spacing-16);
+  height: 2px;
+  border-radius: 2px;
+  background: var(--est-acento);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--est-medio) var(--est-curva);
+  pointer-events: none;
+}
+.est-numero[aria-pressed="true"]::after {
+  transform: scaleX(1);
+}
+.est-numero__etiqueta {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  font-weight: var(--peso-app-medio);
+  line-height: 1.3;
+}
+.est-numero[aria-pressed="true"] .est-numero__etiqueta {
+  color: var(--est-acento);
+}
+.est .est-numero__valor {
+  color: var(--c-texto);
+  font-size: clamp(1.5rem, 1.1rem + 1.2cqi, 2rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.est-numero__avance {
+  display: block;
+  width: 100%;
+  max-width: 160px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--c-activo);
+}
+.est-numero__avance > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--est-acento);
+  transform-origin: left center;
+}
+.est-numero__avance > span[data-alto] {
+  background: var(--c-atencion);
+}
+@container est (max-width: 480px) {
+  .est .est-numero {
+    padding: var(--spacing-12) var(--spacing-12) var(--spacing-16);
+  }
+  .est-numero::after {
+    right: var(--spacing-12);
+    left: var(--spacing-12);
+  }
+}
+
+/* ---------- La gráfica ---------- */
+
+.est-grafica {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-16) var(--spacing-16) var(--spacing-12);
+  border-top: 1px solid var(--c-borde);
+}
+.est-grafica__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8) var(--spacing-16);
+  margin-bottom: var(--spacing-16);
+}
+.est-grafica__titulo {
+  font-size: var(--t-app-mediano);
+  font-weight: var(--peso-app-titulo);
+}
+.est-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.est-leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+.est-leyenda__muestra {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 0;
+  border-top: 2px solid var(--est-acento);
+  border-radius: 2px;
+}
+.est-leyenda__muestra[data-serie="anterior"] {
+  border-top: 2px dashed var(--c-terciario);
+}
+.est-grafica__marco {
+  position: relative;
+  padding: 0 0 28px 44px;
+}
+.est-grafica__eje-y {
+  position: absolute;
+  top: 0;
+  bottom: 28px;
+  left: 0;
+  width: 36px;
+}
+.est-grafica__eje-y span,
+.est-grafica__eje-x span,
+.est-horas__eje span {
+  position: absolute;
+  color: var(--c-terciario);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+.est-grafica__eje-y span {
+  right: 0;
+  transform: translateY(-50%);
+}
+.est-grafica__plano {
+  position: relative;
+  height: 260px;
+  border-radius: 4px;
+  outline-offset: 6px;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.est-grafica__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.est-grafica__guia {
+  stroke: var(--c-borde);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.est-grafica__guia[data-cero] {
+  stroke: var(--c-borde-fuerte);
+  stroke-dasharray: none;
+}
+.est-grafica__anterior {
+  fill: none;
+  stroke: var(--c-terciario);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+  animation: est-funde var(--est-largo) ease both;
+}
+.est-grafica__linea {
+  fill: none;
+  stroke: var(--est-acento);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: est-funde var(--est-medio) ease both;
+}
+.est-grafica__area {
+  fill: var(--est-acento);
+  opacity: 0.08;
+  animation: est-funde-area var(--est-medio) ease both;
+}
+/* La línea se dibuja una sola vez: el recorte se abre de izquierda a derecha */
+.est-grafica__revela {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: est-revela var(--est-largo) var(--est-curva) 80ms both;
+}
+.est-grafica__eje-x {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 44px;
+  height: 20px;
+}
+.est-grafica__eje-x span {
+  top: 0;
+  transform: translateX(-50%);
+}
+.est-grafica__eje-x span[data-borde="inicio"] {
+  transform: none;
+}
+.est-grafica__eje-x span[data-borde="fin"] {
+  transform: translateX(-100%);
+}
+@container est (max-width: 720px) {
+  .est-grafica__plano {
+    height: 200px;
+  }
+}
+@container est (max-width: 480px) {
+  .est-grafica {
+    padding: var(--spacing-12) var(--spacing-8) var(--spacing-8);
+  }
+  .est-grafica__plano {
+    height: 180px;
+  }
+  .est-grafica__marco {
+    padding-left: 36px;
+  }
+  .est-grafica__eje-y {
+    width: 30px;
+  }
+  .est-grafica__eje-x {
+    left: 36px;
+  }
+  .est-grafica__eje-x span[data-impar]:not([data-borde]) {
+    display: none;
+  }
+}
+
+/* Guía vertical, puntos y burbuja del día elegido */
+.est-grafica__vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--c-borde-fuerte);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--est-rapido) ease;
+}
+.est-grafica__punto {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--est-acento);
+  box-shadow: 0 0 0 2px var(--c-superficie);
+  pointer-events: none;
+}
+.est-grafica__punto--ant {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  background: var(--c-terciario);
+}
+.est-tip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  min-width: 150px;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radio-app-tarjeta);
+  background: var(--c-superficie);
+  box-shadow: inset 0 0 0 1px var(--c-borde), var(--sombra-flotante);
+  color: var(--c-texto);
+  font-size: var(--t-app-etiqueta);
+  width: max-content;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(12px);
+  transition: opacity var(--est-rapido) ease;
+}
+.est-tip[data-lado="izq"] {
+  transform: translateX(calc(-100% - 12px));
+}
+.est-grafica__plano[data-activo] .est-tip,
+.est-grafica__plano[data-activo] .est-grafica__vertical {
+  opacity: 1;
+}
+.est-tip__fecha {
+  margin-bottom: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-weight: var(--peso-app-medio);
+}
+.est-tip__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+  line-height: 1.6;
+}
+.est-tip__valor {
+  color: var(--c-texto);
+  font-weight: var(--peso-app-titulo);
+  font-variant-numeric: tabular-nums;
+}
+.est-tip__fila--ant .est-tip__valor {
+  color: var(--c-texto-2);
+}
+
+/* ---------- Estado vacío (Vacio de Piezas, con sus fragmentos) ---------- */
+
+.est-vacio {
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-8);
+}
+.est-vacio__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+/* ---------- La rejilla de tarjetas ---------- */
+
+.est-rejilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    "agente acciones plan"
+    "remitentes hora hora";
+  gap: var(--spacing-16);
+}
+.est-rejilla[data-vacia] {
+  grid-template-areas: "plan . .";
+}
+.est-area-agente { grid-area: agente; }
+.est-area-acciones { grid-area: acciones; }
+.est-area-remitentes { grid-area: remitentes; }
+.est-area-hora { grid-area: hora; }
+.est-area-plan { grid-area: plan; }
+@container est (max-width: 1000px) {
+  .est-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "agente acciones"
+      "remitentes plan"
+      "hora hora";
+  }
+  .est-rejilla[data-vacia] {
+    grid-template-areas: "plan .";
+  }
+}
+@container est (max-width: 640px) {
+  .est-rejilla {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "agente" "hora" "acciones" "remitentes" "plan";
+    gap: var(--spacing-12);
+  }
+  .est-rejilla[data-vacia] {
+    grid-template-areas: "plan";
+  }
+}
+/* Las tarjetas entran escalonadas (una vez, al llegar los datos) */
+.est-principal,
+.est-rejilla > * {
+  animation: est-entra var(--est-largo) var(--est-curva) both;
+}
+.est-rejilla > :nth-child(2) { animation-delay: 40ms; }
+.est-rejilla > :nth-child(3) { animation-delay: 80ms; }
+.est-rejilla > :nth-child(4) { animation-delay: 120ms; }
+.est-rejilla > :nth-child(5) { animation-delay: 160ms; }
+
+/*
+ * panel.css usa .pnl-barra para la barra de arriba del armazón y también para
+ * las filas de ListaBarras: a las filas se les pegan la altura, la raya de
+ * abajo, el fondo y el z-index de la barra. Aquí se neutraliza solo dentro
+ * de esta vista (avisado al coordinador; panel.css no se toca).
+ */
+.est .pnl-barras .pnl-barra {
+  top: auto;
+  z-index: auto;
+  height: auto;
+  border-bottom: 0;
+  background: none;
+}
+
+.est-nada {
+  padding: var(--spacing-8) 0;
+  color: var(--c-texto-2);
+  font-size: var(--t-app-cuerpo);
+}
+
+/* Hora del día: 24 barras que se pueden picar; crecen para llenar la tarjeta */
+.est-horas__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.est-horas {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 3px;
+  min-height: 148px;
+  border-bottom: 1px solid var(--c-borde-fuerte);
+}
+.est-horas li {
+  display: flex;
+  min-width: 0;
+}
+.est-hora {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 4px 4px 0 0;
+  transition: transform var(--est-rapido) var(--est-curva);
+}
+.est-hora::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-hover);
+  opacity: 0;
+  transition: opacity var(--est-rapido) ease;
+}
+.est-hora__barra {
+  display: block;
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--est-acento);
+  opacity: 0.38;
+  transition: opacity var(--est-rapido) ease;
+  animation: est-crece var(--est-largo) var(--est-curva) both;
+  animation-delay: calc(var(--i, 0) * 6ms + 120ms);
+}
+.est-hora__barra[data-pico] {
+  opacity: 0.9;
+}
+@media (hover: hover) and (pointer: fine) {
+  a.est-hora:hover::before,
+  button.est-hora:hover::before {
+    opacity: 1;
+  }
+  a.est-hora:hover .est-hora__barra,
+  button.est-hora:hover .est-hora__barra {
+    opacity: 0.9;
+  }
+}
+a.est-hora:active,
+button.est-hora:active {
+  transform: scale(0.96);
+}
+.est-hora:focus-visible .est-hora__barra {
+  opacity: 0.9;
+}
+.est-horas__eje {
+  position: relative;
+  height: 20px;
+  margin-top: var(--spacing-8);
+}
+.est-horas__eje span {
+  top: 0;
+}
+
+/* Uso del plan: la dona (Dona de Piezas) y sus datos */
+.est-plan {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20);
+}
+.est .est-dona {
+  display: inline-grid;
+  flex: none;
+  border-radius: 50%;
+}
+.est-dona__centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+.est .est-dona__cifra {
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.est-dona__texto {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.est-plan__datos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+.est-plan__datos > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  font-size: var(--t-app-cuerpo);
+}
+.est-plan__datos dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--c-texto-2);
+}
+.est-plan__datos dd {
+  font-weight: var(--peso-app-titulo);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.est-plan__muestra {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.est-plan__muestra[data-pista] {
+  background: var(--c-activo);
+}
+.est-plan__aviso {
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+  line-height: 1.5;
+}
+@container est (max-width: 380px) {
+  .est-plan {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .est .est-dona {
+    align-self: center;
+  }
+}
+
+.est-nota {
+  color: var(--c-terciario);
+  font-size: var(--t-app-etiqueta);
+}
+
+/* ---------- Movimiento ---------- */
+
+@keyframes est-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes est-funde {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes est-funde-area {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.08;
+  }
+}
+@keyframes est-revela {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes est-crece {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* Reducir movimiento: nada se desplaza; solo quedan los fundidos */
+@media (prefers-reduced-motion: reduce) {
+  .est-grafica__revela,
+  .est-hora__barra {
+    animation: none;
+  }
+  .est-principal,
+  .est-rejilla > * {
+    animation-name: est-funde;
+  }
+  .est-numero::after,
+  .est-hora {
+    transition: none;
+  }
+  a.est-hora:active,
+  button.est-hora:active {
+    transform: none;
+  }
+}
