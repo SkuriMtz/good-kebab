@@ -298,22 +298,22 @@ export function ListaBarras({
 }) {
   const max = Math.max(1, ...filas.map((f) => f.valor));
   return (
-    <ul className="pnl-barras">
+    <ul className="pnl-lbarras">
       {filas.map((f, i) => (
         <li key={f.id}>
-          <Accionable accion={f} className="pnl-barra" etiqueta={`${f.etiqueta}${f.detalle ? `, ${f.detalle}` : ""}: ${formatear ? formatear(f.valor) : FORMATO.format(f.valor)} ${unidad}`}>
+          <Accionable accion={f} className="pnl-lbarra" etiqueta={`${f.etiqueta}${f.detalle ? `, ${f.detalle}` : ""}: ${formatear ? formatear(f.valor) : FORMATO.format(f.valor)} ${unidad}`}>
             <span
-              className="pnl-barra__relleno"
+              className="pnl-lbarra__relleno"
               style={{ "--escala": f.valor / max, "--i": i, ...(f.agente ? { "--agente": `var(--agente-${f.agente})` } : {}) } as CSSProperties}
               data-agente={f.agente ? "" : undefined}
               aria-hidden="true"
             />
-            <span className="pnl-barra__nombre">
+            <span className="pnl-lbarra__nombre">
               {f.agente ? <MarcaAgente id={f.agente} tam={20} /> : null}
-              <span className="pnl-barra__texto">{f.etiqueta}</span>
-              {f.detalle ? <span className="pnl-barra__detalle">{f.detalle}</span> : null}
+              <span className="pnl-lbarra__texto">{f.etiqueta}</span>
+              {f.detalle ? <span className="pnl-lbarra__detalle">{f.detalle}</span> : null}
             </span>
-            <Cifra valor={f.valor} indice={i} formatear={formatear} className="pnl-barra__valor" />
+            <Cifra valor={f.valor} indice={i} formatear={formatear} className="pnl-lbarra__valor" />
           </Accionable>
         </li>
       ))}

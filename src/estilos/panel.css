@@ -33,6 +33,11 @@
   --pnl-sombra: 0 1px 2px rgb(31 35 40 / 0.04), 0 2px 8px rgb(31 35 40 / 0.03);
 }
 
+/* Lo que se cierra (grupos del menú, listas agrupadas) se esconde de verdad */
+.pnl [hidden] {
+  display: none !important;
+}
+
 /* Números con cifras del mismo ancho, en la letra del producto (no mono) */
 .cifras-app {
   font-variant-numeric: tabular-nums;
@@ -73,8 +78,11 @@
   position: fixed;
   inset: var(--barra-app-h) 0 0 0;
   z-index: 0;
-  opacity: 0.35;
+  opacity: 0.3;
   pointer-events: none;
+  /* Solo hacia la orilla derecha, lejos del texto */
+  -webkit-mask-image: linear-gradient(to right, transparent 45%, rgb(0 0 0 / 1) 85%);
+  mask-image: linear-gradient(to right, transparent 45%, rgb(0 0 0 / 1) 85%);
 }
 @media (max-width: 767px) {
   .pnl-fondo {
@@ -135,8 +143,10 @@
   justify-content: center;
   min-width: 0;
 }
-.pnl-barra__centro .dash-busca {
-  width: min(100%, 560px);
+.pnl-barra__centro > .dash-busca {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: 560px;
 }
 .pnl-barra .buscador__fin kbd {
   display: none;
@@ -257,6 +267,7 @@
 }
 .pnl-pasos__anillo {
   position: relative;
+  margin-right: 2px;
   display: inline-grid;
   place-items: center;
 }
@@ -423,8 +434,9 @@
   }
   .pnl-lateral > .pnl-lateral__contenido {
     position: sticky;
-    top: calc(var(--barra-app-h) + var(--alto-aviso));
-    max-height: calc(100dvh - var(--barra-app-h) - var(--alto-aviso));
+    top: var(--barra-app-h);
+    height: calc(100dvh - var(--barra-app-h) - var(--alto-aviso));
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
@@ -463,6 +475,9 @@
   display: flex;
   flex: 1;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
   gap: var(--spacing-12);
   min-width: 0;
   height: var(--alto-control);
@@ -944,6 +959,18 @@
   gap: var(--spacing-8);
 }
 
+/* Los botones que llevan a otro lado ocupan su lugar completo (como los enlaces) */
+:is(button, a).pnl-agente,
+:is(button, a).pnl-mov,
+:is(button, a).pnl-mini__dato,
+:is(button, a).pnl-mini__uso,
+:is(button, a).pnl-lbarra,
+:is(button, a).pnl-paso,
+:is(button, a).pnl-ficha__dato {
+  width: 100%;
+  text-align: left;
+}
+
 /* Lo que se puede picar se hunde un poco al presionarlo */
 .pnl-picable {
   position: relative;
@@ -1055,11 +1082,11 @@
 }
 
 /* Lista de barras: la barra detrás del nombre, el número a la derecha */
-.pnl-barras {
+.pnl-lbarras {
   display: grid;
   gap: var(--spacing-4);
 }
-.pnl-barra {
+.pnl-lbarra {
   position: relative;
   isolation: isolate;
   display: flex;
@@ -1073,13 +1100,13 @@
   cursor: pointer;
   transition: transform var(--pnl-rapido) var(--pnl-curva);
 }
-span.pnl-barra {
+span.pnl-lbarra {
   cursor: default;
 }
-.pnl-barra:active {
+.pnl-lbarra:active {
   transform: scale(0.99);
 }
-.pnl-barra__relleno {
+.pnl-lbarra__relleno {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -1090,16 +1117,16 @@ span.pnl-barra {
   animation: pnl-barra var(--pnl-medio) var(--pnl-curva) backwards;
   animation-delay: calc(var(--i, 0) * 40ms);
 }
-.pnl-barra__relleno[data-agente] {
+.pnl-lbarra__relleno[data-agente] {
   background: color-mix(in srgb, var(--agente) 22%, transparent);
 }
 @media (hover: hover) and (pointer: fine) {
-  a.pnl-barra:hover .pnl-barra__relleno,
-  button.pnl-barra:hover .pnl-barra__relleno {
+  a.pnl-lbarra:hover .pnl-lbarra__relleno,
+  button.pnl-lbarra:hover .pnl-lbarra__relleno {
     background: color-mix(in srgb, var(--c-accion-texto) 20%, transparent);
   }
-  a.pnl-barra:hover .pnl-barra__relleno[data-agente],
-  button.pnl-barra:hover .pnl-barra__relleno[data-agente] {
+  a.pnl-lbarra:hover .pnl-lbarra__relleno[data-agente],
+  button.pnl-lbarra:hover .pnl-lbarra__relleno[data-agente] {
     background: color-mix(in srgb, var(--agente) 32%, transparent);
   }
 }
@@ -1108,23 +1135,23 @@ span.pnl-barra {
     transform: scaleX(0);
   }
 }
-.pnl-barra__nombre {
+.pnl-lbarra__nombre {
   display: flex;
   align-items: center;
   gap: var(--spacing-8);
   min-width: 0;
 }
-.pnl-barra__texto {
+.pnl-lbarra__texto {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.pnl-barra__detalle {
+.pnl-lbarra__detalle {
   flex-shrink: 0;
   color: var(--c-texto-2);
   font-size: var(--t-app-etiqueta);
 }
-.pnl-barra__valor {
+.pnl-lbarra__valor {
   flex-shrink: 0;
   font-weight: var(--peso-app-medio);
 }
@@ -1173,7 +1200,7 @@ span.pnl-barra {
 
 @media (prefers-reduced-motion: reduce) {
   .pnl-cifra__valor,
-  .pnl-barra__relleno,
+  .pnl-lbarra__relleno,
   .pnl-dona__partes,
   .pnl-flotante,
   .pnl-nav__hijos:not([hidden]) > li {
@@ -1203,7 +1230,8 @@ span.pnl-barra {
 }
 @media (max-width: 767px) {
   .pnl-hola__frag {
-    left: 40%;
+    inset: calc(-1 * var(--spacing-16)) 0 auto 62%;
+    height: var(--spacing-48);
     opacity: 0.7;
   }
 }
@@ -1284,7 +1312,6 @@ span.pnl-barra {
 .pnl-chat {
   gap: 0;
   padding: var(--spacing-8);
-  transition: box-shadow var(--pnl-rapido) ease;
 }
 .pnl-chat:focus-within {
   border-color: var(--c-acento);
@@ -1477,6 +1504,7 @@ span.pnl-barra {
   text-align: right;
 }
 .pnl-mov__fin .dash-hora {
+  font-family: inherit;
   color: var(--c-texto-2);
   font-size: var(--t-app-etiqueta);
 }
@@ -1904,4 +1932,15 @@ span.pnl-barra {
   .pnl .dash-chat-real {
     height: calc(100dvh - var(--barra-app-h) - 2 * var(--spacing-16));
   }
+}
+
+/* Las tarjetas que ya existían (Correo con Clara, el plan) toman la forma del panel */
+.pnl .dash-tarjeta {
+  border-color: var(--c-borde);
+  border-radius: var(--pnl-radio);
+  background: var(--c-superficie);
+  box-shadow: var(--pnl-sombra);
+}
+.pnl .dash-vista__agente {
+  align-self: center;
 }

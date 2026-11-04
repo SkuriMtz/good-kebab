@@ -204,6 +204,7 @@ export function PruebaloDashboard({ version }: { version?: string }) {
       etiqueta: "Agentes",
       icono: "agentes",
       alElegir: a({ vista: "agentes" }),
+      abierto: true,
       hijos: IDS_AGENTES.map((id) => ({
         id,
         etiqueta: AGENTE_POR_ID[id].nombre,
