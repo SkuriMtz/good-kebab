@@ -34,6 +34,8 @@ export type ElementoNav = Accion & {
   etiquetaContador?: string;
   /** Un grupo que se abre (›): sus elementos van debajo, con sangría. */
   hijos?: SubElementoNav[];
+  /** El grupo empieza abierto aunque no sea la sección actual. */
+  abierto?: boolean;
 };
 
 /** Un elemento dentro de un grupo del menú: un agente, un chat en grupo, un ajuste. */

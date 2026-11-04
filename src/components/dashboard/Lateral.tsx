@@ -34,7 +34,7 @@ function Grupo({ n, actual }: { n: ElementoNav; actual: boolean }) {
   const id = useId().replace(/:/g, "");
   const hijos = n.hijos ?? [];
   const conHijos = hijos.length > 0;
-  const [abierto, setAbierto] = useState(actual);
+  const [abierto, setAbierto] = useState(actual || Boolean(n.abierto));
   // Al llegar a una sección, su grupo se abre (y se queda como la persona lo deje)
   useEffect(() => {
     if (actual) setAbierto(true);

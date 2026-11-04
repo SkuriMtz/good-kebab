@@ -180,11 +180,11 @@ export function Panel({ conGoogle }: { conGoogle: boolean }) {
   const hayTexto = Boolean(remitente || asunto || contenido);
 
   return (
-    <div className="dash-pagina dash-vista">
-      <header className="dash-vista__cabeza">
+    <div className="pnl-pagina">
+      <header className="pnl-vista__cabeza">
         <div>
-          <h1 className="t-app-titulo-grande">Correo</h1>
-          <p className="dash-vista__texto">Pega un correo o elige un ejemplo. Clara te dice de qué trata y qué conviene hacer.</p>
+          <h1 className="pnl-vista__titulo">Correo</h1>
+          <p className="pnl-vista__texto">Pega un correo o elige un ejemplo. Clara te dice de qué trata y qué conviene hacer.</p>
         </div>
         <span className="dash-vista__agente">
           <MarcaAgente id="clara" tam={24} />

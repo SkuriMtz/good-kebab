@@ -127,7 +127,7 @@ export function ArmazonPanel({ datos, children }: { datos: DatosArmazonPanel; ch
         ...datos.grupos.map((g) => ({ id: `g-${g.id}`, etiqueta: g.nombre, agentes: g.agentes, href: `/panel/chat?c=${encodeURIComponent(g.id)}`, actual: chatVisto === g.id })),
       ],
     },
-    { id: "agentes", etiqueta: "Agentes", icono: "agentes", href: "/panel/agentes", hijos: subAgentes },
+    { id: "agentes", etiqueta: "Agentes", icono: "agentes", href: "/panel/agentes", abierto: true, hijos: subAgentes },
     {
       id: "pendientes",
       etiqueta: "Pendientes",
