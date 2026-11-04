@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Uso } from "@/components/app/Uso";
 import { Boton } from "@/components/base/Boton";
 import { Icono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
 import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { FilaAgente } from "@/components/dashboard/FilaAgente";
-import { PilaAgentes } from "@/components/dashboard/Piezas";
+import { Accionable, Cifra, PilaAgentes } from "@/components/dashboard/Piezas";
 import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
@@ -23,11 +23,19 @@ export function MisAgentes({
   planId,
   elegidosIniciales,
   usados,
+  enfocado,
+  estaSemana,
+  correosSemana,
 }: {
   userId: string;
   planId: IdPlan;
   elegidosIniciales: IdAgente[];
   usados: number;
+  /** Llegó desde otra parte con ?agente=lola: se marca y se lleva a la vista. */
+  enfocado?: IdAgente;
+  /** Conversaciones de los últimos 7 días por agente (null: no se pudo leer). */
+  estaSemana: Record<IdAgente, number | null>;
+  correosSemana: number | null;
 }) {
   const plan = PLAN_POR_ID[planId];
   const libre = plan.id !== "free";
@@ -59,14 +67,20 @@ export function MisAgentes({
     }
   }
 
+  useEffect(() => {
+    if (!enfocado) return;
+    const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById(`agente-${enfocado}`)?.scrollIntoView({ block: "center", behavior: reducir ? "auto" : "smooth" });
+  }, [enfocado]);
+
   const equipo = AGENTES_INFO.filter((a) => plan.agentes.includes(a.id) && elegidos.includes(a.id)).map((a) => a.id);
 
   return (
-    <div className="dash-pagina dash-vista">
-      <header className="dash-vista__cabeza">
+    <div className="pnl-pagina">
+      <header className="pnl-vista__cabeza">
         <div>
-          <h1 className="t-app-titulo-grande">Agentes</h1>
-          <p className="dash-vista__texto">
+          <h1 className="pnl-vista__titulo">Agentes</h1>
+          <p className="pnl-vista__texto">
             {libre
               ? "Elige quién trabaja contigo. Puedes cambiarlo cuando quieras; solo los agentes de tu equipo aparecen en el chat."
               : "Con Atendel Free trabajas con Clara. Con Atendel One se suma Lola, y con Atendel Max tienes a todo el equipo y eliges a quien quieras."}
@@ -74,8 +88,8 @@ export function MisAgentes({
         </div>
       </header>
 
-      <div className="dash-rejilla">
-        <div className="dash-centro">
+      <div className="pnl-agentes-rejilla">
+        <div className="pnl-agentes-rejilla__centro">
           {error ? (
             <p role="alert" className="dash-alerta">
               <Icono nombre="alerta" tam={16} />
@@ -83,7 +97,7 @@ export function MisAgentes({
             </p>
           ) : null}
 
-          <ul className="dash-lista dash-lista--borde dash-agentes">
+          <ul className="pnl-fichas">
             {AGENTES_INFO.map((a) => {
               const permitido = plan.agentes.includes(a.id);
               const enEquipo = permitido && elegidos.includes(a.id);
@@ -92,6 +106,16 @@ export function MisAgentes({
                   key={a.id}
                   id={a.id}
                   bloqueado={!permitido}
+                  enfocado={enfocado === a.id}
+                  datos={
+                    permitido ? (
+                      <Accionable accion={{ href: "/panel?vista=estadisticas" }} className="pnl-ficha__dato pnl-picable">
+                        <Icono nombre={a.id === "clara" ? "correo" : "conversaciones"} tam={16} />
+                        <Cifra valor={a.id === "clara" ? correosSemana : estaSemana[a.id]} className="pnl-ficha__cifra" />
+                        <span>{a.id === "clara" ? "correos resumidos esta semana" : "conversaciones esta semana"}</span>
+                      </Accionable>
+                    ) : undefined
+                  }
                   insignias={
                     !permitido ? (
                       <Insignia>
@@ -139,7 +163,7 @@ export function MisAgentes({
                           </Boton>
                         ) : null}
                         {enEquipo ? (
-                          <Boton variante="sutil" tam="compacto" href={`/panel/chat?agente=${a.id}`} icono={<Icono nombre="mensaje" tam={16} />}>
+                          <Boton variante="principal" tam="compacto" href={`/panel/chat?agente=${a.id}`} icono={<Icono nombre="mensaje" tam={16} />}>
                             Hablar con {AGENTE_POR_ID[a.id].nombre}
                           </Boton>
                         ) : null}
@@ -160,8 +184,8 @@ export function MisAgentes({
           ) : null}
         </div>
 
-        <aside className="dash-derecha" aria-label="Tu plan">
-          <section id="plan" className="dash-tarjeta dash-plan" aria-labelledby="plan-titulo">
+        <aside className="pnl-agentes-rejilla__lado" aria-label="Tu plan">
+          <section id="plan" className="pnl-tarjeta dash-plan" aria-labelledby="plan-titulo">
             <div className="dash-plan__fila dash-plan__fila--arriba">
               <h2 id="plan-titulo" className="dash-plan__plan">
                 {plan.nombre}

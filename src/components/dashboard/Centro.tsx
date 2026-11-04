@@ -35,8 +35,13 @@ export function Inicio({
   modos,
   alPedir,
   atajos,
+  sinTitulo = false,
+  placeholder = "Pídele algo a tu equipo o escribe @ para elegir agente",
 }: {
   titulo: string;
+  /** El título va en otro lado (el Resumen lleva el nombre del negocio): aquí solo se lee. */
+  sinTitulo?: boolean;
+  placeholder?: string;
   opciones: OpcionPedido[];
   modos: ModoPedido[];
   /** Al enviar: el texto y a quién (el id de la opción). */
@@ -93,10 +98,16 @@ export function Inicio({
 
   return (
     <section className="dash-inicio" aria-labelledby={`${id}-saludo`}>
-      <h1 id={`${id}-saludo`} className="dash-inicio__saludo">
-        <Marca className="dash-inicio__icono" />
-        {titulo}
-      </h1>
+      {sinTitulo ? (
+        <h2 id={`${id}-saludo`} className="sr-only">
+          {titulo}
+        </h2>
+      ) : (
+        <h1 id={`${id}-saludo`} className="dash-inicio__saludo">
+          <Marca className="dash-inicio__icono" />
+          {titulo}
+        </h1>
+      )}
 
       <form className="dash-pedir" onSubmit={enviar}>
         <label htmlFor={`${id}-pedido`} className="sr-only">
@@ -107,7 +118,7 @@ export function Inicio({
           id={`${id}-pedido`}
           className="dash-pedir__campo"
           rows={2}
-          placeholder="Pídele algo a tu equipo o escribe @ para elegir agente"
+          placeholder={placeholder}
           value={texto}
           aria-autocomplete="list"
           aria-controls={sugerencias.length ? `${id}-sugerencias` : undefined}

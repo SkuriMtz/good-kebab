@@ -79,7 +79,8 @@ export function conTransicion(desde: string, navegar: () => void, hacia = "") {
   }
   const html = document.documentElement;
   html.classList.add(PAGINA);
-  const enPanel = (r: string) => r === "/panel" || r.startsWith("/panel/");
+  // El panel y su demostración: entre sus vistas (también las de ?vista=), solo el fundido corto
+  const enPanel = (r: string) => r === "/panel" || r.startsWith("/panel/") || r.startsWith("/pruebalo");
   if (enPanel(desde) && enPanel(hacia)) html.classList.add(APP);
   if (document.querySelector("dialog[open]")) html.classList.add(CAPA);
   else if (document.querySelector(HOJA_ABIERTA)) html.classList.add(TAPADA);

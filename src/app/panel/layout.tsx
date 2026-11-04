@@ -5,12 +5,14 @@ import { nombresAgentes } from "@/components/dashboard/nombres";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { createClient } from "@/lib/supabase/server";
+import { VERSION } from "@/lib/version";
 
 /**
  * El armazón del panel (barra superior, menú lateral, pie) con los datos
  * reales de la cuenta. Se queda puesto al moverse entre Resumen,
- * Conversaciones, Agentes y Correo. Solo lee: plan, equipo, uso, negocio y
- * los grupos de chat (RLS deja ver a cada quien solo lo suyo).
+ * Chat, Agentes, Pendientes, Estadísticas y Correo. Solo lee: plan, equipo,
+ * uso, negocio, los grupos de chat y cuántos correos tienen una acción
+ * sugerida (RLS deja ver a cada quien solo lo suyo).
  */
 export default async function PanelLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -21,7 +23,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   // El middleware ya redirige a /entrar sin sesión; esto es una segunda barrera
   if (!user) redirect("/entrar");
 
-  const [cuenta, { data: convs }] = await Promise.all([
+  const [cuenta, { data: convs }, pendientes] = await Promise.all([
     cargarCuenta(supabase, user.id),
     supabase
       .from("conversaciones")
@@ -29,6 +31,12 @@ export default async function PanelLayout({ children }: { children: ReactNode })
       .eq("owner_id", user.id)
       .order("actualizado_en", { ascending: false })
       .limit(40),
+    // Correos con una acción sugerida: el número de "Pendientes" en el menú
+    supabase
+      .from("resumenes_correo")
+      .select("id", { count: "exact", head: true })
+      .not("accion_sugerida", "is", null)
+      .not("accion_sugerida", "ilike", "ninguna"),
   ]);
 
   const grupos = (convs ?? [])
@@ -54,6 +62,9 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         usados: cuenta.usados,
         conGoogle: proveedores.includes("google"),
         grupos,
+        conConversaciones: (convs ?? []).length > 0,
+        pendientes: pendientes.error ? null : (pendientes.count ?? 0),
+        version: VERSION,
       }}
     >
       {children}

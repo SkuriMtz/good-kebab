@@ -18,14 +18,18 @@ import type { IdPlan } from "./planes";
  * de Atendel. Cuenta la misma historia que el chat de ejemplo (ChatDemo):
  * Sofía Ramírez agenda su primera cita, Carla Díaz cambia de hora,
  * Rosa Peña no ha confirmado, Clara leyó 23 correos, Víctor siguió a quien
- * preguntó por botox e Iris dejó el reporte de septiembre en Excel.
+ * preguntó por un servicio e Iris dejó el reporte de septiembre en Excel.
  *
  * Las horas van en minutos antes de "ahora" (haceMin): así la demostración
  * se ve al día a cualquier hora que se abra.
  */
 
-/** A dónde lleva algo dentro de /pruebalo (sin recargar). `con`: abre ese chat. */
-export type Destino = { vista: IdVista; con?: string; pestana?: IdPestana };
+/**
+ * A dónde lleva algo dentro de /pruebalo (sin recargar). `con`: abre ese
+ * chat; `agente`: la vista Agentes con ese agente marcado; `de`: filtra por
+ * remitente; `tipo`: filtra los pendientes.
+ */
+export type Destino = { vista: IdVista; con?: string; pestana?: IdPestana; agente?: IdAgente; de?: string; tipo?: string };
 export type IdPestana = "actividad" | "visto-bueno" | "destacados";
 
 export const DEMO_NEGOCIO = {
@@ -170,7 +174,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
       elementos: [
         {
           id: "c1",
-          titulo: "Insumos Médicos del Bajío",
+          titulo: "Insumos del Bajío",
           detalle: "Factura de $8,450 que vence el jueves",
           insignia: { tono: "error", texto: "Urgente" },
         },
@@ -227,13 +231,13 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     agente: "victor",
     verbo: "escribió a",
     objeto: "12 personas",
-    complemento: "que preguntaron por botox y no agendaron",
+    complemento: "que preguntaron por la sesión de 1 hora y no agendaron",
     haceMin: 26 * 60 + 15,
     insignia: { tono: "exito", texto: "3 ya contestaron" },
     tarjeta: {
       tipo: "mensaje",
       para: "Para Paola y 11 personas más",
-      texto: "Hola, Paola. La semana pasada preguntaste por botox. ¿Te aparto un lugar? Tengo viernes 12:00 o sábado 10:30.",
+      texto: "Hola, Paola. La semana pasada preguntaste por la sesión de 1 hora. ¿Te aparto un lugar? Tengo viernes 12:00 o sábado 10:30.",
       pie: "Lola les está apartando cita a quienes contestaron.",
     },
   },
@@ -251,7 +255,7 @@ export const DEMO_ACTIVIDAD_ANTERIOR: (Evento & { ir?: Destino })[] = [
     tarjeta: {
       tipo: "lista",
       elementos: [
-        { id: "f1", titulo: "Insumos Médicos del Bajío", detalle: "$8,450 · vence el jueves" },
+        { id: "f1", titulo: "Insumos del Bajío", detalle: "$8,450 · vence el jueves" },
         { id: "f2", titulo: "CFE", detalle: "$2,180 · vence el 15" },
       ],
       pie: "Por pagar: $10,630.",
@@ -383,7 +387,7 @@ export const DEMO_CONVERSACIONES: ConversacionDemo[] = [
   },
   {
     id: "insumos",
-    cliente: "Insumos Médicos del Bajío",
+    cliente: "Insumos del Bajío",
     canal: "Correo",
     agente: "clara",
     ultimo: "Adjuntamos la factura F-2291 por $8,450.",
@@ -439,7 +443,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
     id: "a-clara",
     agente: "clara",
     titulo: "Un correo urgente",
-    detalle: "Insumos Médicos del Bajío: factura de $8,450 que vence el jueves",
+    detalle: "Insumos del Bajío: factura de $8,450 que vence el jueves",
     haceMin: 96,
     ir: { vista: "correo" },
   },
@@ -468,7 +472,7 @@ export type CorreoDemo = {
 export const DEMO_CORREOS: CorreoDemo[] = [
   {
     id: "insumos",
-    remitente: "Insumos Médicos del Bajío",
+    remitente: "Insumos del Bajío",
     asunto: "Factura F-2291",
     resumen: "Te mandan la factura de $8,450 por el último pedido de insumos. Vence el jueves.",
     accion: "Págala antes del jueves o pide unos días más.",

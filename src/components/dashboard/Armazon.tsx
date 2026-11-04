@@ -1,127 +1,163 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Avatar } from "@/components/base/Avatar";
-import { BotonIcono } from "@/components/base/Boton";
+import { Boton, BotonIcono } from "@/components/base/Boton";
 import { Cajon } from "@/components/base/Cajon";
 import { Icono } from "@/components/base/Iconos";
-import { Insignia } from "@/components/base/Insignia";
 import { Menu, type ElementoMenu } from "@/components/base/Menu";
+import { usePopover } from "@/components/base/Popover";
 import { Marca } from "@/components/Logo";
-import { Escena } from "@/components/escena/Escena";
 import { ponerTema } from "@/lib/tema";
 import { Avisos } from "./Avisos";
 import { BuscadorDashboard } from "./BuscadorDashboard";
-import { Lateral } from "./Lateral";
-import { Accionable } from "./Piezas";
-import type { Accion, AgenteLateral, Aviso, ElementoNav, GrupoLateral, IdVista, ResultadoBusqueda, Usuario } from "./tipos";
+import { Fragmentos } from "./Fragmentos";
+import { Lateral, Novedades } from "./Lateral";
+import { Accionable, Dona } from "./Piezas";
+import type { Accion, Aviso, ElementoNav, IdVista, NovedadLateral, PasoInicio, ResultadoBusqueda, Usuario } from "./tipos";
 import { useTema } from "./useTema";
+import "@/estilos/panel.css";
 
 export type PropsArmazon = {
-  /** Nombre de la vista actual, junto al logo ("Atendel / Resumen"). */
-  seccion: string;
-  /** A dónde lleva el logo (el resumen). */
+  /** A dónde lleva el logo (el inicio). */
   inicio: Accion;
   /** Franja de arriba (en /pruebalo: "Datos de ejemplo"). */
   aviso?: ReactNode;
   nav: ElementoNav[];
   activa: IdVista;
-  agentes: AgenteLateral[];
-  accionAgentes?: ReactNode;
-  grupos: GrupoLateral[];
-  accionGrupos?: ReactNode;
-  vacioGrupos?: ReactNode;
+  /** El negocio de la barra: su nombre, el nombre corto del plan ("Max") y lo que abre su ▾. */
+  negocio: { nombre: string; plan: string; menu: ElementoMenu[] };
+  /** "Primeros pasos" (el círculo de avance). Con todo listo, no se muestra. */
+  pasos: PasoInicio[];
+  /** "Mejorar plan": solo lleva a ver los planes (nadie cambia su plan desde aquí). */
+  mejorar?: Accion;
+  ayuda: ElementoMenu[];
+  novedades: NovedadLateral[];
+  version?: string;
+  /** El uso del plan, al pie del menú. */
+  uso?: ReactNode;
   indice: ResultadoBusqueda[];
   crear: ElementoMenu[];
   avisos: Aviso[];
   alLeerAvisos?: () => void;
   ahora: Date | null;
   usuario: Usuario;
-  /** Perfil, Configuración, Plan y facturación, Mi negocio. */
+  /** Mis agentes, Plan y facturación… */
   perfil: ElementoMenu[];
   /** Cerrar sesión (o salir de la demostración). */
   salir: ElementoMenu;
-  /** El botón de conversaciones de la barra (con un punto si hay sin leer). */
-  conversaciones?: Accion & { sinLeer?: number };
-  /** Al pie del lateral: una línea con el uso del plan. */
-  pieLateral?: ReactNode;
-  /** Vista de pantalla completa (el chat): sin márgenes ni pie. */
+  /** El botón de chat flotante (abajo a la derecha). Sin esto, no se pinta. */
+  chat?: Accion;
+  /** Vista de pantalla completa (el chat): sin márgenes. */
   completo?: boolean;
+  /** Antes de que un enlace navegue (el panel lo usa para la transición entre vistas). */
+  alNavegar?: (e: MouseEvent<HTMLDivElement>) => void;
   children: ReactNode;
 };
 
+const CLAVE_ENCOGIDO = "atendel-panel-menu-encogido";
+
 /**
- * El armazón del dashboard (estructura del dashboard de GitHub, acabado de
- * Apple): barra superior fija y translúcida, menú lateral (cajón en
- * celular), el contenido y un pie mínimo. Todo dentro de `.producto`, así
- * los componentes de la base toman los colores, la letra y los radios del
- * producto en oscuro y en claro.
+ * El armazón del panel: barra de arriba (logo, negocio y plan, buscador al
+ * centro, primeros pasos, avisos, ayuda, mejorar plan y tu cuenta), el menú
+ * lateral (riel de íconos en tableta, cajón en celular), el lienzo gris
+ * con sus fragmentos y el botón de chat flotante. Todo dentro de
+ * `.producto`: la base toma los colores y la letra del producto en los dos
+ * modos.
  */
 export function Armazon(props: PropsArmazon) {
-  const { seccion, inicio, aviso, nav, activa, agentes, accionAgentes, grupos, accionGrupos, vacioGrupos, pieLateral, completo = false, children } = props;
+  const { inicio, aviso, nav, activa, novedades, version, uso, chat, completo = false, alNavegar, children } = props;
   const [cajon, setCajon] = useState(false);
+  const [encogido, setEncogido] = useState(false);
 
-  // En celular, elegir algo del cajón lo cierra (el cambio de vista se ve detrás)
-  const alTocarCajon = (e: MouseEvent<HTMLDivElement>) => {
-    const el = (e.target as HTMLElement).closest("a[href], button");
-    if (el && el.getAttribute("aria-disabled") !== "true" && !el.closest(".dash-lateral__cabeza")) setCajon(false);
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(CLAVE_ENCOGIDO) === "1") setEncogido(true);
+    } catch {
+      /* sin almacenamiento: abierto */
+    }
+  }, []);
+
+  // En escritorio, el botón encoge el menú a sus íconos; en tableta y celular abre el cajón
+  const alternarMenu = () => {
+    if (window.matchMedia("(min-width: 1280px)").matches) {
+      setEncogido((v) => {
+        try {
+          window.localStorage.setItem(CLAVE_ENCOGIDO, v ? "0" : "1");
+        } catch {
+          /* sin almacenamiento: solo ahora */
+        }
+        return !v;
+      });
+    } else {
+      setCajon(true);
+    }
   };
 
-  const lateral = (
-    <Lateral
-      nav={nav}
-      activa={activa}
-      agentes={agentes}
-      accionAgentes={accionAgentes}
-      grupos={grupos}
-      accionGrupos={accionGrupos}
-      vacioGrupos={vacioGrupos}
-      pie={pieLateral}
-    />
+  // Elegir algo del cajón lo cierra (el cambio de vista se ve detrás)
+  const alTocarCajon = (e: MouseEvent<HTMLDivElement>) => {
+    const el = (e.target as HTMLElement).closest("a[href], button");
+    if (el && el.getAttribute("aria-disabled") !== "true" && !el.classList.contains("pnl-nav__abrir")) setCajon(false);
+  };
+
+  const pie = (
+    <>
+      <Novedades novedades={novedades} />
+      {uso}
+      {version ? <p className="pnl-version">Atendel · versión {version}</p> : null}
+    </>
   );
 
   return (
-    <div className={`producto dash${completo ? " dash--completo" : ""}`}>
-      {/* Los fragmentos de fondo, discretos (sin figura: solo polvo) */}
-      <Escena />
+    <div className="producto dash pnl" data-encogido={encogido ? "true" : undefined} onClickCapture={alNavegar}>
+      <Fragmentos cantidad={14} semilla={4} tamMin={10} tamMax={26} className="pnl-fondo pnl-frag--quieto" />
       <a href="#contenido" className="dash-saltar">
         Saltar al contenido
       </a>
       {aviso}
-      <BarraSuperior {...props} abrirCajon={() => setCajon(true)} cajonAbierto={cajon} />
+      <BarraSuperior {...props} alternarMenu={alternarMenu} cajonAbierto={cajon} encogido={encogido} />
 
-      <div className={`dash-cuerpo${completo ? " dash-cuerpo--completo" : ""}`}>
-        <aside className="dash-lateral" aria-label="Menú de Atendel">
-          {lateral}
+      <div className="pnl-cuerpo">
+        <aside className="pnl-lateral" aria-label="Menú de Atendel">
+          <Lateral nav={nav} activa={activa} pie={pie} />
         </aside>
-        <main id="contenido" tabIndex={-1} className={`dash-principal${completo ? " dash-principal--completo" : ""}`}>
+        <main id="contenido" tabIndex={-1} className={`pnl-principal${completo ? " pnl-principal--completo" : ""}`}>
           {children}
-          {completo ? null : <Pie />}
         </main>
       </div>
 
-      <Cajon abierto={cajon} alCerrar={() => setCajon(false)} etiqueta="Menú de Atendel" cabeza={<LogoBarra inicio={inicio} seccion={seccion} />}>
-        <div onClickCapture={alTocarCajon}>{lateral}</div>
+      {chat && !completo ? (
+        <Accionable accion={chat} className="pnl-flotante" etiqueta="Hablar con tu equipo">
+          <Icono nombre="conversaciones" tam={24} />
+        </Accionable>
+      ) : null}
+
+      <Cajon abierto={cajon} alCerrar={() => setCajon(false)} etiqueta="Menú de Atendel" cabeza={<Logo inicio={inicio} />}>
+        <div onClickCapture={alTocarCajon}>
+          <Lateral nav={nav} activa={activa} pie={pie} />
+        </div>
       </Cajon>
     </div>
   );
 }
 
-function LogoBarra({ inicio, seccion }: { inicio: Accion; seccion: string }) {
+function Logo({ inicio }: { inicio: Accion }) {
   return (
-    <span className="dash-miga">
-      <Accionable accion={inicio} className="dash-logo" etiqueta="Atendel: ir al inicio">
-        <Marca className="dash-logo__marca" />
-      </Accionable>
-      <span className="dash-miga__seccion">{seccion}</span>
-    </span>
+    <Accionable accion={inicio} className="pnl-logo" etiqueta="Atendel: ir al inicio">
+      <Marca className="pnl-logo__marca" />
+      <span className="pnl-logo__nombre" aria-hidden="true">
+        Atendel
+      </span>
+    </Accionable>
   );
 }
 
 function BarraSuperior({
-  seccion,
   inicio,
+  negocio,
+  pasos,
+  mejorar,
+  ayuda,
   indice,
   crear,
   avisos,
@@ -130,10 +166,10 @@ function BarraSuperior({
   usuario,
   perfil,
   salir,
-  conversaciones,
-  abrirCajon,
+  alternarMenu,
   cajonAbierto,
-}: PropsArmazon & { abrirCajon: () => void; cajonAbierto: boolean }) {
+  encogido,
+}: PropsArmazon & { alternarMenu: () => void; cajonAbierto: boolean; encogido: boolean }) {
   const tema = useTema();
   const [buscando, setBuscando] = useState(false);
   const campoMovil = useRef<HTMLInputElement>(null);
@@ -157,36 +193,70 @@ function BarraSuperior({
   ];
 
   return (
-    <header className="dash-barra">
-      <div className="dash-barra__inicio">
-        <BotonIcono etiqueta="Abrir el menú" icono="barra-lateral" className="dash-barra__cajon" onClick={abrirCajon} aria-expanded={cajonAbierto} />
-        <LogoBarra inicio={inicio} seccion={seccion} />
+    <header className="pnl-barra">
+      <div className="pnl-barra__inicio">
+        <BotonIcono
+          etiqueta={encogido ? "Mostrar los nombres del menú" : "Menú de Atendel"}
+          icono="barra-lateral"
+          onClick={alternarMenu}
+          aria-expanded={cajonAbierto || undefined}
+        />
+        <Logo inicio={inicio} />
+        <span className="pnl-barra__division" aria-hidden="true" />
+        <Menu
+          etiqueta={`${negocio.nombre}: tu plan`}
+          aspecto="libre"
+          claseDisparador="pnl-negocio pnl-picable"
+          disparador={
+            <>
+              <Avatar nombre={negocio.nombre} tam={24} />
+              <span className="pnl-negocio__nombre">{negocio.nombre}</span>
+              <span className="pnl-negocio__plan">
+                {negocio.plan}
+                <Icono nombre="chevron" tam={16} />
+              </span>
+            </>
+          }
+          elementos={negocio.menu}
+        />
       </div>
 
-      <div className="dash-barra__fin">
-        <BuscadorDashboard indice={indice} placeholder="Escribe / para buscar" className="dash-barra__buscador" />
-        <BotonIcono etiqueta="Buscar" icono="buscar" className="dash-barra__lupa" onClick={() => setBuscando(true)} aria-expanded={buscando} />
-        <span className="dash-barra__division" aria-hidden="true" />
+      <div className="pnl-barra__centro">
+        <BuscadorDashboard indice={indice} placeholder="Busca agentes, chats, correos o secciones" className="pnl-barra__buscador" />
+        <BotonIcono etiqueta="Buscar" icono="buscar" className="pnl-barra__lupa" onClick={() => setBuscando(true)} aria-expanded={buscando} />
+      </div>
+
+      <div className="pnl-barra__fin">
+        <PrimerosPasos pasos={pasos} />
         <Menu
-          etiqueta="Crear"
+          etiqueta="Nuevo"
           aspecto="libre"
           alineacion="fin"
-          claseDisparador="dash-crear"
+          className="pnl-barra__nuevo"
+          claseDisparador="pnl-nuevo pnl-picable"
           disparador={
             <>
               <Icono nombre="mas" tam={16} />
-              <Icono nombre="chevron" tam={16} className="dash-crear__chevron" />
+              <span className="pnl-nuevo__texto">Nuevo</span>
             </>
           }
           elementos={crear}
         />
         <Avisos avisos={avisos} ahora={ahora} alLeerTodos={alLeerAvisos} />
-        {conversaciones ? <BotonConversaciones accion={conversaciones} /> : null}
+        <Menu etiqueta="Ayuda" aspecto="icono" alineacion="fin" className="pnl-barra__ayuda" disparador={<Icono nombre="ayuda" tam={20} />} elementos={ayuda} />
+        {mejorar?.href ? (
+          <Boton variante="principal" tam="compacto" className="pnl-mejorar" href={mejorar.href}>
+            Mejorar plan
+          </Boton>
+        ) : mejorar?.alElegir ? (
+          <Boton variante="principal" tam="compacto" className="pnl-mejorar" onClick={mejorar.alElegir}>
+            Mejorar plan
+          </Boton>
+        ) : null}
         <Menu
           etiqueta="Tu cuenta"
           aspecto="avatar"
           alineacion="fin"
-          className="dash-barra__perfil"
           disparador={<Avatar nombre={usuario.nombre} src={usuario.foto} tam={32} />}
           encabezado={{ nombre: usuario.nombre, correo: usuario.correo, foto: usuario.foto, estado: usuario.estado }}
           elementos={elementosPerfil}
@@ -194,8 +264,8 @@ function BarraSuperior({
       </div>
 
       {buscando ? (
-        <div className="dash-barra__busqueda">
-          <BuscadorDashboard ref={campoMovil} indice={indice} atajo={false} alElegir={() => setBuscando(false)} className="dash-barra__busqueda-campo" />
+        <div className="pnl-barra__busqueda">
+          <BuscadorDashboard ref={campoMovil} indice={indice} atajo={false} alElegir={() => setBuscando(false)} className="pnl-barra__busqueda-campo" />
           <button type="button" className="dash-enlace" onClick={() => setBuscando(false)}>
             Cancelar
           </button>
@@ -205,51 +275,64 @@ function BarraSuperior({
   );
 }
 
-/** Conversaciones en la barra (como la bandeja): botón de ícono con borde y un punto si hay sin leer. */
-function BotonConversaciones({ accion }: { accion: Accion & { sinLeer?: number } }) {
-  const etiqueta = accion.sinLeer ? `Conversaciones: ${accion.sinLeer} sin leer` : "Conversaciones";
-  if (accion.href) {
-    return (
-      <Link href={accion.href} className="boton-icono boton-icono--capa boton-icono--compacto dash-barra__icono dash-barra__conv" aria-label={etiqueta} title="Conversaciones">
-        <Icono nombre="conversaciones" tam={20} />
-        {accion.sinLeer ? <Insignia punto tono="azul" sobre /> : null}
-      </Link>
-    );
-  }
-  return <BotonIcono etiqueta="Conversaciones" icono="conversaciones" punto={Boolean(accion.sinLeer)} etiquetaContador={etiqueta} onClick={accion.alElegir} className="dash-barra__conv" />;
-}
+/** El círculo de "Primeros pasos": cuántos van y, al abrirlo, cada paso con su lugar. */
+function PrimerosPasos({ pasos }: { pasos: PasoInicio[] }) {
+  const { abierto, setAbierto, cerrar, raiz, disparador, alSalirFoco } = usePopover<HTMLButtonElement>();
+  const id = `${useId().replace(/:/g, "")}-pasos`;
+  const listos = pasos.filter((p) => p.listo).length;
+  if (!pasos.length || listos === pasos.length) return null;
+  const pct = Math.round((listos / pasos.length) * 100);
 
-const UTILIDAD = [
-  { href: "/", etiqueta: "Inicio" },
-  { href: "/agentes", etiqueta: "Agentes" },
-  { href: "/precios", etiqueta: "Precios" },
-  { href: "/preguntas", etiqueta: "Preguntas" },
-  { href: "/preguntas#seguridad", etiqueta: "Tus datos" },
-];
-
-/** Pie mínimo, como el del dashboard de GitHub: marca, enlaces de utilidad y el modo. */
-function Pie() {
-  const tema = useTema();
   return (
-    <footer className="dash-pie">
-      <span className="dash-pie__marca">
-        <Marca className="dash-pie__logo" />
-        <span>© {new Date().getFullYear()} Atendel</span>
-      </span>
-      <nav aria-label="Enlaces de utilidad">
-        <ul className="dash-pie__enlaces">
-          {UTILIDAD.map((u) => (
-            <li key={u.href}>
-              <Link href={u.href}>{u.etiqueta}</Link>
+    <div ref={raiz} className="menu menu--fin" onBlur={alSalirFoco}>
+      <button
+        ref={disparador}
+        type="button"
+        className="pnl-pasos pnl-picable"
+        aria-expanded={abierto}
+        aria-controls={id}
+        aria-haspopup="dialog"
+        aria-label={`Primeros pasos: ${listos} de ${pasos.length} listos`}
+        onClick={() => setAbierto((v) => !v)}
+      >
+        <span className="pnl-pasos__anillo">
+          <Dona
+            partes={[{ id: "listos", valor: listos, color: "var(--c-exito)" }]}
+            total={pasos.length}
+            tam={28}
+            grosor={3}
+            etiqueta={`${pct}%`}
+            centro={<span className="cifras-app">{pct}</span>}
+          />
+        </span>
+        <span className="pnl-pasos__texto">Primeros pasos</span>
+        <Icono nombre="chevron" tam={16} />
+      </button>
+      <div id={id} role="dialog" aria-label="Primeros pasos" className="menu__panel pnl-pasos__panel" data-abierto={abierto ? "true" : undefined}>
+        <p className="pnl-pasos__titulo">Primeros pasos</p>
+        <p className="dash-nota">
+          {listos} de {pasos.length} listos. Cada paso te lleva a donde se hace.
+        </p>
+        <ul className="pnl-pasos__lista">
+          {pasos.map((p) => (
+            <li key={p.id}>
+              <Accionable accion={{ ...p, alElegir: p.alElegir ? () => (cerrar(false), p.alElegir?.()) : () => cerrar(false) }} className={`pnl-paso pnl-picable${p.listo ? " pnl-paso--listo" : ""}`}>
+                <span className="pnl-paso__marca" aria-hidden="true">
+                  {p.listo ? <Icono nombre="check" tam={16} /> : null}
+                </span>
+                <span>
+                  <span className="pnl-paso__titulo">
+                    {p.titulo}
+                    {p.listo ? <span className="sr-only"> (listo)</span> : null}
+                  </span>
+                  {p.detalle ? <span className="pnl-paso__detalle">{p.detalle}</span> : null}
+                </span>
+                {p.listo ? null : <Icono nombre="chevron-derecha" tam={16} />}
+              </Accionable>
             </li>
           ))}
-          <li>
-            <button type="button" onClick={() => ponerTema(tema === "oscuro" ? "claro" : "oscuro")}>
-              {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
-            </button>
-          </li>
         </ul>
-      </nav>
-    </footer>
+      </div>
+    </div>
   );
 }

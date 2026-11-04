@@ -13,6 +13,8 @@ export type Accion = { href?: string; alElegir?: () => void };
 
 export type IdVista =
   | "resumen"
+  | "pendientes"
+  | "estadisticas"
   | "actividad"
   | "conversaciones"
   | "agentes"
@@ -30,7 +32,33 @@ export type ElementoNav = Accion & {
   pronto?: boolean;
   contador?: number;
   etiquetaContador?: string;
+  /** Un grupo que se abre (›): sus elementos van debajo, con sangría. */
+  hijos?: SubElementoNav[];
 };
+
+/** Un elemento dentro de un grupo del menú: un agente, un chat en grupo, un ajuste. */
+export type SubElementoNav = Accion & {
+  id: string;
+  etiqueta: string;
+  /** Con su personaje (en lugar del ícono). */
+  agente?: IdAgente;
+  /** Un chat en grupo: los personajes encimados. */
+  agentes?: IdAgente[];
+  icono?: NombreIcono;
+  /** Gris, a la derecha del nombre ("Atención", "Con Atendel One"). */
+  detalle?: string;
+  estado?: Estado;
+  contador?: number;
+  bloqueado?: boolean;
+  pronto?: boolean;
+  actual?: boolean;
+};
+
+/** Un paso de "Primeros pasos" (el círculo de avance de la barra). */
+export type PasoInicio = Accion & { id: string; titulo: string; detalle?: string; listo: boolean };
+
+/** Una novedad de Atendel, al pie del menú (lleva a donde se usa). */
+export type NovedadLateral = Accion & { id: string; titulo: string };
 
 export type Estado = { tono: TonoEstado; etiqueta: string; pulso?: boolean };
 
