@@ -21,14 +21,16 @@ import {
   DEMO_CORREOS,
   DEMO_ESTADOS,
   DEMO_GRUPOS,
-  DEMO_METRICAS,
   DEMO_NEGOCIO,
-  DEMO_SEMANA_AGENTE,
   DEMO_USUARIA,
+  VISTAS_DEMO,
+  destinoDeParametros,
+  direccionDe,
   type CorreoDemo,
   type Destino,
-  type IdPestana,
+  type VistaDemo,
 } from "@/lib/demo-dashboard";
+import { cambio, diaLocal, horaLocal, type DatosEstadisticas } from "@/lib/estadisticas";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { ponerTema } from "@/lib/tema";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
@@ -38,9 +40,12 @@ import { UsoPlan } from "./Columna";
 import { FilaAgente } from "./FilaAgente";
 import { nombresAgentes } from "./nombres";
 import { VistaPendientes, type FiltroPendientes, type GrupoPendientes } from "./Pendientes";
-import { Accionable, Cifra, Hora, Tarjeta } from "./Piezas";
+import { Accionable, Cifra, Hora, Letra, Tarjeta, Vacio } from "./Piezas";
 import { VistaEstadisticasEjemplo } from "./estadisticas/VistaEstadisticasEjemplo";
-import { ResumenVista, type FilaPendiente } from "./Resumen";
+import { ResumenVista, coincideAccion, type FilaPendiente } from "./Resumen";
+import { VistaAjustes } from "./Ajustes";
+import { datosDeEjemplo } from "./estadisticas/ejemplo";
+import { rangoHora } from "./estadisticas/formato";
 import { useAhora } from "./tiempo";
 import type { ElementoNav, IdVista, NovedadLateral, PasoInicio, ResultadoBusqueda } from "./tipos";
 import { useTema } from "./useTema";
@@ -54,8 +59,7 @@ import { useTema } from "./useTema";
    Nada aquí llama a la IA: el chat es el guion local de ChatDemo.
    ===================================================================== */
 
-type VistaDemo = Extract<IdVista, "resumen" | "pendientes" | "estadisticas" | "actividad" | "conversaciones" | "agentes" | "correo">;
-const VISTAS: VistaDemo[] = ["resumen", "pendientes", "estadisticas", "actividad", "conversaciones", "agentes", "correo"];
+const VISTAS = VISTAS_DEMO;
 const NOMBRE_VISTA: Record<VistaDemo, string> = {
   resumen: "Inicio",
   pendientes: "Pendientes",
@@ -64,6 +68,7 @@ const NOMBRE_VISTA: Record<VistaDemo, string> = {
   conversaciones: "Chat",
   agentes: "Agentes",
   correo: "Correo",
+  ajustes: "Ajustes",
 };
 const ICONO_VISTA = {
   resumen: "inicio",
@@ -73,6 +78,7 @@ const ICONO_VISTA = {
   conversaciones: "conversaciones",
   agentes: "agentes",
   correo: "correo",
+  ajustes: "ajustes",
 } as const;
 
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
@@ -80,55 +86,30 @@ const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 /** Lo que el inicio le pasa al chat de ejemplo: un texto para enviar o abrir "Nuevo grupo". */
 type Encargo = { texto?: string; grupo?: boolean; n: number };
 
-/** La dirección de un destino (?vista=…&agente=…). El inicio es /pruebalo a secas. */
-function direccionDe(d: Destino) {
-  const p = new URLSearchParams();
-  if (d.vista !== "resumen") p.set("vista", d.vista);
-  if (d.con) p.set("con", d.con);
-  if (d.agente) p.set("agente", d.agente);
-  if (d.de) p.set("de", d.de);
-  if (d.tipo) p.set("tipo", d.tipo);
-  if (d.pestana && d.vista === "actividad") p.set("pestana", d.pestana);
-  const q = p.toString();
-  return q ? `?${q}` : "";
-}
-
-/** Lee la dirección (también la de antes, con #agentes). Los avisos viejos de "visto bueno" van a Pendientes. */
-function leerDireccion(): Destino {
-  const p = new URLSearchParams(window.location.search);
-  const h = window.location.hash.replace("#", "");
-  let vista = (p.get("vista") ?? h) as VistaDemo;
-  if (!VISTAS.includes(vista)) vista = "resumen";
-  const agente = p.get("agente");
-  return {
-    vista,
-    con: p.get("con") ?? undefined,
-    agente: esIdAgente(agente) ? agente : undefined,
-    de: p.get("de") ?? undefined,
-    tipo: p.get("tipo") ?? undefined,
-    pestana: (p.get("pestana") as IdPestana | null) ?? undefined,
-  };
-}
+/** La dirección actual como destino. */
+const leerDireccion = () => destinoDeParametros(new URLSearchParams(window.location.search), window.location.hash);
 
 /** Los destinos guardados en los datos de ejemplo hablan de "actividad · visto bueno": hoy eso vive en Pendientes. */
-function normalizar(d: Destino): Destino {
+function normalizarDestino(d: Destino): Destino {
   if (d.vista === "actividad" && d.pestana === "visto-bueno") return { vista: "pendientes", tipo: "visto-bueno" };
   return d;
 }
 
 const clave = (direccion: string) => `/pruebalo${direccion}`;
 
-export function PruebaloDashboard({ version }: { version?: string }) {
+export function PruebaloDashboard({ version, inicial }: { version?: string; /** La vista pedida en la dirección (la lee la página en el servidor: no se pinta antes el inicio). */ inicial?: Destino }) {
   const ahora = useAhora();
   const tema = useTema();
-  const [destino, setDestino] = useState<Destino>({ vista: "resumen" });
+  const [destino, setDestino] = useState<Destino>(() => normalizarDestino(inicial ?? { vista: "resumen" }));
+  /** Cambia solo cuando se llega al chat desde fuera: así el chat de ejemplo se monta de nuevo en esa conversación. */
+  const [montajeChat, setMontajeChat] = useState(0);
   const [aprobados, setAprobados] = useState<Set<string>>(() => new Set());
   /** Lo que se pidió desde el inicio: el chat de ejemplo envía el texto (o abre "Nuevo grupo") al abrir. */
   const [pedido, setPedido] = useState<Encargo | null>(null);
   const [avisosLeidos, setAvisosLeidos] = useState(false);
   const [anterior, setAnterior] = useState<"no" | "cargando" | "si">("no");
   const temporizador = useRef<number | undefined>(undefined);
-  const pintada = useRef(clave(""));
+  const pintada = useRef(clave(direccionDe(destino)));
 
   const vista = destino.vista as VistaDemo;
   const direccion = direccionDe(destino);
@@ -141,12 +122,15 @@ export function PruebaloDashboard({ version }: { version?: string }) {
 
   // La dirección manda al entrar (?vista=agentes) y con atrás/adelante
   useEffect(() => {
-    setDestino(leerDireccion());
+    // La página ya trae la vista de la dirección; esto solo cubre la forma de antes (#agentes)
+    const d0 = normalizarDestino(leerDireccion());
+    setDestino((actual) => (direccionDe(actual) === direccionDe(d0) ? actual : d0));
     const alVolver = () => {
-      const d = leerDireccion();
+      const d = normalizarDestino(leerDireccion());
       conTransicion(pintada.current, () => {
         setDestino(d);
         setPedido(null);
+        setMontajeChat((n) => n + 1);
       }, clave(direccionDe(d)));
     };
     window.addEventListener("popstate", alVolver);
@@ -157,7 +141,7 @@ export function PruebaloDashboard({ version }: { version?: string }) {
   }, []);
 
   const ir = useCallback((d0: Destino, encargo?: Encargo) => {
-    const d = normalizar(d0);
+    const d = normalizarDestino(d0);
     if (!VISTAS.includes(d.vista as VistaDemo)) return;
     const nueva = direccionDe(d);
     const desde = `${window.location.search}`;
@@ -165,6 +149,7 @@ export function PruebaloDashboard({ version }: { version?: string }) {
       if (nueva !== desde || window.location.hash) window.history.pushState(null, "", `${window.location.pathname}${nueva}`);
       setDestino(d);
       setPedido(encargo ?? null);
+      if (d.vista === "conversaciones") setMontajeChat((n) => n + 1);
       requestAnimationFrame(() => window.scrollTo({ top: 0 }));
     };
     // Misma dirección: no hay vista que cambiar (solo el encargo para el chat, si lo hay)
@@ -177,12 +162,23 @@ export function PruebaloDashboard({ version }: { version?: string }) {
 
   const a = useCallback((d: Destino) => () => ir(d), [ir]);
 
+  /** Elegir otra conversación dentro del chat de ejemplo: la dirección la sigue (atrás y recargar la respetan). */
+  const alAbrirChat = useCallback((id: string | null) => {
+    const d: Destino = id ? { vista: "conversaciones", con: id } : { vista: "conversaciones" };
+    const nueva = direccionDe(d);
+    if (nueva === window.location.search) return;
+    window.history.pushState(null, "", `${window.location.pathname}${nueva}`);
+    setDestino(d);
+  }, []);
+
   /** La caja grande: abre el chat y el chat de ejemplo envía el texto (guion local, sin IA). */
   const pedir = useCallback((texto: string, con: string) => ir({ vista: "conversaciones", con }, { texto, n: Date.now() }), [ir]);
   const nuevoGrupo = useCallback(() => ir({ vista: "conversaciones", con: "recepcion" }, { grupo: true, n: Date.now() }), [ir]);
 
   /* ---------- Armazón ---------- */
 
+  /** Los números de la semana salen de las mismas estadísticas de ejemplo que la vista Estadísticas (7 días). */
+  const est7 = useMemo(() => datosDeEjemplo("7d"), []);
   const vistoBueno = DEMO_APROBACIONES.filter((p) => !aprobados.has(p.id)).length;
   const correosConAccion = DEMO_CORREOS.filter((c) => c.accion);
   const sinLeer = DEMO_CONVERSACIONES.filter((c) => c.sinLeer);
@@ -219,12 +215,12 @@ export function PruebaloDashboard({ version }: { version?: string }) {
     { id: "estadisticas", etiqueta: "Estadísticas", icono: "grafica", alElegir: a({ vista: "estadisticas" }) },
     { id: "correo", etiqueta: "Correo", icono: "correo", alElegir: a({ vista: "correo" }) },
     {
-      id: "configuracion",
+      id: "ajustes",
       etiqueta: "Ajustes",
       icono: "ajustes",
-      href: "/precios",
+      alElegir: a({ vista: "ajustes" }),
       hijos: [
-        { id: "plan", etiqueta: "Plan y uso", icono: "facturacion", href: "/precios" },
+        { id: "plan", etiqueta: "Plan y uso", icono: "facturacion", alElegir: a({ vista: "ajustes" }) },
         { id: "gmail", etiqueta: "Conectar Gmail", icono: "correo", alElegir: a({ vista: "correo" }) },
         { id: "tema", etiqueta: tema === "oscuro" ? "Modo claro" : "Modo oscuro", icono: tema === "oscuro" ? "sol" : "luna", alElegir: () => ponerTema(tema === "oscuro" ? "claro" : "oscuro") },
         { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", pronto: true },
@@ -244,13 +240,13 @@ export function PruebaloDashboard({ version }: { version?: string }) {
     { id: "conversaciones", etiqueta: "Chat", icono: "conversaciones", alElegir: a({ vista: "conversaciones" }) },
     { id: "correo", etiqueta: "Correo", descripcion: "Lo que Clara leyó hoy", icono: "correo", alElegir: a({ vista: "correo" }) },
     { tipo: "separador" },
-    { id: "plan", etiqueta: "Plan y facturación", descripcion: `${PLAN.nombre} (ejemplo)`, icono: "facturacion", href: "/precios" },
+    { id: "plan", etiqueta: "Plan y facturación", descripcion: `${PLAN.nombre} (ejemplo)`, icono: "facturacion", alElegir: a({ vista: "ajustes" }) },
   ];
 
   const formato = new Intl.NumberFormat("es-MX");
   const menuNegocio: ElementoMenu[] = [
     { tipo: "titulo", etiqueta: `${DEMO_NEGOCIO.nombre} (ejemplo)` },
-    { id: "plan", etiqueta: "Ver mi plan y uso", descripcion: `${PLAN.nombre} · ${formato.format(DEMO_NEGOCIO.mensajesUsados)} de ${formato.format(PLAN.mensajesMes)} mensajes`, icono: "facturacion", href: "/precios" },
+    { id: "plan", etiqueta: "Ver mi plan y uso", descripcion: `${PLAN.nombre} · ${formato.format(DEMO_NEGOCIO.mensajesUsados)} de ${formato.format(PLAN.mensajesMes)} mensajes`, icono: "facturacion", alElegir: a({ vista: "ajustes" }) },
     { id: "planes", etiqueta: "Ver los planes", descripcion: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
     { id: "negocio", etiqueta: "Datos de mi negocio", icono: "negocio", pronto: true },
   ];
@@ -358,7 +354,18 @@ export function PruebaloDashboard({ version }: { version?: string }) {
     >
       <div key={vista} className="dash-entra">
         {vista === "resumen" ? (
-          <Resumen ahora={ahora} ir={ir} a={a} pedir={pedir} nuevoGrupo={nuevoGrupo} vistoBueno={vistoBueno} total={totalPendientes} aprobados={aprobados} />
+          <Resumen ahora={ahora} ir={ir} a={a} pedir={pedir} nuevoGrupo={nuevoGrupo} vistoBueno={vistoBueno} total={totalPendientes} aprobados={aprobados} est={est7} />
+        ) : null}
+        {vista === "ajustes" ? (
+          <VistaAjustes
+            plan={PLAN}
+            usados={DEMO_NEGOCIO.mensajesUsados}
+            conGmail={false}
+            gmail={{ alElegir: a({ vista: "correo" }) }}
+            equipo={{ alElegir: a({ vista: "agentes" }) }}
+            planes={{ href: "/precios" }}
+            marca={MARCA_EJEMPLO}
+          />
         ) : null}
         {vista === "pendientes" ? <VistaPendientesDemo ahora={ahora} a={a} destino={destino} aprobados={aprobados} setAprobados={setAprobados} /> : null}
         {vista === "estadisticas" ? <VistaEstadisticasEjemplo ir={ir} insignia={MARCA_EJEMPLO} /> : null}
@@ -366,6 +373,7 @@ export function PruebaloDashboard({ version }: { version?: string }) {
           <VistaActividad
             ahora={ahora}
             ir={ir}
+            destino={destino}
             anterior={anterior}
             verAnterior={() => {
               setAnterior("cargando");
@@ -373,9 +381,9 @@ export function PruebaloDashboard({ version }: { version?: string }) {
             }}
           />
         ) : null}
-        {vista === "conversaciones" ? <VistaConversaciones chatCon={destino.con ?? null} pedido={pedido} /> : null}
-        {vista === "agentes" ? <VistaAgentes ir={ir} enfocado={destino.agente} /> : null}
-        {vista === "correo" ? <VistaCorreo ahora={ahora} ir={ir} de={destino.de} /> : null}
+        {vista === "conversaciones" ? <VistaConversaciones montaje={montajeChat} pedido={pedido} alAbrir={alAbrirChat} /> : null}
+        {vista === "agentes" ? <VistaAgentes ir={ir} enfocado={destino.agente} est={est7} /> : null}
+        {vista === "correo" ? <VistaCorreo ahora={ahora} ir={ir} de={destino.de} pedir={pedir} /> : null}
       </div>
     </Armazon>
   );
@@ -406,12 +414,14 @@ const MODOS: ModoPedido[] = [
   { id: "reporte", etiqueta: "Preparar un reporte", icono: "documento", texto: "Prepara un reporte de ", opcion: "iris" },
 ];
 
-/** "86 WhatsApp" → 86 y "WhatsApp esta semana". */
-function datoSemana(id: IdAgente) {
-  const m = DEMO_SEMANA_AGENTE[id][0];
-  const [n, ...resto] = m.texto.split(" ");
-  return { cifra: Number(n), unidad: `${resto.join(" ")} esta semana` };
+/** Lo que hizo cada agente en los últimos 7 días (las mismas cuentas que Estadísticas). */
+function datoSemana(est: DatosEstadisticas, id: IdAgente) {
+  const fila = est.porAgente.find((f) => f.agente === id);
+  return { cifra: fila ? fila.mensajes : null, unidad: "mensajes en 7 días" };
 }
+
+/** A Estadísticas en 7 días, con la métrica (y el agente) de ese número. */
+const aEstadisticas = (metrica: string, agente?: IdAgente): Destino => ({ vista: "estadisticas", periodo: "7d", metrica, ...(agente ? { agente } : {}) });
 
 /** Lo que espera algo de ti en el ejemplo, ya con a dónde lleva cada cosa. */
 function filasPendientes(aprobados: Set<string>, a: (d: Destino) => () => void) {
@@ -430,6 +440,7 @@ function filasPendientes(aprobados: Set<string>, a: (d: Destino) => () => void) 
     titulo: `${c.remitente}: ${c.asunto}`,
     detalle: `Clara sugiere: ${c.accion}`,
     quien: c.remitente,
+    accion: c.accion,
     haceMin: c.haceMin,
     insignia: c.prioridad === "urgente" ? { tono: "error", texto: "Urgente" } : undefined,
     alElegir: a({ vista: "correo", de: c.remitente }),
@@ -455,6 +466,7 @@ function Resumen({
   vistoBueno,
   total,
   aprobados,
+  est,
 }: {
   ahora: Date | null;
   ir: (d: Destino) => void;
@@ -464,10 +476,12 @@ function Resumen({
   vistoBueno: number;
   total: number;
   aprobados: Set<string>;
+  /** Las estadísticas de ejemplo de 7 días: los mismos números que en la vista Estadísticas. */
+  est: DatosEstadisticas;
 }) {
   const filas = filasPendientes(aprobados, a);
   const mezcla = [...filas.vistoBueno.slice(0, 2), ...filas.correos.slice(0, 2), ...filas.conversaciones.slice(0, 1)];
-  const metrica = (id: string) => DEMO_METRICAS.find((m) => m.id === id);
+  const dato = (id: "mensajes" | "conversaciones" | "correos") => ({ valor: est.totales[id], delta: cambio(est.totales[id], est.totalesAnteriores[id]), alElegir: a(aEstadisticas(id)) });
 
   return (
     <ResumenVista
@@ -509,18 +523,18 @@ function Resumen({
           ]}
         />
       }
-      agentes={IDS_AGENTES.map((id) => ({ id, estado: DEMO_ESTADOS[id], ...datoSemana(id), alElegir: a({ vista: "agentes", agente: id }) }))}
+      agentes={IDS_AGENTES.map((id) => ({ id, estado: DEMO_ESTADOS[id], ...datoSemana(est, id), alElegir: a({ vista: "agentes", agente: id }) }))}
       verAgentes={{ alElegir: a({ vista: "agentes" }) }}
       pendientes={{ total, filas: mezcla, accion: { alElegir: a({ vista: "pendientes" }) } }}
       estadisticas={{
-        periodo: "Esta semana contra la anterior",
-        accion: { alElegir: a({ vista: "estadisticas" }) },
-        uso: { usados: DEMO_NEGOCIO.mensajesUsados, limite: PLAN.mensajesMes, plan: `${PLAN.nombre} · este mes`, alElegir: a({ vista: "estadisticas" }) },
+        periodo: "7 días contra los 7 anteriores",
+        accion: { alElegir: a({ vista: "estadisticas", periodo: "7d" }) },
+        uso: { usados: DEMO_NEGOCIO.mensajesUsados, limite: PLAN.mensajesMes, plan: `${PLAN.nombre} · este mes`, alElegir: a({ vista: "estadisticas", periodo: "mes", metrica: "uso" }) },
         cifras: [
-          { id: "whatsapp", etiqueta: metrica("whatsapp")?.etiqueta ?? "WhatsApp contestados", icono: "mensaje", valor: metrica("whatsapp")?.valor ?? null, delta: metrica("whatsapp")?.delta, alElegir: a({ vista: "estadisticas" }) },
-          { id: "citas", etiqueta: metrica("citas")?.etiqueta ?? "Citas agendadas", icono: "calendario", valor: metrica("citas")?.valor ?? null, delta: metrica("citas")?.delta, alElegir: a({ vista: "estadisticas" }) },
-          { id: "correos", etiqueta: metrica("correos")?.etiqueta ?? "Correos leídos", icono: "correo", valor: metrica("correos")?.valor ?? null, delta: metrica("correos")?.delta, alElegir: a({ vista: "estadisticas" }) },
-          { id: "visto-bueno", etiqueta: "Esperan tu visto bueno", icono: "check-circulo", valor: vistoBueno, alElegir: a({ vista: "pendientes", tipo: "visto-bueno" }) },
+          { id: "mensajes", etiqueta: "Mensajes", icono: "mensaje", ...dato("mensajes") },
+          { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", ...dato("conversaciones") },
+          { id: "correos", etiqueta: "Correos resumidos", icono: "correo", ...dato("correos") },
+          { id: "visto-bueno", etiqueta: "Esperan tu visto bueno", icono: "check-circulo", valor: vistoBueno, delta: null, alElegir: a({ vista: "pendientes", tipo: "visto-bueno" }) },
         ],
       }}
     />
@@ -529,6 +543,8 @@ function Resumen({
 
 /* =====================================================================
    PENDIENTES: visto bueno, correos con acción y conversaciones sin leer.
+   Filtros en la dirección: &tipo=, &de= (remitente) y &accion= (la acción
+   sugerida, desde Estadísticas o desde Correo).
    ===================================================================== */
 
 function VistaPendientesDemo({
@@ -545,7 +561,8 @@ function VistaPendientesDemo({
   setAprobados: Dispatch<SetStateAction<Set<string>>>;
 }) {
   const { vistoBueno, correos, conversaciones } = filasPendientes(aprobados, a);
-  const { tipo, de } = destino;
+  const { tipo, de, accion } = destino;
+  const soloCorreos = Boolean(de || accion);
   const aprobar = (id: string) => setAprobados((s) => new Set(s).add(id));
   const deshacer = (id: string) =>
     setAprobados((s) => {
@@ -554,9 +571,9 @@ function VistaPendientesDemo({
       return n;
     });
 
-  const correosDe = de ? correos.filter((c) => c.quien === de) : correos;
+  const correosDe = correos.filter((c) => (!de || c.quien === de) && (!accion || coincideAccion(c.accion, accion)));
   const grupos: GrupoPendientes[] = [];
-  if (!de && (!tipo || tipo === "visto-bueno")) {
+  if (!soloCorreos && (!tipo || tipo === "visto-bueno")) {
     grupos.push({
       id: "visto-bueno",
       titulo: "Esperan tu visto bueno",
@@ -583,7 +600,7 @@ function VistaPendientesDemo({
       ),
     });
   }
-  if (!tipo || tipo === "correos" || de) {
+  if (!tipo || tipo === "correos" || soloCorreos) {
     const porRemitente = new Map<string, FilaPendiente[]>();
     correosDe.forEach((c) => porRemitente.set(c.quien ?? "", [...(porRemitente.get(c.quien ?? "") ?? []), c]));
     if (correosDe.length) {
@@ -596,44 +613,93 @@ function VistaPendientesDemo({
       });
     }
   }
-  if (!de && (!tipo || tipo === "sin-leer")) {
+  if (!soloCorreos && (!tipo || tipo === "sin-leer")) {
     grupos.push({ id: "sin-leer", titulo: "Conversaciones sin leer", icono: "conversaciones", total: conversaciones.length, filas: conversaciones });
   }
 
   const filtros: FiltroPendientes[] = [
-    { id: "todos", etiqueta: "Todos", cuenta: vistoBueno.length + correos.length + conversaciones.length, alElegir: a({ vista: "pendientes" }), actual: !tipo && !de },
-    { id: "visto-bueno", etiqueta: "Visto bueno", cuenta: vistoBueno.length, alElegir: a({ vista: "pendientes", tipo: "visto-bueno" }), actual: tipo === "visto-bueno" },
-    { id: "correos", etiqueta: "Correos", cuenta: correos.length, alElegir: a({ vista: "pendientes", tipo: "correos" }), actual: tipo === "correos" && !de },
-    { id: "sin-leer", etiqueta: "Sin leer", cuenta: conversaciones.length, alElegir: a({ vista: "pendientes", tipo: "sin-leer" }), actual: tipo === "sin-leer" },
+    { id: "todos", etiqueta: "Todos", cuenta: vistoBueno.length + correos.length + conversaciones.length, alElegir: a({ vista: "pendientes" }), actual: !tipo && !soloCorreos },
+    { id: "visto-bueno", etiqueta: "Visto bueno", cuenta: vistoBueno.length, alElegir: a({ vista: "pendientes", tipo: "visto-bueno" }), actual: tipo === "visto-bueno" && !soloCorreos },
+    { id: "correos", etiqueta: "Correos", cuenta: correos.length, alElegir: a({ vista: "pendientes", tipo: "correos" }), actual: tipo === "correos" && !soloCorreos },
+    { id: "sin-leer", etiqueta: "Sin leer", cuenta: conversaciones.length, alElegir: a({ vista: "pendientes", tipo: "sin-leer" }), actual: tipo === "sin-leer" && !soloCorreos },
+  ];
+  // Quitar un filtro deja el otro puesto
+  const quitar = [
+    ...(de ? [{ etiqueta: `De: ${de}`, alElegir: a({ vista: "pendientes", tipo: "correos", ...(accion ? { accion } : {}) }) }] : []),
+    ...(accion ? [{ etiqueta: `Acción: ${accion}`, alElegir: a({ vista: "pendientes", tipo: "correos", ...(de ? { de } : {}) }) }] : []),
   ];
 
   return (
     <VistaPendientes
       grupos={grupos}
       filtros={filtros}
-      quitarFiltro={de ? { etiqueta: `De: ${de}`, alElegir: a({ vista: "pendientes" }) } : undefined}
+      quitarFiltros={quitar}
       ahora={ahora}
       actividad={{ alElegir: a({ vista: "actividad" }) }}
       marca={MARCA_EJEMPLO}
+      vacio={
+        soloCorreos ? (
+          <Vacio
+            icono="correo"
+            titulo={accion ? `Ningún correo de hoy pide «${accion}»` : `Ningún correo de ${de} espera algo de ti`}
+            texto="En el ejemplo, Clara leyó 23 correos hoy; estos son los que traen una acción sugerida."
+            accion={
+              <button type="button" className="dash-enlace" onClick={a({ vista: "pendientes", tipo: "correos" })}>
+                Ver todos los correos pendientes
+              </button>
+            }
+          />
+        ) : undefined
+      }
     />
   );
 }
 
 /* =====================================================================
    ACTIVIDAD (como "Feed"): todo lo que hizo tu equipo, con el detalle.
+   Filtros en la dirección: &agente=, &hora= (0–23) y &dia= (AAAA-MM-DD),
+   en la hora de México, como las Estadísticas.
    ===================================================================== */
 
-function VistaActividad({ ahora, ir, anterior, verAnterior }: { ahora: Date | null; ir: (d: Destino) => void; anterior: "no" | "cargando" | "si"; verAnterior: () => void }) {
+const fechaDia = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+/** "2026-11-04" → "miércoles 4 de noviembre". */
+export const nombreDia = (dia: string) => fechaDia.format(new Date(`${dia}T12:00:00Z`));
+
+function VistaActividad({
+  ahora,
+  ir,
+  destino,
+  anterior,
+  verAnterior,
+}: {
+  ahora: Date | null;
+  ir: (d: Destino) => void;
+  destino: Destino;
+  anterior: "no" | "cargando" | "si";
+  verAnterior: () => void;
+}) {
+  const { agente, hora, dia } = destino;
   // Menos insignias: el texto del evento ya dice lo mismo
   const conAccion = <T extends { ir?: Destino; accion?: { etiqueta: string } }>(e: T) => ({
     ...e,
     insignia: undefined,
     accion: e.accion && e.ir ? { ...e.accion, alElegir: () => ir(e.ir as Destino) } : undefined,
   });
-  const eventos = [...DEMO_ACTIVIDAD, ...(anterior === "si" ? DEMO_ACTIVIDAD_ANTERIOR : [])].map(conAccion);
+  const referencia = (ahora ?? new Date()).getTime();
+  const todos = [...DEMO_ACTIVIDAD, ...(anterior === "si" || hora !== undefined || dia ? DEMO_ACTIVIDAD_ANTERIOR : [])];
+  const eventos = todos
+    .filter((e) => {
+      if (agente && e.agente !== agente && e.con !== agente) return false;
+      if (hora === undefined && !dia) return true;
+      const cuando = new Date(referencia - (e.haceMin ?? 0) * 60_000);
+      return (hora === undefined || horaLocal(cuando) === hora) && (!dia || diaLocal(cuando) === dia);
+    })
+    .map(conAccion);
+  const filtrado = Boolean(agente || hora !== undefined || dia);
+  const sin = (cambio: Partial<Destino>) => ({ vista: "actividad" as const, ...(agente ? { agente } : {}), ...(hora !== undefined ? { hora } : {}), ...(dia ? { dia } : {}), ...cambio });
 
   const pieActividad =
-    anterior === "si" ? (
+    filtrado ? null : anterior === "si" ? (
       <p className="dash-feed__fin">Es toda la actividad de ejemplo de esta semana.</p>
     ) : (
       <div className="dash-feed__mas">
@@ -651,13 +717,43 @@ function VistaActividad({ ahora, ir, anterior, verAnterior }: { ahora: Date | nu
           {MARCA_EJEMPLO}
         </h1>
       </header>
+      <div className="pnl-filtros" role="group" aria-label="Filtrar la actividad">
+        <button type="button" className={`pnl-filtro pnl-picable${agente ? "" : " pnl-filtro--actual"}`} aria-pressed={!agente} onClick={() => ir(sin({ agente: undefined }))}>
+          Todo el equipo
+        </button>
+        {IDS_AGENTES.map((id) => (
+          <button key={id} type="button" className={`pnl-filtro pnl-picable${agente === id ? " pnl-filtro--actual" : ""}`} aria-pressed={agente === id} onClick={() => ir(sin({ agente: id }))}>
+            {AGENTE_POR_ID[id].nombre}
+          </button>
+        ))}
+        {hora !== undefined ? (
+          <button type="button" className="pnl-filtro pnl-filtro--quitar pnl-picable" aria-label={`Quitar el filtro: de ${rangoHora(hora)}`} onClick={() => ir(sin({ hora: undefined }))}>
+            De {rangoHora(hora)}
+            <Icono nombre="cerrar" tam={16} />
+          </button>
+        ) : null}
+        {dia ? (
+          <button type="button" className="pnl-filtro pnl-filtro--quitar pnl-picable" aria-label={`Quitar el filtro: ${nombreDia(dia)}`} onClick={() => ir(sin({ dia: undefined }))}>
+            {nombreDia(dia)}
+            <Icono nombre="cerrar" tam={16} />
+          </button>
+        ) : null}
+      </div>
       <section className="pnl-tarjeta dash-actividad" aria-label="Actividad de tu equipo">
-        <Pestanas
-          etiqueta="Actividad de tu equipo"
-          alineacion="izquierda"
-          classNamePanel="dash-actividad__panel"
-          pestanas={[{ id: "actividad", etiqueta: "Todo", contenido: <LineaTiempo eventos={eventos} ahora={ahora} pie={pieActividad} /> }]}
-        />
+        {eventos.length ? (
+          <LineaTiempo eventos={eventos} ahora={ahora} pie={pieActividad} />
+        ) : (
+          <Vacio
+            icono="reloj"
+            titulo="Nada con ese filtro en la actividad de ejemplo"
+            texto="La actividad de ejemplo cubre esta semana. Quita un filtro para ver más."
+            accion={
+              <button type="button" className="dash-enlace" onClick={() => ir({ vista: "actividad" })}>
+                Ver toda la actividad
+              </button>
+            }
+          />
+        )}
       </section>
     </div>
   );
@@ -665,26 +761,27 @@ function VistaActividad({ ahora, ir, anterior, verAnterior }: { ahora: Date | nu
 
 /* =====================================================================
    CHAT: el chat de ejemplo (ChatDemo) dentro del armazón, en su tarjeta.
-   Se monta de nuevo al pedir otro chat (?con=lola) para que abra directo
-   en esa conversación.
+   Lee ?con= al montarse; al elegir otra conversación adentro, avisa para
+   que la dirección la siga. Se monta de nuevo solo al llegar desde fuera.
    ===================================================================== */
 
-function VistaConversaciones({ chatCon, pedido }: { chatCon: string | null; pedido: Encargo | null }) {
+function VistaConversaciones({ montaje, pedido, alAbrir }: { montaje: number; pedido: Encargo | null; alAbrir: (id: string | null) => void }) {
   return (
     <div className="dash-vista-chat dash-vista-chat--lleno pnl-chat-marco">
       <h1 className="sr-only">Chat</h1>
       <div className="dash-vista-chat__marco">
-        <ChatDemo key={`${chatCon ?? "inicio"}-${pedido?.n ?? 0}`} pedido={pedido?.texto} nuevoGrupo={pedido?.grupo} nombre={DEMO_USUARIA.nombre.split(" ")[0]} />
+        <ChatDemo key={`${montaje}-${pedido?.n ?? 0}`} pedido={pedido?.texto} nuevoGrupo={pedido?.grupo} nombre={DEMO_USUARIA.nombre.split(" ")[0]} alAbrir={alAbrir} />
       </div>
     </div>
   );
 }
 
 /* =====================================================================
-   AGENTES: el equipo en tarjetas grandes; ?agente=lola lo marca.
+   AGENTES: el equipo en tarjetas grandes; ?agente=lola lo marca. Los
+   números de cada uno son los de Estadísticas en 7 días y llevan ahí.
    ===================================================================== */
 
-function VistaAgentes({ ir, enfocado }: { ir: (d: Destino) => void; enfocado?: IdAgente }) {
+function VistaAgentes({ ir, enfocado, est }: { ir: (d: Destino) => void; enfocado?: IdAgente; est: DatosEstadisticas }) {
   useEffect(() => {
     if (!enfocado) return;
     const el = document.getElementById(`agente-${enfocado}`);
@@ -712,41 +809,46 @@ function VistaAgentes({ ir, enfocado }: { ir: (d: Destino) => void; enfocado?: I
         ) : null}
       </header>
       <ul className="pnl-fichas">
-        {IDS_AGENTES.map((id) => (
-          <FilaAgente
-            key={id}
-            id={id}
-            enfocado={enfocado === id}
-            insignias={
-              <Insignia tono="exito" conPunto>
-                En tu equipo
-              </Insignia>
-            }
-            datos={DEMO_SEMANA_AGENTE[id].map((m, i) => {
-              const [n, ...resto] = m.texto.split(" ");
-              return (
-                <Accionable key={m.texto} accion={{ alElegir: () => ir(id === "clara" ? { vista: "correo" } : { vista: "conversaciones", con: id }) }} className="pnl-ficha__dato pnl-picable">
-                  <Icono nombre={m.icono} tam={16} />
-                  <Cifra valor={Number(n)} indice={i} className="pnl-ficha__cifra" />
-                  <span>{resto.join(" ")} esta semana</span>
+        {IDS_AGENTES.map((id) => {
+          const fila = est.porAgente.find((f) => f.agente === id);
+          const datos = [
+            { metrica: "mensajes", icono: "mensaje" as const, valor: fila?.mensajes ?? null, texto: "mensajes en 7 días" },
+            { metrica: "conversaciones", icono: "conversaciones" as const, valor: fila?.conversaciones ?? null, texto: "conversaciones en 7 días" },
+          ];
+          return (
+            <FilaAgente
+              key={id}
+              id={id}
+              enfocado={enfocado === id}
+              insignias={
+                <Insignia tono="exito" conPunto>
+                  En tu equipo
+                </Insignia>
+              }
+              datos={datos.map((d, i) => (
+                <Accionable key={d.metrica} accion={{ alElegir: () => ir(aEstadisticas(d.metrica, id)) }} className="pnl-ficha__dato pnl-picable">
+                  <Icono nombre={d.icono} tam={16} />
+                  <Cifra valor={d.valor} indice={i} className="pnl-ficha__cifra" />
+                  <span>{d.texto}</span>
                 </Accionable>
-              );
-            })}
-            estado={<PuntoEstado tono={DEMO_ESTADOS[id].tono} etiqueta={DEMO_ESTADOS[id].etiqueta} mostrarEtiqueta pulso={DEMO_ESTADOS[id].pulso} />}
-            acciones={
-              <Boton variante="principal" tam="compacto" icono={<Icono nombre="mensaje" tam={16} />} onClick={() => ir({ vista: "conversaciones", con: id })}>
-                Hablar con {AGENTE_POR_ID[id].nombre}
-              </Boton>
-            }
-          />
-        ))}
+              ))}
+              estado={<PuntoEstado tono={DEMO_ESTADOS[id].tono} etiqueta={DEMO_ESTADOS[id].etiqueta} mostrarEtiqueta pulso={DEMO_ESTADOS[id].pulso} />}
+              acciones={
+                <Boton variante="principal" tam="compacto" icono={<Icono nombre="mensaje" tam={16} />} onClick={() => ir({ vista: "conversaciones", con: id })}>
+                  Hablar con {AGENTE_POR_ID[id].nombre}
+                </Boton>
+              }
+            />
+          );
+        })}
       </ul>
     </div>
   );
 }
 
 /* =====================================================================
-   CORREO: lo que Clara leyó hoy, por urgencia; ?de=… filtra por remitente.
+   CORREO: lo que Clara leyó hoy, por urgencia; ?de=… filtra por
+   remitente. Cada correo se abre para ver qué hacer con él.
    ===================================================================== */
 
 const PRIORIDADES: { id: CorreoDemo["prioridad"]; titulo: string; insignia?: { tono: "error" | "atencion" | "neutra"; texto: string } }[] = [
@@ -756,8 +858,9 @@ const PRIORIDADES: { id: CorreoDemo["prioridad"]; titulo: string; insignia?: { t
   { id: "sin-accion", titulo: "No necesitan nada" },
 ];
 
-function VistaCorreo({ ahora, ir, de }: { ahora: Date | null; ir: (d: Destino) => void; de?: string }) {
+function VistaCorreo({ ahora, ir, de, pedir }: { ahora: Date | null; ir: (d: Destino) => void; de?: string; pedir: (texto: string, con: string) => void }) {
   const lista = de ? DEMO_CORREOS.filter((c) => c.remitente === de) : DEMO_CORREOS;
+  const [abierto, setAbierto] = useState<string | null>(de && lista.length === 1 ? lista[0].id : null);
   return (
     <div className="pnl-pagina">
       <header className="pnl-vista__cabeza">
@@ -778,44 +881,84 @@ function VistaCorreo({ ahora, ir, de }: { ahora: Date | null; ir: (d: Destino) =
         ) : null}
       </header>
 
+      {de && !lista.length ? (
+        <section className="pnl-tarjeta">
+          <Vacio
+            icono="correo"
+            titulo={`Hoy no hay correos de ${de}`}
+            texto="En el ejemplo, Clara solo leyó los correos de hoy. Los de otros días se cuentan en Estadísticas."
+            accion={
+              <Boton variante="sutil" tam="compacto" onClick={() => ir({ vista: "correo" })}>
+                Ver todos los correos
+              </Boton>
+            }
+          />
+        </section>
+      ) : null}
+
       {PRIORIDADES.map((p) => {
         const correos = lista.filter((c) => c.prioridad === p.id);
         if (!correos.length) return null;
         return (
           <Tarjeta key={p.id} titulo={p.titulo} accion={<span className="pnl-cuenta cifras-app">{p.id === "sin-accion" ? 20 : correos.length}</span>}>
             <ul className="pnl-movs">
-              {correos.map((c) => (
-                <li key={c.id} className="dash-correo pnl-correo">
-                  {c.prioridad === "sin-accion" ? (
-                    <Avatar nombre={c.remitente} tam={32}>
-                      <Icono nombre="correo" tam={16} />
-                    </Avatar>
-                  ) : (
-                    <Avatar nombre={c.remitente} tam={32} />
-                  )}
-                  <div className="dash-correo__cuerpo">
-                    <p className="dash-correo__linea">
-                      <span className="dash-correo__remitente">{c.remitente}</span>
-                      <span className="dash-correo__asunto">{c.asunto}</span>
-                    </p>
-                    <p className="dash-correo__resumen">{c.resumen}</p>
-                    {c.accion ? (
-                      <p className="dash-correo__accion">
-                        <Icono nombre="flecha" tam={16} />
-                        {c.accion}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="dash-correo__fin">
-                    <Hora item={c} ahora={ahora} />
-                    {p.insignia ? (
-                      <Insignia tono={p.insignia.tono} conPunto>
-                        {p.insignia.texto}
-                      </Insignia>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
+              {correos.map((c) => {
+                const esteAbierto = abierto === c.id;
+                const idDetalle = `correo-${c.id}-detalle`;
+                return (
+                  <li key={c.id} className={`pnl-correo${esteAbierto ? " pnl-correo--abierto" : ""}`}>
+                    <button type="button" className="dash-correo pnl-correo__fila pnl-picable" aria-expanded={esteAbierto} aria-controls={idDetalle} onClick={() => setAbierto(esteAbierto ? null : c.id)}>
+                      {c.prioridad === "sin-accion" ? (
+                        <span className="pnl-letra pnl-letra--32 pnl-letra--neutra" aria-hidden="true">
+                          <Icono nombre="correo" tam={16} />
+                        </span>
+                      ) : (
+                        <Letra nombre={c.remitente} />
+                      )}
+                      <span className="dash-correo__cuerpo">
+                        <span className="dash-correo__linea">
+                          <span className="dash-correo__remitente">{c.remitente}</span>
+                          <span className="dash-correo__asunto">{c.asunto}</span>
+                        </span>
+                        <span className="dash-correo__resumen">{c.resumen}</span>
+                      </span>
+                      <span className="dash-correo__fin">
+                        <Hora item={c} ahora={ahora} />
+                        {p.insignia ? (
+                          <Insignia tono={p.insignia.tono} conPunto>
+                            {p.insignia.texto}
+                          </Insignia>
+                        ) : null}
+                      </span>
+                    </button>
+                    <div id={idDetalle} className="pnl-correo__detalle" hidden={!esteAbierto}>
+                      {c.accion ? (
+                        <button type="button" className="dash-correo__accion pnl-correo__accion" onClick={() => ir({ vista: "pendientes", tipo: "correos", accion: c.accion })}>
+                          <Icono nombre="flecha" tam={16} />
+                          {c.accion}
+                        </button>
+                      ) : (
+                        <p className="dash-nota">Clara no ve nada que hacer con este correo.</p>
+                      )}
+                      <div className="pnl-correo__acciones">
+                        <Boton
+                          variante="sutil"
+                          tam="compacto"
+                          icono={<Icono nombre="mensaje" tam={16} />}
+                          onClick={() => pedir(`Ayúdame con el correo de ${c.remitente}: «${c.asunto}». ${c.accion ?? "¿Hay que hacer algo?"}`, "clara")}
+                        >
+                          Pedirle a Clara que lo vea
+                        </Boton>
+                        {c.accion ? (
+                          <Boton variante="fantasma" tam="compacto" onClick={() => ir({ vista: "pendientes", tipo: "correos", accion: c.accion })}>
+                            Ver en Pendientes
+                          </Boton>
+                        ) : null}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </Tarjeta>
         );

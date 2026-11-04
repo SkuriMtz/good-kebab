@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { esIdAgente, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
+import { cargarEstadisticas, hayDatos } from "@/lib/estadisticas";
 import { createClient } from "@/lib/supabase/server";
 import { MisAgentes } from "./MisAgentes";
 
@@ -15,17 +16,16 @@ export default async function MisAgentesPage({ searchParams }: { searchParams: {
   } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
 
-  const hace7 = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [cuenta, semana, correos] = await Promise.all([
-    cargarCuenta(supabase, user.id),
-    // Lo de esta semana: conversaciones de cada agente y correos que resumió Clara (RLS: solo lo suyo)
-    supabase.from("conversaciones").select("agente, participantes").eq("owner_id", user.id).gte("actualizado_en", hace7).limit(1000),
-    supabase.from("resumenes_correo").select("id", { count: "exact", head: true }).gte("creado_en", hace7),
-  ]);
-  const filas = semana.error ? null : ((semana.data ?? []) as { agente: string; participantes: string[] | null }[]);
+  const cuenta = await cargarCuenta(supabase, user.id);
+  // Lo de cada agente en 7 días: las mismas cuentas que Estadísticas (RLS: solo lo suyo)
+  const est = await cargarEstadisticas(supabase, user.id, "7d", cuenta).catch(() => null);
+  const conDatos = est !== null && hayDatos(est);
   const estaSemana = Object.fromEntries(
-    IDS_AGENTES.map((id) => [id, filas === null ? null : filas.filter((c) => c.agente === id || (c.participantes ?? []).includes(id)).length]),
-  ) as Record<IdAgente, number | null>;
+    IDS_AGENTES.map((id) => {
+      const fila = est?.porAgente.find((f) => f.agente === id);
+      return [id, conDatos ? { mensajes: fila?.mensajes ?? 0, conversaciones: fila?.conversaciones ?? 0 } : null];
+    }),
+  ) as Record<IdAgente, { mensajes: number; conversaciones: number } | null>;
   const pedido = searchParams.agente;
 
   return (
@@ -36,7 +36,6 @@ export default async function MisAgentesPage({ searchParams }: { searchParams: {
       usados={cuenta.usados}
       enfocado={esIdAgente(pedido) ? pedido : undefined}
       estaSemana={estaSemana}
-      correosSemana={correos.error ? null : (correos.count ?? 0)}
     />
   );
 }

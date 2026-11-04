@@ -272,7 +272,7 @@
   place-items: center;
 }
 .pnl-pasos__anillo .pnl-dona__centro {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: var(--peso-app-titulo);
   letter-spacing: 0;
 }
@@ -680,8 +680,8 @@
 }
 .pnl-version {
   padding: 0 var(--spacing-12);
-  color: var(--c-terciario);
-  font-size: 11px;
+  color: var(--c-texto-2); /* AA en claro y en oscuro */
+  font-size: var(--t-app-etiqueta);
 }
 .pnl-lateral .dash-uso {
   margin: 0;
@@ -874,15 +874,17 @@
 }
 
 /* Botón de chat flotante */
+/* Vive en su propia orilla: el lienzo deja libre la franja derecha (y en
+   celular el botón pasa a la barra de arriba), así no tapa nada. */
 .pnl-flotante {
   position: fixed;
-  right: var(--spacing-24);
+  right: var(--spacing-16);
   bottom: var(--spacing-24);
   z-index: 45;
   display: inline-grid;
   place-items: center;
-  width: calc(var(--spacing-48) + var(--spacing-8));
-  height: calc(var(--spacing-48) + var(--spacing-8));
+  width: var(--spacing-48);
+  height: var(--spacing-48);
   border-radius: var(--radio-circulo);
   background: var(--c-accion);
   box-shadow: var(--sombra-flotante);
@@ -903,8 +905,15 @@
 }
 @media (max-width: 767px) {
   .pnl-flotante {
-    right: var(--spacing-16);
-    bottom: var(--spacing-16);
+    display: none;
+  }
+}
+@media (min-width: 768px) {
+  .pnl:has(.pnl-flotante) .pnl-principal:not(.pnl-principal--completo) {
+    padding-right: var(--spacing-80);
+  }
+  .pnl-barra__chat {
+    display: none !important;
   }
 }
 @keyframes pnl-entra-flotante {
@@ -1236,10 +1245,14 @@ span.pnl-lbarra {
   inset: calc(-1 * var(--spacing-16)) 0 calc(-1 * var(--spacing-8)) 52%;
   z-index: -1;
 }
+/* En celular, arriba a la derecha y fuera del texto: el saludo baja un poco */
 @media (max-width: 767px) {
+  .pnl-hola {
+    padding-top: var(--spacing-32);
+  }
   .pnl-hola__frag {
-    inset: calc(-1 * var(--spacing-16)) 0 auto 62%;
-    height: var(--spacing-48);
+    inset: 0 0 auto 45%;
+    height: var(--spacing-28);
     opacity: 0.7;
   }
 }
@@ -1951,4 +1964,166 @@ span.pnl-lbarra {
 }
 .pnl .dash-vista__agente {
   align-self: center;
+}
+
+/* =====================================================================
+   6. RONDA DEL INSPECTOR: letras de color, horas, correo que se abre,
+   ajustes y la misma letra para las horas en todas las vistas
+   ===================================================================== */
+
+/* Las horas y los números con la letra del producto en todas las vistas */
+.pnl .cifras,
+.pnl .dash-hora,
+.pnl .dash-historial__fecha {
+  font-family: var(--font-producto);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* La letra de una persona o empresa en su cuadro de color */
+.pnl-letra {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--spacing-32);
+  height: var(--spacing-32);
+  border-radius: var(--radio-app-control);
+  background: color-mix(in srgb, var(--tono, var(--c-texto-2)) 22%, var(--c-superficie));
+  color: var(--c-texto);
+  font-size: var(--t-app-cuerpo);
+  font-weight: var(--peso-app-titulo);
+  line-height: 1;
+}
+.pnl-letra--24 {
+  width: var(--spacing-24);
+  height: var(--spacing-24);
+  font-size: var(--t-app-etiqueta);
+}
+.pnl-letra--40 {
+  width: var(--spacing-40);
+  height: var(--spacing-40);
+  border-radius: var(--radio-app-tarjeta);
+}
+.pnl-letra--neutra {
+  background: var(--c-activo);
+  color: var(--c-texto-2);
+}
+
+/* Correo (ejemplo): cada fila se abre y la acción lleva a sus pendientes */
+.pnl .pnl-correo {
+  padding: 0;
+}
+.pnl-correo__fila.dash-correo {
+  width: 100%;
+  padding: var(--spacing-12) var(--spacing-8);
+  border-radius: var(--pnl-radio-chico);
+  color: inherit;
+  text-align: left;
+}
+.pnl-correo__fila .dash-correo__resumen {
+  display: block;
+}
+.pnl-correo__detalle {
+  display: grid;
+  gap: var(--spacing-12);
+  margin: 0 var(--spacing-8) var(--spacing-12) calc(var(--spacing-32) + var(--spacing-20));
+  animation: pnl-entra var(--pnl-medio) var(--pnl-curva);
+}
+.pnl-correo__accion,
+.pnl-sugerencia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  justify-self: start;
+  width: fit-content;
+  padding: var(--spacing-4) var(--spacing-8);
+  margin-left: calc(-1 * var(--spacing-8));
+  border-radius: var(--radio-app-control);
+  color: var(--c-accion-texto);
+  font-weight: var(--peso-app-medio);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--pnl-rapido) var(--pnl-curva);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pnl-correo__accion:hover,
+  .pnl-sugerencia:hover {
+    background: var(--pnl-tinte-suave);
+  }
+}
+.pnl-correo__accion:active,
+.pnl-sugerencia:active {
+  transform: scale(0.98);
+}
+.pnl-correo__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+@media (max-width: 639px) {
+  .pnl-correo__detalle {
+    margin-left: var(--spacing-8);
+  }
+}
+
+/* Ajustes */
+.pnl-ajustes {
+  display: grid;
+  gap: var(--spacing-16);
+}
+@media (min-width: 900px) {
+  .pnl-ajustes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-24);
+  }
+  .pnl-ajustes__plan {
+    grid-column: 1 / -1;
+  }
+}
+.pnl-ajustes__uso {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+.pnl-ajustes__nota {
+  display: block;
+  margin-top: var(--spacing-4);
+  color: var(--c-texto-2);
+  font-size: var(--t-app-etiqueta);
+}
+.pnl-ajustes__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+.pnl-ajustes .pnl-tarjeta > .pnl-filtro {
+  align-self: flex-start;
+}
+
+/* Selector de dos opciones (claro / oscuro) */
+.pnl-segmento {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px;
+  border-radius: var(--radio-app-pildora);
+  background: var(--c-activo);
+}
+.pnl-segmento__opcion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  height: var(--alto-control-compacto);
+  padding: 0 var(--spacing-16);
+  border-radius: var(--radio-app-pildora);
+  color: var(--c-texto-2);
+  font-weight: var(--peso-app-medio);
+  transition: transform var(--pnl-rapido) var(--pnl-curva);
+}
+.pnl-segmento__opcion[aria-pressed="true"] {
+  background: var(--c-superficie);
+  box-shadow: var(--pnl-sombra), 0 0 0 1px var(--c-borde);
+  color: var(--c-texto);
+}
+.pnl-segmento__opcion:active {
+  transform: scale(0.97);
 }

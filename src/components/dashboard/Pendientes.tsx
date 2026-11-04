@@ -37,17 +37,20 @@ export function VistaPendientes({
   grupos,
   filtros,
   total: totalDado,
-  quitarFiltro,
+  quitarFiltros = [],
   ahora,
   actividad,
   marca,
+  vacio,
 }: {
   grupos: GrupoPendientes[];
   /** El total exacto (si se listan menos de los que hay). Sin esto, la suma de los grupos. */
   total?: number | null;
   filtros: FiltroPendientes[];
-  /** Si se filtró por remitente: "De: Andrea Solís ✕". */
-  quitarFiltro?: Accion & { etiqueta: string };
+  /** Los filtros puestos, para quitarlos: "De: Andrea Solís ✕", "Acción: … ✕". */
+  quitarFiltros?: (Accion & { etiqueta: string })[];
+  /** Sin nada que mostrar con ese filtro (si no, "Todo al día"). */
+  vacio?: ReactNode;
   ahora: Date | null;
   actividad?: Accion;
   marca?: ReactNode;
@@ -73,12 +76,12 @@ export function VistaPendientes({
             {f.cuenta !== undefined ? <span className="pnl-filtro__cuenta cifras-app">{f.cuenta}</span> : null}
           </Accionable>
         ))}
-        {quitarFiltro ? (
-          <Accionable accion={quitarFiltro} className="pnl-filtro pnl-filtro--quitar pnl-picable" etiqueta={`Quitar el filtro: ${quitarFiltro.etiqueta}`}>
-            {quitarFiltro.etiqueta}
+        {quitarFiltros.map((q) => (
+          <Accionable key={q.etiqueta} accion={q} className="pnl-filtro pnl-filtro--quitar pnl-picable" etiqueta={`Quitar el filtro: ${q.etiqueta}`}>
+            {q.etiqueta}
             <Icono nombre="cerrar" tam={16} />
           </Accionable>
-        ) : null}
+        ))}
       </div>
 
       <section className="pnl-tarjeta pnl-agrupada" aria-label="Pendientes agrupados">
@@ -95,7 +98,7 @@ export function VistaPendientes({
             ))}
           </ul>
         ) : (
-          <Vacio icono="check-circulo" titulo="Todo al día" texto="Cuando un agente necesite tu visto bueno o un correo pida algo, aparece aquí." />
+          (vacio ?? <Vacio icono="check-circulo" titulo="Todo al día" texto="Cuando un agente necesite tu visto bueno o un correo pida algo, aparece aquí." />)
         )}
       </section>
     </div>

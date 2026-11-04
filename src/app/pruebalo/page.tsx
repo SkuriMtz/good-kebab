@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PruebaloDashboard } from "@/components/dashboard/PruebaloDashboard";
+import { destinoDeParametros } from "@/lib/demo-dashboard";
 import { VERSION } from "@/lib/version";
 
 export const metadata: Metadata = {
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
  * (src/lib/demo-dashboard.ts). Inicio, Chat (el chat de ejemplo con grupos
  * y PromptBar), Agentes, Pendientes, Estadísticas y Correo, sin recargar.
  */
-export default function Pruebalo() {
-  return <PruebaloDashboard version={VERSION} />;
+export default function Pruebalo({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+  // La vista de la dirección se pinta desde el servidor: no aparece antes el inicio
+  const uno = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
+  const inicial = destinoDeParametros({ get: (clave) => uno(searchParams[clave]) });
+  return <PruebaloDashboard version={VERSION} inicial={inicial} />;
 }

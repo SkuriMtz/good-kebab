@@ -47,6 +47,58 @@ export type Destino = {
 };
 export type IdPestana = "actividad" | "visto-bueno" | "destacados";
 
+/** Las vistas de /pruebalo (?vista=…). Sin vista, el inicio. */
+export const VISTAS_DEMO = ["resumen", "pendientes", "estadisticas", "actividad", "conversaciones", "agentes", "correo", "ajustes"] as const;
+export type VistaDemo = (typeof VISTAS_DEMO)[number];
+
+const AGENTES_DEMO = ["lola", "clara", "victor", "iris"] as const;
+
+/**
+ * El destino de una dirección de /pruebalo (?vista=agentes&agente=lola,
+ * ?vista=actividad&hora=10…). Puro: lo usan la página en el servidor (para
+ * pintar de entrada la vista pedida) y el panel al ir atrás o adelante.
+ * Acepta también la forma de antes (#agentes).
+ */
+export function destinoDeParametros(p: { get: (clave: string) => string | null }, hash = ""): Destino {
+  let vista = (p.get("vista") ?? hash.replace("#", "")) as VistaDemo;
+  if (!(VISTAS_DEMO as readonly string[]).includes(vista)) vista = "resumen";
+  const agente = p.get("agente");
+  const hora = Number(p.get("hora"));
+  const dia = p.get("dia");
+  const d: Destino = { vista };
+  const texto = (clave: string) => p.get(clave)?.slice(0, 200) || undefined;
+  if (texto("con")) d.con = texto("con");
+  if (agente && (AGENTES_DEMO as readonly string[]).includes(agente)) d.agente = agente as IdAgente;
+  if (texto("de")) d.de = texto("de");
+  if (texto("tipo")) d.tipo = texto("tipo");
+  if (texto("accion")) d.accion = texto("accion");
+  if (p.get("hora") !== null && Number.isInteger(hora) && hora >= 0 && hora <= 23) d.hora = hora;
+  if (dia && /^\d{4}-\d{2}-\d{2}$/.test(dia)) d.dia = dia;
+  if (texto("periodo")) d.periodo = texto("periodo");
+  if (texto("metrica")) d.metrica = texto("metrica");
+  const pestana = p.get("pestana");
+  if (pestana === "actividad" || pestana === "visto-bueno" || pestana === "destacados") d.pestana = pestana;
+  return d;
+}
+
+/** La dirección (?vista=…) de un destino de /pruebalo. El inicio es /pruebalo a secas. */
+export function direccionDe(d: Destino) {
+  const p = new URLSearchParams();
+  if (d.vista !== "resumen") p.set("vista", d.vista);
+  if (d.con) p.set("con", d.con);
+  if (d.agente) p.set("agente", d.agente);
+  if (d.de) p.set("de", d.de);
+  if (d.tipo) p.set("tipo", d.tipo);
+  if (d.accion) p.set("accion", d.accion);
+  if (d.hora !== undefined) p.set("hora", String(d.hora));
+  if (d.dia) p.set("dia", d.dia);
+  if (d.periodo) p.set("periodo", d.periodo);
+  if (d.metrica) p.set("metrica", d.metrica);
+  if (d.pestana && d.vista === "actividad") p.set("pestana", d.pestana);
+  const q = p.toString();
+  return q ? `?${q}` : "";
+}
+
 export const DEMO_NEGOCIO = {
   nombre: "Estudio Luna",
   giro: "Servicios con cita",

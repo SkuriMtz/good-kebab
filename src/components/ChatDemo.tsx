@@ -401,8 +401,11 @@ export function ChatDemo({
   pedido,
   nuevoGrupo = false,
   nombre,
+  alAbrir,
 }: {
   lugar?: "inicio" | "pagina";
+  /** Aviso al abrir una conversación (su id) o volver a la portada (null): el panel lo pone en la dirección. */
+  alAbrir?: (id: string | null) => void;
   /** Para el saludo de la portada ("¿En qué te ayuda tu equipo hoy, Ana?"). */
   nombre?: string;
   /** Lo que se pidió desde la caja del dashboard: se envía una vez al abrir. */
@@ -608,6 +611,7 @@ export function ChatDemo({
     animados.current.clear();
     setActiva(id);
     setPortada(false);
+    alAbrir?.(id);
     setBarra(false);
     setConvs((cs) => cs.map((c) => (c.id === id && c.sinLeer ? { ...c, sinLeer: 0 } : c)));
   };
@@ -694,6 +698,7 @@ export function ChatDemo({
   const irPortada = () => {
     setPortada(true);
     setBarra(false);
+    alAbrir?.(null);
   };
   const sinLeerTotal = convs.reduce((s, c) => s + (c.id === activa ? 0 : c.sinLeer), 0);
 

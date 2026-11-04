@@ -36,7 +36,7 @@ export type DatosArmazonPanel = {
 };
 
 /** Las vistas de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS_PANEL: IdVista[] = ["pendientes", "estadisticas", "correo", "actividad"];
+const VISTAS_PANEL: IdVista[] = ["pendientes", "estadisticas", "correo", "actividad", "ajustes"];
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel/?pendientes"). */
 function claveDe(url: URL) {
@@ -130,12 +130,12 @@ export function ArmazonPanel({ datos, children }: { datos: DatosArmazonPanel; ch
     { id: "estadisticas", etiqueta: "Estadísticas", icono: "grafica", href: "/panel?vista=estadisticas" },
     { id: "correo", etiqueta: "Correo", icono: "correo", href: "/panel?vista=correo" },
     {
-      id: "configuracion",
+      id: "ajustes",
       etiqueta: "Ajustes",
       icono: "ajustes",
-      href: "/panel/agentes#plan",
+      href: "/panel?vista=ajustes",
       hijos: [
-        { id: "plan", etiqueta: "Plan y uso", icono: "facturacion", href: "/panel/agentes#plan" },
+        { id: "plan", etiqueta: "Plan y uso", icono: "facturacion", href: "/panel?vista=ajustes" },
         { id: "gmail", etiqueta: datos.conGoogle ? "Gmail conectado" : "Conectar Gmail", icono: "correo", href: "/panel?vista=correo#gmail" },
         { id: "tema", etiqueta: tema === "oscuro" ? "Modo claro" : "Modo oscuro", icono: tema === "oscuro" ? "sol" : "luna", alElegir: () => ponerTema(tema === "oscuro" ? "claro" : "oscuro") },
         { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", pronto: true },
@@ -195,6 +195,7 @@ export function ArmazonPanel({ datos, children }: { datos: DatosArmazonPanel; ch
       { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Mensajes, conversaciones y correos", icono: "grafica", href: "/panel?vista=estadisticas" },
       { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Resume un correo con Clara", icono: "correo", href: "/panel?vista=correo" },
       { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Todo lo que hizo tu equipo", icono: "rayo", href: "/panel?vista=actividad" },
+      { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia, correo y equipo", icono: "ajustes", href: "/panel?vista=ajustes" },
       ...AGENTES_INFO.filter((a) => datos.activos.includes(a.id)).map((a) => ({
         id: `a-${a.id}`,
         grupo: "Tu equipo",

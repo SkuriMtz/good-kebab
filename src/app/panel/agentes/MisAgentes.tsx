@@ -25,7 +25,6 @@ export function MisAgentes({
   usados,
   enfocado,
   estaSemana,
-  correosSemana,
 }: {
   userId: string;
   planId: IdPlan;
@@ -33,9 +32,8 @@ export function MisAgentes({
   usados: number;
   /** Llegó desde otra parte con ?agente=lola: se marca y se lleva a la vista. */
   enfocado?: IdAgente;
-  /** Conversaciones de los últimos 7 días por agente (null: no se pudo leer). */
-  estaSemana: Record<IdAgente, number | null>;
-  correosSemana: number | null;
+  /** Mensajes y conversaciones de cada agente en 7 días (las cuentas de Estadísticas; null: sin datos). */
+  estaSemana: Record<IdAgente, { mensajes: number; conversaciones: number } | null>;
 }) {
   const plan = PLAN_POR_ID[planId];
   const libre = plan.id !== "free";
@@ -108,13 +106,19 @@ export function MisAgentes({
                   bloqueado={!permitido}
                   enfocado={enfocado === a.id}
                   datos={
-                    permitido ? (
-                      <Accionable accion={{ href: a.id === "clara" ? "/panel?vista=correo#historial" : `/panel/chat?agente=${a.id}` }} className="pnl-ficha__dato pnl-picable">
-                        <Icono nombre={a.id === "clara" ? "correo" : "conversaciones"} tam={16} />
-                        <Cifra valor={a.id === "clara" ? correosSemana : estaSemana[a.id]} className="pnl-ficha__cifra" />
-                        <span>{a.id === "clara" ? "correos resumidos esta semana" : "conversaciones esta semana"}</span>
-                      </Accionable>
-                    ) : undefined
+                    permitido
+                      ? (["mensajes", "conversaciones"] as const).map((m, i) => (
+                          <Accionable
+                            key={m}
+                            accion={{ href: `/panel?vista=estadisticas&periodo=7d&metrica=${m}&agente=${a.id}` }}
+                            className="pnl-ficha__dato pnl-picable"
+                          >
+                            <Icono nombre={m === "mensajes" ? "mensaje" : "conversaciones"} tam={16} />
+                            <Cifra valor={estaSemana[a.id]?.[m] ?? null} indice={i} className="pnl-ficha__cifra" />
+                            <span>{m === "mensajes" ? "mensajes en 7 días" : "conversaciones en 7 días"}</span>
+                          </Accionable>
+                        ))
+                      : undefined
                   }
                   insignias={
                     !permitido ? (

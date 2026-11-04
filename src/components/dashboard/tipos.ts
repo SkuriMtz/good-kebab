@@ -22,7 +22,8 @@ export type IdVista =
   | "correo"
   | "clientes"
   | "reportes"
-  | "configuracion";
+  | "configuracion"
+  | "ajustes";
 
 export type ElementoNav = Accion & {
   id: IdVista;

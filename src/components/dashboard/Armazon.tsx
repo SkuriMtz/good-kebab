@@ -140,7 +140,17 @@ export function Armazon(props: PropsArmazon) {
         </Accionable>
       ) : null}
 
-      <Cajon abierto={cajon} alCerrar={() => setCajon(false)} etiqueta="Menú de Atendel" cabeza={<Logo inicio={inicio} />}>
+      <Cajon
+        abierto={cajon}
+        alCerrar={() => setCajon(false)}
+        etiqueta="Menú de Atendel"
+        cabeza={
+          // El logo lleva al inicio y cierra el cajón (también si ya estás en el inicio)
+          <span onClickCapture={() => setCajon(false)}>
+            <Logo inicio={inicio} />
+          </span>
+        }
+      >
         <div onClickCapture={alTocarCajon}>
           <Lateral nav={nav} activa={activa} pie={pie} />
         </div>
@@ -174,6 +184,8 @@ function BarraSuperior({
   usuario,
   perfil,
   salir,
+  chat,
+  completo,
   alternarMenu,
   cajonAbierto,
   encogido,
@@ -254,6 +266,11 @@ function BarraSuperior({
           }
           elementos={crear}
         />
+        {chat && !completo ? (
+          <Accionable accion={chat} className="boton-icono boton-icono--capa boton-icono--compacto pnl-barra__chat" etiqueta="Hablar con tu equipo">
+            <Icono nombre="conversaciones" tam={20} />
+          </Accionable>
+        ) : null}
         <Avisos avisos={avisos} ahora={ahora} alLeerTodos={alLeerAvisos} />
         <Menu etiqueta="Ayuda" aspecto="icono" alineacion="fin" className="pnl-barra__ayuda" disparador={<Icono nombre="ayuda" tam={20} />} elementos={ayuda} />
         {mejorar?.href ? (
@@ -311,10 +328,10 @@ function PrimerosPasos({ pasos }: { pasos: PasoInicio[] }) {
           <Dona
             partes={[{ id: "listos", valor: listos, color: "var(--c-exito)" }]}
             total={pasos.length}
-            tam={28}
+            tam={36}
             grosor={3}
             etiqueta={`${pct}%`}
-            centro={<span className="cifras-app">{pct}</span>}
+            centro={<span className="cifras-app">{pct}%</span>}
           />
         </span>
         <span className="pnl-pasos__texto">Primeros pasos</span>

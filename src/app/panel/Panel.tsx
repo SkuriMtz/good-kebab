@@ -373,10 +373,14 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
                   <h3 className="dash-historial__asunto">{item.asunto || "(sin asunto)"}</h3>
                   <p className="dash-historial__resumen">{item.resumen}</p>
                   {conSugerencia(item.accion_sugerida) ? (
-                    <p className="dash-clara__sugerencia dash-historial__sugerencia">
+                    // La acción lleva a sus pendientes (los correos que piden lo mismo)
+                    <Link
+                      href={`/panel?vista=pendientes&tipo=correos&accion=${encodeURIComponent(item.accion_sugerida ?? "")}`}
+                      className="dash-clara__sugerencia dash-historial__sugerencia pnl-sugerencia"
+                    >
                       <Icono nombre="flecha" tam={16} />
                       {item.accion_sugerida}
-                    </p>
+                    </Link>
                   ) : null}
                 </div>
               </li>

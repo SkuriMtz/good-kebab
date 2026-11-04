@@ -1,19 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pestanas } from "@/components/base/Pestanas";
 import { AGENTE_POR_ID, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { diaLocal, horaLocal, partirRemitente } from "@/lib/estadisticas";
+import { cambio, diaLocal, hayDatos, horaLocal, partirRemitente, type DatosEstadisticas } from "@/lib/estadisticas";
 import type { CorreoPendiente } from "@/lib/pendientes";
 import type { PasoPanel } from "@/lib/pasos";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
+import { VistaAjustes } from "./Ajustes";
 import { Inicio, LineaTiempo, type Atajo, type ModoPedido, type OpcionPedido } from "./Centro";
 import { rangoHora } from "./estadisticas/formato";
 import { nombresAgentes } from "./nombres";
 import { VistaPendientes, type FiltroPendientes, type GrupoPendientes } from "./Pendientes";
 import { Accionable, Vacio } from "./Piezas";
 import { Icono } from "@/components/base/Iconos";
-import { ResumenVista, type AgenteResumen, type FilaPendiente } from "./Resumen";
+import { ResumenVista, coincideAccion, type AgenteResumen, type FilaPendiente } from "./Resumen";
 import { useAhora } from "./tiempo";
 import type { Evento } from "./tipos";
 
@@ -35,15 +36,6 @@ export type ResumenReal = {
   creado_en: string;
 };
 
-/** Cuentas reales para el inicio: [últimos 7 días, los 7 anteriores]. null = no se pudo leer. */
-export type CuentasResumen = {
-  /** Conversaciones de los últimos 7 días (para lo que hizo cada agente). */
-  semana: { agente: string; participantes: string[] | null }[] | null;
-  mensajes: [number | null, number | null];
-  nuevas: [number | null, number | null];
-  correos: [number | null, number | null];
-};
-
 /** Igual que en src/lib/pendientes.ts: no vacía y que no empiece con "ninguna". */
 const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim() && !accion.trim().toLowerCase().startsWith("ninguna"));
 
@@ -53,9 +45,6 @@ const nombreRemitente = (r: string | null) => partirRemitente(r)?.nombre ?? "Sin
 /** Correo de ese remitente, con su historial filtrado. */
 const correoDe = (quien: string) => `/panel?vista=correo&de=${encodeURIComponent(quien)}#historial`;
 
-/** Cambio en % contra el periodo anterior; sin periodo anterior (o en cero), null: se ve "—". */
-const cambio = ([actual, antes]: [number | null, number | null]) => (actual === null || antes === null || antes === 0 ? null : ((actual - antes) / antes) * 100);
-
 function integrantes(c: ConversacionReal): IdAgente[] {
   const p = (c.participantes ?? []).filter(esIdAgente);
   if (p.length >= 2) return p;
@@ -63,7 +52,7 @@ function integrantes(c: ConversacionReal): IdAgente[] {
 }
 
 /** Arma la línea de tiempo con lo que de verdad pasó: correos que Clara resumió y conversaciones con tu equipo. */
-function actividadReal(resumenes: ResumenReal[], conversaciones: ConversacionReal[]): Evento[] {
+function actividadReal(resumenes: ResumenReal[], conversaciones: ConversacionReal[], tope = 10): Evento[] {
   const eventos: (Evento & { orden: number })[] = [];
 
   // Los resúmenes del mismo día van juntos si son más de dos (como "resumió 5 correos")
@@ -108,7 +97,7 @@ function actividadReal(resumenes: ResumenReal[], conversaciones: ConversacionRea
     );
   });
 
-  conversaciones.slice(0, 8).forEach((c) => {
+  conversaciones.slice(0, Math.max(8, tope)).forEach((c) => {
     const ids = integrantes(c);
     const grupo = ids.length > 1;
     eventos.push({
@@ -125,7 +114,7 @@ function actividadReal(resumenes: ResumenReal[], conversaciones: ConversacionRea
     });
   });
 
-  return eventos.sort((a, b) => b.orden - a.orden).slice(0, 10);
+  return eventos.sort((a, b) => b.orden - a.orden).slice(0, tope);
 }
 
 type Comun = {
@@ -146,6 +135,7 @@ function filasPendientes({ pendientes, activos }: Comun) {
       titulo: r.asunto || "(sin asunto)",
       detalle: `${quien} · Clara sugiere: ${r.accion_sugerida}`,
       quien,
+      accion: r.accion_sugerida,
       fecha: r.creado_en,
       href: correoDe(quien),
     };
@@ -167,7 +157,10 @@ function filasPendientes({ pendientes, activos }: Comun) {
  * los agentes con lo que hicieron esta semana, los pendientes y las
  * estadísticas en pequeño. Sin datos: "—" y estados vacíos.
  */
-export function ResumenPanel({ nombre, negocio, usados, cuentas, ...comun }: Comun & { nombre?: string; negocio: string; usados: number; cuentas: CuentasResumen }) {
+/** Estadísticas en 7 días, con esa métrica (y ese agente). */
+const aEstadisticas = (metrica: string, agente?: IdAgente) => `/panel?vista=estadisticas&periodo=7d&metrica=${metrica}${agente ? `&agente=${agente}` : ""}`;
+
+export function ResumenPanel({ nombre, negocio, usados, est, ...comun }: Comun & { nombre?: string; negocio: string; usados: number; /** Las estadísticas de 7 días (las mismas que en su vista). null si no se pudieron leer. */ est: DatosEstadisticas | null }) {
   const { planId, activos, conGoogle } = comun;
   const ahora = useAhora();
   const router = useRouter();
@@ -194,17 +187,20 @@ export function ResumenPanel({ nombre, negocio, usados, cuentas, ...comun }: Com
     ...(plan.id !== "free" && activos.length > 1 ? [{ id: "grupo", etiqueta: "Nuevo grupo", icono: "usuarios" as const, href: "/panel/chat" }] : []),
   ];
 
-  // Lo que hizo cada agente esta semana (conversaciones; Clara, correos resumidos)
-  const porAgente = (id: IdAgente) =>
-    cuentas.semana === null ? null : cuentas.semana.filter((c) => c.agente === id || (c.participantes ?? []).includes(id)).length;
+  // Lo que hizo cada agente en 7 días: lo mismo que cuenta Estadísticas
+  const conDatos = est !== null && hayDatos(est);
+  const porAgente = (id: IdAgente) => (conDatos ? (est?.porAgente.find((f) => f.agente === id)?.mensajes ?? 0) : null);
   const agentes: AgenteResumen[] = IDS_AGENTES.map((id) => {
     const href = `/panel/agentes?agente=${id}`;
     if (!plan.agentes.includes(id)) return { id, href, estado: { tono: "neutro", etiqueta: "No incluido" }, cifra: null, unidad: "", bloqueado: `Con ${planMinimo(id).nombre}` };
-    if (!activos.includes(id)) return { id, href, estado: { tono: "neutro", etiqueta: "Fuera de tu equipo" }, cifra: null, unidad: "conversaciones esta semana" };
-    if (id === "clara") {
-      return { id, href, estado: { tono: "exito", etiqueta: conGoogle ? "Conectada a tu Gmail" : "Lista para leer correos" }, cifra: cuentas.correos[0], unidad: "correos resumidos esta semana" };
-    }
-    return { id, href, estado: { tono: "exito", etiqueta: "Lista en el chat" }, cifra: porAgente(id), unidad: "conversaciones esta semana" };
+    if (!activos.includes(id)) return { id, href, estado: { tono: "neutro", etiqueta: "Fuera de tu equipo" }, cifra: porAgente(id), unidad: "mensajes en 7 días" };
+    const etiqueta = id === "clara" ? (conGoogle ? "Conectada a tu Gmail" : "Lista para leer correos") : "Lista en el chat";
+    return { id, href, estado: { tono: "exito", etiqueta }, cifra: porAgente(id), unidad: "mensajes en 7 días" };
+  });
+  const dato = (id: "mensajes" | "conversaciones" | "correos") => ({
+    valor: est ? est.totales[id] : null,
+    delta: est ? cambio(est.totales[id], est.totalesAnteriores[id]) : null,
+    href: aEstadisticas(id),
   });
 
   const { correos, pasos } = filasPendientes(comun);
@@ -242,14 +238,14 @@ export function ResumenPanel({ nombre, negocio, usados, cuentas, ...comun }: Com
         vacio: <Vacio agente="clara" titulo="Todo al día" texto="Cuando Clara resuma un correo que pida algo, aparece aquí." compacto />,
       }}
       estadisticas={{
-        periodo: "Últimos 7 días contra los 7 anteriores",
-        accion: { href: "/panel?vista=estadisticas" },
-        uso: { usados, limite: plan.mensajesMes, plan: plan.nombre, href: "/panel/agentes#plan" },
+        periodo: "7 días contra los 7 anteriores",
+        accion: { href: "/panel?vista=estadisticas&periodo=7d" },
+        uso: { usados, limite: plan.mensajesMes, plan: `${plan.nombre} · este mes`, href: "/panel?vista=estadisticas&periodo=mes&metrica=uso" },
         cifras: [
-          { id: "mensajes", etiqueta: "Mensajes en el chat", icono: "mensaje", valor: cuentas.mensajes[0], delta: cambio(cuentas.mensajes), href: "/panel?vista=estadisticas" },
-          { id: "conversaciones", etiqueta: "Conversaciones nuevas", icono: "conversaciones", valor: cuentas.nuevas[0], delta: cambio(cuentas.nuevas), href: "/panel?vista=estadisticas" },
-          { id: "correos", etiqueta: "Correos resumidos", icono: "correo", valor: cuentas.correos[0], delta: cambio(cuentas.correos), href: "/panel?vista=estadisticas" },
-          { id: "pendientes", etiqueta: "Por revisar", icono: "check-circulo", valor: total, href: "/panel?vista=pendientes" },
+          { id: "mensajes", etiqueta: "Mensajes", icono: "mensaje", ...dato("mensajes") },
+          { id: "conversaciones", etiqueta: "Conversaciones", icono: "conversaciones", ...dato("conversaciones") },
+          { id: "correos", etiqueta: "Correos resumidos", icono: "correo", ...dato("correos") },
+          { id: "pendientes", etiqueta: "Por revisar", icono: "check-circulo", valor: total, delta: null, href: "/panel?vista=pendientes" },
         ],
       }}
     />
@@ -257,11 +253,12 @@ export function ResumenPanel({ nombre, negocio, usados, cuentas, ...comun }: Com
 }
 
 /** Pendientes con datos reales, filtrados por tipo (?tipo=correos|pasos) o por remitente (?de=). */
-export function PendientesPanel({ tipo, de, ...comun }: Comun & { tipo?: string; de?: string }) {
+export function PendientesPanel({ tipo, de, accion, ...comun }: Comun & { tipo?: string; de?: string; accion?: string }) {
   const ahora = useAhora();
   const { correos, pasos } = filasPendientes(comun);
   const totalCorreos = comun.pendientes.correos ?? correos.length;
-  const correosDe = de ? correos.filter((c) => c.quien === de) : correos;
+  const filtrado = Boolean(de || accion);
+  const correosDe = correos.filter((c) => (!de || c.quien === de) && (!accion || coincideAccion(c.accion, accion)));
 
   // Correos agrupados por quién los mandó
   const porRemitente = new Map<string, FilaPendiente[]>();
@@ -274,24 +271,24 @@ export function PendientesPanel({ tipo, de, ...comun }: Comun & { tipo?: string;
       titulo: "Correos con una acción sugerida",
       agente: "clara",
       // Sin filtro, el total exacto (aunque solo se listen los más recientes)
-      total: de ? correosDe.length : totalCorreos,
+      total: filtrado ? correosDe.length : totalCorreos,
       subgrupos: [...porRemitente.entries()].map(([quien, filas]) => ({
         id: quien,
         titulo: quien,
         filas: filas.map((f) => ({ ...f, detalle: f.detalle?.replace(`${quien} · `, "") })),
       })),
-      nota: !de && totalCorreos > correos.length ? `Se ven los ${correos.length} más recientes de ${totalCorreos}.` : undefined,
+      nota: totalCorreos > correos.length ? `Se ven los ${correos.length} más recientes de ${totalCorreos}.` : undefined,
     });
   }
-  if (tipo !== "correos" && !de && pasos.length) {
+  if (tipo !== "correos" && !filtrado && pasos.length) {
     grupos.push({ id: "pasos", titulo: "Primeros pasos que faltan", icono: "check-circulo", total: pasos.length, filas: pasos });
   }
 
   const base = "/panel?vista=pendientes";
   const filtros: FiltroPendientes[] = [
-    { id: "todos", etiqueta: "Todos", cuenta: comun.pendientes.total ?? undefined, href: base, actual: !tipo && !de },
-    { id: "correos", etiqueta: "Correos", cuenta: totalCorreos, href: `${base}&tipo=correos`, actual: tipo === "correos" && !de },
-    { id: "pasos", etiqueta: "Primeros pasos", cuenta: pasos.length, href: `${base}&tipo=pasos`, actual: tipo === "pasos" },
+    { id: "todos", etiqueta: "Todos", cuenta: comun.pendientes.total ?? undefined, href: base, actual: !tipo && !filtrado },
+    { id: "correos", etiqueta: "Correos", cuenta: totalCorreos, href: `${base}&tipo=correos`, actual: tipo === "correos" && !filtrado },
+    { id: "pasos", etiqueta: "Primeros pasos", cuenta: pasos.length, href: `${base}&tipo=pasos`, actual: tipo === "pasos" && !filtrado },
     // Los que más escriben: filtrar por remitente
     ...[...new Set(correos.map((c) => c.quien ?? ""))]
       .filter((q) => q && q !== de)
@@ -303,60 +300,132 @@ export function PendientesPanel({ tipo, de, ...comun }: Comun & { tipo?: string;
     <VistaPendientes
       grupos={grupos}
       filtros={filtros}
-      total={de ? correosDe.length : tipo === "correos" ? totalCorreos : tipo === "pasos" ? pasos.length : comun.pendientes.total}
-      quitarFiltro={de ? { etiqueta: `De: ${de}`, href: base } : undefined}
+      total={filtrado ? correosDe.length : tipo === "correos" ? totalCorreos : tipo === "pasos" ? pasos.length : comun.pendientes.total}
+      quitarFiltros={[
+        ...(de ? [{ etiqueta: `De: ${de}`, href: accion ? `${base}&tipo=correos&accion=${encodeURIComponent(accion)}` : base }] : []),
+        ...(accion ? [{ etiqueta: `Acción: ${accion}`, href: de ? `${base}&de=${encodeURIComponent(de)}` : `${base}&tipo=correos` }] : []),
+      ]}
+      vacio={
+        de || accion ? (
+          <Vacio
+            icono="correo"
+            titulo={accion ? `Ningún correo reciente pide «${accion}»` : `Ningún correo de ${de} espera algo de ti`}
+            texto="Aquí se ven los correos más recientes que traen una acción sugerida."
+            accion={
+              <Link href={`${base}&tipo=correos`} className="dash-enlace">
+                Ver todos los correos pendientes
+              </Link>
+            }
+          />
+        ) : undefined
+      }
       ahora={ahora}
       actividad={{ href: "/panel?vista=actividad" }}
     />
   );
 }
 
+const fechaDia = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+/** "2026-11-04" → "miércoles 4 de noviembre". */
+const nombreDia = (dia: string) => fechaDia.format(new Date(`${dia}T12:00:00Z`));
+
 /**
- * Actividad (como "Feed"): todo lo que pasó, con el detalle, y lo que espera
- * tu visto bueno. Con ?hora=10 (desde Estadísticas) se ve solo lo que pasó
- * a esa hora del día, en la hora de México.
+ * Actividad (como "Feed"): lo último que pasó, con el detalle. Filtros en
+ * la dirección (desde Estadísticas o los botones de arriba): &agente=,
+ * &hora= (0–23) y &dia= (AAAA-MM-DD), en la hora de México.
  */
-export function ActividadPanel({ conversaciones, resumenes, hora }: { conversaciones: ConversacionReal[]; resumenes: ResumenReal[]; hora?: number }) {
+export function ActividadPanel({
+  conversaciones,
+  resumenes,
+  hora,
+  dia,
+  agente,
+}: {
+  conversaciones: ConversacionReal[];
+  resumenes: ResumenReal[];
+  hora?: number;
+  dia?: string;
+  agente?: IdAgente;
+}) {
   const ahora = useAhora();
-  const todos = actividadReal(resumenes, conversaciones);
-  const conHora = hora !== undefined && Number.isInteger(hora) && hora >= 0 && hora <= 23;
-  const eventos = conHora ? todos.filter((e) => e.fecha && horaLocal(e.fecha) === hora) : todos;
+  const filtrado = Boolean(agente || hora !== undefined || dia);
+  // Con filtro se mira todo lo que llegó y se queda lo que toca (hasta 50)
+  const todos = actividadReal(resumenes, conversaciones, filtrado ? 1000 : 10);
+  const eventos = todos.filter(
+    (e) =>
+      (!agente || e.agente === agente || e.con === agente) &&
+      (hora === undefined || (e.fecha && horaLocal(e.fecha) === hora)) &&
+      (!dia || (e.fecha && diaLocal(e.fecha) === dia)),
+  ).slice(0, 50);
+  const enlace = (cambio: { agente?: IdAgente | null; hora?: number | null; dia?: string | null }) => {
+    const q = new URLSearchParams({ vista: "actividad" });
+    const ag = cambio.agente === undefined ? agente : cambio.agente;
+    const h = cambio.hora === undefined ? hora : cambio.hora;
+    const d = cambio.dia === undefined ? dia : cambio.dia;
+    if (ag) q.set("agente", ag);
+    if (h !== undefined && h !== null) q.set("hora", String(h));
+    if (d) q.set("dia", d);
+    return `/panel?${q}`;
+  };
   return (
     <div className="pnl-pagina">
       <header className="pnl-vista__cabeza">
         <h1 className="pnl-vista__titulo">Actividad</h1>
-        {conHora ? (
-          <Accionable accion={{ href: "/panel?vista=actividad" }} className="pnl-filtro pnl-filtro--quitar pnl-picable" etiqueta={`Quitar el filtro: de ${rangoHora(hora)}`}>
+      </header>
+      <div className="pnl-filtros" role="group" aria-label="Filtrar la actividad">
+        <Link href={enlace({ agente: null })} className={`pnl-filtro pnl-picable${agente ? "" : " pnl-filtro--actual"}`} aria-current={agente ? undefined : "page"}>
+          Todo el equipo
+        </Link>
+        {IDS_AGENTES.map((id) => (
+          <Link key={id} href={enlace({ agente: id })} className={`pnl-filtro pnl-picable${agente === id ? " pnl-filtro--actual" : ""}`} aria-current={agente === id ? "page" : undefined}>
+            {AGENTE_POR_ID[id].nombre}
+          </Link>
+        ))}
+        {hora !== undefined ? (
+          <Accionable accion={{ href: enlace({ hora: null }) }} className="pnl-filtro pnl-filtro--quitar pnl-picable" etiqueta={`Quitar el filtro: de ${rangoHora(hora)}`}>
             De {rangoHora(hora)}
             <Icono nombre="cerrar" tam={16} />
           </Accionable>
         ) : null}
-      </header>
+        {dia ? (
+          <Accionable accion={{ href: enlace({ dia: null }) }} className="pnl-filtro pnl-filtro--quitar pnl-picable" etiqueta={`Quitar el filtro: ${nombreDia(dia)}`}>
+            {nombreDia(dia)}
+            <Icono nombre="cerrar" tam={16} />
+          </Accionable>
+        ) : null}
+      </div>
       <section className="pnl-tarjeta dash-actividad" aria-label="Actividad de tu equipo">
-        <Pestanas
-          etiqueta="Actividad de tu equipo"
-          alineacion="izquierda"
-          classNamePanel="dash-actividad__panel"
-          pestanas={[
-            {
-              id: "actividad",
-              etiqueta: "Todo",
-              contenido: eventos.length ? (
-                <LineaTiempo eventos={eventos} ahora={ahora} />
-              ) : conHora ? (
-                <Vacio icono="reloj" titulo={`Nada de ${rangoHora(hora)} en lo más reciente`} texto="Aquí se ven las últimas conversaciones y los últimos correos resumidos." />
-              ) : (
-                <Vacio agente="clara" titulo="Aquí verás lo que hace tu equipo" texto="Cada correo que Clara resuma y cada conversación aparece aquí, con la hora." />
-              ),
-            },
-            {
-              id: "visto-bueno",
-              etiqueta: "Espera tu visto bueno",
-              contenido: <Vacio icono="check-circulo" titulo="Nada espera tu visto bueno" texto="Lo que salga a tu nombre aparecerá aquí antes de enviarse." />,
-            },
-          ]}
-        />
+        {eventos.length ? (
+          <LineaTiempo eventos={eventos} ahora={ahora} />
+        ) : filtrado ? (
+          <Vacio
+            icono="reloj"
+            titulo="Nada con ese filtro en lo más reciente"
+            texto="Aquí se ven las últimas conversaciones y los últimos correos resumidos."
+            accion={
+              <Link href="/panel?vista=actividad" className="dash-enlace">
+                Ver toda la actividad
+              </Link>
+            }
+          />
+        ) : (
+          <Vacio agente="clara" titulo="Aquí verás lo que hace tu equipo" texto="Cada correo que Clara resuma y cada conversación aparece aquí, con la hora." />
+        )}
       </section>
     </div>
+  );
+}
+
+/** Ajustes con los datos de la cuenta (el plan solo se ve: para cambiarlo, los planes o escribirnos). */
+export function AjustesPanel({ planId, usados, conGoogle }: { planId: IdPlan; usados: number; conGoogle: boolean }) {
+  return (
+    <VistaAjustes
+      plan={PLAN_POR_ID[planId]}
+      usados={usados}
+      conGmail={conGoogle}
+      gmail={{ href: conGoogle ? "/panel?vista=correo" : "/panel?vista=correo#gmail" }}
+      equipo={{ href: "/panel/agentes" }}
+      planes={{ href: "/precios" }}
+    />
   );
 }

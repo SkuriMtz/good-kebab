@@ -5,7 +5,7 @@ import { useId, type CSSProperties, type ReactNode } from "react";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
-import { Fragmentos } from "./Fragmentos";
+import { COLORES_FRAGMENTO, Fragmentos } from "./Fragmentos";
 import { completa, fechaDe, relativo } from "./tiempo";
 import type { Accion } from "./tipos";
 
@@ -380,5 +380,24 @@ export function Dona({
       </svg>
       {centro ? <div className="pnl-dona__centro">{centro}</div> : null}
     </div>
+  );
+}
+
+/**
+ * La letra de una persona o empresa en un cuadro redondeado de color (como
+ * en las listas de movimientos). El color sale del nombre: siempre el mismo.
+ */
+export function Letra({ nombre, tam = 32, className = "" }: { nombre: string; tam?: 24 | 32 | 40; className?: string }) {
+  let h = 0;
+  for (const c of nombre) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const letra = (nombre.trim().match(/[\p{L}\p{N}]/u)?.[0] ?? "?").toLocaleUpperCase("es-MX");
+  return (
+    <span
+      className={`pnl-letra pnl-letra--${tam} ${className}`}
+      style={{ "--tono": COLORES_FRAGMENTO[h % COLORES_FRAGMENTO.length] } as CSSProperties}
+      aria-hidden="true"
+    >
+      {letra}
+    </span>
   );
 }

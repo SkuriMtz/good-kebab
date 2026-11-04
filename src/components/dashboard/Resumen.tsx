@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { Avatar } from "@/components/base/Avatar";
 import { BotonIcono } from "@/components/base/Boton";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { Insignia } from "@/components/base/Insignia";
@@ -9,7 +8,7 @@ import { PuntoEstado } from "@/components/base/PuntoEstado";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { useCerrable } from "./Centro";
 import { Fragmentos } from "./Fragmentos";
-import { Accionable, Cifra, Dona, EnlaceMas, Hora, MarcaAgente, Tarjeta, Tendencia, Vacio, VerTodo } from "./Piezas";
+import { Accionable, Cifra, Dona, EnlaceMas, Hora, Letra, MarcaAgente, Tarjeta, Tendencia, Vacio, VerTodo } from "./Piezas";
 import { fechaLarga, saludo } from "./tiempo";
 import type { Accion, Estado, InsigniaDato } from "./tipos";
 
@@ -43,6 +42,8 @@ export type FilaPendiente = Accion & {
   fecha?: string;
   haceMin?: number;
   insignia?: InsigniaDato;
+  /** Un correo: la acción que sugiere Clara (para filtrar por acción). */
+  accion?: string;
 };
 
 export type CifraResumen = Accion & { id: string; etiqueta: string; valor: number | null; delta?: number | null; icono: NombreIcono };
@@ -204,7 +205,7 @@ function Pendientes({ total, filas, accion, vacio, ahora }: PropsResumen["pendie
 export function FilaMovimiento({ f, ahora }: { f: FilaPendiente; ahora: Date | null }) {
   return (
     <Accionable accion={f} className="pnl-mov pnl-picable">
-      {f.agente ? <MarcaAgente id={f.agente} tam={32} /> : <Avatar nombre={f.quien ?? f.titulo} tam={32} />}
+      {f.agente ? <MarcaAgente id={f.agente} tam={32} /> : <Letra nombre={f.quien ?? f.titulo} />}
       <span className="pnl-mov__texto">
         <span className="pnl-mov__titulo">{f.titulo}</span>
         {f.detalle ? <span className="pnl-mov__detalle">{f.detalle}</span> : null}
@@ -269,4 +270,13 @@ function EstadisticasMini({ periodo, cifras, uso, accion }: PropsResumen["estadi
       </ul>
     </Tarjeta>
   );
+}
+
+/** ¿Esta acción sugerida es la que se pidió? (sin acentos ni mayúsculas; una puede contener a la otra). */
+export function coincideAccion(accion: string | undefined, buscada: string) {
+  if (!accion) return false;
+  const quita = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es-MX").replace(/[\s.,;:!¡?¿…]+$/u, "").replace(/\s+/g, " ").trim();
+  const a = quita(accion);
+  const b = quita(buscada);
+  return Boolean(b) && (a === b || a.includes(b) || b.includes(a));
 }
