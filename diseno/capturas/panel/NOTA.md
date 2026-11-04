@@ -9,7 +9,7 @@ Rama `prop/panel`. Todas las capturas son de `/pruebalo` (datos de ejemplo, con 
 - `hoja-4-celular-390.jpg`: a 390 px, el Inicio en claro y en oscuro, el cajón abierto, Agentes, el Chat y Pendientes.
 
 ## Prueba de clics
-Se hizo en Chromium con Playwright, a 1440 px y a 390 px, con las transiciones encendidas. Salieron 39 de 39 bien y la consola no marcó ningún error.
+Se hizo en Chromium con Playwright, a 1440 px y a 390 px, con las transiciones encendidas. Salieron 39 de 39 bien y la consola no marcó ningún error (repetida después de los arreglos del revisor). A 1024 px, cada ícono del riel tiene su nombre para lectores de pantalla y su globo sale por fuera sin recortarse.
 
 | Qué se pica | A dónde lleva | Atrás regresa |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ Se hizo en Chromium con Playwright, a 1440 px y a 390 px, con las transiciones e
 | Una fila de correo en Pendientes | `?vista=correo&de=<remitente>` (solo los correos de esa persona; la ✕ quita el filtro) | Sí |
 | Una fila de visto bueno | `?vista=pendientes&tipo=visto-bueno` | Sí |
 | Una fila sin leer | El chat con ese agente o grupo | Sí |
+| Un dato de la semana en la ficha de un agente | Su chat (el de Clara lleva a Correo) | Sí |
 | Estadísticas: "Ver todo", la dona del plan y cada número | `?vista=estadisticas` ("Esperan tu visto bueno" lleva a sus pendientes) | Sí |
 | Los filtros de Pendientes (Todos, Visto bueno, Correos, Sin leer) | `&tipo=…` | Sí |
 | El menú: Inicio, Pendientes, Estadísticas, Correo; Chat › grupo; Agentes › agente | Su vista, ya filtrada | Sí |
@@ -29,4 +30,4 @@ Se hizo en Chromium con Playwright, a 1440 px y a 390 px, con las transiciones e
 | El botón del menú en escritorio | Encoge el menú a íconos y lo recuerda en este navegador | — |
 | El botón del menú en celular | Abre el cajón; al elegir algo se cierra | Sí |
 
-En `/panel` los enlaces son de verdad (`href`) y siguen el mismo mapa: `/panel?vista=pendientes&tipo=correos|pasos&de=…`, `/panel?vista=estadisticas`, `/panel/agentes?agente=lola` y `/panel/chat?c=…`. Entre las vistas de `?vista=`, que son la misma página, la transición la arranca `ArmazonPanel`. No se pudo probar con una cuenta real porque en este entorno no hay sesión de Supabase.
+En `/panel` los enlaces son de verdad (`href`) y siguen el mismo mapa: `/panel?vista=pendientes&tipo=correos|pasos&de=…`, `/panel?vista=correo&de=…#historial` (el historial solo con ese remitente), `/panel?vista=actividad&hora=10`, `/panel?vista=estadisticas`, `/panel/agentes?agente=lola` y `/panel/chat?c=…`. Los pendientes se cuentan igual en el menú, el Inicio y la vista Pendientes (`src/lib/pendientes.ts`). Entre las vistas de `?vista=`, que son la misma página, la transición la arranca `ArmazonPanel`. No se pudo probar con una cuenta real porque en este entorno no hay sesión de Supabase.
