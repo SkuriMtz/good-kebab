@@ -64,6 +64,22 @@ export const PALETA = {
 };
 type NombreColor = keyof typeof PALETA;
 
+/**
+ * Los colores del cerebro, tomados de la guía de estilo (diseno/design.md: "Hero
+ * Constellation Visualization" e "Imagery"): espectro vivo y saturado, nunca gris.
+ * Ámbar Saffron Spark, violeta Electric Iris, verde azulado Deep Verdant (más una
+ * versión clara del mismo tono para que se vea sobre negro), magenta y azul.
+ */
+export const PALETA_CEREBRO = {
+  ambar: hex("#ffb829"),
+  violeta: hex("#8052ff"),
+  magenta: hex("#e040fb"),
+  verdeAzul: hex("#15846e"),
+  verdeAzulClaro: hex("#23d9b5"),
+  azul: hex("#3d7bff"),
+  chispa: hex("#f4f1ff"),
+};
+
 export const mezcla = (a: Color, b: Color, k: number): Color => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 export const suave = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -567,14 +583,15 @@ export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma
     const u = rnd();
     let col: Color;
     let grupo = 0;
-    if (esTallo) col = u < 0.75 ? mezcla(PALETA.blanco, PALETA.lila, 0.3) : PALETA.violeta;
-    else if (z1 > 0.77) {
-      col = u < 0.7 ? PALETA.verdeAzul : PALETA.azul;
-      grupo = suave(0.72, 0.8, z1);
-    } else if (z2 > 0.83) {
-      col = u < 0.65 ? PALETA.violeta : PALETA.magenta;
-      grupo = suave(0.7, 0.8, z2);
-    } else col = elegir([["violeta", 3], ["magenta", 6], ["rosa", 4], ["coral", 4], ["amarillo", 5], ["azul", 2], ["verdeAzul", 1]], u);
+    // Paleta de la guía (sin grises): manchas de verde azulado y azul por dentro; violeta y
+    // magenta en lo demás (el ámbar de la orilla y de la banda de abajo lo pone el motor)
+    const PC = PALETA_CEREBRO;
+    if (esTallo) col = u < 0.5 ? PC.violeta : u < 0.8 ? PC.azul : PC.verdeAzulClaro;
+    else if (z1 > 0.64) {
+      col = u < 0.45 ? PC.verdeAzulClaro : u < 0.68 ? PC.verdeAzul : PC.azul;
+      grupo = suave(0.62, 0.72, z1);
+    } else if (z2 > 0.6) col = u < 0.72 ? PC.magenta : PC.violeta;
+    else col = u < 0.6 ? PC.violeta : u < 0.74 ? PC.azul : u < 0.9 ? PC.magenta : PC.verdeAzulClaro;
     puntos.push({
       x,
       y,

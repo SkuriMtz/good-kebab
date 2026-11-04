@@ -1,5 +1,5 @@
 import { REPOSO_VIDEO } from "./escenas";
-import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, suave, type Color, type Forma } from "./formas";
+import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, PALETA_CEREBRO, suave, type Color, type Forma } from "./formas";
 
 /**
  * El motor del fondo del inicio (técnica de la versión 7): miles de
@@ -66,7 +66,7 @@ void main() {
 const FRAG = `
 precision mediump float;
 varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra;
-uniform float uTrazo; uniform float uClaro; uniform float uHalo;
+uniform float uTrazo; uniform float uClaro; uniform float uHalo; uniform float uHaloFig;
 float seg(vec2 p, vec2 a, vec2 b) {
   vec2 pa = p - a, ba = b - a;
   float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
@@ -101,7 +101,9 @@ void main() {
   }
   // Halo suave alrededor de las líneas
   float r = 0.22 + 0.3 * blur;
-  float halo = uHalo * exp(-(f.y * f.y) / (r * r));
+  // (en la figura del cerebro el halo es mínimo: la guía pide contorno nítido de 1-2 px)
+  float enFig = 1.0 - smoothstep(0.3, 0.6, vExtra.z);
+  float halo = uHalo * mix(1.0, uHaloFig, enFig) * exp(-(f.y * f.y) / (r * r));
   a = a + halo * (1.0 - a);
   a *= vCol.a / (1.0 + 0.45 * blur);
   if (a < 0.004) discard;
@@ -245,15 +247,15 @@ export const MARCA: Colocacion = C(548, 340, 265, -32, 14, -8, 4.6);
  */
 const SEGUIR = 0.97;
 
-const LUZ = { cerebro: 0.62, foco: 0.42, globo: 0.5, marca: 0.5 };
+const LUZ = { cerebro: 0.98, foco: 0.42, globo: 0.5, marca: 0.5 };
 /** Intensidad del halo de cada triangulito (medido: el video tiene un resplandor entre partículas). */
 const HALO = 0.13;
 /** Fuerza del resplandor ancho de la figura (el brillo suave del interior). */
 const RESPLANDOR = 0.045;
 
 /** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
-type Volumen = { atras: number; prof: number; radio: number; dofIzq?: number };
-const VOL_CEREBRO: Volumen = { atras: 0.42, prof: 1, radio: 1, dofIzq: 0.85 };
+type Volumen = { atras: number; prof: number; radio: number; dofIzq?: number; nitido?: boolean };
+const VOL_CEREBRO: Volumen = { atras: 0.42, prof: 1, radio: 1, nitido: true };
 /** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
@@ -430,7 +432,7 @@ export class MotorFiguras {
       }
     }
     this.A = { pos: gl.getAttribLocation(p, "aPos"), tam: gl.getAttribLocation(p, "aTam"), col: gl.getAttribLocation(p, "aCol"), rot: gl.getAttribLocation(p, "aRot"), extra: gl.getAttribLocation(p, "aExtra") };
-    this.U = Object.fromEntries(["uRes", "uDpr", "uTrazo", "uClaro", "uHalo", "uMargen"].map((n) => [n, gl.getUniformLocation(p, n)]));
+    this.U = Object.fromEntries(["uRes", "uDpr", "uTrazo", "uClaro", "uHalo", "uHaloFig", "uMargen"].map((n) => [n, gl.getUniformLocation(p, n)]));
     this.datos = new Float32Array(N * 13);
     this.buf = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
@@ -660,6 +662,17 @@ export class MotorFiguras {
     O.g[i] = cc[i * 3 + 1];
     O.b[i] = cc[i * 3 + 2];
     O.a[i] = v * (0.45 + 0.55 * ((this.vis[i] * 977) % 1));
+    if (this.enCerebro > 0) {
+      // Alrededor del cerebro, el polvo va en los mismos colores de la guía y tenue (no compite)
+      const k = this.enCerebro;
+      const q = (this.vis[i] * 7919) % 1;
+      const PC = PALETA_CEREBRO;
+      const c = q < 0.3 ? PC.ambar : q < 0.55 ? PC.violeta : q < 0.72 ? PC.magenta : q < 0.87 ? PC.verdeAzulClaro : PC.azul;
+      O.r[i] += (c[0] - O.r[i]) * k;
+      O.g[i] += (c[1] - O.g[i]) * k;
+      O.b[i] += (c[2] - O.b[i]) * k;
+      O.a[i] *= 1 - 0.4 * k;
+    }
     O.t[i] = this.tamPolvo[i] * this.s;
     O.m[i] = 1;
     // Las sueltas grandes van un poco fuera de foco (más cerca de la cámara)
@@ -712,7 +725,7 @@ export class MotorFiguras {
         tam = 0.72 + volumen.prof * 0.6 * prof;
         // Profundidad de campo: lo más cercano (y, en el cerebro, el lado izquierdo) va fuera de foco
         const izq = volumen.dofIzq ? suave(0.1, 0.85, -(pr.x[i] - c.cx * this.sx) / (c.escala * s)) * volumen.dofIzq : 0;
-        desen = Math.min(0.45, suave(0.93, 1, prof) * 0.3 + izq * suave(0.7, 0.92, prof) * 0.6);
+        desen = volumen.nitido ? 0 : Math.min(0.45, suave(0.93, 1, prof) * 0.3 + izq * suave(0.7, 0.92, prof) * 0.6);
         tam *= 1 + 0.7 * desen;
       } else {
         // Lo de atrás no se ve (figura sólida) y lo que está de canto brilla menos (si no, la orilla se quema)
@@ -784,25 +797,37 @@ export class MotorFiguras {
     const frontal = 1 - suave(16, 30, Math.abs(this.actual.yaw));
     const pA = Math.min(0.9, (0.3 - 0.1 * frontal) + (0.2 * medio * (1 - 0.65 * frontal) + 0.22 * rim) * (1 - 0.5 * izquierda) + 0.12 * abajo + 0.05 * derecha);
     const g = F.grupo[i];
-    const pWrel = Math.min(0.95, (0.66 + 0.2 * (1 - medio) + 0.1 * luzBlanca) * (1 - 0.5 * g));
-    const pW = pA + (1 - pA) * pWrel;
     const u = F.umbral[i];
-    const wA = 1 - suave(pA - 0.03, pA + 0.03, u);
-    const wW = (1 - wA) * (1 - suave(pW - 0.03, pW + 0.03, u));
-    const wC = Math.max(0, 1 - wA - wW);
     const o = i * 3;
-    const A = PALETA.ambar;
-    const B = PALETA.blanco;
+    const PC = PALETA_CEREBRO;
     // Luz: lo que mira a la luz brilla más; lo de canto, un poco menos
-    const l = 0.84 + 0.3 * Math.max(luzBlanca, rim * 0.7);
+    const l = 0.86 + 0.3 * Math.max(luzBlanca, rim * 0.7);
+    // Chispas blancas: pocas (~3.5 % de los triangulitos), repartidas parejo
+    if ((i * 0.6180339887) % 1 < 0.035) return [PC.chispa[0] * l, PC.chispa[1] * l, PC.chispa[2] * l];
+    // Ámbar en la orilla y en la banda de abajo (lo más brillante); cambio nítido para no mezclar
+    // ámbar con violeta (la mezcla se vería gris)
+    const wA = 1 - suave(pA - 0.012, pA + 0.012, u);
+    // El color de la zona: las manchas de verde azulado y azul van por dentro; en los costados y
+    // arriba (de canto) pasan a violeta y magenta
+    let c0 = F.col[o];
+    let c1 = F.col[o + 1];
+    let c2 = F.col[o + 2];
+    const q = (i * 0.7548776662) % 1;
+    if (g > 0 && medio * 0.85 + arriba * 0.35 > q) {
+      const v = q < 0.5 ? PC.violeta : PC.magenta;
+      c0 = v[0];
+      c1 = v[1];
+      c2 = v[2];
+    }
     // Destellos magenta en el borde de arriba (como en el video)
-    const mag = arriba * medio > 0.3 && (u * 13.7) % 1 < 0.45;
-    const c0 = mag ? PALETA.magenta[0] : F.col[o];
-    const c1 = mag ? PALETA.magenta[1] : F.col[o + 1];
-    const c2 = mag ? PALETA.magenta[2] : F.col[o + 2];
-    // El blanco del interior tira a gris lavanda en las caras que no miran a la luz
-    const Bl = 1 - 0.06 * (1 - luzBlanca);
-    return [(A[0] * wA + B[0] * Bl * wW + c0 * wC) * l, (A[1] * wA + B[1] * Bl * 0.97 * wW + c1 * wC) * l, (A[2] * wA + B[2] * wW + c2 * wC) * l];
+    if (arriba * medio > 0.3 && (u * 13.7) % 1 < 0.45) {
+      c0 = PC.magenta[0];
+      c1 = PC.magenta[1];
+      c2 = PC.magenta[2];
+    }
+    const A = PC.ambar;
+    const lA = l * 1.08;
+    return [A[0] * wA * lA + c0 * (1 - wA) * l, A[1] * wA * lA + c1 * (1 - wA) * l, A[2] * wA * lA + c2 * (1 - wA) * l];
   };
 
   private colorFoco = (i: number, pr: Proy): Color => {
@@ -856,7 +881,11 @@ export class MotorFiguras {
   }
 
   /** Llena o1 (el objetivo de cada partícula) para la posición P (0 a 7). */
+  /** 1 mientras se ve el cerebro (portada y decisiones); baja a 0 cuando se deshace en el caos. */
+  private enCerebro = 1;
+
   private componer(P: number) {
+    this.enCerebro = 1 - suave(1.35, 2.0, P);
     const N = this.N;
     const fm = this.formas;
     const seg = Math.min(6, Math.max(0, Math.floor(P)));
@@ -1166,6 +1195,7 @@ export class MotorFiguras {
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
     // Halo suave (en claro no: ahí se pinta encima)
     gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);
+    gl.uniform1f(this.U.uHaloFig, 1 - 0.8 * this.enCerebro);
     gl.uniform1f(this.U.uMargen, 1.45);
     gl.drawArrays(gl.POINTS, 0, N);
     for (const l of [A.pos, A.tam, A.col, A.rot, A.extra]) gl.disableVertexAttribArray(l);
@@ -1184,7 +1214,7 @@ export class MotorFiguras {
       gl.uniform2f(this.UR.uRes, this.w, this.h);
       gl.uniform1f(this.UR.uDpr, this.dpr);
       gl.uniform1f(this.UR.uAncho, 4.2);
-      gl.uniform1f(this.UR.uFuerza, RESPLANDOR);
+      gl.uniform1f(this.UR.uFuerza, RESPLANDOR * (1 - 0.6 * this.enCerebro));
       gl.drawArrays(gl.POINTS, 0, N);
       for (const l of [R.pos, R.tam, R.col, R.extra]) gl.disableVertexAttribArray(l);
     }
