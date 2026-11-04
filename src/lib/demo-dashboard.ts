@@ -29,7 +29,22 @@ import type { IdPlan } from "./planes";
  * chat; `agente`: la vista Agentes con ese agente marcado; `de`: filtra por
  * remitente; `tipo`: filtra los pendientes.
  */
-export type Destino = { vista: IdVista; con?: string; pestana?: IdPestana; agente?: IdAgente; de?: string; tipo?: string };
+export type Destino = {
+  vista: IdVista;
+  con?: string;
+  pestana?: IdPestana;
+  agente?: IdAgente;
+  de?: string;
+  tipo?: string;
+  /** Pendientes: solo los correos con esa acción sugerida. */
+  accion?: string;
+  /** Actividad: lo de esa hora del día (0–23) o de ese día ("2026-11-04"). */
+  hora?: number;
+  dia?: string;
+  /** Estadísticas: periodo (7d, 30d, mes) y métrica (mensajes, conversaciones, correos, acciones, uso). */
+  periodo?: string;
+  metrica?: string;
+};
 export type IdPestana = "actividad" | "visto-bueno" | "destacados";
 
 export const DEMO_NEGOCIO = {
@@ -355,7 +370,7 @@ export const DEMO_CONVERSACIONES: ConversacionDemo[] = [
     ultimo: "Perfecto, ahí estaré el viernes. ¡Gracias!",
     haceMin: 9,
     sinLeer: true,
-    ir: { vista: "conversaciones", con: "recepcion" },
+    ir: { vista: "conversaciones", con: "lola" },
   },
   {
     id: "carla",
@@ -445,7 +460,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
     titulo: "Un correo urgente",
     detalle: "Insumos del Bajío: factura de $8,450 que vence el jueves",
     haceMin: 96,
-    ir: { vista: "correo" },
+    ir: { vista: "correo", de: "Insumos del Bajío" },
   },
   {
     id: "a-lola",
