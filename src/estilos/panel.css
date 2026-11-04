@@ -688,10 +688,19 @@
 }
 
 /* ---------- Riel de íconos (tableta, o encogido en escritorio) ---------- */
+/* En el riel no hay que desplazarse (caben los íconos) y el globo con el
+   nombre sale por fuera, encima del contenido: nada recorta ni se mueve de lado. */
 @media (min-width: 768px) and (max-width: 1279px) {
+  .pnl-lateral {
+    position: relative;
+    z-index: 2;
+  }
   .pnl-lateral .pnl-lateral__contenido {
     align-items: center;
     padding-inline: var(--spacing-12);
+  }
+  .pnl-lateral > .pnl-lateral__contenido {
+    overflow: visible;
   }
   .pnl-lateral :is(.pnl-nav__texto, .pnl-nav__abrir, .pnl-nav__hijos, .pnl-lateral__pie) {
     display: none;
@@ -714,9 +723,16 @@
   }
 }
 @media (min-width: 1280px) {
+  .pnl[data-encogido="true"] .pnl-lateral {
+    position: relative;
+    z-index: 2;
+  }
   .pnl[data-encogido="true"] .pnl-lateral .pnl-lateral__contenido {
     align-items: center;
     padding-inline: var(--spacing-12);
+  }
+  .pnl[data-encogido="true"] .pnl-lateral > .pnl-lateral__contenido {
+    overflow: visible;
   }
   .pnl[data-encogido="true"] .pnl-lateral :is(.pnl-nav__texto, .pnl-nav__abrir, .pnl-nav__hijos, .pnl-lateral__pie) {
     display: none;
@@ -790,14 +806,6 @@
   .pnl[data-encogido="true"] .pnl-lateral .pnl-nav__elemento:is(:hover, :focus-visible) .pnl-nav__globo {
     opacity: 1;
     transform: translate(0, -50%);
-  }
-}
-.pnl-lateral__contenido {
-  overflow-x: visible;
-}
-@media (min-width: 768px) {
-  .pnl-lateral > .pnl-lateral__contenido {
-    overflow-x: visible;
   }
 }
 

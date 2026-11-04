@@ -725,7 +725,7 @@ function VistaAgentes({ ir, enfocado }: { ir: (d: Destino) => void; enfocado?: I
             datos={DEMO_SEMANA_AGENTE[id].map((m, i) => {
               const [n, ...resto] = m.texto.split(" ");
               return (
-                <Accionable key={m.texto} accion={{ alElegir: () => ir({ vista: "estadisticas" }) }} className="pnl-ficha__dato pnl-picable">
+                <Accionable key={m.texto} accion={{ alElegir: () => ir(id === "clara" ? { vista: "correo" } : { vista: "conversaciones", con: id }) }} className="pnl-ficha__dato pnl-picable">
                   <Icono nombre={m.icono} tam={16} />
                   <Cifra valor={Number(n)} indice={i} className="pnl-ficha__cifra" />
                   <span>{resto.join(" ")} esta semana</span>

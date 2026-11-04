@@ -109,7 +109,7 @@ export function MisAgentes({
                   enfocado={enfocado === a.id}
                   datos={
                     permitido ? (
-                      <Accionable accion={{ href: "/panel?vista=estadisticas" }} className="pnl-ficha__dato pnl-picable">
+                      <Accionable accion={{ href: a.id === "clara" ? "/panel?vista=correo#historial" : `/panel/chat?agente=${a.id}` }} className="pnl-ficha__dato pnl-picable">
                         <Icono nombre={a.id === "clara" ? "correo" : "conversaciones"} tam={16} />
                         <Cifra valor={a.id === "clara" ? correosSemana : estaSemana[a.id]} className="pnl-ficha__cifra" />
                         <span>{a.id === "clara" ? "correos resumidos esta semana" : "conversaciones esta semana"}</span>

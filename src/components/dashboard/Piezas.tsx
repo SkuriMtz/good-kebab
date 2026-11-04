@@ -83,7 +83,7 @@ export function Accionable({
 export function Hora({ item, ahora, className = "" }: { item: { fecha?: string; haceMin?: number }; ahora: Date | null; className?: string }) {
   const fecha = fechaDe(item, ahora);
   return (
-    <time className={`dash-hora cifras ${className}`} dateTime={fecha?.toISOString()} title={completa(fecha)}>
+    <time className={`dash-hora cifras ${className}`} dateTime={fecha?.toISOString()} title={ahora ? completa(fecha) : undefined}>
       {relativo(fecha, ahora)}
     </time>
   );

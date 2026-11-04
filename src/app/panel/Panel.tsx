@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Avatar } from "@/components/base/Avatar";
 import { Boton } from "@/components/base/Boton";
@@ -9,6 +10,7 @@ import { Insignia } from "@/components/base/Insignia";
 import { CabezaBloque, MarcaAgente, Vacio } from "@/components/dashboard/Piezas";
 import { Field } from "@/components/ui/Field";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
+import { partirRemitente } from "@/lib/estadisticas";
 import { createClient } from "@/lib/supabase/client";
 
 type Resultado = { asunto: string; remitente: string; resumen: string; accion: string };
@@ -62,7 +64,7 @@ const sinCorreo = (remitente: string | null) => (remitente ?? "").replace(/<.*>/
  * ejemplo), conectar o revisar Gmail (solo lectura) y el historial de lo que
  * ya leyó. La lógica es la de siempre; solo cambió la forma.
  */
-export function Panel({ conGoogle }: { conGoogle: boolean }) {
+export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el historial solo con lo de ese remitente (como en Pendientes y Estadísticas). */ de?: string }) {
   const supabase = useMemo(() => createClient(), []);
   const googleDisponible = useGoogleDisponible();
 
@@ -178,6 +180,8 @@ export function Panel({ conGoogle }: { conGoogle: boolean }) {
   }
 
   const hayTexto = Boolean(remitente || asunto || contenido);
+  // Solo se filtra lo que se muestra; la lectura del historial no cambia
+  const visibles = historial && de ? historial.filter((h) => partirRemitente(h.remitente)?.nombre === de) : historial;
 
   return (
     <div className="pnl-pagina">
@@ -316,7 +320,15 @@ export function Panel({ conGoogle }: { conGoogle: boolean }) {
         <CabezaBloque
           id="historial-titulo"
           titulo="Lo que Clara ya leyó"
-          extra={historial && historial.length > 0 ? <span className="dash-grupo-titulo__cuenta cifras">{historial.length}</span> : null}
+          extra={visibles && visibles.length > 0 ? <span className="dash-grupo-titulo__cuenta cifras">{visibles.length}</span> : null}
+          accion={
+            de ? (
+              <Link href="/panel?vista=correo#historial" className="pnl-filtro pnl-filtro--quitar pnl-picable" aria-label={`Quitar el filtro: ${de}`}>
+                De: {de}
+                <Icono nombre="cerrar" tam={16} />
+              </Link>
+            ) : null
+          }
         />
         {historial === null ? (
           <div className="dash-lista dash-lista--borde" aria-busy="true" aria-label="Cargando el historial">
@@ -330,6 +342,8 @@ export function Panel({ conGoogle }: { conGoogle: boolean }) {
               </div>
             ))}
           </div>
+        ) : de && historial.length > 0 && visibles?.length === 0 ? (
+          <Vacio icono="correo" titulo={`Nada de ${de} en lo último que leyó Clara`} texto="Aquí se ven los 30 resúmenes más recientes." accion={<Link href="/panel?vista=correo#historial" className="dash-enlace">Ver todo el historial</Link>} />
         ) : historial.length === 0 ? (
           <Vacio
             icono="correo"
@@ -343,7 +357,7 @@ export function Panel({ conGoogle }: { conGoogle: boolean }) {
           />
         ) : (
           <ul className="dash-lista dash-lista--borde">
-            {historial.map((item) => (
+            {(visibles ?? historial).map((item) => (
               <li key={item.id} className="dash-historial__fila">
                 <div className="dash-historial__quien">
                   <span className="dash-historial__remitente">

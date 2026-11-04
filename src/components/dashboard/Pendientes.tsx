@@ -27,6 +27,8 @@ export type GrupoPendientes = {
   filas?: FilaPendiente[];
   /** Contenido propio (la lista de "visto bueno" con sus botones). */
   contenido?: ReactNode;
+  /** Una línea al pie del grupo ("Se ven los 100 más recientes de 140"). */
+  nota?: string;
 };
 
 export type FiltroPendientes = Accion & { id: string; etiqueta: string; cuenta?: number; actual?: boolean };
@@ -34,12 +36,15 @@ export type FiltroPendientes = Accion & { id: string; etiqueta: string; cuenta?:
 export function VistaPendientes({
   grupos,
   filtros,
+  total: totalDado,
   quitarFiltro,
   ahora,
   actividad,
   marca,
 }: {
   grupos: GrupoPendientes[];
+  /** El total exacto (si se listan menos de los que hay). Sin esto, la suma de los grupos. */
+  total?: number | null;
   filtros: FiltroPendientes[];
   /** Si se filtró por remitente: "De: Andrea Solís ✕". */
   quitarFiltro?: Accion & { etiqueta: string };
@@ -47,7 +52,7 @@ export function VistaPendientes({
   actividad?: Accion;
   marca?: ReactNode;
 }) {
-  const total = grupos.reduce((s, g) => s + g.total, 0);
+  const total = totalDado ?? grupos.reduce((s, g) => s + g.total, 0);
   return (
     <div className="pnl-pagina">
       <header className="pnl-vista__cabeza">
@@ -122,6 +127,7 @@ function Grupo({ g, ahora }: { g: GrupoPendientes; ahora: Date | null }) {
         {g.subgrupos?.map((s) => (
           <Subgrupo key={s.id} s={s} ahora={ahora} />
         ))}
+        {g.nota ? <p className="dash-nota pnl-agrupada__nota">{g.nota}</p> : null}
       </div>
     </div>
   );

@@ -64,7 +64,8 @@ function Grupo({ n, actual }: { n: ElementoNav; actual: boolean }) {
           accion={n}
           className="pnl-nav__elemento"
           actual={actual}
-          etiqueta={n.contador ? `${n.etiqueta}: ${n.etiquetaContador ?? n.contador}` : undefined}
+          // Siempre con nombre: en el riel solo se ve el ícono
+          etiqueta={n.contador ? `${n.etiqueta}: ${n.etiquetaContador ?? n.contador}` : n.etiqueta}
         >
           <Icono nombre={n.icono} tam={20} className="pnl-nav__icono" />
           <span className="pnl-nav__texto">{n.etiqueta}</span>

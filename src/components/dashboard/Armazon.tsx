@@ -56,6 +56,7 @@ export type PropsArmazon = {
 };
 
 const CLAVE_ENCOGIDO = "atendel-panel-menu-encogido";
+const ANCHO_ESCRITORIO = "(min-width: 1280px)";
 
 /**
  * El armazón del panel: barra de arriba (logo, negocio y plan, buscador al
@@ -69,6 +70,8 @@ export function Armazon(props: PropsArmazon) {
   const { inicio, aviso, nav, activa, novedades, version, uso, chat, completo = false, alNavegar, children } = props;
   const [cajon, setCajon] = useState(false);
   const [encogido, setEncogido] = useState(false);
+  /** ¿Hay lugar para el menú completo? (escritorio: el botón lo encoge; si no, abre el cajón). */
+  const [escritorio, setEscritorio] = useState(false);
 
   useEffect(() => {
     try {
@@ -76,11 +79,16 @@ export function Armazon(props: PropsArmazon) {
     } catch {
       /* sin almacenamiento: abierto */
     }
+    const consulta = window.matchMedia(ANCHO_ESCRITORIO);
+    const alCambiar = () => setEscritorio(consulta.matches);
+    alCambiar();
+    consulta.addEventListener("change", alCambiar);
+    return () => consulta.removeEventListener("change", alCambiar);
   }, []);
 
   // En escritorio, el botón encoge el menú a sus íconos; en tableta y celular abre el cajón
   const alternarMenu = () => {
-    if (window.matchMedia("(min-width: 1280px)").matches) {
+    if (window.matchMedia(ANCHO_ESCRITORIO).matches) {
       setEncogido((v) => {
         try {
           window.localStorage.setItem(CLAVE_ENCOGIDO, v ? "0" : "1");
@@ -115,7 +123,7 @@ export function Armazon(props: PropsArmazon) {
         Saltar al contenido
       </a>
       {aviso}
-      <BarraSuperior {...props} alternarMenu={alternarMenu} cajonAbierto={cajon} encogido={encogido} />
+      <BarraSuperior {...props} alternarMenu={alternarMenu} cajonAbierto={cajon} encogido={encogido} escritorio={escritorio} />
 
       <div className="pnl-cuerpo">
         <aside className="pnl-lateral" aria-label="Menú de Atendel">
@@ -169,7 +177,8 @@ function BarraSuperior({
   alternarMenu,
   cajonAbierto,
   encogido,
-}: PropsArmazon & { alternarMenu: () => void; cajonAbierto: boolean; encogido: boolean }) {
+  escritorio,
+}: PropsArmazon & { alternarMenu: () => void; cajonAbierto: boolean; encogido: boolean; escritorio: boolean }) {
   const tema = useTema();
   const [buscando, setBuscando] = useState(false);
   const campoMovil = useRef<HTMLInputElement>(null);
@@ -195,11 +204,14 @@ function BarraSuperior({
   return (
     <header className="pnl-barra">
       <div className="pnl-barra__inicio">
+        {/* En escritorio encoge el menú (botón de dos estados); en tableta y celular abre el cajón */}
         <BotonIcono
-          etiqueta={encogido ? "Mostrar los nombres del menú" : "Menú de Atendel"}
+          etiqueta={escritorio ? "Encoger el menú a íconos" : "Abrir el menú"}
           icono="barra-lateral"
           onClick={alternarMenu}
-          aria-expanded={cajonAbierto || undefined}
+          aria-pressed={escritorio ? encogido : undefined}
+          aria-expanded={escritorio ? undefined : cajonAbierto}
+          aria-haspopup={escritorio ? undefined : "dialog"}
         />
         <Logo inicio={inicio} />
         <span className="pnl-barra__division" aria-hidden="true" />

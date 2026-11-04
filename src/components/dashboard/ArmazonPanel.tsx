@@ -12,7 +12,8 @@ import { Armazon } from "./Armazon";
 import { UsoPlan } from "./Columna";
 import { nombresAgentes } from "./nombres";
 import { useAhora } from "./tiempo";
-import type { ElementoNav, IdVista, NovedadLateral, PasoInicio, ResultadoBusqueda, SubElementoNav } from "./tipos";
+import type { PasoPanel } from "@/lib/pasos";
+import type { ElementoNav, IdVista, NovedadLateral, ResultadoBusqueda, SubElementoNav } from "./tipos";
 import { useTema } from "./useTema";
 
 export type DatosArmazonPanel = {
@@ -27,9 +28,9 @@ export type DatosArmazonPanel = {
   usados: number;
   conGoogle: boolean;
   grupos: { id: string; nombre: string; agentes: IdAgente[] }[];
-  /** ¿Ya tuvo al menos una conversación? (un paso de "Primeros pasos"). */
-  conConversaciones: boolean;
-  /** Correos con una acción sugerida (el número de "Pendientes"). null si no se pudo leer. */
+  /** "Primeros pasos" con lo que de verdad ya hizo (src/lib/pasos.ts). */
+  pasos: PasoPanel[];
+  /** Pendientes (correos con acción + pasos que faltan, src/lib/pendientes.ts). null si no se pudo leer. */
   pendientes: number | null;
   version?: string;
 };
@@ -42,16 +43,6 @@ function claveDe(url: URL) {
   if (url.pathname !== "/panel") return url.pathname;
   const v = url.searchParams.get("vista");
   return `/panel/?${v && VISTAS_PANEL.includes(v as IdVista) ? v : "resumen"}`;
-}
-
-/** Los pasos de "Primeros pasos" con lo que de verdad ya hizo la persona. */
-export function pasosPanel(d: { activos: IdAgente[]; conGoogle: boolean; conConversaciones: boolean; conGrupo: boolean; conGrupos: boolean }): PasoInicio[] {
-  return [
-    { id: "equipo", titulo: "Elige a tu equipo", detalle: nombresAgentes(d.activos), listo: d.activos.length > 0, href: "/panel/agentes" },
-    { id: "gmail", titulo: "Conecta tu Gmail", detalle: "Clara lo lee. Solo lectura.", listo: d.conGoogle, href: "/panel?vista=correo#gmail" },
-    { id: "chat", titulo: "Tu primera conversación", detalle: "Pídele algo a un agente.", listo: d.conConversaciones, href: "/panel/chat" },
-    ...(d.conGrupos ? [{ id: "grupo", titulo: "Tu primer grupo", detalle: "Junta a dos agentes en un chat.", listo: d.conGrupo, href: "/panel/chat" }] : []),
-  ];
 }
 
 /**
@@ -233,7 +224,7 @@ export function ArmazonPanel({ datos, children }: { datos: DatosArmazonPanel; ch
       nav={nav}
       activa={vista}
       negocio={{ nombre: datos.negocio, plan: plan.nombre.replace(/^Atendel\s+/, ""), menu: menuNegocio }}
-      pasos={pasosPanel({ activos: datos.activos, conGoogle: datos.conGoogle, conConversaciones: datos.conConversaciones, conGrupo: datos.grupos.length > 0, conGrupos })}
+      pasos={datos.pasos}
       mejorar={plan.id === "max" ? undefined : { href: "/precios" }}
       ayuda={ayuda}
       novedades={novedades}
