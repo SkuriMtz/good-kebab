@@ -19,8 +19,7 @@
    Como la foto de salida y la de llegada son iguales, el fundido cruzado
    entre las dos no se nota. Solo mientras dura el cambio de página
    (.vt-pagina): el cambio claro/oscuro sigue siendo un fundido de todo. */
-:root.vt-pagina:not(.vt-capa) .sitio > .escena-fondo,
-:root.vt-pagina:not(.vt-capa) .dash > .escena-fondo {
+:root.vt-pagina:not(.vt-capa) .sitio > .escena-fondo {
   view-transition-name: vt-escena;
 }
 :root.vt-pagina:not(.vt-capa) .cabecera {
@@ -29,10 +28,8 @@
 :root.vt-pagina:not(.vt-capa) .hoja-nav {
   view-transition-name: vt-hoja;
 }
-:root.vt-pagina:not(.vt-capa) .dash-barra {
-  view-transition-name: vt-panel-barra;
-}
-:root.vt-pagina:not(.vt-capa) .dash-lateral {
+/* El panel (/panel y /pruebalo): el menú se queda; solo cambia el contenido */
+:root.vt-pagina:not(.vt-capa) .pc-menu {
   view-transition-name: vt-panel-lateral;
 }
 
@@ -40,13 +37,13 @@
    Lo que sale y lo que entra llevan nombres distintos: así la foto de
    salida se queda donde estaba (aunque la página estuviera a la mitad) y
    no viaja hasta el lugar de la nueva. */
-:root.vt-pagina:not(.vt-capa):not(.vt-nueva) :is(.sitio__contenido, .dash-principal) {
+:root.vt-pagina:not(.vt-capa):not(.vt-nueva) :is(.sitio__contenido, .pc-contenido) {
   view-transition-name: vt-sale;
 }
 :root.vt-pagina:not(.vt-capa):not(.vt-nueva) .sitio > div.sobre-escena {
   view-transition-name: vt-sale-pie;
 }
-:root.vt-pagina.vt-nueva :is(.sitio__contenido, .dash-principal) {
+:root.vt-pagina.vt-nueva :is(.sitio__contenido, .pc-contenido) {
   view-transition-name: vt-entra;
 }
 :root.vt-pagina.vt-nueva .sitio > div.sobre-escena {
@@ -127,10 +124,21 @@
 ::view-transition-new(vt-entra-pie) {
   animation: vt-entra var(--vt-entra) var(--vt-curva) var(--vt-espera) both;
 }
-/* Dentro del panel (de una página a otra): solo un fundido corto, sin subir */
+/* Dentro del panel (de una sección a otra, ANIMACIONES.md punto 1): lo viejo
+   se desvanece en 140ms; tras un blanco breve (40ms) lo nuevo entra en
+   220ms subiendo 6px. Cruce corto: se usa muchas veces al día. */
+:root.vt-app::view-transition-old(vt-sale) {
+  animation: vt-sale 140ms cubic-bezier(0.4, 0, 1, 1) both;
+}
 :root.vt-app::view-transition-new(vt-entra),
 :root.vt-app::view-transition-new(vt-entra-pie) {
-  animation: aparecer var(--vt-sale) var(--vt-curva) both;
+  animation: vt-entra-app 220ms var(--vt-curva) 40ms both;
+}
+@keyframes vt-entra-app {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 @keyframes vt-sale {
   to {

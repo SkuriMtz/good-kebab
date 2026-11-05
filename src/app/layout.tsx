@@ -13,7 +13,6 @@ import "../estilos/informativas.css";
 import "../estilos/conversion.css";
 import "../estilos/estructura.css";
 import "../estilos/tema-claro.css";
-import "../estilos/dashboard.css";
 import "../estilos/landing.css";
 import "../estilos/inicio.css";
 import "../estilos/transiciones.css";

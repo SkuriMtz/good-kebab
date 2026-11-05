@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { PruebaloDashboard } from "@/components/dashboard/PruebaloDashboard";
-import { destinoDeParametros } from "@/lib/demo-dashboard";
-import { VERSION } from "@/lib/version";
+import { PanelDemo } from "@/components/panel/PanelDemo";
+import { saludoDeHora } from "@/components/panel/pedidos";
+import { DEMO_USUARIA } from "@/lib/demo-dashboard";
 
 export const metadata: Metadata = {
   title: "Pruébalo",
@@ -9,13 +9,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * Pruébalo: el panel completo con datos de ejemplo de un negocio inventado
- * (src/lib/demo-dashboard.ts). Inicio, Chat (el chat de ejemplo con grupos
- * y PromptBar), Agentes, Pendientes, Estadísticas y Correo, sin recargar.
+ * Pruébalo: el panel nuevo con datos de ejemplo de un negocio inventado
+ * (src/lib/demo-dashboard.ts). La vista sale de la dirección y se pinta
+ * desde el servidor (?vista=agentes, ?con=lola…): no aparece antes el
+ * Inicio. Lo demás pasa en el navegador. El chat es el guion local de
+ * ChatDemo: no llama a la IA.
  */
 export default function Pruebalo({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
-  // La vista de la dirección se pinta desde el servidor: no aparece antes el inicio
-  const uno = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
-  const inicial = destinoDeParametros({ get: (clave) => uno(searchParams[clave]) });
-  return <PruebaloDashboard version={VERSION} inicial={inicial} />;
+  // La página depende de la dirección: se pinta en cada visita con la vista pedida
+  void searchParams;
+  const ahora = Date.now();
+  return <PanelDemo saludo={`${saludoDeHora(new Date(ahora))}, ${DEMO_USUARIA.nombre.split(" ")[0]}`} ahora={ahora} />;
 }

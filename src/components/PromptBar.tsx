@@ -56,6 +56,8 @@ type Props = {
   onStop?: () => void;
   onAttach?: () => string | string[] | Promise<string | string[] | undefined> | undefined;
   onDictate?: () => string | Promise<string>;
+  /** Sin dictado todavía: el micrófono se ve, apagado y con su nombre ("Dictar, pronto"). */
+  dictarPronto?: boolean;
   background?: string;
   color?: string;
   menuBackground?: string;
@@ -160,6 +162,7 @@ export default function PromptBar({
   onStop,
   onAttach,
   onDictate,
+  dictarPronto = false,
   background,
   color,
   menuBackground,
@@ -728,6 +731,10 @@ export default function PromptBar({
               ) : (
                 <HugeiconsIcon icon={Mic01Icon} size={15} strokeWidth={2} />
               )}
+            </button>
+          ) : dictarPronto ? (
+            <button type="button" className="prompt-bar__tool" aria-label="Dictar (pronto)" title="El dictado llega pronto" disabled>
+              <HugeiconsIcon icon={Mic01Icon} size={15} strokeWidth={2} />
             </button>
           ) : null}
           <button

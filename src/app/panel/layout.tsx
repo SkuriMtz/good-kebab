@@ -1,19 +1,19 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { ArmazonPanel } from "@/components/dashboard/ArmazonPanel";
-import { nombresAgentes } from "@/components/dashboard/nombres";
+import { ArmazonReal } from "@/components/panel/ArmazonReal";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
-import { VERSION } from "@/lib/version";
+import type { ChatMenu } from "@/components/panel/Armazon";
 
 /**
- * El armazón del panel (barra superior, menú lateral, pie) con los datos
- * reales de la cuenta. Se queda puesto al moverse entre Resumen,
- * Chat, Agentes, Pendientes, Estadísticas y Correo. Solo lee: plan, equipo,
- * uso, negocio, los grupos de chat y los pendientes (src/lib/pendientes.ts,
- * contados igual que en el Inicio). RLS deja ver a cada quien solo lo suyo.
+ * El armazón del panel nuevo (menú de 288px con Fijados y Recientes, y el
+ * pie con tu cuenta) con los datos reales de la cuenta. Se queda puesto al
+ * moverse entre el Inicio (que es un chat nuevo), las conversaciones y las
+ * secciones. Solo lee: plan, equipo, las conversaciones y los pendientes
+ * (src/lib/pendientes.ts, contados igual en todas partes). RLS deja ver a
+ * cada quien solo lo suyo.
  */
 export default async function PanelLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -29,46 +29,47 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   const cuenta = await cargarCuenta(supabase, user.id);
 
   const [{ data: convs }, pendientes] = await Promise.all([
-    // Los chats en grupo del menú (una conversación con participantes es un grupo)
     supabase
       .from("conversaciones")
-      .select("id, participantes, tema, actualizado_en")
+      .select("id, agente, titulo, tema, participantes, actualizado_en")
       .eq("owner_id", user.id)
-      .not("participantes", "is", null)
       .order("actualizado_en", { ascending: false })
-      .limit(6),
-    // El número de "Pendientes" y los primeros pasos, contados igual que en el Inicio y en Pendientes
-    // (con las mismas 5 filas que pide el Inicio, la lectura se comparte)
+      .limit(40),
+    // Las mismas 5 filas que pide el Inicio: la lectura se comparte (cache)
     cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 5),
   ]);
 
-  const grupos = (convs ?? [])
-    .map((c) => ({ ...c, agentes: ((c.participantes as unknown[] | null) ?? []).filter(esIdAgente) as IdAgente[] }))
-    .filter((c) => c.agentes.length >= 2)
-    .map((c) => ({ id: String(c.id), nombre: (c.tema as string | null) || nombresAgentes(c.agentes), agentes: c.agentes }));
+  // Fijados: los grupos con nombre. Recientes: todo lo demás (también "Todo el equipo")
+  const fijados: ChatMenu[] = [];
+  const recientes: ChatMenu[] = [];
+  for (const c of convs ?? []) {
+    const id = String(c.id);
+    const agente = esIdAgente(c.agente) ? c.agente : null;
+    const grupo = ((c.participantes as unknown[] | null) ?? []).filter(esIdAgente) as IdAgente[];
+    const agentes = grupo.length >= 2 ? grupo : agente ? [agente] : [];
+    if (!agentes.length) continue;
+    const titulo = ((c.tema as string | null) || (c.titulo as string | null) || "Conversación").replace(/\s+/g, " ").trim();
+    const item = { id, titulo, href: `/panel?c=${encodeURIComponent(id)}`, agentes };
+    if (grupo.length >= 2 && c.tema) fijados.push(item);
+    else if (recientes.length < 20) recientes.push(item);
+  }
 
   const meta = user.user_metadata ?? {};
-  const nombre = (meta.full_name as string | undefined) || (meta.name as string | undefined) || user.email || "Tu cuenta";
-  const foto = (meta.avatar_url as string | undefined) || (meta.picture as string | undefined) || null;
+  const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined) || user.email || "Tu cuenta";
+  const nombre = completo.includes("@") ? completo.split("@")[0] : completo.split(" ")[0];
 
   return (
-    <ArmazonPanel
+    <ArmazonReal
       datos={{
-        correo: user.email ?? "",
         nombre,
-        foto,
-        planId: cuenta.plan.id,
+        plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),
         activos: cuenta.activos,
-        negocio: cuenta.negocio,
-        usados: cuenta.usados,
-        conGoogle,
-        grupos,
-        pasos: pendientes.todosLosPasos,
         pendientes: pendientes.total,
-        version: VERSION,
+        fijados,
+        recientes,
       }}
     >
       {children}
-    </ArmazonPanel>
+    </ArmazonReal>
   );
 }

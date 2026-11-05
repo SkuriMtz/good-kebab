@@ -1,16 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Avatar } from "@/components/base/Avatar";
-import { Boton } from "@/components/base/Boton";
-import { Escribiendo } from "@/components/base/Escribiendo";
-import { Icono } from "@/components/base/Iconos";
-import { Insignia } from "@/components/base/Insignia";
-import { CabezaBloque, MarcaAgente, Vacio } from "@/components/dashboard/Piezas";
-import { Field } from "@/components/ui/Field";
+import { Giro, Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
-import { partirRemitente } from "@/lib/estadisticas";
+import { AvatarAgente } from "@/components/panel/Mensajes";
+import { Enlace, Pildoras, Subtitulo, Tarjeta, TituloSeccion, Vacio, claseBoton } from "@/components/panel/Piezas";
+import { ListaCorreos, Seccion } from "@/components/panel/Secciones";
+import { partirRemitente } from "@/components/panel/remitente";
 import { createClient } from "@/lib/supabase/client";
 
 type Resultado = { asunto: string; remitente: string; resumen: string; accion: string };
@@ -57,12 +53,12 @@ const formatoFecha = new Intl.DateTimeFormat("es-MX", {
 });
 
 const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim().toLowerCase() !== "ninguna");
-const sinCorreo = (remitente: string | null) => (remitente ?? "").replace(/<.*>/, "").trim() || "Sin remitente";
 
 /**
  * Correo con Clara, dentro del panel: resumir un correo pegado (o uno de
  * ejemplo), conectar o revisar Gmail (solo lectura) y el historial de lo que
- * ya leyó. La lógica es la de siempre; solo cambió la forma.
+ * ya leyó. La lógica es la de siempre; solo cambió la forma (la sección del
+ * panel nuevo: columna de 768px, título en serif y tarjetas de borde fino).
  */
 export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el historial solo con lo de ese remitente (como en Pendientes y Estadísticas). */ de?: string }) {
   const supabase = useMemo(() => createClient(), []);
@@ -184,210 +180,185 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   const visibles = historial && de ? historial.filter((h) => partirRemitente(h.remitente)?.nombre === de) : historial;
 
   return (
-    <div className="pnl-pagina">
-      <header className="pnl-vista__cabeza">
-        <div>
-          <h1 className="pnl-vista__titulo">Correo</h1>
-          <p className="pnl-vista__texto">Pega un correo o elige un ejemplo. Clara te dice de qué trata y qué conviene hacer.</p>
-        </div>
-        <span className="dash-vista__agente">
-          <MarcaAgente id="clara" tam={24} />
-          Clara · Correo
-        </span>
-      </header>
+    <Seccion>
+      <TituloSeccion
+        titulo="Correo"
+        texto="Pega un correo o elige un ejemplo. Clara te dice de qué trata y qué conviene hacer."
+        acciones={
+          <span className="pc-etiqueta-agente">
+            <AvatarAgente agente="clara" tam={20} />
+            Clara · Correo
+          </span>
+        }
+      />
 
       {/* ---------- Modo de prueba ---------- */}
-      <section id="probar" className="dash-clara" aria-labelledby="probar-titulo">
-        <div className="dash-tarjeta dash-clara__form">
-          <h2 id="probar-titulo" className="t-app-titulo">
+      <section id="probar" aria-labelledby="probar-titulo" className="pc-correo-prueba">
+        <Tarjeta como="div" className="pc-formulario">
+          <h2 id="probar-titulo" className="pc-formulario__titulo">
             Resume un correo
           </h2>
-          <div>
-            <p className="t-app-etiqueta">Ejemplos</p>
-            <div className="dash-clara__ejemplos dash-clara__ejemplos--arriba">
-              {EJEMPLOS.map((ejemplo) => (
-                <button key={ejemplo.etiqueta} type="button" className="dash-chip" onClick={() => usarEjemplo(ejemplo)}>
-                  {ejemplo.etiqueta}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <form onSubmit={resumir} className="dash-clara__campos" noValidate>
-            <Field
-              label="De"
-              name="remitente"
-              value={remitente}
-              onChange={setRemitente}
-              placeholder="Juan Pérez <juan@correo.com>"
-              maxLength={300}
-            />
-            <Field label="Asunto" name="asunto" value={asunto} onChange={setAsunto} placeholder="¿De qué trata?" maxLength={300} />
-            <Field
-              label="Contenido"
-              name="contenido"
-              value={contenido}
-              onChange={setContenido}
-              placeholder="Pega aquí el texto del correo"
-              multiline
-              maxLength={5000}
-            />
-            <div className="dash-clara__botones">
-              <Boton type="submit" cargando={cargando} icono={<Icono nombre="rayo" tam={16} />}>
+          <Pildoras
+            etiqueta="Correos de ejemplo"
+            activa=""
+            alElegir={(id) => {
+              const ejemplo = EJEMPLOS.find((e) => e.etiqueta === id);
+              if (ejemplo) usarEjemplo(ejemplo);
+            }}
+            opciones={EJEMPLOS.map((e) => ({ id: e.etiqueta, etiqueta: e.etiqueta }))}
+          />
+          <form onSubmit={resumir} className="pc-formulario__campos" noValidate>
+            <label className="pc-campo">
+              <span className="pc-campo__etiqueta">De</span>
+              <input className="pc-campo__entrada" name="remitente" value={remitente} onChange={(e) => setRemitente(e.target.value)} placeholder="Juan Pérez <juan@correo.com>" maxLength={300} />
+            </label>
+            <label className="pc-campo">
+              <span className="pc-campo__etiqueta">Asunto</span>
+              <input className="pc-campo__entrada" name="asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} placeholder="¿De qué trata?" maxLength={300} />
+            </label>
+            <label className="pc-campo">
+              <span className="pc-campo__etiqueta">Contenido</span>
+              <textarea className="pc-campo__entrada pc-campo__entrada--largo" name="contenido" value={contenido} onChange={(e) => setContenido(e.target.value)} placeholder="Pega aquí el texto del correo" maxLength={5000} rows={6} />
+            </label>
+            <div className="pc-formulario__botones">
+              <button type="submit" className={claseBoton("principal")} disabled={cargando} aria-busy={cargando || undefined}>
+                {cargando ? <Giro /> : <Icono nombre="rayo" tam={16} />}
                 {cargando ? "Leyendo el correo" : "Resumir con IA"}
-              </Boton>
+              </button>
               {hayTexto && !cargando ? (
-                <Boton variante="fantasma" onClick={limpiar}>
+                <button type="button" className={claseBoton("fantasma")} onClick={limpiar}>
                   Limpiar
-                </Boton>
+                </button>
               ) : null}
             </div>
             {error ? (
-              <p role="alert" className="dash-clara__error">
+              <p role="alert" className="pc-error">
                 {error}
               </p>
             ) : null}
           </form>
-        </div>
+        </Tarjeta>
 
-        <div ref={resultadoRef} aria-live="polite" className={`dash-tarjeta dash-clara__resultado${resultado ? "" : " dash-clara__resultado--vacio"}`}>
+        <div ref={resultadoRef} aria-live="polite" className="pc-resultado">
           {resultado ? (
-            <>
-              <p className="dash-clara__quien">
-                <MarcaAgente id="clara" tam={24} />
+            <Tarjeta como="div" className="pc-resultado__tarjeta pc-entra">
+              <p className="pc-resultado__quien">
+                <AvatarAgente agente="clara" tam={24} />
                 Resumen de Clara
               </p>
-              <p className="dash-nota dash-clara__origen">
+              <p className="pc-resultado__origen">
                 {resultado.remitente} · {resultado.asunto}
               </p>
-              <p className="dash-clara__resumen">{resultado.resumen}</p>
+              <p className="pc-resultado__texto">{resultado.resumen}</p>
               {conSugerencia(resultado.accion) ? (
-                <p className="dash-clara__sugerencia">
+                <p className="pc-correo__accion">
                   <Icono nombre="flecha" tam={16} />
                   {resultado.accion}
                 </p>
               ) : null}
-            </>
+            </Tarjeta>
           ) : cargando ? (
-            <>
-              <MarcaAgente id="clara" tam={64} />
-              <Escribiendo quien="Clara" conTexto />
-            </>
+            <p className="pc-cargando" role="status">
+              <Giro /> Clara está leyendo el correo…
+            </p>
           ) : (
-            <Vacio compacto agente="clara" titulo="El resumen aparecerá aquí" texto="De qué trata el correo, qué tan urgente es y qué conviene contestar." />
+            <p className="pc-nota">El resumen aparece aquí: de qué trata el correo, qué tan urgente es y qué conviene contestar.</p>
           )}
         </div>
       </section>
 
       {/* ---------- Gmail ---------- */}
-      <section id="gmail" className="dash-tarjeta dash-gmail" aria-labelledby="gmail-titulo">
-        <div className="dash-gmail__texto">
-          <Icono nombre="correo" tam={24} className="dash-gmail__icono" />
-          <div>
-            <h2 id="gmail-titulo" className="t-app-mediano">
-              Tu bandeja de Gmail
-            </h2>
-            <p className="dash-gmail__explica">Conecta tu Gmail y Clara resume tus correos sin leer. Solo lectura: nunca envía ni borra nada.</p>
+      <section id="gmail" aria-labelledby="gmail-titulo">
+        <Subtitulo id="gmail-titulo">Tu bandeja de Gmail</Subtitulo>
+        <Tarjeta como="div" className="pc-gmail">
+          <Icono nombre="correo" tam={20} />
+          <p className="pc-gmail__texto">Conecta tu Gmail y Clara resume tus correos sin leer. Solo lectura: nunca envía ni borra nada.</p>
+          <div className="pc-gmail__accion">
+            {conGoogle ? (
+              <>
+                <span className="pc-estado pc-estado--exito">Conectado</span>
+                <button type="button" className={claseBoton("borde", true)} disabled={gmailCargando} onClick={revisarGmail}>
+                  {gmailCargando ? <Giro /> : <Icono nombre="repetir" tam={16} />}
+                  {gmailCargando ? "Revisando" : "Revisar correo nuevo"}
+                </button>
+              </>
+            ) : googleDisponible ? (
+              <button type="button" className={claseBoton("borde", true)} onClick={conectarGoogle}>
+                Conectar Gmail
+                <Icono nombre="flecha" tam={16} />
+              </button>
+            ) : (
+              <span className="pc-estado pc-estado--neutro">Pronto</span>
+            )}
           </div>
-        </div>
-        <div className="dash-gmail__accion">
-          {conGoogle ? (
-            <>
-              <Insignia tono="exito" conPunto>
-                Conectado
-              </Insignia>
-              <Boton variante="sutil" tam="compacto" cargando={gmailCargando} onClick={revisarGmail} icono={<Icono nombre="repetir" tam={16} />}>
-                {gmailCargando ? "Revisando" : "Revisar correo nuevo"}
-              </Boton>
-            </>
-          ) : googleDisponible ? (
-            <Boton variante="sutil" tam="compacto" onClick={conectarGoogle} flecha>
-              Conectar Gmail
-            </Boton>
-          ) : (
-            <Insignia tono="pronto">Pronto</Insignia>
-          )}
           {gmailMensaje ? (
-            <p className="dash-nota dash-gmail__mensaje" role="status">
+            <p className="pc-gmail__mensaje" role="status">
               {gmailMensaje}
             </p>
           ) : null}
-        </div>
+        </Tarjeta>
       </section>
 
       {/* ---------- Historial ---------- */}
-      <section id="historial" aria-labelledby="historial-titulo" className="dash-bloque">
-        <CabezaBloque
+      <section id="historial" aria-labelledby="historial-titulo">
+        <Subtitulo
           id="historial-titulo"
-          titulo="Lo que Clara ya leyó"
-          extra={visibles && visibles.length > 0 ? <span className="dash-grupo-titulo__cuenta cifras">{visibles.length}</span> : null}
-          accion={
-            de ? (
-              <Link href="/panel?vista=correo#historial" className="pnl-filtro pnl-filtro--quitar pnl-picable" aria-label={`Quitar el filtro: ${de}`}>
-                De: {de}
-                <Icono nombre="cerrar" tam={16} />
-              </Link>
-            ) : null
+          extra={
+            <>
+              {visibles && visibles.length > 0 ? <span className="cifras">{visibles.length}</span> : null}
+              {de ? (
+                <Enlace href="/panel?vista=correo#historial" className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${de}`}>
+                  De: {de}
+                  <Icono nombre="cerrar" tam={14} />
+                </Enlace>
+              ) : null}
+            </>
           }
-        />
+        >
+          Lo que Clara ya leyó
+        </Subtitulo>
         {historial === null ? (
-          <div className="dash-lista dash-lista--borde" aria-busy="true" aria-label="Cargando el historial">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="dash-historial__fila">
-                <span className="dash-esqueleto dash-esqueleto--corto" />
-                <span className="dash-historial__esqueleto">
-                  <span className="dash-esqueleto" />
-                  <span className="dash-esqueleto dash-esqueleto--corto" />
-                </span>
-              </div>
-            ))}
-          </div>
+          <p className="pc-cargando" role="status" aria-label="Cargando el historial">
+            <Giro /> Cargando el historial…
+          </p>
         ) : de && historial.length > 0 && visibles?.length === 0 ? (
-          <Vacio icono="correo" titulo={`Nada de ${de} en lo último que leyó Clara`} texto="Aquí se ven los 30 resúmenes más recientes." accion={<Link href="/panel?vista=correo#historial" className="dash-enlace">Ver todo el historial</Link>} />
+          <Vacio
+            icono="correo"
+            titulo={`Nada de ${de} en lo último que leyó Clara`}
+            texto="Aquí se ven los 30 resúmenes más recientes."
+            accion={
+              <Enlace href="/panel?vista=correo#historial" className="pc-enlace">
+                Ver todo el historial
+              </Enlace>
+            }
+          />
         ) : historial.length === 0 ? (
           <Vacio
             icono="correo"
             titulo="Todavía no hay resúmenes"
             texto="Prueba con uno de los ejemplos de arriba o conecta tu Gmail: aquí se van guardando, con la fecha y lo que conviene hacer."
             accion={
-              <Boton variante="sutil" tam="compacto" onClick={() => usarEjemplo(EJEMPLOS[0])}>
+              <button type="button" className={claseBoton("borde", true)} onClick={() => usarEjemplo(EJEMPLOS[0])}>
                 Usar un ejemplo
-              </Boton>
+              </button>
             }
           />
         ) : (
-          <ul className="dash-lista dash-lista--borde">
-            {(visibles ?? historial).map((item) => (
-              <li key={item.id} className="dash-historial__fila">
-                <div className="dash-historial__quien">
-                  <span className="dash-historial__remitente">
-                    <Avatar nombre={sinCorreo(item.remitente)} tam={24} />
-                    <span>{sinCorreo(item.remitente)}</span>
-                  </span>
-                  <span className="dash-historial__fecha cifras">
-                    {formatoFecha.format(new Date(item.creado_en))}
-                    {nuevos.has(item.id) ? <Insignia tono="azul">Nuevo</Insignia> : null}
-                  </span>
-                </div>
-                <div className="dash-historial__cuerpo">
-                  <h3 className="dash-historial__asunto">{item.asunto || "(sin asunto)"}</h3>
-                  <p className="dash-historial__resumen">{item.resumen}</p>
-                  {conSugerencia(item.accion_sugerida) ? (
-                    // La acción lleva a sus pendientes (los correos que piden lo mismo)
-                    <Link
-                      href={`/panel?vista=pendientes&tipo=correos&accion=${encodeURIComponent(item.accion_sugerida ?? "")}`}
-                      className="dash-clara__sugerencia dash-historial__sugerencia pnl-sugerencia"
-                    >
-                      <Icono nombre="flecha" tam={16} />
-                      {item.accion_sugerida}
-                    </Link>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ListaCorreos
+            correos={(visibles ?? historial).map((item) => ({
+              id: item.id,
+              remitente: partirRemitente(item.remitente)?.nombre ?? "Sin remitente",
+              asunto: item.asunto || "(sin asunto)",
+              resumen: item.resumen,
+              fecha: formatoFecha.format(new Date(item.creado_en)),
+              nuevo: nuevos.has(item.id),
+              // La acción lleva a sus pendientes (los correos que piden lo mismo)
+              accion: conSugerencia(item.accion_sugerida) ? (item.accion_sugerida ?? undefined) : undefined,
+              hrefAccion: conSugerencia(item.accion_sugerida) ? `/panel?vista=pendientes&tipo=correos&accion=${encodeURIComponent(item.accion_sugerida ?? "")}` : undefined,
+            }))}
+          />
         )}
       </section>
-    </div>
+    </Seccion>
   );
 }

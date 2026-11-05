@@ -1,26 +1,36 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ActividadPanel, AjustesPanel, PendientesPanel, ResumenPanel, type ConversacionReal, type ResumenReal } from "@/components/dashboard/ResumenPanel";
-import { VistaEstadisticas } from "@/components/dashboard/estadisticas/VistaEstadisticas";
+import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
+import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
+import { Seccion } from "@/components/panel/Secciones";
+import { AjustesReal, CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
+import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
-import { cargarEstadisticas, filtrosEstadisticas, inicioDia, resumenDe, sumarDias } from "@/lib/estadisticas";
+import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
+import { cargarNegocio } from "@/lib/estadisticas-negocio";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
+import { Chat, type Conversacion } from "./chat/Chat";
 import { Panel } from "./Panel";
 
 export const metadata: Metadata = { title: "Panel" };
 
+type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string };
+
 /**
- * /panel: el inicio del panel con los datos reales de la cuenta.
- * /panel?vista=pendientes (&tipo=correos|pasos, &de=remitente): lo que espera algo de ti.
- * /panel?vista=estadisticas: las estadísticas de tu equipo.
- * /panel?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
- * /panel?vista=ajustes: el plan (solo se ve), la apariencia, el correo y el equipo.
- * /panel?vista=actividad (&hora=10): la actividad completa, o la de esa hora del día.
- * Solo lee (RLS deja ver a cada quien solo lo suyo); no cambia datos ni la API.
+ * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
+ * deja ver a cada quien solo lo suyo); no cambia datos ni la API.
+ * - /panel (&agente=lola, &pide=texto, &area=citas): el Inicio, que ES un chat nuevo.
+ * - /panel?c=ID: esa conversación, en el mismo lugar.
+ * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
+ * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Lola (vacía hasta conectar WhatsApp).
+ * - ?vista=estadisticas (&periodo=7d|30d|mes): cómo va el negocio (VistaNegocio, del trabajador B).
+ * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
+ * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
+ * - ?vista=ajustes: el plan (solo se ve), la apariencia, el correo y el equipo.
  */
-export default async function PanelPage({ searchParams }: { searchParams: { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; hora?: string; dia?: string; agente?: string } }) {
+export default async function PanelPage({ searchParams }: { searchParams: Parametros }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,77 +41,95 @@ export default async function PanelPage({ searchParams }: { searchParams: { vist
 
   const proveedores = (user.app_metadata?.providers as string[] | undefined) ?? [];
   const conGoogle = proveedores.includes("google");
+  const texto = (v: unknown, max = 200) => (typeof v === "string" && v ? v.slice(0, max) : undefined);
 
-  if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={typeof searchParams.de === "string" ? searchParams.de : undefined} />;
+  if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
 
   if (searchParams.vista === "estadisticas") {
-    const f = filtrosEstadisticas(searchParams);
-    const datos = await cargarEstadisticas(supabase, user.id, f.periodo, cargarCuenta(supabase, user.id));
-    return <VistaEstadisticas datos={datos} periodo={f.periodo} base="/panel" metrica={f.metrica} agente={f.agente} />;
+    // Estadísticas centradas en el negocio (trabajador B): su vista trae su propio buscador
+    const periodo = periodoDe(searchParams.periodo);
+    const datos = await cargarNegocio(supabase, user.id, periodo, cargarCuenta(supabase, user.id));
+    return (
+      <Seccion buscador={false}>
+        <VistaNegocio datos={datos} periodo={periodo} base="/panel" />
+      </Seccion>
+    );
   }
 
-  // Actividad: lo último que pasó (conversaciones y correos resumidos). Con &dia=, lo de ese día;
-  // con &hora=, se mira más atrás para encontrar lo de esa hora.
   if (searchParams.vista === "actividad") {
+    // Lo de un día (&dia=) o de una hora del día (&hora=, se mira más atrás para encontrarla)
     const dia = searchParams.dia && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.dia) ? searchParams.dia : undefined;
-    const tope = dia || searchParams.hora !== undefined ? 200 : 20;
-    const desde = dia ? inicioDia(dia).toISOString() : null;
-    const hasta = dia ? inicioDia(sumarDias(dia, 1)).toISOString() : null;
-    let qConv = supabase.from("conversaciones").select("id, agente, titulo, actualizado_en, participantes, tema").eq("owner_id", user.id);
-    let qRes = supabase.from("resumenes_correo").select("id, remitente, asunto, resumen, accion_sugerida, creado_en");
-    if (desde && hasta) {
+    const h = Number(searchParams.hora);
+    const hora = searchParams.hora !== undefined && Number.isInteger(h) && h >= 0 && h <= 23 ? h : undefined;
+    const tope = dia || hora !== undefined ? 200 : 30;
+    let qConv = supabase.from("conversaciones").select("id, agente, titulo, actualizado_en").eq("owner_id", user.id);
+    let qRes = supabase.from("resumenes_correo").select("id, remitente, asunto, accion_sugerida, creado_en");
+    if (dia) {
+      const desde = inicioDia(dia).toISOString();
+      const hasta = inicioDia(sumarDias(dia, 1)).toISOString();
       qConv = qConv.gte("actualizado_en", desde).lt("actualizado_en", hasta);
       qRes = qRes.gte("creado_en", desde).lt("creado_en", hasta);
     }
-    const [convs, resumenes] = await Promise.all([
-      qConv.order("actualizado_en", { ascending: false }).limit(tope),
-      qRes.order("creado_en", { ascending: false }).limit(dia || searchParams.hora !== undefined ? 200 : 12),
-    ]);
-    const hora = Number(searchParams.hora);
+    const [convs, resumenes] = await Promise.all([qConv.order("actualizado_en", { ascending: false }).limit(tope), qRes.order("creado_en", { ascending: false }).limit(tope)]);
     return (
-      <ActividadPanel
-        conversaciones={((convs.data ?? []) as ConversacionReal[]).filter((c) => esIdAgente(c.agente))}
-        resumenes={(resumenes.data ?? []) as ResumenReal[]}
-        hora={searchParams.hora !== undefined && Number.isInteger(hora) && hora >= 0 && hora <= 23 ? hora : undefined}
+      <ActividadReal
+        conversaciones={((convs.data ?? []) as ConvActividad[]).filter((c) => esIdAgente(c.agente))}
+        resumenes={(resumenes.data ?? []) as ResumenActividad[]}
+        hora={hora}
         dia={dia}
-        agente={esIdAgente(searchParams.agente) ? searchParams.agente : undefined}
       />
     );
   }
 
-  const datosCuenta = await cargarCuenta(supabase, user.id);
-  const enPendientes = searchParams.vista === "pendientes";
-  // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más
-  const pendientesPromesa = cargarPendientes(user.id, opcionesPendientes(datosCuenta.plan.id, conGoogle, datosCuenta.activos), enPendientes ? 100 : 5);
-  const comun = { planId: datosCuenta.plan.id, activos: datosCuenta.activos, conGoogle };
+  const cuenta = await cargarCuenta(supabase, user.id);
 
-  if (enPendientes) {
-    return <PendientesPanel {...comun} pendientes={await pendientesPromesa} tipo={searchParams.tipo} de={searchParams.de} accion={searchParams.accion?.slice(0, 200)} />;
-  }
+  if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;
 
   if (searchParams.vista === "ajustes") {
-    return <AjustesPanel planId={datosCuenta.plan.id} usados={datosCuenta.usados} conGoogle={conGoogle} />;
+    return <AjustesReal plan={cuenta.plan.nombre} usados={cuenta.usados} total={cuenta.plan.mensajesMes} conGoogle={conGoogle} activos={cuenta.activos} correo={user.email ?? ""} />;
   }
 
-  // El inicio: los números de 7 días salen de las mismas estadísticas que su vista (solo se piden aquí)
-  const [pendientes, est] = await Promise.all([
-    pendientesPromesa,
-    cargarEstadisticas(supabase, user.id, "7d", datosCuenta)
-      .then(resumenDe)
-      .catch(() => null),
-  ]);
+  const enPendientes = searchParams.vista === "pendientes";
+  // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más
+  const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), enPendientes ? 100 : 5);
 
+  if (enPendientes) {
+    return (
+      <PendientesReal
+        correos={pendientes.lista}
+        pasos={pendientes.pasos}
+        totalCorreos={pendientes.correos}
+        tipo={texto(searchParams.tipo)}
+        de={texto(searchParams.de)}
+        accion={texto(searchParams.accion)}
+      />
+    );
+  }
+
+  // El Inicio y las conversaciones: el chat
+  const { data: convs } = await supabase
+    .from("conversaciones")
+    .select("id, agente, titulo, actualizado_en, participantes, tema")
+    .eq("owner_id", user.id)
+    .order("actualizado_en", { ascending: false })
+    .limit(60);
+  const conversaciones = ((convs ?? []) as Conversacion[]).filter((c) => esIdAgente(c.agente));
   const meta = user.user_metadata ?? {};
-  const nombreCompleto = (meta.full_name as string | undefined) || (meta.name as string | undefined);
+  const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
+  const nombre = completo ? completo.split(" ")[0] : undefined;
+  const agente = esIdAgente(searchParams.agente) ? searchParams.agente : null;
 
   return (
-    <ResumenPanel
-      {...comun}
-      pendientes={pendientes}
-      nombre={nombreCompleto ? nombreCompleto.split(" ")[0] : undefined}
-      negocio={datosCuenta.negocio}
-      usados={datosCuenta.usados}
-      est={est}
+    <Chat
+      planId={cuenta.plan.id}
+      activos={cuenta.activos}
+      usadosIniciales={cuenta.usados}
+      conversacionesIniciales={conversaciones}
+      agenteInicial={agente}
+      conversacionInicial={texto(searchParams.c, 100) ?? null}
+      textoInicial={texto(searchParams.pide, 2000)}
+      saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
+      pendientes={pendientes.total}
     />
   );
 }

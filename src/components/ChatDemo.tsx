@@ -28,9 +28,9 @@ import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 
 /* ---------- Acciones del menú "/" y lo que contesta cada una ---------- */
 
-type Accion = PromptBarCommand & { agente: IdAgente; respuesta: string; tarjeta?: Tarjeta };
+export type Accion = PromptBarCommand & { agente: IdAgente; respuesta: string; tarjeta?: Tarjeta };
 
-const ACCIONES: Accion[] = [
+export const ACCIONES: Accion[] = [
   {
     key: "agendar",
     name: "/agendar",
@@ -69,12 +69,12 @@ const ACCIONES: Accion[] = [
     description: "Escribe a quien preguntó y no agendó",
     agente: "victor",
     respuesta:
-      "Encontré **12 personas** que preguntaron por botox en las últimas dos semanas y no agendaron. Este es el mensaje que les mandaría, cada uno con su nombre:",
+      "Encontré **12 personas** que preguntaron por la sesión de 1 hora en las últimas dos semanas y no agendaron. Este es el mensaje que les mandaría, cada uno con su nombre:",
     tarjeta: {
       tipo: "programado",
       sello: "WhatsApp · 12 personas",
       estado: "Espera tu visto bueno",
-      cita: "Hola, Paola. La semana pasada preguntaste por botox. ¿Te aparto un lugar? Tengo viernes 12:00 o sábado 10:30.",
+      cita: "Hola, Paola. La semana pasada preguntaste por la sesión de 1 hora. ¿Te aparto un lugar? Tengo viernes 12:00 o sábado 10:30.",
     },
   },
   {
@@ -117,7 +117,7 @@ const ACCIONES: Accion[] = [
 ];
 
 /** En un grupo, lo que agrega un compañero después de una acción: así se ve que colaboran. */
-const COMPLEMENTO: Record<string, Partial<Record<IdAgente, string>>> = {
+export const COMPLEMENTO: Record<string, Partial<Record<IdAgente, string>>> = {
   agendar: {
     victor: "Cuando pase la cita le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña.",
   },
@@ -143,7 +143,7 @@ const COMPLEMENTO: Record<string, Partial<Record<IdAgente, string>>> = {
 };
 
 /** Cuando escriben algo libre: cada agente contesta en su tono y sugiere probar una acción. */
-const LIBRE: Record<IdAgente, string> = {
+export const LIBRE: Record<IdAgente, string> = {
   lola: "¡Con gusto! En tu panel lo resuelvo con tu agenda y tu WhatsApp de verdad. Aquí son respuestas de ejemplo: prueba **/agendar** o **/confirmar**.",
   clara:
     "Te ayudo con eso. En tu panel leo y contesto tu correo real; aquí te muestro ejemplos. Prueba **/resumir-correos** o **/facturas**.",
@@ -152,7 +152,7 @@ const LIBRE: Record<IdAgente, string> = {
 };
 
 /** Lo primero que dice cada agente al entrar a un grupo nuevo. */
-const SALUDO: Record<IdAgente, string> = {
+export const SALUDO: Record<IdAgente, string> = {
   lola: "¡Hola! Yo veo el WhatsApp y la agenda.",
   clara: "Hola. Yo llevo el correo, las facturas y los pagos.",
   victor: "¡Qué tal! Yo me encargo de que los clientes regresen y dejen su reseña.",
@@ -161,8 +161,8 @@ const SALUDO: Record<IdAgente, string> = {
 
 /* ---------- Conversaciones de ejemplo ---------- */
 
-type De = "tu" | "sistema" | "paso" | IdAgente;
-type Mensaje = {
+export type De = "tu" | "sistema" | "paso" | IdAgente;
+export type Mensaje = {
   id: number;
   de: De;
   texto: string;
@@ -173,7 +173,7 @@ type Mensaje = {
   /** Solo en los pasos: quién entrega y quién recibe el trabajo. */
   paso?: { de: IdAgente; a: IdAgente };
 };
-type Conversacion = {
+export type Conversacion = {
   id: string;
   nombre: string;
   /** Uno = chat con ese agente; dos o más = grupo. */
@@ -193,7 +193,7 @@ const m = (de: De, hora: string, texto: string, extra: Partial<Omit<Mensaje, "id
 });
 const paso = (de: IdAgente, a: IdAgente, hora: string, texto: string, dia?: string): Mensaje => m("paso", hora, texto, { paso: { de, a }, dia });
 
-const INICIO: Conversacion[] = [
+export const INICIO: Conversacion[] = [
   {
     id: "recepcion",
     nombre: "Recepción",
@@ -356,10 +356,10 @@ function vistaPrevia(c: Conversacion, mensajes: Mensaje[]) {
   return c.agentes.length > 1 ? `${AGENTE_POR_ID[u.de].nombre}: ${plano}` : plano;
 }
 
-type Turno = { agente: IdAgente; texto: string; tarjeta?: Tarjeta; recibe?: IdAgente };
+export type Turno = { agente: IdAgente; texto: string; tarjeta?: Tarjeta; recibe?: IdAgente };
 
 /** Quién contesta y qué: una acción "/", alguien mencionado con "@", o quien habló al último. */
-function responder(texto: string, c: Conversacion): Turno[] {
+export function responder(texto: string, c: Conversacion): Turno[] {
   const miembros = c.agentes;
   const accion = ACCIONES.find((a) => new RegExp(`(^|\\s)${a.name}(\\s|$)`).test(texto));
   if (accion && miembros.includes(accion.agente)) {

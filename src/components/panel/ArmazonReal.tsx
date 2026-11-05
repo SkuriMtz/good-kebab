@@ -1,0 +1,160 @@
+"use client";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useLayoutEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
+import { createClient } from "@/lib/supabase/client";
+import { conTransicion, rutaPintada } from "@/lib/transiciones";
+import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
+import { ContextoChats } from "./contexto";
+import { nombresDe } from "./Mensajes";
+import { PEDIDOS } from "./pedidos";
+
+export type DatosArmazonReal = {
+  nombre: string;
+  /** "Free", "One" o "Max". */
+  plan: string;
+  activos: IdAgente[];
+  pendientes: number | null;
+  fijados: ChatMenu[];
+  recientes: ChatMenu[];
+};
+
+/** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
+const VISTAS = ["pendientes", "citas", "estadisticas", "actividad", "correo", "ajustes"];
+
+/** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
+function claveDe(url: URL) {
+  if (url.pathname !== "/panel") return url.pathname;
+  const v = url.searchParams.get("vista");
+  return `/panel?${v && VISTAS.includes(v) ? v : "chat"}`;
+}
+
+/**
+ * El armazón de /panel con los datos de la cuenta. El layout se queda puesto
+ * al moverse entre secciones; solo cambia el contenido, con el cruce corto
+ * de ANIMACIONES.md (punto 1). Las conversaciones nuevas suben al menú sin
+ * recargar (ContextoChats).
+ */
+export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; children: ReactNode }) {
+  const ruta = usePathname();
+  const params = useSearchParams();
+  const router = useRouter();
+  const [fijados, setFijados] = useState(datos.fijados);
+  const [recientes, setRecientes] = useState(datos.recientes);
+
+  const vista = params.get("vista");
+  const c = params.get("c");
+  const valida = vista && VISTAS.includes(vista) ? vista : null;
+  // Actividad es un detalle de Estadísticas: se marca Estadísticas en el menú
+  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
+  const clave = ruta === "/panel" ? `/panel?${valida ?? "chat"}` : ruta;
+
+  // La vista nueva ya se pintó: la transición puede seguir
+  useLayoutEffect(() => {
+    rutaPintada(clave);
+  }, [clave]);
+
+  const alCapturarClic = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+    if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+    const destino = new URL(a.href, window.location.href);
+    const actual = new URL(window.location.href);
+    if (destino.origin !== actual.origin || destino.pathname !== "/panel" || actual.pathname !== "/panel") return;
+    const desde = claveDe(actual);
+    const hacia = claveDe(destino);
+    if (desde === hacia) return;
+    e.preventDefault();
+    conTransicion(desde, () => router.push(`${destino.pathname}${destino.search}${destino.hash}`), hacia);
+  };
+
+  const avisos = useMemo(
+    () => ({
+      agregar: (chat: ChatMenu, fijado: boolean) => {
+        const poner = (l: ChatMenu[]) => [chat, ...l.filter((x) => x.id !== chat.id)];
+        if (fijado) setFijados(poner);
+        else setRecientes(poner);
+      },
+      quitar: (id: string) => {
+        setFijados((l) => l.filter((x) => x.id !== id));
+        setRecientes((l) => l.filter((x) => x.id !== id));
+      },
+    }),
+    [],
+  );
+
+  const cuenta: ElementoCuenta[] = [
+    { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes" },
+    { id: "planes", etiqueta: "Ver los planes", detalle: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
+    { id: "contacto", etiqueta: "Escríbenos", icono: "mensaje", href: "/contacto" },
+    { id: "sitio", etiqueta: "Ir al sitio de Atendel", icono: "inicio", href: "/" },
+    {
+      id: "salir",
+      etiqueta: "Cerrar sesión",
+      icono: "cerrar-sesion",
+      peligroso: true,
+      alElegir: async () => {
+        await createClient().auth.signOut();
+        router.replace("/");
+        router.refresh();
+      },
+    },
+  ];
+
+  const indice: ResultadoBusqueda[] = [
+    { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/panel" },
+    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y quién está en él", icono: "agentes", href: "/panel/agentes" },
+    { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
+    { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
+    { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va tu negocio", icono: "grafica", href: "/panel?vista=estadisticas" },
+    { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Clara, tu Gmail y lo que ya leyó", icono: "correo", href: "/panel?vista=correo" },
+    { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó con tu equipo", icono: "rayo", href: "/panel?vista=actividad" },
+    { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/panel?vista=ajustes" },
+    ...AGENTES_INFO.filter((a) => datos.activos.includes(a.id)).map((a) => ({
+      id: `a-${a.id}`,
+      grupo: "Tu equipo",
+      titulo: `Hablar con ${a.nombre}`,
+      detalle: `${a.area} · ${a.abarca}`,
+      agentes: [a.id],
+      claves: a.capacidades.join(" "),
+      href: `/panel?agente=${a.id}`,
+    })),
+    ...fijados.map((g) => ({ id: `f-${g.id}`, grupo: "Fijados", titulo: g.titulo, detalle: nombresDe(g.agentes), agentes: g.agentes, href: g.href })),
+    ...recientes.map((r) => ({ id: `r-${r.id}`, grupo: "Recientes", titulo: r.titulo, agentes: r.agentes, href: r.href })),
+    ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
+      id: `p-${p.id}`,
+      grupo: "Pídele a tu equipo",
+      titulo: p.titulo,
+      detalle: p.detalle,
+      agentes: [p.agente],
+      href: `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}`,
+    })),
+  ];
+
+  return (
+    <ContextoChats.Provider value={avisos}>
+      <Armazon
+        activa={activa}
+        chatActual={c}
+        hrefs={{
+          inicio: "/panel",
+          agentes: "/panel/agentes",
+          pendientes: "/panel?vista=pendientes",
+          citas: "/panel?vista=citas",
+          estadisticas: "/panel?vista=estadisticas",
+          ajustes: "/panel?vista=ajustes",
+        }}
+        pendientes={datos.pendientes}
+        fijados={fijados}
+        recientes={recientes}
+        usuario={{ nombre: datos.nombre, plan: datos.plan }}
+        cuenta={cuenta}
+        indice={indice}
+        alCapturarClic={alCapturarClic}
+      >
+        {children}
+      </Armazon>
+    </ContextoChats.Provider>
+  );
+}

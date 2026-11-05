@@ -1,27 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
-import { NavApp } from "@/components/app/NavApp";
-import { Uso } from "@/components/app/Uso";
 import { Personaje } from "@/components/agentes/Personaje";
-import { claseBotonBase } from "@/components/base/Boton";
-import { Giro, Icono } from "@/components/base/Iconos";
-import { Deslizable } from "@/components/chat/Deslizable";
-import {
-  Atajos,
-  Avatar,
-  Dia,
-  Escribiendo,
-  Hilo,
-  MensajeAgente,
-  MensajeTuyo,
-  NuevoGrupo,
-  PilaAvatares,
-  Sistema,
-  nombres,
-} from "@/components/chat/Piezas";
+import { Giro } from "@/components/base/Iconos";
+import { ContextoChats } from "@/components/panel/contexto";
+import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
+import { Inicio } from "@/components/panel/Inicio";
+import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
+import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
+import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
+import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
+import { FranjaPendientes, UsoPlan } from "@/components/panel/Franja";
+import { esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
@@ -48,7 +41,7 @@ type Mensaje = {
   /** Escrito en esta visita: entra con animación. */
   nuevo?: boolean;
 };
-/** Lo que se pinta: cada voz de una respuesta en grupo es su propia burbuja. */
+/** Lo que se pinta: cada voz de una respuesta en grupo es su propia pieza. */
 type Pieza = {
   key: string;
   de: "tu" | IdAgente;
@@ -64,13 +57,6 @@ const MAX_MENSAJE = 4000;
 const MAX_TEMA = 120;
 
 const mismoDia = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-
-function cuando(fecha: string) {
-  const d = new Date(fecha);
-  if (mismoDia(d, new Date())) return hora(d);
-  return d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
-}
-
 const hora = (d: Date) => d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
 
 function dia(d: Date) {
@@ -87,16 +73,40 @@ const integrantes = (c: Conversacion): IdAgente[] | null => {
   return p.length >= 2 ? p : null;
 };
 
-const Candado = () => <Icono nombre="candado" tam={16} />;
+/**
+ * Del Inicio a la conversación, en el mismo lugar: la caja viaja de en medio
+ * hasta abajo (View Transition, 280ms) y lo demás se cruza. Sin soporte o
+ * con "reducir movimiento", cambia al instante.
+ */
+export function conVista(cambio: () => void) {
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+  const html = document.documentElement;
+  if (!doc.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches || html.classList.contains("vt-pagina")) {
+    cambio();
+    return;
+  }
+  html.classList.add("pc-vt-chat");
+  try {
+    doc
+      .startViewTransition(() => flushSync(cambio))
+      .finished.catch(() => {})
+      .finally(() => html.classList.remove("pc-vt-chat"));
+  } catch {
+    html.classList.remove("pc-vt-chat");
+    cambio();
+  }
+}
 
 /**
- * Chat con los agentes, como una app de mensajería: a la izquierda tus
- * agentes, grupos y conversaciones; a la derecha la conversación abierta.
- * Eliges con quién hablar (uno o un grupo), escribes y la respuesta va
- * apareciendo. Se guarda todo.
+ * El chat con los agentes, que en el panel nuevo ES el Inicio: sin
+ * conversación abierta se ven el saludo, la caja y "Pídele a tu equipo"; al
+ * enviar, la conversación se abre en el mismo lugar. La lógica es la de
+ * siempre: la API (/api/chat, en streaming), los grupos, las @menciones y
+ * los comandos (/), y todo se guarda. Las conversaciones viven en el menú
+ * (Fijados y Recientes); la dirección cambia (?c=, ?agente=, ?pide=,
+ * ?area=) y atrás y recargar funcionan.
  */
 export function Chat({
-  email,
   planId,
   activos,
   usadosIniciales,
@@ -104,20 +114,27 @@ export function Chat({
   agenteInicial,
   conversacionInicial,
   textoInicial,
+  saludo,
+  pendientes,
 }: {
-  email: string;
   planId: IdPlan;
   activos: IdAgente[];
   usadosIniciales: number;
   conversacionesIniciales: Conversacion[];
-  agenteInicial: IdAgente;
+  /** ?agente=: hablar solo con ese agente. Sin esto, con todo el equipo (si el plan trae grupos). */
+  agenteInicial: IdAgente | null;
   conversacionInicial: string | null;
-  /** Lo que se pidió desde la caja del Resumen: llega escrito, listo para enviar. */
+  /** Lo que se pidió desde una tarjeta o el buscador: llega escrito, listo para enviar. */
   textoInicial?: string;
+  /** "Buenas noches, Ana" (con la hora de la Ciudad de México, igual en el servidor y aquí). */
+  saludo: string;
+  /** Lo que espera tu visto bueno (null: no se pudo leer). */
+  pendientes: number | null;
 }) {
   const plan = PLAN_POR_ID[planId];
-  const [agente, setAgente] = useState<IdAgente>(agenteInicial);
-  const [grupo, setGrupo] = useState<IdAgente[] | null>(null);
+  const puedeGrupos = activos.length >= 2;
+  const [agente, setAgente] = useState<IdAgente>(agenteInicial ?? activos[0] ?? "clara");
+  const [grupo, setGrupo] = useState<IdAgente[] | null>(!agenteInicial && puedeGrupos ? activos : null);
   const [tema, setTema] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
   const [conversaciones, setConversaciones] = useState(conversacionesIniciales);
@@ -126,52 +143,74 @@ export function Chat({
   const [cargando, setCargando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [usados, setUsados] = useState(usadosIniciales);
-  const [lista, setLista] = useState(false); // lista de chats en celular
   const [aviso, setAviso] = useState<string | null>(null);
+  const [porBorrar, setPorBorrar] = useState<Conversacion | null>(null);
+  const [caja, setCaja] = useState<{ texto?: string; n: number }>({ texto: textoInicial, n: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortar = useRef<AbortController | null>(null);
   const pegado = useRef(true); // ¿la vista está hasta abajo?
+  const menu = useContext(ContextoChats);
+  const router = useRouter();
+  const params = useSearchParams();
+  const consulta = params.toString();
+  /** La última dirección que escribió este chat (para no reaccionar a sus propios cambios). */
+  const propia = useRef<string | null>(null);
+  const actualRef = useRef(actual);
+  actualRef.current = actual;
+  const todas = useRef<Conversacion[]>([]);
+  todas.current = [...conversaciones, ...conversacionesIniciales];
 
   const info = AGENTE_POR_ID[agente];
   const participantes: IdAgente[] = grupo ?? [agente];
   const disponible = participantes.every((id) => activos.includes(id));
   const sinMensajes = usados >= plan.mensajesMes;
-  const puedeGrupos = activos.length >= 2;
+  const filtro = params.get("area");
+  const area: IdArea = esArea(filtro) ? filtro : "todo";
 
-  const ponerUrl = (params: Record<string, string>) => {
-    const q = new URLSearchParams(params).toString();
-    window.history.replaceState(null, "", `/panel/chat${q ? `?${q}` : ""}`);
+  /** Escribe la dirección sin ir al servidor (Next la sincroniza); el filtro del Inicio se queda. */
+  const ponerUrl = (p: Record<string, string>) => {
+    const q = new URLSearchParams(p);
+    const filtroActual = new URLSearchParams(window.location.search).get("area");
+    if (filtroActual && !p.c) q.set("area", filtroActual);
+    const texto = q.toString();
+    propia.current = texto;
+    window.history.replaceState(null, "", `/panel${texto ? `?${texto}` : ""}`);
   };
 
-  const nueva = useCallback((id: IdAgente) => {
+  /** En el Inicio, las píldoras y las tarjetas solo cambian la dirección (atrás funciona); lo de fuera navega. */
+  const navegarAqui = useCallback(
+    (href: string) => {
+      const url = new URL(href, window.location.href);
+      if (url.pathname === window.location.pathname) window.history.pushState(null, "", `${url.pathname}${url.search}`);
+      else router.push(href);
+    },
+    [router],
+  );
+
+  /** Deja el chat listo para una conversación nueva (sin tocar la dirección). */
+  const reiniciar = useCallback((ids: IdAgente[] | null, id: IdAgente, temaNuevo: string | null) => {
     abortar.current?.abort();
     setAgente(id);
-    setGrupo(null);
-    setTema(null);
-    setCreando(false);
-    setActual(null);
-    setMensajes([]);
-    setAviso(null);
-    setLista(false);
-    ponerUrl({ agente: id });
-  }, []);
-
-  const nuevoGrupo = (ids: IdAgente[], temaNuevo: string | null) => {
-    abortar.current?.abort();
-    setAgente(ids[0]);
     setGrupo(ids);
     setTema(temaNuevo);
     setCreando(false);
     setActual(null);
     setMensajes([]);
     setAviso(null);
-    setLista(false);
+  }, []);
+
+  const nueva = (id: IdAgente) => {
+    reiniciar(null, id, null);
+    ponerUrl({ agente: id });
+  };
+
+  const nuevoGrupo = (ids: IdAgente[], temaNuevo: string | null) => {
+    reiniciar(ids, ids[0], temaNuevo);
     ponerUrl({});
   };
 
   const abrir = useCallback(async (c: Conversacion) => {
     abortar.current?.abort();
-    setLista(false);
     setCreando(false);
     setAviso(null);
     setActual(c.id);
@@ -180,7 +219,6 @@ export function Chat({
     setTema(c.tema ?? null);
     setMensajes([]);
     setCargando(true);
-    ponerUrl({ c: c.id });
     const { data, error } = await createClient()
       .from("mensajes")
       .select("id, rol, contenido, agente, creado_en")
@@ -195,12 +233,29 @@ export function Chat({
     setMensajes((data ?? []) as Mensaje[]);
   }, []);
 
-  // Abrir la conversación de la URL al cargar
+  // La dirección manda: al entrar (?c=), al picar algo del menú o una tarjeta, y con atrás/adelante
   useEffect(() => {
-    if (!conversacionInicial) return;
-    const c = conversacionesIniciales.find((x) => x.id === conversacionInicial);
-    if (c) abrir(c);
-  }, [conversacionInicial, conversacionesIniciales, abrir]);
+    if (consulta === propia.current) return;
+    const primera = propia.current === null;
+    propia.current = consulta;
+    const p = new URLSearchParams(consulta);
+    const c = p.get("c") ?? (primera ? conversacionInicial : null);
+    if (c) {
+      if (c === actualRef.current) return;
+      const conv = todas.current.find((x) => x.id === c);
+      if (conv) abrir(conv);
+      else setAviso("No encontré esa conversación.");
+      return;
+    }
+    if (primera) return; // lo demás ya viene en el estado inicial
+    const pedido = p.get("agente");
+    const pide = p.get("pide");
+    if (!actualRef.current && !pedido && !pide) return; // solo cambió el filtro
+    const id = esIdAgente(pedido) ? pedido : null;
+    if (id) reiniciar(null, id, null);
+    else if (actualRef.current) reiniciar(puedeGrupos ? activos : null, activos[0] ?? "clara", null);
+    setCaja((k) => ({ texto: pide ? pide.slice(0, 2000) : undefined, n: k.n + 1 }));
+  }, [consulta, conversacionInicial, abrir, reiniciar, puedeGrupos, activos]);
 
   // Mantener la vista abajo mientras llega la respuesta (si la persona no subió)
   useEffect(() => {
@@ -208,23 +263,16 @@ export function Chat({
     if (el && pegado.current) el.scrollTop = el.scrollHeight;
   }, [mensajes]);
 
-  // Escape cierra la lista de chats en el celular
-  useEffect(() => {
-    if (!lista) return;
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setLista(false);
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, [lista]);
-
-  /** Deslizar (o la ✕): pregunta antes de borrar. */
+  /** Borrar (pregunta antes, en una ventana). */
   async function borrar(c: Conversacion) {
-    if (!window.confirm(`¿Borrar "${c.titulo}"?`)) return;
+    setPorBorrar(null);
     const { error } = await createClient().from("conversaciones").delete().eq("id", c.id);
     if (error) {
       setAviso("No se pudo borrar la conversación.");
       return;
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
+    menu?.quitar(c.id);
     if (actual === c.id) nueva(c.agente);
   }
 
@@ -239,17 +287,19 @@ export function Chat({
     pegado.current = true;
     const idRespuesta = `r-${Date.now()}`;
     const ahora = new Date().toISOString();
-    setMensajes((m) => [
-      ...m,
-      { id: `u-${Date.now()}`, rol: "user", contenido: limpio, creado_en: ahora, nuevo: true },
-      { id: idRespuesta, rol: "assistant", contenido: "", creado_en: ahora, enCurso: true, nuevo: true },
-    ]);
+    const empezar = () =>
+      setMensajes((m) => [
+        ...m,
+        { id: `u-${Date.now()}`, rol: "user", contenido: limpio, creado_en: ahora, nuevo: true },
+        { id: idRespuesta, rol: "assistant", contenido: "", creado_en: ahora, enCurso: true, nuevo: true },
+      ]);
+    if (mensajes.length === 0 && !actual) conVista(empezar);
+    else empezar();
     setEnviando(true);
     const control = new AbortController();
     abortar.current = control;
 
-    const actualizar = (cambio: Partial<Mensaje>) =>
-      setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
+    const actualizar = (cambio: Partial<Mensaje>) => setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
 
     // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
     const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio } : { agente, mensaje: limpio, conversacionId: actual };
@@ -272,22 +322,22 @@ export function Chat({
         setActual(idConv);
         ponerUrl({ c: idConv });
       }
-      // Subir (o agregar) la conversación al principio de la lista
+      // Subir (o agregar) la conversación al principio de la lista y del menú
       if (idConv) {
-        setConversaciones((l) => {
-          const existente = l.find((x) => x.id === idConv);
-          const item: Conversacion = existente
-            ? { ...existente, actualizado_en: new Date().toISOString() }
-            : {
-                id: idConv,
-                agente,
-                titulo: (tema ?? limpio).replace(/\s+/g, " ").slice(0, 80),
-                actualizado_en: new Date().toISOString(),
-                participantes: grupo,
-                tema,
-              };
-          return [item, ...l.filter((x) => x.id !== idConv)];
-        });
+        const existente = todas.current.find((x) => x.id === idConv);
+        const item: Conversacion = existente
+          ? { ...existente, actualizado_en: new Date().toISOString() }
+          : {
+              id: idConv,
+              agente,
+              titulo: (tema ?? limpio).replace(/\s+/g, " ").slice(0, 80),
+              actualizado_en: new Date().toISOString(),
+              participantes: grupo,
+              tema,
+            };
+        setConversaciones((l) => [item, ...l.filter((x) => x.id !== idConv)]);
+        const ids = integrantes(item) ?? [item.agente];
+        menu?.agregar({ id: item.id, titulo: item.titulo, href: `/panel?c=${encodeURIComponent(item.id)}`, agentes: ids }, ids.length > 1 && Boolean(item.tema));
       }
 
       const lector = res.body.getReader();
@@ -324,17 +374,9 @@ export function Chat({
   const piezas: Pieza[] = mensajes.flatMap((m): Pieza[] => {
     const fecha = m.creado_en ? new Date(m.creado_en) : new Date();
     if (m.rol === "user") return [{ key: m.id, de: "tu", texto: m.contenido, fecha, nuevo: m.nuevo }];
-    return voces(m).map((v, i, todas) => {
-      const ultima = i === todas.length - 1;
-      return {
-        key: `${m.id}-${i}`,
-        de: v.agente,
-        texto: v.texto,
-        fecha,
-        nuevo: m.nuevo,
-        enCurso: m.enCurso && ultima,
-        error: ultima ? m.error : undefined,
-      };
+    return voces(m).map((v, i, lista) => {
+      const ultima = i === lista.length - 1;
+      return { key: `${m.id}-${i}`, de: v.agente, texto: v.texto, fecha, nuevo: m.nuevo, enCurso: m.enCurso && ultima, error: ultima ? m.error : undefined };
     });
   });
   const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
@@ -347,318 +389,219 @@ export function Chat({
     description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
     icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
   }));
-  const sugerencias = grupo ? grupo.slice(0, 3).map((id) => AGENTE_POR_ID[id].sugerencias[0]) : info.sugerencias;
-  const gruposGuardados = conversaciones.filter((c) => integrantes(c));
-  const chatsGuardados = conversaciones.filter((c) => !integrantes(c));
+  const esEquipo = grupo !== null && !tema && grupo.length === activos.length && grupo.every((id) => activos.includes(id));
+  const actualConv = actual ? todas.current.find((x) => x.id === actual) : undefined;
+  const tituloConv = actualConv?.titulo ?? (grupo ? (tema ?? (esEquipo ? "Todo el equipo" : nombresDe(grupo))) : info.nombre);
 
-  const filaConversacion = (c: Conversacion) => {
-    const ids = integrantes(c) ?? [c.agente];
+  const barra = disponible ? (
+    sinMensajes ? (
+      <p className="pc-aviso-caja">
+        Llegaste a los {plan.mensajesMes.toLocaleString("es-MX")} mensajes de este mes.{" "}
+        <Enlace href="/precios" className="pc-enlace">
+          Ver los planes
+        </Enlace>
+      </p>
+    ) : (
+      <PromptBar
+        key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
+        className="pc-caja"
+        initialText={caja.texto}
+        placeholder={grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
+        sources={fuentes}
+        commands={comandosDe(participantes)}
+        models={[]}
+        efforts={[]}
+        busy={enviando}
+        onSend={(t) => enviar(t)}
+        onStop={() => abortar.current?.abort()}
+        maxRows={8}
+        sparkBoost={0}
+        dictarPronto
+      />
+    )
+  ) : (
+    <p className="pc-aviso-caja">
+      {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
+      {participantes.every((id) => plan.agentes.includes(id)) ? (
+        <Enlace href="/panel/agentes" className="pc-enlace">
+          Agrégalo en Agentes
+        </Enlace>
+      ) : (
+        <Enlace href="/precios" className="pc-enlace">
+          Llega con {planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}
+        </Enlace>
+      )}
+    </p>
+  );
+
+  const nuevoGrupoModal = (
+    <NuevoGrupo abierto={creando} disponibles={activos} maxNombre={MAX_TEMA} onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)} onCerrar={() => setCreando(false)} />
+  );
+
+  /* ---------- Inicio: todavía no hay conversación ---------- */
+  if (!actual && mensajes.length === 0 && !cargando) {
+    const opciones: OpcionAgente[] = [
+      ...(puedeGrupos ? [{ id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(activos), agentes: activos }] : []),
+      ...AGENTES_INFO.map((a) => ({
+        id: a.id,
+        etiqueta: a.nombre,
+        detalle: `${a.area} · ${a.abarca}`,
+        agentes: [a.id],
+        bloqueado: activos.includes(a.id) ? undefined : plan.agentes.includes(a.id) ? "Fuera de tu equipo" : `Con ${planMinimo(a.id).nombre}`,
+      })),
+      ...(grupo && !esEquipo ? [{ id: "grupo", etiqueta: tema ?? nombresDe(grupo), detalle: "Tu grupo", agentes: grupo }] : []),
+      ...(puedeGrupos ? [{ id: "nuevo-grupo", etiqueta: "Nuevo grupo…", agentes: [], accion: true }] : []),
+    ];
+    const conFiltro = area === "todo" ? "" : `&area=${area}`;
+    const tarjetas = pedidosDe(area)
+      .map((p) => {
+        const enEquipo = activos.includes(p.agente);
+        const enPlan = plan.agentes.includes(p.agente);
+        return {
+          pedido: p,
+          href: enEquipo ? `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` : enPlan ? "/panel/agentes" : "/precios",
+          bloqueado: enEquipo ? undefined : enPlan ? "Fuera de tu equipo" : `Llega con ${planMinimo(p.agente).nombre}`,
+        };
+      })
+      .sort((a, b) => Number(Boolean(a.bloqueado)) - Number(Boolean(b.bloqueado)));
     return (
-      <li key={c.id}>
-        <Deslizable etiqueta={c.titulo} alBorrar={() => borrar(c)}>
-          <button type="button" className="chat__conv" aria-current={c.id === actual ? "true" : undefined} onClick={() => abrir(c)}>
-            <PilaAvatares agentes={ids} tam={ids.length > 1 ? 28 : 40} />
-            <span className="chat__conv-texto">
-              <span className="chat__conv-linea">
-                <span className="chat__conv-nombre">{c.titulo}</span>
-                <span className="chat__conv-hora">{cuando(c.actualizado_en)}</span>
-              </span>
-              <span className="chat__conv-linea">
-                <span className="chat__conv-previa">{ids.length > 1 ? nombres(ids) : AGENTE_POR_ID[c.agente]?.nombre}</span>
-              </span>
-            </span>
-          </button>
-        </Deslizable>
-      </li>
+      // Las píldoras y las tarjetas cambian la dirección sin ir al servidor: el chat no necesita nada más
+      <ContextoNavegar.Provider value={navegarAqui}>
+        <Inicio
+          saludo={saludo}
+          caja={barra}
+          selector={
+            <SelectorAgente
+              opciones={opciones}
+              activa={grupo ? (esEquipo ? "equipo" : "grupo") : agente}
+              alElegir={(id) => {
+                if (id === "equipo") nuevoGrupo(activos, null);
+                else if (id === "nuevo-grupo") setCreando(true);
+                else if (esIdAgente(id)) nueva(id);
+              }}
+            />
+          }
+          uso={<UsoPlan plan={plan.nombre.replace(/^Atendel\s+/, "")} usados={usados} total={plan.mensajesMes} href="/panel?vista=ajustes" />}
+          franja={<FranjaPendientes n={pendientes} href="/panel?vista=pendientes" />}
+          area={area}
+          hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
+          tarjetas={tarjetas}
+        />
+        {aviso ? (
+          <p role="alert" className="pc-aviso-flota">
+            {aviso}
+          </p>
+        ) : null}
+        {nuevoGrupoModal}
+      </ContextoNavegar.Provider>
     );
-  };
+  }
 
+  /* ---------- La conversación ---------- */
   return (
     <>
-      <NavApp email={email} />
-      <div className="chat chat--panel" data-lenis-prevent>
-        {/* ---------- Agentes, grupos y conversaciones ---------- */}
-        <aside className="chat__barra" data-abierta={lista ? "" : undefined} aria-label="Equipo y conversaciones">
-          <div className="chat__barra-cabeza">
-            <p className="chat__barra-titulo">Tu equipo</p>
-            {puedeGrupos ? (
-              <button
-                type="button"
-                className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`}
-                onClick={() => {
-                  setCreando(true);
-                  setLista(false);
-                }}
-              >
-                <Icono nombre="mas" tam={16} />
-                Nuevo grupo
-              </button>
-            ) : (
-              <Link href="/precios" className={`${claseBotonBase("fantasma", "chico")} chat__nuevo`} title="Los grupos vienen con Atendel One">
-                <Candado />
-                Grupos con One
-              </Link>
-            )}
-            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setLista(false)} aria-label="Cerrar la lista">
-              <Icono nombre="cerrar" tam={16} />
-            </button>
-          </div>
-
-          <div className="chat__listas" data-lenis-prevent>
-            <p className="chat__seccion">Agentes</p>
-            <ul className="chat__lista">
-              {AGENTES_INFO.map((a) => {
-                const activo = activos.includes(a.id);
-                const elegido = a.id === agente && !grupo && !actual;
-                const contenido = (
-                  <>
-                    <PilaAvatares agentes={[a.id]} tam={40} />
-                    <span className="chat__conv-texto">
-                      <span className="chat__conv-linea">
-                        <span className="chat__conv-nombre">{a.nombre}</span>
-                      </span>
-                      <span className="chat__conv-linea">
-                        <span className="chat__conv-previa">
-                          {activo ? `${a.area} · ${a.abarca}` : `Con ${planMinimo(a.id).nombre}`}
-                        </span>
-                        {activo ? null : <Candado />}
-                      </span>
-                    </span>
-                  </>
-                );
-                return (
-                  <li key={a.id}>
-                    {activo ? (
-                      <button type="button" className="chat__conv" aria-current={elegido ? "true" : undefined} onClick={() => nueva(a.id)}>
-                        {contenido}
-                      </button>
-                    ) : (
-                      <Link href="/precios" className="chat__conv chat__conv--bloqueada" title={`Disponible con ${planMinimo(a.id).nombre}`}>
-                        {contenido}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-
-            {gruposGuardados.length ? (
-              <>
-                <p className="chat__seccion">Grupos</p>
-                <ul className="chat__lista">{gruposGuardados.map(filaConversacion)}</ul>
-              </>
-            ) : null}
-
-            <p className="chat__seccion">Conversaciones</p>
-            {chatsGuardados.length ? (
-              <ul className="chat__lista">{chatsGuardados.map(filaConversacion)}</ul>
-            ) : (
-              <p className="chat__vacia-lista">Aquí aparecerán tus conversaciones.</p>
-            )}
-          </div>
-
-          <div className="chat__plan">
-            <Uso usados={usados} plan={plan} compacto />
-            <Link href="/panel/agentes#plan" className="chat__cta">
-              Tu cuenta · {plan.nombre}
-            </Link>
-          </div>
-        </aside>
-        <button
-          type="button"
-          className="chat__velo"
-          data-abierta={lista ? "" : undefined}
-          onClick={() => setLista(false)}
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-
-        {/* ---------- Conversación abierta ---------- */}
-        <section className="chat__principal" aria-label={grupo ? `Grupo: ${tema ?? nombres(grupo)}` : `Chat con ${info.nombre}`}>
-          <header className="chat__cabeza">
-            <button type="button" className="chat__icono chat__solo-celular" onClick={() => setLista(true)} aria-label="Ver chats">
-              <Icono nombre="mensaje" tam={20} />
-            </button>
-            <PilaAvatares agentes={participantes} tam={32} />
-            <div className="chat__cabeza-texto">
-              <p className="chat__cabeza-titulo">{grupo ? (tema ?? nombres(grupo)) : info.nombre}</p>
-              <p className="chat__cabeza-sub" aria-live="polite">
-                {enCurso ? (
-                  <span className="chat__escribe">{grupo ? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…` : "Escribiendo…"}</span>
-                ) : grupo ? (
-                  `Grupo · ${nombres(grupo)}`
-                ) : (
-                  `${info.area} · ${info.abarca}`
-                )}
-              </p>
-            </div>
-            {actual ? (
-              <button
-                type="button"
-                className={`${claseBotonBase("fantasma", "chico")} chat__accion-cabeza`}
-                onClick={() => (grupo ? nuevoGrupo(grupo, tema) : nueva(agente))}
-              >
-                <Icono nombre="mas" tam={16} />
-                Nueva
+      <VistaConversacion
+        agentes={participantes}
+        titulo={tituloConv}
+        sub={
+          enCurso ? (
+            <span className="pc-conv__escribe">{AGENTE_POR_ID[enCurso].nombre} está escribiendo…</span>
+          ) : grupo ? (
+            `Grupo · ${nombresDe(grupo)}`
+          ) : (
+            `${info.area} · ${info.abarca}`
+          )
+        }
+        acciones={
+          <>
+            <Enlace href="/panel" className={claseBoton("fantasma", true)}>
+              Nueva
+            </Enlace>
+            {actualConv ? (
+              <button type="button" className={claseBoton("fantasma", true)} onClick={() => setPorBorrar(actualConv)}>
+                Borrar
               </button>
             ) : null}
-          </header>
-
-          <div
-            ref={scrollRef}
-            className="chat__mensajes"
-            data-lenis-prevent
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-            }}
-          >
-            {cargando ? (
-              <Hilo>
-                <p className="chat__cargando" role="status">
-                  <Giro /> Abriendo conversación…
-                </p>
-              </Hilo>
-            ) : mensajes.length === 0 ? (
-              <div className="chat__vacio">
-                {grupo ? <PilaAvatares agentes={grupo} tam={40} /> : <Avatar agente={agente} tam={64} />}
-                <p className="chat__vacio-titulo">{grupo ? (tema ?? `Grupo con ${nombres(grupo)}`) : `Hola, soy ${info.nombre}.`}</p>
-                <p className="chat__vacio-texto">
-                  {grupo
-                    ? `${tema ? `Con ${nombres(grupo)}. ` : ""}Contesta quien sepa del tema y se pasan el trabajo entre ellos. Usa @ para pedirle algo a alguien en especial.`
-                    : info.lema}
-                </p>
-                {disponible ? (
-                  <div className="chat__vacio-sugerencias">
-                    {sugerencias.map((s) => (
-                      <button key={s} type="button" className="chat__sugerencia chat__sugerencia--larga" onClick={() => enviar(s)} disabled={sinMensajes}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="chat__vacio-texto">
-                    {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-                    <Link href={participantes.every((id) => plan.agentes.includes(id)) ? "/panel/agentes" : "/precios"}>
-                      {!participantes.every((id) => plan.agentes.includes(id))
-                        ? `Desbloquéalo con ${planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}`
-                        : "Agrégalo en Mis agentes"}
-                    </Link>
-                    .
-                  </p>
-                )}
-              </div>
-            ) : (
-              <Hilo>
-                <div role="log" aria-live="polite" className="chat__log">
-                  {visibles.map((p, i) => {
-                    const antes = visibles[i - 1];
-                    const despues = visibles[i + 1];
-                    const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
-                    const primero = nuevoDia || antes.de !== p.de;
-                    const ultimo = !despues || despues.de !== p.de || !mismoDia(despues.fecha, p.fecha);
-                    const fila = { primero, ultimo, nueva: p.nuevo, bloque: primero && !nuevoDia, hora: hora(p.fecha) };
-                    let pieza;
-                    if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} {...fila} />;
-                    else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} sigue={!primero} enGrupo={!!grupo} />;
-                    else if (!p.texto) pieza = <Sistema texto={p.error ?? ""} error nueva={p.nuevo} />;
-                    else
-                      pieza = (
-                        <MensajeAgente
-                          agente={p.de}
-                          texto={p.texto}
-                          enGrupo={!!grupo}
-                          {...fila}
-                          hora={p.enCurso ? undefined : fila.hora}
-                          pie={
-                            p.error ? (
-                              <p role="alert" className="chat__error">
-                                {p.error}
-                              </p>
-                            ) : !p.enCurso && ultimo ? (
-                              <Copiar texto={p.texto} fijo={i === visibles.length - 1} />
-                            ) : null
-                          }
-                        />
-                      );
-                    return (
-                      <Fragment key={p.key}>
-                        {nuevoDia ? <Dia>{dia(p.fecha)}</Dia> : null}
-                        {pieza}
-                      </Fragment>
-                    );
-                  })}
-                </div>
-                {aviso ? <Sistema texto={aviso} error /> : null}
-              </Hilo>
-            )}
-            {aviso && (cargando || mensajes.length === 0) ? (
-              <p role="alert" className="chat__aviso chat__error">
-                {aviso}
-              </p>
-            ) : null}
+          </>
+        }
+        scrollRef={scrollRef}
+        alDesplazar={(e) => {
+          const el = e.currentTarget;
+          pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        }}
+        caja={barra}
+        legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.`}
+      >
+        {cargando ? (
+          <p className="pc-cargando" role="status">
+            <Giro /> Abriendo la conversación…
+          </p>
+        ) : (
+          <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
+            {visibles.map((p, i) => {
+              const antes = visibles[i - 1];
+              const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
+              const primero = nuevoDia || antes.de !== p.de;
+              let pieza;
+              if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} nuevo={p.nuevo} />;
+              else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} cabeza={primero} />;
+              else if (!p.texto)
+                pieza = (
+                  <AvisoHilo error nuevo={p.nuevo}>
+                    {p.error}
+                  </AvisoHilo>
+                );
+              else
+                pieza = (
+                  <MensajeAgente
+                    agente={p.de}
+                    texto={p.texto}
+                    cabeza={primero}
+                    nuevo={p.nuevo}
+                    enCurso={p.enCurso}
+                    hora={primero && !p.enCurso ? hora(p.fecha) : undefined}
+                    pie={
+                      p.error ? (
+                        <p role="alert" className="pc-msj__error">
+                          {p.error}
+                        </p>
+                      ) : !p.enCurso && i === visibles.length - 1 ? (
+                        <Copiar texto={p.texto} />
+                      ) : null
+                    }
+                  />
+                );
+              return (
+                <Fragment key={p.key}>
+                  {nuevoDia ? <DiaHilo>{dia(p.fecha)}</DiaHilo> : null}
+                  {pieza}
+                </Fragment>
+              );
+            })}
+            {aviso ? <AvisoHilo error>{aviso}</AvisoHilo> : null}
           </div>
-
-          <div className="chat__pie">
-            {sinMensajes ? (
-              <p className="chat__aviso">
-                Llegaste a los {plan.mensajesMes} mensajes de este mes. <Link href="/precios">Ver planes</Link>
-              </p>
-            ) : null}
-            {disponible && !sinMensajes ? (
-              <PromptBar
-                key={grupo ? grupo.join("-") : agente}
-                initialText={textoInicial}
-                placeholder={grupo ? "Pídele algo a tu equipo…" : `Pídele algo a ${info.nombre}…`}
-                sources={fuentes}
-                commands={comandosDe(participantes)}
-                models={[]}
-                efforts={[]}
-                busy={enviando}
-                onSend={(t) => enviar(t)}
-                onStop={() => abortar.current?.abort()}
-                maxRows={8}
-              />
-            ) : null}
-            <Atajos />
-            <p className="chat__legal">
-              {grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.
-            </p>
-          </div>
-        </section>
-
-        {creando ? (
-          <NuevoGrupo
-            disponibles={activos}
-            nombreObligatorio={false}
-            maxNombre={MAX_TEMA}
-            onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)}
-            onCerrar={() => setCreando(false)}
-          />
-        ) : null}
-      </div>
+        )}
+      </VistaConversacion>
+      {nuevoGrupoModal}
+      <Modal
+        abierto={porBorrar !== null}
+        alCerrar={() => setPorBorrar(null)}
+        titulo="¿Borrar esta conversación?"
+        descripcion={porBorrar ? `«${porBorrar.titulo}» y sus mensajes se borran para siempre.` : undefined}
+        pie={
+          <>
+            <button type="button" className={claseBoton("fantasma")} onClick={() => setPorBorrar(null)}>
+              Cancelar
+            </button>
+            <button type="button" className={claseBoton("principal")} onClick={() => porBorrar && borrar(porBorrar)}>
+              Borrar
+            </button>
+          </>
+        }
+      >
+        <p className="pc-modal__nota">Tus agentes ya no la podrán consultar.</p>
+      </Modal>
     </>
   );
 }
 
-/** "Copiar" aparece al pasar el cursor; en pantallas táctiles, solo en la última respuesta (`fijo`). */
-function Copiar({ texto, fijo }: { texto: string; fijo: boolean }) {
-  const [copiado, setCopiado] = useState(false);
-  return (
-    <button
-      type="button"
-      className={`chat__copiar${fijo ? " chat__copiar--fijo" : ""}`}
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(texto);
-          setCopiado(true);
-          window.setTimeout(() => setCopiado(false), 1600);
-        } catch {
-          /* sin permiso para copiar */
-        }
-      }}
-    >
-      {copiado ? "Copiado" : "Copiar"}
-    </button>
-  );
-}
