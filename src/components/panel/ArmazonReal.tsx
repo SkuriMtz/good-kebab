@@ -21,7 +21,7 @@ export type DatosArmazonReal = {
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS = ["pendientes", "citas", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["pendientes", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
 function claveDe(url: URL) {
@@ -107,6 +107,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y quién está en él", icono: "agentes", href: "/panel/agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
+    { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps conectadas", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/panel?vista=negocio" },
     { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va tu negocio", icono: "grafica", href: "/panel?vista=estadisticas" },
     { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Clara, tu Gmail y lo que ya leyó", icono: "correo", href: "/panel?vista=correo" },
     { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó con tu equipo", icono: "rayo", href: "/panel?vista=actividad" },
@@ -142,6 +143,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           agentes: "/panel/agentes",
           pendientes: "/panel?vista=pendientes",
           citas: "/panel?vista=citas",
+          negocio: "/panel?vista=negocio",
           estadisticas: "/panel?vista=estadisticas",
           ajustes: "/panel?vista=ajustes",
         }}

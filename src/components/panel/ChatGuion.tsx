@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ACCIONES, INICIO, SALUDO, responder, type Conversacion as ConvBase, type Mensaje as MsjBase, type Turno } from "@/components/ChatDemo";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
+import { useSubirDesdeChat } from "./negocio/SubirDesdeChat";
 import { Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { Conversacion } from "./Conversacion";
@@ -202,6 +203,7 @@ export function InicioDemo({
   alEmpezar: (id: string) => void;
 }) {
   const [eleccion, setEleccion] = useState<string>(agentePedido ?? "equipo");
+  const subida = useSubirDesdeChat();
   const [creando, setCreando] = useState(false);
   useEffect(() => {
     if (agentePedido) setEleccion(agentePedido);
@@ -227,6 +229,7 @@ export function InicioDemo({
             initialText={pide}
             placeholder={info ? `Pídele algo a ${info.nombre}…` : "Pregúntale a tu equipo… (escribe @ para elegir agente)"}
             sources={fuentesDe(agentes)}
+            plusActions={subida.acciones}
             commands={comandosDe(agentes)}
             models={[]}
             efforts={[]}
@@ -268,6 +271,7 @@ export function InicioDemo({
           alEmpezar(c.id);
         }}
       />
+      {subida.elementos}
     </>
   );
 }
@@ -317,6 +321,7 @@ function MensajeQueLlega({ m, cabeza, ultimo, alCrecer }: { m: MsjBase & { de: I
 export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuion }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pegado = useRef(true);
+  const subida = useSubirDesdeChat();
   const escribe = guion.pendiente?.conv === conv.id ? guion.pendiente.agente : null;
   const grupo = conv.agentes.length > 1;
   const info = AGENTE_POR_ID[conv.agentes[0]];
@@ -360,6 +365,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           className="pc-caja"
           placeholder={grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`}
           sources={fuentesDe(conv.agentes)}
+          plusActions={subida.acciones}
           commands={comandosDe(conv.agentes)}
           models={[]}
           efforts={[]}
@@ -409,6 +415,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
         })}
         {escribe ? <Escribiendo agente={escribe} cabeza={ms[ms.length - 1]?.de !== escribe} /> : null}
       </div>
+      {subida.elementos}
     </Conversacion>
   );
 }

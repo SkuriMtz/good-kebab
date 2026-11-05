@@ -17,6 +17,9 @@ import { ContextoNavegar, Enlace } from "./Piezas";
 import { Seccion } from "./Secciones";
 import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
 import { PEDIDOS, esArea } from "./pedidos";
+import { fuenteDemo } from "./negocio/demo";
+import { ContextoNegocio } from "./negocio/fuente";
+import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
 
 /* =====================================================================
    /pruebalo: el mismo panel con DATOS DE EJEMPLO de un negocio inventado
@@ -27,7 +30,7 @@ import { PEDIDOS, esArea } from "./pedidos";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["agentes", "pendientes", "citas", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["agentes", "pendientes", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 
 function claveDe(url: URL) {
@@ -99,6 +102,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y su semana", icono: "agentes", href: "/pruebalo?vista=agentes" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
       { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda de mañana", icono: "calendario", href: "/pruebalo?vista=citas" },
+      { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps de Estudio Luna", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/pruebalo?vista=negocio" },
       { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va Estudio Luna", icono: "grafica", href: "/pruebalo?vista=estadisticas" },
       { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Lo que Clara leyó hoy", icono: "correo", href: "/pruebalo?vista=correo" },
       { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó", icono: "rayo", href: "/pruebalo?vista=actividad" },
@@ -131,6 +135,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     );
   } else if (valida === "citas") {
     contenido = <CitasDemo estado={params.get("estado") ?? "todas"} de={texto("de")} dia={texto("dia", 10)} ahora={ahora} extra={citasExtra} alAgregar={(c) => setCitasExtra((l) => [...l, c])} />;
+  } else if (valida === "negocio") {
+    contenido = <TuNegocio tab={pestanaDe(params.get("tab"))} plan={DEMO_NEGOCIO.plan} />;
   } else if (valida === "estadisticas") {
     const periodo = periodoDe(params.get("periodo"));
     contenido = (
@@ -187,6 +193,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   return (
     <ContextoNavegar.Provider value={navegar}>
+      <ContextoNegocio.Provider value={fuenteDemo}>
       <Armazon
         activa={activa}
         chatActual={conv?.id ?? null}
@@ -195,6 +202,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           agentes: "/pruebalo?vista=agentes",
           pendientes: "/pruebalo?vista=pendientes",
           citas: "/pruebalo?vista=citas",
+          negocio: "/pruebalo?vista=negocio",
           estadisticas: "/pruebalo?vista=estadisticas",
           ajustes: "/pruebalo?vista=ajustes",
         }}
@@ -216,6 +224,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       >
         {contenido}
       </Armazon>
+      </ContextoNegocio.Provider>
     </ContextoNavegar.Provider>
   );
 }

@@ -36,13 +36,18 @@ export type PromptBarSource = {
 };
 export type PromptBarCommand = { key: string; name: string; description?: string };
 export type PromptBarModel = { key: string; name: string; tag?: string };
-type Fila = PromptBarSource | PromptBarCommand | PromptBarModel;
+/** Una acción del menú "+" (arriba de los agentes): "Subir un documento", "Conectar una app". */
+export type PromptBarAction = { key: string; name: string; description?: string; icon: IconSvgElement | ReactElement; onSelect: () => void };
+type Fila = PromptBarSource | PromptBarCommand | PromptBarModel | PromptBarAction;
+const esAccion = (f: Fila): f is PromptBarAction => "onSelect" in f;
 
 type Props = {
   placeholder?: string;
   /** Texto con el que arranca la caja (lo que se pidió desde el dashboard). */
   initialText?: string;
   sources?: PromptBarSource[];
+  /** Acciones del "+", arriba de los agentes (con ellas el "+" se llama "Más opciones"). */
+  plusActions?: PromptBarAction[];
   commands?: PromptBarCommand[];
   models?: PromptBarModel[];
   /** Cómo se lee el selector de `models` (en Atendel: a quién le escribes). */
@@ -150,6 +155,7 @@ export default function PromptBar({
   placeholder = "Escribe tu mensaje",
   initialText = "",
   sources = [],
+  plusActions = [],
   commands = [],
   models = [],
   modelLabel = "Elegir modelo",
@@ -213,11 +219,11 @@ export default function PromptBar({
     : (token?.kind ?? (modelOpen ? "model" : effortOpen ? "effort" : null));
   const query = plusOpen ? "" : (token?.query ?? "");
   const list: Fila[] = useMemo(() => {
-    if (open === "at") return sources.filter((s) => s.name.toLowerCase().includes(query));
+    if (open === "at") return [...(plusOpen ? plusActions : []), ...sources.filter((s) => s.name.toLowerCase().includes(query))];
     if (open === "slash") return commands.filter((c) => c.name.replace(/^\//, "").toLowerCase().startsWith(query));
     if (open === "model") return models;
     return [];
-  }, [open, query, sources, commands, models]);
+  }, [open, query, sources, commands, models, plusOpen, plusActions]);
   const cursor = Math.min(active, Math.max(0, list.length - 1));
   const canSend = draft.trim().length > 0 || attachments.length > 0;
   const armed = busy || canSend;
@@ -415,6 +421,11 @@ export default function PromptBar({
       focusInput();
       return;
     }
+    if (esAccion(row)) {
+      setPlusOpen(false);
+      row.onSelect();
+      return;
+    }
     const head = token ? draft.slice(0, token.start) : draft;
     if ("attach" in row && row.attach) {
       setDraft(head);
@@ -519,7 +530,7 @@ export default function PromptBar({
         <div
           className="prompt-bar__menu"
           role={open === "effort" ? "dialog" : "listbox"}
-          aria-label={open === "at" ? "Agentes" : open === "slash" ? "Acciones" : open === "model" ? "Modelos" : "Esfuerzo"}
+          aria-label={open === "at" ? (plusOpen && plusActions.length ? "Más opciones" : "Agentes") : open === "slash" ? "Acciones" : open === "model" ? "Modelos" : "Esfuerzo"}
           data-kind={open}
         >
           {open === "effort" ? (
@@ -579,7 +590,7 @@ export default function PromptBar({
                   type="button"
                   role="option"
                   aria-selected={i === cursor}
-                  className="prompt-bar__row"
+                  className={`prompt-bar__row${esAccion(row) ? " prompt-bar__row--accion" : ""}${esAccion(row) && !esAccion(list[i + 1] ?? row) ? " prompt-bar__row--ultima-accion" : ""}`}
                   onMouseDown={(e) => e.preventDefault()}
                   onPointerEnter={() => setActive(i)}
                   onClick={() => pick(row)}
@@ -656,7 +667,8 @@ export default function PromptBar({
           <button
             type="button"
             className="prompt-bar__tool"
-            aria-label="Elegir agente"
+            aria-label={plusActions.length ? "Más opciones: subir un documento, conectar una app o elegir agente" : "Elegir agente"}
+            title={plusActions.length ? "Más opciones" : undefined}
             aria-expanded={plusOpen}
             data-on={plusOpen ? "" : undefined}
             onMouseDown={(e) => e.preventDefault()}

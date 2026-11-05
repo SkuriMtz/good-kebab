@@ -4,6 +4,7 @@ import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaN
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
 import { Seccion } from "@/components/panel/Secciones";
 import { AjustesReal, CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
+import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
@@ -16,7 +17,7 @@ import { Panel } from "./Panel";
 
 export const metadata: Metadata = { title: "Panel" };
 
-type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string };
+type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string; tab?: string; conectada?: string };
 
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
@@ -25,6 +26,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
  * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Lola (vacía hasta conectar WhatsApp).
+ * - ?vista=negocio (&tab=perfil|documentos|apps, &conectada=app al regresar del permiso): Tu negocio.
  * - ?vista=estadisticas (&periodo=7d|30d|mes): cómo va el negocio (VistaNegocio, del trabajador B).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
@@ -84,6 +86,8 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   }
 
   const cuenta = await cargarCuenta(supabase, user.id);
+
+  if (searchParams.vista === "negocio") return <TuNegocio tab={pestanaDe(searchParams.tab)} plan={cuenta.plan.id} conectada={texto(searchParams.conectada, 40)} />;
 
   if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;
 
