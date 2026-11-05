@@ -252,7 +252,8 @@
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
-  animation: neg-dibujar 800ms var(--pc-sale) calc(var(--d, 0ms) + 120ms) backwards;
+  /* easeOutCubic: la línea se ve avanzar (la curva fuerte de la casa la dibujaría casi de golpe) */
+  animation: neg-dibujar 800ms cubic-bezier(0.33, 1, 0.68, 1) calc(var(--d, 0ms) + 120ms) backwards;
 }
 @keyframes neg-dibujar {
   from {

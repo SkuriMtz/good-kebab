@@ -53,10 +53,10 @@ function trazo(p: Punto[]): string {
   return d;
 }
 
-/** Qué días llevan etiqueta abajo: unos 5 repartidos, sin el primero ni el último (como en Mercury). */
+/** Qué días llevan etiqueta abajo: hasta 5 repartidos, sin el primero ni el último (como en Mercury). */
 function etiquetas(n: number): number[] {
-  if (n <= 2) return n === 2 ? [0, 1] : [0];
-  if (n <= 7) return Array.from({ length: n }, (_, i) => i);
+  if (n <= 3) return Array.from({ length: n }, (_, i) => i);
+  if (n <= 7) return Array.from({ length: n - 2 }, (_, i) => i + 1);
   const partes = 6;
   return Array.from({ length: partes - 1 }, (_, i) => Math.round(((i + 1) * (n - 1)) / partes));
 }

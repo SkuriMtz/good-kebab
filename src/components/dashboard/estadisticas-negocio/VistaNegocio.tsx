@@ -94,13 +94,11 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
                 </p>
               )}
             </div>
-            <p className="neg-credito">
-              {canales.whatsapp
-                ? "Por WhatsApp y correo. Los atendieron Lola y Clara."
-                : canales.correo
-                  ? "Por correo, los atendió Clara. WhatsApp se suma cuando conectes a Lola."
-                  : CLARA_O_LOLA}
-            </p>
+            {(canales.whatsapp || canales.correo) && (
+              <p className="neg-credito">
+                {canales.whatsapp ? "Por WhatsApp y correo. Los atendieron Lola y Clara." : "Por correo, los atendió Clara. WhatsApp se suma cuando conectes a Lola."}
+              </p>
+            )}
           </div>
 
           {serie ? (
@@ -205,7 +203,9 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
                   <Enlace href={ir({ tipo: "tema", accion: t.accion })} className="neg-fila">
                     <span className="neg-fila__texto">
                       <span className="neg-fila__nombre">
-                        <span className="neg-fila__corta">{t.texto}</span>
+                        <span className="neg-fila__corta" title={t.texto}>
+                          {t.texto}
+                        </span>
                       </span>
                       {nombre(t.agente) && <span className="neg-credito">lo atendió {nombre(t.agente)}</span>}
                     </span>
