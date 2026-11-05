@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EstadoAppPersona, IdApp, Proveedor } from "@/lib/nucleo-tipos";
-import { CATALOGO, configuradoApp, esIdApp, esProveedor } from "./catalogo";
+import { CATALOGO, esIdApp, esProveedor } from "./catalogo";
+import { configuradoApp, esPendiente } from "./registro";
 
 /**
  * El estado de cada app para la persona (GET /api/apps): junta el catálogo,
@@ -28,7 +29,8 @@ type Entorno = Record<string, string | undefined>;
 export function estadoApps(conexiones: ConexionPublica[], intereses: IdApp[], env: Entorno = process.env): EstadoAppPersona[] {
   const pedidas = new Set(intereses);
   return CATALOGO.map((app): EstadoAppPersona => {
-    if (app.fase !== 1 || !app.proveedor) return { id: app.id, estado: "en_camino", avisame: pedidas.has(app.id) };
+    // Sin API todavía (clip) o con su adaptador aún sin unir: "En camino" con "Avísame"
+    if (app.fase !== 1 || !app.proveedor || esPendiente(app.proveedor)) return { id: app.id, estado: "en_camino", avisame: pedidas.has(app.id) };
     const cfg = configuradoApp(app.id, env);
     if (!cfg.ok) return { id: app.id, estado: "sin_configurar", falta: cfg.falta };
     const con = conexiones.find((c) => c.proveedor === app.proveedor && c.apps.includes(app.id));

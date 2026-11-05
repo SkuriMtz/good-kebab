@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { esPendiente } from "@/lib/conexiones/registro";
 
 /**
- * "Avísame" de las apps En camino (fase 2 y 3), guardado en `apps_interes`.
+ * "Avísame" de las apps En camino (clip, o una cuyo adaptador aún no se une),
+ * guardado en `apps_interes`.
  * - POST {app} → lo anota (si ya estaba, no pasa nada).
  * - DELETE {app} → lo quita.
  * Responde {ok, app, avisame}. RLS: cada quien solo toca lo suyo.
@@ -27,7 +29,8 @@ async function preparar(request: NextRequest) {
   }
   const app = (cuerpo as { app?: unknown } | null)?.app;
   if (!esIdApp(app)) return { fallo: error("Esa app no existe.", 400) } as const;
-  if (APP_POR_ID[app].fase === 1) return { fallo: error("Esa app ya se puede conectar.", 400) } as const;
+  const { fase, proveedor } = APP_POR_ID[app];
+  if (fase === 1 && proveedor && !esPendiente(proveedor)) return { fallo: error("Esa app ya se puede conectar.", 400) } as const;
   return { supabase, user, app } as const;
 }
 
