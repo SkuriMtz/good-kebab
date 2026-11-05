@@ -111,6 +111,7 @@ export async function crearDocumento(
     .single();
   if (faltaMigracion(error)) throw new ErrorDocumento(MENSAJES.baseDeDatos, 503);
   if (esLimite(error)) throw new ErrorDocumento(error?.message ?? "Llegaste al límite de documentos de tu plan.", 403);
+  if (error?.code === "23505") throw new ErrorDocumento("Ese archivo ya está en tus documentos.", 409);
   if (error || !data) throw new ErrorDocumento("No pudimos guardar el documento. Intenta de nuevo.", 500);
   return data as Documento;
 }

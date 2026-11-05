@@ -6,6 +6,8 @@ import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
+import { contextoPerfil } from "@/lib/contexto-negocio";
+import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { planMinimo } from "@/lib/planes";
 
 /**
@@ -19,6 +21,9 @@ import { planMinimo } from "@/lib/planes";
  * Si Clara está (sola o en el grupo), el system lleva los resúmenes de
  * correo recientes de la persona (src/lib/contexto-correo.ts): solo
  * lectura, delimitados y marcados como datos, no instrucciones.
+ * Para todos los agentes, el system lleva además el perfil del negocio y los
+ * fragmentos de sus documentos que tienen que ver con el mensaje
+ * (contexto-negocio.ts y contexto-documentos.ts), con las mismas reglas.
  * La conversación se guarda en Supabase; RLS impide ver la de otros.
  */
 
@@ -144,8 +149,14 @@ export async function POST(request: NextRequest) {
   if (errMensaje) return error("No se pudo guardar tu mensaje.", 500);
   await supabase.rpc("sumar_mensaje");
 
-  // 6. Si Clara está, lee los resúmenes de correo recientes (solo lectura; nunca el texto original)
-  const correos = participantes.includes("clara") ? await contextoCorreo(supabase, user.id) : undefined;
+  // 6. Contexto (solo lectura): si Clara está, los resúmenes de correo recientes (nunca el texto
+  //    original); para todos, el perfil del negocio y los fragmentos de sus documentos
+  const [correos, perfil, documentos] = await Promise.all([
+    participantes.includes("clara") ? contextoCorreo(supabase, user.id) : undefined,
+    contextoPerfil(supabase, user.id),
+    bloqueDocumentos(supabase, mensaje),
+  ]);
+  const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
 
   // 7. Responder en vivo
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -171,7 +182,9 @@ export async function POST(request: NextRequest) {
       try {
         const base = {
           max_tokens: 8000,
-          system: grupo ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos) : instruccionesDe(agente, cuenta.negocio, correos),
+          system: grupo
+            ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
+            : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio),
           messages: [...historial, { role: "user" as const, content: mensaje }],
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus

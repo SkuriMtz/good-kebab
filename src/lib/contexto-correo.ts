@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { limpiarDato } from "@/lib/contexto-datos";
 
 /**
  * Lo que Clara puede ver de tu correo en el chat: los resúmenes que ya
@@ -28,15 +29,8 @@ const CIERRA = "</correos_recientes>";
 
 const fecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "America/Mexico_City" });
 
-/** Una línea limpia: sin saltos, sin las marcas del bloque y con tope. */
-function limpio(texto: string | null | undefined, tope: number) {
-  const t = (texto ?? "")
-    .replace(/<\/?\s*correos_recientes\s*>/gi, "")
-    .replace(/[\u0000-\u001f\u007f]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return t.length > tope ? `${t.slice(0, tope - 1)}…` : t;
-}
+/** Una línea limpia: sin saltos, sin las marcas de ningún bloque de datos y con tope (contexto-datos.ts). */
+const limpio = (texto: string | null | undefined, tope: number) => limpiarDato(texto, tope);
 
 /** "Laura Méndez <laura@x.mx>" → "Laura Méndez"; sin nombre, el correo. */
 function quien(remitente: string | null) {
