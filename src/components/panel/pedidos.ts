@@ -5,9 +5,6 @@ import type { IdAgente } from "@/lib/agentes";
  * son datos del negocio, son sugerencias). Cada tarjeta abre el chat con
  * ese pedido ya escrito y con su agente elegido. Ejemplos neutros: sirven
  * para cualquier negocio que atiende personas.
- *
- * `comando`: en /pruebalo, la acción del guion local que contesta ese
- * pedido (ChatDemo); sin comando, contesta el texto libre del agente.
  */
 
 export const AREAS = [
@@ -32,102 +29,129 @@ export type Pedido = {
   detalle: string;
   /** Lo que queda escrito en la caja. */
   texto: string;
+  /** De dónde saca el agente lo que necesita: tu Gmail o tu WhatsApp (todavía no conectado). */
+  requiere?: "gmail" | "whatsapp";
+  /** En /pruebalo: la acción del guion local que contesta este pedido. */
   comando?: string;
+  /** En /pruebalo: la respuesta del guion cuando ninguna acción le queda. */
+  respuestaDemo?: string;
 };
 
+/**
+ * Tareas sobre TU correo y TU WhatsApp: el agente ya lee lo tuyo, así que
+ * no hace falta darle el texto de nada. Clara lee los resúmenes de tu Gmail (solo
+ * lectura); WhatsApp todavía no está conectado: Lola y Víctor dejan el
+ * mensaje listo para que lo mandes tú.
+ */
 export const PEDIDOS: Pedido[] = [
   {
     id: "confirmar",
     agente: "lola",
-    titulo: "Confirmar las citas",
-    detalle: "Para que confirmen su hora",
-    texto: "Escribe un mensaje para confirmar las citas de mañana, corto y amable.",
+    titulo: "Confirmar citas de mañana",
+    detalle: "Por WhatsApp, a cada quien",
+    texto: "Confirma por WhatsApp las citas de mañana.",
+    requiere: "whatsapp",
     comando: "/confirmar",
   },
   {
     id: "urgente",
     agente: "clara",
-    titulo: "Correo urgente",
+    titulo: "Correo urgente de hoy",
     detalle: "Qué contestar primero",
-    texto: "Te pego un correo: dime qué tan urgente es y qué le contesto.",
+    texto: "¿Qué correo urgente tengo hoy?",
+    requiere: "gmail",
     comando: "/resumir-correos",
   },
   {
     id: "regreso",
     agente: "victor",
     titulo: "Recuperar clientes",
-    detalle: "Un mensaje personal",
-    texto: "Escribe un mensaje para recuperar a clientes que no vienen hace 3 meses.",
+    detalle: "Los que no vienen hace 3 meses",
+    texto: "Escríbeles a los clientes que no vienen hace 3 meses.",
+    requiere: "whatsapp",
     comando: "/reactivar",
   },
   {
     id: "reporte",
     agente: "iris",
     titulo: "Reporte del mes",
-    detalle: "Comparado con el mes pasado",
-    texto: "Arma una tabla para el reporte mensual de citas, lista para Excel.",
+    detalle: "Citas y clientes, para Excel",
+    texto: "Arma el reporte del mes de citas y clientes, listo para Excel.",
     comando: "/reporte",
   },
   {
     id: "precios",
     agente: "lola",
-    titulo: "Precios y horarios",
-    detalle: "La respuesta para WhatsApp",
-    texto: "Escribe la respuesta para alguien que pregunta precios y horarios por WhatsApp.",
-    comando: "/agendar",
+    titulo: "Contestar precios",
+    detalle: "A quien preguntó por WhatsApp",
+    texto: "Contesta a quien preguntó precios y horarios por WhatsApp.",
+    requiere: "whatsapp",
+    respuestaDemo:
+      "Hoy **3 personas** preguntaron precios por WhatsApp. Les dejé lista esta respuesta, cada una con su nombre:\n\n- La sesión de 1 hora cuesta **$850**.\n- Hay lugar el **jueves 11:00** o el **viernes 10:00**.\n\n¿Se las mando o le cambias algo?",
   },
   {
-    id: "cobrar",
+    id: "resumen",
     agente: "clara",
-    titulo: "Cobrar una factura",
-    detalle: "Un correo firme y con tacto",
-    texto: "Escribe un correo para cobrar una factura atrasada, con tacto.",
-    comando: "/facturas",
+    titulo: "Resumir mi correo",
+    detalle: "Lo importante de tu bandeja",
+    texto: "Resume mi correo de hoy.",
+    requiere: "gmail",
+    comando: "/resumir-correos",
   },
   {
     id: "seguir",
     agente: "victor",
     titulo: "Seguir a interesados",
     detalle: "Quien preguntó y no agendó",
-    texto: "Escribe un mensaje para quien preguntó por un servicio y no agendó.",
+    texto: "Escríbeles a quienes preguntaron por WhatsApp y no agendaron.",
+    requiere: "whatsapp",
     comando: "/seguimiento",
   },
   {
     id: "proveedor",
     agente: "iris",
-    titulo: "Cambiar de proveedor",
-    detalle: "Qué revisar y comparar",
-    texto: "¿Qué debo revisar antes de cambiar de proveedor?",
+    titulo: "Comparar proveedores",
+    detalle: "Qué revisar antes de cambiar",
+    texto: "Compara a mis proveedores de insumos y dime qué conviene revisar antes de cambiar.",
     comando: "/investigar",
   },
   {
     id: "reagendar",
     agente: "lola",
-    titulo: "Reagendar una cita",
+    titulo: "Reagendar a quien canceló",
     detalle: "Dos horarios nuevos",
-    texto: "Alguien no puede venir mañana. Escríbele para ofrecerle dos horarios nuevos esta semana.",
-    comando: "/agendar",
+    texto: "Escríbele por WhatsApp a quien canceló su cita de mañana y ofrécele dos horarios nuevos esta semana.",
+    requiere: "whatsapp",
+    respuestaDemo:
+      "**Rosa Peña** canceló su cita de mañana a las 10:00. Le dejé listo este mensaje:\n\n> Hola, Rosa. ¡No te preocupes! ¿Te queda mejor el jueves a las 16:30 o el viernes a las 10:00?\n\nEn cuanto conteste, le aparto el horario.",
   },
   {
-    id: "bandeja",
+    id: "cobrar",
     agente: "clara",
-    titulo: "Ordenar la bandeja",
-    detalle: "Que no se pase ningún pago",
-    texto: "¿Cómo organizo mi correo para que no se me pase ningún pago?",
+    titulo: "Cobrar una factura",
+    detalle: "La atrasada que llegó por correo",
+    texto: "Cobra la factura atrasada que llegó por correo: escribe la respuesta con tacto.",
+    requiere: "gmail",
+    comando: "/facturas",
   },
   {
     id: "resena",
     agente: "victor",
-    titulo: "Pedir una reseña",
-    detalle: "Sin sonar insistente",
-    texto: "¿Cómo pido reseñas en Google sin sonar insistente?",
+    titulo: "Pedir reseñas",
+    detalle: "A quien vino esta semana",
+    texto: "Pídeles una reseña a los clientes que vinieron esta semana, sin sonar insistente.",
+    requiere: "whatsapp",
+    respuestaDemo:
+      "Esta semana vinieron **18 clientes**. Les dejé listo un mensaje corto para el día siguiente de su cita:\n\n> Hola, ¿cómo te fue? Si te gustó, nos ayudas mucho con una reseña en Google. ¡Gracias!\n\nA quien ya dejó reseña no le llega.",
   },
   {
-    id: "contrato",
+    id: "documento",
     agente: "iris",
-    titulo: "Resumir un contrato",
-    detalle: "En 5 puntos, sin rodeos",
-    texto: "Te pego un contrato: resúmemelo en 5 puntos.",
+    titulo: "Redactar un aviso",
+    detalle: "Para tus clientes, listo",
+    texto: "Redacta un aviso para mis clientes sobre el horario de diciembre.",
+    respuestaDemo:
+      "Listo, te dejé el aviso:\n\n**Horario de diciembre**\nDel 20 al 31 de diciembre atendemos de 10:00 a 15:00. Si ya tienes cita en esos días, te escribimos para confirmarla. ¡Gracias por tu preferencia!",
   },
 ];
 

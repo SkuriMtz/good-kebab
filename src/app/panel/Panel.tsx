@@ -55,9 +55,10 @@ const formatoFecha = new Intl.DateTimeFormat("es-MX", {
 const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim().toLowerCase() !== "ninguna");
 
 /**
- * Correo con Clara, dentro del panel: resumir un correo pegado (o uno de
- * ejemplo), conectar o revisar Gmail (solo lectura) y el historial de lo que
- * ya leyó. La lógica es la de siempre; solo cambió la forma (la sección del
+ * Correo con Clara, dentro del panel: lo primero es tu bandeja (lo que
+ * Clara ya leyó de tu Gmail, solo lectura) con "Revisar Gmail ahora" o
+ * "Conectar Gmail"; la prueba con un correo de ejemplo queda escondida en
+ * "Probar con un ejemplo". La lógica es la de siempre; solo cambió la forma (la sección del
  * panel nuevo: columna de 768px, título en serif y tarjetas de borde fino).
  */
 export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el historial solo con lo de ese remitente (como en Pendientes y Estadísticas). */ de?: string }) {
@@ -74,6 +75,8 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   const [nuevos, setNuevos] = useState<Set<string>>(() => new Set());
   const [gmailCargando, setGmailCargando] = useState(false);
   const [gmailMensaje, setGmailMensaje] = useState<string | null>(null);
+  /** "Probar con un ejemplo" está cerrado: lo primero es tu bandeja. */
+  const [probarAbierto, setProbarAbierto] = useState(false);
   const resultadoRef = useRef<HTMLDivElement>(null);
   const idsPrevios = useRef<Set<string>>(new Set());
 
@@ -99,6 +102,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   }, [cargarHistorial]);
 
   function usarEjemplo(ejemplo: (typeof EJEMPLOS)[number]) {
+    setProbarAbierto(true);
     setRemitente(ejemplo.remitente);
     setAsunto(ejemplo.asunto);
     setContenido(ejemplo.contenido);
@@ -116,7 +120,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
     e.preventDefault();
     if (cargando) return;
     if (!contenido.trim()) {
-      setError("Escribe o pega el contenido del correo.");
+      setError("Escribe el contenido del correo de ejemplo.");
       return;
     }
     setCargando(true);
@@ -178,125 +182,39 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   // Solo se filtra lo que se muestra; la lectura del historial no cambia
   const visibles = historial && de ? historial.filter((h) => partirRemitente(h.remitente)?.nombre === de) : historial;
 
+  /** El botón de Gmail: revisar lo nuevo (conectado), conectar, o "Pronto" si no hay acceso con Google. */
+  const botonGmail = (chico = false) =>
+    conGoogle ? (
+      <button type="button" className={claseBoton("principal", chico)} disabled={gmailCargando} onClick={revisarGmail}>
+        {gmailCargando ? <Giro /> : <Icono nombre="repetir" tam={16} />}
+        {gmailCargando ? "Revisando tu Gmail" : "Revisar Gmail ahora"}
+      </button>
+    ) : googleDisponible ? (
+      <button type="button" className={claseBoton("principal", chico)} onClick={conectarGoogle}>
+        Conectar Gmail
+        <Icono nombre="flecha" tam={16} />
+      </button>
+    ) : (
+      <span className="pc-estado pc-estado--neutro">Gmail: pronto</span>
+    );
+
   return (
     <Seccion>
       <TituloSeccion
         titulo="Correo"
-        texto="Pega un correo o elige un ejemplo. Clara te dice de qué trata y qué conviene hacer."
+        texto="Clara lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Solo lectura: nunca envía ni borra nada."
         acciones={
-          <span className="pc-etiqueta-agente">
-            <AvatarAgente agente="clara" tam={20} />
-            Clara · Correo
+          <span id="gmail" className="pc-correo__acciones">
+            {conGoogle ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
+            {botonGmail()}
           </span>
         }
       />
-
-      {/* ---------- Modo de prueba ---------- */}
-      <section id="probar" aria-labelledby="probar-titulo" className="pc-correo-prueba">
-        <Tarjeta como="div" className="pc-formulario">
-          <h2 id="probar-titulo" className="pc-formulario__titulo">
-            Resume un correo
-          </h2>
-          <Pildoras
-            etiqueta="Correos de ejemplo"
-            activa=""
-            alElegir={(id) => {
-              const ejemplo = EJEMPLOS.find((e) => e.etiqueta === id);
-              if (ejemplo) usarEjemplo(ejemplo);
-            }}
-            opciones={EJEMPLOS.map((e) => ({ id: e.etiqueta, etiqueta: e.etiqueta }))}
-          />
-          <form onSubmit={resumir} className="pc-formulario__campos" noValidate>
-            <label className="pc-campo">
-              <span className="pc-campo__etiqueta">De</span>
-              <input className="pc-campo__entrada" name="remitente" value={remitente} onChange={(e) => setRemitente(e.target.value)} placeholder="Juan Pérez <juan@correo.com>" maxLength={300} />
-            </label>
-            <label className="pc-campo">
-              <span className="pc-campo__etiqueta">Asunto</span>
-              <input className="pc-campo__entrada" name="asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} placeholder="¿De qué trata?" maxLength={300} />
-            </label>
-            <label className="pc-campo">
-              <span className="pc-campo__etiqueta">Contenido</span>
-              <textarea className="pc-campo__entrada pc-campo__entrada--largo" name="contenido" value={contenido} onChange={(e) => setContenido(e.target.value)} placeholder="Pega aquí el texto del correo" maxLength={5000} rows={6} />
-            </label>
-            <div className="pc-formulario__botones">
-              <button type="submit" className={claseBoton("principal")} disabled={cargando} aria-busy={cargando || undefined}>
-                {cargando ? <Giro /> : <Icono nombre="rayo" tam={16} />}
-                {cargando ? "Leyendo el correo" : "Resumir con IA"}
-              </button>
-              {hayTexto && !cargando ? (
-                <button type="button" className={claseBoton("fantasma")} onClick={limpiar}>
-                  Limpiar
-                </button>
-              ) : null}
-            </div>
-            {error ? (
-              <p role="alert" className="pc-error">
-                {error}
-              </p>
-            ) : null}
-          </form>
-        </Tarjeta>
-
-        <div ref={resultadoRef} aria-live="polite" className="pc-resultado">
-          {resultado ? (
-            <Tarjeta como="div" className="pc-resultado__tarjeta pc-entra">
-              <p className="pc-resultado__quien">
-                <AvatarAgente agente="clara" tam={24} />
-                Resumen de Clara
-              </p>
-              <p className="pc-resultado__origen">
-                {resultado.remitente} · {resultado.asunto}
-              </p>
-              <p className="pc-resultado__texto">{resultado.resumen}</p>
-              {conSugerencia(resultado.accion) ? (
-                <p className="pc-correo__accion">
-                  <Icono nombre="flecha" tam={16} />
-                  {resultado.accion}
-                </p>
-              ) : null}
-            </Tarjeta>
-          ) : cargando ? (
-            <p className="pc-cargando" role="status">
-              <Giro /> Clara está leyendo el correo…
-            </p>
-          ) : (
-            <p className="pc-nota">El resumen aparece aquí: de qué trata el correo, qué tan urgente es y qué conviene contestar.</p>
-          )}
-        </div>
-      </section>
-
-      {/* ---------- Gmail ---------- */}
-      <section id="gmail" aria-labelledby="gmail-titulo">
-        <Subtitulo id="gmail-titulo">Tu bandeja de Gmail</Subtitulo>
-        <Tarjeta como="div" className="pc-gmail">
-          <Icono nombre="correo" tam={20} />
-          <p className="pc-gmail__texto">Conecta tu Gmail y Clara resume tus correos sin leer. Solo lectura: nunca envía ni borra nada.</p>
-          <div className="pc-gmail__accion">
-            {conGoogle ? (
-              <>
-                <span className="pc-estado pc-estado--exito">Conectado</span>
-                <button type="button" className={claseBoton("borde", true)} disabled={gmailCargando} onClick={revisarGmail}>
-                  {gmailCargando ? <Giro /> : <Icono nombre="repetir" tam={16} />}
-                  {gmailCargando ? "Revisando" : "Revisar correo nuevo"}
-                </button>
-              </>
-            ) : googleDisponible ? (
-              <button type="button" className={claseBoton("borde", true)} onClick={conectarGoogle}>
-                Conectar Gmail
-                <Icono nombre="flecha" tam={16} />
-              </button>
-            ) : (
-              <span className="pc-estado pc-estado--neutro">Pronto</span>
-            )}
-          </div>
-          {gmailMensaje ? (
-            <p className="pc-gmail__mensaje" role="status">
-              {gmailMensaje}
-            </p>
-          ) : null}
-        </Tarjeta>
-      </section>
+      {gmailMensaje ? (
+        <p className="pc-nota pc-correo__mensaje" role="status">
+          {gmailMensaje}
+        </p>
+      ) : null}
 
       {/* ---------- Historial ---------- */}
       <section id="historial" aria-labelledby="historial-titulo">
@@ -314,7 +232,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
             </>
           }
         >
-          Lo que Clara ya leyó
+          Tu bandeja
         </Subtitulo>
         {historial === null ? (
           <p className="pc-cargando" role="status" aria-label="Cargando el historial">
@@ -333,14 +251,14 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
           />
         ) : historial.length === 0 ? (
           <Vacio
-            icono="correo"
-            titulo="Todavía no hay resúmenes"
-            texto="Prueba con uno de los ejemplos de arriba o conecta tu Gmail: aquí se van guardando, con la fecha y lo que conviene hacer."
-            accion={
-              <button type="button" className={claseBoton("borde", true)} onClick={() => usarEjemplo(EJEMPLOS[0])}>
-                Usar un ejemplo
-              </button>
+            titulo="Todavía no hay correos leídos"
+            agente="clara"
+            texto={
+              conGoogle
+                ? "Toca «Revisar Gmail ahora» y Clara resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar."
+                : "Conecta tu Gmail y Clara resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar. Solo lectura."
             }
+            accion={botonGmail(true)}
           />
         ) : (
           <ListaCorreos
@@ -358,6 +276,88 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
           />
         )}
       </section>
+
+      {/* ---------- Probar con un ejemplo (escondido: Clara ya lee tu bandeja) ---------- */}
+      <details className="pc-probar" open={probarAbierto} onToggle={(e) => setProbarAbierto(e.currentTarget.open)}>
+        <summary className="pc-probar__resumen">
+          <Icono nombre="rayo" tam={16} />
+          Probar con un ejemplo
+        </summary>
+        <section id="probar" aria-labelledby="probar-titulo" className="pc-correo-prueba">
+          <Tarjeta como="div" className="pc-formulario">
+            <h2 id="probar-titulo" className="pc-formulario__titulo">
+              Un correo de ejemplo
+            </h2>
+            <Pildoras
+              etiqueta="Correos de ejemplo"
+              activa=""
+              alElegir={(id) => {
+                const ejemplo = EJEMPLOS.find((e) => e.etiqueta === id);
+                if (ejemplo) usarEjemplo(ejemplo);
+              }}
+              opciones={EJEMPLOS.map((e) => ({ id: e.etiqueta, etiqueta: e.etiqueta }))}
+            />
+            <form onSubmit={resumir} className="pc-formulario__campos" noValidate>
+              <label className="pc-campo">
+                <span className="pc-campo__etiqueta">De</span>
+                <input className="pc-campo__entrada" name="remitente" value={remitente} onChange={(e) => setRemitente(e.target.value)} placeholder="Juan Pérez <juan@correo.com>" maxLength={300} />
+              </label>
+              <label className="pc-campo">
+                <span className="pc-campo__etiqueta">Asunto</span>
+                <input className="pc-campo__entrada" name="asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} placeholder="¿De qué trata?" maxLength={300} />
+              </label>
+              <label className="pc-campo">
+                <span className="pc-campo__etiqueta">Contenido</span>
+                <textarea className="pc-campo__entrada pc-campo__entrada--largo" name="contenido" value={contenido} onChange={(e) => setContenido(e.target.value)} placeholder="El texto del correo de ejemplo" maxLength={5000} rows={6} />
+              </label>
+              <div className="pc-formulario__botones">
+                <button type="submit" className={claseBoton("principal")} disabled={cargando} aria-busy={cargando || undefined}>
+                  {cargando ? <Giro /> : <Icono nombre="rayo" tam={16} />}
+                  {cargando ? "Leyendo el correo" : "Resumir con IA"}
+                </button>
+                {hayTexto && !cargando ? (
+                  <button type="button" className={claseBoton("fantasma")} onClick={limpiar}>
+                    Limpiar
+                  </button>
+                ) : null}
+              </div>
+              {error ? (
+                <p role="alert" className="pc-error">
+                  {error}
+                </p>
+              ) : null}
+            </form>
+          </Tarjeta>
+
+          <div ref={resultadoRef} aria-live="polite" className="pc-resultado">
+            {resultado ? (
+              <Tarjeta como="div" className="pc-resultado__tarjeta pc-entra">
+                <p className="pc-resultado__quien">
+                  <AvatarAgente agente="clara" tam={24} />
+                  Resumen de Clara
+                </p>
+                <p className="pc-resultado__origen">
+                  {resultado.remitente} · {resultado.asunto}
+                </p>
+                <p className="pc-resultado__texto">{resultado.resumen}</p>
+                {conSugerencia(resultado.accion) ? (
+                  <p className="pc-correo__accion">
+                    <Icono nombre="flecha" tam={16} />
+                    {resultado.accion}
+                  </p>
+                ) : null}
+              </Tarjeta>
+            ) : cargando ? (
+              <p className="pc-cargando" role="status">
+                <Giro /> Clara está leyendo el correo…
+              </p>
+            ) : (
+              <p className="pc-nota">El resumen aparece aquí: de qué trata el correo, qué tan urgente es y qué conviene contestar.</p>
+            )}
+          </div>
+        </section>
+
+      </details>
     </Seccion>
   );
 }

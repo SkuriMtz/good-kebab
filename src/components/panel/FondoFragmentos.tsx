@@ -5,17 +5,20 @@ import { EVENTO_TEMA } from "@/lib/tema";
 
 /* =====================================================================
    Los fragmentos de Atendel como fondo del chat (Inicio y Conversación).
-   - Canvas 2D (nada de WebGL en el panel), 40 a 110 triangulitos HUECOS de
-     1–1.8px en los colores de ATENDEL.md; DPR limitado a 2.
-   - Profundidad: los de cerca son más grandes y se ven apenas borrosos
-     (doble trazo suave); los de lejos, chicos y nítidos. Derivan muy lento,
-     giran un poco y, con mouse (hover: hover), se mueven unos píxeles con
-     el cursor (parallax mínimo, más los de cerca).
-   - Nunca bajan el contraste: se desvanecen antes de llegar al texto, la
-     caja y las burbujas (cada pieza mide su distancia a esas zonas y se
-     apaga a 24px de ellas, con una rampa de 72px).
-   - Se pausa con la pestaña oculta y fuera de la vista; con "reducir
-     movimiento" se pinta una vez y se queda quieto.
+   Segunda versión (el dueño: "el fondo de los triangulitos mejóralo"):
+   - Canvas 2D único (nada de WebGL en el panel): 120–220 triangulitos
+     HUECOS, más chicos, en los colores de ATENDEL.md; ~60 en celular.
+   - Van en 3 CORRIENTES curvas (a la izquierda, a la derecha y un arco
+     arriba), como la estela de la portada, y derivan despacio a lo largo
+     de su corriente; al llegar al final se desvanecen y vuelven a empezar.
+   - 3 capas de profundidad: lejos (chicas, nítidas, tenues), en medio, y
+     cerca (más grandes, apenas borrosas, pocas). El parallax con el mouse
+     cambia por capa. Unas pocas titilan con la opacidad.
+   - Dibujos precalculados: un triangulito por color y capa en un canvas
+     aparte; cada cuadro solo los copia (drawImage) con su giro.
+   - Nunca bajan el contraste: se apagan a 24px de todo lo que se lee
+     (rampa de 72px). Pausa con la pestaña oculta y fuera de la vista; DPR
+     máximo de 2; con "reducir movimiento" se pinta una vez y queda quieto.
    ===================================================================== */
 
 const COLORES = ["#ffb829", "#8052ff", "#15846e", "#23d9b5", "#e040fb", "#3d7bff"];
@@ -23,7 +26,22 @@ const COLORES = ["#ffb829", "#8052ff", "#15846e", "#23d9b5", "#e040fb", "#3d7bff
 const MARGEN = 24;
 const RAMPA = 72;
 
-type Pieza = { x: number; y: number; z: number; tam: number; color: string; giro: number; vg: number; vx: number; vy: number; a: number; grosor: number };
+type Punto = [number, number];
+/** Las corrientes, en coordenadas de 0 a 1 del área del chat (curvas de Bézier cúbicas). */
+const CORRIENTES: { p: [Punto, Punto, Punto, Punto]; ancho: number; peso: number }[] = [
+  { p: [[0.03, 1.08], [0.24, 0.72], [-0.07, 0.34], [0.17, -0.08]], ancho: 70, peso: 0.4 },
+  { p: [[0.98, 1.06], [0.75, 0.66], [1.07, 0.3], [0.84, -0.08]], ancho: 70, peso: 0.4 },
+  { p: [[0.06, 0.17], [0.36, -0.07], [0.64, 0.25], [0.95, 0.04]], ancho: 42, peso: 0.2 },
+];
+
+/** Las 3 capas: tamaño, opacidad (oscuro / claro), parallax, rapidez y qué tanto se abren de la corriente. */
+const CAPAS = [
+  { parte: 0.55, tam: [2.5, 3.6], alfa: [0.26, 0.16], parallax: 2, rapidez: [0.004, 0.007], abre: 1.3 },
+  { parte: 0.35, tam: [4, 5.6], alfa: [0.36, 0.22], parallax: 6, rapidez: [0.006, 0.01], abre: 1 },
+  { parte: 0.1, tam: [7, 10], alfa: [0.3, 0.19], parallax: 14, rapidez: [0.009, 0.014], abre: 0.8 },
+] as const;
+
+type Pieza = { corriente: number; capa: number; t: number; d: number; vt: number; tam: number; color: number; giro: number; vg: number; a: number; titila: number; fase: number };
 type Zona = { x: number; y: number; w: number; h: number };
 
 /** Números al azar repetibles (mulberry32): el mismo campo en cada visita. */
@@ -35,6 +53,63 @@ function azar(semilla: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** Punto y dirección de una curva de Bézier cúbica en t. */
+function enCurva(p: [Punto, Punto, Punto, Punto], t: number, w: number, h: number) {
+  const u = 1 - t;
+  const x = u * u * u * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t * t * t * p[3][0];
+  const y = u * u * u * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t * t * t * p[3][1];
+  const dx = 3 * u * u * (p[1][0] - p[0][0]) + 6 * u * t * (p[2][0] - p[1][0]) + 3 * t * t * (p[3][0] - p[2][0]);
+  const dy = 3 * u * u * (p[1][1] - p[0][1]) + 6 * u * t * (p[2][1] - p[1][1]) + 3 * t * t * (p[3][1] - p[2][1]);
+  const lx = dx * w;
+  const ly = dy * h;
+  const l = Math.hypot(lx, ly) || 1;
+  return { x: x * w, y: y * h, nx: -ly / l, ny: lx / l };
+}
+
+const suave = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+/** Un triangulito de contorno por color y capa, dibujado una vez (los de cerca, apenas borrosos). */
+function dibujosPrecalculados(dpr: number) {
+  return CAPAS.map((capa, i) =>
+    COLORES.map((color) => {
+      const s = capa.tam[1] * 2; // se dibuja al doble y se reduce al copiar: queda nítido
+      const lado = Math.ceil((s + 8) * dpr);
+      const c = document.createElement("canvas");
+      c.width = lado;
+      c.height = lado;
+      const x = c.getContext("2d");
+      if (!x) return c;
+      x.scale(dpr, dpr);
+      x.translate(lado / dpr / 2, lado / dpr / 2);
+      const alto = s * 0.866;
+      const trazo = () => {
+        x.beginPath();
+        x.moveTo(0, (-alto * 2) / 3);
+        x.lineTo(s / 2, alto / 3);
+        x.lineTo(-s / 2, alto / 3);
+        x.closePath();
+      };
+      x.strokeStyle = color;
+      x.lineJoin = "round";
+      if (i === 2) {
+        // Cerca: un halo ancho y tenue bajo el trazo (se ve apenas borroso)
+        x.globalAlpha = 0.32;
+        x.lineWidth = 4.4;
+        trazo();
+        x.stroke();
+        x.globalAlpha = 0.85;
+      }
+      x.lineWidth = i === 0 ? 2 : i === 1 ? 2.4 : 2.8; // al doble: 1–1.4px en pantalla
+      trazo();
+      x.stroke();
+      return c;
+    }),
+  );
 }
 
 /**
@@ -58,8 +133,10 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
     let raf = 0;
     let visible = true;
     let ultimo = 0;
+    let reloj = 0;
     let piezas: Pieza[] = [];
     let zonas: Zona[] = [];
+    let dibujos: HTMLCanvasElement[][] = [];
     const puntero = { x: 0, y: 0, tx: 0, ty: 0 };
 
     const medirZonas = () => {
@@ -75,24 +152,41 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
     };
 
     const crear = () => {
-      const r = azar(7);
-      const n = Math.max(40, Math.min(110, Math.round((w * h) / 9500)));
-      piezas = Array.from({ length: n }, (_, i) => {
-        const z = r(); // 0 = lejos, 1 = cerca
+      const r = azar(11);
+      const celular = w < 600;
+      const n = celular ? 60 : Math.max(120, Math.min(220, Math.round((w * h) / 5500)));
+      const corrientes = celular ? [0, 1] : [0, 1, 2];
+      piezas = Array.from({ length: n }, () => {
+        const k = r();
+        const capa = k < CAPAS[0].parte ? 0 : k < CAPAS[0].parte + CAPAS[1].parte ? 1 : 2;
+        const c = CAPAS[capa];
+        // La corriente, según su peso
+        let q = r() * corrientes.reduce((t, i) => t + CORRIENTES[i].peso, 0);
+        let corriente = corrientes[0];
+        for (const i of corrientes) {
+          q -= CORRIENTES[i].peso;
+          if (q <= 0) {
+            corriente = i;
+            break;
+          }
+        }
+        const normal = (r() + r() + r() - 1.5) / 1.5; // más tupidas al centro de la corriente
         return {
-          x: r() * w,
-          y: r() * h,
-          z,
-          tam: 5 + z * z * 19,
-          color: COLORES[i % COLORES.length],
+          corriente,
+          capa,
+          t: r(),
+          d: normal * CORRIENTES[corriente].ancho * c.abre * (celular ? 0.6 : 1),
+          vt: c.rapidez[0] + r() * (c.rapidez[1] - c.rapidez[0]),
+          tam: c.tam[0] + r() * (c.tam[1] - c.tam[0]),
+          color: Math.floor(r() * COLORES.length),
           giro: r() * Math.PI * 2,
-          vg: (r() * 2 - 1) * (0.04 + 0.08 * z), // rad/s: unos pocos grados por segundo
-          vx: (r() * 2 - 1) * (1.5 + 5 * z), // px/s: muy lento
-          vy: (r() * 2 - 1) * (1.2 + 4 * z) - 1,
-          a: r(),
-          grosor: 1 + z * 0.8,
+          vg: (r() * 2 - 1) * 0.12,
+          a: 0.75 + r() * 0.5,
+          titila: r() < 0.08 ? 0.8 + r() * 0.9 : 0,
+          fase: r() * Math.PI * 2,
         };
       });
+      canvas.dataset.piezas = String(n);
     };
 
     /** 0 dentro de una zona protegida (o a menos de MARGEN), 1 lejos de todas. */
@@ -111,44 +205,32 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
     };
 
     const dibujar = () => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      const claro = document.documentElement.dataset.tema === "claro";
-      // Opacidad baja: 0.25–0.45 en oscuro; menos en claro
-      const [piso, tope] = claro ? [0.14, 0.28] : [0.25, 0.45];
-      ctx.lineJoin = "round";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!dibujos.length) return;
+      const claro = document.documentElement.dataset.tema === "claro" ? 1 : 0;
       for (const q of piezas) {
-        const x = q.x + puntero.x * (2 + q.z * 12);
-        const y = q.y + puntero.y * (2 + q.z * 9);
+        const c = CAPAS[q.capa];
+        const k = enCurva(CORRIENTES[q.corriente].p, q.t, w, h);
+        const ondula = Math.sin(reloj * 0.35 + q.fase) * 3;
+        const x = k.x + k.nx * (q.d + ondula) + puntero.x * c.parallax;
+        const y = k.y + k.ny * (q.d + ondula) + puntero.y * c.parallax * 0.75;
         const m = mascara(x, y, q.tam * 0.6);
         if (m <= 0.01) continue;
-        const alfa = (piso + (tope - piso) * q.a) * m;
-        const s = q.tam;
-        const alto = s * 0.866;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(q.giro);
-        ctx.beginPath();
-        ctx.moveTo(0, (-alto * 2) / 3);
-        ctx.lineTo(s / 2, alto / 3);
-        ctx.lineTo(-s / 2, alto / 3);
-        ctx.closePath();
-        ctx.strokeStyle = q.color;
-        if (q.z > 0.72) {
-          // Los de cerca, apenas borrosos: un halo ancho y tenue bajo el trazo
-          ctx.globalAlpha = alfa * 0.3;
-          ctx.lineWidth = q.grosor * 2.8;
-          ctx.stroke();
-          ctx.globalAlpha = alfa * 0.75;
-          ctx.lineWidth = q.grosor;
-          ctx.stroke();
-        } else {
-          ctx.globalAlpha = alfa;
-          ctx.lineWidth = q.grosor;
-          ctx.stroke();
-        }
-        ctx.restore();
+        // Se desvanecen al empezar y al terminar su corriente (no aparecen de golpe)
+        const extremos = suave(0, 0.07, q.t) * (1 - suave(0.93, 1, q.t));
+        const titila = q.titila ? 0.55 + 0.45 * Math.sin(reloj * q.titila + q.fase) : 1;
+        const alfa = Math.min(1, c.alfa[claro] * q.a) * m * extremos * titila;
+        if (alfa <= 0.01) continue;
+        const img = dibujos[q.capa][q.color];
+        const lado = (img.width / dpr) * (q.tam / (c.tam[1] * 2));
+        const cos = Math.cos(q.giro) * dpr;
+        const sen = Math.sin(q.giro) * dpr;
+        ctx.globalAlpha = alfa;
+        ctx.setTransform(cos, sen, -sen, cos, x * dpr, y * dpr);
+        ctx.drawImage(img, -lado / 2, -lado / 2, lado, lado);
       }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.globalAlpha = 1;
     };
 
@@ -158,15 +240,11 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
       if (!visible || document.hidden || quieto()) return;
       const dt = ultimo ? Math.min(0.05, (t - ultimo) / 1000) : 0;
       ultimo = t;
-      const borde = 30;
+      reloj += dt;
       for (const q of piezas) {
-        q.x += q.vx * dt;
-        q.y += q.vy * dt;
+        q.t += q.vt * dt;
+        if (q.t > 1) q.t -= 1;
         q.giro += q.vg * dt;
-        if (q.x < -borde) q.x = w + borde;
-        else if (q.x > w + borde) q.x = -borde;
-        if (q.y < -borde) q.y = h + borde;
-        else if (q.y > h + borde) q.y = -borde;
       }
       puntero.x += (puntero.tx - puntero.x) * 0.05;
       puntero.y += (puntero.ty - puntero.y) * 0.05;
@@ -187,9 +265,13 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
       const r = canvas.getBoundingClientRect();
       if (!r.width || !r.height) return;
       const nuevo = Math.abs(r.width - w) > 1 || Math.abs(r.height - h) > 1;
+      const dprNuevo = Math.min(2, window.devicePixelRatio || 1);
       w = r.width;
       h = r.height;
-      dpr = Math.min(2, window.devicePixelRatio || 1);
+      if (dprNuevo !== dpr || !dibujos.length) {
+        dpr = dprNuevo;
+        dibujos = dibujosPrecalculados(dpr);
+      }
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       if (nuevo || !piezas.length) crear();

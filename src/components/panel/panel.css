@@ -1185,13 +1185,6 @@ button.pc-tarjeta {
   background: var(--pc-miniatura);
   overflow: hidden;
 }
-.pc-pide__frags {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.75;
-}
 .pc-pide__personaje {
   position: absolute;
   top: 50%;
@@ -3059,5 +3052,102 @@ a.pc-correo__accion:hover {
   :root[data-pc-escribe] .pc-menu__logo circle,
   .pc-escribe__tris svg {
     animation: none !important;
+  }
+}
+
+/* =====================================================================
+   10. TERCERA RONDA: la constelación de las miniaturas y Correo
+   ===================================================================== */
+
+/* La miniatura: una constelación en halo alrededor del personaje */
+.pc-conste {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pc-conste__anillo,
+.pc-conste__afuera {
+  transform-box: view-box;
+  transform-origin: 100px 42.5px;
+}
+@media (hover: hover) and (pointer: fine) {
+  /* Al pasar el cursor el anillo gira y lo de afuera se abre (600ms, solo transform) */
+  .pc-conste__anillo,
+  .pc-conste__afuera {
+    transition: transform 600ms cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  .pc-pide__tarjeta:hover .pc-conste__anillo {
+    transform: rotate(14deg) scale(1.05);
+  }
+  .pc-pide__tarjeta:hover .pc-conste__afuera {
+    transform: rotate(-8deg) scale(1.12);
+  }
+}
+.pc-pide__insignia {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  height: 18px;
+  padding: 0 7px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  background: var(--pc-tarjeta);
+  color: var(--pc-texto-2);
+  font: 500 11px/16px var(--pc-sans);
+  white-space: nowrap;
+}
+.pc-pide__insignia--atencion {
+  border-color: color-mix(in srgb, var(--pc-atencion) 40%, transparent);
+  background: color-mix(in srgb, var(--pc-atencion) 16%, var(--pc-tarjeta));
+  color: var(--pc-atencion);
+}
+
+/* Correo: lo primero es tu bandeja; la prueba, escondida */
+.pc-correo__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pc-correo__mensaje {
+  margin: -8px 0 16px;
+}
+.pc-probar {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--pc-division);
+}
+.pc-probar__resumen {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px 0 8px;
+  border-radius: 8px;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.pc-probar__resumen::-webkit-details-marker {
+  display: none;
+}
+.pc-probar[open] .pc-probar__resumen {
+  color: var(--pc-texto);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc-probar__resumen:hover {
+    background: var(--pc-hover);
+  }
+}
+.pc-probar > .pc-correo-prueba {
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-pide__tarjeta:hover .pc-conste__anillo,
+  .pc-pide__tarjeta:hover .pc-conste__afuera {
+    transform: none;
   }
 }

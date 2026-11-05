@@ -117,6 +117,7 @@ export function Chat({
   textoInicial,
   saludo,
   pendientes,
+  conGoogle,
 }: {
   planId: IdPlan;
   activos: IdAgente[];
@@ -131,6 +132,8 @@ export function Chat({
   saludo: string;
   /** Lo que espera tu visto bueno (null: no se pudo leer). */
   pendientes: number | null;
+  /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
+  conGoogle: boolean;
 }) {
   const plan = PLAN_POR_ID[planId];
   const puedeGrupos = activos.length >= 2;
@@ -462,10 +465,19 @@ export function Chat({
       .map((p) => {
         const enEquipo = activos.includes(p.agente);
         const enPlan = plan.agentes.includes(p.agente);
+        // Clara lee tu Gmail: sin Gmail, la tarjeta lleva a conectarlo. WhatsApp todavía no: Lola deja el mensaje listo
+        const sinGmail = p.requiere === "gmail" && !conGoogle;
         return {
           pedido: p,
-          href: enEquipo ? `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` : enPlan ? "/panel/agentes" : "/precios",
+          href: !enEquipo ? (enPlan ? "/panel/agentes" : "/precios") : sinGmail ? "/panel?vista=correo#gmail" : `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}`,
           bloqueado: enEquipo ? undefined : enPlan ? "Fuera de tu equipo" : `Llega con ${planMinimo(p.agente).nombre}`,
+          insignia: !enEquipo
+            ? undefined
+            : p.requiere === "whatsapp"
+              ? { texto: "WhatsApp · pronto", tono: "neutro" as const }
+              : sinGmail
+                ? { texto: "Conecta Gmail", tono: "atencion" as const }
+                : undefined,
         };
       })
       .sort((a, b) => Number(Boolean(a.bloqueado)) - Number(Boolean(b.bloqueado)));

@@ -136,6 +136,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       textoInicial={texto(searchParams.pide, 2000)}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       pendientes={pendientes.total}
+      conGoogle={conGoogle}
     />
   );
 }

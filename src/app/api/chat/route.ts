@@ -5,6 +5,7 @@ import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { cargarCuenta } from "@/lib/cuenta";
+import { contextoCorreo } from "@/lib/contexto-correo";
 import { planMinimo } from "@/lib/planes";
 
 /**
@@ -15,6 +16,9 @@ import { planMinimo } from "@/lib/planes";
  * agentes y que no haya pasado su límite del mes, y responde en vivo.
  * En un grupo contesta un solo modelo por todos: cada intervención llega
  * marcada con "@@id" y se guarda como un mensaje de ese agente.
+ * Si Clara está (sola o en el grupo), el system lleva los resúmenes de
+ * correo recientes de la persona (src/lib/contexto-correo.ts): solo
+ * lectura, delimitados y marcados como datos, no instrucciones.
  * La conversación se guarda en Supabase; RLS impide ver la de otros.
  */
 
@@ -140,7 +144,10 @@ export async function POST(request: NextRequest) {
   if (errMensaje) return error("No se pudo guardar tu mensaje.", 500);
   await supabase.rpc("sumar_mensaje");
 
-  // 6. Responder en vivo
+  // 6. Si Clara está, lee los resúmenes de correo recientes (solo lectura; nunca el texto original)
+  const correos = participantes.includes("clara") ? await contextoCorreo(supabase, user.id) : undefined;
+
+  // 7. Responder en vivo
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const codificar = new TextEncoder();
   const idFinal = idConversacion;
@@ -164,7 +171,7 @@ export async function POST(request: NextRequest) {
       try {
         const base = {
           max_tokens: 8000,
-          system: grupo ? instruccionesGrupo(grupo, cuenta.negocio, tema) : instruccionesDe(agente, cuenta.negocio),
+          system: grupo ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos) : instruccionesDe(agente, cuenta.negocio, correos),
           messages: [...historial, { role: "user" as const, content: mensaje }],
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus

@@ -146,7 +146,7 @@ export const COMPLEMENTO: Record<string, Partial<Record<IdAgente, string>>> = {
 export const LIBRE: Record<IdAgente, string> = {
   lola: "¡Con gusto! En tu panel lo resuelvo con tu agenda y tu WhatsApp de verdad. Aquí son respuestas de ejemplo: prueba **/agendar** o **/confirmar**.",
   clara:
-    "Te ayudo con eso. En tu panel leo y contesto tu correo real; aquí te muestro ejemplos. Prueba **/resumir-correos** o **/facturas**.",
+    "Te ayudo con eso. En tu panel leo tu correo real y te dejo las respuestas listas; aquí te muestro ejemplos. Prueba **/resumir-correos** o **/facturas**.",
   victor: "¡Va! En tu panel trabajo con tus clientes reales. Para ver un ejemplo, prueba **/seguimiento** o **/reactivar**.",
   iris: "Claro. En tu panel lo investigo y te lo entrego en Excel. Para un ejemplo, prueba **/reporte** o **/investigar**.",
 };

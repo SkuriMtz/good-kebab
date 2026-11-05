@@ -39,7 +39,10 @@ function tituloDe(c: ConvBase) {
 /** Si se envió el texto de una tarjeta "Pídele a tu equipo", contesta su acción del guion. */
 function responderDemo(texto: string, c: ConvBase): Turno[] {
   const p = PEDIDOS.find((x) => x.texto === texto.trim());
-  if (p?.comando && c.agentes.includes(p.agente)) return responder(p.comando, c);
+  if (p && c.agentes.includes(p.agente)) {
+    if (p.respuestaDemo) return [{ agente: p.agente, texto: p.respuestaDemo }];
+    if (p.comando) return responder(p.comando, c);
+  }
   return responder(texto, c);
 }
 

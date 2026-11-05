@@ -31,16 +31,16 @@ export const COMANDOS: Comando[] = [
   {
     key: "resumir-correos",
     name: "/resumir-correos",
-    description: "Lo importante del correo de hoy",
+    description: "Lo importante de tu bandeja reciente",
     agente: "clara",
-    instruccion: "resume los correos que te peguen, ordénalos por urgencia y sugiere qué contestar a cada uno.",
+    instruccion: "resume los correos de tu bandeja reciente (los resúmenes que ves en el bloque de correos), ordénalos por urgencia y sugiere qué contestar a cada uno; si no hay correos, sugiere conectar Gmail en Correo.",
   },
   {
     key: "facturas",
     name: "/facturas",
-    description: "Facturas y pagos del mes",
+    description: "Facturas y pagos de tu bandeja reciente",
     agente: "clara",
-    instruccion: "encuentra en lo que te peguen facturas, cobros y pagos, con monto y fecha límite, en una tabla.",
+    instruccion: "encuentra en los correos de tu bandeja reciente facturas, cobros y pagos, con monto y fecha límite, en una tabla; si no hay correos, sugiere conectar Gmail en Correo.",
   },
   {
     key: "seguimiento",
