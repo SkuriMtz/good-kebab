@@ -1,10 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
-import { ponerTema, type PreferenciaTema } from "@/lib/tema";
+import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
 import { BarraBuscar, Enlace, MarcaFragmentos, Odometro, Pildoras, Tarjeta, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
 
@@ -323,9 +323,15 @@ export function TarjetaPlan({ plan, usados, total }: { plan: string; usados: num
   );
 }
 
-/** Oscuro, claro o como el sistema. */
-export function ElegirTema({ preferencia }: { preferencia: PreferenciaTema }) {
-  const [actual, setActual] = useState(preferencia);
+/** Oscuro, claro o como el sistema (arranca con lo que eligió la persona). */
+export function ElegirTema() {
+  const [actual, setActual] = useState<PreferenciaTema>("oscuro");
+  useEffect(() => {
+    const leer = () => setActual(preferenciaActual());
+    leer();
+    window.addEventListener(EVENTO_TEMA, leer);
+    return () => window.removeEventListener(EVENTO_TEMA, leer);
+  }, []);
   return (
     <Pildoras
       etiqueta="Apariencia"

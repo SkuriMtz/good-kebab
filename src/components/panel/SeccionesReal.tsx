@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { CorreoPendiente } from "@/lib/pendientes";
 import type { PasoPanel } from "@/lib/pasos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { planMinimo } from "@/lib/planes";
-import { preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Icono } from "@/components/base/Iconos";
@@ -155,8 +153,6 @@ export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string;
 
 export function AjustesReal({ plan, usados, total, conGoogle, activos, correo }: { plan: string; usados: number; total: number; conGoogle: boolean; activos: IdAgente[]; correo: string }) {
   const router = useRouter();
-  const [preferencia, setPreferencia] = useState<PreferenciaTema>("oscuro");
-  useEffect(() => setPreferencia(preferenciaActual()), []);
   return (
     <Seccion>
       <TituloSeccion titulo="Ajustes" texto="Tu plan, cómo se ve el panel, tu correo y tu equipo." />
@@ -164,7 +160,7 @@ export function AjustesReal({ plan, usados, total, conGoogle, activos, correo }:
         <TarjetaPlan plan={plan} usados={usados} total={total} />
       </BloqueAjustes>
       <BloqueAjustes id="aj-tema" titulo="Apariencia" texto="Oscuro es el de siempre; claro es una tarjeta sobre gris.">
-        <ElegirTema key={preferencia} preferencia={preferencia} />
+        <ElegirTema />
       </BloqueAjustes>
       <BloqueAjustes id="aj-correo" titulo="Correo" texto="Clara lee tu Gmail. Solo lectura: nunca envía ni borra nada.">
         <p className="pc-ajuste__estado">

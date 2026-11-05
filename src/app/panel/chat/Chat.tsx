@@ -181,7 +181,8 @@ export function Chat({
   const navegarAqui = useCallback(
     (href: string) => {
       const url = new URL(href, window.location.href);
-      if (url.pathname === window.location.pathname) window.history.pushState(null, "", `${url.pathname}${url.search}`);
+      // Solo lo que se queda en el chat (filtro, tarjeta) cambia sin ir al servidor; una sección sí lo necesita
+      if (url.pathname === window.location.pathname && !url.searchParams.has("vista")) window.history.pushState(null, "", `${url.pathname}${url.search}`);
       else router.push(href);
     },
     [router],

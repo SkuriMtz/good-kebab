@@ -445,7 +445,7 @@ export function AjustesDemo() {
         <TarjetaPlan plan={PLAN.nombre} usados={DEMO_NEGOCIO.mensajesUsados} total={PLAN.mensajesMes} />
       </BloqueAjustes>
       <BloqueAjustes id="aj-tema" titulo="Apariencia" texto="Oscuro es el de siempre; claro es una tarjeta sobre gris.">
-        <ElegirTema preferencia="oscuro" />
+        <ElegirTema />
       </BloqueAjustes>
       <BloqueAjustes id="aj-correo" titulo="Correo" texto="Clara lee el Gmail del negocio. Solo lectura: nunca envía ni borra nada.">
         <p className="pc-ajuste__estado">
