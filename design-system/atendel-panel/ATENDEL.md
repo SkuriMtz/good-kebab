@@ -53,3 +53,15 @@ MASTER.md es la salida genérica de UI UX Pro Max. De ahí se toma:
 
 ## Íconos
 Los del proyecto (`@/components/base/Iconos`): un solo juego, de trazo consistente. Sin emojis como íconos.
+
+## Más referencias (5 nov)
+- **`referencia-luma.webp`, para el modo claro:**
+  - el menú como TARJETA flotante (margen de 16 px, radio de 24 px y fondo blanco) sobre un lienzo gris claro (`#ececee`);
+  - un **resplandor suave** detrás del saludo y de la caja: un degradado radial muy tenue con los colores de los fragmentos, sobre todo azul y violeta;
+  - la caja de chat blanca con radio de 28–32 px, con adjuntar, micrófono y un botón redondo de enviar;
+  - debajo de la caja, una **fila de píldoras**: "Todo" (la activa, llena en negro o azul), "Citas", "Correo", "Clientes" y "Oficina". Filtran una **cuadrícula de 4 columnas "Pídele a tu equipo"**: cada tarjeta lleva una miniatura (los fragmentos con el personaje del agente), un título en negritas, dos líneas de descripción y ›. Al picarla, abre el chat con ese pedido ya escrito;
+  - en el menú, la opción activa va como píldora llena;
+  - al pie, una píldora con el uso del plan ("57 % de tus mensajes del mes disponibles").
+- **Modo oscuro:** la captura del chat (`referencia-chat.webp`), con la misma fila de píldoras y la misma cuadrícula.
+- **Pendientes en el Inicio:** una franja chica arriba de las píldoras ("3 esperan tu visto bueno ›"), además del número en el menú.
+- **Animaciones:** ver `ANIMACIONES.md`.
