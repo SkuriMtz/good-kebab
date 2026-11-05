@@ -1,6 +1,7 @@
 "use client";
 
 import type { CampoPerfil, Documento, EstadoAppPersona, IdApp, PerfilNegocio } from "@/lib/nucleo-tipos";
+import { APP_POR_ID } from "@/lib/conexiones/catalogo";
 import { DEMO_USUARIA } from "@/lib/demo-dashboard";
 import { avisarDocumentos, extensionDe, normalizarLink, perfilCompleto, type FuenteNegocio } from "./fuente";
 
@@ -167,9 +168,14 @@ export const fuenteDemo: FuenteNegocio = {
     await pausa(350);
     escribir((e) => ({ ...e, apps: e.apps.map((a) => (a.id === app ? { ...a, avisame: quiere } : a)) }));
   },
-  async desconectar(_proveedor, app) {
+  async desconectar(proveedor, app) {
     await pausa(450);
-    escribir((e) => ({ ...e, apps: e.apps.map((a) => (a.id === app ? { id: a.id, estado: "desconectada" } : a)) }));
+    // Como en tu cuenta real: se quita la cuenta del proveedor, con todas sus apps
+    escribir((e) => ({ ...e, apps: e.apps.map((a) => (a.id === app || (a.estado === "conectada" && APP_POR_ID[a.id]?.proveedor === proveedor) ? { id: a.id, estado: "desconectada" } : a)) }));
+  },
+  async guardarLlave(_proveedor, app) {
+    // En /pruebalo no se guarda ninguna llave: el modal explica qué pasaría en tu cuenta real
+    return { id: app, estado: "desconectada" };
   },
   async guardarDeDrive() {
     // En /pruebalo, Drive no está conectada: el botón lleva a Apps

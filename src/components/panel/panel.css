@@ -3228,6 +3228,8 @@ a.pc-correo__accion:hover {
   text-wrap: pretty;
 }
 .pc-perfil__texto {
+  /* Al enfocarlo, que no quede debajo de la barra de Guardar */
+  scroll-margin: 96px 0 128px;
   min-height: 64px;
   padding: 10px 12px;
   line-height: 1.5;
@@ -3669,7 +3671,8 @@ a.pc-correo__accion:hover {
   display: grid;
   gap: 8px;
   margin: 0;
-  padding-left: 20px;
+  padding-left: 22px;
+  list-style: decimal;
 }
 .pc-guia__pasos li::marker {
   color: var(--pc-texto-2);
@@ -3781,6 +3784,18 @@ a.pc-correo__accion:hover {
   }
   .pc-apps {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* El filtro de apps: una sola fila que se desliza (sin mover la página) */
+  .pc-apps__filtro {
+    flex-wrap: nowrap;
+    margin: 0 -16px;
+    padding: 2px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-padding-inline: 16px;
+  }
+  .pc-apps__filtro::-webkit-scrollbar {
+    display: none;
   }
   .pc-link {
     padding: 16px;

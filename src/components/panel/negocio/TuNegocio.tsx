@@ -4,6 +4,7 @@ import { MAX_DOCUMENTOS_POR_PLAN } from "@/lib/nucleo-tipos";
 import type { IdPlan } from "@/lib/planes";
 import { Pildoras, TituloSeccion } from "../Piezas";
 import { Seccion } from "../Secciones";
+import { AppsNegocio } from "./Apps";
 import { DocumentosNegocio } from "./Documentos";
 import { useFuenteNegocio } from "./fuente";
 import { PerfilNegocioVista } from "./Perfil";
@@ -35,14 +36,9 @@ export function TuNegocio({ tab, plan, conectada }: { tab: PestanaNegocio; plan:
       </div>
       {/* Cada pestaña entra de nuevo (key): su entrada escalonada vuelve a correr */}
       <div key={tab} className="pc-negocio" id="pc-negocio-panel">
-        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsPendiente conectada={conectada} />}
+        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} />}
       </div>
     </Seccion>
   );
 }
 
-/** Mientras llega el catálogo de D a esta rama, la pestaña Apps dice qué falta. */
-function AppsPendiente({ conectada }: { conectada?: string | null }) {
-  void conectada;
-  return <p className="pc-nota">El catálogo de apps se une con la rama de integraciones.</p>;
-}

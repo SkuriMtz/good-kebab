@@ -37,6 +37,8 @@ export type FuenteNegocio = {
   listarApps(): Promise<EstadoAppPersona[]>;
   avisame(app: IdApp, quiere: boolean): Promise<void>;
   desconectar(proveedor: Proveedor, app: IdApp): Promise<void>;
+  /** Las apps por llave (Telegram, Stripe…): valida y guarda SU llave, cifrada. La llave nunca regresa. */
+  guardarLlave(proveedor: Proveedor, app: IdApp, llave: string): Promise<EstadoAppPersona>;
   /** Guarda como documentos los archivos elegidos en Google Drive (Picker). */
   guardarDeDrive(archivos: { id: string; nombre: string; mime: string }[]): Promise<Documento[]>;
 };
@@ -163,6 +165,10 @@ export const fuenteReal: FuenteNegocio = {
   },
   async desconectar(proveedor, app) {
     await respuesta(await fetch(RUTAS.desconectar(proveedor), { method: "POST", headers: JSON_H, body: JSON.stringify({ app }) }));
+  },
+  async guardarLlave(proveedor, app, llave) {
+    const d = await respuesta<EstadoAppPersona | { app?: EstadoAppPersona }>(await fetch(RUTAS.llave(proveedor), { method: "POST", headers: JSON_H, body: JSON.stringify({ llave, app }) }));
+    return d && "app" in d && d.app && typeof d.app === "object" ? d.app : (d as EstadoAppPersona);
   },
   async guardarDeDrive(archivos) {
     return lista<Documento>(await respuesta(await fetch(RUTAS.drivePicker, { method: "POST", headers: JSON_H, body: JSON.stringify({ archivos }) })), "documentos");
