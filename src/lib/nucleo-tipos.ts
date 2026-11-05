@@ -58,41 +58,131 @@ export const MAX_DOCUMENTOS_POR_PLAN = { free: 3, one: 20, max: 100 } as const;
 
 /* ---------------- Apps conectadas (tablas conexiones y apps_interes) ---------------- */
 
-export type Proveedor = "google" | "microsoft" | "notion";
+/**
+ * v2 (el dueño: "son más apps, no solo esas"): TODAS estas se conectan de
+ * verdad en código. Cada una se activa cuando su proveedor está configurado
+ * (variables en Vercel) o, si es por llave, cuando la persona pega SU llave
+ * en la tarjeta (se guarda cifrada). Las que además piden aprobación del
+ * proveedor (Meta, Google Business) lo dicen en `requiereAprobacion`.
+ * "clip" queda en_camino: no tiene API pública para leer cobros.
+ */
+export type Proveedor =
+  | "google"
+  | "microsoft"
+  | "notion"
+  | "meta"
+  | "telegram"
+  | "calendly"
+  | "zoom"
+  | "dropbox"
+  | "slack"
+  | "trello"
+  | "airtable"
+  | "hubspot"
+  | "stripe"
+  | "mercadopago"
+  | "mercadolibre"
+  | "shopify"
+  | "tiendanube"
+  | "facturapi";
+
 export type IdApp =
-  // Fase 1: reales (si su proveedor está configurado)
+  // Google (un cliente OAuth)
   | "gmail"
   | "google_calendar"
   | "google_drive"
   | "google_sheets"
+  | "google_contacts"
+  | "google_business"
+  // Microsoft (Graph)
   | "outlook"
   | "outlook_calendar"
   | "onedrive"
-  | "notion"
-  // En camino (fase 2/3): "Avísame" se guarda en apps_interes
+  | "excel"
+  | "outlook_contacts"
+  // Mensajes
   | "whatsapp_business"
   | "instagram"
   | "messenger"
   | "telegram"
+  | "slack"
+  // Agenda y reuniones
   | "calendly"
-  | "excel"
+  | "zoom"
+  // Documentos, datos y trabajo
+  | "notion"
   | "dropbox"
-  | "mercado_pago"
+  | "airtable"
+  | "trello"
+  // Clientes (CRM)
+  | "hubspot"
+  // Pagos y ventas
   | "stripe"
-  | "clip"
+  | "mercado_pago"
+  | "mercado_libre"
   | "shopify"
   | "tienda_nube"
-  | "google_business"
+  | "clip"
+  // Facturación
   | "cfdi";
 
-export type CategoriaApp = "mensajes" | "correo" | "agenda" | "documentos" | "pagos" | "resenas" | "facturacion";
+export type CategoriaApp = "mensajes" | "correo" | "agenda" | "documentos" | "clientes" | "pagos" | "resenas" | "facturacion";
+
+/** Cómo se conecta: OAuth (botón "Conectar") o una llave de la persona (campo en la tarjeta, se guarda cifrada). */
+export type Autenticacion = "oauth" | "llave";
+
+/** Lo que se guarda cifrado en conexiones.token_cifrado. */
+export type Tokens = {
+  access_token: string;
+  refresh_token?: string;
+  /** Epoch en ms. */
+  expira_en?: number;
+  /** Datos del proveedor que hagan falta (shop de Shopify, page_id de Meta, workspace de Notion…). */
+  extra?: Record<string, string>;
+};
+
+/** Una herramienta de SOLO LECTURA que un agente puede usar en el chat. */
+export type Herramienta = {
+  /** snake_case, única en todo el registro (p. ej. "stripe_pagos_recientes"). */
+  nombre: string;
+  descripcion: string;
+  app: IdApp;
+  agentes: IdAgente[];
+  /** JSON Schema de los argumentos. */
+  esquema: Record<string, unknown>;
+  /** Regresa texto plano (se trunca y se marca como DATOS al pasarlo al modelo). */
+  ejecutar(args: Record<string, unknown>, ctx: { token: () => Promise<Tokens>; senal: AbortSignal }): Promise<string>;
+};
+
+/**
+ * Lo que implementa cada proveedor en src/lib/conexiones/proveedores/<proveedor>.ts
+ * y se registra en src/lib/conexiones/registro.ts (de D).
+ */
+export type Adaptador = {
+  proveedor: Proveedor;
+  autenticacion: Autenticacion;
+  /** Variables de Vercel que necesita (solo nombres). Vacío si es por llave. */
+  variables: string[];
+  /** Si además pide aprobación/revisión del proveedor para usarse con cualquier cuenta. */
+  requiereAprobacion?: string;
+  // OAuth
+  urlAutorizacion?(p: { state: string; redirectUri: string; apps: IdApp[]; codeChallenge?: string; query?: Record<string, string> }): string;
+  intercambiar?(p: { code: string; redirectUri: string; codeVerifier?: string; query?: Record<string, string> }): Promise<Tokens>;
+  renovar?(t: Tokens): Promise<Tokens>;
+  revocar?(t: Tokens): Promise<void>;
+  // Llave (Telegram bot token, Stripe restricted key, Facturapi, Trello, Airtable PAT…)
+  validarLlave?(llave: string): Promise<Tokens>;
+  /** Correo o nombre de la cuenta conectada, para mostrar en la tarjeta. */
+  cuenta(t: Tokens): Promise<string>;
+  herramientas: Herramienta[];
+};
 
 /**
  * Estado de una app para la persona:
  * - conectada: hay conexión válida (con la cuenta).
  * - desconectada: el proveedor está configurado; falta que la persona conecte.
  * - sin_configurar: faltan variables en Vercel (la lista va en `falta`).
- * - en_camino: fase 2/3; se puede pedir "Avísame".
+ * - en_camino: sin API pública todavía (p. ej. clip); se puede pedir "Avísame".
  * - error: la conexión existe pero falló (token revocado, etc.).
  */
 export type EstadoApp = "conectada" | "desconectada" | "sin_configurar" | "en_camino" | "error";
@@ -102,11 +192,15 @@ export type AppConectable = {
   nombre: string;
   categoria: CategoriaApp;
   proveedor: Proveedor | null;
+  autenticacion: Autenticacion | null;
   /** Qué agente(s) la usan. */
   agentes: IdAgente[];
   /** Qué puede hacer la IA con ella, en una línea (p. ej. "Leer tus correos"). */
   puede: string;
+  /** 1 = se conecta de verdad ya (código completo); 2/3 = en_camino. */
   fase: 1 | 2 | 3;
+  /** Texto si el proveedor pide aprobación (Meta, Google Business). */
+  requiereAprobacion?: string;
 };
 
 export type EstadoAppPersona = {
@@ -134,5 +228,6 @@ export const RUTAS = {
   conectar: (p: Proveedor, app: IdApp) => `/api/conexiones/${p}/conectar?app=${app}`, // GET → redirige al OAuth
   callback: (p: Proveedor) => `/api/conexiones/${p}/callback`, // GET (OAuth) → redirige a /panel?vista=negocio&tab=apps
   desconectar: (p: Proveedor) => `/api/conexiones/${p}/desconectar`, // POST → revoca y borra
+  llave: (p: Proveedor) => `/api/conexiones/${p}/llave`, // POST {llave, app} → valida y guarda cifrada → EstadoAppPersona (nunca regresa la llave)
   drivePicker: "/api/conexiones/google/picker", // POST {archivos:[{id,nombre,mime}]} → Documento[] (los vuelve documentos)
 } as const;
