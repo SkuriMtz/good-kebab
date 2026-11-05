@@ -1,6 +1,7 @@
 "use client";
 
 import type { CorreoPendiente } from "@/lib/pendientes";
+import { accionValida, normalizar } from "@/lib/estadisticas";
 import type { PasoPanel } from "@/lib/pasos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { planMinimo } from "@/lib/planes";
@@ -37,7 +38,10 @@ export function PendientesReal({
   accion?: string;
 }) {
   const filtro = tipo === "correos" || tipo === "pasos" ? tipo : "todo";
-  const visibles = correos.filter((c) => (!de || nombreRemitente(c.remitente) === de) && (!accion || c.accion_sugerida.trim() === accion.trim()));
+  // La acción se compara como la agrupa Estadísticas: normalizar(accionValida(…)) en los dos lados
+  const clave = (t: string | null | undefined) => normalizar(accionValida(t) ?? "");
+  const buscada = accion ? clave(accion) : "";
+  const visibles = correos.filter((c) => (!de || nombreRemitente(c.remitente) === de) && (!accion || clave(c.accion_sugerida) === buscada));
   const items: ItemTablero[] = [
     ...(filtro === "pasos"
       ? []
@@ -101,6 +105,7 @@ export function PendientesReal({
       </div>
       {totalCorreos === null ? <p className="pc-nota">No se pudieron leer los correos pendientes. Intenta de nuevo en un momento.</p> : null}
       <Tablero
+        agenteVacio="clara"
         items={items}
         vacios={{
           revisar: de || accion ? "Nada con este filtro." : "Nada por revisar. Cuando Clara encuentre un correo que pide algo, aparece aquí.",
@@ -127,7 +132,7 @@ export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string;
         </div>
       ) : null}
       <Vacio
-        icono="calendario"
+        agente="lola"
         titulo="Todavía no hay citas"
         texto="Tus citas aparecen aquí cuando conectes WhatsApp con Lola. Mientras, puedes pedirle en el chat los mensajes para confirmar o reagendar."
         accion={

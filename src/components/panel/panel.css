@@ -88,7 +88,7 @@
   --pc-pildora-llena-texto: #ffffff;
   --pc-enlace: var(--azul-enlace-dia);
   --pc-foco: var(--azul-accion);
-  --pc-exito: #1a7f4f;
+  --pc-exito: #15703f; /* 5.2:1 sobre su insignia */
   --pc-atencion: #8a5a00;
   --pc-error: #c62828;
   --pc-sombra: 0 1px 2px rgba(16, 16, 24, 0.06), 0 8px 24px rgba(16, 16, 24, 0.06);
@@ -475,24 +475,23 @@ button.pc-tarjeta {
     transform: scale(0.96);
   }
 }
+/* El fondo ya está oscurecido y desenfocado: solo se anima su opacidad */
 .pc-modal::backdrop {
-  background: transparent;
-  backdrop-filter: blur(0);
+  background: var(--pc-velo);
+  backdrop-filter: blur(4px);
+  opacity: 0;
   transition:
-    background-color 140ms ease,
-    backdrop-filter 140ms ease,
+    opacity 140ms ease,
     overlay 140ms allow-discrete,
     display 140ms allow-discrete;
 }
 .pc-modal[open]::backdrop {
-  background: var(--pc-velo);
-  backdrop-filter: blur(4px);
+  opacity: 1;
   transition-duration: 200ms;
 }
 @starting-style {
   .pc-modal[open]::backdrop {
-    background: transparent;
-    backdrop-filter: blur(0);
+    opacity: 0;
   }
 }
 .pc-modal[data-instantaneo],
@@ -593,12 +592,24 @@ button.pc-tarjeta {
 .pc-barra-buscar__texto {
   flex: 1;
 }
+.pc-barra-buscar {
+  position: relative;
+}
+.pc-barra-buscar::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--pc-texto-2);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
 @media (hover: hover) and (pointer: fine) {
-  .pc-barra-buscar {
-    transition: border-color var(--pc-micro) ease;
+  .pc-barra-buscar::after {
+    transition: opacity var(--pc-micro) ease;
   }
-  .pc-barra-buscar:hover {
-    border-color: var(--pc-borde);
+  .pc-barra-buscar:hover::after {
+    opacity: 0.5;
   }
 }
 
@@ -724,10 +735,8 @@ button.pc-tarjeta {
   padding: 0 4px 0 0;
   border-radius: 8px;
   color: var(--pc-texto);
-  font-family: var(--pc-serif);
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 500;
-  font-variation-settings: "opsz" 32;
   letter-spacing: -0.01em;
   text-decoration: none;
 }
@@ -1038,13 +1047,11 @@ button.pc-tarjeta {
    ===================================================================== */
 .pc-inicio {
   position: relative;
+  isolation: isolate;
   padding: 0 24px 72px;
   overflow-x: clip;
 }
 .pc-inicio__resplandor {
-  display: none;
-}
-:root[data-tema="claro"] .pc-inicio__resplandor {
   position: absolute;
   top: calc(38.4vh - 230px);
   left: 50%;
@@ -1055,8 +1062,13 @@ button.pc-tarjeta {
     radial-gradient(40% 46% at 42% 50%, rgba(61, 123, 255, 0.16), transparent 70%),
     radial-gradient(36% 42% at 60% 46%, rgba(128, 82, 255, 0.12), transparent 70%),
     radial-gradient(30% 34% at 52% 64%, rgba(35, 217, 181, 0.07), transparent 70%);
+  /* En oscuro, la misma luz muy tenue (el texto sigue arriba de 12:1) */
+  opacity: 0.38;
   transform: translateX(-50%);
   pointer-events: none;
+}
+:root[data-tema="claro"] .pc-inicio__resplandor {
+  opacity: 1;
 }
 .pc-inicio__centro {
   position: relative;
@@ -1413,17 +1425,26 @@ button.pc-tarjeta {
   border-radius: 20px;
   background: var(--pc-superficie);
   outline: none;
-  transition: border-color var(--pc-micro) ease;
 }
 :root[data-tema="claro"] .pc .pc-caja .prompt-bar__field {
   border-radius: 28px;
   box-shadow: var(--pc-sombra);
 }
 .pc .pc-caja .prompt-bar__field:focus-within {
-  border-color: var(--pc-texto-2);
   outline: none;
 }
-.pc .pc-caja .prompt-bar__field::before,
+/* El borde de foco vive en un pseudo-elemento: se anima su opacidad, no el color */
+.pc .pc-caja .prompt-bar__field::before {
+  z-index: 0;
+  inset: -1px;
+  border: 1px solid var(--pc-texto-2);
+  background: none;
+  opacity: 0;
+  transition: opacity var(--pc-micro) ease;
+}
+.pc .pc-caja .prompt-bar__field:focus-within::before {
+  opacity: 1;
+}
 .pc .pc-caja .prompt-bar__sparks {
   display: none;
 }
@@ -1515,6 +1536,8 @@ button.pc-tarjeta {
    6. CONVERSACIÓN: columna de 720px y la caja fija abajo
    ===================================================================== */
 .pc-conv {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -1734,33 +1757,30 @@ button.pc-tarjeta {
   color: var(--pc-texto-2);
   font-size: 14px;
 }
-.pc-escribe__puntos {
+/* "Escribiendo…": tres triangulitos de contorno que laten */
+.pc-escribe__tris {
   display: inline-flex;
-  gap: 4px;
+  gap: 3px;
 }
-.pc-escribe__puntos i {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: currentColor;
-  animation: pc-punto 1s ease-in-out infinite;
+.pc-escribe__tris svg {
+  animation: pc-late 1.1s ease-in-out infinite;
 }
-.pc-escribe__puntos i:nth-child(2) {
-  animation-delay: 0.15s;
+.pc-escribe__tris svg:nth-child(2) {
+  animation-delay: 0.16s;
 }
-.pc-escribe__puntos i:nth-child(3) {
-  animation-delay: 0.3s;
+.pc-escribe__tris svg:nth-child(3) {
+  animation-delay: 0.32s;
 }
-@keyframes pc-punto {
+@keyframes pc-late {
   0%,
   80%,
   100% {
     opacity: 0.35;
-    transform: translateY(0);
+    transform: scale(0.82);
   }
   40% {
     opacity: 1;
-    transform: translateY(-2px);
+    transform: scale(1);
   }
 }
 .pc-aviso-hilo {
@@ -1952,17 +1972,29 @@ button.pc-tarjeta {
   align-items: start;
 }
 .pc-tablero__columna {
+  position: relative;
   min-height: 160px;
   padding: 10px;
   border-radius: 14px;
   background: var(--pc-hover);
-  transition: background-color var(--pc-micro) ease;
+}
+.pc-tablero__columna::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--pc-foco) 12%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--pc-micro) ease;
+}
+.pc-tablero__columna[data-sobre]::before {
+  opacity: 1;
 }
 :root[data-tema="claro"] .pc-tablero__columna {
   background: rgba(255, 255, 255, 0.55);
 }
 .pc-tablero__columna[data-sobre] {
-  background: color-mix(in srgb, var(--pc-foco) 12%, transparent);
   outline: 2px dashed var(--pc-foco);
   outline-offset: -2px;
 }
@@ -1997,6 +2029,9 @@ button.pc-tarjeta {
   transform: scale(1.02);
 }
 .pc-tablero__vacio {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
   padding: 12px 6px;
   color: var(--pc-texto-2);
   font-size: 13px;
@@ -2215,7 +2250,18 @@ button.pc-tarjeta {
   height: 20px;
   border-radius: 999px;
   background: var(--pc-borde);
-  transition: background-color var(--pc-micro) ease;
+}
+.pc-interruptor__pista::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--pc-acento);
+  opacity: 0;
+  transition: opacity var(--pc-micro) ease;
+}
+.pc-interruptor input:checked + .pc-interruptor__pista::before {
+  opacity: 1;
 }
 .pc-interruptor__pista::after {
   content: "";
@@ -2225,11 +2271,9 @@ button.pc-tarjeta {
   width: 16px;
   height: 16px;
   border-radius: 999px;
+  z-index: 1;
   background: #fff;
   transition: transform var(--pc-micro) var(--pc-sale);
-}
-.pc-interruptor input:checked + .pc-interruptor__pista {
-  background: var(--pc-acento);
 }
 .pc-interruptor input:checked + .pc-interruptor__pista::after {
   transform: translateX(16px);
@@ -2843,5 +2887,177 @@ a.pc-correo__accion:hover {
   }
   .pc-actividad__cuando {
     width: 72px;
+  }
+}
+
+/* =====================================================================
+   9. EL LOGO DEL SITIO Y LOS FRAGMENTOS (5 nov, segunda ronda)
+   ===================================================================== */
+
+/* El logo de Atendel (src/components/Logo.tsx): los 4 círculos de los agentes */
+.pc-logo__marca {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.pc-saludo__marca {
+  width: 35px;
+  height: 35px;
+  flex: none;
+  margin-top: 2px;
+}
+.pc-pendiente__marca {
+  width: 18px;
+  height: 18px;
+}
+/* Al entrar al Inicio, los cuatro círculos aparecen uno tras otro */
+.pc-logo-entra circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pc-circulo 420ms var(--pc-sale) both;
+}
+.pc-logo-entra circle:nth-child(2) {
+  animation-delay: 60ms;
+}
+.pc-logo-entra circle:nth-child(3) {
+  animation-delay: 120ms;
+}
+.pc-logo-entra circle:nth-child(4) {
+  animation-delay: 180ms;
+}
+@keyframes pc-circulo {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+/* Mientras un agente escribe, el logo del menú respira */
+:root[data-pc-escribe] .pc-menu__logo circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pc-respira 1.8s ease-in-out infinite;
+}
+:root[data-pc-escribe] .pc-menu__logo circle:nth-child(2) {
+  animation-delay: 0.15s;
+}
+:root[data-pc-escribe] .pc-menu__logo circle:nth-child(3) {
+  animation-delay: 0.3s;
+}
+:root[data-pc-escribe] .pc-menu__logo circle:nth-child(4) {
+  animation-delay: 0.45s;
+}
+@keyframes pc-respira {
+  50% {
+    opacity: 0.75;
+    transform: scale(0.86);
+  }
+}
+
+/* El campo de fragmentos detrás del chat (FondoFragmentos.tsx) */
+.pc {
+  --pc-fondo-izq: var(--pc-menu-ancho);
+}
+.pc[data-menu="oculto"] {
+  --pc-fondo-izq: 0px;
+}
+.pc-fondo {
+  position: fixed;
+  top: 0;
+  left: var(--pc-fondo-izq);
+  z-index: -1;
+  display: block;
+  width: calc(100vw - var(--pc-fondo-izq));
+  height: 100dvh;
+  pointer-events: none;
+}
+@media (max-width: 859px) {
+  .pc {
+    --pc-fondo-izq: 0px;
+  }
+}
+
+/* Al enviar: unos fragmentos salen de la caja hacia arriba (~400ms) */
+.pc-chispas {
+  position: fixed;
+  z-index: 70;
+  height: 0;
+  pointer-events: none;
+}
+.pc-chispa {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  opacity: 0;
+  animation: pc-chispa 420ms cubic-bezier(0.16, 1, 0.3, 1) var(--d) both;
+}
+.pc-chispa svg {
+  display: block;
+}
+@keyframes pc-chispa {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.85);
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), var(--dy)) rotate(var(--g)) scale(0.9);
+  }
+}
+
+/* Los vacíos: un grupito de fragmentos quietos con el personaje */
+.pc-quietos {
+  position: relative;
+  display: inline-block;
+  width: 112px;
+  height: 72px;
+  margin-bottom: 4px;
+}
+.pc-quietos__tris {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+.pc-quietos__personaje {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+}
+.pc-quietos__personaje > svg {
+  width: 100%;
+  height: 100%;
+}
+.pc-quietos--chico {
+  width: 84px;
+  height: 54px;
+}
+.pc-quietos--chico .pc-quietos__personaje {
+  width: 30px;
+  height: 30px;
+}
+
+.pc-dias {
+  display: inline-flex;
+  gap: 2px;
+}
+.pc-aviso-flota--suave {
+  color: var(--pc-texto-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-chispas {
+    display: none;
+  }
+  .pc-logo-entra circle,
+  :root[data-pc-escribe] .pc-menu__logo circle,
+  .pc-escribe__tris svg {
+    animation: none !important;
   }
 }

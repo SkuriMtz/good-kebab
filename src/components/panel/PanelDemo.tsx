@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import type { Cita } from "@/components/dashboard/tipos";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { datosNegocioEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
 import { AGENTES_INFO, esIdAgente } from "@/lib/agentes";
@@ -16,7 +15,7 @@ import { ConversacionDemo, InicioDemo, useGuion, type ConvGuion } from "./ChatGu
 import { nombresDe } from "./Mensajes";
 import { ContextoNavegar, Enlace } from "./Piezas";
 import { Seccion } from "./Secciones";
-import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial } from "./SeccionesDemo";
+import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
 import { PEDIDOS, esArea } from "./pedidos";
 
 /* =====================================================================
@@ -45,7 +44,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const router = useRouter();
   const guion = useGuion();
   const [tablero, setTablero] = useState(() => tableroInicial(DEMO_APROBACIONES));
-  const [citasExtra, setCitasExtra] = useState<Cita[]>([]);
+  const [citasExtra, setCitasExtra] = useState<CitaDemo[]>([]);
 
   const vista = params.get("vista");
   const valida = vista && VISTAS.includes(vista) ? vista : null;
@@ -142,13 +141,23 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   } else if (valida === "actividad") {
     const h = Number(params.get("hora"));
     const dia = texto("dia", 10);
-    contenido = <ActividadDemo hora={params.get("hora") !== null && Number.isInteger(h) && h >= 0 && h <= 23 ? h : undefined} dia={dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : undefined} ahora={ahora} />;
+    contenido = (
+      <ActividadDemo
+        hora={params.get("hora") !== null && Number.isInteger(h) && h >= 0 && h <= 23 ? h : undefined}
+        dia={dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : undefined}
+        periodo={periodoDe(params.get("periodo"))}
+        ahora={ahora}
+      />
+    );
   } else if (valida === "correo") {
     contenido = <CorreoDemo prioridad={params.get("prioridad") ?? "todo"} de={texto("de")} />;
   } else if (valida === "ajustes") {
     contenido = <AjustesDemo />;
   } else if (conv) {
     contenido = <ConversacionDemo guion={guion} conv={conv} />;
+  } else if (con && !guion.listo) {
+    // Una conversación nueva de esta visita: se recupera de la pestaña en un momento
+    contenido = <div className="pc-conv" aria-busy="true" />;
   } else {
     const area = params.get("area");
     const agente = params.get("agente");
@@ -165,6 +174,15 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         alEmpezar={(id) => navegar(`/pruebalo?con=${id}`)}
       />
     );
+    if (con)
+      contenido = (
+        <>
+          {contenido}
+          <p className="pc-aviso-flota pc-aviso-flota--suave" role="status">
+            Esa conversación de ejemplo ya no está: se borra al cerrar la pestaña.
+          </p>
+        </>
+      );
   }
 
   return (

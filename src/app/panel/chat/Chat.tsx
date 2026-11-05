@@ -8,6 +8,7 @@ import { Personaje } from "@/components/agentes/Personaje";
 import { Giro } from "@/components/base/Iconos";
 import { ContextoChats } from "@/components/panel/contexto";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
+import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
 import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
 import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
@@ -295,7 +296,10 @@ export function Chat({
         { id: idRespuesta, rol: "assistant", contenido: "", creado_en: ahora, enCurso: true, nuevo: true },
       ]);
     if (mensajes.length === 0 && !actual) conVista(empezar);
-    else empezar();
+    else {
+      lanzarFragmentos(document.querySelector(".pc-conv__caja .pc-caja"));
+      empezar();
+    }
     setEnviando(true);
     const control = new AbortController();
     abortar.current = control;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Texto } from "@/components/Texto";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
@@ -117,9 +117,20 @@ export function MensajeAgente({
   );
 }
 
-/** Los tres puntitos de "escribiendo…", con el personaje de quien escribe. */
+/**
+ * "Escribiendo…": tres triangulitos de contorno que laten, con el personaje
+ * de quien escribe. Mientras tanto, los cuatro círculos del logo del menú
+ * "respiran" (html[data-pc-escribe], en CSS; quietos con reducir movimiento).
+ */
 export function Escribiendo({ agente, cabeza = true }: { agente: IdAgente; cabeza?: boolean }) {
   const info = AGENTE_POR_ID[agente];
+  useEffect(() => {
+    const html = document.documentElement;
+    html.dataset.pcEscribe = "";
+    return () => {
+      delete html.dataset.pcEscribe;
+    };
+  }, []);
   return (
     <div className="pc-msj pc-msj--agente pc-msj--nuevo">
       {cabeza ? (
@@ -130,10 +141,12 @@ export function Escribiendo({ agente, cabeza = true }: { agente: IdAgente; cabez
         </p>
       ) : null}
       <p className="pc-escribe" role="status">
-        <span className="pc-escribe__puntos" aria-hidden="true">
-          <i />
-          <i />
-          <i />
+        <span className="pc-escribe__tris" aria-hidden="true">
+          {["#8052ff", "#3d7bff", "#23d9b5"].map((c) => (
+            <svg key={c} viewBox="0 0 12 12" width="11" height="11" focusable="false">
+              <path d="M6 1.6 10.6 10 1.4 10Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+            </svg>
+          ))}
         </span>
         <span className="pc-escribe__texto">{info.nombre} está escribiendo…</span>
       </p>

@@ -6,7 +6,8 @@ import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
-import { BarraBuscar, Enlace, MarcaFragmentos, Odometro, Pildoras, Tarjeta, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
+import { Marca } from "@/components/Logo";
+import { BarraBuscar, Enlace, FragmentosQuietos, Odometro, Pildoras, Tarjeta, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
 
 /* =====================================================================
    Las secciones del panel, al estilo Mercury: una columna de 768px con
@@ -64,14 +65,19 @@ export function Tablero({
   alMover,
   alCambiar,
   vacios,
+  agenteVacio,
 }: {
   items: ItemTablero[];
   alMover?: (id: string, columna: ColumnaTablero) => void;
   alCambiar?: (id: string) => void;
   vacios: Record<ColumnaTablero, string>;
+  /** Con "Por revisar" vacío: un grupito de fragmentos quietos con este agente. */
+  agenteVacio?: IdAgente;
 }) {
   const nodos = useRef(new Map<string, HTMLElement>());
   const antes = useRef(new Map<string, DOMRect>());
+  /** Las tarjetas que ya estaban: al cambiar de columna no vuelven a "entrar" (solo viajan con FLIP). */
+  const vistos = useRef(new Set<string>());
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [sobre, setSobre] = useState<ColumnaTablero | null>(null);
   const orden = items.map((i) => `${i.id}:${i.columna}`).join("|");
@@ -92,6 +98,7 @@ export function Tablero({
       });
     }
     antes.current = nuevas;
+    nuevas.forEach((_, id) => vistos.current.add(id));
   }, [orden]);
 
   const soltar = (e: DragEvent, columna: ColumnaTablero) => {
@@ -133,7 +140,7 @@ export function Tablero({
                     if (el) nodos.current.set(item.id, el);
                     else nodos.current.delete(item.id);
                   }}
-                  className="pc-tablero__item pc-entra"
+                  className={`pc-tablero__item${vistos.current.has(item.id) ? "" : " pc-entra"}`}
                   style={{ "--d": `${retrasoEscalon(i)}ms` } as CSSProperties}
                   data-arrastrando={arrastrando === item.id ? "" : undefined}
                   draggable={Boolean(item.movible && alMover)}
@@ -151,7 +158,12 @@ export function Tablero({
                 </li>
               ))}
             </ul>
-            {lista.length === 0 ? <p className="pc-tablero__vacio">{vacios[col.id]}</p> : null}
+            {lista.length === 0 ? (
+              <div className="pc-tablero__vacio">
+                {col.id === "revisar" && agenteVacio ? <FragmentosQuietos agente={agenteVacio} className="pc-quietos--chico" /> : null}
+                <p>{vacios[col.id]}</p>
+              </div>
+            ) : null}
           </section>
         );
       })}
@@ -164,7 +176,7 @@ function TarjetaPendiente({ item, alMover, alCambiar }: { item: ItemTablero; alM
   return (
     <article className="pc-pendiente" aria-label={item.titulo}>
       <p className="pc-pendiente__quien">
-        {item.agente ? <AvatarAgente agente={item.agente} tam={20} /> : <MarcaFragmentos tam={18} />}
+        {item.agente ? <AvatarAgente agente={item.agente} tam={20} /> : <Marca className="pc-pendiente__marca" />}
         <span>{info ? info.nombre : "Atendel"}</span>
         {item.hace ? <span className="pc-pendiente__hace">{item.hace}</span> : null}
         {item.editado ? <span className="pc-estado pc-estado--neutro">Editado</span> : null}

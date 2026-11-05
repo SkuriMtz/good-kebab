@@ -80,8 +80,40 @@ const SEMANA = [0.3, 1, 1.05, 0.95, 1.1, 1, 0.65];
 const AGENTE_CORREO: IdAgente = "clara";
 const AGENTE_WHATSAPP: IdAgente = "lola";
 
+/** Las filas de ejemplo (WhatsApp, correos y citas), con hoy como el último día. */
+export type FilasEjemplo = { hoy: string; whatsapp: FilaWhatsapp[]; correos: FilaCorreo[]; citas: FilaCita[] };
+
+let ultimo: { clave: string; filas: FilasEjemplo } | null = null;
+
+/**
+ * Las mismas filas que cuentan las Estadísticas de ejemplo. Las usan también
+ * Actividad y Citas de /pruebalo, para que cada número que se pica muestre
+ * sus elementos (misma semilla, mismas fechas).
+ */
+export function filasEjemplo(ahora: Date = new Date()): FilasEjemplo {
+  const clave = `${diaLocal(ahora)}-${horaLocal(ahora)}`;
+  if (ultimo?.clave === clave) return ultimo.filas;
+  const filas = generar(ahora);
+  ultimo = { clave, filas };
+  return filas;
+}
+
 /** Estadísticas de ejemplo para ese periodo, con hoy como el último día. */
 export function datosNegocioEjemplo(periodo: Periodo, ahora: Date = new Date()): DatosNegocio {
+  const { hoy, correos, whatsapp, citas } = filasEjemplo(ahora);
+  return calcularNegocio({
+    negocio: DEMO_NEGOCIO.nombre,
+    periodo,
+    hoy,
+    correos,
+    mensajes: [],
+    conversaciones: [],
+    whatsapp,
+    citas,
+  });
+}
+
+function generar(ahora: Date): FilasEjemplo {
   const hoy = diaLocal(ahora);
   const horaAhora = horaLocal(ahora);
   const [y, m] = hoy.split("-").map(Number);
@@ -146,14 +178,5 @@ export function datosNegocioEjemplo(periodo: Periodo, ahora: Date = new Date()):
     }
   }
 
-  return calcularNegocio({
-    negocio: DEMO_NEGOCIO.nombre,
-    periodo,
-    hoy,
-    correos,
-    mensajes: [],
-    conversaciones: [],
-    whatsapp,
-    citas,
-  });
+  return { hoy, whatsapp, correos, citas };
 }

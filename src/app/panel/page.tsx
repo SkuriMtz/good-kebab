@@ -9,7 +9,7 @@ import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
 import { cargarNegocio } from "@/lib/estadisticas-negocio";
-import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
+import { cargarPendientes, correosFiltrados, negociosDe, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
 import { Chat, type Conversacion } from "./chat/Chat";
 import { Panel } from "./Panel";
@@ -63,7 +63,9 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
     const hora = searchParams.hora !== undefined && Number.isInteger(h) && h >= 0 && h <= 23 ? h : undefined;
     const tope = dia || hora !== undefined ? 200 : 30;
     let qConv = supabase.from("conversaciones").select("id, agente, titulo, actualizado_en").eq("owner_id", user.id);
-    let qRes = supabase.from("resumenes_correo").select("id, remitente, asunto, accion_sugerida, creado_en");
+    // resumenes_correo se filtra también por los negocios de la persona (RLS ya protege; defensa en profundidad)
+    const ids = await negociosDe(supabase, user.id);
+    let qRes = supabase.from("resumenes_correo").select("id, remitente, asunto, accion_sugerida, creado_en").in("negocio_id", ids);
     if (dia) {
       const desde = inicioDia(dia).toISOString();
       const hasta = inicioDia(sumarDias(dia, 1)).toISOString();
@@ -94,9 +96,13 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), enPendientes ? 100 : 5);
 
   if (enPendientes) {
+    // Con ?de= o ?accion= (desde Estadísticas o Correo) se busca en la base, no solo en los 100 más recientes
+    const de = texto(searchParams.de);
+    const accion = texto(searchParams.accion);
+    const filtrados = de || accion ? await correosFiltrados(user.id, { de, accion }) : null;
     return (
       <PendientesReal
-        correos={pendientes.lista}
+        correos={filtrados ?? pendientes.lista}
         pasos={pendientes.pasos}
         totalCorreos={pendientes.correos}
         tipo={texto(searchParams.tipo)}

@@ -12,7 +12,9 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { Personaje } from "@/components/agentes/Personaje";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
+import type { IdAgente } from "@/lib/agentes";
 import "./panel.css";
 
 /* =====================================================================
@@ -342,16 +344,49 @@ export function Modal({
 
 /* ---------- Vacío ---------- */
 
-export function Vacio({ icono = "check-circulo", titulo, texto, accion }: { icono?: NombreIcono; titulo: ReactNode; texto?: ReactNode; accion?: ReactNode }) {
+/**
+ * Vacío. Con `agente`, en lugar del ícono va un grupito de fragmentos
+ * quietos con el personaje de ese agente (Pendientes, Citas, Actividad).
+ */
+export function Vacio({ icono = "check-circulo", agente, titulo, texto, accion }: { icono?: NombreIcono; agente?: IdAgente; titulo: ReactNode; texto?: ReactNode; accion?: ReactNode }) {
   return (
     <div className="pc-vacio">
-      <span className="pc-vacio__icono" aria-hidden="true">
-        <Icono nombre={icono} tam={20} />
-      </span>
+      {agente ? (
+        <FragmentosQuietos agente={agente} />
+      ) : (
+        <span className="pc-vacio__icono" aria-hidden="true">
+          <Icono nombre={icono} tam={20} />
+        </span>
+      )}
       <p className="pc-vacio__titulo">{titulo}</p>
       {texto ? <p className="pc-vacio__texto">{texto}</p> : null}
       {accion ? <div className="pc-vacio__accion">{accion}</div> : null}
     </div>
+  );
+}
+
+/** Un grupito de triangulitos de contorno, quietos, alrededor del personaje de un agente. */
+export function FragmentosQuietos({ agente, className = "" }: { agente: IdAgente; className?: string }) {
+  const tris = [
+    { x: 10, y: 14, g: -12, c: "#ffb829", t: 8 },
+    { x: 26, y: 46, g: 30, c: "#e040fb", t: 7 },
+    { x: 84, y: 10, g: 48, c: "#3d7bff", t: 7 },
+    { x: 100, y: 38, g: -20, c: "#23d9b5", t: 9 },
+    { x: 90, y: 58, g: 160, c: "#8052ff", t: 6 },
+    { x: 16, y: 62, g: 80, c: "#15846e", t: 6 },
+  ];
+  return (
+    <span className={`pc-quietos ${className}`} aria-hidden="true">
+      <svg className="pc-quietos__tris" viewBox="0 0 112 72" focusable="false">
+        {tris.map((t, i) => {
+          const h = (t.t * Math.sqrt(3)) / 2;
+          return <path key={i} d={`M0 ${(-h * 2) / 3} L${t.t / 2} ${h / 3} L${-t.t / 2} ${h / 3}Z`} transform={`translate(${t.x} ${t.y}) rotate(${t.g})`} fill="none" stroke={t.c} strokeWidth={1.4} strokeLinejoin="round" />;
+        })}
+      </svg>
+      <span className="pc-quietos__personaje">
+        <Personaje agente={agente} avatar />
+      </span>
+    </span>
   );
 }
 

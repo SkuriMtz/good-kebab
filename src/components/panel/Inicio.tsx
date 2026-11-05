@@ -5,7 +5,9 @@ import { Personaje } from "@/components/agentes/Personaje";
 import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID } from "@/lib/agentes";
 import { AREAS, type IdArea, type Pedido } from "./pedidos";
-import { COLORES_FRAGMENTO, Enlace, MarcaFragmentos, Pildoras, retrasoEscalon } from "./Piezas";
+import { Marca } from "@/components/Logo";
+import { FondoFragmentos } from "./FondoFragmentos";
+import { COLORES_FRAGMENTO, Enlace, Pildoras, retrasoEscalon } from "./Piezas";
 
 export type TarjetaPedido = { pedido: Pedido; href: string; bloqueado?: string };
 
@@ -38,10 +40,11 @@ export function Inicio({
 }) {
   return (
     <div className="pc-inicio">
+      <FondoFragmentos proteger={[".pc-saludo", ".pc-inicio__caja", ".pc-inicio__fila", ".pc-inicio__franja", ".pc-pide"]} />
       <div className="pc-inicio__resplandor" aria-hidden="true" />
       <div className="pc-inicio__centro">
         <h1 className="pc-saludo">
-          <MarcaFragmentos tam={35} viva className="pc-saludo__marca" />
+          <Marca className="pc-saludo__marca pc-logo-entra" />
           <span>{saludo}</span>
         </h1>
         <div className="pc-inicio__caja">{caja}</div>

@@ -19,7 +19,7 @@ export function pasosPanel(d: { activos: readonly IdAgente[]; conGoogle: boolean
   return [
     { id: "equipo", titulo: "Elige a tu equipo", detalle: nombres(d.activos), listo: d.activos.length > 0, href: "/panel/agentes" },
     { id: "gmail", titulo: "Conecta tu Gmail", detalle: "Clara lo lee. Solo lectura.", listo: d.conGoogle, href: "/panel?vista=correo#gmail" },
-    { id: "chat", titulo: "Tu primera conversación", detalle: "Pídele algo a un agente.", listo: d.conConversaciones, href: "/panel/chat" },
-    ...(d.conGrupos ? [{ id: "grupo" as const, titulo: "Tu primer grupo", detalle: "Junta a dos agentes en un chat.", listo: d.conGrupo, href: "/panel/chat" }] : []),
+    { id: "chat", titulo: "Tu primera conversación", detalle: "Pídele algo a un agente.", listo: d.conConversaciones, href: "/panel" },
+    ...(d.conGrupos ? [{ id: "grupo" as const, titulo: "Tu primer grupo", detalle: "Junta a dos agentes en un chat.", listo: d.conGrupo, href: "/panel" }] : []),
   ];
 }

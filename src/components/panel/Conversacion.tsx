@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefObject, UIEvent } from "react";
 import type { IdAgente } from "@/lib/agentes";
+import { FondoFragmentos } from "./FondoFragmentos";
 import { PilaAgentes } from "./Mensajes";
 
 /**
@@ -38,6 +39,7 @@ export function Conversacion({
 }) {
   return (
     <div className="pc-conv">
+      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__pie"]} bandas={[".pc-conv__columna"]} />
       <header className="pc-conv__cabeza">
         <PilaAgentes agentes={agentes} tam={24} />
         <div className="pc-conv__cabeza-texto">

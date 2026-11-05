@@ -2,10 +2,10 @@
 
 import { useState, type CSSProperties } from "react";
 import { Icono } from "@/components/base/Iconos";
-import type { Cita } from "@/components/dashboard/tipos";
+import { filasEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
 import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
-import { DEMO_CITAS, DEMO_CORREOS, DEMO_ESTADOS, DEMO_NEGOCIO, DEMO_SEMANA_AGENTE, DEMO_USUARIA, type CorreoDemo } from "@/lib/demo-dashboard";
-import { diaLocal } from "@/lib/estadisticas";
+import { DEMO_CORREOS, DEMO_ESTADOS, DEMO_NEGOCIO, DEMO_SEMANA_AGENTE, DEMO_USUARIA, type CorreoDemo } from "@/lib/demo-dashboard";
+import { diaLocal, sumarDias } from "@/lib/estadisticas";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { AREAS, AREA_DE_AGENTE, type IdArea } from "./pedidos";
 import { Enlace, Modal, Odometro, Pildoras, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
@@ -152,6 +152,7 @@ export function PendientesDemo({
         ) : null}
       </div>
       <Tablero
+        agenteVacio="victor"
         items={visibles}
         alMover={alMover}
         alCambiar={(id) => {
@@ -221,14 +222,50 @@ export function tableroInicial(aprobaciones: { id: string; agente: IdAgente; tit
   ];
 }
 
-/* ---------- Citas ---------- */
+/* ---------- Citas (de las MISMAS filas que las Estadísticas de ejemplo) ---------- */
+
+export type CitaDemo = { id: string; dia: string; hora: string; cliente: string; servicio: string; estado: "agendada" | "reagendada" | "cancelada" | "nueva" };
+
+const HORARIOS = ["9:00", "10:00", "11:30", "12:00", "13:30", "16:00", "17:00", "18:30"];
+const SERVICIOS = ["Primera visita", "Sesión de 1 hora", "Seguimiento", "Revisión", "Asesoría"];
+const hash = (t: string) => {
+  let h = 2166136261;
+  for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
+  return h >>> 0;
+};
+const minutos = (h: string) => {
+  const [a, b] = h.split(":").map(Number);
+  return a * 60 + (b || 0);
+};
+let citasCache: { ahora: number; lista: CitaDemo[] } | null = null;
+
+/** Las citas que cuenta Estadísticas (filasEjemplo), con una hora y un servicio fijos por semilla. */
+export function citasEjemplo(ahora: number): CitaDemo[] {
+  if (citasCache?.ahora === ahora) return citasCache.lista;
+  const lista = filasEjemplo(new Date(ahora)).citas.map((c, i) => {
+    const k = hash(`${c.cliente}-${c.dia}-${i}`);
+    return { id: `g${i}`, dia: c.dia, hora: HORARIOS[k % HORARIOS.length], cliente: c.cliente, servicio: SERVICIOS[(k >>> 8) % SERVICIOS.length], estado: c.estado };
+  });
+  citasCache = { ahora, lista };
+  return lista;
+}
+
+const formatoDiaLargo = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const formatoDiaCorto = new Intl.DateTimeFormat("es-MX", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const enFecha = (dia: string) => new Date(`${dia}T12:00:00Z`);
 
 const ESTADOS_CITA = [
   { id: "todas", etiqueta: "Todas" },
-  { id: "confirmo", etiqueta: "Confirmadas", tono: "exito" },
-  { id: "sin-respuesta", etiqueta: "Sin respuesta", tono: "atencion" },
-  { id: "cambio", etiqueta: "Cambios", tono: "azul" },
+  { id: "agendada", etiqueta: "Agendadas" },
+  { id: "reagendada", etiqueta: "Cambios" },
+  { id: "cancelada", etiqueta: "Canceladas" },
 ] as const;
+const ESTADO_FILA: Record<CitaDemo["estado"], { texto: string; tono: FilaCitaDatos["tono"] }> = {
+  agendada: { texto: "Agendada", tono: "exito" },
+  nueva: { texto: "Por confirmar", tono: "atencion" },
+  reagendada: { texto: "Cambió de hora", tono: "azul" },
+  cancelada: { texto: "Cancelada", tono: "neutro" },
+};
 
 export function CitasDemo({
   estado,
@@ -239,31 +276,44 @@ export function CitasDemo({
   alAgregar,
 }: {
   estado: string;
-  /** ?de=: las citas de esa persona (desde Estadísticas). */
+  /** ?de=: las citas de esa persona (desde Estadísticas o Actividad). */
   de?: string;
-  /** ?dia=AAAA-MM-DD: en el ejemplo solo está la agenda de mañana. */
+  /** ?dia=AAAA-MM-DD (desde la semana de Estadísticas). Sin esto, mañana. */
   dia?: string;
   ahora: number;
-  extra: Cita[];
-  alAgregar: (c: Cita) => void;
+  extra: CitaDemo[];
+  alAgregar: (c: CitaDemo) => void;
 }) {
-  const manana = diaLocal(new Date(ahora + 86_400_000));
   const [abierta, setAbierta] = useState(false);
   const [forma, setForma] = useState({ cliente: "", servicio: "", hora: "12:00" });
-  const todas = [...DEMO_CITAS, ...extra].sort((a, b) => Number(a.hora.replace(":", ".")) - Number(b.hora.replace(":", ".")));
+  const hoy = diaLocal(new Date(ahora));
+  const manana = sumarDias(hoy, 1);
+  const elDia = dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : manana;
+  const todas = [...citasEjemplo(ahora), ...extra];
+  const base = de ? todas.filter((c) => c.cliente === de) : todas.filter((c) => c.dia === elDia);
+  const activas = base.filter((c) => c.estado !== "cancelada");
   const activa = ESTADOS_CITA.some((e) => e.id === estado) ? estado : "todas";
-  const tonoDe = (c: Cita) => (c.estado.tono === "exito" ? "exito" : c.estado.tono === "atencion" ? "atencion" : c.estado.tono === "azul" ? "azul" : "neutro");
-  const filtro = ESTADOS_CITA.find((e) => e.id === activa);
-  const otroDia = Boolean(dia && dia !== manana);
-  const visibles = otroDia ? [] : todas.filter((c) => (activa === "todas" || (filtro && "tono" in filtro && tonoDe(c) === filtro.tono)) && (!de || c.paciente === de));
-  const filas: FilaCitaDatos[] = visibles.map((c) => ({ id: c.id, hora: c.hora, cliente: c.paciente, servicio: c.servicio, estado: c.estado.texto, tono: tonoDe(c), href: "/pruebalo?con=lola" }));
-  const confirmadas = todas.filter((c) => tonoDe(c) === "exito").length;
+  const visibles = (activa === "cancelada" ? base.filter((c) => c.estado === "cancelada") : activa === "todas" ? activas : activas.filter((c) => c.estado === activa || (activa === "agendada" && c.estado === "nueva"))).sort(
+    (a, b) => a.dia.localeCompare(b.dia) || minutos(a.hora) - minutos(b.hora),
+  );
+  const filas: FilaCitaDatos[] = visibles.map((c) => ({
+    id: c.id,
+    hora: c.hora,
+    cliente: de ? `${c.cliente}` : c.cliente,
+    servicio: de ? `${c.servicio} · ${formatoDiaCorto.format(enFecha(c.dia))}` : c.servicio,
+    estado: ESTADO_FILA[c.estado].texto,
+    tono: ESTADO_FILA[c.estado].tono,
+    href: "/pruebalo?con=lola",
+  }));
+  const nombreDia = elDia === hoy ? "Hoy" : elDia === manana ? "Mañana" : formatoDiaLargo.format(enFecha(elDia));
+  const conEstado = (e: string) => `/pruebalo?vista=citas${de ? `&de=${encodeURIComponent(de)}` : `&dia=${elDia}`}${e === "todas" ? "" : `&estado=${e}`}`;
+  const diaHref = (d: string) => `/pruebalo?vista=citas&dia=${d}`;
 
   return (
     <Seccion>
       <TituloSeccion
         titulo="Citas"
-        texto="Lo que Lola agenda, confirma y recuerda por WhatsApp."
+        texto={de ? `Las citas de ${de}, las que agendó Lola.` : `${nombreDia}${nombreDia === "Hoy" || nombreDia === "Mañana" ? `, ${formatoDiaLargo.format(enFecha(elDia))}` : ""}. Lo que Lola agenda, confirma y recuerda por WhatsApp.`}
         acciones={
           <button type="button" className={claseBoton("principal")} onClick={() => setAbierta(true)}>
             <Icono nombre="mas" tam={16} />
@@ -272,41 +322,51 @@ export function CitasDemo({
         }
       />
       <div className="pc-numeros pc-numeros--tres">
-        <Tarjeta indice={0} className="pc-numero">
-          <p className="pc-numero__etiqueta">Citas mañana</p>
+        <Tarjeta indice={0} className="pc-numero" href={conEstado("todas")}>
+          <p className="pc-numero__etiqueta">{de ? "Citas" : "Citas del día"}</p>
           <p className="pc-numero__valor">
-            <Odometro valor={todas.length} />
+            <Odometro valor={activas.length} />
           </p>
         </Tarjeta>
-        <Tarjeta indice={1} className="pc-numero" href="/pruebalo?vista=citas&estado=confirmo">
-          <p className="pc-numero__etiqueta">Confirmadas</p>
+        <Tarjeta indice={1} className="pc-numero" href={conEstado("agendada")}>
+          <p className="pc-numero__etiqueta">Agendadas</p>
           <p className="pc-numero__valor">
-            <Odometro valor={confirmadas} />
+            <Odometro valor={activas.filter((c) => c.estado === "agendada" || c.estado === "nueva").length} />
           </p>
         </Tarjeta>
-        <Tarjeta indice={2} className="pc-numero" href="/pruebalo?vista=citas&estado=sin-respuesta">
-          <p className="pc-numero__etiqueta">Sin respuesta</p>
+        <Tarjeta indice={2} className="pc-numero" href={conEstado("reagendada")}>
+          <p className="pc-numero__etiqueta">Cambios de hora</p>
           <p className="pc-numero__valor">
-            <Odometro valor={todas.filter((c) => tonoDe(c) === "atencion").length} />
+            <Odometro valor={activas.filter((c) => c.estado === "reagendada").length} />
           </p>
         </Tarjeta>
       </div>
       <div className="pc-filtros">
-        <Pildoras etiqueta="Filtrar citas" activa={activa} opciones={ESTADOS_CITA.map((e) => ({ id: e.id, etiqueta: e.etiqueta, href: e.id === "todas" ? "/pruebalo?vista=citas" : `/pruebalo?vista=citas&estado=${e.id}` }))} />
-        {de || dia ? (
-          <Enlace href="/pruebalo?vista=citas" className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${de ?? dia}`}>
-            {de ? `Cliente: ${de}` : `Día: ${dia}`}
+        {de ? null : (
+          <span className="pc-dias" role="group" aria-label="Cambiar de día">
+            <Enlace href={diaHref(sumarDias(elDia, -1))} className="pc-icono" aria-label="Día anterior">
+              <Icono nombre="chevron-izquierda" tam={18} />
+            </Enlace>
+            <Enlace href={diaHref(sumarDias(elDia, 1))} className="pc-icono" aria-label="Día siguiente">
+              <Icono nombre="chevron-derecha" tam={18} />
+            </Enlace>
+          </span>
+        )}
+        <Pildoras etiqueta="Filtrar citas" activa={activa} opciones={ESTADOS_CITA.map((e) => ({ id: e.id, etiqueta: e.etiqueta, href: conEstado(e.id) }))} />
+        {de ? (
+          <Enlace href="/pruebalo?vista=citas" className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${de}`}>
+            Cliente: {de}
             <Icono nombre="cerrar" tam={14} />
           </Enlace>
         ) : null}
       </div>
       {filas.length ? (
-        <ListaCitas titulo="Mañana" citas={filas} />
+        <ListaCitas titulo={de ? `Citas de ${de}` : nombreDia} citas={filas} />
       ) : (
         <Vacio
-          icono="calendario"
-          titulo={otroDia ? "En el ejemplo solo está la agenda de mañana" : de ? `${de} no tiene cita mañana` : "Nada con este filtro"}
-          texto={otroDia || de ? "En tu panel, Lola te muestra la agenda de cualquier día." : "Prueba con otro estado."}
+          agente="lola"
+          titulo={de ? `${de} no tiene citas en el ejemplo` : activa === "todas" ? `Sin citas para ${nombreDia.toLowerCase()}` : "Nada con este filtro"}
+          texto={de ? "Se le puede pedir a Lola que le aparte una." : "Prueba con otro día o con otro estado."}
           accion={
             <Enlace href={de ? "/pruebalo?con=lola" : "/pruebalo?vista=citas"} className={claseBoton("borde", true)}>
               {de ? "Pedirle a Lola que la agende" : "Ver la agenda de mañana"}
@@ -329,7 +389,7 @@ export function CitasDemo({
               className={claseBoton("principal")}
               disabled={!forma.cliente.trim() || !forma.servicio.trim()}
               onClick={() => {
-                alAgregar({ id: `n${Date.now()}`, paciente: forma.cliente.trim(), servicio: forma.servicio.trim(), hora: forma.hora, estado: { tono: "neutra", texto: "Por confirmar" } });
+                alAgregar({ id: `n${Date.now()}`, dia: de ? manana : elDia, cliente: forma.cliente.trim(), servicio: forma.servicio.trim(), hora: forma.hora, estado: "nueva" });
                 setForma({ cliente: "", servicio: "", hora: "12:00" });
                 setAbierta(false);
               }}
@@ -349,9 +409,9 @@ export function CitasDemo({
             <input className="pc-campo__entrada" value={forma.servicio} onChange={(e) => setForma({ ...forma, servicio: e.target.value })} placeholder="Por ejemplo, sesión de 1 hora" maxLength={80} />
           </label>
           <label className="pc-campo">
-            <span className="pc-campo__etiqueta">Hora (mañana)</span>
+            <span className="pc-campo__etiqueta">Hora ({de ? "mañana" : nombreDia.toLowerCase()})</span>
             <select className="pc-campo__entrada" value={forma.hora} onChange={(e) => setForma({ ...forma, hora: e.target.value })}>
-              {["9:30", "12:00", "13:30", "16:00", "18:30"].map((h) => (
+              {HORARIOS.map((h) => (
                 <option key={h} value={h}>
                   {h}
                 </option>

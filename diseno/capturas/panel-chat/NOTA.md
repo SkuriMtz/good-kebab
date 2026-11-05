@@ -16,6 +16,8 @@ Medido con el DOM (Playwright) en `/pruebalo`, en oscuro, a **1404 × 768**, que
 | Tarjetas | 3 de 210 × 141, 15 px entre ellas, arriba en y = 577 | **210 × 141**, 15 px, y = 577 | miniatura de **85 px** (200 de ancho) |
 | Lo que se agrega | — | franja "3 esperan tu visto bueno ›" (y = 496, 28 px) | cabe entre la fila y las tarjetas sin moverlas |
 
+**La captura de referencia está recortada ~14 px arriba** (la fila del logo se ve cortada). Por eso, al ponerlas lado a lado, el menú de Atendel se ve 14–17 px más abajo que el de la captura; el bloque central (saludo, caja y tarjetas) coincide exacto. No se movió nada por esto.
+
 Una diferencia que se dejó así: en la captura, el bloque central queda unos 18 px a la derecha del centro del área de contenido; probablemente porque la ventana tenía una barra de desplazamiento o estaba recortada. En Atendel el bloque está centrado de verdad en el área de contenido (la caja empieza en x = 510, y en la captura en x = 528).
 
 ## Otros tamaños
@@ -32,3 +34,9 @@ Una diferencia que se dejó así: en la captura, el bloque central queda unos 18
 - `hoja-claro-luma.jpg`: el modo claro junto a `referencia-luma.webp`.
 - `hoja-seccion-mercury.jpg`: Agentes en claro junto a `referencia-mercury.jpg`.
 - `hoja-1024-390-conversacion.jpg`: el Inicio a 1024 y a 390, y la conversación abierta.
+
+## Segunda ronda (fragmentos y logo)
+
+- El logo es el del sitio (`Marca` de `src/components/Logo.tsx`, los 4 círculos): en el menú, el cajón del celular y junto al saludo. Las medidas de arriba no cambiaron (menú 288, caja 672 × 105 en y = 339, saludo de 40 px centrado en y = 295, tarjetas 210 × 141 en y = 577).
+- Los fragmentos del fondo (canvas 2D) se apagan a 24 px de todo lo que se lee, con una rampa de 72 px: dentro de esas zonas el canvas queda transparente (alfa 0, medido con getImageData), así que el contraste del texto, la caja y las burbujas es el mismo que sin fragmentos.
+- Transiciones de color: el fondo del modal, el borde del buscador ancho, el borde de foco de la caja, la columna del tablero al arrastrar y el interruptor ahora animan la opacidad de un pseudo-elemento. Se dejaron como transición de color (son baratas y cortas) los hover de las opciones del menú, las píldoras, los botones, las filas y las tarjetas.

@@ -1029,7 +1029,7 @@
   }
 }
 
-/* Barra genérica de la app (NavApp.tsx, mientras el Grupo 7 no la cambie) */
+/* Barra genérica (Nav con `items`) */
 .cabecera__acciones .cabecera__extra {
   align-items: center;
   gap: var(--spacing-8);

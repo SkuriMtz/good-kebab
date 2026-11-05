@@ -6,6 +6,7 @@ import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { Conversacion } from "./Conversacion";
+import { lanzarFragmentos } from "./FondoFragmentos";
 import { FranjaPendientes, UsoPlan } from "./Franja";
 import { Inicio } from "./Inicio";
 import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe } from "./Mensajes";
@@ -42,13 +43,49 @@ function responderDemo(texto: string, c: ConvBase): Turno[] {
   return responder(texto, c);
 }
 
+/** Lo que ya terminó de "llegar" (para no repetirlo al volver a la conversación). */
+const yaLlegaron = new Set<number>();
+
+/** Las conversaciones nuevas de esta visita, para que no se pierdan al recargar (solo en esta pestaña). */
+const CLAVE_SESION = "atendel-pruebalo-chats";
+const esConvGuardada = (c: unknown): c is ConvGuion => {
+  const x = c as ConvGuion;
+  return Boolean(x && typeof x.id === "string" && x.id.startsWith("n") && Array.isArray(x.agentes) && x.agentes.every(esIdAgente) && Array.isArray(x.mensajes) && typeof x.titulo === "string");
+};
+
 /** El estado del chat de ejemplo. Vive arriba (en el panel de ejemplo) para que no se pierda al cambiar de sección. */
 export function useGuion() {
   const [convs, setConvs] = useState<ConvGuion[]>(() => INICIO.map((c) => ({ ...c, titulo: tituloDe(c) })));
   const [pendiente, setPendiente] = useState<{ conv: string; agente: IdAgente } | null>(null);
+  /** Ya se leyó lo guardado en la pestaña (antes de esto, una ?con=n… todavía puede aparecer). */
+  const [listo, setListo] = useState(false);
   const siguiente = useRef(PRIMER_NUEVO);
   const orden = useRef(10);
   const timers = useRef<number[]>([]);
+
+  useEffect(() => {
+    try {
+      const guardadas = JSON.parse(window.sessionStorage.getItem(CLAVE_SESION) ?? "[]") as unknown[];
+      const nuevas = Array.isArray(guardadas) ? guardadas.filter(esConvGuardada).slice(0, 12) : [];
+      if (nuevas.length) {
+        for (const c of nuevas) for (const m of c.mensajes) yaLlegaron.add(m.id);
+        siguiente.current = Math.max(siguiente.current, ...nuevas.flatMap((c) => c.mensajes.map((m) => m.id + 1)));
+        orden.current = Math.max(orden.current, ...nuevas.map((c) => c.orden));
+        setConvs((cs) => [...nuevas.filter((n) => !cs.some((c) => c.id === n.id)), ...cs]);
+      }
+    } catch {
+      /* sin almacenamiento: se empieza de cero */
+    }
+    setListo(true);
+  }, []);
+  useEffect(() => {
+    if (!listo) return;
+    try {
+      window.sessionStorage.setItem(CLAVE_SESION, JSON.stringify(convs.filter((c) => c.id.startsWith("n")).slice(0, 12)));
+    } catch {
+      /* sin almacenamiento: no se recuerda */
+    }
+  }, [convs, listo]);
 
   const limpiar = () => {
     timers.current.forEach((t) => window.clearTimeout(t));
@@ -124,7 +161,7 @@ export function useGuion() {
     setConvs((cs) => (cs.length > 1 ? cs.filter((c) => c.id !== id) : cs));
   };
 
-  return { convs, pendiente, enviar, crear, borrar, detener };
+  return { convs, pendiente, listo, enviar, crear, borrar, detener };
 }
 export type Guion = ReturnType<typeof useGuion>;
 
@@ -234,8 +271,6 @@ export function InicioDemo({
 
 /* ---------- Una conversación del guion ---------- */
 
-/** Lo que ya terminó de "llegar" (para no repetirlo al volver a la conversación). */
-const yaLlegaron = new Set<number>();
 
 /** Corta el texto en palabras sin dejar unas **negritas** abiertas. */
 function cortar(texto: string, n: number) {
@@ -326,7 +361,10 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           models={[]}
           efforts={[]}
           busy={escribe !== null}
-          onSend={(t) => guion.enviar(conv, t)}
+          onSend={(t) => {
+            lanzarFragmentos(document.querySelector(".pc-conv__caja .pc-caja"));
+            guion.enviar(conv, t);
+          }}
           onStop={guion.detener}
           maxRows={8}
           sparkBoost={0}

@@ -80,11 +80,10 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   // RLS se encarga de que solo regresen los resúmenes del negocio de quien inició sesión
   const cargarHistorial = useCallback(
     async (marcarNuevos = false) => {
-      const { data } = await supabase
-        .from("resumenes_correo")
-        .select("id, remitente, asunto, resumen, accion_sugerida, creado_en")
-        .order("creado_en", { ascending: false })
-        .limit(30);
+      let q = supabase.from("resumenes_correo").select("id, remitente, asunto, resumen, accion_sugerida, creado_en");
+      // Con ?de= se busca a ese remitente en la base (no solo en los 30 más recientes); el filtro exacto va abajo
+      if (de) q = q.ilike("remitente", `%${de.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+      const { data } = await q.order("creado_en", { ascending: false }).limit(30);
       const lista: Guardado[] = data ?? [];
       if (marcarNuevos) {
         setNuevos(new Set(lista.filter((g) => !idsPrevios.current.has(g.id)).map((g) => g.id)));
@@ -92,7 +91,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
       idsPrevios.current = new Set(lista.map((g) => g.id));
       setHistorial(lista);
     },
-    [supabase],
+    [supabase, de],
   );
 
   useEffect(() => {

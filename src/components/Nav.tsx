@@ -97,9 +97,9 @@ export type NavItem = { href: string; label: string };
 export type Reparto = { id: IdAgente; nombre: string; papel: string; href: string };
 
 /**
- * Sin props es la barra del sitio público. Con `items` es la barra genérica
- * que todavía usa la app (src/components/app/NavApp.tsx): mismos estilos,
- * sus enlaces, lo que mande a la derecha y, en el celular, sus agentes.
+ * Sin props es la barra del sitio público. Con `items` es una barra genérica
+ * con los mismos estilos: sus enlaces, lo que mande a la derecha y, en el
+ * celular, sus agentes.
  */
 type PropsNav = {
   items?: NavItem[];

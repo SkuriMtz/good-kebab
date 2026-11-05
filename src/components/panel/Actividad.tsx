@@ -3,8 +3,8 @@
 import type { CSSProperties } from "react";
 import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
-import { DEMO_ACTIVIDAD, DEMO_ACTIVIDAD_ANTERIOR, type Destino } from "@/lib/demo-dashboard";
-import { diaLocal, horaLocal } from "@/lib/estadisticas";
+import { filasEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
+import { diaLocal, horaLocal, rangos, type Periodo } from "@/lib/estadisticas";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, TituloSeccion, Vacio, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
@@ -25,11 +25,11 @@ const formatoFecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "
 const textoDia = (dia: string) => formatoDia.format(new Date(`${dia}T12:00:00Z`));
 const rango = (h: number) => `de ${h}:00 a ${h + 1}:00`;
 
-function VistaActividad({ filas, base, hora, dia, nota }: { filas: FilaActividad[]; base: string; hora?: number; dia?: string; nota?: string }) {
+function VistaActividad({ filas, base, hora, dia, nota, resumen, mas = 0 }: { filas: FilaActividad[]; base: string; hora?: number; dia?: string; nota?: string; resumen?: string; mas?: number }) {
   const filtro = hora !== undefined ? `Lo de ${rango(hora)}` : dia ? `Lo del ${textoDia(dia)}` : null;
   return (
     <Seccion>
-      <TituloSeccion titulo="Actividad" texto={filtro ?? "Lo último que pasó con tu equipo: conversaciones y correos."} />
+      <TituloSeccion titulo="Actividad" texto={[filtro ?? "Lo último que pasó con tu equipo: conversaciones y correos.", resumen].filter(Boolean).join(" · ")} />
       {filtro ? (
         <div className="pc-filtros">
           <Enlace href={`${base}?vista=actividad`} className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${filtro}`}>
@@ -59,8 +59,9 @@ function VistaActividad({ filas, base, hora, dia, nota }: { filas: FilaActividad
           ))}
         </ol>
       ) : (
-        <Vacio icono="reloj" titulo={filtro ? "Nada en ese momento" : "Todavía no hay actividad"} texto={nota ?? "Aquí aparece lo que hacen tus agentes: tus conversaciones y los correos que Clara lee."} />
+        <Vacio agente="lola" titulo={filtro ? "Nada en ese momento" : "Todavía no hay actividad"} texto={nota ?? "Aquí aparece lo que hacen tus agentes: tus conversaciones y los correos que Clara lee."} />
       )}
+      {mas > 0 ? <p className="pc-nota">Y {mas.toLocaleString("es-MX")} más. Estos son los más recientes.</p> : null}
     </Seccion>
   );
 }
@@ -100,25 +101,44 @@ export function ActividadReal({ conversaciones, resumenes, hora, dia }: { conver
 
 /* ---------- /pruebalo: la actividad de ejemplo ---------- */
 
-const destino = (d?: Destino) => {
-  if (!d) return undefined;
-  if (d.vista === "conversaciones") return `/pruebalo?con=${d.con ?? "recepcion"}`;
-  if (d.vista === "correo") return d.de ? `/pruebalo?vista=correo&de=${encodeURIComponent(d.de)}` : "/pruebalo?vista=correo";
-  if (d.vista === "actividad" && d.pestana === "visto-bueno") return "/pruebalo?vista=pendientes";
-  return `/pruebalo?vista=${d.vista === "resumen" ? "" : d.vista}`;
-};
-
-export function ActividadDemo({ hora, dia, ahora }: { hora?: number; dia?: string; ahora: number }) {
-  const filas = [...DEMO_ACTIVIDAD, ...DEMO_ACTIVIDAD_ANTERIOR]
-    .map((e) => ({ e, en: new Date(ahora - (e.haceMin ?? 0) * 60_000) }))
-    .filter(({ en }) => (hora === undefined || horaLocal(en) === hora) && (!dia || diaLocal(en) === dia))
-    .map(({ e, en }) => ({
-      id: e.id,
-      cuando: formatoHora.format(en),
-      agente: e.agente,
-      texto: `${AGENTE_POR_ID[e.agente].nombre} ${e.verbo}${e.objeto ? ` ${e.objeto}` : ""}${e.complemento ? ` ${e.complemento}` : ""}`,
-      detalle: e.tarjeta && "titulo" in e.tarjeta && e.tarjeta.titulo ? e.tarjeta.titulo : e.insignia?.texto,
-      href: destino(e.ir),
-    }));
-  return <VistaActividad filas={filas} base="/pruebalo" hora={hora} dia={dia} nota="En el ejemplo solo están los últimos días. En tu panel se ve todo lo que hizo tu equipo." />;
+/**
+ * Sale de las MISMAS filas que las Estadísticas de ejemplo (filasEjemplo):
+ * una hora o un día que se pica allá muestra aquí sus conversaciones y
+ * correos. El total ("108 movimientos") cuenta igual que el calor:
+ * cada mensaje de WhatsApp y cada correo, en el periodo (30 días si no se dice).
+ */
+export function ActividadDemo({ hora, dia, periodo, ahora }: { hora?: number; dia?: string; periodo: Periodo; ahora: number }) {
+  const { hoy, whatsapp, correos } = filasEjemplo(new Date(ahora));
+  const r = rangos(periodo, hoy).actual;
+  const desde = dia ?? r.desde;
+  const hasta = dia ?? r.hasta;
+  const dentro = (iso: string) => {
+    const d = diaLocal(iso);
+    return d >= desde && d <= hasta && (hora === undefined || horaLocal(iso) === hora);
+  };
+  const msjs = whatsapp.filter((w) => dentro(w.creado_en));
+  const mails = correos.filter((c) => dentro(c.creado_en));
+  const porConv = new Map<string, { cliente: string; en: string; n: number; tema?: string }>();
+  for (const w of msjs) {
+    const c = porConv.get(w.conversacion) ?? { cliente: w.cliente, en: w.creado_en, n: 0, tema: undefined };
+    c.n += 1;
+    if (w.creado_en < c.en) c.en = w.creado_en;
+    if (w.tema) c.tema = w.tema;
+    porConv.set(w.conversacion, c);
+  }
+  const todas = [
+    ...[...porConv.entries()].map(([id, c]) => ({
+      en: c.en,
+      f: { id: `w-${id}`, agente: "lola" as IdAgente, texto: `Lola atendió a ${c.cliente} por WhatsApp`, detalle: `${c.tema ?? "Siguió la conversación"} · ${c.n} ${c.n === 1 ? "mensaje" : "mensajes"}`, href: `/pruebalo?vista=citas&de=${encodeURIComponent(c.cliente)}` },
+    })),
+    ...mails.map((c, i) => {
+      const accion = c.accion_sugerida && !/^ninguna/i.test(c.accion_sugerida) ? c.accion_sugerida : null;
+      return { en: c.creado_en, f: { id: `c-${i}-${c.creado_en}`, agente: "clara" as IdAgente, texto: `Clara leyó un correo de ${c.remitente}`, detalle: accion ?? "Sin acción", href: `/pruebalo?vista=correo&de=${encodeURIComponent(c.remitente ?? "")}` } };
+    }),
+  ].sort((a, b) => b.en.localeCompare(a.en));
+  const TOPE = 60;
+  const filas = todas.slice(0, TOPE).map((x) => ({ ...x.f, cuando: (hora !== undefined || !dia ? formatoFecha : formatoHora).format(new Date(x.en)) }));
+  const total = msjs.length + mails.length;
+  const resumen = `${total.toLocaleString("es-MX")} ${total === 1 ? "movimiento" : "movimientos"}${dia ? "" : periodo === "7d" ? " en los últimos 7 días" : periodo === "mes" ? " este mes" : " en los últimos 30 días"}`;
+  return <VistaActividad filas={filas} base="/pruebalo" hora={hora} dia={dia} resumen={resumen} mas={Math.max(0, todas.length - TOPE)} nota="Nada con ese filtro en el ejemplo. En tu panel se ve todo lo que hizo tu equipo." />;
 }

@@ -7,7 +7,8 @@ import type { IdAgente } from "@/lib/agentes";
 import { ponerTema } from "@/lib/tema";
 import { serifPanel } from "./fuente";
 import { PilaAgentes } from "./Mensajes";
-import { ContextoNavegar, EVENTO_BUSCAR, Enlace, MarcaFragmentos, Modal } from "./Piezas";
+import { Marca } from "@/components/Logo";
+import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { useTema } from "./useTema";
 import "./panel.css";
 
@@ -165,8 +166,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
         <div className="pc-menu__tarjeta">
           <div className="pc-menu__cabeza">
             <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
-              <MarcaFragmentos tam={22} />
-              <span>Atendel</span>
+              <Marca className="pc-logo__marca" />
+              <span className="pc-logo__nombre">Atendel</span>
             </Enlace>
             <button
               type="button"
@@ -244,8 +245,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
             <Icono nombre="menu" tam={20} />
           </button>
           <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
-            <MarcaFragmentos tam={20} />
-            <span>Atendel</span>
+            <Marca className="pc-logo__marca" />
+            <span className="pc-logo__nombre">Atendel</span>
           </Enlace>
           {aviso ? <div className="pc-aviso-demo pc-aviso-demo--movil">{aviso}</div> : null}
           <Enlace href={hrefs.inicio} className="pc-icono" aria-label="Nueva conversación">
