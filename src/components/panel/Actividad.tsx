@@ -23,7 +23,7 @@ const formatoHora = new Intl.DateTimeFormat("es-MX", { hour: "2-digit", minute: 
 const formatoFecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "America/Mexico_City" });
 
 const textoDia = (dia: string) => formatoDia.format(new Date(`${dia}T12:00:00Z`));
-const rango = (h: number) => `de ${h}:00 a ${h + 1}:00`;
+const rango = (h: number) => `${h}:00 a ${h + 1}:00`;
 
 function VistaActividad({ filas, base, hora, dia, nota, resumen, mas = 0 }: { filas: FilaActividad[]; base: string; hora?: number; dia?: string; nota?: string; resumen?: string; mas?: number }) {
   const filtro = hora !== undefined ? `Lo de ${rango(hora)}` : dia ? `Lo del ${textoDia(dia)}` : null;
