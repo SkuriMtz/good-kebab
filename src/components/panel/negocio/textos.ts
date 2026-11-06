@@ -85,10 +85,12 @@ export const ESTADO_DOCUMENTO: Record<EstadoDocumento, { etiqueta: string; tono:
 export const CATEGORIAS_APP: { id: CategoriaApp; etiqueta: string; icono: NombreIcono }[] = [
   { id: "correo", etiqueta: "Correo", icono: "correo" },
   { id: "agenda", etiqueta: "Agenda", icono: "calendario" },
+  { id: "reservas", etiqueta: "Reservas y citas", icono: "calendario" },
   { id: "documentos", etiqueta: "Documentos y hojas", icono: "documento" },
   { id: "mensajes", etiqueta: "Mensajes", icono: "mensaje" },
   { id: "clientes", etiqueta: "Clientes", icono: "clientes" },
   { id: "pagos", etiqueta: "Pagos y ventas", icono: "facturacion" },
   { id: "resenas", etiqueta: "Reseñas", icono: "estrella" },
   { id: "facturacion", etiqueta: "Facturación", icono: "documento" },
+  { id: "contabilidad", etiqueta: "Contabilidad", icono: "facturacion" },
 ];

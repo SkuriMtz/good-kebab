@@ -30,6 +30,23 @@ export const NOMBRE_PROVEEDOR: Record<Proveedor, string> = {
   shopify: "Shopify",
   tiendanube: "Tiendanube",
   facturapi: "Facturapi",
+  acuity: "Acuity Scheduling",
+  simplybook: "SimplyBook.me",
+  setmore: "Setmore",
+  agendapro: "AgendaPro",
+  paypal: "PayPal",
+  conekta: "Conekta",
+  openpay: "Openpay",
+  square: "Square",
+  facturama: "Facturama",
+  alegra: "Alegra",
+  holded: "Holded",
+  zoho: "Zoho",
+  quickbooks: "QuickBooks",
+  pipedrive: "Pipedrive",
+  kommo: "Kommo",
+  typeform: "Typeform",
+  mailchimp: "Mailchimp",
 };
 
 /* ---------------- Aleatorios y PKCE ---------------- */

@@ -49,6 +49,24 @@ const mercadolibre = pendiente("mercadolibre"); // import { mercadolibre } from 
 const shopify = pendiente("shopify"); // import { shopify } from "./proveedores/shopify";
 const tiendanube = pendiente("tiendanube"); // import { tiendanube } from "./proveedores/tiendanube";
 const facturapi = pendiente("facturapi"); // import { facturapi } from "./proveedores/facturapi";
+// v3 (E: reservas y CRM · G: pagos MX y contabilidad)
+const acuity = pendiente("acuity"); // import { acuity } from "./proveedores/acuity";
+const simplybook = pendiente("simplybook"); // import { simplybook } from "./proveedores/simplybook";
+const setmore = pendiente("setmore"); // import { setmore } from "./proveedores/setmore";
+const agendapro = pendiente("agendapro"); // import { agendapro } from "./proveedores/agendapro";
+const paypal = pendiente("paypal"); // import { paypal } from "./proveedores/paypal";
+const conekta = pendiente("conekta"); // import { conekta } from "./proveedores/conekta";
+const openpay = pendiente("openpay"); // import { openpay } from "./proveedores/openpay";
+const square = pendiente("square"); // import { square } from "./proveedores/square";
+const facturama = pendiente("facturama"); // import { facturama } from "./proveedores/facturama";
+const alegra = pendiente("alegra"); // import { alegra } from "./proveedores/alegra";
+const holded = pendiente("holded"); // import { holded } from "./proveedores/holded";
+const zoho = pendiente("zoho"); // import { zoho } from "./proveedores/zoho";
+const quickbooks = pendiente("quickbooks"); // import { quickbooks } from "./proveedores/quickbooks";
+const pipedrive = pendiente("pipedrive"); // import { pipedrive } from "./proveedores/pipedrive";
+const kommo = pendiente("kommo"); // import { kommo } from "./proveedores/kommo";
+const typeform = pendiente("typeform"); // import { typeform } from "./proveedores/typeform";
+const mailchimp = pendiente("mailchimp"); // import { mailchimp } from "./proveedores/mailchimp";
 
 export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   google,
@@ -69,6 +87,23 @@ export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   shopify,
   tiendanube,
   facturapi,
+  acuity,
+  simplybook,
+  setmore,
+  agendapro,
+  paypal,
+  conekta,
+  openpay,
+  square,
+  facturama,
+  alegra,
+  holded,
+  zoho,
+  quickbooks,
+  pipedrive,
+  kommo,
+  typeform,
+  mailchimp,
 };
 
 const PENDIENTES = new Set<Proveedor>(
