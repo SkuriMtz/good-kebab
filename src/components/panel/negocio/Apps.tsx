@@ -72,6 +72,16 @@ const sinAcentos = (s: string) =>
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase();
 
+/** Lo que regresa el permiso cuando algo falla (&error=… del callback de D), en español sencillo. */
+const ERRORES_CONEXION: Record<string, string> = {
+  cancelado: "Cancelaste el permiso. Cuando quieras, vuelve a intentarlo.",
+  estado: "El permiso tardó mucho o no coincide. Vuelve a conectar.",
+  configuracion: "Falta configurar esta app en Vercel. Revisa «Cómo configurarlo» en su tarjeta.",
+  intercambio: "La app no confirmó el permiso. Vuelve a intentarlo en un momento.",
+  permiso: "Faltaron permisos de lectura. Vuelve a conectar y acepta todos los que pide.",
+  guardar: "Se dio el permiso, pero no se pudo guardar la conexión. Vuelve a intentarlo.",
+};
+
 type Cuadro = { tipo: "desconectar" | "configurar" | "demo" | "llave"; app: AppConectable } | null;
 
 /**
@@ -84,7 +94,17 @@ type Cuadro = { tipo: "desconectar" | "configurar" | "demo" | "llave"; app: AppC
  * guarda) o con error (Vuelve a conectar). En /pruebalo no hay OAuth ni se
  * guardan llaves: el modal explica qué pasaría en tu cuenta real.
  */
-export function AppsNegocio({ conectada }: { /** ?conectada=<app>: se acaba de regresar del permiso. */ conectada?: string | null }) {
+export function AppsNegocio({
+  conectada,
+  error: errorConexion,
+  app: appError,
+}: {
+  /** ?conectada=<app>: se acaba de regresar del permiso. */
+  conectada?: string | null;
+  /** ?error=<código>&app=<app>: el permiso no salió. */
+  error?: string | null;
+  app?: string | null;
+}) {
   const fuente = useFuenteNegocio();
   const id = useId();
   const [estados, setEstados] = useState<EstadoAppPersona[] | null>(null);
@@ -112,12 +132,14 @@ export function AppsNegocio({ conectada }: { /** ?conectada=<app>: se acaba de r
   // Al regresar del permiso (?conectada=gmail): el aviso, y se quita de la dirección (al recargar ya no sale)
   useEffect(() => {
     const app = conectada ? APP_POR_ID[conectada as IdApp] : undefined;
-    if (!app) return;
-    setAviso({ tono: "ok", texto: `Listo: ${app.nombre} quedó conectada. ${nombresDe(app.agentes)} ya la puede${app.agentes.length > 1 ? "n" : ""} usar.` });
+    const fallo = appError ? APP_POR_ID[appError as IdApp] : undefined;
+    if (app) setAviso({ tono: "ok", texto: `Listo: ${app.nombre} quedó conectada. ${nombresDe(app.agentes)} ya la puede${app.agentes.length > 1 ? "n" : ""} usar.` });
+    else if (errorConexion) setAviso({ tono: "error", texto: `${fallo ? `${fallo.nombre}: ` : ""}${ERRORES_CONEXION[errorConexion] ?? "No se pudo conectar. Vuelve a intentarlo."}` });
+    else return;
     const url = new URL(window.location.href);
-    url.searchParams.delete("conectada");
+    for (const k of ["conectada", "error", "app"]) url.searchParams.delete(k);
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [conectada]);
+  }, [conectada, errorConexion, appError]);
 
   useEffect(() => {
     if (aviso?.tono !== "ok") return;

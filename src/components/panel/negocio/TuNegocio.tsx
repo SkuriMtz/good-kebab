@@ -21,7 +21,7 @@ const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", documentos
  * enlaces (la dirección cambia y atrás funciona). Los datos salen de la
  * fuente: la API real en /panel y el ejemplo de Estudio Luna en /pruebalo.
  */
-export function TuNegocio({ tab, plan, conectada }: { tab: PestanaNegocio; plan: IdPlan; conectada?: string | null }) {
+export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNegocio; plan: IdPlan; conectada?: string | null; error?: string | null; app?: string | null }) {
   const fuente = useFuenteNegocio();
   const href = (t: PestanaNegocio) => `${fuente.base}?vista=negocio&tab=${t}`;
   return (
@@ -36,7 +36,7 @@ export function TuNegocio({ tab, plan, conectada }: { tab: PestanaNegocio; plan:
       </div>
       {/* Cada pestaña entra de nuevo (key): su entrada escalonada vuelve a correr */}
       <div key={tab} className="pc-negocio" id="pc-negocio-panel">
-        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} />}
+        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}
       </div>
     </Seccion>
   );
