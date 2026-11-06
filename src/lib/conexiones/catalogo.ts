@@ -2,7 +2,7 @@ import type { AppConectable, Autenticacion, CategoriaApp, IdApp, Proveedor } fro
 import type { IdAgente } from "@/lib/agentes";
 
 /**
- * CATÁLOGO DE APPS CONECTABLES (las 32 IdApp del contrato v2).
+ * CATÁLOGO DE APPS CONECTABLES (las 30 IdApp del contrato v2).
  *
  * - Fase 1: se conectan de verdad. Cada una se activa cuando su proveedor
  *   tiene sus variables en Vercel (OAuth) o cuando la persona pega SU llave
