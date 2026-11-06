@@ -21,6 +21,7 @@ import type { IdAgente } from "@/lib/agentes";
 
 const META = "Meta pide revisar la app (App Review) y verificar tu negocio antes de que funcione con cualquier cuenta; mientras, solo con las cuentas de prueba de la app.";
 const SHOPIFY = "Para ver nombres y correos de clientes en cualquier tienda, Shopify tiene que aprobar a Atendel para «datos protegidos de clientes»; mientras, solo se ven en tiendas de desarrollo.";
+const INTUIT = "Intuit pide llenar el perfil y el cuestionario de la app para darte las llaves de producción; mientras, solo funciona con empresas de prueba (sandbox).";
 const PERFIL_GOOGLE = "Google tiene que aprobar el acceso a la API de Perfil de Negocio (se pide con un formulario de Google) antes de poder leer reseñas.";
 
 function app(
@@ -102,6 +103,13 @@ export const CATALOGO: readonly AppConectable[] = [
   app("square", "Square", "pagos", "square", "oauth", ["iris", "victor", "lola"], "Ver tus pagos, tus clientes y las citas de Square Appointments. Solo lectura."),
   // Contabilidad (Zoho Books va con el mismo OAuth de Zoho que Zoho CRM)
   app("zoho_books", "Zoho Books", "contabilidad", "zoho", "oauth", ["clara", "iris"], "Ver tus facturas y clientes de Zoho Books. Solo lectura."),
+  // v3 · Contabilidad y facturas (G)
+  app("facturama", "Facturama", "contabilidad", "facturama", "llave", ["iris", "victor"], "Ver tus facturas (CFDI) emitidas y buscarlas por RFC o cliente. Solo lectura: no timbra ni cancela."),
+  app("alegra", "Alegra", "contabilidad", "alegra", "llave", ["iris", "victor"], "Ver tus facturas, los cobros que registras y tus contactos de Alegra. Solo lectura."),
+  app("holded", "Holded", "contabilidad", "holded", "llave", ["iris", "victor"], "Ver tus facturas, presupuestos, pedidos y contactos de Holded. Solo lectura."),
+  app("quickbooks", "QuickBooks", "contabilidad", "quickbooks", "oauth", ["iris", "victor"], "Ver tus facturas, los pagos que recibes y tus clientes de QuickBooks. Solo lectura.", {
+    requiereAprobacion: INTUIT,
+  }),
   // Facturación
   app("cfdi", "Facturas CFDI", "facturacion", "facturapi", "llave", ["iris"], "Leer tus facturas electrónicas para llevar cobros y pagos. Solo lectura."),
 ];
@@ -143,6 +151,10 @@ export const PROVEEDORES: readonly Proveedor[] = [
   "conekta",
   "openpay",
   "square",
+  "facturama",
+  "alegra",
+  "holded",
+  "quickbooks",
 ];
 
 export const esProveedor = (v: unknown): v is Proveedor => typeof v === "string" && (PROVEEDORES as readonly string[]).includes(v);

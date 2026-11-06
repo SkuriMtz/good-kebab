@@ -24,9 +24,19 @@ export function dinero(valor: unknown, moneda?: string | null, o: { centavos?: b
   return `${v < 0 ? "-" : ""}$${Math.abs(v).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${m}`;
 }
 
-/** Fecha y hora de México. Acepta ISO, ms o segundos (epoch de Conekta). */
+/**
+ * Fecha y hora de México. Acepta ISO, ms o segundos (epoch de Conekta).
+ * - "AAAA-MM-DD" (Alegra, Holded, QuickBooks) es un día del calendario: no
+ *   se corre al día anterior por la zona horaria.
+ * - "AAAA-MM-DDThh:mm:ss" sin zona (Facturama) ya es hora de México.
+ */
 export function fecha3(valor: unknown, soloDia = false): string {
   if (typeof valor === "number" && valor > 0 && valor < 1e12) return fechaMx(valor * 1000, soloDia);
+  if (typeof valor === "string") {
+    const v = valor.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return fechaMx(`${v}T12:00:00-06:00`, true);
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(v)) return fechaMx(`${v}-06:00`, soloDia);
+  }
   return fechaMx(valor, soloDia);
 }
 

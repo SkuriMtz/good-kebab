@@ -31,6 +31,10 @@ import { paypal } from "./proveedores/paypal";
 import { conekta } from "./proveedores/conekta";
 import { openpay } from "./proveedores/openpay";
 import { square } from "./proveedores/square";
+import { facturama } from "./proveedores/facturama";
+import { alegra } from "./proveedores/alegra";
+import { holded } from "./proveedores/holded";
+import { quickbooks } from "./proveedores/quickbooks";
 
 /**
  * REGISTRO DE PROVEEDORES: el único lugar que sabe qué adaptador atiende a
@@ -60,13 +64,9 @@ function pendiente(proveedor: Proveedor): Adaptador {
 
 // E (meta, telegram, calendly, zoom, dropbox, slack, trello, airtable y hubspot): ya unidos arriba
 // F (stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi): ya unidos arriba
-// v3 (E: reservas y CRM, unidos arriba; setmore y agendapro sin API pública · G: pagos MX y contabilidad)
+// v3 (E: reservas y CRM, unidos arriba; setmore y agendapro sin API pública · G: pagos MX y contabilidad, unidos arriba)
 const setmore = pendiente("setmore"); // import { setmore } from "./proveedores/setmore";
 const agendapro = pendiente("agendapro"); // import { agendapro } from "./proveedores/agendapro";
-const facturama = pendiente("facturama"); // import { facturama } from "./proveedores/facturama";
-const alegra = pendiente("alegra"); // import { alegra } from "./proveedores/alegra";
-const holded = pendiente("holded"); // import { holded } from "./proveedores/holded";
-const quickbooks = pendiente("quickbooks"); // import { quickbooks } from "./proveedores/quickbooks";
 
 export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   google,
