@@ -3,8 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdApp, Proveedor, Tokens } from "@/lib/nucleo-tipos";
 import { cifrarJson, descifrarJson } from "@/lib/cifrado";
 import { esIdApp } from "./catalogo";
+import { leerConexionesPublicas, type ConexionPublica } from "./estado";
 import { NOMBRE_PROVEEDOR, ErrorOAuth } from "./oauth";
-import { adaptador, configurado } from "./registro";
+import { adaptador, configurado, esPendiente } from "./registro";
 
 /**
  * TOKENS DE LAS CONEXIONES (tabla `conexiones`, una fila por proveedor).
@@ -165,4 +166,47 @@ export async function obtenerToken(supabase: SupabaseClient, userId: string, p: 
   // Si no se pudo guardar, el token nuevo igual sirve para esta respuesta
   void error;
   return guardados;
+}
+
+/**
+ * Al reconectar, ¿se revoca el permiso de la conexión anterior? Solo si es
+ * de OTRA cuenta (correo distinto y conocido de los dos lados), sus tokens
+ * son otros y el proveedor da un permiso por cuenta que el token nuevo no
+ * comparte (hoy, Google). Con Meta, Notion y los demás, el token nuevo puede
+ * compartir el permiso con el anterior: revocar tumbaría lo recién conectado.
+ */
+const REVOCA_AL_CAMBIAR_CUENTA = new Set<Proveedor>(["google"]);
+
+export function debeRevocarAnterior(p: Proveedor, cuentaAnterior: string | null | undefined, cuentaNueva: string, anterior: Tokens, nuevos: Tokens): boolean {
+  if (!REVOCA_AL_CAMBIAR_CUENTA.has(p)) return false;
+  const a = (cuentaAnterior ?? "").trim().toLowerCase();
+  const b = cuentaNueva.trim().toLowerCase();
+  if (!a.includes("@") || !b.includes("@") || a === b) return false;
+  return anterior.access_token !== nuevos.access_token && (anterior.refresh_token ?? "") !== (nuevos.refresh_token ?? "");
+}
+
+/**
+ * Las conexiones de la persona (sin tokens) con las vencidas ya marcadas:
+ * si un proveedor no puede renovar (p. ej. Meta, cuyo token dura ~60 días)
+ * y su token ya venció, la fila pasa a 'error' con "Tu conexión con … venció".
+ * Lo usan /api/apps y el chat. Los tokens se leen solo aquí, en el servidor.
+ */
+export async function conexionesVigentes(supabase: SupabaseClient, userId: string, ahora = Date.now()): Promise<ConexionPublica[]> {
+  const conexiones = await leerConexionesPublicas(supabase, userId);
+  for (const c of conexiones) {
+    if (c.estado !== "activa" || esPendiente(c.proveedor) || adaptador(c.proveedor).renovar) continue;
+    try {
+      const fila = await leerFila(supabase, userId, c.proveedor);
+      if (!fila) continue;
+      const t = descifrarTokens(fila, userId, c.proveedor);
+      if (t.expira_en === undefined || t.expira_en > ahora) continue;
+    } catch {
+      // Si no se puede leer el token, tampoco sirve: hay que volver a conectar
+    }
+    const mensaje = mensajeConexion("vencida", c.proveedor);
+    await marcarError(supabase, userId, c.proveedor, mensaje);
+    c.estado = "error";
+    c.error = mensaje;
+  }
+  return conexiones;
 }

@@ -9,6 +9,10 @@ import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { planMinimo } from "@/lib/planes";
+import { conexionesVigentes } from "@/lib/conexiones/tokens";
+import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
+import { herramientasDelChat, instruccionesHerramientas } from "@/lib/herramientas/preparar";
+import { marcoEstado } from "@/lib/estado-chat";
 
 /**
  * CHAT CON LOS AGENTES
@@ -24,6 +28,10 @@ import { planMinimo } from "@/lib/planes";
  * Para todos los agentes, el system lleva además el perfil del negocio y los
  * fragmentos de sus documentos que tienen que ver con el mensaje
  * (contexto-negocio.ts y contexto-documentos.ts), con las mismas reglas.
+ * Con apps conectadas, los agentes usan herramientas de SOLO LECTURA (tool
+ * use, src/lib/herramientas/): las de su área y, en un grupo, las de sus
+ * miembros. Mientras corre una, si el cliente lo pidió (`estados: true`),
+ * el stream lleva una línea de estado (src/lib/estado-chat.ts).
  * La conversación se guarda en Supabase; RLS impide ver la de otros.
  */
 
@@ -57,6 +65,8 @@ export async function POST(request: NextRequest) {
   const conversacionId = typeof body.conversacionId === "string" ? body.conversacionId : null;
   if (!mensaje) return error("Escribe un mensaje.", 400);
   if (mensaje.length > MAX_MENSAJE) return error(`El mensaje es muy largo (máximo ${MAX_MENSAJE} caracteres).`, 400);
+  // ¿El cliente sabe mostrar las líneas de estado? (si no, el stream es solo texto)
+  const conEstados = body.estados === true || request.headers.get("x-atendel-estados") === "1";
 
   // Con quién: la conversación existente manda; si es nueva, lo que pidió el cliente
   let agente: IdAgente;
@@ -158,15 +168,22 @@ export async function POST(request: NextRequest) {
   ]);
   const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
 
+  // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
+  const conexiones = await conexionesVigentes(supabase, user.id);
+  const herramientas = herramientasDelChat({ supabase, userId: user.id, participantes, conexiones });
+  const conApps = instruccionesHerramientas(participantes, herramientas, conexiones);
+
   // 7. Responder en vivo
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const codificar = new TextEncoder();
   const idFinal = idConversacion;
 
   let flujo: { abort: () => void } | null = null;
+  const corte = new AbortController();
   const cuerpo = new ReadableStream<Uint8Array>({
-    // La persona tocó "Detener": se corta también la respuesta de la IA (para no gastar de más)
+    // La persona tocó "Detener": se corta también la respuesta de la IA y las herramientas (para no gastar de más)
     cancel() {
+      corte.abort();
       flujo?.abort();
     },
     async start(controller) {
@@ -182,32 +199,42 @@ export async function POST(request: NextRequest) {
       try {
         const base = {
           max_tokens: 8000,
-          system: grupo
-            ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
-            : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio),
-          messages: [...historial, { role: "user" as const, content: mensaje }],
+          system:
+            (grupo
+              ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
+              : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio)) + conApps,
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
-        const stream =
+        const pedir = (p: PeticionRonda) =>
           cuenta.plan.modelo === "claude-haiku-4-5"
-            ? client.beta.messages.stream({ ...base, model: cuenta.plan.modelo })
+            ? client.beta.messages.stream({ ...base, ...p, model: cuenta.plan.modelo })
             : client.beta.messages.stream({
                 ...base,
+                ...p,
                 model: cuenta.plan.modelo,
                 output_config: { effort: cuenta.plan.esfuerzo },
                 // Si el modelo declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
                 betas: ["server-side-fallback-2026-07-01"],
                 fallbacks: "default",
               });
-        flujo = stream;
-        for await (const evento of stream) {
-          if (evento.type === "content_block_delta" && evento.delta.type === "text_delta") {
-            respuesta += evento.delta.text;
-            enviar(evento.delta.text);
-          }
-        }
-        const final = await stream.finalMessage();
-        if (final.stop_reason === "refusal" && !respuesta) {
+        // Texto en vivo; si pide herramientas, se corren (solo lectura) y sigue (máximo 4 rondas)
+        const { final } = await responderConHerramientas({
+          pedir,
+          mensajes: [...historial, { role: "user" as const, content: mensaje }],
+          herramientas,
+          alTexto: (d) => {
+            respuesta += d;
+            enviar(d);
+          },
+          alEstado: (t) => {
+            if (conEstados) enviar(marcoEstado(t));
+          },
+          alFlujo: (f) => {
+            flujo = f;
+          },
+          senal: corte.signal,
+        });
+        if (final?.stop_reason === "refusal" && !respuesta) {
           respuesta = "No puedo ayudarte con eso. ¿Te ayudo con otra cosa del negocio?";
           enviar(respuesta);
         }
