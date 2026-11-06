@@ -44,10 +44,12 @@ export async function GET(request: NextRequest, { params }: { params: { proveedo
 
   const a = adaptador(p);
   if (!a.intercambiar) return volverAApps(request, p, { error: "configuracion", app });
-  const query: Record<string, string> = Object.fromEntries(Array.from(qs.entries()).filter(([k]) => k !== "code" && k !== "state"));
+  // Lo que llegó de regreso (state incluido) gana sobre los extra de "conectar":
+  // Shopify firma esos valores con su HMAC y el adaptador los verifica tal cual
+  const query: Record<string, string> = Object.fromEntries(Array.from(qs.entries()).filter(([k]) => k !== "code"));
   let tokens;
   try {
-    tokens = await a.intercambiar({ code, redirectUri: estado.redirectUri, codeVerifier: estado.verifier, query: { ...query, ...estado.q } });
+    tokens = await a.intercambiar({ code, redirectUri: estado.redirectUri, codeVerifier: estado.verifier, query: { ...estado.q, ...query } });
   } catch {
     return volverAApps(request, p, { error: "intercambio", app });
   }

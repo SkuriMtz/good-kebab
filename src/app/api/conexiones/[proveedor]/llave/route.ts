@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EstadoAppPersona } from "@/lib/nucleo-tipos";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { ErrorArgs } from "@/lib/conexiones/http";
 import { NOMBRE_PROVEEDOR } from "@/lib/conexiones/oauth";
 import { adaptador, configurado } from "@/lib/conexiones/registro";
 import { cuerpoJson, errorJson, preparar } from "@/lib/conexiones/rutas";
@@ -37,7 +38,9 @@ export async function POST(request: NextRequest, { params }: { params: { proveed
   let tokens;
   try {
     tokens = await a.validarLlave(llave);
-  } catch {
+  } catch (e) {
+    // ErrorArgs trae un mensaje pensado para la persona (p. ej. "usa una llave restringida de solo lectura")
+    if (e instanceof ErrorArgs) return errorJson(e.message, 400);
     return errorJson(`${NOMBRE_PROVEEDOR[p]} no aceptó esa llave. Revisa que la copiaste completa y que tenga permiso de lectura.`, 400);
   }
   let cuenta = NOMBRE_PROVEEDOR[p];

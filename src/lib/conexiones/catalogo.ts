@@ -20,6 +20,7 @@ import type { IdAgente } from "@/lib/agentes";
  */
 
 const META = "Meta pide revisar la app (App Review) y verificar tu negocio antes de que funcione con cualquier cuenta; mientras, solo con las cuentas de prueba de la app.";
+const SHOPIFY = "Para ver nombres y correos de clientes en cualquier tienda, Shopify tiene que aprobar a Atendel para «datos protegidos de clientes»; mientras, solo se ven en tiendas de desarrollo.";
 const PERFIL_GOOGLE = "Google tiene que aprobar el acceso a la API de Perfil de Negocio (se pide con un formulario de Google) antes de poder leer reseñas.";
 
 function app(
@@ -70,14 +71,16 @@ export const CATALOGO: readonly AppConectable[] = [
   // Clientes (CRM)
   app("hubspot", "HubSpot", "clientes", "hubspot", "oauth", ["victor"], "Ver tus contactos y negocios en HubSpot. Solo lectura."),
   // Pagos y ventas
-  app("stripe", "Stripe", "pagos", "stripe", "llave", ["clara", "victor"], "Ver tus cobros y pagos con tarjeta. Solo lectura."),
-  app("mercado_pago", "Mercado Pago", "pagos", "mercadopago", "oauth", ["clara", "victor"], "Ver los pagos que recibes y los pendientes. Solo lectura."),
-  app("mercado_libre", "Mercado Libre", "pagos", "mercadolibre", "oauth", ["victor"], "Ver tus ventas y preguntas de compradores en Mercado Libre. Solo lectura."),
-  app("shopify", "Shopify", "pagos", "shopify", "oauth", ["victor"], "Ver los pedidos y clientes de tu tienda en línea. Solo lectura."),
-  app("tienda_nube", "Tiendanube", "pagos", "tiendanube", "oauth", ["victor"], "Ver los pedidos y clientes de tu tienda en línea. Solo lectura."),
+  app("stripe", "Stripe", "pagos", "stripe", "llave", ["iris", "victor"], "Ver tus cobros y pagos con tarjeta. Solo lectura."),
+  app("mercado_pago", "Mercado Pago", "pagos", "mercadopago", "oauth", ["iris"], "Ver los pagos que recibes y los pendientes. Solo lectura."),
+  app("mercado_libre", "Mercado Libre", "pagos", "mercadolibre", "oauth", ["iris", "victor"], "Ver tus ventas y preguntas de compradores en Mercado Libre. Solo lectura."),
+  app("shopify", "Shopify", "pagos", "shopify", "oauth", ["iris", "victor"], "Ver los pedidos, el inventario y los clientes de tu tienda en línea. Solo lectura.", {
+    requiereAprobacion: SHOPIFY,
+  }),
+  app("tienda_nube", "Tiendanube", "pagos", "tiendanube", "oauth", ["iris", "victor"], "Ver los pedidos y productos de tu tienda en línea. Solo lectura."),
   app("clip", "Clip", "pagos", null, null, ["clara", "victor"], "Ver las ventas que cobras con tu terminal Clip.", { fase: 2 }),
   // Facturación
-  app("cfdi", "Facturas CFDI", "facturacion", "facturapi", "llave", ["clara", "iris"], "Leer tus facturas electrónicas para llevar cobros y pagos. Solo lectura."),
+  app("cfdi", "Facturas CFDI", "facturacion", "facturapi", "llave", ["iris"], "Leer tus facturas electrónicas para llevar cobros y pagos. Solo lectura."),
 ];
 
 export const APP_POR_ID = Object.fromEntries(CATALOGO.map((a) => [a.id, a])) as Record<IdApp, AppConectable>;

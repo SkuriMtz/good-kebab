@@ -3,8 +3,14 @@ import type { Adaptador, Herramienta, IdApp, Proveedor } from "@/lib/nucleo-tipo
 import { APP_POR_ID, CATALOGO, VARIABLE_LLAVE, VARIABLES_PICKER } from "./catalogo";
 import type { ConexionPublica } from "./estado";
 import { google } from "./proveedores/google";
+import { facturapi } from "./proveedores/facturapi";
+import { mercadolibre } from "./proveedores/mercadolibre";
+import { mercadopago } from "./proveedores/mercadopago";
 import { microsoft } from "./proveedores/microsoft";
 import { notion } from "./proveedores/notion";
+import { shopify } from "./proveedores/shopify";
+import { stripe } from "./proveedores/stripe";
+import { tiendanube } from "./proveedores/tiendanube";
 
 /**
  * REGISTRO DE PROVEEDORES: el único lugar que sabe qué adaptador atiende a
@@ -42,13 +48,7 @@ const slack = pendiente("slack"); // import { slack } from "./proveedores/slack"
 const trello = pendiente("trello"); // import { trello } from "./proveedores/trello";
 const airtable = pendiente("airtable"); // import { airtable } from "./proveedores/airtable";
 const hubspot = pendiente("hubspot"); // import { hubspot } from "./proveedores/hubspot";
-// F: stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi
-const stripe = pendiente("stripe"); // import { stripe } from "./proveedores/stripe";
-const mercadopago = pendiente("mercadopago"); // import { mercadopago } from "./proveedores/mercadopago";
-const mercadolibre = pendiente("mercadolibre"); // import { mercadolibre } from "./proveedores/mercadolibre";
-const shopify = pendiente("shopify"); // import { shopify } from "./proveedores/shopify";
-const tiendanube = pendiente("tiendanube"); // import { tiendanube } from "./proveedores/tiendanube";
-const facturapi = pendiente("facturapi"); // import { facturapi } from "./proveedores/facturapi";
+// F: stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi (unidos arriba)
 
 export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   google,
