@@ -118,6 +118,16 @@ const DATO_CONECTAR: Partial<Record<Proveedor, { param: string; etiqueta: string
       return /^[a-z0-9][a-z0-9-]{0,60}\.myshopify\.com$/.test(d) ? d : null;
     },
   },
+  kommo: {
+    param: "subdomain",
+    etiqueta: "La dirección de tu cuenta de Kommo",
+    ayuda: "Es la que ves en el navegador al entrar a Kommo. Termina en .kommo.com.",
+    ejemplo: "miempresa.kommo.com",
+    normalizar: (t) => {
+      const v = t.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/\.kommo\.com$/, "");
+      return /^[a-z0-9][a-z0-9-]{0,62}$/.test(v) ? v : null;
+    },
+  },
 };
 
 /** En "Todas" (sin buscar), cuántas apps se ven por categoría antes de "Ver las N". */

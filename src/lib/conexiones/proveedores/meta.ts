@@ -16,7 +16,7 @@ import {
 } from "./_comun-1";
 
 /**
- * META: WhatsApp Business, Instagram y Messenger con Facebook Login.
+ * META: WhatsApp Business, Instagram, Messenger y las reseñas de la página con Facebook Login.
  *
  * - Login: https://www.facebook.com/v27.0/dialog/oauth (Graph API v27.0, la
  *   vigente en la documentación de Meta al 5 nov 2026).
@@ -42,6 +42,7 @@ export const PERMISOS_META: Partial<Record<IdApp, string[]>> = {
   whatsapp_business: ["whatsapp_business_management", "whatsapp_business_messaging", "business_management"],
   messenger: ["pages_show_list", "pages_messaging", "pages_manage_metadata", "pages_read_engagement", "business_management"],
   instagram: ["instagram_basic", "instagram_manage_messages", "pages_show_list", "pages_manage_metadata", "business_management"],
+  facebook_resenas: ["pages_show_list", "pages_read_user_content", "pages_read_engagement", "business_management"],
 };
 
 /** El permiso sin el cual la app no sirve (para saber qué apps quedaron concedidas). */
@@ -49,6 +50,7 @@ const PERMISO_CLAVE: Partial<Record<IdApp, string>> = {
   whatsapp_business: "whatsapp_business_management",
   messenger: "pages_messaging",
   instagram: "instagram_manage_messages",
+  facebook_resenas: "pages_read_user_content",
 };
 
 export function permisosMeta(apps: IdApp[]): string[] {
@@ -239,6 +241,47 @@ export const adaptador: Adaptador = {
   },
 
   herramientas: [
+    herramienta({
+      nombre: "meta_facebook_resenas",
+      descripcion:
+        "Lee las recomendaciones y reseñas recientes de la página de Facebook del negocio (si te recomiendan o no, el texto y la fecha) y su calificación general. Solo lectura.",
+      app: "facebook_resenas",
+      agentes: ["victor"],
+      proveedor: "Facebook",
+      esquema: esquema({
+        limite: { type: "integer", minimum: 1, maximum: 25, description: "Cuántas reseñas (de la más reciente). Por defecto 10." },
+      }),
+      async ejecutar(args, ctx) {
+        const t = await ctx.token();
+        const pagina = t.extra?.page_id;
+        const tokenPagina = t.extra?.page_token;
+        if (!pagina || !tokenPagina) throw new ErrorProveedor("No encontré una página de Facebook en tu conexión de Meta. Vuelve a conectar y elige tu página.");
+        const [general, resenas] = await Promise.all([
+          graph<{ name?: string; overall_star_rating?: number; rating_count?: number }>(`/${pagina}`, tokenPagina, { fields: "name,overall_star_rating,rating_count" }, { senal: ctx.senal }).catch(() => null),
+          graph<{ data?: { created_time?: string; recommendation_type?: string; review_text?: string; rating?: number }[] }>(
+            `/${pagina}/ratings`,
+            tokenPagina,
+            { fields: "created_time,recommendation_type,review_text,rating", limit: argEntero(args, "limite", 10, 1, 25) },
+            { senal: ctx.senal },
+          ),
+        ]);
+        const lista = resenas.data ?? [];
+        const encabezado = unir(
+          `Reseñas de ${linea(general?.name ?? t.extra?.page_name, 80) || "tu página"}`,
+          general?.overall_star_rating ? `calificación ${general.overall_star_rating} de 5` : "",
+          general?.rating_count ? `${general.rating_count} calificaciones` : "",
+        );
+        if (!lista.length) return `${encabezado}
+Todavía no hay reseñas en la página.`;
+        return [
+          `${encabezado} (${lista.length} más recientes):`,
+          ...lista.map((r) => {
+            const tipo = r.recommendation_type === "positive" ? "Te recomienda" : r.recommendation_type === "negative" ? "No te recomienda" : r.rating ? `${r.rating} estrellas` : "Reseña";
+            return `- ${unir(tipo, fecha(r.created_time))}: ${linea(r.review_text, 400) || "(sin texto)"}`;
+          }),
+        ].join("\n");
+      },
+    }),
     herramienta({
       nombre: "meta_messenger_conversaciones",
       descripcion:
