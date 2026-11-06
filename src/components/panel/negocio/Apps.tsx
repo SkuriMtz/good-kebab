@@ -79,6 +79,14 @@ const PASOS_LLAVE: Partial<Record<Proveedor, string[]>> = {
   airtable: ["En Airtable, entra a Developer hub → Personal access tokens.", "Crea un token con permisos de solo lectura, elige tus bases, cópialo y pégalo aquí."],
   trello: ["En Trello, entra a la administración de Power-Ups y genera tu llave de API y tu token.", "Copia lo que te pida la guía y pégalo aquí."],
   facturapi: ["En Facturapi, entra a tu panel → Llaves de API.", "Copia tu llave secreta y pégala aquí."],
+  acuity: ["En Acuity, entra a Integraciones → API y copia tu User ID y tu API key.", "Pégalos aquí juntos, separados por dos puntos: UserID:APIkey."],
+  simplybook: ["En SimplyBook.me, entra a Plugins → API y activa la API; crea una clave de API de usuario.", "Pégala aquí así: empresa:usuario:clave (nunca tu contraseña)."],
+  paypal: ["En developer.paypal.com crea una app REST de tu negocio y activa “Transaction search”.", "Copia su Client ID y su Secret y pégalos aquí así: ClientID:Secret."],
+  conekta: ["En tu panel de Conekta, entra a Desarrolladores → API keys.", "Copia tu llave privada (empieza con key_) y pégala aquí."],
+  openpay: ["En tu panel de Openpay, entra a Configuración → Llaves de API.", "Pégalas aquí así: MerchantID:llave privada (sk_…)."],
+  facturama: ["Usa el usuario y la contraseña de tu cuenta de API de Facturama (no la de tu correo).", "Pégalos aquí así: usuario:contraseña. Atendel solo lee tus facturas: no timbra ni cancela."],
+  alegra: ["En Alegra, entra a Configuración → Integraciones → API y copia tu token.", "Pégalo aquí junto con tu correo, así: correo:token."],
+  holded: ["En Holded, entra a Configuración → Desarrolladores y crea una clave de API.", "Cópiala y pégala aquí."],
 };
 
 const ICONO_CATEGORIA = Object.fromEntries(CATEGORIAS_APP.map((c) => [c.id, c.icono])) as Record<CategoriaApp, NombreIcono>;
