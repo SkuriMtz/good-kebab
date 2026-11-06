@@ -6,6 +6,8 @@ import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
+import { contextoPerfil } from "@/lib/contexto-negocio";
+import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { planMinimo } from "@/lib/planes";
 import { leerConexionesPublicas } from "@/lib/conexiones/estado";
 import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
@@ -23,6 +25,9 @@ import { marcoEstado } from "@/lib/estado-chat";
  * Si Clara está (sola o en el grupo), el system lleva los resúmenes de
  * correo recientes de la persona (src/lib/contexto-correo.ts): solo
  * lectura, delimitados y marcados como datos, no instrucciones.
+ * Para todos los agentes, el system lleva además el perfil del negocio y los
+ * fragmentos de sus documentos que tienen que ver con el mensaje
+ * (contexto-negocio.ts y contexto-documentos.ts), con las mismas reglas.
  * Con apps conectadas, los agentes usan herramientas de SOLO LECTURA (tool
  * use, src/lib/herramientas/): las de su área y, en un grupo, las de sus
  * miembros. Mientras corre una, si el cliente lo pidió (`estados: true`),
@@ -154,8 +159,14 @@ export async function POST(request: NextRequest) {
   if (errMensaje) return error("No se pudo guardar tu mensaje.", 500);
   await supabase.rpc("sumar_mensaje");
 
-  // 6. Si Clara está, lee los resúmenes de correo recientes (solo lectura; nunca el texto original)
-  const correos = participantes.includes("clara") ? await contextoCorreo(supabase, user.id) : undefined;
+  // 6. Contexto (solo lectura): si Clara está, los resúmenes de correo recientes (nunca el texto
+  //    original); para todos, el perfil del negocio y los fragmentos de sus documentos
+  const [correos, perfil, documentos] = await Promise.all([
+    participantes.includes("clara") ? contextoCorreo(supabase, user.id) : undefined,
+    contextoPerfil(supabase, user.id),
+    bloqueDocumentos(supabase, mensaje),
+  ]);
+  const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await leerConexionesPublicas(supabase, user.id);
@@ -188,7 +199,10 @@ export async function POST(request: NextRequest) {
       try {
         const base = {
           max_tokens: 8000,
-          system: (grupo ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos) : instruccionesDe(agente, cuenta.negocio, correos)) + conApps,
+          system:
+            (grupo
+              ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
+              : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio)) + conApps,
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
         const pedir = (p: PeticionRonda) =>
