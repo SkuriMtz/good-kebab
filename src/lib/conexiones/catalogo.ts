@@ -95,6 +95,11 @@ export const CATALOGO: readonly AppConectable[] = [
   }),
   app("tienda_nube", "Tiendanube", "pagos", "tiendanube", "oauth", ["iris", "victor"], "Ver los pedidos y productos de tu tienda en línea. Solo lectura."),
   app("clip", "Clip", "pagos", null, null, ["clara", "victor"], "Ver las ventas que cobras con tu terminal Clip.", { fase: 2 }),
+  // v3 · Pagos en México (G)
+  app("paypal", "PayPal", "pagos", "paypal", "llave", ["iris"], "Ver tus movimientos recientes de PayPal (cobros, reembolsos y comisiones) y tu saldo. Solo lectura."),
+  app("conekta", "Conekta", "pagos", "conekta", "llave", ["iris"], "Ver tus órdenes y cargos recientes de Conekta (tarjeta, OXXO y SPEI). Solo lectura."),
+  app("openpay", "Openpay", "pagos", "openpay", "llave", ["iris", "victor"], "Ver tus cargos recientes y los clientes que tienes en Openpay. Solo lectura."),
+  app("square", "Square", "pagos", "square", "oauth", ["iris", "victor", "lola"], "Ver tus pagos, tus clientes y las citas de Square Appointments. Solo lectura."),
   // Contabilidad (Zoho Books va con el mismo OAuth de Zoho que Zoho CRM)
   app("zoho_books", "Zoho Books", "contabilidad", "zoho", "oauth", ["clara", "iris"], "Ver tus facturas y clientes de Zoho Books. Solo lectura."),
   // Facturación
@@ -133,6 +138,11 @@ export const PROVEEDORES: readonly Proveedor[] = [
   "kommo",
   "typeform",
   "mailchimp",
+  // v3 (G): pagos en México y contabilidad
+  "paypal",
+  "conekta",
+  "openpay",
+  "square",
 ];
 
 export const esProveedor = (v: unknown): v is Proveedor => typeof v === "string" && (PROVEEDORES as readonly string[]).includes(v);

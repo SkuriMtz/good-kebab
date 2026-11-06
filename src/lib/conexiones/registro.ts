@@ -27,6 +27,10 @@ import { pipedrive } from "./proveedores/pipedrive";
 import { simplybook } from "./proveedores/simplybook";
 import { typeform } from "./proveedores/typeform";
 import { zoho } from "./proveedores/zoho";
+import { paypal } from "./proveedores/paypal";
+import { conekta } from "./proveedores/conekta";
+import { openpay } from "./proveedores/openpay";
+import { square } from "./proveedores/square";
 
 /**
  * REGISTRO DE PROVEEDORES: el único lugar que sabe qué adaptador atiende a
@@ -59,10 +63,6 @@ function pendiente(proveedor: Proveedor): Adaptador {
 // v3 (E: reservas y CRM, unidos arriba; setmore y agendapro sin API pública · G: pagos MX y contabilidad)
 const setmore = pendiente("setmore"); // import { setmore } from "./proveedores/setmore";
 const agendapro = pendiente("agendapro"); // import { agendapro } from "./proveedores/agendapro";
-const paypal = pendiente("paypal"); // import { paypal } from "./proveedores/paypal";
-const conekta = pendiente("conekta"); // import { conekta } from "./proveedores/conekta";
-const openpay = pendiente("openpay"); // import { openpay } from "./proveedores/openpay";
-const square = pendiente("square"); // import { square } from "./proveedores/square";
 const facturama = pendiente("facturama"); // import { facturama } from "./proveedores/facturama";
 const alegra = pendiente("alegra"); // import { alegra } from "./proveedores/alegra";
 const holded = pendiente("holded"); // import { holded } from "./proveedores/holded";
