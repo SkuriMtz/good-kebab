@@ -9,7 +9,7 @@ import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { planMinimo } from "@/lib/planes";
-import { leerConexionesPublicas } from "@/lib/conexiones/estado";
+import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
 import { herramientasDelChat, instruccionesHerramientas } from "@/lib/herramientas/preparar";
 import { marcoEstado } from "@/lib/estado-chat";
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
   const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
-  const conexiones = await leerConexionesPublicas(supabase, user.id);
+  const conexiones = await conexionesVigentes(supabase, user.id);
   const herramientas = herramientasDelChat({ supabase, userId: user.id, participantes, conexiones });
   const conApps = instruccionesHerramientas(participantes, herramientas, conexiones);
 

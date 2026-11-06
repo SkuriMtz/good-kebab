@@ -3,7 +3,8 @@ import { descifrar } from "@/lib/cifrado";
 import { iguales, leerEstadoOAuth, NOMBRE_PROVEEDOR, nombreCookie, type EstadoOAuth } from "@/lib/conexiones/oauth";
 import { adaptador, configurado } from "@/lib/conexiones/registro";
 import { preparar, volverAApps } from "@/lib/conexiones/rutas";
-import { appsFinales, descifrarTokens, guardarConexion, leerFila } from "@/lib/conexiones/tokens";
+import type { Tokens } from "@/lib/nucleo-tipos";
+import { appsFinales, debeRevocarAnterior, descifrarTokens, guardarConexion, leerFila } from "@/lib/conexiones/tokens";
 
 /**
  * GET /api/conexiones/[proveedor]/callback  (a donde vuelve el proveedor)
@@ -61,20 +62,26 @@ export async function GET(request: NextRequest, { params }: { params: { proveedo
     /* sin el nombre de la cuenta también se conecta */
   }
 
-  // Si se conectó otra cuenta, se revoca el permiso de la anterior (si se puede)
+  // Reconectar nunca tumba lo nuevo: el permiso anterior solo se revoca si era de otra
+  // cuenta y el proveedor no lo comparte con el token nuevo (ver debeRevocarAnterior)
   const fila = await leerFila(supabase, user.id, p).catch(() => null);
-  if (fila?.cuenta && fila.cuenta !== cuenta && a.revocar) {
+  let anterior: Tokens | null = null;
+  if (fila) {
     try {
-      await a.revocar(descifrarTokens(fila, user.id, p));
+      anterior = descifrarTokens(fila, user.id, p);
     } catch {
-      /* lo que no se pudo revocar se puede quitar desde la cuenta */
+      anterior = null;
     }
   }
 
   const ok = await guardarConexion(supabase, user.id, p, { tokens, cuenta, apps }).catch(() => false);
   if (!ok) {
-    if (a.revocar) await a.revocar(tokens).catch(() => undefined);
+    // Solo si no había conexión: revocar el token nuevo podría tumbar el permiso guardado
+    if (!fila && a.revocar) await a.revocar(tokens).catch(() => undefined);
     return volverAApps(request, p, { error: "guardar", app });
+  }
+  if (anterior && a.revocar && debeRevocarAnterior(p, fila?.cuenta, cuenta, anterior, tokens)) {
+    await a.revocar(anterior).catch(() => undefined);
   }
   return volverAApps(request, p, { conectada: app });
 }

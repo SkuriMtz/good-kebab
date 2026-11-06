@@ -52,7 +52,7 @@ export const CATALOGO: readonly AppConectable[] = [
   app("excel", "Excel", "documentos", "microsoft", "oauth", ["iris"], "Leer tus hojas de Excel guardadas en OneDrive. Solo lectura."),
   app("outlook_contacts", "Contactos de Outlook", "clientes", "microsoft", "oauth", ["victor", "lola"], "Buscar los datos de tus clientes en tus contactos de Outlook. Solo lectura."),
   // Mensajes
-  app("whatsapp_business", "WhatsApp Business", "mensajes", "meta", "oauth", ["lola"], "Leer los mensajes de tu WhatsApp Business para ayudarte a contestarlos. Solo lectura.", {
+  app("whatsapp_business", "WhatsApp Business", "mensajes", "meta", "oauth", ["lola"], "Ver tus números y plantillas de WhatsApp Business (los mensajes llegarán cuando se active el webhook). Solo lectura.", {
     requiereAprobacion: META,
   }),
   app("instagram", "Instagram", "mensajes", "meta", "oauth", ["lola", "victor"], "Leer los mensajes directos de tu cuenta de negocio. Solo lectura.", { requiereAprobacion: META }),
