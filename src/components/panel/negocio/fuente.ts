@@ -12,6 +12,7 @@ import {
   type PerfilNegocio,
   type Proveedor,
 } from "@/lib/nucleo-tipos";
+import { createClient } from "@/lib/supabase/client";
 
 /* =====================================================================
    De dónde salen los datos de "Tu negocio". La vista y el "+" de la caja
@@ -115,6 +116,25 @@ async function respuesta<T>(res: Response): Promise<T> {
   throw new ErrorNegocio(texto ?? "Algo salió mal. Intenta de nuevo.", { campo, estado: res.status });
 }
 
+/** Hasta aquí el archivo va en la petición (multipart); más grande, primero a Storage. */
+const MAX_BYTES_DIRECTO = 4 * 1024 * 1024;
+const BUCKET_DOCUMENTOS = "documentos";
+
+/** Sube el archivo al bucket privado en "{tu id}/{uuid}.{ext}" (RLS: solo tu carpeta) y regresa la ruta. */
+async function subirAStorage(archivo: File): Promise<string> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new ErrorNegocio("Tu sesión terminó. Vuelve a entrar.", { estado: 401 });
+  const ext = extensionDe(archivo.name);
+  if (!ext) throw new ErrorNegocio(`«${archivo.name}» no se puede leer: sube un PDF, DOCX, TXT o MD.`);
+  const ruta = `${user.id}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(BUCKET_DOCUMENTOS).upload(ruta, archivo, { contentType: archivo.type || undefined, upsert: false });
+  if (error) throw new ErrorNegocio("No se pudo subir el archivo. Revisa tu conexión e intenta de nuevo.");
+  return ruta;
+}
+
 /** Acepta la lista sola o envuelta ({ documentos: [...] }). */
 const lista = <T>(datos: unknown, clave: string): T[] => {
   if (Array.isArray(datos)) return datos as T[];
@@ -145,6 +165,13 @@ export const fuenteReal: FuenteNegocio = {
     return lista<Documento>(await respuesta(await fetch(RUTAS.documentos, { cache: "no-store" })), "documentos");
   },
   async subirArchivo(archivo) {
+    // Vercel corta el cuerpo de una petición en ~4.5 MB: lo grande va directo a Storage y la API lo procesa
+    if (archivo.size > MAX_BYTES_DIRECTO) {
+      const d = await respuesta<Documento | { documento: Documento }>(
+        await fetch(RUTAS.documentos, { method: "POST", headers: JSON_H, body: JSON.stringify({ ruta: await subirAStorage(archivo), nombre: archivo.name }) }),
+      );
+      return "documento" in d ? d.documento : d;
+    }
     const fd = new FormData();
     fd.append("archivo", archivo, archivo.name);
     const d = await respuesta<Documento | { documento: Documento }>(await fetch(RUTAS.documentos, { method: "POST", body: fd }));
