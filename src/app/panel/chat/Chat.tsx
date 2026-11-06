@@ -11,7 +11,7 @@ import { Conversacion as VistaConversacion } from "@/components/panel/Conversaci
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
 import { AvisoHilo, Copiar, DiaHilo, Escribiendo, LineaEscribe, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
-import { separarEstado } from "@/components/panel/estado-herramientas";
+import { separarEstado } from "@/lib/estado-chat";
 import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
@@ -317,7 +317,8 @@ export function Chat({
     const actualizar = (cambio: Partial<Mensaje>) => setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
 
     // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
-    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio } : { agente, mensaje: limpio, conversacionId: actual };
+    // estados: true → el stream trae lo que hace el agente con las apps ("\u0001…\u0002", src/lib/estado-chat.ts)
+    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio, estados: true } : { agente, mensaje: limpio, conversacionId: actual, estados: true };
 
     try {
       const res = await fetch("/api/chat", {
@@ -362,13 +363,13 @@ export function Chat({
         const { done, value } = await lector.read();
         if (done) break;
         acumulado += decoder.decode(value, { stream: true });
-        // Lo que hace el agente con las apps viene en el mismo stream (formato de D): se separa del texto
-        const { texto: limpioStream, estado } = separarEstado(acumulado);
-        const corte = limpioStream.indexOf(MARCA_ERROR);
+        // Primero el error de siempre; luego, lo que hace el agente con las apps (el estado) se separa del texto
+        const corte = acumulado.indexOf(MARCA_ERROR);
         if (corte >= 0) {
-          actualizar({ contenido: limpioStream.slice(0, corte), error: limpioStream.slice(corte + MARCA_ERROR.length), estado: null });
+          actualizar({ contenido: separarEstado(acumulado.slice(0, corte)).texto, error: acumulado.slice(corte + MARCA_ERROR.length), estado: null });
         } else {
-          actualizar({ contenido: limpioStream, estado });
+          const { texto, estado } = separarEstado(acumulado);
+          actualizar({ contenido: texto, estado });
         }
       }
       actualizar({ enCurso: false, estado: null });
@@ -399,6 +400,7 @@ export function Chat({
   const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
   // Quién escribe ahora (para los tres puntos y la cabecera)
   const enCurso = visibles[visibles.length - 1]?.enCurso ? (visibles[visibles.length - 1].de as IdAgente) : null;
+  const estadoEnCurso = enCurso ? visibles[visibles.length - 1].estado : null;
 
   const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
     key: id,
@@ -533,7 +535,7 @@ export function Chat({
         titulo={tituloConv}
         sub={
           enCurso ? (
-            <span className="pc-conv__escribe">{AGENTE_POR_ID[enCurso].nombre} está escribiendo…</span>
+            <span className="pc-conv__escribe">{estadoEnCurso ?? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…`}</span>
           ) : grupo ? (
             `Grupo · ${nombresDe(grupo)}`
           ) : (

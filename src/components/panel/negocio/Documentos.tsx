@@ -187,11 +187,11 @@ export function DocumentosNegocio({ max }: { /** Cuántos documentos deja el pla
     setEligiendoDrive(true);
     setAviso(null);
     try {
-      const nuevos = await abrirDrive(fuente);
-      if (nuevos.length) {
-        setDocs((d) => [...nuevos, ...(d ?? []).filter((x) => !nuevos.some((n) => n.id === x.id))]);
-        setAviso({ tono: "ok", texto: nuevos.length === 1 ? `Listo: «${nuevos[0].nombre}» se agregó desde Drive.` : `Listo: se agregaron ${nuevos.length} archivos de Drive.` });
-      }
+      const { documentos: nuevos, fallidos } = await abrirDrive(fuente);
+      if (nuevos.length) setDocs((d) => [...nuevos, ...(d ?? []).filter((x) => !nuevos.some((n) => n.id === x.id))]);
+      const noSe = fallidos > 0 ? ` ${fallidos === 1 ? "Un archivo no se pudo leer" : `${fallidos} archivos no se pudieron leer`} (Drive solo deja leer Docs, Hojas, PDF y texto).` : "";
+      if (nuevos.length) setAviso({ tono: fallidos ? "error" : "ok", texto: `${nuevos.length === 1 ? `Listo: «${nuevos[0].nombre}» se agregó desde Drive.` : `Listo: se agregaron ${nuevos.length} archivos de Drive.`}${noSe}` });
+      else if (fallidos) setAviso({ tono: "error", texto: `No se pudo agregar lo que elegiste.${noSe}` });
     } catch (e) {
       setAviso({ tono: "error", texto: mensajeDe(e, "No se pudo abrir Google Drive.") });
     } finally {

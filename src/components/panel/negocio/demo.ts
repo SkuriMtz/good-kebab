@@ -170,8 +170,10 @@ export const fuenteDemo: FuenteNegocio = {
   },
   async desconectar(proveedor, app) {
     await pausa(450);
-    // Como en tu cuenta real: se quita la cuenta del proveedor, con todas sus apps
-    escribir((e) => ({ ...e, apps: e.apps.map((a) => (a.id === app || (a.estado === "conectada" && APP_POR_ID[a.id]?.proveedor === proveedor) ? { id: a.id, estado: "desconectada" } : a)) }));
+    // Como en tu cuenta real: se quita esa app; si era la última de su proveedor, se "revoca" la cuenta
+    const e = escribir((s) => ({ ...s, apps: s.apps.map((a) => (a.id === app ? { id: a.id, estado: "desconectada" as const } : a)) }));
+    const quedan = e.apps.filter((a) => a.estado === "conectada" && APP_POR_ID[a.id]?.proveedor === proveedor).map((a) => a.id);
+    return { revocada: quedan.length === 0, quedan };
   },
   async guardarLlave(_proveedor, app) {
     // En /pruebalo no se guarda ninguna llave: el modal explica qué pasaría en tu cuenta real
@@ -179,6 +181,6 @@ export const fuenteDemo: FuenteNegocio = {
   },
   async guardarDeDrive() {
     // En /pruebalo, Drive no está conectada: el botón lleva a Apps
-    return [];
+    return { documentos: [], fallidos: 0 };
   },
 };

@@ -99,7 +99,31 @@ const ERRORES_CONEXION: Record<string, string> = {
   guardar: "Se dio el permiso, pero no se pudo guardar la conexión. Vuelve a intentarlo.",
 };
 
-type Cuadro = { tipo: "desconectar" | "configurar" | "demo" | "llave"; app: AppConectable } | null;
+type TipoCuadro = "desconectar" | "configurar" | "demo" | "llave" | "dato";
+type Cuadro = { tipo: TipoCuadro; app: AppConectable } | null;
+
+/**
+ * Las apps OAuth que necesitan un dato antes de ir al permiso (Shopify: el
+ * dominio de la tienda). Se manda a RUTAS.conectar como &<param>=<valor>.
+ */
+const DATO_CONECTAR: Partial<Record<Proveedor, { param: string; etiqueta: string; ayuda: string; ejemplo: string; normalizar: (t: string) => string | null }>> = {
+  shopify: {
+    param: "shop",
+    etiqueta: "El dominio de tu tienda",
+    ayuda: "Lo ves en Shopify, en Configuración → Dominios. Termina en .myshopify.com.",
+    ejemplo: "mitienda.myshopify.com",
+    normalizar: (t) => {
+      const v = t.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+      const d = v.includes(".") ? v : `${v}.myshopify.com`;
+      return /^[a-z0-9][a-z0-9-]{0,60}\.myshopify\.com$/.test(d) ? d : null;
+    },
+  },
+};
+
+/** En "Todas" (sin buscar), cuántas apps se ven por categoría antes de "Ver las N". */
+const POR_CATEGORIA = 4;
+/** Primero lo que ya usas, luego lo que puedes conectar, al final lo que está en camino. */
+const ORDEN_ESTADO: Record<EstadoAppPersona["estado"], number> = { conectada: 0, error: 1, desconectada: 2, sin_configurar: 3, en_camino: 4 };
 
 /**
  * Apps conectadas: el catálogo de D (src/lib/conexiones/catalogo.ts) por
@@ -183,9 +207,18 @@ export function AppsNegocio({
     if (!app.proveedor) return;
     setOcupada(app.id);
     try {
-      await fuente.desconectar(app.proveedor, app.id);
+      const r = await fuente.desconectar(app.proveedor, app.id);
+      const proveedor = NOMBRE_PROVEEDOR[app.proveedor];
+      const siguen = r.quedan.map((id) => APP_POR_ID[id]?.nombre).filter(Boolean);
       setCuadro(null);
-      setAviso({ tono: "ok", texto: `Se desconectó tu cuenta de ${NOMBRE_PROVEEDOR[app.proveedor]}.` });
+      setAviso({
+        tono: "ok",
+        texto: siguen.length
+          ? `Se desconectó ${app.nombre}. Con tu cuenta de ${proveedor} siguen conectadas: ${siguen.join(", ")}.`
+          : r.revocada
+            ? `Se desconectó ${app.nombre} y se quitó el permiso en tu cuenta de ${proveedor}.`
+            : `Se desconectó ${app.nombre}.${app.proveedor === "microsoft" ? " Quita también el permiso en tu cuenta de Microsoft (la guía dice dónde)." : ""}`,
+      });
       await cargar();
     } catch (e) {
       setCuadro(null);
@@ -231,7 +264,7 @@ export function AppsNegocio({
   let n = 0;
   // Desconectar quita la cuenta del proveedor: se dice qué otras apps se van con ella
   const cuadroApp = cuadro?.app;
-  const mismaCuenta = cuadroApp?.proveedor ? conectadas.filter((a) => a.proveedor === cuadroApp.proveedor) : [];
+  const otrasMismaCuenta = cuadroApp?.proveedor ? conectadas.filter((a) => a.proveedor === cuadroApp.proveedor && a.id !== cuadroApp.id) : [];
   const cuentaCuadro = cuadroApp ? estadoDe(cuadroApp.id).cuenta : undefined;
   const faltaCuadro = cuadroApp ? (estadoDe(cuadroApp.id).falta ?? []) : [];
   const categorias = CATEGORIAS_APP.filter((c) => CATALOGO.some((a) => a.categoria === c.id));
@@ -301,15 +334,29 @@ export function AppsNegocio({
       ) : (
         <div key={`${filtro}|${q.trim() ? "q" : ""}`}>
           {categorias.map((cat) => {
-            const apps = visibles.filter((a) => a.categoria === cat.id);
+            const apps = visibles.filter((a) => a.categoria === cat.id).sort((a, b) => ORDEN_ESTADO[estadoDe(a.id).estado] - ORDEN_ESTADO[estadoDe(b.id).estado]);
             if (!apps.length) return null;
+            const resumir = filtro === "todas" && !q.trim() && apps.length > POR_CATEGORIA + 1;
+            const mostradas = resumir ? apps.slice(0, POR_CATEGORIA) : apps;
             return (
               <section key={cat.id} aria-labelledby={`${id}-${cat.id}`} className="pc-apps__grupo">
-                <Subtitulo id={`${id}-${cat.id}`} extra={<span className="cifras">{apps.length}</span>}>
+                <Subtitulo
+                  id={`${id}-${cat.id}`}
+                  extra={
+                    resumir ? (
+                      <button type="button" className="pc-apps__ver" onClick={() => setFiltro(cat.id)}>
+                        Ver las {apps.length}
+                        <Icono nombre="chevron-derecha" tam={14} trazo={2} />
+                      </button>
+                    ) : (
+                      <span className="cifras">{apps.length}</span>
+                    )
+                  }
+                >
                   {cat.etiqueta}
                 </Subtitulo>
                 <ul className="pc-apps">
-                  {apps.map((app) => (
+                  {mostradas.map((app) => (
                     <TarjetaApp key={app.id} app={app} estado={estadoDe(app.id)} indice={n++} ocupada={ocupada === app.id} demo={fuente.demo} alAvisame={(qq) => avisame(app, qq)} alAbrir={(tipo) => setCuadro({ tipo, app })} />
                   ))}
                 </ul>
@@ -323,12 +370,8 @@ export function AppsNegocio({
       <Modal
         abierto={cuadro?.tipo === "desconectar"}
         alCerrar={() => ocupada === null && setCuadro(null)}
-        titulo={cuadroApp?.proveedor ? `¿Desconectar tu cuenta de ${NOMBRE_PROVEEDOR[cuadroApp.proveedor]}?` : "¿Desconectar?"}
-        descripcion={
-          cuadroApp
-            ? `${cuentaCuadro ? `${cuentaCuadro}: ` : ""}${mismaCuenta.length > 1 ? `${mismaCuenta.map((a) => a.nombre).join(", ")} dejan` : `${cuadroApp.nombre} deja`} de estar conectada${mismaCuenta.length > 1 ? "s" : ""} y tu equipo ya no podrá entrar.`
-            : undefined
-        }
+        titulo={cuadroApp ? `¿Desconectar ${cuadroApp.nombre}?` : "¿Desconectar?"}
+        descripcion={cuadroApp ? `${nombresDe(cuadroApp.agentes)} ya no podrá${cuadroApp.agentes.length > 1 ? "n" : ""} entrar a ${cuadroApp.nombre}${cuentaCuadro ? ` (${cuentaCuadro})` : ""}.` : undefined}
         pie={
           <>
             <button type="button" className={claseBoton("fantasma")} onClick={() => setCuadro(null)} disabled={ocupada !== null}>
@@ -341,7 +384,16 @@ export function AppsNegocio({
           </>
         }
       >
-        <p className="pc-modal__nota">{fuente.demo ? "Es un ejemplo: aquí no se revoca nada." : "Atendel borra el permiso y lo revoca en tu cuenta. Puedes volver a conectarla cuando quieras."}</p>
+        <p className="pc-modal__nota">
+          {cuadroApp?.proveedor
+            ? otrasMismaCuenta.length
+              ? `Tu cuenta de ${NOMBRE_PROVEEDOR[cuadroApp.proveedor]} sigue conectada para ${otrasMismaCuenta.map((a) => a.nombre).join(", ")}.`
+              : cuadroApp.proveedor === "microsoft"
+                ? "Es la última app de tu cuenta de Microsoft: Atendel borra la conexión, y el permiso se quita en tu cuenta de Microsoft (la guía docs/configurar-apps.md dice dónde)."
+                : `Es la última app de tu cuenta de ${NOMBRE_PROVEEDOR[cuadroApp.proveedor]}: Atendel borra la conexión y quita el permiso.`
+            : null}{" "}
+          {fuente.demo ? "Es un ejemplo: aquí no se revoca nada." : "Puedes volver a conectarla cuando quieras."}
+        </p>
       </Modal>
 
       {/* Falta configurar: qué poner en Vercel, en corto */}
@@ -387,6 +439,9 @@ export function AppsNegocio({
         ) : null}
       </Modal>
 
+      {/* Shopify (y las que pidan un dato antes del permiso) */}
+      <ModalDato app={cuadro?.tipo === "dato" ? cuadroApp : undefined} alCerrar={() => setCuadro(null)} />
+
       {/* Las apps por llave: el campo para pegar TU llave (se guarda cifrada y no se vuelve a mostrar) */}
       <ModalLlave
         app={cuadro?.tipo === "llave" ? cuadroApp : undefined}
@@ -429,6 +484,93 @@ export function AppsNegocio({
         ) : null}
       </Modal>
     </>
+  );
+}
+
+/** Un dato antes del permiso (Shopify: el dominio de la tienda), revisado aquí; luego, al OAuth con &<param>=. */
+function ModalDato({ app, alCerrar }: { app?: AppConectable; alCerrar: () => void }) {
+  const id = useId();
+  const [valor, setValor] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [yendo, setYendo] = useState(false);
+  const campo = useRef<HTMLInputElement>(null);
+  const dato = app?.proveedor ? DATO_CONECTAR[app.proveedor] : undefined;
+
+  useEffect(() => {
+    if (app) window.setTimeout(() => campo.current?.focus(), 0);
+    else {
+      setValor("");
+      setError(null);
+      setYendo(false);
+    }
+  }, [app]);
+
+  const seguir = (e: FormEvent) => {
+    e.preventDefault();
+    if (!app?.proveedor || !dato) return;
+    const v = dato.normalizar(valor);
+    if (!v) {
+      setError(`Escríbelo como ${dato.ejemplo}.`);
+      campo.current?.focus();
+      return;
+    }
+    setYendo(true);
+    window.location.assign(`${RUTAS.conectar(app.proveedor, app.id)}&${dato.param}=${encodeURIComponent(v)}`);
+  };
+
+  return (
+    <Modal
+      abierto={Boolean(app && dato)}
+      alCerrar={alCerrar}
+      titulo={app ? `Conectar ${app.nombre}` : "Conectar"}
+      descripcion={app?.proveedor ? `Después se abre ${NOMBRE_PROVEEDOR[app.proveedor]} para dar permiso (solo lectura).` : undefined}
+      pie={
+        <>
+          <button type="button" className={claseBoton("fantasma")} onClick={alCerrar}>
+            Cancelar
+          </button>
+          <button type="submit" form={`${id}-form`} className={claseBoton("principal")} disabled={yendo} aria-busy={yendo || undefined}>
+            {yendo ? <Giro /> : null}
+            Seguir
+          </button>
+        </>
+      }
+    >
+      {dato ? (
+        <form id={`${id}-form`} className="pc-campo" onSubmit={seguir} noValidate>
+          <label htmlFor={`${id}-dato`} className="pc-campo__etiqueta">
+            {dato.etiqueta}
+          </label>
+          <input
+            ref={campo}
+            id={`${id}-dato`}
+            className="pc-campo__entrada"
+            inputMode="url"
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            placeholder={dato.ejemplo}
+            maxLength={120}
+            value={valor}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={`${id}-ayuda${error ? ` ${id}-error` : ""}`}
+            onChange={(e) => {
+              setValor(e.target.value);
+              if (error) setError(null);
+            }}
+          />
+          {error ? (
+            <p id={`${id}-error`} className="pc-error pc-link__error" role="alert">
+              <Icono nombre="alerta" tam={14} />
+              {error}
+            </p>
+          ) : null}
+          <p id={`${id}-ayuda`} className="pc-modal__nota">
+            {dato.ayuda}
+          </p>
+        </form>
+      ) : null}
+    </Modal>
   );
 }
 
@@ -575,7 +717,7 @@ function TarjetaApp({
   ocupada: boolean;
   demo: boolean;
   alAvisame: (quiere: boolean) => void;
-  alAbrir: (tipo: "desconectar" | "configurar" | "demo" | "llave") => void;
+  alAbrir: (tipo: TipoCuadro) => void;
 }) {
   const insignia = INSIGNIA[estado.estado];
   const id = useId();
@@ -585,8 +727,8 @@ function TarjetaApp({
         <Icono nombre="candado" tam={16} />
         {texto}
       </button>
-    ) : demo ? (
-      <button type="button" className={claseBoton("principal", true)} onClick={() => alAbrir("demo")} aria-describedby={`${id}-nombre`}>
+    ) : demo || DATO_CONECTAR[app.proveedor] ? (
+      <button type="button" className={claseBoton("principal", true)} onClick={() => alAbrir(demo ? "demo" : "dato")} aria-describedby={`${id}-nombre`}>
         {texto}
       </button>
     ) : (

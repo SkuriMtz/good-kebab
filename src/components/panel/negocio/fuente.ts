@@ -37,11 +37,12 @@ export type FuenteNegocio = {
   borrarDocumento(id: string): Promise<void>;
   listarApps(): Promise<EstadoAppPersona[]>;
   avisame(app: IdApp, quiere: boolean): Promise<void>;
-  desconectar(proveedor: Proveedor, app: IdApp): Promise<void>;
+  /** Quita esa app; si era la última de su proveedor, revoca y borra la cuenta. */
+  desconectar(proveedor: Proveedor, app: IdApp): Promise<{ revocada: boolean; quedan: IdApp[] }>;
   /** Las apps por llave (Telegram, Stripe…): valida y guarda SU llave, cifrada. La llave nunca regresa. */
   guardarLlave(proveedor: Proveedor, app: IdApp, llave: string): Promise<EstadoAppPersona>;
   /** Guarda como documentos los archivos elegidos en Google Drive (Picker). */
-  guardarDeDrive(archivos: { id: string; nombre: string; mime: string }[]): Promise<Documento[]>;
+  guardarDeDrive(archivos: { id: string; nombre: string; mime: string }[]): Promise<{ documentos: Documento[]; fallidos: number }>;
 };
 
 /** Un error que se puede mostrar tal cual (y, si es de un campo, junto a ese campo). */
@@ -191,14 +192,17 @@ export const fuenteReal: FuenteNegocio = {
     await respuesta(await fetch(RUTAS.avisame, { method: quiere ? "POST" : "DELETE", headers: JSON_H, body: JSON.stringify({ app }) }));
   },
   async desconectar(proveedor, app) {
-    await respuesta(await fetch(RUTAS.desconectar(proveedor), { method: "POST", headers: JSON_H, body: JSON.stringify({ app }) }));
+    const d = await respuesta<{ revocada?: unknown; quedan?: unknown }>(await fetch(RUTAS.desconectar(proveedor), { method: "POST", headers: JSON_H, body: JSON.stringify({ app }) }));
+    return { revocada: d?.revocada === true, quedan: Array.isArray(d?.quedan) ? (d.quedan as IdApp[]) : [] };
   },
   async guardarLlave(proveedor, app, llave) {
     const d = await respuesta<EstadoAppPersona | { app?: EstadoAppPersona }>(await fetch(RUTAS.llave(proveedor), { method: "POST", headers: JSON_H, body: JSON.stringify({ llave, app }) }));
     return d && "app" in d && d.app && typeof d.app === "object" ? d.app : (d as EstadoAppPersona);
   },
   async guardarDeDrive(archivos) {
-    return lista<Documento>(await respuesta(await fetch(RUTAS.drivePicker, { method: "POST", headers: JSON_H, body: JSON.stringify({ archivos }) })), "documentos");
+    const res = await fetch(RUTAS.drivePicker, { method: "POST", headers: JSON_H, body: JSON.stringify({ archivos }) });
+    const fallidos = Number(res.headers.get("X-Archivos-Fallidos") ?? "0");
+    return { documentos: lista<Documento>(await respuesta(res), "documentos"), fallidos: Number.isFinite(fallidos) ? fallidos : 0 };
   },
 };
 
