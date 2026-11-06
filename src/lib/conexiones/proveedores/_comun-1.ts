@@ -1,5 +1,7 @@
 import type { IdAgente } from "@/lib/agentes";
 import type { Herramienta, IdApp, Tokens } from "@/lib/nucleo-tipos";
+import { ErrorArgs } from "../http";
+import { ErrorOAuth } from "../oauth";
 
 /**
  * Piezas comunes de los adaptadores de Meta, Telegram, Calendly, Zoom,
@@ -12,18 +14,24 @@ import type { Herramienta, IdApp, Tokens } from "@/lib/nucleo-tipos";
  *   resultado salga en texto compacto recortado a 4000 caracteres y para que
  *   cualquier error inesperado se vuelva un mensaje amable.
  * Nada de esto escribe en los logs.
+ *
+ * Con el marco de D:
+ * - ErrorProveedor es un ErrorArgs (el ciclo le pasa su mensaje al modelo tal
+ *   cual) y lleva `status`: con 401 el marco renueva el token y reintenta.
+ * - `pedirToken` lanza ErrorOAuth: "invalid_grant" hace que el marco marque
+ *   la conexión como vencida; "rechazo" y "red" se reintentan después.
  */
 
 export const MAX_RESULTADO = 4000;
 const TIEMPO_MAX_MS = 15_000;
 
-/** Error con un mensaje que se puede mostrar a la persona (y al modelo) tal cual. */
-export class ErrorProveedor extends Error {
-  readonly estado: number;
-  constructor(mensaje: string, estado = 0) {
+/** Error con un mensaje que se puede mostrar a la persona (y al modelo) tal cual. `status` es el HTTP (0 si no aplica). */
+export class ErrorProveedor extends ErrorArgs {
+  readonly status: number;
+  constructor(mensaje: string, status = 0) {
     super(mensaje);
     this.name = "ErrorProveedor";
-    this.estado = estado;
+    this.status = status;
   }
 }
 
@@ -125,7 +133,7 @@ export type Pedido = {
    * Slack…): recibe el estado y el JSON (si lo hay) y regresa un mensaje
    * amable, o undefined para usar el mensaje por estado.
    */
-  interpretar?: (estado: number, cuerpo: unknown) => string | undefined;
+  interpretar?: (estado: number, cuerpo: unknown) => string | { mensaje: string; status: number } | undefined;
 };
 
 /** fetch con tiempo máximo, sin caché y con errores amables. Lanza ErrorProveedor si el estado no es 2xx. */
@@ -148,6 +156,7 @@ export async function pedir(nombre: string, url: string, p: Pedido = {}): Promis
   }
   if (r.ok) return r;
   let mensaje: string | undefined;
+  let status = r.status;
   if (p.interpretar) {
     let cuerpo: unknown = null;
     try {
@@ -155,11 +164,13 @@ export async function pedir(nombre: string, url: string, p: Pedido = {}): Promis
     } catch {
       cuerpo = null;
     }
-    mensaje = p.interpretar(r.status, cuerpo);
+    const dicho = p.interpretar(r.status, cuerpo);
+    if (typeof dicho === "object") ({ mensaje, status } = dicho);
+    else mensaje = dicho;
   } else {
     await r.body?.cancel().catch(() => undefined);
   }
-  throw new ErrorProveedor(mensaje ?? mensajePorEstado(nombre, r.status), r.status);
+  throw new ErrorProveedor(mensaje ?? mensajePorEstado(nombre, status), status);
 }
 
 /** Como `pedir`, pero regresa el JSON. */
@@ -198,29 +209,44 @@ export const expiraEn = (segundos: unknown): number | undefined => {
 type RespuestaToken = { access_token?: string; refresh_token?: string; expires_in?: number | string; error?: string };
 
 /**
- * POST al endpoint de tokens (código o refresh). Si el proveedor lo rechaza,
- * el error dice solo el código OAuth estándar (p. ej. invalid_grant), nunca
- * el token ni la descripción completa.
+ * POST al endpoint de tokens (código o refresh). Si el proveedor lo rechaza
+ * lanza ErrorOAuth: "invalid_grant" (el permiso venció o se revocó; también
+ * si `vencido` lo dice), "red" si no se pudo hablar con él y "rechazo" en lo
+ * demás. El mensaje dice solo el código OAuth estándar, nunca el token.
  */
 export async function pedirToken<T extends RespuestaToken>(
   nombre: string,
   url: string,
   cuerpo: URLSearchParams,
   encabezados: Record<string, string> = {},
+  vencido?: (estado: number, cuerpo: unknown) => boolean,
 ): Promise<T> {
-  const datos = await pedirJson<T>(nombre, url, {
-    metodo: "POST",
-    cuerpo,
-    encabezados: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json", ...encabezados },
-    interpretar: (_estado, c) => {
-      const codigo = (c as RespuestaToken | null)?.error;
-      const corto = typeof codigo === "string" && /^[a-z_]{3,40}$/.test(codigo) ? ` (${codigo})` : "";
-      return `${nombre} no aceptó la conexión${corto}. Intenta conectar de nuevo.`;
-    },
-  });
-  if (!datos?.access_token) throw new ErrorProveedor(`${nombre} no regresó el permiso de acceso. Intenta conectar de nuevo.`);
+  let codigo = "";
+  let caduco = false;
+  let datos: T;
+  try {
+    datos = await pedirJson<T>(nombre, url, {
+      metodo: "POST",
+      cuerpo,
+      encabezados: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json", ...encabezados },
+      interpretar: (estado, c) => {
+        const e = (c as RespuestaToken | null)?.error;
+        codigo = typeof e === "string" && /^[a-z_]{3,40}$/.test(e) ? e : "";
+        caduco = codigo === "invalid_grant" || !!vencido?.(estado, c);
+        return `${nombre} no aceptó la conexión${codigo ? ` (${codigo})` : ""}. Intenta conectar de nuevo.`;
+      },
+    });
+  } catch (e) {
+    const mensaje = e instanceof Error ? e.message : `No pude hablar con ${nombre}.`;
+    const status = e instanceof ErrorProveedor ? e.status : 0;
+    throw new ErrorOAuth(caduco ? "invalid_grant" : status ? "rechazo" : "red", mensaje);
+  }
+  if (!datos?.access_token) throw new ErrorOAuth("rechazo", `${nombre} no regresó el permiso de acceso. Intenta conectar de nuevo.`);
   return datos;
 }
+
+/** Para `renovar` sin refresh token: el marco marca la conexión como vencida. */
+export const sinRenovacion = (nombre: string) => new ErrorOAuth("invalid_grant", `La conexión con ${nombre} venció. Vuelve a conectarla.`);
 
 /* ---------------- Herramientas ---------------- */
 

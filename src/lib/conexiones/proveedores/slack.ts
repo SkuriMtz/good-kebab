@@ -1,4 +1,5 @@
 import type { Adaptador, Tokens } from "@/lib/nucleo-tipos";
+import { ErrorOAuth } from "../oauth";
 import {
   ErrorProveedor,
   argEntero,
@@ -12,6 +13,7 @@ import {
   linea,
   mensajePorEstado,
   pedirJson,
+  sinRenovacion,
   unir,
   variable,
 } from "./_comun-1";
@@ -49,7 +51,10 @@ function interpretarSlack(error?: string): string {
 
 async function api<T extends Base>(token: string, metodo: string, params: Record<string, string | number | boolean | undefined> = {}, senal?: AbortSignal) {
   const r = await pedirJson<T>(NOMBRE, `${API}/${metodo}${consulta(params)}`, { encabezados: { Authorization: `Bearer ${token}` }, senal });
-  if (!r.ok) throw new ErrorProveedor(interpretarSlack(r.error));
+  if (!r.ok) {
+    const auth = ["not_authed", "invalid_auth", "token_revoked", "token_expired", "account_inactive"].includes(r.error ?? "");
+    throw new ErrorProveedor(interpretarSlack(r.error), auth ? 401 : r.error === "ratelimited" ? 429 : 0);
+  }
   return r;
 }
 
@@ -58,7 +63,7 @@ type RespuestaOAuth = Base & {
   refresh_token?: string;
   expires_in?: number;
   team?: { id?: string; name?: string };
-  authed_user?: { id?: string; access_token?: string; refresh_token?: string; expires_in?: number };
+  authed_user?: { id?: string; scope?: string; access_token?: string; refresh_token?: string; expires_in?: number };
 };
 
 async function oauth(campos: Record<string, string | undefined>): Promise<RespuestaOAuth> {
@@ -69,7 +74,8 @@ async function oauth(campos: Record<string, string | undefined>): Promise<Respue
   });
   if (!r.ok) {
     const corto = r.error && /^[a-z_]{3,40}$/.test(r.error) ? ` (${r.error})` : "";
-    throw new ErrorProveedor(`Slack no aceptó la conexión${corto}. Intenta conectar de nuevo.`);
+    const vencido = ["invalid_refresh_token", "invalid_grant", "token_revoked", "invalid_code"].includes(r.error ?? "");
+    throw new ErrorOAuth(vencido ? "invalid_grant" : "rechazo", `Slack no aceptó la conexión${corto}. Intenta conectar de nuevo.`);
   }
   return r;
 }
@@ -82,6 +88,7 @@ function aTokens(r: RespuestaOAuth, anterior?: Tokens): Tokens {
   if (r.team?.id) extra.team_id = r.team.id;
   if (r.team?.name) extra.team = r.team.name;
   if (u?.id) extra.user_id = u.id;
+  if (u?.scope) extra.scopes = u.scope.split(",").join(" ");
   return {
     access_token: access,
     refresh_token: u?.refresh_token ?? r.refresh_token ?? anterior?.refresh_token,
@@ -120,7 +127,7 @@ export const adaptador: Adaptador = {
   },
 
   async renovar(t) {
-    if (!t.refresh_token) throw new ErrorProveedor("La conexión con Slack venció. Vuelve a conectarla.", 401);
+    if (!t.refresh_token) throw sinRenovacion(NOMBRE);
     return aTokens(
       await oauth({
         client_id: variable("SLACK_CLIENT_ID"),
@@ -220,3 +227,6 @@ export const adaptador: Adaptador = {
     }),
   ],
 };
+
+/** Con el nombre del proveedor, como lo importa el registro. */
+export { adaptador as slack };

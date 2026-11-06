@@ -13,6 +13,7 @@ import {
   pedir,
   pedirJson,
   pedirToken,
+  sinRenovacion,
   unir,
   variable,
 } from "./_comun-1";
@@ -150,7 +151,7 @@ export const adaptador: Adaptador = {
   },
 
   async renovar(t) {
-    if (!t.refresh_token) throw new ErrorProveedor("La conexión con Dropbox venció. Vuelve a conectarla.", 401);
+    if (!t.refresh_token) throw sinRenovacion(NOMBRE);
     const { id, secreto } = credenciales();
     const pkce = t.extra?.pkce === "1";
     const r = await pedirToken<RespuestaToken>(
@@ -245,3 +246,6 @@ export const adaptador: Adaptador = {
     }),
   ],
 };
+
+/** Con el nombre del proveedor, como lo importa el registro. */
+export { adaptador as dropbox };

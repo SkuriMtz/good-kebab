@@ -44,6 +44,13 @@ export const PERMISOS_META: Partial<Record<IdApp, string[]>> = {
   instagram: ["instagram_basic", "instagram_manage_messages", "pages_show_list", "pages_manage_metadata", "business_management"],
 };
 
+/** El permiso sin el cual la app no sirve (para saber qué apps quedaron concedidas). */
+const PERMISO_CLAVE: Partial<Record<IdApp, string>> = {
+  whatsapp_business: "whatsapp_business_management",
+  messenger: "pages_messaging",
+  instagram: "instagram_manage_messages",
+};
+
 export function permisosMeta(apps: IdApp[]): string[] {
   const propias = apps.filter((a) => PERMISOS_META[a]);
   const lista = (propias.length ? propias : (Object.keys(PERMISOS_META) as IdApp[])).flatMap((a) => PERMISOS_META[a] ?? []);
@@ -53,12 +60,12 @@ export function permisosMeta(apps: IdApp[]): string[] {
 const prueba = (token: string) => createHmac("sha256", variable("META_APP_SECRET")).update(token).digest("hex");
 
 /** Mensajes de error de Graph: el código 190 es token vencido o revocado. */
-function interpretarGraph(estado: number, cuerpo: unknown): string | undefined {
+function interpretarGraph(_estado: number, cuerpo: unknown): string | { mensaje: string; status: number } | undefined {
   const e = (cuerpo as { error?: { code?: number } } | null)?.error;
-  if (e?.code === 190 || e?.code === 102) return mensajePorEstado(NOMBRE, 401);
+  if (e?.code === 190 || e?.code === 102) return { mensaje: mensajePorEstado(NOMBRE, 401), status: 401 };
   if (e?.code === 10 || e?.code === 200 || (typeof e?.code === "number" && e.code >= 200 && e.code < 300))
     return "Meta no dio permiso para ver esto. Puede faltar la revisión de la app en Meta o un permiso al conectar.";
-  if (e?.code === 4 || e?.code === 17 || e?.code === 32 || e?.code === 613) return mensajePorEstado(NOMBRE, 429);
+  if (e?.code === 4 || e?.code === 17 || e?.code === 32 || e?.code === 613) return { mensaje: mensajePorEstado(NOMBRE, 429), status: 429 };
   return undefined;
 }
 
@@ -76,7 +83,7 @@ async function datosDeLaCuenta(token: string): Promise<Record<string, string>> {
   const [yo, paginas, depuracion] = await Promise.allSettled([
     graph<{ id: string; name?: string }>("/me", token, { fields: "id,name" }),
     graph<{ data?: Pagina[] }>("/me/accounts", token, { fields: "id,name,access_token,instagram_business_account{id,username}", limit: 50 }),
-    pedirJson<{ data?: { granular_scopes?: { scope: string; target_ids?: string[] }[] } }>(
+    pedirJson<{ data?: { scopes?: string[]; granular_scopes?: { scope: string; target_ids?: string[] }[] } }>(
       NOMBRE,
       `${GRAPH}/debug_token${consulta({ input_token: token, access_token: `${variable("META_APP_ID")}|${variable("META_APP_SECRET")}` })}`,
     ),
@@ -97,6 +104,12 @@ async function datosDeLaCuenta(token: string): Promise<Record<string, string>> {
     }
   }
   if (depuracion.status === "fulfilled") {
+    // Qué permisos concedió de verdad: el marco solo activa las apps cubiertas (extra.apps)
+    const concedidos = depuracion.value.data?.scopes;
+    if (Array.isArray(concedidos)) {
+      extra.scopes = concedidos.join(" ");
+      extra.apps = (Object.keys(PERMISO_CLAVE) as IdApp[]).filter((a) => concedidos.includes(PERMISO_CLAVE[a]!)).join(",");
+    }
     const alcances = depuracion.value.data?.granular_scopes ?? [];
     const waba = alcances.find((s) => s.scope === "whatsapp_business_management")?.target_ids?.[0];
     if (waba && /^\d+$/.test(waba)) {
@@ -218,10 +231,11 @@ export const adaptador: Adaptador = {
     });
   },
 
+  // Solo el nombre de la persona: el marco revoca la conexión anterior si la cuenta cambia,
+  // y en Meta revocar quita TODOS los permisos de la app (también los recién dados).
   async cuenta(t) {
-    let nombre = t.extra?.nombre;
-    if (!nombre) nombre = (await graph<{ name?: string }>("/me", t.access_token, { fields: "name" })).name;
-    return unir(nombre || "Cuenta de Meta", t.extra?.page_name, t.extra?.ig_username ? `@${t.extra.ig_username}` : "", t.extra?.telefono);
+    if (t.extra?.nombre) return t.extra.nombre;
+    return (await graph<{ name?: string }>("/me", t.access_token, { fields: "name" })).name || "Cuenta de Meta";
   },
 
   herramientas: [
@@ -302,3 +316,6 @@ export const adaptador: Adaptador = {
     }),
   ],
 };
+
+/** Con el nombre del proveedor, como lo importa el registro. */
+export { adaptador as meta };

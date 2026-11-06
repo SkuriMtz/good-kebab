@@ -151,3 +151,6 @@ export const adaptador: Adaptador = {
     }),
   ],
 };
+
+/** Con el nombre del proveedor, como lo importa el registro. */
+export { adaptador as trello };
