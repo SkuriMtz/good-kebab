@@ -20,7 +20,10 @@ export const SCOPE_GOOGLE: Partial<Record<IdApp, string>> = {
   google_sheets: `${G}spreadsheets.readonly`,
   google_contacts: `${G}contacts.readonly`,
   google_business: `${G}business.manage`,
+  google_forms: `${G}forms.responses.readonly`,
 };
+/** Scopes que además pide una app (no cuentan para saber si se concedió). Forms: los títulos de las preguntas. */
+const SCOPES_EXTRA_GOOGLE: Partial<Record<IdApp, string[]>> = { google_forms: [`${G}forms.body.readonly`] };
 export const SCOPE_DRIVE_FILE = `${G}drive.file`;
 const IDENTIDAD = ["openid", "email"];
 
@@ -328,6 +331,65 @@ const leerHoja: Herramienta = {
   },
 };
 
+/* ---------------- Google Forms (forms.responses.readonly + forms.body.readonly) ---------------- */
+
+type Pregunta = { title?: string; questionItem?: { question?: { questionId?: string } }; questionGroupItem?: { questions?: { questionId?: string; rowQuestion?: { title?: string } }[] } };
+type RespuestaForm = { createTime?: string; lastSubmittedTime?: string; respondentEmail?: string; answers?: Record<string, { questionId?: string; textAnswers?: { answers?: { value?: string }[] } }> };
+
+/** Acepta el id o el link del formulario (…/forms/d/<id>/edit). Los links /forms/d/e/… son de "responder" y no sirven. */
+const idDeForm = (v: string) => (v.match(/\/forms\/d\/(?!e\/)([A-Za-z0-9_-]{20,})/)?.[1] ?? v).trim();
+
+const formsRespuestas: Herramienta = {
+  nombre: "google_forms_respuestas",
+  descripcion:
+    "Lee las respuestas más recientes de un formulario de Google Forms, con cada pregunta y lo que contestaron (solo lectura). Recibe el id o el link de edición del formulario (el que termina en /edit).",
+  app: "google_forms",
+  agentes: ["victor"],
+  esquema: {
+    type: "object",
+    properties: {
+      formulario: { type: "string", description: "El id o el link de edición del formulario (docs.google.com/forms/d/<id>/edit)." },
+      limite: { type: "integer", minimum: 1, maximum: 25, description: "Cuántas respuestas (de la más reciente). Por defecto 10." },
+    },
+    required: ["formulario"],
+    additionalProperties: false,
+  },
+  async ejecutar(args, ctx) {
+    const id = idDeForm(argTexto(args, "formulario", { requerido: true, max: 400 }));
+    if (!/^[A-Za-z0-9_-]{20,}$/.test(id))
+      throw new ErrorArgs('"formulario" no parece el id ni el link de edición de un Google Form (el link de responder, /forms/d/e/…, no sirve).');
+    const limite = argNumero(args, "limite", { min: 1, max: 25, omision: 10 });
+    const p = { token: await tokenDe(ctx), senal: ctx.senal, proveedor: "google" as const };
+    const base = `https://forms.googleapis.com/v1/forms/${id}`;
+    const [form, r] = await Promise.all([
+      pedirJson<{ info?: { title?: string; documentTitle?: string }; items?: Pregunta[] }>(base, p).catch(() => null),
+      pedirJson<{ responses?: RespuestaForm[] }>(`${base}/responses`, p),
+    ]);
+    const titulos = new Map<string, string>();
+    for (const it of form?.items ?? []) {
+      const q = it.questionItem?.question?.questionId;
+      if (q) titulos.set(q, linea(it.title, 80));
+      for (const g of it.questionGroupItem?.questions ?? []) if (g.questionId) titulos.set(g.questionId, linea(`${it.title ?? ""} ${g.rowQuestion?.title ?? ""}`, 80));
+    }
+    const lista = [...(r.responses ?? [])].sort((a, b) => (b.lastSubmittedTime ?? "").localeCompare(a.lastSubmittedTime ?? "")).slice(0, limite);
+    const nombre = linea(form?.info?.title ?? form?.info?.documentTitle ?? "el formulario", 100);
+    if (!lista.length) return `"${nombre}" no tiene respuestas todavía.`;
+    return recortar(
+      [
+        `Respuestas de "${nombre}" (${lista.length} de ${r.responses?.length ?? lista.length}, de la más reciente):`,
+        ...lista.map((x) =>
+          [
+            `• ${[fechaMx(x.lastSubmittedTime ?? x.createTime), x.respondentEmail].filter(Boolean).join(" · ") || "sin fecha"}`,
+            ...Object.values(x.answers ?? {}).map(
+              (a) => `  - ${titulos.get(a.questionId ?? "") || "Pregunta"}: ${linea((a.textAnswers?.answers ?? []).map((v) => v.value).filter(Boolean).join(", "), 300) || "(archivo o sin texto)"}`,
+            ),
+          ].join("\n"),
+        ),
+      ].join("\n"),
+    );
+  },
+};
+
 type Persona = { names?: { displayName?: string }[]; emailAddresses?: { value?: string }[]; phoneNumbers?: { value?: string }[]; organizations?: { name?: string }[] };
 const PEOPLE = "https://people.googleapis.com/v1";
 const contactosBuscar: Herramienta = {
@@ -415,7 +477,9 @@ export const google: Adaptador = {
   requiereAprobacion:
     "Mientras Google no verifique la app, solo se conectan los usuarios de prueba que agregues (hasta 100). Gmail es un permiso restringido: abrirlo a todos pide verificación y una revisión de seguridad. Perfil de Negocio además pide que Google apruebe el acceso a su API.",
   urlAutorizacion({ state, redirectUri, apps, codeChallenge }) {
-    const scopes = Array.from(new Set([...IDENTIDAD, ...apps.map((a) => SCOPE_GOOGLE[a]).filter((x): x is string => Boolean(x))]));
+    const scopes = Array.from(
+      new Set([...IDENTIDAD, ...apps.flatMap((a) => [SCOPE_GOOGLE[a], ...(SCOPES_EXTRA_GOOGLE[a] ?? [])]).filter((x): x is string => Boolean(x))]),
+    );
     const q = new URLSearchParams({
       client_id: cred().clientId,
       redirect_uri: redirectUri,
@@ -465,5 +529,5 @@ export const google: Adaptador = {
     const u = r?.ok ? ((await r.json().catch(() => ({}))) as { email?: unknown }) : {};
     return typeof u.email === "string" ? u.email : "Cuenta de Google";
   },
-  herramientas: [gmailBuscar, gmailLeer, verAgenda, driveBuscar, driveLeer, leerHoja, contactosBuscar, resenas],
+  herramientas: [gmailBuscar, gmailLeer, verAgenda, driveBuscar, driveLeer, leerHoja, contactosBuscar, resenas, formsRespuestas],
 };

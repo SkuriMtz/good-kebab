@@ -1,4 +1,4 @@
-# Configurar apps: Meta, Telegram, Calendly, Zoom, Dropbox, Slack, Trello, Airtable y HubSpot
+# Configurar apps: Meta, Telegram, Calendly, Zoom, Dropbox, Slack, Trello, Airtable, HubSpot, reservas y CRM
 
 Estas secciones se suman a `docs/configurar-apps.md`. En todas:
 
@@ -9,7 +9,7 @@ Estas secciones se suman a `docs/configurar-apps.md`. En todas:
 - **Todo es de solo lectura.** Ningún agente manda, cambia ni borra nada en estas apps.
 - Mientras falte una variable, la tarjeta de la app dice exactamente cuál falta.
 
-Las apps "por llave" (Telegram, Trello y Airtable) no necesitan nada en Vercel: cada persona pega **su** llave en la tarjeta y se guarda cifrada.
+Las apps "por llave" (Telegram, Trello, Airtable, Acuity y SimplyBook.me) no necesitan nada en Vercel: cada persona pega **su** llave en la tarjeta y se guarda cifrada.
 
 ---
 
@@ -188,6 +188,159 @@ Atendel usa la versión nueva de la API de OAuth de HubSpot (la v1 se retira en 
 
 ---
 
+## Reseñas de Facebook (va con la misma app de Meta)
+
+**Qué hace la IA:** Víctor lee las recomendaciones y reseñas recientes de tu página de Facebook y su calificación general, para proponerte cómo contestarlas.
+
+No hay que crear otra app ni poner otra variable: se usa la misma app de Meta (`META_APP_ID` y `META_APP_SECRET`).
+
+- **Permisos:** `pages_show_list`, `pages_read_user_content`, `pages_read_engagement` y `business_management`.
+- **Aprobación:** igual que las demás de Meta, `pages_read_user_content` necesita acceso avanzado en **Revisión de la app** para usarse con cualquier página.
+
+---
+
+## Google Forms (va con el cliente de Google)
+
+**Qué hace la IA:** Víctor lee las respuestas de un formulario de Google que le indiques (con el link de edición del formulario).
+
+1. En Google Cloud, en el mismo proyecto de Gmail y Drive, activa la **Google Forms API** (APIs y servicios → Biblioteca).
+2. En la **pantalla de consentimiento** → **Permisos**, agrega:
+   - `https://www.googleapis.com/auth/forms.responses.readonly`;
+   - `https://www.googleapis.com/auth/forms.body.readonly`.
+3. No hay variables nuevas: usa `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`.
+
+**A saber:** la IA necesita el link de **edición** del formulario, el que termina en `/edit`. El link para responder (`/forms/d/e/…`) no sirve.
+
+---
+
+## Acuity Scheduling (por llave)
+
+**Qué hace la IA:** Lola ve tus próximas citas, las citas de un cliente (por correo, teléfono o nombre) y tus servicios.
+
+**Cómo sacar la llave:**
+
+1. En Acuity entra a **Integraciones** → **API** y da **Ver credenciales**. Según Acuity, la API está en sus planes de pago más altos.
+2. Copia tu **User ID** (un número) y tu **API Key**.
+3. En la tarjeta de Acuity pega las dos partes juntas, separadas por dos puntos: `User ID:API key`.
+
+En Vercel no se pone nada.
+
+---
+
+## SimplyBook.me (por llave)
+
+**Qué hace la IA:** Lola ve tus próximas reservas, las reservas de un cliente y tus servicios.
+
+**Cómo sacar la llave:**
+
+1. En SimplyBook.me entra a **Settings** → **API User Keys** y crea una llave para tu usuario. Empieza con `api_user_key_`.
+2. En la tarjeta pega tres datos separados por dos puntos: `empresa:usuario:api_user_key_…`.
+   - **empresa:** el nombre de tu cuenta, el que va antes de `.simplybook.me` en tu dirección.
+   - **usuario:** tu usuario de administración.
+
+Nunca se pega tu contraseña. La API User Key no pide verificación en dos pasos. En Vercel no se pone nada.
+
+---
+
+## Zoho CRM y Zoho Books (un solo cliente de Zoho)
+
+**Qué hace la IA:**
+
+- Víctor busca tus contactos y tratos de **Zoho CRM**.
+- Clara e Iris ven tus facturas y contactos de **Zoho Books**.
+
+1. Entra a [api-console.zoho.com](https://api-console.zoho.com) → **Add Client** → **Server-based Applications**.
+2. **Authorized Redirect URIs:** `https://<dominio>/api/conexiones/zoho/callback`.
+3. En **Settings** del cliente activa **Multi-DC**, para que funcione con cuentas de cualquier región (EE. UU., Europa, India…).
+4. Copia el **Client ID** y el **Client Secret**.
+5. En Vercel:
+   - `ZOHO_CLIENT_ID`;
+   - `ZOHO_CLIENT_SECRET`.
+
+**Permisos que pide Atendel:**
+
+- Cuenta: `AaaServer.profile.READ`.
+- Zoho CRM: `ZohoCRM.modules.contacts.READ` y `ZohoCRM.modules.deals.READ`.
+- Zoho Books: `ZohoBooks.invoices.READ`, `ZohoBooks.contacts.READ` y `ZohoBooks.settings.READ`.
+
+La autorización empieza siempre en accounts.zoho.com y Zoho manda a la región de cada cuenta. El permiso dura una hora y se renueva solo.
+
+---
+
+## Pipedrive
+
+**Qué hace la IA:** Víctor busca tus personas (contactos) y tratos.
+
+1. Entra al [Developer Hub de Pipedrive](https://developers.pipedrive.com) con una cuenta de desarrollador y crea una app privada o pública.
+2. **Callback URL:** `https://<dominio>/api/conexiones/pipedrive/callback`.
+3. En **OAuth & access scopes**, marca solo lectura en **Contacts** y en **Deals**.
+4. Copia el **Client ID** y el **Client secret**.
+5. En Vercel:
+   - `PIPEDRIVE_CLIENT_ID`;
+   - `PIPEDRIVE_CLIENT_SECRET`.
+
+---
+
+## Kommo
+
+**Qué hace la IA:** Víctor busca tus leads (con su embudo y etapa) y tus contactos.
+
+1. En tu cuenta de Kommo entra a **Ajustes** → **Integraciones** → **Crear integración** (externa).
+2. **Redirect URL:** `https://<dominio>/api/conexiones/kommo/callback`.
+3. En los permisos deja solo lo necesario para leer.
+4. En la pestaña **Llaves y alcances**, copia el **ID de integración** y la **Clave secreta**.
+5. En Vercel:
+   - `KOMMO_CLIENT_ID` = el ID de integración;
+   - `KOMMO_CLIENT_SECRET` = la clave secreta.
+
+**Al conectar:** la tarjeta pide la dirección de la cuenta (`miempresa.kommo.com`). El permiso dura 24 horas y se renueva solo; si no se usa en 3 meses, hay que volver a conectar.
+
+---
+
+## Typeform
+
+**Qué hace la IA:** Víctor ve tus formularios y lee sus respuestas (cada pregunta con lo que contestaron).
+
+1. En Typeform entra a tu cuenta → **Developer apps** → **Register a new app**.
+2. **Redirect URI(s):** `https://<dominio>/api/conexiones/typeform/callback`.
+3. Copia el **Client ID** y el **Client secret**.
+4. En Vercel:
+   - `TYPEFORM_CLIENT_ID`;
+   - `TYPEFORM_CLIENT_SECRET`.
+
+Atendel pide `accounts:read`, `forms:read`, `responses:read` y `offline` (para renovar solo). Las cuentas de Typeform en el centro de datos de la Unión Europea todavía no están cubiertas.
+
+---
+
+## Mailchimp
+
+**Qué hace la IA:** Víctor ve tus audiencias (cuántos suscritos y sus tasas) y cómo les fue a tus últimas campañas enviadas.
+
+1. En Mailchimp entra a tu perfil → **Extras** → **Registered apps** → **Register an app**.
+2. **Redirect URI:** `https://<dominio>/api/conexiones/mailchimp/callback`.
+3. Copia el **Client ID** y el **Client Secret**.
+4. En Vercel:
+   - `MAILCHIMP_CLIENT_ID`;
+   - `MAILCHIMP_CLIENT_SECRET`.
+
+El permiso de Mailchimp no vence. Atendel guarda el centro de datos de la cuenta (por ejemplo `us21`) para saber a dónde preguntar.
+
+---
+
+## En camino (sin conexión pública)
+
+Estas apps salen en el catálogo como "En camino" con "Avísame". No se conectan porque hoy no tienen una forma pública de conectarse:
+
+| App | Por qué |
+| --- | --- |
+| Setmore | Da su API solo a cuentas Pro que aprueba por correo (api@setmore.com), y su documentación técnica no está publicada para revisarla. |
+| AgendaPro | Anuncia una API en su sitio, pero no publica su documentación técnica. |
+| Fresha | No ofrece una API para conectar tu cuenta (solo integraciones de socios). |
+| Booksy | Su API es solo para socios aprobados. |
+| Doctoralia | Su API (Docplanner) es solo para empresas de software médico. |
+
+---
+
 ## Resumen para Vercel
 
 | Proveedor | Variables | Cómo se conecta |
@@ -201,3 +354,12 @@ Atendel usa la versión nueva de la API de OAuth de HubSpot (la v1 se retira en 
 | Telegram | (ninguna) | La persona pega el token de su bot |
 | Trello | (ninguna) | La persona pega `API key:token` |
 | Airtable | (ninguna) | La persona pega su token `pat…` |
+| Zoho (CRM y Books) | `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` | Botón "Conectar" |
+| Pipedrive | `PIPEDRIVE_CLIENT_ID`, `PIPEDRIVE_CLIENT_SECRET` | Botón "Conectar" |
+| Kommo | `KOMMO_CLIENT_ID`, `KOMMO_CLIENT_SECRET` | Botón "Conectar" (pide la dirección de la cuenta) |
+| Typeform | `TYPEFORM_CLIENT_ID`, `TYPEFORM_CLIENT_SECRET` | Botón "Conectar" |
+| Mailchimp | `MAILCHIMP_CLIENT_ID`, `MAILCHIMP_CLIENT_SECRET` | Botón "Conectar" |
+| Google Forms | (las de Google) | Botón "Conectar" de Google |
+| Reseñas de Facebook | (las de Meta) | Botón "Conectar" de Meta |
+| Acuity | (ninguna) | La persona pega `User ID:API key` |
+| SimplyBook.me | (ninguna) | La persona pega `empresa:usuario:api_user_key_…` |

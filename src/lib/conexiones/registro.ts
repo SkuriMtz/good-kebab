@@ -20,6 +20,13 @@ import { telegram } from "./proveedores/telegram";
 import { tiendanube } from "./proveedores/tiendanube";
 import { trello } from "./proveedores/trello";
 import { zoom } from "./proveedores/zoom";
+import { acuity } from "./proveedores/acuity";
+import { kommo } from "./proveedores/kommo";
+import { mailchimp } from "./proveedores/mailchimp";
+import { pipedrive } from "./proveedores/pipedrive";
+import { simplybook } from "./proveedores/simplybook";
+import { typeform } from "./proveedores/typeform";
+import { zoho } from "./proveedores/zoho";
 
 /**
  * REGISTRO DE PROVEEDORES: el único lugar que sabe qué adaptador atiende a
@@ -49,9 +56,7 @@ function pendiente(proveedor: Proveedor): Adaptador {
 
 // E (meta, telegram, calendly, zoom, dropbox, slack, trello, airtable y hubspot): ya unidos arriba
 // F (stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi): ya unidos arriba
-// v3 (E: reservas y CRM · G: pagos MX y contabilidad)
-const acuity = pendiente("acuity"); // import { acuity } from "./proveedores/acuity";
-const simplybook = pendiente("simplybook"); // import { simplybook } from "./proveedores/simplybook";
+// v3 (E: reservas y CRM, unidos arriba; setmore y agendapro sin API pública · G: pagos MX y contabilidad)
 const setmore = pendiente("setmore"); // import { setmore } from "./proveedores/setmore";
 const agendapro = pendiente("agendapro"); // import { agendapro } from "./proveedores/agendapro";
 const paypal = pendiente("paypal"); // import { paypal } from "./proveedores/paypal";
@@ -61,12 +66,7 @@ const square = pendiente("square"); // import { square } from "./proveedores/squ
 const facturama = pendiente("facturama"); // import { facturama } from "./proveedores/facturama";
 const alegra = pendiente("alegra"); // import { alegra } from "./proveedores/alegra";
 const holded = pendiente("holded"); // import { holded } from "./proveedores/holded";
-const zoho = pendiente("zoho"); // import { zoho } from "./proveedores/zoho";
 const quickbooks = pendiente("quickbooks"); // import { quickbooks } from "./proveedores/quickbooks";
-const pipedrive = pendiente("pipedrive"); // import { pipedrive } from "./proveedores/pipedrive";
-const kommo = pendiente("kommo"); // import { kommo } from "./proveedores/kommo";
-const typeform = pendiente("typeform"); // import { typeform } from "./proveedores/typeform";
-const mailchimp = pendiente("mailchimp"); // import { mailchimp } from "./proveedores/mailchimp";
 
 export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   google,

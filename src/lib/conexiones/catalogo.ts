@@ -70,6 +70,22 @@ export const CATALOGO: readonly AppConectable[] = [
   app("trello", "Trello", "documentos", "trello", "llave", ["iris"], "Ver tus tableros y tarjetas de Trello. Solo lectura."),
   // Clientes (CRM)
   app("hubspot", "HubSpot", "clientes", "hubspot", "oauth", ["victor"], "Ver tus contactos y negocios en HubSpot. Solo lectura."),
+  // v3 · Ventas, CRM, formularios y reseñas (E)
+  app("zoho_crm", "Zoho CRM", "clientes", "zoho", "oauth", ["victor"], "Buscar tus contactos y tratos en Zoho CRM. Solo lectura."),
+  app("pipedrive", "Pipedrive", "clientes", "pipedrive", "oauth", ["victor"], "Buscar tus personas y tratos en Pipedrive. Solo lectura."),
+  app("kommo", "Kommo", "clientes", "kommo", "oauth", ["victor"], "Buscar tus leads y contactos en Kommo. Solo lectura."),
+  app("google_forms", "Google Forms", "clientes", "google", "oauth", ["victor"], "Leer las respuestas de los formularios de Google que le indiques. Solo lectura."),
+  app("typeform", "Typeform", "clientes", "typeform", "oauth", ["victor"], "Ver tus formularios de Typeform y leer sus respuestas. Solo lectura."),
+  app("mailchimp", "Mailchimp", "clientes", "mailchimp", "oauth", ["victor"], "Ver tus audiencias y cómo les fue a tus campañas enviadas. Solo lectura."),
+  app("facebook_resenas", "Reseñas de Facebook", "resenas", "meta", "oauth", ["victor"], "Leer las recomendaciones y reseñas de tu página de Facebook. Solo lectura.", { requiereAprobacion: META }),
+  // v3 · Reservas y citas (E). Las que no tienen API pública quedan en camino (fase 2), sin inventar.
+  app("acuity", "Acuity Scheduling", "reservas", "acuity", "llave", ["lola"], "Ver tus citas, las de un cliente y tus servicios en Acuity. Solo lectura."),
+  app("simplybook", "SimplyBook.me", "reservas", "simplybook", "llave", ["lola"], "Ver tus reservas, las de un cliente y tus servicios en SimplyBook.me. Solo lectura."),
+  app("setmore", "Setmore", "reservas", null, null, ["lola"], "Aún no tiene conexión pública: Setmore da su API solo a cuentas Pro que aprueba por correo.", { fase: 2 }),
+  app("agendapro", "AgendaPro", "reservas", null, null, ["lola"], "Aún no tiene conexión pública: AgendaPro no publica la documentación de su API.", { fase: 2 }),
+  app("fresha", "Fresha", "reservas", null, null, ["lola"], "Aún no tiene conexión pública: Fresha no ofrece una API para conectar tu cuenta.", { fase: 2 }),
+  app("booksy", "Booksy", "reservas", null, null, ["lola"], "Aún no tiene conexión pública: Booksy abre su API solo a socios aprobados.", { fase: 2 }),
+  app("doctoralia", "Doctoralia", "reservas", null, null, ["lola"], "Aún no tiene conexión pública: la API de Doctoralia es solo para empresas de software médico.", { fase: 2 }),
   // Pagos y ventas
   app("stripe", "Stripe", "pagos", "stripe", "llave", ["iris", "victor"], "Ver tus cobros y pagos con tarjeta. Solo lectura."),
   app("mercado_pago", "Mercado Pago", "pagos", "mercadopago", "oauth", ["iris"], "Ver los pagos que recibes y los pendientes. Solo lectura."),
@@ -79,6 +95,8 @@ export const CATALOGO: readonly AppConectable[] = [
   }),
   app("tienda_nube", "Tiendanube", "pagos", "tiendanube", "oauth", ["iris", "victor"], "Ver los pedidos y productos de tu tienda en línea. Solo lectura."),
   app("clip", "Clip", "pagos", null, null, ["clara", "victor"], "Ver las ventas que cobras con tu terminal Clip.", { fase: 2 }),
+  // Contabilidad (Zoho Books va con el mismo OAuth de Zoho que Zoho CRM)
+  app("zoho_books", "Zoho Books", "contabilidad", "zoho", "oauth", ["clara", "iris"], "Ver tus facturas y clientes de Zoho Books. Solo lectura."),
   // Facturación
   app("cfdi", "Facturas CFDI", "facturacion", "facturapi", "llave", ["iris"], "Leer tus facturas electrónicas para llevar cobros y pagos. Solo lectura."),
 ];
@@ -107,6 +125,14 @@ export const PROVEEDORES: readonly Proveedor[] = [
   "shopify",
   "tiendanube",
   "facturapi",
+  // v3 (E): reservas y CRM
+  "acuity",
+  "simplybook",
+  "zoho",
+  "pipedrive",
+  "kommo",
+  "typeform",
+  "mailchimp",
 ];
 
 export const esProveedor = (v: unknown): v is Proveedor => typeof v === "string" && (PROVEEDORES as readonly string[]).includes(v);
