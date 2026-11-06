@@ -61,7 +61,10 @@ export type NombreIcono =
   | "filtro"
   | "puntos"
   | "check-doble"
-  | "rayo";
+  | "rayo"
+  // Tu negocio: subir documentos y agregar links
+  | "subir"
+  | "enlace";
 
 const TRAZOS: Record<NombreIcono, ReactNode> = {
   chevron: <path d="m6 9 6 6 6-6" />,
@@ -288,6 +291,20 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
   ),
   "check-doble": <path d="m2.5 12.5 4.5 4.5 9-9.5M12 16l1 1 9-9.5" />,
   rayo: <path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12L13 3Z" />,
+  /* Subir un archivo: la flecha sale de la bandeja */
+  subir: (
+    <>
+      <path d="M12 15.5V4.5M7.5 9 12 4.5 16.5 9" />
+      <path d="M4.5 14.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3" />
+    </>
+  ),
+  /* Un link: dos eslabones */
+  enlace: (
+    <>
+      <path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1" />
+      <path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" />
+    </>
+  ),
 };
 
 export type PropsIcono = {

@@ -25,7 +25,7 @@ const VERSION = "v1";
 const LARGO_IV = 12;
 const LARGO_TAG = 16;
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
-const BASE64URL = /^[A-Za-z0-9_-]+$/;
+const BASE64URL = /^[A-Za-z0-9_-]*$/;
 
 export class ErrorCifrado extends Error {
   constructor(mensaje: string) {

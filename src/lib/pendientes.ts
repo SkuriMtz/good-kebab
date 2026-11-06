@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdAgente } from "./agentes";
+import { CAMPOS_PERFIL } from "./nucleo-tipos";
 import { pasosPanel, type PasoPanel } from "./pasos";
 import { createClient } from "./supabase/server";
 
@@ -42,7 +43,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
   const ids = await negociosDe(supabase, userId);
 
   // El mismo filtro para contar y para listar: no nula, no vacía y que no empiece con "ninguna"
-  const [cuenta, correos, conversaciones, grupos] = await Promise.all([
+  const [cuenta, correos, conversaciones, grupos, perfil, apps] = await Promise.all([
     supabase
       .from("resumenes_correo")
       .select("id", { count: "exact", head: true })
@@ -64,7 +65,12 @@ export const cargarPendientes = cache(async function cargarPendientes(
     supabase.from("conversaciones").select("id", { count: "exact", head: true }).eq("owner_id", userId),
     // Un grupo: una conversación con participantes (siempre de 2 a 4 agentes)
     supabase.from("conversaciones").select("id", { count: "exact", head: true }).eq("owner_id", userId).not("participantes", "is", null),
+    // Tu negocio (migración 0006): el perfil y las apps conectadas. Si la tabla aún no existe, el paso sale por hacer
+    supabase.from("perfil_negocio").select(CAMPOS_PERFIL.join(", ")).eq("owner_id", userId).maybeSingle(),
+    supabase.from("conexiones").select("proveedor", { count: "exact", head: true }).eq("owner_id", userId).eq("estado", "activa"),
   ]);
+  const filaPerfil = (perfil.error ? null : perfil.data) as Record<string, unknown> | null;
+  const camposPerfil = CAMPOS_PERFIL.filter((c) => typeof filaPerfil?.[c] === "string" && (filaPerfil[c] as string).trim().length > 0).length;
 
   const todosLosPasos = pasosPanel({
     activos,
@@ -72,6 +78,8 @@ export const cargarPendientes = cache(async function cargarPendientes(
     conConversaciones: (conversaciones.count ?? 0) > 0,
     conGrupo: (grupos.count ?? 0) > 0,
     conGrupos: planId !== "free",
+    camposPerfil,
+    conApp: !apps.error && (apps.count ?? 0) > 0,
   });
   const pasos = todosLosPasos.filter((p) => !p.listo);
   const n = cuenta.error ? null : (cuenta.count ?? 0);

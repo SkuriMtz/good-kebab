@@ -12,7 +12,7 @@ import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { useTema } from "./useTema";
 import "./panel.css";
 
-export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[] };
 export type ResultadoBusqueda = { id: string; grupo: string; titulo: string; detalle?: string; href: string; icono?: NombreIcono; agentes?: IdAgente[]; claves?: string };
 export type ElementoCuenta = { id: string; etiqueta: string; detalle?: string; href?: string; alElegir?: () => void; icono: NombreIcono; peligroso?: boolean };
@@ -21,7 +21,7 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; agentes: string; pendientes: string; citas: string; estadisticas: string; ajustes: string };
+  hrefs: { inicio: string; agentes: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
   /** Los chats en grupo. */
@@ -205,6 +205,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
               ) : null,
             )}
             {item("citas", "Citas", "calendario", hrefs.citas)}
+            {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
             {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
             {item("ajustes", "Ajustes", "ajustes", hrefs.ajustes)}
           </nav>

@@ -10,7 +10,9 @@ import { ContextoChats } from "@/components/panel/contexto";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
-import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
+import { AvisoHilo, Copiar, DiaHilo, Escribiendo, LineaEscribe, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
+import { separarEstado } from "@/lib/estado-chat";
+import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
 import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
@@ -41,6 +43,8 @@ type Mensaje = {
   enCurso?: boolean;
   /** Escrito en esta visita: entra con animación. */
   nuevo?: boolean;
+  /** Lo que hace el agente con una app mientras contesta ("Clara está revisando tu correo…"). */
+  estado?: string | null;
 };
 /** Lo que se pinta: cada voz de una respuesta en grupo es su propia pieza. */
 type Pieza = {
@@ -51,6 +55,7 @@ type Pieza = {
   nuevo?: boolean;
   enCurso?: boolean;
   error?: string;
+  estado?: string | null;
 };
 
 const MARCA_ERROR = "\u0000ERROR:";
@@ -154,6 +159,8 @@ export function Chat({
   const abortar = useRef<AbortController | null>(null);
   const pegado = useRef(true); // ¿la vista está hasta abajo?
   const menu = useContext(ContextoChats);
+  /** El "+" de la caja: subir un documento a Tu negocio o ir a conectar una app. */
+  const subida = useSubirDesdeChat();
   const router = useRouter();
   const params = useSearchParams();
   const consulta = params.toString();
@@ -310,7 +317,8 @@ export function Chat({
     const actualizar = (cambio: Partial<Mensaje>) => setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
 
     // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
-    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio } : { agente, mensaje: limpio, conversacionId: actual };
+    // estados: true → el stream trae lo que hace el agente con las apps ("\u0001…\u0002", src/lib/estado-chat.ts)
+    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio, estados: true } : { agente, mensaje: limpio, conversacionId: actual, estados: true };
 
     try {
       const res = await fetch("/api/chat", {
@@ -355,14 +363,16 @@ export function Chat({
         const { done, value } = await lector.read();
         if (done) break;
         acumulado += decoder.decode(value, { stream: true });
+        // Primero el error de siempre; luego, lo que hace el agente con las apps (el estado) se separa del texto
         const corte = acumulado.indexOf(MARCA_ERROR);
         if (corte >= 0) {
-          actualizar({ contenido: acumulado.slice(0, corte), error: acumulado.slice(corte + MARCA_ERROR.length) });
+          actualizar({ contenido: separarEstado(acumulado.slice(0, corte)).texto, error: acumulado.slice(corte + MARCA_ERROR.length), estado: null });
         } else {
-          actualizar({ contenido: acumulado });
+          const { texto, estado } = separarEstado(acumulado);
+          actualizar({ contenido: texto, estado });
         }
       }
-      actualizar({ enCurso: false });
+      actualizar({ enCurso: false, estado: null });
     } catch (e) {
       const detenido = e instanceof DOMException && e.name === "AbortError";
       actualizar({ enCurso: false, error: detenido ? undefined : "Se perdió la conexión. Intenta de nuevo." });
@@ -384,12 +394,13 @@ export function Chat({
     if (m.rol === "user") return [{ key: m.id, de: "tu", texto: m.contenido, fecha, nuevo: m.nuevo }];
     return voces(m).map((v, i, lista) => {
       const ultima = i === lista.length - 1;
-      return { key: `${m.id}-${i}`, de: v.agente, texto: v.texto, fecha, nuevo: m.nuevo, enCurso: m.enCurso && ultima, error: ultima ? m.error : undefined };
+      return { key: `${m.id}-${i}`, de: v.agente, texto: v.texto, fecha, nuevo: m.nuevo, enCurso: m.enCurso && ultima, error: ultima ? m.error : undefined, estado: m.enCurso && ultima ? m.estado : null };
     });
   });
   const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
   // Quién escribe ahora (para los tres puntos y la cabecera)
   const enCurso = visibles[visibles.length - 1]?.enCurso ? (visibles[visibles.length - 1].de as IdAgente) : null;
+  const estadoEnCurso = enCurso ? visibles[visibles.length - 1].estado : null;
 
   const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
     key: id,
@@ -416,6 +427,7 @@ export function Chat({
         initialText={caja.texto}
         placeholder={grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
         sources={fuentes}
+        plusActions={subida.acciones}
         commands={comandosDe(participantes)}
         models={[]}
         efforts={[]}
@@ -510,6 +522,7 @@ export function Chat({
           </p>
         ) : null}
         {nuevoGrupoModal}
+        {subida.elementos}
       </ContextoNavegar.Provider>
     );
   }
@@ -522,7 +535,7 @@ export function Chat({
         titulo={tituloConv}
         sub={
           enCurso ? (
-            <span className="pc-conv__escribe">{AGENTE_POR_ID[enCurso].nombre} está escribiendo…</span>
+            <span className="pc-conv__escribe">{estadoEnCurso ?? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…`}</span>
           ) : grupo ? (
             `Grupo · ${nombresDe(grupo)}`
           ) : (
@@ -561,7 +574,7 @@ export function Chat({
               const primero = nuevoDia || antes.de !== p.de;
               let pieza;
               if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} nuevo={p.nuevo} />;
-              else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} cabeza={primero} />;
+              else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} cabeza={primero} texto={p.estado ?? undefined} />;
               else if (!p.texto)
                 pieza = (
                   <AvisoHilo error nuevo={p.nuevo}>
@@ -582,6 +595,8 @@ export function Chat({
                         <p role="alert" className="pc-msj__error">
                           {p.error}
                         </p>
+                      ) : p.enCurso && p.estado ? (
+                        <LineaEscribe texto={p.estado} />
                       ) : !p.enCurso && i === visibles.length - 1 ? (
                         <Copiar texto={p.texto} />
                       ) : null
@@ -600,6 +615,7 @@ export function Chat({
         )}
       </VistaConversacion>
       {nuevoGrupoModal}
+      {subida.elementos}
       <Modal
         abierto={porBorrar !== null}
         alCerrar={() => setPorBorrar(null)}

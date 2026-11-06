@@ -64,7 +64,9 @@ export const MAX_DOCUMENTOS_POR_PLAN = { free: 3, one: 20, max: 100 } as const;
  * (variables en Vercel) o, si es por llave, cuando la persona pega SU llave
  * en la tarjeta (se guarda cifrada). Las que además piden aprobación del
  * proveedor (Meta, Google Business) lo dicen en `requiereAprobacion`.
- * "clip" queda en_camino: no tiene API pública para leer cobros.
+ * "clip" queda en_camino: no tiene API pública para leer cobros. Lo mismo
+ * para las de v3 sin API pública (si se confirma en su documentación):
+ * fresha, booksy y doctoralia → en_camino con "Avísame", sin inventar.
  */
 export type Proveedor =
   | "google"
@@ -84,7 +86,25 @@ export type Proveedor =
   | "mercadolibre"
   | "shopify"
   | "tiendanube"
-  | "facturapi";
+  | "facturapi"
+  // v3 (el dueño eligió las 4 tandas): reservas, pagos MX, contabilidad, CRM y marketing
+  | "acuity"
+  | "simplybook"
+  | "setmore"
+  | "agendapro"
+  | "paypal"
+  | "conekta"
+  | "openpay"
+  | "square"
+  | "facturama"
+  | "alegra"
+  | "holded"
+  | "zoho"
+  | "quickbooks"
+  | "pipedrive"
+  | "kommo"
+  | "typeform"
+  | "mailchimp";
 
 export type IdApp =
   // Google (un cliente OAuth)
@@ -124,9 +144,36 @@ export type IdApp =
   | "tienda_nube"
   | "clip"
   // Facturación
-  | "cfdi";
+  | "cfdi"
+  // v3 · Reservas y citas
+  | "agendapro"
+  | "fresha"
+  | "booksy"
+  | "doctoralia"
+  | "acuity"
+  | "simplybook"
+  | "setmore"
+  // v3 · Pagos en México
+  | "paypal"
+  | "conekta"
+  | "openpay"
+  | "square"
+  // v3 · Contabilidad y facturas
+  | "facturama"
+  | "alegra"
+  | "holded"
+  | "zoho_books"
+  | "quickbooks"
+  // v3 · Ventas, CRM, formularios y reseñas
+  | "zoho_crm"
+  | "pipedrive"
+  | "kommo"
+  | "google_forms"
+  | "typeform"
+  | "mailchimp"
+  | "facebook_resenas";
 
-export type CategoriaApp = "mensajes" | "correo" | "agenda" | "documentos" | "clientes" | "pagos" | "resenas" | "facturacion";
+export type CategoriaApp = "mensajes" | "correo" | "agenda" | "reservas" | "documentos" | "clientes" | "pagos" | "contabilidad" | "resenas" | "facturacion";
 
 /** Cómo se conecta: OAuth (botón "Conectar") o una llave de la persona (campo en la tarjeta, se guarda cifrada). */
 export type Autenticacion = "oauth" | "llave";

@@ -25,7 +25,10 @@ const securityHeaders = [
       "default-src 'self'",
       // En desarrollo, Next.js necesita 'unsafe-eval' para recargar en caliente.
       // En producción NO se incluye.
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+      // apis.google.com: el Google Picker (elegir archivos de Drive) se carga de ahí
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://apis.google.com`,
+      // El Picker se abre en un iframe de docs.google.com
+      "frame-src 'self' https://docs.google.com https://apis.google.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self'",

@@ -2,15 +2,24 @@ import type { IdAgente } from "@/lib/agentes";
 import type { Adaptador, Herramienta, IdApp, Proveedor } from "@/lib/nucleo-tipos";
 import { APP_POR_ID, CATALOGO, VARIABLE_LLAVE, VARIABLES_PICKER } from "./catalogo";
 import type { ConexionPublica } from "./estado";
-import { google } from "./proveedores/google";
+import { airtable } from "./proveedores/airtable";
+import { calendly } from "./proveedores/calendly";
+import { dropbox } from "./proveedores/dropbox";
 import { facturapi } from "./proveedores/facturapi";
+import { google } from "./proveedores/google";
+import { hubspot } from "./proveedores/hubspot";
 import { mercadolibre } from "./proveedores/mercadolibre";
 import { mercadopago } from "./proveedores/mercadopago";
+import { meta } from "./proveedores/meta";
 import { microsoft } from "./proveedores/microsoft";
 import { notion } from "./proveedores/notion";
 import { shopify } from "./proveedores/shopify";
+import { slack } from "./proveedores/slack";
 import { stripe } from "./proveedores/stripe";
+import { telegram } from "./proveedores/telegram";
 import { tiendanube } from "./proveedores/tiendanube";
+import { trello } from "./proveedores/trello";
+import { zoom } from "./proveedores/zoom";
 
 /**
  * REGISTRO DE PROVEEDORES: el único lugar que sabe qué adaptador atiende a
@@ -38,17 +47,26 @@ function pendiente(proveedor: Proveedor): Adaptador {
   };
 }
 
-// E: meta, telegram, calendly, zoom, dropbox, slack, trello, airtable y hubspot
-const meta = pendiente("meta"); // import { meta } from "./proveedores/meta";
-const telegram = pendiente("telegram"); // import { telegram } from "./proveedores/telegram";
-const calendly = pendiente("calendly"); // import { calendly } from "./proveedores/calendly";
-const zoom = pendiente("zoom"); // import { zoom } from "./proveedores/zoom";
-const dropbox = pendiente("dropbox"); // import { dropbox } from "./proveedores/dropbox";
-const slack = pendiente("slack"); // import { slack } from "./proveedores/slack";
-const trello = pendiente("trello"); // import { trello } from "./proveedores/trello";
-const airtable = pendiente("airtable"); // import { airtable } from "./proveedores/airtable";
-const hubspot = pendiente("hubspot"); // import { hubspot } from "./proveedores/hubspot";
-// F: stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi (unidos arriba)
+// E (meta, telegram, calendly, zoom, dropbox, slack, trello, airtable y hubspot): ya unidos arriba
+// F (stripe, mercadopago, mercadolibre, shopify, tiendanube y facturapi): ya unidos arriba
+// v3 (E: reservas y CRM · G: pagos MX y contabilidad)
+const acuity = pendiente("acuity"); // import { acuity } from "./proveedores/acuity";
+const simplybook = pendiente("simplybook"); // import { simplybook } from "./proveedores/simplybook";
+const setmore = pendiente("setmore"); // import { setmore } from "./proveedores/setmore";
+const agendapro = pendiente("agendapro"); // import { agendapro } from "./proveedores/agendapro";
+const paypal = pendiente("paypal"); // import { paypal } from "./proveedores/paypal";
+const conekta = pendiente("conekta"); // import { conekta } from "./proveedores/conekta";
+const openpay = pendiente("openpay"); // import { openpay } from "./proveedores/openpay";
+const square = pendiente("square"); // import { square } from "./proveedores/square";
+const facturama = pendiente("facturama"); // import { facturama } from "./proveedores/facturama";
+const alegra = pendiente("alegra"); // import { alegra } from "./proveedores/alegra";
+const holded = pendiente("holded"); // import { holded } from "./proveedores/holded";
+const zoho = pendiente("zoho"); // import { zoho } from "./proveedores/zoho";
+const quickbooks = pendiente("quickbooks"); // import { quickbooks } from "./proveedores/quickbooks";
+const pipedrive = pendiente("pipedrive"); // import { pipedrive } from "./proveedores/pipedrive";
+const kommo = pendiente("kommo"); // import { kommo } from "./proveedores/kommo";
+const typeform = pendiente("typeform"); // import { typeform } from "./proveedores/typeform";
+const mailchimp = pendiente("mailchimp"); // import { mailchimp } from "./proveedores/mailchimp";
 
 export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   google,
@@ -69,20 +87,29 @@ export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   shopify,
   tiendanube,
   facturapi,
+  acuity,
+  simplybook,
+  setmore,
+  agendapro,
+  paypal,
+  conekta,
+  openpay,
+  square,
+  facturama,
+  alegra,
+  holded,
+  zoho,
+  quickbooks,
+  pipedrive,
+  kommo,
+  typeform,
+  mailchimp,
 };
-
-const PENDIENTES = new Set<Proveedor>(
-  (Object.keys(ADAPTADORES) as Proveedor[]).filter((p) => {
-    const a = ADAPTADORES[p];
-    // Un adaptador real trae algo con qué conectarse
-    return !a.urlAutorizacion && !a.validarLlave;
-  }),
-);
 
 export const adaptador = (p: Proveedor): Adaptador => ADAPTADORES[p];
 
-/** ¿Su archivo todavía no está unido? (la tarjeta sale "En camino"). */
-export const esPendiente = (p: Proveedor) => PENDIENTES.has(p);
+/** ¿Su archivo todavía no está unido? (un adaptador real trae con qué conectarse; su tarjeta sale "En camino"). */
+export const esPendiente = (p: Proveedor) => !ADAPTADORES[p].urlAutorizacion && !ADAPTADORES[p].validarLlave;
 
 type Entorno = Record<string, string | undefined>;
 const tiene = (env: Entorno, nombre: string) => Boolean(env[nombre]?.trim());
@@ -93,7 +120,7 @@ const tiene = (env: Entorno, nombre: string) => Boolean(env[nombre]?.trim());
  */
 export function configurado(p: Proveedor, env: Entorno = process.env): { ok: boolean; falta: string[] } {
   const falta = [...ADAPTADORES[p].variables, VARIABLE_LLAVE].filter((n) => !tiene(env, n));
-  return { ok: falta.length === 0 && !PENDIENTES.has(p), falta };
+  return { ok: falta.length === 0 && !esPendiente(p), falta };
 }
 
 /** Como `configurado`, por app: Drive necesita además lo del Picker. */
@@ -114,7 +141,7 @@ export function herramientasPara(agentes: readonly IdAgente[], conexiones: reado
   const vistas = new Set<string>();
   const lista: Herramienta[] = [];
   for (const c of conexiones) {
-    if (c.estado !== "activa" || PENDIENTES.has(c.proveedor)) continue;
+    if (c.estado !== "activa" || esPendiente(c.proveedor)) continue;
     for (const h of ADAPTADORES[c.proveedor].herramientas) {
       const app = APP_POR_ID[h.app];
       if (!app || app.fase !== 1 || app.proveedor !== c.proveedor || !c.apps.includes(h.app)) continue;

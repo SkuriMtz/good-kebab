@@ -122,7 +122,7 @@ export function MensajeAgente({
  * de quien escribe. Mientras tanto, los cuatro círculos del logo del menú
  * "respiran" (html[data-pc-escribe], en CSS; quietos con reducir movimiento).
  */
-export function Escribiendo({ agente, cabeza = true }: { agente: IdAgente; cabeza?: boolean }) {
+export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente; cabeza?: boolean; /** Lo que está haciendo ("Clara está revisando tu correo…"); sin esto, "está escribiendo…". */ texto?: string }) {
   const info = AGENTE_POR_ID[agente];
   useEffect(() => {
     const html = document.documentElement;
@@ -140,17 +140,27 @@ export function Escribiendo({ agente, cabeza = true }: { agente: IdAgente; cabez
           <span className="pc-msj__area">{info.area}</span>
         </p>
       ) : null}
-      <p className="pc-escribe" role="status">
-        <span className="pc-escribe__tris" aria-hidden="true">
-          {["#8052ff", "#3d7bff", "#23d9b5"].map((c) => (
-            <svg key={c} viewBox="0 0 12 12" width="11" height="11" focusable="false">
-              <path d="M6 1.6 10.6 10 1.4 10Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
-          ))}
-        </span>
-        <span className="pc-escribe__texto">{info.nombre} está escribiendo…</span>
-      </p>
+      <LineaEscribe texto={texto ?? `${info.nombre} está escribiendo…`} />
     </div>
+  );
+}
+
+/**
+ * La línea tenue con los tres triangulitos que laten: "está escribiendo…"
+ * o lo que hace un agente con una app ("Clara está revisando tu correo…").
+ */
+export function LineaEscribe({ texto }: { texto: string }) {
+  return (
+    <p className="pc-escribe" role="status">
+      <span className="pc-escribe__tris" aria-hidden="true">
+        {["#8052ff", "#3d7bff", "#23d9b5"].map((c) => (
+          <svg key={c} viewBox="0 0 12 12" width="11" height="11" focusable="false">
+            <path d="M6 1.6 10.6 10 1.4 10Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+          </svg>
+        ))}
+      </span>
+      <span className="pc-escribe__texto">{texto}</span>
+    </p>
   );
 }
 
