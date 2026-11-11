@@ -205,20 +205,20 @@ function entre2(a: Colocacion, b: Colocacion, t: number): Colocacion {
  * del texto: a los 2.0 s ya giró 18° cuando el texto apenas bajó 12 px.
  */
 export const CEREBRO_A: Llave[] = [
-  // Poses del cerebro de malla real ajustadas a la silueta del video (IoU 0.95-0.96 en 2.0, 2.2, 2.5 y 2.8 s)
-  [0.0, C(847.5, 378, 335.1, -90, 0, 0, 5.47)],
-  [0.01, C(822.5, 376.5, 331.1, -79.5, 0, 0, 5.47)],
-  [0.028, C(800, 376, 334, -58, -0.5, 0, 5.49)],
-  [0.062, C(773.5, 378, 339.6, -30, -1, 0, 5.52)],
-  [0.108, C(732, 377, 342, -24, -2.5, 0, 5.56)],
-  [0.165, C(676, 378, 348, -19, -4, 0, 5.62)],
-  [0.232, C(618.5, 380, 356, -13.2, -5.5, 0, 5.68)],
-  [0.31, C(560, 377, 365, -4, -5, 0, 5.74)],
-  [0.391, C(498.5, 374, 372, 5, -4.5, 0, 5.85)],
-  [0.477, C(428.5, 372, 379.4, 14.5, -4, 0, 5.95)],
-  [0.65, C(335, 377, 400.0, 22, 0, 0, 6.04)],
-  [0.82, C(290, 380, 413.6, 28, 5, 0, 6.33)],
-  [1.0, C(295, 386, 418.8, 32, 9, 0, 6.44)],
+  // Poses reajustadas al cerebro nuevo: en 1.0, 2.2, 2.8 y 4.5 s igualan la silueta del video (IoU 0.95-0.97, scripts/figuras/ajustar.py)
+  [0.0, C(832.8, 399.9, 354.2, -112.7, -13.2, 6.1, 5.5)],
+  [0.01, C(808.1, 396.8, 351.2, -99.2, -11.3, 6.1, 5.5)],
+  [0.028, C(786.2, 393.3, 355.8, -72.2, -8.3, 6.1, 5.5)],
+  [0.062, C(760.7, 389.7, 364.8, -33.8, -2.3, 6.1, 5.5)],
+  [0.108, C(722.7, 389.5, 367.1, -30.7, -2.9, 5.5, 5.6)],
+  [0.165, C(671.1, 391.6, 372.9, -29.4, -3.2, 4.9, 5.6)],
+  [0.232, C(618.7, 394.8, 380.7, -27.8, -3.3, 4.1, 5.7)],
+  [0.31, C(566.2, 393.2, 389.5, -23.6, -1.2, 3.1, 5.7)],
+  [0.391, C(510.9, 391.7, 396.3, -19.7, 0.9, 2.1, 5.8)],
+  [0.477, C(447.4, 391.3, 403.4, -15.6, 3.2, 1.1, 6)],
+  [0.65, C(353.6, 391.9, 422.8, 3.6, 4.7, -1.3, 6)],
+  [0.82, C(308.2, 390.6, 435.1, 21.2, 7.3, -3.6, 6.3)],
+  [1.0, C(312.8, 392, 439, 37.5, 8.8, -6, 6.4)],
 ];
 /**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
@@ -226,8 +226,8 @@ export const CEREBRO_A: Llave[] = [
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
  */
 export const CEREBRO_B: Llave[] = [
-  [0.0, C(295, 386, 418.8, 32, 9, 0, 6.44)],
-  [0.25, C(405, 395, 445.0, 52, 18, 0, 6.56)],
+  [0.0, C(312.8, 392, 439, 37.5, 8.8, -6, 6.44)],
+  [0.25, C(412.9, 397.7, 454, 54.4, 17.9, -2.7, 6.56)],
   [0.45, C(500, 425, 481.7, 66, 30, 0, 6.67)],
   [0.7, C(550, 470, 513.1, 76, 44, 0, 6.79)],
   [1.0, C(570, 530, 529.9, 82, 52, 0, 6.91)],
@@ -268,14 +268,14 @@ const CEREBRO = {
   /** Cuánto se ve la cara de atrás (0.35 a 0.45). */
   atras: 0.4,
   /** Coseno del ángulo de vista donde acaba el ámbar del borde y donde empieza el blanco de frente. */
-  ambar: [0.2, 0.47] as const,
-  blanco: [0.42, 0.66] as const,
+  ambar: [0.32, 0.58] as const,
+  blanco: [0.44, 0.66] as const,
   /** Cuánto baja el brillo de cada triangulito en el borde (ahí se enciman muchos y la suma se quemaría). */
-  borde: 0.6,
+  borde: 0.55,
   /** Cuánto se apagan los surcos vistos de frente. */
   surco: 0.62,
   /** Ancho del triangulito (px del video por unidad de `tam` de la colocación) y sus extremos por cercanía. */
-  tam: 0.93,
+  tam: 0.78,
   lejos: 0.7,
   cerca: 1.6,
   /** Desde qué cercanía (0 a 1) se desenfoca, y cuánto. */
@@ -615,6 +615,9 @@ export class MotorFiguras {
 
   /** ¿Ya está el cerebro de la malla real? Mientras no, la portada muestra polvo (nunca el de respaldo a medias). */
   cerebroListo = false;
+  /** Normal "de bulto" del cerebro (como si fuera un huevo liso): da un borde ámbar ancho y parejo, sin delinear cada pliegue. */
+  private bulto: Float32Array | null = null;
+  private bultoDe: Float32Array | null = null;
 
   /**
    * Carga el cerebro de malla real (public/figuras/cerebro.bin, ~60 KB). Si no se puede,
@@ -889,6 +892,34 @@ export class MotorFiguras {
     const [f0, f1] = K.foco;
     const ox = O.x;
     const oy = O.y;
+    if (this.bultoDe !== P || !this.bulto) {
+      // Centro y medidas del cerebro (sin el tronco) → dirección "hacia afuera" de cada punto
+      let x0 = 1e9, x1b = -1e9, y0 = 1e9, y1b = -1e9, z0 = 1e9, z1b = -1e9;
+      for (let i = 0; i < N; i++) {
+        if (alfa0[i] === 0 || parte[i] === 3) continue;
+        const o = i * 3;
+        if (P[o] < x0) x0 = P[o];
+        if (P[o] > x1b) x1b = P[o];
+        if (P[o + 1] < y0) y0 = P[o + 1];
+        if (P[o + 1] > y1b) y1b = P[o + 1];
+        if (P[o + 2] < z0) z0 = P[o + 2];
+        if (P[o + 2] > z1b) z1b = P[o + 2];
+      }
+      const hx = (x1b - x0) / 2 || 1, hy = (y1b - y0) / 2 || 1, hz = (z1b - z0) / 2 || 1;
+      const mx = (x0 + x1b) / 2, my = (y0 + y1b) / 2, mz = (z0 + z1b) / 2;
+      const Bt = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) {
+        const o = i * 3;
+        const ex = (P[o] - mx) / (hx * hx), ey = (P[o + 1] - my) / (hy * hy), ez = (P[o + 2] - mz) / (hz * hz);
+        const l = Math.hypot(ex, ey, ez) || 1;
+        Bt[o] = ex / l;
+        Bt[o + 1] = ey / l;
+        Bt[o + 2] = ez / l;
+      }
+      this.bulto = Bt;
+      this.bultoDe = P;
+    }
+    const Bu = this.bulto;
     for (let i = 0; i < N; i++) {
       const a0 = alfa0[i];
       if (a0 === 0) {
@@ -913,12 +944,19 @@ export class MotorFiguras {
       // Coseno del ángulo de vista (1 de frente, 0 de canto), con un poco de azar propio
       // para que las franjas de color no queden cortadas a regla
       const cz = nz2 < 0 ? -nz2 : nz2;
-      const cj = cz + (um[i] - 0.5) * 0.16;
+      // Para el color cuenta sobre todo el bulto (borde ancho y parejo) y un poco el pliegue
+      const bz1 = -Bu[o] * sy + Bu[o + 2] * cy;
+      const bz2 = Bu[o + 1] * sp + bz1 * cp;
+      const cb = 0.62 * (bz2 < 0 ? -bz2 : bz2) + 0.38 * cz;
+      const cj = cb + (um[i] - 0.5) * 0.16;
       // Dos capas: la de atrás se ve a través
       let capa = 1;
       if (nz2 < 0.08) {
         const k = nz2 <= -0.22 ? 0 : (nz2 + 0.22) / 0.3;
-        capa = K.atras + (1 - K.atras) * k * k * (3 - 2 * k);
+        // La cara de atrás casi no se ve de frente (negro limpio entre los triangulitos del centro);
+        // cerca del borde sí, y ahí forma el segundo contorno
+        const atr = 0.08 + (K.atras - 0.08) * (1 - cz) * (1 - cz);
+        capa = atr + (1 - atr) * k * k * (3 - 2 * k);
       }
       // Cercanía (0 lejos … 1 cerca): la profundidad, y el frente del cerebro cuenta como más cerca
       let q = 0.5 + (z2 + pz) / 3;
@@ -945,6 +983,16 @@ export class MotorFiguras {
         let abajo = (-ny2 - 0.3) / 0.5;
         abajo = abajo < 0 ? 0 : abajo > 1 ? 1 : abajo;
         wA += (1 - wA) * abajo * 0.6 * (1 - cz);
+        // La banda ancha de abajo (donde el bulto mira hacia abajo): ámbar, como en el video
+        const by2 = Bu[o + 1] * cp - bz1 * sp;
+        let abajoB = (-by2 - 0.22) / 0.35;
+        abajoB = abajoB < 0 ? 0 : abajoB > 1 ? 1 : abajoB;
+        if (abajoB * 0.9 > wA) wA = abajoB * 0.9;
+        // El lado de cerca (a la izquierda en pantalla) casi no lleva ámbar: ahí manda el violeta y el blanco
+        const bx1 = Bu[o] * cy + Bu[o + 2] * sy;
+        let izq = (-bx1 - 0.45) / 0.4;
+        izq = izq < 0 ? 0 : izq > 1 ? 1 : izq;
+        wA *= 1 - 0.7 * izq * (1 - abajoB);
         // Blanco y lavanda de frente (menos donde hay una mancha de color)
         k = (cj - a0B) / (a1B - a0B);
         k = k < 0 ? 0 : k > 1 ? 1 : k;
@@ -967,6 +1015,11 @@ export class MotorFiguras {
           k = k < 0 ? 0 : k > 1 ? 1 : k;
           al *= 0.65 * (1 - k * k * (3 - 2 * k));
         }
+        // Solo la cáscara de afuera: las paredes de adentro (entre hemisferios, surcos hondos, bajo el
+        // cerebelo) casi no se ven; si no, de canto se enredan en líneas brillantes
+        k = (Nn[o] * Bu[o] + Nn[o + 1] * Bu[o + 1] + Nn[o + 2] * Bu[o + 2] + 0.05) / 0.45;
+        k = k < 0 ? 0 : k > 1 ? 1 : k;
+        al *= 0.06 + 0.94 * k * k * (3 - 2 * k);
         // La banda de abajo, la más brillante; en el borde se enciman muchas y cada una brilla un poco menos
         al *= (1 + 0.3 * abajo * wA) * (1 - K.borde * wA);
         // Fuera de foco: lo más cercano de la cara de adelante
@@ -1434,7 +1487,7 @@ export class MotorFiguras {
     gl.uniform2f(this.U.uRes, this.w, this.h);
     gl.uniform1f(this.U.uDpr, this.dpr);
     // Contorno: ~1.25 px en el cerebro (en px de pantalla, sea cual sea la densidad); 0.7 px del lienzo en lo demás
-    gl.uniform1f(this.U.uTrazo, 0.7 + (0.625 * this.dpr - 0.7) * this.enCerebro);
+    gl.uniform1f(this.U.uTrazo, 0.7 + (1.1 * this.dpr - 0.7) * this.enCerebro);
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
     // Halo suave (en claro no: ahí se pinta encima)
     gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);

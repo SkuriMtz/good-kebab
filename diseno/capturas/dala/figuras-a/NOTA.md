@@ -278,3 +278,30 @@ centro en y 0.72, 0.85 del ancho y brillo ×0.8; el polvo y los tetraedros sigue
 - Ajustar el cerebro de decisiones y la cúpula de decisiones → caos cuadro por cuadro.
 - Hojas lado a lado y grabación .webm: no se hicieron (el coordinador cortó las rondas de comparación).
 - Modo claro: solo lo básico (colores más hondos y lo blanco pasa a gris violáceo), sin comparar.
+
+## Cerebro nuevo, ronda 5 (11 nov)
+
+Hoja: `hoja-cerebro-5.jpg` (video a la izquierda, Atendel a la derecha; 1.0, 2.2, 2.8, 4.5 y 6.0 s, a 1212×750).
+
+Qué cambió: las poses se reajustaron al cerebro nuevo; el color va por la dirección "de bulto" de cada punto
+(centro blanco y lavanda, borde ámbar, banda ancha ámbar abajo); la capa de atrás y las paredes de adentro
+casi no se ven (ya no se enredan líneas doradas); triangulitos más chicos y de trazo más grueso; fuera de las
+manchas, el medio ángulo es lavanda (antes violeta).
+
+Medidas (video / Atendel), con `scripts/figuras/medir.py`:
+
+| Momento | Silueta (IoU) | Triangulitos por área | Blanco | Ámbar | Violeta | Turquesa | Azul | Magenta |
+|---|---|---|---|---|---|---|---|---|
+| 1.0 s | 0.942 | 3.45 / 3.35 | 40 / 37 | 48 / 52 | 4 / 0 | 1 / 2 | 2 / 3 | 4 / 2 |
+| 2.2 s | 0.938 | 3.02 / 2.91 | 43 / 44 | 49 / 46 | 2 / 3 | 0 / 2 | 1 / 2 | 3 / 0 |
+| 2.8 s | 0.937 | 2.11 / 2.46 | 46 / 46 | 44 / 42 | 4 / 6 | 0 / 1 | 1 / 2 | 3 / 2 |
+| 4.5 s | 0.882 | 2.02 / 3.08 | 48 / 46 | 44 / 44 | 4 / 3 | 0 / 0 | 0 / 3 | 2 / 3 |
+| 6.0 s | 0.874 | 2.25 / 2.83 | 33 / 46 | 51 / 44 | 7 / 3 | 1 / 0 | 2 / 3 | 4 / 3 |
+
+- Metas (IoU ≥ 0.93, color ±8 puntos, densidad ±20 %): se cumplen en 1.0, 2.2 y 2.8 s.
+- En 4.5 y 6.0 s la pose coincide, pero en el video el cerebro ya se está deshaciendo en polvo por abajo y va
+  más apagado y menos tupido; ahí Atendel queda más entero, más tupido y más blanco. Pendiente.
+- Pendiente también: en el video el borde ámbar es una banda ancha y pareja; en Atendel todavía se ve como
+  líneas finas brillantes, sobre todo en el pliegue de abajo.
+- Al cargar se arma desde polvo (revisado con una tira de cuadros). El tiempo de cálculo por cuadro no se
+  midió en esta ronda (la máquina de capturas no tiene tarjeta gráfica real).

@@ -507,15 +507,17 @@ function coloresCerebro(n: number, pos: (i: number) => [number, number, number],
     if (n1 > 0.7) {
       m = u < 0.68 ? PC.turquesa : PC.turquesaHondo;
       k = suave(0.74, 0.8, n1);
-    } else if (n2 > 0.7) {
+    } else if (n2 > 0.78) {
       m = PC.azul;
-      k = suave(0.76, 0.82, n2);
-    } else if (n2 < 0.3) {
+      k = suave(0.8, 0.86, n2);
+    } else if (n2 < 0.23) {
+      // magenta: destellos, no manchas grandes
       m = PC.magenta;
-      k = suave(0.26, 0.2, n2) * 0.8;
+      k = suave(0.21, 0.15, n2) * 0.8;
     } else {
-      m = PC.violeta;
-      k = suave(0.7, 0.78, n4);
+      k = suave(0.76, 0.86, n4);
+      // Fuera de las manchas, el medio ángulo es lavanda con un poco de violeta (en el video casi no hay violeta)
+      m = mezcla(PC.lavanda, PC.violeta, 0.3 + 0.7 * k);
     }
     medio.set(m, i * 3);
     mancha[i] = k;
