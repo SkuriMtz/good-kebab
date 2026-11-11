@@ -1102,3 +1102,107 @@
     animation: none;
   }
 }
+
+/* =====================================================================
+   9. Más aire (el dueño: "se tiene que ver espaciosa, no todo apretado")
+   Va al final para ganar sobre las medidas copiadas del video. Las figuras
+   leen cada sección por data-escena, así que las alturas se pueden mover.
+   ===================================================================== */
+@media (min-width: 900px) {
+  .ini-cuerpo {
+    line-height: 1.7;
+  }
+  .ini-cuerpo + .ini-cuerpo {
+    margin-top: 1.6vw;
+  }
+  /* Portada: título, etiqueta, texto y botón con su espacio */
+  .ini-portada__texto {
+    top: 18vh;
+  }
+  .ini-portada .ini-etiqueta {
+    margin-top: 3.2vw;
+  }
+  .ini-portada .ini-cuerpo {
+    margin-top: 1.5vw;
+  }
+  .ini-portada__boton {
+    margin-top: 2.6vw;
+  }
+  .ini-escena__texto .ini-titulo + * {
+    margin-top: 2.6vw;
+  }
+  /* Tu equipo: el texto arriba y las fichas abajo, sin encimarse */
+  .ini-equipo {
+    height: 128vh;
+  }
+  .ini-equipo__texto {
+    top: 12vh;
+    width: 60vw;
+  }
+  .ini-equipo .ini-sub {
+    margin-top: 1.8vw;
+  }
+  .ini-equipo .ini-cuerpo--chico {
+    margin-top: 1vw;
+    max-width: 40vw;
+  }
+  .ini-equipo__carrusel {
+    top: 46vh;
+  }
+}
+/* Planes: tres tarjetas separadas en vez de una sola caja partida */
+.ini-planes.ini-planes--tarjetas {
+  padding-top: clamp(120px, 20vh, 190px);
+  padding-bottom: clamp(96px, 16vh, 160px);
+}
+.ini-planes__cabeza {
+  margin-bottom: clamp(40px, 5vw, 80px);
+}
+.sitio--inicio .planes--inicio {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  column-gap: clamp(16px, 1.7vw, 28px);
+}
+.sitio--inicio .planes--inicio .plan {
+  padding: clamp(28px, 2.8vw, 44px) clamp(22px, 2.2vw, 36px);
+  border: 1px solid var(--ini-linea);
+  border-radius: 16px;
+  background: var(--ini-tarjeta);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.sitio--inicio .planes--inicio .plan__incluye {
+  gap: 14px;
+}
+@media (max-width: 1023px) {
+  .sitio--inicio .planes--inicio {
+    row-gap: 20px;
+  }
+}
+@media (max-width: 899px) {
+  .ini-bloque {
+    padding-inline: 24px;
+  }
+  .ini-cuerpo,
+  .ini-cuerpo--chico {
+    line-height: 1.65;
+  }
+  .ini-portada .ini-etiqueta,
+  .ini-portada__boton {
+    margin-top: 28px;
+  }
+  .ini-escena__texto .ini-titulo + *,
+  .ini-equipo .ini-sub {
+    margin-top: 22px;
+  }
+  .ini-equipo__carrusel {
+    margin-top: 56px;
+  }
+  .carrusel {
+    margin-inline: -24px;
+  }
+}

@@ -275,7 +275,9 @@ const CEREBRO = {
   /** Cuánto se apagan los surcos vistos de frente. */
   surco: 0.62,
   /** Ancho del triangulito (px del video por unidad de `tam` de la colocación) y sus extremos por cercanía. */
-  tam: 0.78,
+  tam: 0.86,
+  /** Brillo general de cada triangulito (el dueño: "se ve muy brilloso"). */
+  brillo: 0.86,
   lejos: 0.7,
   cerca: 1.6,
   /** Desde qué cercanía (0 a 1) se desenfoca, y cuánto. */
@@ -755,11 +757,11 @@ export class MotorFiguras {
       O.g[i] = col[1];
       O.b[i] = col[2];
       const g = (this.vis[i] * 3571) % 1;
-      if (g < 0.2) {
-        const px = 15 + 45 * Math.pow(g / 0.2, 1.8);
+      if (g < 0.12) {
+        const px = 15 + 45 * Math.pow(g / 0.12, 1.8);
         O.t[i] = px * this.s;
         O.d[i] = px > 30 ? 0.3 + 0.35 * Math.min(1, (px - 30) / 30) : 0.12;
-        O.a[i] = v * (px > 30 ? 0.42 : 0.6);
+        O.a[i] = v * (px > 30 ? 0.26 : 0.4);
       } else O.a[i] *= 0.8;
     }
   }
@@ -1022,6 +1024,9 @@ export class MotorFiguras {
         al *= 0.06 + 0.94 * k * k * (3 - 2 * k);
         // La banda de abajo, la más brillante; en el borde se enciman muchas y cada una brilla un poco menos
         al *= (1 + 0.3 * abajo * wA) * (1 - K.borde * wA);
+        // Donde se enciman (de canto), un ámbar más hondo: así al sumarse queda dorado y no amarillo-blanco
+        g *= 1 - 0.1 * wA;
+        b *= 1 - 0.3 * wA;
         // Fuera de foco: lo más cercano de la cara de adelante
         if (nz2 > 0 && q > f0) {
           k = (q - f0) / (f1 - f0);
@@ -1032,7 +1037,8 @@ export class MotorFiguras {
       O.r[i] = r;
       O.g[i] = g;
       O.b[i] = b;
-      O.a[i] = al;
+      // Lo de cerca y borroso, más tenue; y todo con el brillo general
+      O.a[i] = al * K.brillo * (1 - 0.35 * desen);
       O.t[i] = B * tm[i] * f * tam * (1 + 0.45 * desen);
       O.m[i] = 0;
       O.d[i] = desen;
@@ -1487,7 +1493,7 @@ export class MotorFiguras {
     gl.uniform2f(this.U.uRes, this.w, this.h);
     gl.uniform1f(this.U.uDpr, this.dpr);
     // Contorno: ~1.25 px en el cerebro (en px de pantalla, sea cual sea la densidad); 0.7 px del lienzo en lo demás
-    gl.uniform1f(this.U.uTrazo, 0.7 + (1.1 * this.dpr - 0.7) * this.enCerebro);
+    gl.uniform1f(this.U.uTrazo, 0.7 + (0.82 * this.dpr - 0.7) * this.enCerebro);
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
     // Halo suave (en claro no: ahí se pinta encima)
     gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);

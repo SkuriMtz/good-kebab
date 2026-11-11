@@ -305,3 +305,15 @@ Medidas (video / Atendel), con `scripts/figuras/medir.py`:
   líneas finas brillantes, sobre todo en el pliegue de abajo.
 - Al cargar se arma desde polvo (revisado con una tira de cuadros). El tiempo de cálculo por cuadro no se
   midió en esta ronda (la máquina de capturas no tiene tarjeta gráfica real).
+
+## Ronda 6 (11 nov): menos brillo, trazo más fino e inicio con más aire
+
+El dueño: "se ve muy brilloso y los triángulos muy gruesos; la landing se tiene que ver espaciosa".
+
+- Cerebro: trazo 0.82·dpr (antes 1.1), tamaño 0.86, brillo general 0.86, ámbar más hondo de canto (ya no se
+  quema a amarillo-blanco), lo borroso de cerca y las pirámides sueltas más tenues.
+  Medido en 1.0 / 2.8 s: silueta 0.939 / 0.931; brillo medio de la zona 20.7 (antes 28.2; el video, 37.9, pero
+  repartido y sin líneas quemadas). Una prueba más fuerte (trazo 0.62, brillo 0.66) quedó apagada y se descartó.
+- Inicio (`src/estilos/inicio.css`, bloque 9 "Más aire"): más espacio entre título, etiqueta, texto y botón;
+  "Tu equipo" con el texto arriba y las fichas abajo; planes en tres tarjetas separadas; en celular, orillas de
+  24 px y separaciones más amplias.
