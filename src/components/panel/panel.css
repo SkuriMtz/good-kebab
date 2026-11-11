@@ -3986,7 +3986,7 @@ a.pc-correo__accion:hover {
   color: var(--pc-texto);
 }
 .pc[data-info] .pc-conv__cabeza {
-  padding-right: 160px;
+  padding-right: 172px;
 }
 
 /* La columna de la derecha */
@@ -4680,49 +4680,199 @@ a.pc-info__fila:active {
   }
 }
 
-/* La caja de escribir en forma de pastilla (PromptBar forma="pastilla") */
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__field {
-  min-height: 0;
-  padding: 8px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 28px -14px rgb(0 0 0 / 0.28);
-  transition:
-    box-shadow 450ms ease,
-    border-color 200ms ease;
-}
-.pc .pc-caja[data-forma="pastilla"][data-grande] .prompt-bar__field {
-  padding: 12px;
-  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06), 0 28px 56px -20px rgb(0 0 0 / 0.36);
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__input {
-  min-height: 40px;
-  padding: 8px 6px;
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool,
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__send {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  transition: transform 200ms var(--pc-sale);
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool {
-  background: var(--pc-texto);
-  color: var(--pc-lienzo);
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool:active,
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__send:active {
-  transform: scale(0.95);
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__acciones .prompt-bar__tool {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-}
-.pc .pc-caja[data-forma="pastilla"] .prompt-bar__ejemplo {
-  color: var(--pc-placeholder);
-  font-size: 16px;
-}
 @media (prefers-reduced-motion: reduce) {
   .pc-info__cuerpo {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   16. Como Claude: la caja en una fila, la barra de título de la
+   conversación, el panel de información en filas y todo con más aire
+   ===================================================================== */
+/* La caja (PromptBar forma="fila") */
+.pc .pc-caja[data-forma="fila"] .prompt-bar__field {
+  min-height: 0;
+  padding: 10px;
+  border-radius: 18px;
+}
+:root[data-tema="claro"] .pc .pc-caja[data-forma="fila"] .prompt-bar__field {
+  border-radius: 20px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__input {
+  min-height: 38px;
+  padding: 7px 6px;
+  font-size: 16px;
+  line-height: 24px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__tool {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__send {
+  width: 36px;
+  height: 36px;
+  margin: 1px;
+}
+
+/* La barra de título de la conversación */
+.pc-conv__cabeza {
+  gap: 12px;
+  height: 60px;
+  padding: 0 20px 0 28px;
+  border-bottom: 1px solid var(--pc-division);
+}
+.pc-conv__titulo {
+  font-size: 16px;
+}
+.pc-conv__acciones {
+  gap: 4px;
+}
+.pc-barra-info {
+  top: 14px;
+  right: 16px;
+  gap: 4px;
+}
+@media (max-width: 859px) {
+  .pc-barra-info {
+    top: 58px;
+  }
+}
+
+/* Los mensajes, con más aire */
+.pc-conv__columna {
+  padding: 32px 0 40px;
+}
+.pc-hilo {
+  gap: 30px;
+}
+.pc-burbuja {
+  padding: 12px 18px;
+  line-height: 1.6;
+}
+.pc-conv__pie {
+  padding: 0 24px 16px;
+}
+.pc-conv__legal {
+  margin-top: 10px;
+}
+
+/* El menú, con filas como las de Claude */
+.pc-menu__nuevo,
+.pc-menu__item {
+  height: 40px;
+  gap: 12px;
+}
+.pc-menu__chat {
+  height: 36px;
+}
+.pc-menu__listas {
+  padding-top: 26px;
+}
+.pc-menu__grupo + .pc-menu__grupo {
+  margin-top: 14px;
+}
+
+/* El panel de información: filas sencillas separadas por líneas (sin tarjetas) */
+.pc-info {
+  gap: 22px;
+  padding: 20px 24px 40px;
+}
+.pc-info__negocio {
+  margin-top: 6px;
+  font: 500 18px/1.25 var(--pc-sans);
+  letter-spacing: -0.01em;
+}
+.pc-info__cuerpo {
+  gap: 22px;
+}
+.pc-info__bloque {
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid var(--pc-raya);
+}
+.pc-info__subtitulo {
+  color: var(--pc-texto);
+  font: 500 15px/1.3 var(--pc-sans);
+  letter-spacing: 0;
+}
+.pc-info__mas {
+  font-size: 13px;
+}
+.pc-info__periodo {
+  height: 34px;
+  font-size: 14px;
+}
+.pc-info__datos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-info__dato {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 64px;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+  font-size: 15px;
+}
+.pc-info__dato[data-cargando] {
+  opacity: 0.55;
+}
+.pc-info__dato-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--color, var(--pc-texto-2));
+}
+.pc-info__dato-etiqueta {
+  color: var(--pc-texto-2);
+}
+.pc-info__dato-valor {
+  color: var(--pc-texto);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  animation: pc-info-aparece 240ms ease;
+}
+.pc-info__dato .pc-info__cambio {
+  font-size: 13px;
+  text-align: right;
+}
+.pc-info__agente-nombre,
+.pc-info__fila-titulo {
+  font-size: 15px;
+}
+.pc-info__agente-area,
+.pc-info__fila-detalle {
+  font-size: 13px;
+}
+.pc-info__agente,
+.pc-info__fila {
+  padding-block: 10px;
+}
+.pc-info__pendientes {
+  padding: 4px 0 0;
+  border: 0;
+}
+.pc-info__pendientes-num {
+  font-size: 28px;
+}
+.pc-info__pendientes-texto {
+  font-size: 15px;
+}
+.pc-info__tema {
+  padding: 10px 0;
+  border-bottom: 0;
+  font-size: 15px;
+}
+.pc-info__par {
+  font-size: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-info__dato-valor {
     animation: none;
   }
 }

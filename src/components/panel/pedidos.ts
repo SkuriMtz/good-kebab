@@ -168,9 +168,3 @@ export function saludoDeHora(fecha = new Date()) {
   if (h >= 12 && h < 19) return "Buenas tardes";
   return "Buenas noches";
 }
-
-/** Ejemplos de qué pedir (para la caja de escribir): lo que esos agentes saben hacer. */
-export const ejemplosDe = (agentes: readonly IdAgente[], primero?: string) => [
-  ...(primero ? [primero] : []),
-  ...PEDIDOS.filter((p) => agentes.includes(p.agente)).map((p) => p.texto),
-].slice(0, 7);

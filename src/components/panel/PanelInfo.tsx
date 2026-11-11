@@ -44,6 +44,8 @@ type Props = {
 };
 
 const numero = new Intl.NumberFormat("es-MX");
+/** El color de cada cifra (el cuadrito de la fila), con los colores de la marca. */
+const COLOR_CIFRA: Record<string, string> = { clientes: "#3d7bff", citas: "#ffb829", respuestas: "#23d9b5", correos: "#8052ff" };
 
 /** Cambio contra el periodo anterior, en %, o null si no hay con qué comparar. */
 function cambio(c: Cifra): number | null {
@@ -292,22 +294,28 @@ function Resumen({
       {estado === "error" ? (
         <p className="pc-info__nota">No se pudieron leer tus números. Intenta en un momento.</p>
       ) : (
-        <ul className="pc-info__cifras">
-          {cifras.map((f) => {
-            const d = f.hay ? cambio(f.c) : null;
-            return (
-              <li key={f.id} className="pc-info__cifra" data-cargando={estado === "cargando" || undefined}>
-                <span className="pc-info__cifra-etiqueta">{f.etiqueta || " "}</span>
-                <span key={`${periodo}-${f.c.valor}`} className="pc-info__cifra-valor">
-                  {f.hay && f.c.valor !== null ? numero.format(f.c.valor) : "—"}
-                </span>
-                <span className={`pc-info__cambio${d === null ? "" : d >= 0 ? " pc-info__cambio--sube" : " pc-info__cambio--baja"}`}>
-                  {!f.hay ? (estado === "cargando" ? " " : "Sin datos aún") : d === null ? "Sin comparar" : `${d >= 0 ? "▲" : "▼"} ${Math.abs(d)}%`}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <section className="pc-info__bloque" aria-labelledby="pc-info-periodo">
+          <h3 id="pc-info-periodo" className="pc-info__subtitulo">
+            En este periodo
+          </h3>
+          <ul className="pc-info__datos">
+            {cifras.map((f) => {
+              const d = f.hay ? cambio(f.c) : null;
+              return (
+                <li key={f.id} className="pc-info__dato" data-cargando={estado === "cargando" || undefined} style={{ "--color": COLOR_CIFRA[f.id] } as CSSProperties}>
+                  <span className="pc-info__dato-punto" aria-hidden="true" />
+                  <span className="pc-info__dato-etiqueta">{f.etiqueta || " "}</span>
+                  <span key={`${periodo}-${f.c.valor}`} className="pc-info__dato-valor">
+                    {f.hay && f.c.valor !== null ? numero.format(f.c.valor) : "—"}
+                  </span>
+                  <span className={`pc-info__cambio${d === null ? "" : d >= 0 ? " pc-info__cambio--sube" : " pc-info__cambio--baja"}`}>
+                    {!f.hay ? (estado === "cargando" ? " " : "Sin datos") : d === null ? "—" : `${d >= 0 ? "▲" : "▼"} ${Math.abs(d)}%`}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
 
       {serie && serie.actual.length ? (

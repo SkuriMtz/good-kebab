@@ -15,7 +15,7 @@ import { NuevoGrupo } from "./NuevoGrupo";
 import { Icono } from "@/components/base/Iconos";
 import { Enlace, claseBoton } from "./Piezas";
 import { SelectorAgente, type OpcionAgente } from "./Selector";
-import { PEDIDOS, ejemplosDe, pedidosDe, type IdArea } from "./pedidos";
+import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 
 /* =====================================================================
    El chat de /pruebalo: el GUION LOCAL de ChatDemo (no llama a la IA).
@@ -229,8 +229,7 @@ export function InicioDemo({
             className="pc-caja"
             initialText={pide}
             placeholder={info ? `Pídele algo a ${info.nombre}…` : "Pregúntale a tu equipo… (escribe @ para elegir agente)"}
-            forma="pastilla"
-            ejemplos={ejemplosDe(agentes, info ? `Pídele algo a ${info.nombre}…` : "Pregúntale a tu equipo… (escribe @ para elegir agente)")}
+            forma="fila"
             sources={fuentesDe(agentes)}
             plusActions={subida.acciones}
             commands={comandosDe(agentes)}
@@ -367,8 +366,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           key={conv.id}
           className="pc-caja"
           placeholder={grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`}
-          forma="pastilla"
-          ejemplos={ejemplosDe(conv.agentes, grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`)}
+          forma="fila"
           sources={fuentesDe(conv.agentes)}
           plusActions={subida.acciones}
           commands={comandosDe(conv.agentes)}
