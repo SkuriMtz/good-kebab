@@ -40,11 +40,13 @@ type Props = {
   children: ReactNode;
 };
 
+/** React 18 no conoce `inert`: así sale como atributo vacío (inert=""), que es lo que pide el HTML. */
+const INERTE = { inert: "" } as unknown as { inert?: boolean };
 const CLAVE_OCULTO = "atendel-panel-menu-oculto";
 const CLAVE_INFO = "atendel-panel-info";
 const CELULAR = "(max-width: 859px)";
 /** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
-const ANGOSTO = "(max-width: 1199px)";
+const ANGOSTO = "(max-width: 1359px)";
 
 /**
  * El armazón del panel: el menú de 288px (en oscuro, igual a la captura;
@@ -57,7 +59,11 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
+  /** La información se arma la primera vez que se abre y se queda (así también se anima al cerrarse). */
+  const [infoMontada, setInfoMontada] = useState(false);
   const [angosto, setAngosto] = useState(false);
+  /** Hasta que se lee lo guardado no hay transiciones (si no, el menú y la información se moverían al cargar). */
+  const [listo, setListo] = useState(false);
   const [buscar, setBuscar] = useState<{ instantaneo: boolean } | null>(null);
   const [celular, setCelular] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
@@ -86,6 +92,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       if (mqAngosto.matches) setInfoAbierta(false);
     };
     mqAngosto.addEventListener("change", alCambiarAncho);
+    const cuadro = requestAnimationFrame(() => requestAnimationFrame(() => setListo(true)));
     const mq = window.matchMedia(CELULAR);
     const alCambiar = () => {
       setCelular(mq.matches);
@@ -96,8 +103,13 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
     return () => {
       mq.removeEventListener("change", alCambiar);
       mqAngosto.removeEventListener("change", alCambiarAncho);
+      cancelAnimationFrame(cuadro);
     };
   }, []);
+
+  useEffect(() => {
+    if (infoAbierta) setInfoMontada(true);
+  }, [infoAbierta]);
 
   const ponerInfo = useCallback(
     (abierta: boolean) => {
@@ -200,6 +212,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       data-menu={oculto ? "oculto" : undefined}
       data-cajon={cajon ? "abierto" : undefined}
       data-info={info ? (infoAbierta ? "abierta" : "cerrada") : undefined}
+      data-listo={listo ? "" : undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">
@@ -326,10 +339,17 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
 
       {info ? (
         <>
-          <aside id="pc-info" className="pc-lateral" aria-label="Información de tu negocio" hidden={!infoAbierta}>
-            {infoAbierta ? info(cerrarInfo) : null}
+          <aside
+            id="pc-info"
+            className="pc-lateral"
+            aria-label="Información de tu negocio"
+            data-abierta={infoAbierta ? "" : undefined}
+            aria-hidden={infoAbierta ? undefined : true}
+            {...(infoAbierta ? {} : INERTE)}
+          >
+            <div className="pc-lateral__dentro">{infoAbierta || infoMontada ? info(cerrarInfo) : null}</div>
           </aside>
-          {angosto && infoAbierta ? <div className="pc-velo-info" aria-hidden="true" onClick={cerrarInfo} /> : null}
+          {angosto ? <div className="pc-velo-info" aria-hidden="true" data-visible={infoAbierta ? "" : undefined} onClick={cerrarInfo} /> : null}
         </>
       ) : null}
 
@@ -351,7 +371,8 @@ function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: 
           <span className="pc-menu__triangulo" aria-hidden="true" />
         </button>
       </h2>
-      <div id={id} hidden={!abierta}>
+      <div id={id} className="pc-plegable" data-cerrado={abierta ? undefined : ""} aria-hidden={abierta ? undefined : true} {...(abierta ? {} : INERTE)}>
+        <div className="pc-plegable__dentro">
         {chats.length ? (
           <ul className="pc-menu__chats">
             {chats.map((c) => (
@@ -366,6 +387,7 @@ function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: 
         ) : (
           <p className="pc-menu__vacio">{vacio}</p>
         )}
+        </div>
       </div>
     </section>
   );
@@ -375,6 +397,18 @@ function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: 
 
 function MenuCuenta({ usuario, elementos }: { usuario: { nombre: string; plan: string }; elementos: ElementoCuenta[] }) {
   const [abierto, setAbierto] = useState(false);
+  const [cerrando, setCerrando] = useState(false);
+  const antes = useRef(false);
+  useEffect(() => {
+    if (antes.current && !abierto) {
+      setCerrando(true);
+      const t = window.setTimeout(() => setCerrando(false), 120);
+      antes.current = abierto;
+      return () => window.clearTimeout(t);
+    }
+    antes.current = abierto;
+    setCerrando(false);
+  }, [abierto]);
   const id = useId();
   const raiz = useRef<HTMLDivElement>(null);
   const boton = useRef<HTMLButtonElement>(null);
@@ -410,8 +444,8 @@ function MenuCuenta({ usuario, elementos }: { usuario: { nombre: string; plan: s
         <span className="pc-cuenta__plan">· {usuario.plan}</span>
         <Icono nombre="chevron" tam={14} trazo={2} />
       </button>
-      {abierto ? (
-        <ul id={id} className="pc-cuenta__lista">
+      {abierto || cerrando ? (
+        <ul id={id} className="pc-cuenta__lista" data-cerrando={abierto ? undefined : ""} {...(abierto ? {} : INERTE)}>
           {elementos.map((e) => (
             <li key={e.id}>
               {e.href ? (

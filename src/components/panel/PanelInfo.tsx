@@ -123,7 +123,9 @@ export function PanelInfo({ ejemplo, cargar, equipo, enConversacion = [], pendie
             return (
               <li key={f.id} className="pc-info__cifra" data-cargando={estado === "cargando" || undefined}>
                 <span className="pc-info__cifra-etiqueta">{f.etiqueta || " "}</span>
-                <span className="pc-info__cifra-valor">{f.hay && f.c.valor !== null ? numero.format(f.c.valor) : "—"}</span>
+                <span key={`${periodo}-${f.c.valor}`} className="pc-info__cifra-valor">
+                  {f.hay && f.c.valor !== null ? numero.format(f.c.valor) : "—"}
+                </span>
                 <span className={`pc-info__cambio${d === null ? "" : d >= 0 ? " pc-info__cambio--sube" : " pc-info__cambio--baja"}`}>
                   {!f.hay ? (estado === "cargando" ? " " : "Sin datos aún") : d === null ? "Sin comparar" : `${d >= 0 ? "▲" : "▼"} ${Math.abs(d)}%`}
                 </span>

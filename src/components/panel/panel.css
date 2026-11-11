@@ -3853,7 +3853,7 @@ a.pc-correo__accion:hover {
    ===================================================================== */
 .pc {
   --pc-riel: 64px;
-  --pc-info-ancho: 340px;
+  --pc-info-ancho: 360px;
   --pc-fondo-der: 0px;
 }
 :root[data-tema="claro"] .pc {
@@ -3987,14 +3987,17 @@ a.pc-correo__accion:hover {
   z-index: 20;
   height: 100dvh;
   min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   border-left: 1px solid var(--pc-division);
   background: var(--pc-menu);
 }
-.pc-lateral[hidden] {
-  display: none;
+/* Lo de adentro conserva su ancho mientras la columna crece o se encoge (no se aprieta) */
+.pc-lateral__dentro {
+  width: var(--pc-info-ancho);
+  min-height: 100%;
 }
 :root[data-tema="claro"] .pc-lateral {
   padding: 16px 16px 16px 0;
@@ -4007,7 +4010,13 @@ a.pc-correo__accion:hover {
   background: var(--pc-menu);
   box-shadow: var(--pc-sombra);
 }
-@media (min-width: 1200px) {
+@media (min-width: 1360px) {
+  .pc[data-info] {
+    grid-template-columns: var(--pc-menu-ancho) minmax(0, 1fr) 0px;
+  }
+  .pc[data-info][data-menu="oculto"] {
+    grid-template-columns: var(--pc-riel) minmax(0, 1fr) 0px;
+  }
   .pc[data-info="abierta"] {
     --pc-fondo-der: var(--pc-info-ancho);
     grid-template-columns: var(--pc-menu-ancho) minmax(0, 1fr) var(--pc-info-ancho);
@@ -4015,12 +4024,32 @@ a.pc-correo__accion:hover {
   .pc[data-info="abierta"][data-menu="oculto"] {
     grid-template-columns: var(--pc-riel) minmax(0, 1fr) var(--pc-info-ancho);
   }
-  .pc-info {
-    animation: pc-info-aparece 220ms var(--pc-sale);
+  /* Cerrada: se va desvaneciendo mientras la columna se cierra */
+  .pc-lateral {
+    opacity: 0;
+    visibility: hidden;
+    border-left-color: transparent;
+  }
+  .pc-lateral[data-abierta] {
+    opacity: 1;
+    visibility: visible;
+    border-left-color: var(--pc-division);
+  }
+  .pc[data-listo] .pc-lateral {
+    transition:
+      opacity 180ms ease,
+      border-color 180ms ease,
+      visibility 0s linear 300ms;
+  }
+  .pc[data-listo] .pc-lateral[data-abierta] {
+    transition:
+      opacity 260ms ease 60ms,
+      border-color 260ms ease,
+      visibility 0s;
   }
 }
 /* Angosto: flota encima, con velo; Esc o un clic afuera la cierran */
-@media (max-width: 1199px) {
+@media (max-width: 1359px) {
   .pc-lateral,
   :root[data-tema="claro"] .pc-lateral {
     position: fixed;
@@ -4034,7 +4063,26 @@ a.pc-correo__accion:hover {
     border-left: 1px solid var(--pc-division);
     background: var(--pc-menu);
     box-shadow: var(--pc-sombra-levanta);
-    animation: pc-info-entra 240ms var(--pc-sale);
+    visibility: hidden;
+    transform: translateX(104%);
+  }
+  .pc-lateral[data-abierta],
+  :root[data-tema="claro"] .pc-lateral[data-abierta] {
+    visibility: visible;
+    transform: none;
+  }
+  .pc[data-listo] .pc-lateral {
+    transition:
+      transform 220ms var(--pc-mueve),
+      visibility 0s linear 220ms;
+  }
+  .pc[data-listo] .pc-lateral[data-abierta] {
+    transition:
+      transform 320ms var(--pc-sale),
+      visibility 0s;
+  }
+  .pc-lateral__dentro {
+    width: auto;
   }
   :root[data-tema="claro"] .pc-info {
     border-radius: 0;
@@ -4045,18 +4093,19 @@ a.pc-correo__accion:hover {
     inset: 0;
     z-index: 57;
     background: var(--pc-velo);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+  .pc-velo-info[data-visible] {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 @media (max-width: 859px) {
   .pc-info-boton {
     top: 56px;
     right: 8px;
-  }
-}
-@keyframes pc-info-entra {
-  from {
-    transform: translateX(24px);
-    opacity: 0;
   }
 }
 @keyframes pc-info-aparece {
@@ -4069,8 +4118,8 @@ a.pc-correo__accion:hover {
 .pc-info {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 14px 16px 28px;
+  gap: 26px;
+  padding: 18px 22px 36px;
 }
 .pc-info__cabeza {
   display: flex;
@@ -4097,14 +4146,15 @@ a.pc-correo__accion:hover {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-enlace) 22%, transparent);
 }
 .pc-info__negocio {
-  margin-top: 6px;
+  margin-top: 8px;
   font: 400 24px/1.15 var(--pc-serif);
   letter-spacing: -0.01em;
 }
 .pc-info__periodos {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: -8px;
 }
 .pc-info__periodo {
   height: 34px;
@@ -4126,7 +4176,7 @@ a.pc-correo__accion:hover {
 .pc-info__cifras {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -4134,9 +4184,9 @@ a.pc-correo__accion:hover {
 .pc-info__cifra {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
-  padding: 12px 12px 11px;
+  padding: 14px 14px 13px;
   border: 1px solid var(--pc-borde);
   border-radius: 12px;
   background: var(--pc-superficie);
@@ -4149,7 +4199,8 @@ a.pc-correo__accion:hover {
   font-size: 12px;
 }
 .pc-info__cifra-valor {
-  font: 500 22px/1.1 var(--pc-sans);
+  animation: pc-info-aparece 240ms ease;
+  font: 500 24px/1.1 var(--pc-sans);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -4167,7 +4218,7 @@ a.pc-correo__accion:hover {
 .pc-info__bloque {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .pc-info__bloque-cabeza {
   display: flex;
@@ -4188,8 +4239,8 @@ a.pc-correo__accion:hover {
 .pc-info__barras {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
-  height: 72px;
+  gap: 4px;
+  height: 84px;
   padding-bottom: 1px;
   border-bottom: 1px solid var(--pc-borde);
 }
@@ -4247,8 +4298,8 @@ a.pc-correo__accion:hover {
 .pc-info__agente {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px 6px 6px;
+  gap: 12px;
+  padding: 8px 10px 8px 8px;
   border-radius: 10px;
   color: var(--pc-texto);
   text-decoration: none;
@@ -4280,8 +4331,8 @@ a.pc-correo__accion:hover {
 .pc-info__pendientes {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+  padding: 14px 16px;
   border: 1px solid var(--pc-borde);
   border-radius: 12px;
   color: var(--pc-texto);
@@ -4334,7 +4385,7 @@ a.pc-correo__accion:hover {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 7px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--pc-raya);
   font-size: 13px;
 }
@@ -4364,7 +4415,8 @@ a.pc-correo__accion:hover {
 @media (prefers-reduced-motion: reduce) {
   .pc-info,
   .pc-lateral,
-  .pc-info__barra {
+  .pc-info__barra,
+  .pc-info__cifra-valor {
     animation: none;
   }
 }
@@ -4373,4 +4425,131 @@ a.pc-correo__accion:hover {
 .pc .pc-caja .prompt-bar__send[data-armed] {
   background: var(--pc-acento);
   color: #fff;
+}
+
+/* =====================================================================
+   14. Transiciones al abrir y cerrar, y más aire en el menú
+   (solo después de leer lo guardado: [data-listo]; quietas con
+   "reducir movimiento")
+   ===================================================================== */
+@media (min-width: 860px) {
+  /* El menú y la información cambian de ancho con suavidad */
+  .pc[data-listo] {
+    transition: grid-template-columns 300ms var(--pc-mueve);
+  }
+  /* Lo de adentro del menú aparece con un fundido al encogerse o abrirse */
+  .pc[data-listo] .pc-menu__tarjeta > * {
+    animation: pc-menu-abre 280ms var(--pc-sale) 70ms both;
+  }
+  .pc[data-listo][data-menu="oculto"] .pc-menu__tarjeta > * {
+    animation-name: pc-menu-encoge;
+  }
+  /* Mientras cambia de ancho, lo que no cabe se recorta (sin cortar el menú de tu cuenta) */
+  .pc-menu__cabeza,
+  .pc-menu__nav {
+    overflow: clip;
+    overflow-clip-margin: 4px;
+  }
+  .pc[data-menu="oculto"] .pc-menu__tarjeta {
+    overflow: visible;
+  }
+}
+@keyframes pc-menu-abre {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pc-menu-encoge {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Fijados y Recientes se pliegan y despliegan */
+.pc-plegable {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 260ms var(--pc-mueve),
+    opacity 200ms ease;
+}
+.pc-plegable[data-cerrado] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.pc-plegable__dentro {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Tu cuenta: abre desde el botón y se cierra más rápido de lo que abre */
+.pc-cuenta__lista {
+  transform-origin: bottom left;
+  animation: pc-pop-abre 180ms var(--pc-sale);
+}
+.pc-cuenta__lista[data-cerrando] {
+  animation: pc-pop-cierra 120ms ease-in forwards;
+  pointer-events: none;
+}
+@keyframes pc-pop-abre {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes pc-pop-cierra {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+/* El menú con más aire */
+.pc-menu__cabeza {
+  height: 56px;
+  padding: 0 10px 0 14px;
+}
+.pc-menu__nav {
+  gap: 2px;
+  padding: 4px 8px 0;
+}
+.pc-menu__nuevo,
+.pc-menu__item {
+  height: 36px;
+  padding: 0 10px 0 9px;
+  gap: 11px;
+}
+.pc-menu__nuevo {
+  height: 38px;
+  margin-bottom: 6px;
+}
+.pc-menu__buscar {
+  height: 36px;
+  margin: 0 0 8px;
+}
+.pc-menu__chat {
+  height: 34px;
+  padding: 0 10px 0 9px;
+}
+.pc-menu__listas {
+  padding: 22px 8px 14px;
+}
+.pc-menu__pie {
+  height: 56px;
+  padding: 0 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc[data-listo],
+  .pc[data-listo] .pc-lateral,
+  .pc[data-listo] .pc-lateral[data-abierta],
+  .pc-velo-info,
+  .pc-plegable {
+    transition: none;
+  }
+  .pc[data-listo] .pc-menu__tarjeta > *,
+  .pc-cuenta__lista,
+  .pc-cuenta__lista[data-cerrando] {
+    animation: none;
+  }
 }
