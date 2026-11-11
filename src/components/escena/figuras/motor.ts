@@ -1,5 +1,5 @@
 import { REPOSO_VIDEO } from "./escenas";
-import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, PALETA_CEREBRO, suave, type Color, type Forma } from "./formas";
+import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, PALETA_CEREBRO, rellenarForma, suave, type Color, type Forma } from "./formas";
 
 /**
  * El motor del fondo del inicio (técnica de la versión 7): miles de
@@ -255,7 +255,47 @@ const RESPLANDOR = 0.045;
 
 /** Figuras con volumen: cuánto se ve lo de atrás (a través) y cuánto cambia con la profundidad. */
 type Volumen = { atras: number; prof: number; radio: number; dofIzq?: number; nitido?: boolean };
-const VOL_CEREBRO: Volumen = { atras: 0.42, prof: 1, radio: 1, nitido: true };
+
+/**
+ * El cerebro, como en el video (medido en diseno/capturas/dala/figuras-a/NOTA.md):
+ * - el color va por ángulo de vista: de frente, blanco y lavanda; a medio ángulo, manchas
+ *   de color; de canto (el borde), ámbar. Lo de frente NO se apaga;
+ * - la cara de atrás se ve a través (dos capas);
+ * - el tamaño va por cercanía: lo de cerca 1.6×, lo de lejos 0.7×, y lo más cercano
+ *   (~10 %) sale doble y borroso, fuera de foco.
+ */
+const CEREBRO = {
+  /** Cuánto se ve la cara de atrás (0.35 a 0.45). */
+  atras: 0.4,
+  /** Coseno del ángulo de vista donde acaba el ámbar del borde y donde empieza el blanco de frente. */
+  ambar: [0.2, 0.47] as const,
+  blanco: [0.42, 0.66] as const,
+  /** Cuánto baja el brillo de cada triangulito en el borde (ahí se enciman muchos y la suma se quemaría). */
+  borde: 0.6,
+  /** Cuánto se apagan los surcos vistos de frente. */
+  surco: 0.62,
+  /** Ancho del triangulito (px del video por unidad de `tam` de la colocación) y sus extremos por cercanía. */
+  tam: 0.93,
+  lejos: 0.7,
+  cerca: 1.6,
+  /** Desde qué cercanía (0 a 1) se desenfoca, y cuánto. */
+  foco: [0.86, 1.0] as const,
+  desenfoque: 0.55,
+  /** Armado al cargar: duración de cada partícula y escalonado (s). En total, ~1.2 s. */
+  armado: 0.62,
+  escalon: 0.5,
+  /** Reposo: giro (rad), cabeceo (rad), respiración (fracción) y temblor (px del video). */
+  giro: 0.052,
+  cabeceo: 0.017,
+  respira: 0.012,
+  temblor: 0.45,
+  /** Parallax con el cursor: giro y cabeceo máximos (rad) y corrimiento (px del video). */
+  cursor: [0.045, 0.03, 7] as const,
+  /** Seguimiento del scroll (s): la figura alcanza al scroll en ~0.5 s, como un scrub. */
+  scrub: 0.17,
+};
+/** Curva de salida (ease-out cúbica): arranca rápido y llega suave, sin rebote. */
+const salida = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t);
 /** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
@@ -263,13 +303,16 @@ const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 /* Polvo (en fracciones de la pantalla)                                    */
 /* ---------------------------------------------------------------------- */
 
-type Campo = "suelto" | "caos" | "junto" | "equipo" | "planes" | "centro";
+type Campo = "suelto" | "aura" | "caos" | "junto" | "equipo" | "planes" | "centro";
 
 /** Dónde cae el polvo de cada partícula y si se ve, según el reparto. */
 function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, number] {
   switch (c) {
     case "suelto":
       return [hx, hy, vis < 0.018 ? 1 : 0];
+    case "aura":
+      // Las partículas sueltas alrededor del cerebro: en los mismos lugares que el polvo suelto, pero más
+      return [hx, hy, vis < 0.045 ? 1 : 0];
     case "caos":
       return [hx * 1.04 - 0.02, hy * 1.04 - 0.02, vis < 0.085 ? 1 : 0];
     case "junto": {
@@ -324,7 +367,9 @@ function scrollVideo(P: number) {
 }
 
 export class MotorFiguras {
+  /** Partículas en total. Las primeras `nComun` las usan todas las figuras y el polvo; las demás, solo el cerebro. */
   readonly N: number;
+  readonly nComun: number;
   private gl: WebGLRenderingContext;
   private ctx2: CanvasRenderingContext2D;
   private prog: WebGLProgram;
@@ -381,8 +426,22 @@ export class MotorFiguras {
   objetivo = 0;
   posicion = 0;
   private velPos = 0;
+  /** La posición que dejó el último paso (si alguien la cambia desde afuera, se nota y no se arrastra la velocidad). */
+  private posPropia = 0;
   private reloj = 0;
   private primera = true;
+  /** Cuándo llegó el cerebro (reloj del motor): de ahí se cuenta el armado. */
+  private relojListo = -1;
+  /** Movimiento reducido: nada se mueve solo. */
+  private quieto = false;
+  /** Al llegar el cerebro, lo que no se ve salta a su lugar (para que no cruce la pantalla al armarse). */
+  private saltar = false;
+  /** El cursor (−1 a 1, desde el centro de la pantalla): a dónde va y dónde va, suavizado. */
+  cursor: [number, number] = [0, 0];
+  private cursorX = 0;
+  private cursorY = 0;
+  /** Milisegundos de cálculo por cuadro (promedio móvil): el paso y el llenado del búfer, sin el dibujo. */
+  msCalculo = 0;
 
   private tetras: TetraGrande[];
   /** La colocación con la que se está dibujando la figura (ya adaptada a la pantalla). */
@@ -396,8 +455,12 @@ export class MotorFiguras {
     this.ctx2 = ctx2;
     this.claro = !!opciones.claro;
     const ancho = window.innerWidth;
-    this.N = opciones.n ?? (ancho < 700 ? 6000 : ancho < 1100 ? 9000 : 11000);
+    // Las comunes son las de siempre (así el foco, el globo, el cierre y el polvo quedan igual);
+    // el cerebro usa además las propias: hasta 16 mil en computadora, 10 mil en tablet y 6 mil en celular
+    this.nComun = opciones.n ?? (ancho < 700 ? 6000 : ancho < 1100 ? 9000 : 11000);
+    this.N = opciones.n ?? (ancho < 700 ? 6000 : ancho < 1100 ? 10000 : 16000);
     const N = this.N;
+    const nComun = this.nComun;
 
     const p = gl.createProgram()!;
     for (const [tipo, src] of [
@@ -452,14 +515,21 @@ export class MotorFiguras {
     this.azarDes = f32();
     // El lugar de polvo de cada partícula sigue el mismo orden por bandas que las
     // figuras (ordenarPorPantalla): la partícula i cae en la misma zona en todas.
-    const bandas = Math.max(1, Math.round(Math.sqrt(N / 1.6)));
-    for (let i = 0; i < N; i++) {
-      const b = Math.floor((i * bandas) / N);
-      const de = Math.floor((b * N) / bandas);
-      const a = Math.floor(((b + 1) * N) / bandas);
-      this.hy[i] = (b + rnd()) / bandas;
-      this.hx[i] = (i - de + rnd()) / Math.max(1, a - de);
-    }
+    // (las partículas propias del cerebro llevan su propio azar y su propio orden, de nComun a N)
+    const rndPropias = azar(8);
+    const lugares = (desde: number, n: number, r: () => number) => {
+      const bandas = Math.max(1, Math.round(Math.sqrt(n / 1.6)));
+      for (let k = 0; k < n; k++) {
+        const b = Math.floor((k * bandas) / n);
+        const de = Math.floor((b * n) / bandas);
+        const a = Math.floor(((b + 1) * n) / bandas);
+        this.hy[desde + k] = (b + r()) / bandas;
+        this.hx[desde + k] = (k - de + r()) / Math.max(1, a - de);
+      }
+    };
+    lugares(0, nComun, rnd);
+    lugares(nComun, N - nComun, rndPropias);
+    const rndComunes = rnd;
     const coloresPolvo: [Color, number][] = [
       [PALETA.ambar, 53],
       [PALETA.blanco, 28],
@@ -469,7 +539,10 @@ export class MotorFiguras {
       [PALETA.rosa, 2],
     ];
     for (let i = 0; i < N; i++) {
-      this.vis[i] = rnd();
+      const propia = i >= nComun;
+      const rnd = propia ? rndPropias : rndComunes;
+      // (las propias nunca se ven como polvo: su `vis` queda arriba de cualquier umbral)
+      this.vis[i] = rnd() + (propia ? 2 : 0);
       this.fase[i] = rnd() * Math.PI * 2;
       this.rigidez[i] = 0.75 + rnd() * 0.5;
       const u = rnd();
@@ -507,7 +580,7 @@ export class MotorFiguras {
     this.pr = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32(), nx: f32(), ny: f32(), z: f32() };
     this.pr2 = { x: f32(), y: f32(), f: f32(), nz: f32(), fr: f32(), nx: f32(), ny: f32(), z: f32() };
 
-    this.formas = { cerebro: cerebro(N), foco: null, globo: null, marca: null };
+    this.formas = { cerebro: rellenarForma(cerebro(nComun), N), foco: null, globo: null, marca: null };
 
     const T = (x: number, y: number, ancla: number, k: number, tam: number, color: string, alfa: number): TetraGrande => ({
       x,
@@ -551,18 +624,21 @@ export class MotorFiguras {
     try {
       const r = await fetch(url);
       if (!r.ok) throw new Error(String(r.status));
-      this.formas.cerebro = cerebroDeMalla(leerCerebro(await r.arrayBuffer()), this.N);
+      this.formas.cerebro = cerebroDeMalla(leerCerebro(await r.arrayBuffer()), this.N, this.nComun);
     } catch {
       // sin red o sin archivo: el de respaldo
     }
     this.cerebroListo = true;
+    this.relojListo = this.reloj;
+    this.saltar = true;
   }
 
   /** Las figuras que faltan (se crean cuando hacen falta o cuando el navegador está libre). */
   prepararResto() {
-    if (!this.formas.foco) this.formas.foco = foco(this.N);
-    if (!this.formas.globo) this.formas.globo = globo(this.N);
-    if (!this.formas.marca) this.formas.marca = marca(this.N);
+    // (con las partículas comunes; las propias del cerebro quedan de sobra, invisibles)
+    if (!this.formas.foco) this.formas.foco = rellenarForma(foco(this.nComun), this.N);
+    if (!this.formas.globo) this.formas.globo = rellenarForma(globo(this.nComun), this.N);
+    if (!this.formas.marca) this.formas.marca = rellenarForma(marca(this.nComun), this.N);
   }
 
   medir(w: number, h: number, dpr: number) {
@@ -662,21 +738,27 @@ export class MotorFiguras {
     O.g[i] = cc[i * 3 + 1];
     O.b[i] = cc[i * 3 + 2];
     O.a[i] = v * (0.45 + 0.55 * ((this.vis[i] * 977) % 1));
-    if (this.enCerebro > 0) {
-      // Alrededor del cerebro, el polvo va en los mismos colores de la guía y tenue (no compite)
-      const k = this.enCerebro;
-      const q = (this.vis[i] * 7919) % 1;
-      const PC = PALETA_CEREBRO;
-      const c = q < 0.3 ? PC.ambar : q < 0.55 ? PC.violeta : q < 0.72 ? PC.magenta : q < 0.87 ? PC.verdeAzulClaro : PC.azul;
-      O.r[i] += (c[0] - O.r[i]) * k;
-      O.g[i] += (c[1] - O.g[i]) * k;
-      O.b[i] += (c[2] - O.b[i]) * k;
-      O.a[i] *= 1 - 0.4 * k;
-    }
     O.t[i] = this.tamPolvo[i] * this.s;
     O.m[i] = 1;
     // Las sueltas grandes van un poco fuera de foco (más cerca de la cámara)
     O.d[i] = this.tamPolvo[i] > 13 ? 0.35 : 0;
+    if (c === "aura") {
+      // Alrededor del cerebro: pirámides de alambre y rombos en ámbar, violeta y turquesa, de
+      // 15 a 60 px las grandes (más tenues y borrosas, como más cerca de la cámara)
+      const q = (this.vis[i] * 7919) % 1;
+      const PC = PALETA_CEREBRO;
+      const col = q < 0.46 ? PC.ambar : q < 0.76 ? PC.violeta : PC.turquesa;
+      O.r[i] = col[0];
+      O.g[i] = col[1];
+      O.b[i] = col[2];
+      const g = (this.vis[i] * 3571) % 1;
+      if (g < 0.2) {
+        const px = 15 + 45 * Math.pow(g / 0.2, 1.8);
+        O.t[i] = px * this.s;
+        O.d[i] = px > 30 ? 0.3 + 0.35 * Math.min(1, (px - 30) / 30) : 0.12;
+        O.a[i] = v * (px > 30 ? 0.42 : 0.6);
+      } else O.a[i] *= 0.8;
+    }
   }
 
   /** Todas las partículas como polvo del reparto c. */
@@ -753,6 +835,190 @@ export class MotorFiguras {
     }
   }
 
+  /**
+   * El cerebro en el objetivo O, como en el video:
+   * - color por ángulo de vista (fresnel): de frente, blanco y lavanda; a medio ángulo, las
+   *   manchas de color de cada punto; de canto, ámbar. La banda de abajo es la más brillante;
+   * - dos capas: la cara de atrás se ve a través, más tenue;
+   * - tamaño por cercanía, y lo más cercano sale desenfocado (más grande, doble y borroso);
+   * - los puntos de relleno solo se encienden en el borde (ahí los triangulitos se enciman);
+   * - en reposo respira y gira apenas, con un temblor mínimo, y sigue un poco al cursor.
+   * Todo en un solo recorrido, sin crear objetos (es lo que más pesa en cada cuadro).
+   */
+  private figuraCerebro(O: Objetivo, c0: Colocacion) {
+    const F = this.formas.cerebro;
+    const E = F.extra!;
+    const c = this.adaptar(c0);
+    this.actual = c;
+    const N = this.N;
+    const s = this.s;
+    const t = this.reloj;
+    const K = CEREBRO;
+    const S = c.escala * s * (1 + K.respira * Math.sin(t * 0.55));
+    const D = 2300 * s;
+    const yaw = c.yaw * G + Math.sin(t * 0.26) * K.giro + this.cursorX * K.cursor[0];
+    const pitch = c.pitch * G + Math.sin(t * 0.19 + 1) * K.cabeceo - this.cursorY * K.cursor[1];
+    const roll = c.roll * G;
+    const cy = Math.cos(yaw);
+    const sy = Math.sin(yaw);
+    const cp = Math.cos(pitch);
+    const sp = Math.sin(pitch);
+    const cr = Math.cos(roll);
+    const sr = Math.sin(roll);
+    const X0 = c.cx * this.sx - this.cursorX * K.cursor[2] * s;
+    const Y0 = c.cy * this.sy - this.cursorY * K.cursor[2] * s;
+    const luz = LUZ.cerebro * (this.vertical ? 0.8 : 1);
+    const B = c.tam * s * K.tam;
+    const temblor = K.temblor * s;
+    const A = PALETA_CEREBRO.ambar;
+    const T = PALETA_CEREBRO.tronco;
+    const P = F.pos;
+    const Nn = F.nor;
+    const alfa0 = F.alfa;
+    const um = F.umbral;
+    const tm = F.tam;
+    const parte = E.parte;
+    const surco = E.surco;
+    const relleno = E.relleno;
+    const cf = E.frente;
+    const cm = E.medio;
+    const mancha = E.mancha;
+    const fase = this.fase;
+    const [a0A, a1A] = K.ambar;
+    const [a0B, a1B] = K.blanco;
+    const [f0, f1] = K.foco;
+    const ox = O.x;
+    const oy = O.y;
+    for (let i = 0; i < N; i++) {
+      const a0 = alfa0[i];
+      if (a0 === 0) {
+        this.polvo(O, i, "aura");
+        continue;
+      }
+      const o = i * 3;
+      const px = P[o];
+      const py = P[o + 1];
+      const pz = P[o + 2];
+      const x1 = px * cy + pz * sy;
+      const z1 = -px * sy + pz * cy;
+      const y2 = py * cp - z1 * sp;
+      const z2 = py * sp + z1 * cp;
+      const nz1 = -Nn[o] * sy + Nn[o + 2] * cy;
+      const ny2 = Nn[o + 1] * cp - nz1 * sp;
+      const nz2 = Nn[o + 1] * sp + nz1 * cp;
+      const f = D / (D - z2 * S);
+      const ph = fase[i];
+      ox[i] = X0 + (x1 * cr - y2 * sr) * S * f + Math.sin(t * 1.7 + ph) * temblor;
+      oy[i] = Y0 - (x1 * sr + y2 * cr) * S * f + Math.cos(t * 1.3 + ph * 1.7) * temblor;
+      // Coseno del ángulo de vista (1 de frente, 0 de canto), con un poco de azar propio
+      // para que las franjas de color no queden cortadas a regla
+      const cz = nz2 < 0 ? -nz2 : nz2;
+      const cj = cz + (um[i] - 0.5) * 0.16;
+      // Dos capas: la de atrás se ve a través
+      let capa = 1;
+      if (nz2 < 0.08) {
+        const k = nz2 <= -0.22 ? 0 : (nz2 + 0.22) / 0.3;
+        capa = K.atras + (1 - K.atras) * k * k * (3 - 2 * k);
+      }
+      // Cercanía (0 lejos … 1 cerca): la profundidad, y el frente del cerebro cuenta como más cerca
+      let q = 0.5 + (z2 + pz) / 3;
+      q = q < 0 ? 0 : q > 1 ? 1 : q;
+      let tam = K.lejos + (K.cerca - K.lejos) * q;
+      let desen = 0;
+      let r: number;
+      let g: number;
+      let b: number;
+      let al = a0 * luz * capa;
+      if (parte[i] === 3) {
+        // El tronco: gris lavanda tenue (ya viene apagándose hacia abajo)
+        r = T[0];
+        g = T[1];
+        b = T[2];
+        al *= 0.34;
+        tam *= 0.85;
+      } else {
+        // Ámbar de canto
+        let k = (cj - a0A) / (a1A - a0A);
+        k = k < 0 ? 0 : k > 1 ? 1 : k;
+        let wA = 1 - k * k * (3 - 2 * k);
+        // Las caras que miran hacia abajo (la banda de abajo del temporal): más ámbar y más brillo
+        let abajo = (-ny2 - 0.3) / 0.5;
+        abajo = abajo < 0 ? 0 : abajo > 1 ? 1 : abajo;
+        wA += (1 - wA) * abajo * 0.6 * (1 - cz);
+        // Blanco y lavanda de frente (menos donde hay una mancha de color)
+        k = (cj - a0B) / (a1B - a0B);
+        k = k < 0 ? 0 : k > 1 ? 1 : k;
+        let wF = k * k * (3 - 2 * k) * (1 - mancha[i]);
+        if (wF > 1 - wA) wF = 1 - wA;
+        const wM = 1 - wA - wF;
+        r = cf[o] * wF + cm[o] * wM + A[0] * wA;
+        g = cf[o + 1] * wF + cm[o + 1] * wM + A[1] * wA;
+        b = cf[o + 2] * wF + cm[o + 2] * wM + A[2] * wA;
+        // Surcos: de frente se ven oscuros; en el borde, completos (así el contorno no se corta)
+        const sc = surco[i];
+        if (sc > 0) {
+          k = (cz - 0.3) / 0.35;
+          k = k < 0 ? 0 : k > 1 ? 1 : k;
+          al *= 1 - K.surco * sc * k;
+        }
+        // Relleno: solo donde la superficie se ve de canto
+        if (relleno[i]) {
+          k = (cz - 0.26) / 0.26;
+          k = k < 0 ? 0 : k > 1 ? 1 : k;
+          al *= 0.65 * (1 - k * k * (3 - 2 * k));
+        }
+        // La banda de abajo, la más brillante; en el borde se enciman muchas y cada una brilla un poco menos
+        al *= (1 + 0.3 * abajo * wA) * (1 - K.borde * wA);
+        // Fuera de foco: lo más cercano de la cara de adelante
+        if (nz2 > 0 && q > f0) {
+          k = (q - f0) / (f1 - f0);
+          k = k > 1 ? 1 : k;
+          desen = K.desenfoque * k * k * (3 - 2 * k);
+        }
+      }
+      O.r[i] = r;
+      O.g[i] = g;
+      O.b[i] = b;
+      O.a[i] = al;
+      O.t[i] = B * tm[i] * f * tam * (1 + 0.45 * desen);
+      O.m[i] = 0;
+      O.d[i] = desen;
+    }
+    this.armadoInicial(O, X0, Y0);
+  }
+
+  /**
+   * Al cargar, el cerebro se arma desde polvo en ~1.2 s: cada triangulito llega desde una nube
+   * abierta alrededor de su lugar, escalonado del centro hacia afuera y con salida suave (sin
+   * rebote). Con movimiento reducido ya está armado.
+   */
+  private armadoInicial(O: Objetivo, X0: number, Y0: number) {
+    if (this.relojListo < 0 || this.quieto) return;
+    const ta = this.reloj - this.relojListo;
+    const K = CEREBRO;
+    if (ta >= K.armado + K.escalon + 0.05) return;
+    const s = this.s;
+    const R = 1 / (360 * s);
+    for (let i = 0; i < this.N; i++) {
+      if (O.m[i] !== 0) continue;
+      const dx = O.x[i] - X0;
+      const dy = O.y[i] - Y0;
+      const az = this.azarDes[i];
+      // escalonado: del centro hacia afuera, con algo de azar
+      const espera = K.escalon * Math.min(1, 0.7 * Math.hypot(dx, dy) * R + 0.3 * az);
+      const u = (ta - espera) / K.armado;
+      if (u >= 1) continue;
+      const k = u <= 0 ? 0 : salida(u);
+      const e = 1 - k;
+      const v = this.vis[i];
+      const abre = 0.35 + 0.55 * az;
+      O.x[i] += (dx * abre + (((v * 127.1) % 1) - 0.5) * 150 * s) * e;
+      O.y[i] += (dy * abre + (((v * 311.7) % 1) - 0.5) * 150 * s) * e;
+      O.a[i] *= k * k;
+      O.t[i] *= 0.55 + 0.45 * k;
+    }
+  }
+
   /** o1[i] ← mezcla de o1[i] y o2[i] (k = 1 deja o2). */
   private mezclar(i: number, k: number) {
     const a = this.o1;
@@ -769,66 +1035,6 @@ export class MotorFiguras {
   }
 
   /* ---------- Colores con brillo de orilla ---------- */
-
-  /**
-   * Color del cerebro por orientación y por zona, como en el video (medido por la
-   * dirección hacia la orilla más cercana): ámbar en la orilla y en las caras de abajo
-   * (orilla de abajo ~75 %, derecha ~69 %, arriba ~50 %, frente ~36 %; centro ~23 %),
-   * blanco donde la cara mira a la cámara y a la luz, y zonas verde azulado y violeta
-   * que giran con el cerebro. Cada triangulito elige su color con su propio umbral
-   * (con bordes suaves para que no parpadee al girar).
-   */
-  private colorCerebro = (i: number, pr: Proy): Color => {
-    const F = this.formas.cerebro;
-    const nx = pr.nx[i];
-    const ny = pr.ny[i];
-    const nz = pr.nz[i];
-    // La orilla es solo la franja de afuera (medido: ~25 px de ~330 → de canto, fr > 0.9)
-    const fr = pr.fr[i];
-    const rim = suave(0.88, 0.98, fr);
-    const medio = suave(0.83, 0.95, fr);
-    const abajo = suave(0.2, 0.85, -ny) * medio;
-    const arriba = suave(0.3, 0.9, ny);
-    const izquierda = suave(0.3, 0.9, -nx);
-    const derecha = suave(0.3, 0.9, nx) * medio;
-    const luzBlanca = suave(0.45, 0.95, 0.3 * nx + 0.25 * ny + 0.92 * nz);
-    // De frente (giro cerca de 0°) los costados quedan de canto y se verían casi todos ámbar;
-    // en el video, de frente, el ámbar es solo la orilla de afuera y abajo
-    const frontal = 1 - suave(16, 30, Math.abs(this.actual.yaw));
-    const pA = Math.min(0.9, (0.3 - 0.1 * frontal) + (0.22 * medio * (1 - 0.65 * frontal) + 0.34 * rim) * (1 - 0.4 * izquierda) + 0.12 * abajo + 0.05 * derecha);
-    const g = F.grupo[i];
-    const u = F.umbral[i];
-    const o = i * 3;
-    const PC = PALETA_CEREBRO;
-    // Luz: lo que mira a la luz brilla más; lo de canto, un poco menos
-    const l = 0.86 + 0.3 * Math.max(luzBlanca, rim * 0.7);
-    // Chispas blancas: pocas (~3.5 % de los triangulitos), repartidas parejo
-    if ((i * 0.6180339887) % 1 < 0.035) return [PC.chispa[0] * l, PC.chispa[1] * l, PC.chispa[2] * l];
-    // Ámbar en la orilla y en la banda de abajo (lo más brillante); cambio nítido para no mezclar
-    // ámbar con violeta (la mezcla se vería gris)
-    const wA = 1 - suave(pA - 0.012, pA + 0.012, u);
-    // El color de la zona: las manchas de verde azulado y azul van por dentro; en los costados y
-    // arriba (de canto) pasan a violeta y magenta
-    let c0 = F.col[o];
-    let c1 = F.col[o + 1];
-    let c2 = F.col[o + 2];
-    const q = (i * 0.7548776662) % 1;
-    if (g > 0 && medio * 0.85 + arriba * 0.35 > q) {
-      const v = q < 0.5 ? PC.violeta : PC.magenta;
-      c0 = v[0];
-      c1 = v[1];
-      c2 = v[2];
-    }
-    // Destellos magenta en el borde de arriba (como en el video)
-    if (arriba * medio > 0.3 && (u * 13.7) % 1 < 0.45) {
-      c0 = PC.magenta[0];
-      c1 = PC.magenta[1];
-      c2 = PC.magenta[2];
-    }
-    const A = PC.ambar;
-    const lA = l * 1.08;
-    return [A[0] * wA * lA + c0 * (1 - wA) * l, A[1] * wA * lA + c1 * (1 - wA) * l, A[2] * wA * lA + c2 * (1 - wA) * l];
-  };
 
   private colorFoco = (i: number, pr: Proy): Color => {
     const F = this.formas.foco!;
@@ -901,14 +1107,14 @@ export class MotorFiguras {
     if (seg === 0) {
       // Portada → decisiones: el cerebro gira de lado a frente, crece y se va a la izquierda.
       // Al llegar, abajo a la derecha se deshace en una cola de polvo.
-      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, 0, "suelto", this.pr, LUZ.cerebro, VOL_CEREBRO);
+      this.figuraCerebro(o1, this.cerebroEn(this.posicion));
       this.cola(suave(0.82, 1.0, p));
       return;
     }
     if (seg === 1) {
       // Decisiones → caos: el cerebro va al centro, se ve desde arriba y se deshace
       // de abajo hacia arriba hasta llenar la pantalla de polvo.
-      this.figura(o1, fm.cerebro, this.cerebroEn(this.posicion), this.colorCerebro, 0, "suelto", this.pr, LUZ.cerebro, VOL_CEREBRO);
+      this.figuraCerebro(o1, this.cerebroEn(this.posicion));
       this.cola(1 - suave(0.0, 0.3, p) * 0.4);
       this.todoPolvo(o2, "caos");
       for (let i = 0; i < N; i++) {
@@ -1051,17 +1257,47 @@ export class MotorFiguras {
 
   /** Avanza dt segundos. Con `quieto` (movimiento reducido) todo llega de inmediato. */
   paso(dt: number, quieto = false) {
+    const t0 = performance.now();
     dt = Math.min(Math.max(dt, 0), 1 / 15);
-    this.reloj += dt;
-    // La figura va con el scroll ya suavizado (Lenis), sin retraso propio: en el video incluso
-    // va un poco adelante del texto (eso ya está en las llaves de cada tramo). Si la posición
-    // pedida brinca, los resortes de cada partícula dan la llegada suave.
-    this.posicion = Number.isFinite(this.objetivo) ? this.objetivo : this.posicion;
-    this.velPos = 0;
+    // Con movimiento reducido el reloj no corre: nada respira, gira ni tiembla
+    this.quieto = quieto;
+    if (!quieto) this.reloj += dt;
+    // El cursor llega suavizado (atarlo directo se siente artificial)
+    const kCursor = quieto ? 1 : 1 - Math.exp(-dt * 3.5);
+    this.cursorX += ((quieto ? 0 : this.cursor[0]) - this.cursorX) * kCursor;
+    this.cursorY += ((quieto ? 0 : this.cursor[1]) - this.cursorY) * kCursor;
+    // Seguimiento del scroll. Mientras se ve el cerebro va suavizado, como un scrub: la figura
+    // alcanza al scroll en ~0.5 s (amortiguado crítico, sin rebote), así una vuelta de rueda no
+    // la mueve "de poquito a poquito". Del caos en adelante sigue pegada al scroll, como antes.
+    const pedido = Number.isFinite(this.objetivo) ? this.objetivo : this.posicion;
+    if (this.posicion !== this.posPropia) this.velPos = 0; // la movieron desde afuera (laboratorio)
+    const tau = this.primera || quieto ? 0 : CEREBRO.scrub * (1 - suave(1.7, 2.3, this.posicion));
+    if (tau < 0.004 || Math.abs(pedido - this.posicion) < 1e-5) {
+      this.posicion = pedido;
+      this.velPos = 0;
+    } else {
+      const omega = 2 / tau;
+      const x = omega * dt;
+      const e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+      const cambio = this.posicion - pedido;
+      const temp = (this.velPos + omega * cambio) * dt;
+      this.velPos = (this.velPos - omega * temp) * e;
+      this.posicion = pedido + (cambio + temp) * e;
+    }
+    this.posPropia = this.posicion;
     this.componer(this.posicion);
     const o = this.o1;
     const N = this.N;
     const kc = 1 - Math.exp(-dt * 9);
+    if (this.saltar && !this.primera && !quieto) {
+      for (let i = 0; i < N; i++) {
+        if (this.alfa[i] > 0.01) continue;
+        this.pos[i * 2] = this.ant[i * 2] = o.x[i];
+        this.pos[i * 2 + 1] = this.ant[i * 2 + 1] = o.y[i];
+        this.vel[i * 2] = this.vel[i * 2 + 1] = 0;
+      }
+    }
+    this.saltar = false;
     if (this.primera || quieto) {
       for (let i = 0; i < N; i++) {
         this.pos[i * 2] = this.ant[i * 2] = o.x[i];
@@ -1144,7 +1380,9 @@ export class MotorFiguras {
       this.rot[j + 2] += vuelta(az2 - this.rot[j + 2]) * kr;
     }
     this.primera = false;
+    this.msPaso = performance.now() - t0;
   }
+  private msPaso = 0;
 
   /* ---------- Dibujo ---------- */
 
@@ -1152,6 +1390,7 @@ export class MotorFiguras {
     const gl = this.gl;
     const N = this.N;
     const d = this.datos;
+    const t0 = performance.now();
     for (let i = 0; i < N; i++) {
       const o = i * 13;
       d[o] = this.pos[i * 2];
@@ -1170,6 +1409,9 @@ export class MotorFiguras {
       // En la figura, triángulo hueco (aristas al centro apagadas); en el polvo, tetraedro
       d[o + 12] = 0.15 + 0.75 * this.mOrilla(i);
     }
+    // Cálculo por cuadro: el paso más este llenado (promedio móvil)
+    const ms = this.msPaso + (performance.now() - t0);
+    this.msCalculo += (ms - this.msCalculo) * (this.msCalculo === 0 ? 1 : 0.05);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);
@@ -1191,7 +1433,8 @@ export class MotorFiguras {
     gl.vertexAttribPointer(A.extra, 3, gl.FLOAT, false, 52, 40);
     gl.uniform2f(this.U.uRes, this.w, this.h);
     gl.uniform1f(this.U.uDpr, this.dpr);
-    gl.uniform1f(this.U.uTrazo, 0.7);
+    // Contorno: ~1.25 px en el cerebro (en px de pantalla, sea cual sea la densidad); 0.7 px del lienzo en lo demás
+    gl.uniform1f(this.U.uTrazo, 0.7 + (0.625 * this.dpr - 0.7) * this.enCerebro);
     gl.uniform1f(this.U.uClaro, this.claro ? 1 : 0);
     // Halo suave (en claro no: ahí se pinta encima)
     gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);
@@ -1214,7 +1457,7 @@ export class MotorFiguras {
       gl.uniform2f(this.UR.uRes, this.w, this.h);
       gl.uniform1f(this.UR.uDpr, this.dpr);
       gl.uniform1f(this.UR.uAncho, 4.2);
-      gl.uniform1f(this.UR.uFuerza, RESPLANDOR * (1 - 0.6 * this.enCerebro));
+      gl.uniform1f(this.UR.uFuerza, RESPLANDOR * (1 - 0.72 * this.enCerebro));
       gl.drawArrays(gl.POINTS, 0, N);
       for (const l of [R.pos, R.tam, R.col, R.extra]) gl.disableVertexAttribArray(l);
     }

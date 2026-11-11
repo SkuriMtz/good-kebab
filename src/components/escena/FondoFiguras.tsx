@@ -127,9 +127,27 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       ahora += dt;
       motor.objetivo = objetivo ?? objetivoActual();
       motor.paso(dt, quieto);
-      motor.dibujar();
+      // A mano (laboratorio) se dibuja una sola vez por cuadro del navegador, aunque se avance
+      // muchas veces seguidas (si no, las capturas esperan cientos de dibujos atrasados)
+      if (reloj !== "manual") motor.dibujar();
+      else if (!dibujoPendiente)
+        dibujoPendiente = requestAnimationFrame(() => {
+          dibujoPendiente = 0;
+          motor.dibujar();
+        });
       caja.dataset.posicion = motor.posicion.toFixed(3);
+      // ms de cálculo por cuadro (para medir; se anota cada medio segundo)
+      if (++cuadros % 30 === 0) caja.dataset.ms = motor.msCalculo.toFixed(2);
     };
+    let cuadros = 0;
+    let dibujoPendiente = 0;
+
+    // Parallax leve con el cursor: solo donde hay mouse y sin movimiento reducido
+    const conCursor = !quieto && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const alCursor = (e: PointerEvent) => {
+      motor.cursor = [(e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1];
+    };
+    if (conCursor) window.addEventListener("pointermove", alCursor, { passive: true });
 
     const moTema = new MutationObserver(() => {
       motor.claro = document.documentElement.dataset.tema === "claro";
@@ -163,7 +181,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     const libre = typeof window.requestIdleCallback === "function";
     const idle = libre ? window.requestIdleCallback(() => motor.prepararResto(), { timeout: 2500 }) : window.setTimeout(() => motor.prepararResto(), 1200);
 
-    // El cerebro de malla real llega aparte (archivo de ~60 KB); mientras, hay polvo
+    // El cerebro de malla real llega aparte (archivo de ~150 KB; ~65 KB en celular); mientras, hay polvo
     let vivo = true;
     motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin").then(() => {
       if (!vivo) return;
@@ -179,8 +197,10 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       if (libre) window.cancelIdleCallback(idle);
       else window.clearTimeout(idle);
       detener();
+      cancelAnimationFrame(dibujoPendiente);
       moTema.disconnect();
       window.removeEventListener("resize", medir);
+      window.removeEventListener("pointermove", alCursor);
       document.removeEventListener("visibilitychange", alVisibilidad);
       motor.destruir();
       motorRef.current = null;
