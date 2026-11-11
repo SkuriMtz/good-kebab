@@ -1,13 +1,16 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useLayoutEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
+import type { Periodo } from "@/lib/estadisticas";
+import type { ResumenInfo } from "@/lib/resumen-negocio";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ContextoChats } from "./contexto";
 import { nombresDe } from "./Mensajes";
+import { PanelInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
 
 export type DatosArmazonReal = {
@@ -133,6 +136,32 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     })),
   ];
 
+  // El panel de información de la derecha: en el inicio y en las conversaciones (cifras reales de /api/negocio/resumen)
+  const cargarInfo = useCallback(async (p: Periodo) => {
+    const r = await fetch(`/api/negocio/resumen?periodo=${p}`, { cache: "no-store" });
+    return r.ok ? ((await r.json()) as ResumenInfo) : null;
+  }, []);
+  const enConversacion = c ? [...fijados, ...recientes].find((x) => x.id === c)?.agentes : undefined;
+  const info =
+    activa === "inicio" || activa === "chat"
+      ? (cerrar: () => void) => (
+          <PanelInfo
+            ejemplo={false}
+            cargar={cargarInfo}
+            equipo={datos.activos}
+            enConversacion={enConversacion}
+            pendientes={datos.pendientes}
+            hrefs={{
+              pendientes: "/panel?vista=pendientes",
+              estadisticas: "/panel?vista=estadisticas",
+              negocio: "/panel?vista=negocio&tab=apps",
+              chatCon: (a) => `/panel?agente=${a}`,
+            }}
+            alCerrar={cerrar}
+          />
+        )
+      : undefined;
+
   return (
     <ContextoChats.Provider value={avisos}>
       <Armazon
@@ -154,6 +183,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         cuenta={cuenta}
         indice={indice}
         alCapturarClic={alCapturarClic}
+        info={info}
       >
         {children}
       </Armazon>

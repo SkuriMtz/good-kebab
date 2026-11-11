@@ -35,11 +35,16 @@ type Props = {
   aviso?: ReactNode;
   /** Antes de que un enlace navegue (el panel lo usa para la transición entre vistas). */
   alCapturarClic?: (e: MouseEvent<HTMLDivElement>) => void;
+  /** El panel de información de la derecha (en el inicio y en el chat). Recibe cómo cerrarse. */
+  info?: (alCerrar: () => void) => ReactNode;
   children: ReactNode;
 };
 
 const CLAVE_OCULTO = "atendel-panel-menu-oculto";
+const CLAVE_INFO = "atendel-panel-info";
 const CELULAR = "(max-width: 859px)";
+/** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
+const ANGOSTO = "(max-width: 1199px)";
 
 /**
  * El armazón del panel: el menú de 288px (en oscuro, igual a la captura;
@@ -48,9 +53,11 @@ const CELULAR = "(max-width: 859px)";
  * tu cuenta y el tema. En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recientes, usuario, cuenta, indice, aviso, alCapturarClic, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recientes, usuario, cuenta, indice, aviso, alCapturarClic, info, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
+  const [infoAbierta, setInfoAbierta] = useState(false);
+  const [angosto, setAngosto] = useState(false);
   const [buscar, setBuscar] = useState<{ instantaneo: boolean } | null>(null);
   const [celular, setCelular] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
@@ -64,6 +71,21 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
     } catch {
       /* sin almacenamiento: visible */
     }
+    const mqAngosto = window.matchMedia(ANGOSTO);
+    let guardada: string | null = null;
+    try {
+      guardada = window.localStorage.getItem(CLAVE_INFO);
+    } catch {
+      /* sin almacenamiento */
+    }
+    // La primera vez: abierta en pantallas anchas, cerrada en las demás
+    setInfoAbierta(mqAngosto.matches ? false : guardada !== "0");
+    setAngosto(mqAngosto.matches);
+    const alCambiarAncho = () => {
+      setAngosto(mqAngosto.matches);
+      if (mqAngosto.matches) setInfoAbierta(false);
+    };
+    mqAngosto.addEventListener("change", alCambiarAncho);
     const mq = window.matchMedia(CELULAR);
     const alCambiar = () => {
       setCelular(mq.matches);
@@ -71,8 +93,36 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
     };
     alCambiar();
     mq.addEventListener("change", alCambiar);
-    return () => mq.removeEventListener("change", alCambiar);
+    return () => {
+      mq.removeEventListener("change", alCambiar);
+      mqAngosto.removeEventListener("change", alCambiarAncho);
+    };
   }, []);
+
+  const ponerInfo = useCallback(
+    (abierta: boolean) => {
+      setInfoAbierta(abierta);
+      // Solo se recuerda en pantallas anchas (en las angostas flota y se cierra sola)
+      if (!angosto)
+        try {
+          window.localStorage.setItem(CLAVE_INFO, abierta ? "1" : "0");
+        } catch {
+          /* sin almacenamiento */
+        }
+    },
+    [angosto],
+  );
+  const cerrarInfo = useCallback(() => ponerInfo(false), [ponerInfo]);
+
+  // Flotando (pantalla angosta): Esc la cierra
+  useEffect(() => {
+    if (!(info && infoAbierta && angosto)) return;
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") cerrarInfo();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [info, infoAbierta, angosto, cerrarInfo]);
 
   const alternarOculto = () => {
     setOculto((o) => {
@@ -137,7 +187,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   }, [abiertoEnCelular]);
 
   const item = (id: IdSeccion, etiqueta: string, icono: NombreIcono, href: string, extra?: ReactNode) => (
-    <Enlace href={href} className="pc-menu__item" aria-current={activa === id ? "page" : undefined}>
+    <Enlace href={href} className="pc-menu__item" aria-current={activa === id ? "page" : undefined} title={oculto ? etiqueta : undefined}>
       <Icono nombre={icono} tam={18} />
       <span className="pc-menu__item-texto">{etiqueta}</span>
       {extra}
@@ -149,6 +199,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       className={`pc ${serifPanel.variable}`}
       data-menu={oculto ? "oculto" : undefined}
       data-cajon={cajon ? "abierto" : undefined}
+      data-info={info ? (infoAbierta ? "abierta" : "cerrada") : undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">
@@ -173,19 +224,20 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
               type="button"
               className="pc-icono pc-menu__ocultar"
               onClick={() => (celular ? setCajon(false) : alternarOculto())}
-              aria-label={celular ? "Cerrar el menú" : "Ocultar el menú"}
-              title={celular ? "Cerrar el menú" : "Ocultar el menú"}
+              aria-label={celular ? "Cerrar el menú" : oculto ? "Abrir el menú" : "Encoger el menú"}
+              title={celular ? "Cerrar el menú" : oculto ? "Abrir el menú" : "Encoger el menú"}
+              aria-expanded={celular ? undefined : !oculto}
             >
               <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={18} />
             </button>
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            <Enlace href={hrefs.inicio} className="pc-menu__nuevo" aria-current={activa === "inicio" ? "page" : undefined}>
+            <Enlace href={hrefs.inicio} className="pc-menu__nuevo" aria-current={activa === "inicio" ? "page" : undefined} title={oculto ? "Nueva conversación" : undefined}>
               <Icono nombre="mas" tam={18} />
               <span>Nueva conversación</span>
             </Enlace>
-            <button type="button" className="pc-menu__item" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K">
+            <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={18} />
               <span className="pc-menu__item-texto">Buscar</span>
               <kbd className="pc-menu__atajo" aria-hidden="true">
@@ -254,8 +306,16 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
             <Icono nombre="mas" tam={20} />
           </Enlace>
         </div>
-        {oculto ? (
-          <button type="button" className="pc-icono pc-mostrar-menu" onClick={alternarOculto} aria-label="Mostrar el menú" title="Mostrar el menú">
+        {info ? (
+          <button
+            type="button"
+            className="pc-icono pc-info-boton"
+            onClick={() => ponerInfo(!infoAbierta)}
+            aria-expanded={infoAbierta}
+            aria-controls="pc-info"
+            aria-label={infoAbierta ? "Ocultar la información" : "Mostrar la información"}
+            title={infoAbierta ? "Ocultar la información" : "Mostrar la información"}
+          >
             <Icono nombre="barra-lateral" tam={18} />
           </button>
         ) : null}
@@ -263,6 +323,15 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           {children}
         </main>
       </div>
+
+      {info ? (
+        <>
+          <aside id="pc-info" className="pc-lateral" aria-label="Información de tu negocio" hidden={!infoAbierta}>
+            {infoAbierta ? info(cerrarInfo) : null}
+          </aside>
+          {angosto && infoAbierta ? <div className="pc-velo-info" aria-hidden="true" onClick={cerrarInfo} /> : null}
+        </>
+      ) : null}
 
       <Buscador abierto={buscar !== null} instantaneo={buscar?.instantaneo ?? false} alCerrar={() => setBuscar(null)} indice={indice} />
     </div>

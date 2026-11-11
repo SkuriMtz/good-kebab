@@ -6,13 +6,15 @@ import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaN
 import { datosNegocioEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
 import { AGENTES_INFO, esIdAgente } from "@/lib/agentes";
 import { DEMO_APROBACIONES, DEMO_NEGOCIO, DEMO_USUARIA } from "@/lib/demo-dashboard";
-import { periodoDe } from "@/lib/estadisticas";
+import { periodoDe, type Periodo } from "@/lib/estadisticas";
+import { resumirNegocio } from "@/lib/resumen-negocio";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { ActividadDemo } from "./Actividad";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
 import { nombresDe } from "./Mensajes";
+import { PanelInfo } from "./PanelInfo";
 import { ContextoNavegar, Enlace } from "./Piezas";
 import { Seccion } from "./Secciones";
 import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
@@ -118,6 +120,27 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     ...recientes.map((r) => ({ id: `r-${r.id}`, grupo: "Recientes", titulo: r.titulo, agentes: r.agentes, href: r.href })),
   ];
 
+  // El panel de información de la derecha: en el inicio y en las conversaciones
+  const cargarInfo = useCallback(async (p: Periodo) => resumirNegocio(datosNegocioEjemplo(p, new Date(ahora))), [ahora]);
+  const info = valida
+    ? undefined
+    : (cerrar: () => void) => (
+        <PanelInfo
+          ejemplo
+          cargar={cargarInfo}
+          equipo={AGENTES_INFO.map((a) => a.id)}
+          enConversacion={conv?.agentes}
+          pendientes={porRevisar}
+          hrefs={{
+            pendientes: "/pruebalo?vista=pendientes",
+            estadisticas: "/pruebalo?vista=estadisticas",
+            negocio: "/pruebalo?vista=negocio&tab=apps",
+            chatCon: (a) => `/pruebalo?con=${a}`,
+          }}
+          alCerrar={cerrar}
+        />
+      );
+
   let contenido;
   if (valida === "agentes") {
     const a = params.get("agente");
@@ -212,6 +235,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         usuario={{ nombre: DEMO_USUARIA.nombre.split(" ")[0], plan: PLAN.nombre.replace(/^Atendel\s+/, "") }}
         cuenta={cuenta}
         indice={indiceConChats}
+        info={info}
         aviso={
           <>
             <span className="pc-estado pc-estado--azul">Datos de ejemplo</span>
