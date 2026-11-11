@@ -4876,3 +4876,29 @@ a.pc-info__fila:active {
     animation: none;
   }
 }
+
+/* =====================================================================
+   17. Modo claro: el menú y la información van rectos, pegados a la
+   orilla con su línea (como en oscuro), no como tarjetas redondeadas
+   ===================================================================== */
+:root[data-tema="claro"] .pc {
+  --pc-riel: 64px;
+}
+:root[data-tema="claro"] .pc-menu {
+  padding: 0;
+}
+:root[data-tema="claro"] .pc-menu__tarjeta {
+  border: 0;
+  border-right: 1px solid var(--pc-division);
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-tema="claro"] .pc-lateral {
+  padding: 0;
+  border-left: 1px solid var(--pc-division);
+  background: var(--pc-menu);
+}
+:root[data-tema="claro"] .pc-info {
+  border-radius: 0;
+  box-shadow: none;
+}
