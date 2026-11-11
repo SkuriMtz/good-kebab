@@ -1,0 +1,65 @@
+import type { IdApp } from "@/lib/nucleo-tipos";
+
+/**
+ * El logo de cada app conectable (en public/apps). Las marcas son de sus dueños y
+ * se usan solo para que la persona reconozca la app que conecta. De dónde sale
+ * cada uno y su licencia: docs/apps/logos.md.
+ *
+ * Es un Record completo a propósito: una app nueva en IdApp no compila hasta
+ * que tenga su logo aquí.
+ */
+export const LOGO_APP: Record<IdApp, string> = {
+  acuity: "/apps/acuity.png",
+  agendapro: "/apps/agendapro.png",
+  airtable: "/apps/airtable.svg",
+  alegra: "/apps/alegra.png",
+  booksy: "/apps/booksy.png",
+  calendly: "/apps/calendly.svg",
+  cfdi: "/apps/facturapi.png",
+  clip: "/apps/clip.png",
+  conekta: "/apps/conekta.svg",
+  doctoralia: "/apps/doctoralia.png",
+  dropbox: "/apps/dropbox.svg",
+  excel: "/apps/microsoft.svg",
+  facebook_resenas: "/apps/facebook.svg",
+  facturama: "/apps/facturama.png",
+  fresha: "/apps/fresha.png",
+  gmail: "/apps/gmail.svg",
+  google_business: "/apps/google.svg",
+  google_calendar: "/apps/googlecalendar.svg",
+  google_contacts: "/apps/google.svg",
+  google_drive: "/apps/googledrive.svg",
+  google_forms: "/apps/googleforms.svg",
+  google_sheets: "/apps/googlesheets.svg",
+  holded: "/apps/holded.png",
+  hubspot: "/apps/hubspot.svg",
+  instagram: "/apps/instagram.svg",
+  kommo: "/apps/kommo.png",
+  mailchimp: "/apps/mailchimp.svg",
+  mercado_libre: "/apps/mercadolibre.png",
+  mercado_pago: "/apps/mercadopago.svg",
+  messenger: "/apps/messenger.svg",
+  notion: "/apps/notion.svg",
+  onedrive: "/apps/onedrive.svg",
+  openpay: "/apps/openpay.png",
+  outlook: "/apps/microsoft.svg",
+  outlook_calendar: "/apps/microsoft.svg",
+  outlook_contacts: "/apps/microsoft.svg",
+  paypal: "/apps/paypal.svg",
+  pipedrive: "/apps/pipedrive.png",
+  quickbooks: "/apps/quickbooks.svg",
+  setmore: "/apps/setmore.png",
+  shopify: "/apps/shopify.svg",
+  simplybook: "/apps/simplybook.png",
+  slack: "/apps/slack.svg",
+  square: "/apps/square.svg",
+  stripe: "/apps/stripe.svg",
+  telegram: "/apps/telegram.svg",
+  tienda_nube: "/apps/tiendanube.png",
+  trello: "/apps/trello.svg",
+  typeform: "/apps/typeform.svg",
+  whatsapp_business: "/apps/whatsapp.svg",
+  zoho_books: "/apps/zoho.svg",
+  zoho_crm: "/apps/zoho.svg",
+  zoom: "/apps/zoom.svg",
+};

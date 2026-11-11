@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { Giro, Icono, type NombreIcono } from "@/components/base/Iconos";
+import { Giro, Icono } from "@/components/base/Iconos";
 import { APP_POR_ID, CATALOGO } from "@/lib/conexiones/catalogo";
+import { LOGO_APP } from "@/lib/conexiones/logos";
 import { RUTAS, type AppConectable, type CategoriaApp, type EstadoAppPersona, type IdApp, type Proveedor } from "@/lib/nucleo-tipos";
 import { AvatarAgente, nombresDe } from "../Mensajes";
 import { Enlace, Modal, Pildoras, Subtitulo, Vacio, claseBoton, retrasoEscalon } from "../Piezas";
@@ -89,7 +90,6 @@ const PASOS_LLAVE: Partial<Record<Proveedor, string[]>> = {
   holded: ["En Holded, entra a Configuración → Desarrolladores y crea una clave de API.", "Cópiala y pégala aquí."],
 };
 
-const ICONO_CATEGORIA = Object.fromEntries(CATEGORIAS_APP.map((c) => [c.id, c.icono])) as Record<CategoriaApp, NombreIcono>;
 
 const sinAcentos = (s: string) =>
   s
@@ -820,8 +820,9 @@ function TarjetaApp({
   return (
     <li className="pc-tarjeta pc-app pc-entra" data-estado={estado.estado} style={{ "--d": `${retrasoEscalon(indice)}ms` } as CSSProperties}>
       <div className="pc-app__cabeza">
-        <span className="pc-app__icono" aria-hidden="true">
-          <Icono nombre={ICONO_CATEGORIA[app.categoria] ?? "documento"} tam={18} />
+        <span className="pc-app__icono pc-app__icono--logo" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo (SVG o PNG de 64 px) */}
+          <img src={LOGO_APP[app.id]} alt="" width={20} height={20} loading="lazy" decoding="async" />
         </span>
         <h3 id={`${id}-nombre`} className="pc-app__nombre">
           {app.nombre}

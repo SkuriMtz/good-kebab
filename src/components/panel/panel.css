@@ -3609,6 +3609,17 @@ a.pc-correo__accion:hover {
 .pc-app[data-estado="conectada"] .pc-app__icono {
   color: var(--pc-exito);
 }
+/* Con el logo de la marca: mosaico blanco en los dos temas (así se ven los logos oscuros) */
+.pc-app__icono--logo {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+}
+.pc-app__icono--logo img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
 .pc-app__nombre {
   flex: 1;
   min-width: 0;
