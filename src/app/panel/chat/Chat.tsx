@@ -5,7 +5,7 @@ import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "
 import { flushSync } from "react-dom";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { Personaje } from "@/components/agentes/Personaje";
-import { Giro } from "@/components/base/Iconos";
+import { Giro, Icono } from "@/components/base/Iconos";
 import { ContextoChats } from "@/components/panel/contexto";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
@@ -17,7 +17,7 @@ import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
 import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
 import { FranjaPendientes, UsoPlan } from "@/components/panel/Franja";
-import { esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
+import { ejemplosDe, esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
@@ -426,6 +426,8 @@ export function Chat({
         className="pc-caja"
         initialText={caja.texto}
         placeholder={grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
+        forma="pastilla"
+        ejemplos={ejemplosDe(participantes, grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`)}
         sources={fuentes}
         plusActions={subida.acciones}
         commands={comandosDe(participantes)}
@@ -544,12 +546,12 @@ export function Chat({
         }
         acciones={
           <>
-            <Enlace href="/panel" className={claseBoton("fantasma", true)}>
-              Nueva
+            <Enlace href="/panel" className="pc-icono" aria-label="Nueva conversación" title="Nueva conversación">
+              <Icono nombre="mas" tam={18} />
             </Enlace>
             {actualConv ? (
-              <button type="button" className={claseBoton("fantasma", true)} onClick={() => setPorBorrar(actualConv)}>
-                Borrar
+              <button type="button" className="pc-icono" aria-label="Borrar esta conversación" title="Borrar esta conversación" onClick={() => setPorBorrar(actualConv)}>
+                <Icono nombre="basura" tam={17} />
               </button>
             ) : null}
           </>

@@ -7,6 +7,7 @@ import type { IdAgente } from "@/lib/agentes";
 import { ponerTema } from "@/lib/tema";
 import { serifPanel } from "./fuente";
 import { PilaAgentes } from "./Mensajes";
+import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { useTema } from "./useTema";
@@ -35,8 +36,8 @@ type Props = {
   aviso?: ReactNode;
   /** Antes de que un enlace navegue (el panel lo usa para la transición entre vistas). */
   alCapturarClic?: (e: MouseEvent<HTMLDivElement>) => void;
-  /** El panel de información de la derecha (en el inicio y en el chat). Recibe cómo cerrarse. */
-  info?: (alCerrar: () => void) => ReactNode;
+  /** El panel de información de la derecha (en el inicio y en el chat): qué pestaña y cómo cambiarla o cerrarse. */
+  info?: (p: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => ReactNode;
   children: ReactNode;
 };
 
@@ -44,6 +45,7 @@ type Props = {
 const INERTE = { inert: "" } as unknown as { inert?: boolean };
 const CLAVE_OCULTO = "atendel-panel-menu-oculto";
 const CLAVE_INFO = "atendel-panel-info";
+const CLAVE_TAB = "atendel-panel-info-tab";
 const CELULAR = "(max-width: 859px)";
 /** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
 const ANGOSTO = "(max-width: 1359px)";
@@ -61,6 +63,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   const [infoAbierta, setInfoAbierta] = useState(false);
   /** La información se arma la primera vez que se abre y se queda (así también se anima al cerrarse). */
   const [infoMontada, setInfoMontada] = useState(false);
+  const [tab, setTab] = useState<TabInfo>("resumen");
   const [angosto, setAngosto] = useState(false);
   /** Hasta que se lee lo guardado no hay transiciones (si no, el menú y la información se moverían al cargar). */
   const [listo, setListo] = useState(false);
@@ -81,6 +84,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
     let guardada: string | null = null;
     try {
       guardada = window.localStorage.getItem(CLAVE_INFO);
+      const t = window.localStorage.getItem(CLAVE_TAB);
+      if (esTabInfo(t)) setTab(t);
     } catch {
       /* sin almacenamiento */
     }
@@ -125,6 +130,20 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
     [angosto],
   );
   const cerrarInfo = useCallback(() => ponerInfo(false), [ponerInfo]);
+  const cambiarTab = useCallback((t: TabInfo) => {
+    setTab(t);
+    try {
+      window.localStorage.setItem(CLAVE_TAB, t);
+    } catch {
+      /* sin almacenamiento */
+    }
+  }, []);
+  /** Un ícono de arriba: abre esa pestaña; si ya está abierta, cierra la información. */
+  const alPicarTab = (t: TabInfo) => {
+    if (infoAbierta && tab === t) return ponerInfo(false);
+    cambiarTab(t);
+    ponerInfo(true);
+  };
 
   // Flotando (pantalla angosta): Esc la cierra
   useEffect(() => {
@@ -320,17 +339,27 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           </Enlace>
         </div>
         {info ? (
-          <button
-            type="button"
-            className="pc-icono pc-info-boton"
-            onClick={() => ponerInfo(!infoAbierta)}
-            aria-expanded={infoAbierta}
-            aria-controls="pc-info"
-            aria-label={infoAbierta ? "Ocultar la información" : "Mostrar la información"}
-            title={infoAbierta ? "Ocultar la información" : "Mostrar la información"}
-          >
-            <Icono nombre="barra-lateral" tam={18} />
-          </button>
+          <div className="pc-barra-info" role="toolbar" aria-label="Información de tu negocio">
+            {TABS_INFO.map((t) => {
+              const activa = infoAbierta && tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="pc-icono pc-barra-info__boton"
+                  onClick={() => alPicarTab(t.id)}
+                  aria-pressed={activa}
+                  aria-controls="pc-info"
+                  aria-label={activa ? `Ocultar ${t.etiqueta.toLowerCase()}` : `Ver ${t.etiqueta.toLowerCase()}`}
+                  title={t.etiqueta}
+                  data-tab={t.id}
+                  data-ultima={tab === t.id ? "" : undefined}
+                >
+                  <Icono nombre={t.icono} tam={18} />
+                </button>
+              );
+            })}
+          </div>
         ) : null}
         <main id="pc-contenido" className="pc-contenido" tabIndex={-1}>
           {children}
@@ -347,7 +376,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
             aria-hidden={infoAbierta ? undefined : true}
             {...(infoAbierta ? {} : INERTE)}
           >
-            <div className="pc-lateral__dentro">{infoAbierta || infoMontada ? info(cerrarInfo) : null}</div>
+            <div className="pc-lateral__dentro">{infoAbierta || infoMontada ? info({ tab, alCambiarTab: cambiarTab, alCerrar: cerrarInfo }) : null}</div>
           </aside>
           {angosto ? <div className="pc-velo-info" aria-hidden="true" data-visible={infoAbierta ? "" : undefined} onClick={cerrarInfo} /> : null}
         </>

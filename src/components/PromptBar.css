@@ -478,3 +478,134 @@
     transform: none;
   }
 }
+
+/* ---------------------------------------------------------------------
+   Forma "pastilla" (data-forma): una pastilla que se abre en dos filas al
+   pasar el cursor, enfocarla o escribir. Los mismos elementos en las dos
+   formas; solo cambia la rejilla, así el campo nunca pierde el foco.
+   --------------------------------------------------------------------- */
+.prompt-bar__entrada,
+.prompt-bar__mas,
+.prompt-bar__picks,
+.prompt-bar__acciones {
+  display: contents;
+}
+/* El campo ya marca el foco con su borde: el texto no lleva un recuadro aparte */
+.prompt-bar__input:focus,
+.prompt-bar__input:focus-visible {
+  outline: none;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__field {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "mas entrada entrada acciones";
+  align-items: center;
+  gap: 0 8px;
+  padding: 8px;
+}
+.prompt-bar[data-forma="pastilla"][data-grande] .prompt-bar__field {
+  grid-template-areas:
+    "entrada entrada entrada entrada"
+    "mas picks . acciones";
+  row-gap: 10px;
+  padding: 12px;
+}
+.prompt-bar[data-forma="pastilla"][data-grande][data-chips] .prompt-bar__field {
+  grid-template-areas:
+    "chips chips chips chips"
+    "entrada entrada entrada entrada"
+    "mas picks . acciones";
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__bar {
+  display: contents;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__spacer,
+.prompt-bar[data-forma="pastilla"] .prompt-bar__sparks {
+  display: none;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__chips {
+  grid-area: chips;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__entrada {
+  position: relative;
+  display: block;
+  grid-area: entrada;
+  min-width: 0;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__input {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 6px;
+}
+.prompt-bar__input[data-rota]::placeholder {
+  color: transparent;
+}
+.prompt-bar__ejemplo {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  left: 6px;
+  display: flex;
+  align-items: center;
+  height: var(--pb-linea, 24px);
+  overflow: hidden;
+  color: var(--c-placeholder);
+  pointer-events: none;
+}
+.prompt-bar__ejemplo-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__mas {
+  display: flex;
+  grid-area: mas;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__picks {
+  display: flex;
+  grid-area: picks;
+  align-items: center;
+  gap: 6px;
+  transition:
+    opacity 350ms cubic-bezier(0.22, 1, 0.36, 1) 80ms,
+    filter 350ms cubic-bezier(0.22, 1, 0.36, 1) 80ms,
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+}
+.prompt-bar[data-forma="pastilla"]:not([data-grande]) .prompt-bar__picks {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-6px);
+  pointer-events: none;
+  transition-duration: 100ms;
+  transition-delay: 0s;
+}
+.prompt-bar[data-forma="pastilla"] .prompt-bar__acciones {
+  display: flex;
+  grid-area: acciones;
+  align-items: center;
+  justify-self: end;
+  gap: 8px;
+}
+/* El micrófono aparece con la pastilla abierta (cerrada solo queda el círculo) */
+.prompt-bar[data-forma="pastilla"] .prompt-bar__acciones .prompt-bar__tool {
+  transition:
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1) 100ms,
+    filter 300ms cubic-bezier(0.22, 1, 0.36, 1) 100ms;
+}
+.prompt-bar[data-forma="pastilla"]:not([data-grande]) .prompt-bar__acciones .prompt-bar__tool {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  filter: blur(4px);
+  transition-duration: 100ms;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .prompt-bar[data-forma="pastilla"] .prompt-bar__picks,
+  .prompt-bar[data-forma="pastilla"] .prompt-bar__acciones .prompt-bar__tool {
+    transition: none;
+  }
+}

@@ -13,7 +13,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
 } from "react";
-import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
+import { AnimatePresence, MotionConfig, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   ArrowDown01Icon,
@@ -43,6 +43,13 @@ const esAccion = (f: Fila): f is PromptBarAction => "onSelect" in f;
 
 type Props = {
   placeholder?: string;
+  /**
+   * "pastilla": una pastilla que, al pasar el cursor, enfocarla o escribir, se abre en dos
+   * filas (el mensaje arriba; abajo el +, lo demás y el círculo de enviar). "caja": la de siempre.
+   */
+  forma?: "caja" | "pastilla";
+  /** Ejemplos de qué pedir: en la pastilla vacía van cambiando, cada uno sube desde un desenfoque. */
+  ejemplos?: string[];
   /** Texto con el que arranca la caja (lo que se pidió desde el dashboard). */
   initialText?: string;
   sources?: PromptBarSource[];
@@ -83,6 +90,8 @@ type Variables = CSSProperties & Record<`--${string}`, string | number>;
 const ARROW_UP = [12, 4.5, 18.5, 11, 14.25, 11, 14.25, 19.5, 9.75, 19.5, 9.75, 11, 5.5, 11];
 const SQUARE = [12, 6, 18, 6, 18, 12, 18, 18, 6, 18, 6, 12, 6, 6];
 const EASE_IN_OUT: [number, number, number, number] = [0.77, 0, 0.175, 1];
+/** El resorte de la pastilla al abrirse y cerrarse: firme, sin rebote que se note. */
+const RESORTE = { type: "spring", stiffness: 420, damping: 36 } as const;
 const LINE = 22;
 const EDGE = 11;
 
@@ -153,6 +162,8 @@ function SendGlyph({ busy, morphDuration, squash, tilt }: { busy: boolean; morph
  */
 export default function PromptBar({
   placeholder = "Escribe tu mensaje",
+  forma = "caja",
+  ejemplos = [],
   initialText = "",
   sources = [],
   plusActions = [],
@@ -211,6 +222,9 @@ export default function PromptBar({
   const [active, setActive] = useState(0);
   const [listening, setListening] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const [encima, setEncima] = useState(false);
+  const [foco, setFoco] = useState(false);
+  const [ejemplo, setEjemplo] = useState(0);
 
   const model = models.find((m) => m.key === modelKey) ?? models[0];
   const token = dismissed ? null : parseToken(draft);
@@ -229,6 +243,16 @@ export default function PromptBar({
   const armed = busy || canSend;
   const level = efforts[effortIndex] ?? "";
   const maxed = efforts.length > 1 && effortIndex === efforts.length - 1;
+  const pastilla = forma === "pastilla";
+  const grande = !pastilla || encima || foco || draft.length > 0 || attachments.length > 0 || open !== null || listening;
+  const rotan = pastilla && ejemplos.length > 1 && !draft && !listening;
+
+  // Los ejemplos van cambiando mientras la pastilla está vacía
+  useEffect(() => {
+    if (!rotan) return undefined;
+    const t = window.setInterval(() => setEjemplo((e) => (e + 1) % ejemplos.length), 3400);
+    return () => window.clearInterval(t);
+  }, [rotan, ejemplos.length]);
 
   const focusInput = () => inputRef.current?.focus({ preventScroll: true });
   const closeMenus = useCallback(() => {
@@ -519,11 +543,15 @@ export default function PromptBar({
   };
 
   return (
+    <MotionConfig reducedMotion="user">
     <div
       ref={rootRef}
       className={`prompt-bar${className ? ` ${className}` : ""}`}
       data-busy={busy ? "" : undefined}
       data-max={maxed ? "" : undefined}
+      data-forma={pastilla ? "pastilla" : undefined}
+      data-grande={pastilla && grande ? "" : undefined}
+      data-chips={attachments.length > 0 ? "" : undefined}
       style={vars}
     >
       {open ? (
@@ -614,10 +642,19 @@ export default function PromptBar({
         </div>
       ) : null}
 
-      <div
+      <motion.div
+        layout={pastilla}
+        transition={RESORTE}
         className="prompt-bar__field"
         role="presentation"
         data-max={maxed ? "" : undefined}
+        style={pastilla ? { borderRadius: grande ? 24 : 28 } : undefined}
+        onPointerEnter={() => setEncima(true)}
+        onPointerLeave={() => setEncima(false)}
+        onFocus={() => setFoco(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFoco(false);
+        }}
         onPointerDown={(e) => {
           if (e.target === e.currentTarget || e.target === inputRef.current) closeMenus();
         }}
@@ -643,6 +680,7 @@ export default function PromptBar({
           </div>
         ) : null}
 
+        <motion.div layout={pastilla ? "position" : false} transition={RESORTE} className="prompt-bar__entrada">
         <textarea
           ref={inputRef}
           enterKeyHint="send"
@@ -661,9 +699,28 @@ export default function PromptBar({
           }}
           onFocus={closeMenus}
           onKeyDown={onKeyDown}
+          data-rota={pastilla && ejemplos.length > 0 && !draft ? "" : undefined}
         />
+        {pastilla && ejemplos.length > 0 && !draft ? (
+          <span className="prompt-bar__ejemplo" aria-hidden="true">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={listening ? "escucha" : ejemplo}
+                className="prompt-bar__ejemplo-texto"
+                initial={{ y: 14, opacity: 0, filter: "blur(6px)" }}
+                animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                exit={{ y: -14, opacity: 0, filter: "blur(6px)" }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {listening ? "Escuchando…" : ejemplos[ejemplo % ejemplos.length]}
+              </motion.span>
+            </AnimatePresence>
+          </span>
+        ) : null}
+        </motion.div>
 
         <div className="prompt-bar__bar">
+          <motion.span layout={pastilla ? "position" : false} transition={RESORTE} className="prompt-bar__mas">
           <button
             type="button"
             className="prompt-bar__tool"
@@ -681,8 +738,10 @@ export default function PromptBar({
               setPlusOpen(!plusOpen);
             }}
           >
-            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={1.75} />
+            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={pastilla ? 2.2 : 1.75} />
           </button>
+          </motion.span>
+          <span className="prompt-bar__picks">
           {models.length > 0 && model ? (
             <button
               type="button"
@@ -723,7 +782,9 @@ export default function PromptBar({
               <span>{level}</span>
             </button>
           ) : null}
+          </span>
           <span className="prompt-bar__spacer" />
+          <motion.span layout={pastilla ? "position" : false} transition={RESORTE} className="prompt-bar__acciones">
           {onDictate ? (
             <button
               type="button"
@@ -768,8 +829,10 @@ export default function PromptBar({
           >
             <SendGlyph busy={busy} morphDuration={morphDuration} squash={squash} tilt={tilt} />
           </button>
+          </motion.span>
         </div>
-      </div>
+      </motion.div>
     </div>
+    </MotionConfig>
   );
 }

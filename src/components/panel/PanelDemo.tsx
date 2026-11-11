@@ -14,7 +14,7 @@ import { ActividadDemo } from "./Actividad";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
 import { nombresDe } from "./Mensajes";
-import { PanelInfo } from "./PanelInfo";
+import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { ContextoNavegar, Enlace } from "./Piezas";
 import { Seccion } from "./Secciones";
 import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
@@ -124,20 +124,25 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const cargarInfo = useCallback(async (p: Periodo) => resumirNegocio(datosNegocioEjemplo(p, new Date(ahora))), [ahora]);
   const info = valida
     ? undefined
-    : (cerrar: () => void) => (
+    : ({ tab, alCambiarTab, alCerrar }: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => (
         <PanelInfo
+          tab={tab}
+          alCambiarTab={alCambiarTab}
           ejemplo
           cargar={cargarInfo}
           equipo={AGENTES_INFO.map((a) => a.id)}
           enConversacion={conv?.agentes}
           pendientes={porRevisar}
+          pendientesLista={tablero
+            .flatMap((i) => (i.columna === "revisar" && i.agente ? [{ id: i.id, agente: i.agente, titulo: i.titulo, detalle: i.para }] : []))}
           hrefs={{
             pendientes: "/pruebalo?vista=pendientes",
             estadisticas: "/pruebalo?vista=estadisticas",
             negocio: "/pruebalo?vista=negocio&tab=apps",
+            documentos: "/pruebalo?vista=negocio&tab=documentos",
             chatCon: (a) => `/pruebalo?con=${a}`,
           }}
-          alCerrar={cerrar}
+          alCerrar={alCerrar}
         />
       );
 

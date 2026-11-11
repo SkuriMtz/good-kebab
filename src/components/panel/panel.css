@@ -3962,22 +3962,31 @@ a.pc-correo__accion:hover {
   }
 }
 
-/* El botón que muestra u oculta la información (arriba a la derecha) */
-.pc-info-boton {
+/* Los íconos de arriba a la derecha: cada uno abre su pestaña de información */
+.pc-barra-info {
   position: absolute;
   top: 10px;
   right: 12px;
   z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
-.pc-info-boton svg {
-  transform: scaleX(-1);
+.pc-barra-info__boton {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform var(--pc-micro) var(--pc-sale);
 }
-.pc-info-boton[aria-expanded="true"] {
+.pc-barra-info__boton:active {
+  transform: scale(0.94);
+}
+.pc-barra-info__boton[aria-pressed="true"] {
   background: var(--pc-activo);
   color: var(--pc-texto);
 }
 .pc[data-info] .pc-conv__cabeza {
-  padding-right: 56px;
+  padding-right: 160px;
 }
 
 /* La columna de la derecha */
@@ -4103,9 +4112,45 @@ a.pc-correo__accion:hover {
   }
 }
 @media (max-width: 859px) {
-  .pc-info-boton {
+  /* En el celular solo cabe un ícono: el de la última pestaña (adentro están todas) */
+  .pc-barra-info {
     top: 56px;
     right: 8px;
+  }
+  .pc-barra-info__boton:not([data-ultima]) {
+    display: none;
+  }
+  .pc[data-info] .pc-conv__cabeza {
+    padding-right: 52px;
+  }
+}
+/* Las pestañas dentro del panel: solo en el celular */
+.pc-info__tabs {
+  display: none;
+}
+@media (max-width: 859px) {
+  .pc-info__tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: -10px;
+  }
+  .pc-info__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 2px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--pc-texto-2);
+    font: 500 11px/1.15 var(--pc-sans);
+    text-align: center;
+  }
+  .pc-info__tab[aria-selected="true"] {
+    background: var(--pc-activo);
+    color: var(--pc-texto);
   }
 }
 @keyframes pc-info-aparece {
@@ -4423,8 +4468,8 @@ a.pc-correo__accion:hover {
 
 /* La caja de escribir: el botón de enviar se enciende en el color de la marca */
 .pc .pc-caja .prompt-bar__send[data-armed] {
-  background: var(--pc-acento);
-  color: #fff;
+  background: var(--pc-texto);
+  color: var(--pc-lienzo);
 }
 
 /* =====================================================================
@@ -4550,6 +4595,134 @@ a.pc-correo__accion:hover {
   .pc[data-listo] .pc-menu__tarjeta > *,
   .pc-cuenta__lista,
   .pc-cuenta__lista[data-cerrando] {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   15. Pestañas del panel de información y la caja en forma de pastilla
+   ===================================================================== */
+.pc-info__eyebrow-texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-info__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  animation: pc-info-tab 280ms var(--pc-sale);
+}
+@keyframes pc-info-tab {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.pc-info__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-info__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px 9px 8px;
+  border-radius: 10px;
+  color: var(--pc-texto);
+  text-decoration: none;
+  transition: transform var(--pc-micro) var(--pc-sale);
+}
+a.pc-info__fila:active {
+  transform: scale(0.98);
+}
+.pc-info__fila-textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pc-info__fila-titulo {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-info__fila-detalle {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-info__doc-icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--pc-miniatura);
+  color: var(--pc-texto-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  a.pc-info__fila:hover {
+    background: var(--pc-hover);
+  }
+  .pc-info__tab:hover {
+    color: var(--pc-texto);
+  }
+}
+
+/* La caja de escribir en forma de pastilla (PromptBar forma="pastilla") */
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__field {
+  min-height: 0;
+  padding: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 28px -14px rgb(0 0 0 / 0.28);
+  transition:
+    box-shadow 450ms ease,
+    border-color 200ms ease;
+}
+.pc .pc-caja[data-forma="pastilla"][data-grande] .prompt-bar__field {
+  padding: 12px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06), 0 28px 56px -20px rgb(0 0 0 / 0.36);
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__input {
+  min-height: 40px;
+  padding: 8px 6px;
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool,
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__send {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  transition: transform 200ms var(--pc-sale);
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool {
+  background: var(--pc-texto);
+  color: var(--pc-lienzo);
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__mas .prompt-bar__tool:active,
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__send:active {
+  transform: scale(0.95);
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__acciones .prompt-bar__tool {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+.pc .pc-caja[data-forma="pastilla"] .prompt-bar__ejemplo {
+  color: var(--pc-placeholder);
+  font-size: 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-info__cuerpo {
     animation: none;
   }
 }

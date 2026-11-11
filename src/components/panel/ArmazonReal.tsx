@@ -10,7 +10,7 @@ import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ContextoChats } from "./contexto";
 import { nombresDe } from "./Mensajes";
-import { PanelInfo } from "./PanelInfo";
+import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
 
 export type DatosArmazonReal = {
@@ -144,8 +144,10 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const enConversacion = c ? [...fijados, ...recientes].find((x) => x.id === c)?.agentes : undefined;
   const info =
     activa === "inicio" || activa === "chat"
-      ? (cerrar: () => void) => (
+      ? ({ tab, alCambiarTab, alCerrar }: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => (
           <PanelInfo
+            tab={tab}
+            alCambiarTab={alCambiarTab}
             ejemplo={false}
             cargar={cargarInfo}
             equipo={datos.activos}
@@ -155,9 +157,10 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               pendientes: "/panel?vista=pendientes",
               estadisticas: "/panel?vista=estadisticas",
               negocio: "/panel?vista=negocio&tab=apps",
+              documentos: "/panel?vista=negocio&tab=documentos",
               chatCon: (a) => `/panel?agente=${a}`,
             }}
-            alCerrar={cerrar}
+            alCerrar={alCerrar}
           />
         )
       : undefined;
