@@ -32,6 +32,8 @@ export type Forma = {
   grupo: Float32Array; // N
   /** Hondura (0 = cresta, 1 = fondo de un surco): el motor oscurece los surcos que se ven de frente. */
   hondo: Float32Array; // N
+  /** Solo el cerebro: partes, surcos, relleno y colores por punto. */
+  extra?: ExtraCerebro;
 };
 
 /* ---------- Azar con semilla (mulberry32) ---------- */
@@ -65,19 +67,20 @@ export const PALETA = {
 type NombreColor = keyof typeof PALETA;
 
 /**
- * Los colores del cerebro, tomados de la guía de estilo (diseno/design.md: "Hero
- * Constellation Visualization" e "Imagery"): espectro vivo y saturado, nunca gris.
- * Ámbar Saffron Spark, violeta Electric Iris, verde azulado Deep Verdant (más una
- * versión clara del mismo tono para que se vea sobre negro), magenta y azul.
+ * Los colores del cerebro, como en el video de referencia: blanco y lavanda donde la
+ * superficie mira de frente; a medio ángulo, violeta, turquesa, azul y un poco de
+ * magenta; y ámbar donde se ve de canto (el borde). El tronco, gris lavanda.
  */
 export const PALETA_CEREBRO = {
+  blanco: hex("#f0eef8"),
+  lavanda: hex("#c9c3e6"),
   ambar: hex("#ffb829"),
   violeta: hex("#8052ff"),
   magenta: hex("#e040fb"),
-  verdeAzul: hex("#15846e"),
-  verdeAzulClaro: hex("#23d9b5"),
+  turquesa: hex("#23d9b5"),
+  turquesaHondo: hex("#15846e"),
   azul: hex("#3d7bff"),
-  chispa: hex("#f4f1ff"),
+  tronco: hex("#aaa6c2"),
 };
 
 export const mezcla = (a: Color, b: Color, k: number): Color => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
@@ -398,19 +401,22 @@ export function cerebro(N: number, semilla = 11): Forma {
     });
   }
   // Vista principal para ordenar: de lado, con el frente a la izquierda
-  return armar(N, puntos, (p) => [-p.z, -p.y], rnd);
+  const f = armar(N, puntos, (p) => [-p.z, -p.y], rnd);
+  f.extra = extraDeRespaldo(f, rnd);
+  return f;
 }
 
 /* ---------- Cerebro real (public/figuras/cerebro.bin) ---------- */
 
 /**
- * Un cerebro humano estilizado: la plantilla MNI ICBM152 2009a simétrica (materia
- * gris + blanca, el promedio de 152 resonancias, del paquete nilearn), muy suavizada
- * (solo quedan los lóbulos grandes), con una malla geodésica envuelta sobre cada
- * hemisferio y relajada (los puntos van en filas parejas, como en el video), los
- * surcos grandes marcados por curvatura (hondura) y ajustada por eje a las siluetas
- * de los videos de referencia. cerebro.bin trae ~7 500 puntos; cerebro-chico.bin,
- * ~3 500 (celular). Licencia (se copia completa en
+ * Un cerebro humano: la plantilla MNI ICBM152 2009a simétrica (materia gris + blanca,
+ * el promedio de 152 resonancias, del paquete nilearn), suavizada ~5.5 mm, con los
+ * pliegues marcados y ajustada a las siluetas de los videos de referencia. Lo genera
+ * scripts/figuras/cerebro.py (ahí están los pasos y cómo correrlo). Los puntos van
+ * parejos, en filas, sobre la superficie: primero la rejilla base (la que se ve de
+ * frente) y luego el relleno, que queda en medio de la base y solo se enciende en el
+ * borde, donde los triangulitos se enciman. cerebro.bin trae ~14 000 puntos;
+ * cerebro-chico.bin, ~6 000 (celular). Licencia de la plantilla (se copia completa en
  * public/figuras/cerebro-LICENCIA.txt):
  *
  *   Copyright (C) 1993-2004 Louis Collins, McConnell Brain Imaging Centre,
@@ -421,203 +427,194 @@ export function cerebro(N: number, semilla = 11): Forma {
  *   representations about the suitability of this software for any purpose. It
  *   is provided "as is" without express or implied warranty.
  *
- * Formato del archivo: "CRB1", n (uint32), escala (float32) y luego n × (int16
- * x, y, z), n × (int8 nx, ny, nz) y n × uint8 hondura (0 = cresta, 200 = fondo
- * de un surco, 255 = tronco).
+ * Formato del archivo, versión 2 (little endian): "CRB2", versión (uint16), reservado
+ * (uint16), n (uint32), nBase (uint32), escala (float32) y luego n × (int16 x, y, z),
+ * n × (int8 nx, ny, nz), n × int8 curvatura (−127 cresta … 127 surco) y n × uint8 parte
+ * (0 hemisferio izquierdo, 1 derecho, 2 cerebelo, 3 tronco).
  */
-export type DatosCerebro = { n: number; pos: Float32Array; nor: Float32Array; hondo: Float32Array };
+export const VERSION_CEREBRO = 2;
+export type DatosCerebro = {
+  n: number;
+  /** Los primeros nBase puntos son la rejilla base; los demás, el relleno. */
+  nBase: number;
+  pos: Float32Array;
+  nor: Float32Array;
+  /** −1 cresta … +1 surco. */
+  curv: Float32Array;
+  /** 0 hemisferio izquierdo, 1 derecho, 2 cerebelo, 3 tronco. */
+  parte: Uint8Array;
+};
 
 export function leerCerebro(buf: ArrayBuffer): DatosCerebro {
   const dv = new DataView(buf);
   const firma = String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3));
-  if (firma !== "CRB1") throw new Error("cerebro: formato");
-  const n = dv.getUint32(4, true);
-  const escala = dv.getFloat32(8, true);
+  if (firma !== "CRB2" || dv.getUint16(4, true) !== VERSION_CEREBRO) throw new Error("cerebro: formato");
+  const n = dv.getUint32(8, true);
+  const nBase = dv.getUint32(12, true);
+  const escala = dv.getFloat32(16, true);
+  if (buf.byteLength < 20 + n * 11 || nBase > n) throw new Error("cerebro: tamaño");
   const pos = new Float32Array(n * 3);
   const nor = new Float32Array(n * 3);
-  const hondo = new Float32Array(n);
-  let o = 12;
+  const curv = new Float32Array(n);
+  const parte = new Uint8Array(n);
+  let o = 20;
   for (let i = 0; i < n * 3; i++, o += 2) pos[i] = dv.getInt16(o, true) * escala;
   for (let i = 0; i < n * 3; i++, o += 1) nor[i] = dv.getInt8(o) / 127;
-  // 0-200: hondura (0 cresta, 200 fondo de surco); 255: el tronco
-  for (let i = 0; i < n; i++, o += 1) {
-    const v = dv.getUint8(o);
-    hondo[i] = v === 255 ? -1 : v / 200;
+  for (let i = 0; i < n; i++, o += 1) curv[i] = dv.getInt8(o) / 127;
+  for (let i = 0; i < n; i++, o += 1) parte[i] = dv.getUint8(o);
+  return { n, nBase, pos, nor, curv, parte };
+}
+
+/** Lo propio del cerebro, por punto (el motor lo usa para el color por ángulo de vista). */
+export type ExtraCerebro = {
+  /** 0 hemisferio izquierdo, 1 derecho, 2 cerebelo, 3 tronco. */
+  parte: Uint8Array;
+  /** 0 cresta … 1 fondo de un surco. */
+  surco: Float32Array;
+  /** 1 = punto de relleno: solo se enciende donde la superficie se ve de canto. */
+  relleno: Uint8Array;
+  /** Color de frente (blanco ↔ lavanda), N × 3. */
+  frente: Float32Array;
+  /** Color a medio ángulo (manchas violeta, turquesa, azul y algo de magenta), N × 3. */
+  medio: Float32Array;
+  /** Cuánto se ve la mancha de color aun de frente (0 a 1): los grupitos de color del interior. */
+  mancha: Float32Array;
+};
+
+/**
+ * Los colores por punto del cerebro. Las manchas salen de un ruido 3D ligado al cerebro
+ * (giran con él); el motor decide en cada cuadro, según el ángulo de vista, cuánto pesa
+ * el color de frente, el de medio ángulo y el ámbar del borde.
+ */
+function coloresCerebro(n: number, pos: (i: number) => [number, number, number], rnd: () => number): Pick<ExtraCerebro, "frente" | "medio" | "mancha"> {
+  const PC = PALETA_CEREBRO;
+  const frente = new Float32Array(n * 3);
+  const medio = new Float32Array(n * 3);
+  const mancha = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const [x, y, z] = pos(i);
+    const n1 = ruido(x * 2.3 + 11, y * 2.3 + 5, z * 2.3 + 2);
+    const n2 = ruido(x * 2.3 + 31, y * 2.3 + 17, z * 2.3 + 23);
+    const n3 = ruido(x * 5.1 + 3, y * 5.1 + 9, z * 5.1 + 7);
+    const n4 = ruido(x * 2.9 + 47, y * 2.9 + 29, z * 2.9 + 13);
+    const u = rnd();
+    // De frente: blanco y lavanda, en parches suaves
+    const f = mezcla(PC.blanco, PC.lavanda, suave(0.3, 0.72, n3 * 0.75 + u * 0.25));
+    frente.set(f, i * 3);
+    // A medio ángulo: violeta sobre todo; turquesa, azul y un poco de magenta por manchas
+    let m: Color;
+    let k = 0;
+    if (n1 > 0.7) {
+      m = u < 0.68 ? PC.turquesa : PC.turquesaHondo;
+      k = suave(0.74, 0.8, n1);
+    } else if (n2 > 0.78) {
+      m = PC.azul;
+      k = suave(0.8, 0.86, n2);
+    } else if (n2 < 0.23) {
+      // magenta: destellos, no manchas grandes
+      m = PC.magenta;
+      k = suave(0.21, 0.15, n2) * 0.8;
+    } else {
+      k = suave(0.76, 0.86, n4);
+      // Fuera de las manchas, el medio ángulo es lavanda con un poco de violeta (en el video casi no hay violeta)
+      m = mezcla(PC.lavanda, PC.violeta, 0.3 + 0.7 * k);
+    }
+    medio.set(m, i * 3);
+    mancha[i] = k;
   }
-  return { n, pos, nor, hondo };
+  return { frente, medio, mancha };
+}
+
+/** Completa una forma hasta N puntos con puntos de sobra invisibles (para las partículas que solo usa el cerebro). */
+export function rellenarForma(f: Forma, N: number): Forma {
+  const n = f.alfa.length;
+  if (n >= N) return f;
+  const crecer = (a: Float32Array, k: number) => {
+    const b = new Float32Array(N * k);
+    b.set(a);
+    return b;
+  };
+  return { ...f, pos: crecer(f.pos, 3), nor: crecer(f.nor, 3), col: crecer(f.col, 3), alfa: crecer(f.alfa, 1), tam: crecer(f.tam, 1), clave: crecer(f.clave, 1), umbral: crecer(f.umbral, 1), grupo: crecer(f.grupo, 1), hondo: crecer(f.hondo, 1) };
 }
 
 /**
- * Más puntos sobre la misma superficie: entre cada punto de la malla y un vecino
- * cercano (medido: el video tiene ~45 % más triangulitos en el centro).
+ * El cerebro para N partículas. Las primeras nComun partículas son las que también usan
+ * las demás figuras y el polvo; las demás (de nComun a N) solo existen para el cerebro.
+ * Reparto: la rejilla base completa y el relleno que quepa, dejando `sueltas` partículas
+ * de sobra entre las comunes (las partículas sueltas alrededor del cerebro).
  */
-function densificar(d: DatosCerebro, extra: number, rnd: () => number): DatosCerebro {
-  if (extra <= 0) return d;
-  const n = d.n;
-  const celda = 0.06;
-  const llave = (x: number, y: number, z: number) => `${Math.floor(x / celda)},${Math.floor(y / celda)},${Math.floor(z / celda)}`;
-  const mapa = new Map<string, number[]>();
-  for (let i = 0; i < n; i++) {
-    const k = llave(d.pos[i * 3], d.pos[i * 3 + 1], d.pos[i * 3 + 2]);
-    const l = mapa.get(k);
-    if (l) l.push(i);
-    else mapa.set(k, [i]);
-  }
-  const pos = new Float32Array((n + extra) * 3);
-  const nor = new Float32Array((n + extra) * 3);
-  const hondo = new Float32Array(n + extra);
-  pos.set(d.pos);
-  nor.set(d.nor);
-  hondo.set(d.hondo);
-  let m = n;
-  for (let intento = 0; m < n + extra && intento < extra * 4; intento++) {
-    const i = Math.floor(rnd() * n);
-    if (d.hondo[i] < 0) continue; // el tronco no se densifica
-    const x = d.pos[i * 3];
-    const y = d.pos[i * 3 + 1];
-    const z = d.pos[i * 3 + 2];
-    const cx = Math.floor(x / celda);
-    const cy = Math.floor(y / celda);
-    const cz = Math.floor(z / celda);
-    const vecinos: number[] = [];
-    for (let a = -1; a <= 1; a++)
-      for (let b = -1; b <= 1; b++)
-        for (let c = -1; c <= 1; c++) {
-          const l = mapa.get(`${cx + a},${cy + b},${cz + c}`);
-          if (!l) continue;
-          for (const j of l) {
-            if (j === i || d.hondo[j] < 0) continue;
-            // nunca entre los dos hemisferios (que la fisura quede abierta)
-            if (d.pos[j * 3] * x < 0 && Math.abs(x) + Math.abs(d.pos[j * 3]) < 0.3) continue;
-            const dd = (d.pos[j * 3] - x) ** 2 + (d.pos[j * 3 + 1] - y) ** 2 + (d.pos[j * 3 + 2] - z) ** 2;
-            if (dd < 0.055 * 0.055) vecinos.push(j);
-          }
-        }
-    if (!vecinos.length) continue;
-    const j = vecinos[Math.floor(rnd() * vecinos.length)];
-    const t = 0.35 + rnd() * 0.3;
-    for (let k = 0; k < 3; k++) {
-      pos[m * 3 + k] = d.pos[i * 3 + k] + (d.pos[j * 3 + k] - d.pos[i * 3 + k]) * t;
-      nor[m * 3 + k] = d.nor[i * 3 + k] + (d.nor[j * 3 + k] - d.nor[i * 3 + k]) * t;
-    }
-    hondo[m] = d.hondo[i] + (d.hondo[j] - d.hondo[i]) * t;
-    m++;
-  }
-  return { n: m, pos: pos.subarray(0, m * 3), nor: nor.subarray(0, m * 3), hondo: hondo.subarray(0, m) };
-}
-
-export function cerebroDeMalla(d0: DatosCerebro, N: number, semilla = 11): Forma {
+export function cerebroDeMalla(d: DatosCerebro, N: number, nComun = N, semilla = 11): Forma {
   const rnd = azar(semilla);
-  // Si hay más puntos que partículas, se toma una parte pareja (los puntos ya vienen mezclados)
-  const base = Math.min(d0.n, Math.round(N * 0.8));
-  const sub: DatosCerebro =
-    base < d0.n
-      ? {
-          n: base,
-          pos: Float32Array.from({ length: base * 3 }, (_, k) => d0.pos[Math.floor((Math.floor(k / 3) * d0.n) / base) * 3 + (k % 3)]),
-          nor: Float32Array.from({ length: base * 3 }, (_, k) => d0.nor[Math.floor((Math.floor(k / 3) * d0.n) / base) * 3 + (k % 3)]),
-          hondo: Float32Array.from({ length: base }, (_, k) => d0.hondo[Math.floor((k * d0.n) / base)]),
-        }
-      : d0;
-  // Más puntos en la superficie (el resto de las partículas queda como "solo orilla" y polvo)
-  // La malla ya viene pareja (en filas): no se densifica al azar, que desordenaría las filas
-  const d = densificar(sub, 0, rnd);
-  const usar = d.n;
-  // Normal suave (promedio de los vecinos en ~0.12): marca la orilla de la silueta como una
-  // banda pareja y gruesa, sin los aros de cada pliegue
-  const suaveNor = new Float32Array(usar * 3);
-  {
-    const celda = 0.12;
-    const mapa = new Map<string, number[]>();
-    const ll = (x: number, y: number, z: number) => `${Math.floor(x / celda)},${Math.floor(y / celda)},${Math.floor(z / celda)}`;
-    for (let i = 0; i < usar; i++) {
-      const k = ll(d.pos[i * 3], d.pos[i * 3 + 1], d.pos[i * 3 + 2]);
-      const l = mapa.get(k);
-      if (l) l.push(i);
-      else mapa.set(k, [i]);
-    }
-    for (let i = 0; i < usar; i++) {
-      const x = d.pos[i * 3];
-      const y = d.pos[i * 3 + 1];
-      const z = d.pos[i * 3 + 2];
-      const cx = Math.floor(x / celda);
-      const cy = Math.floor(y / celda);
-      const cz = Math.floor(z / celda);
-      let nx = 0;
-      let ny = 0;
-      let nz = 0;
-      for (let a = -1; a <= 1; a++)
-        for (let b = -1; b <= 1; b++)
-          for (let c = -1; c <= 1; c++) {
-            const l = mapa.get(`${cx + a},${cy + b},${cz + c}`);
-            if (!l) continue;
-            for (const j of l) {
-              const dd = (d.pos[j * 3] - x) ** 2 + (d.pos[j * 3 + 1] - y) ** 2 + (d.pos[j * 3 + 2] - z) ** 2;
-              if (dd > celda * celda) continue;
-              if (d.pos[j * 3] * x < 0 && Math.abs(x) + Math.abs(d.pos[j * 3]) < 0.3) continue;
-              // solo los del mismo lado (que la fisura no mezcle los hemisferios)
-              const pdot = d.nor[j * 3] * d.nor[i * 3] + d.nor[j * 3 + 1] * d.nor[i * 3 + 1] + d.nor[j * 3 + 2] * d.nor[i * 3 + 2];
-              if (pdot < -0.2) continue;
-              nx += d.nor[j * 3];
-              ny += d.nor[j * 3 + 1];
-              nz += d.nor[j * 3 + 2];
-            }
-          }
-      const l = Math.hypot(nx, ny, nz) || 1;
-      suaveNor[i * 3] = nx / l;
-      suaveNor[i * 3 + 1] = ny / l;
-      suaveNor[i * 3 + 2] = nz / l;
-    }
+  const sueltas = Math.min(nComun - 1, Math.max(300, Math.round(N * 0.07)));
+  const usar = Math.min(d.n, N - sueltas);
+  const nBase = Math.min(d.nBase, usar);
+  // El tronco se apaga hacia abajo hasta perderse
+  const alfaDe = (i: number) => (d.parte[i] === 3 ? Math.pow(Math.max(0, Math.min(1, (d.pos[i * 3 + 1] + 1.75) / 1.05)), 1.5) : 1);
+  const puntos: PuntoCerebro[] = [];
+  for (let i = 0; i < usar; i++) {
+    const o = i * 3;
+    puntos.push({ i, x: d.pos[o], y: d.pos[o + 1], z: d.pos[o + 2], alfa: alfaDe(i), relleno: i >= nBase ? 1 : 0 });
   }
-  const puntos: PuntoFinal[] = [];
-  for (let k = 0; k < usar; k++) {
-    const i = k;
-    const x = d.pos[i * 3];
-    const y = d.pos[i * 3 + 1];
-    const z = d.pos[i * 3 + 2];
-    const esTallo = d.hondo[i] < 0;
-    const hondo = Math.max(0, d.hondo[i]);
-    // Zonas de color que giran con el cerebro (como en el video): verde azulado, violeta y magenta
-    const z1 = ruido(x * 1.9 + 11, y * 1.9 + 5, z * 1.9 + 2);
-    const z2 = ruido(x * 1.9 + 31, y * 1.9 + 17, z * 1.9 + 23);
-    const u = rnd();
-    let col: Color;
-    let grupo = 0;
-    // Paleta de la guía (sin grises): manchas de verde azulado y azul por dentro; violeta y
-    // magenta en lo demás (el ámbar de la orilla y de la banda de abajo lo pone el motor)
-    const PC = PALETA_CEREBRO;
-    if (esTallo) col = u < 0.5 ? PC.violeta : u < 0.8 ? PC.azul : PC.verdeAzulClaro;
-    else if (z1 > 0.64) {
-      col = u < 0.45 ? PC.verdeAzulClaro : u < 0.68 ? PC.verdeAzul : PC.azul;
-      grupo = suave(0.62, 0.72, z1);
-    } else if (z2 > 0.6) col = u < 0.72 ? PC.magenta : PC.violeta;
-    else col = u < 0.6 ? PC.violeta : u < 0.74 ? PC.azul : u < 0.9 ? PC.magenta : PC.verdeAzulClaro;
-    puntos.push({
-      x,
-      y,
-      z,
-      // la malla ya es suave: su normal marca bien las orillas de cada lóbulo
-      nx: d.nor[i * 3] * 0.7 + suaveNor[i * 3] * 0.3,
-      ny: d.nor[i * 3 + 1] * 0.7 + suaveNor[i * 3 + 1] * 0.3,
-      nz: d.nor[i * 3 + 2] * 0.7 + suaveNor[i * 3 + 2] * 0.3,
-      dato: hondo,
-      col,
-      // la opacidad guarda la sombra de los surcos (en el fondo de un surco se ve más oscuro)
-      // El tronco, más tenue, se apaga hacia abajo hasta perderse
-      // la fisura entre hemisferios queda oscura (de frente se ve la raya del medio)
-      // Surcos oscuros y casi vacíos; crestas con todo su brillo (la fisura viene marcada como surco)
-      alfa: esTallo ? 0.7 * Math.pow(Math.max(0, Math.min(1, (y + 1.85) / 1.1)), 1.6) : 1,
-      hondo: esTallo ? 0 : hondo,
-      tam: esTallo ? 0.85 : 0.85 + rnd() * 0.3,
-      clave: (y + 1.6) / 2.4,
-      // El umbral del color va por manchas (como en el video: bandas y parches del mismo color
-      // siguiendo los giros), con un poco de azar propio para que no se vea pintado con brocha
-      umbral: Math.min(1, Math.max(0, 0.5 + (ruido(x * 1.7 + 3, y * 1.7 + 7, z * 1.7 + 1) * 0.6 + ruido(x * 3.4 + 9, y * 3.4 + 2, z * 3.4 + 5) * 0.4 - 0.5) * 1.7 + (rnd() - 0.5) * 0.32)),
-      grupo,
-    });
+  // Las comunes llevan toda la rejilla base (y, si cabe, parte del relleno); las propias, lo demás
+  const enComunes = Math.min(usar, nComun - sueltas);
+  const comunes: PuntoCerebro[] = puntos.slice(0, enComunes);
+  const propias: PuntoCerebro[] = puntos.slice(enComunes);
+  while (comunes.length < nComun) {
+    // de sobra: copias invisibles cerca de un punto real (quedan como partículas sueltas)
+    const p = puntos[Math.floor(rnd() * nBase)];
+    comunes.push({ ...p, alfa: 0 });
   }
+  while (propias.length < N - nComun) propias.push({ ...puntos[Math.floor(rnd() * usar)], alfa: 0 });
   // Vista principal para ordenar: de lado, con el frente a la izquierda
-  return armar(N, puntos, (p) => [-p.z, -p.y], rnd, -0.85);
+  const vista = (p: PuntoCerebro): [number, number] => [-p.z, -p.y];
+  const orden = [...ordenarPorPantalla(comunes.map(vista)).map((k) => comunes[k]), ...ordenarPorPantalla(propias.map(vista)).map((k) => propias[k])];
+
+  const f: Forma = {
+    reales: usar,
+    pos: new Float32Array(N * 3),
+    nor: new Float32Array(N * 3),
+    col: new Float32Array(N * 3),
+    alfa: new Float32Array(N),
+    tam: new Float32Array(N),
+    clave: new Float32Array(N),
+    umbral: new Float32Array(N),
+    grupo: new Float32Array(N),
+    hondo: new Float32Array(N),
+  };
+  const parte = new Uint8Array(N);
+  const surco = new Float32Array(N);
+  const relleno = new Uint8Array(N);
+  for (let k = 0; k < N; k++) {
+    const p = orden[k];
+    const o = p.i * 3;
+    f.pos.set([p.x, p.y, p.z], k * 3);
+    f.nor.set([d.nor[o], d.nor[o + 1], d.nor[o + 2]], k * 3);
+    f.alfa[k] = p.alfa;
+    f.tam[k] = 0.9 + rnd() * 0.2;
+    f.clave[k] = (p.y + 1.6) / 2.4;
+    f.umbral[k] = rnd();
+    parte[k] = d.parte[p.i];
+    surco[k] = Math.max(0, d.curv[p.i]);
+    f.hondo[k] = surco[k];
+    relleno[k] = p.relleno;
+  }
+  f.extra = { parte, surco, relleno, ...coloresCerebro(N, (k) => [f.pos[k * 3], f.pos[k * 3 + 1], f.pos[k * 3 + 2]], rnd) };
+  return f;
+}
+type PuntoCerebro = { i: number; x: number; y: number; z: number; alfa: number; relleno: number };
+
+/** Lo propio del cerebro para el cerebro de respaldo (el de lóbulos), que no trae partes ni relleno. */
+function extraDeRespaldo(f: Forma, rnd: () => number): ExtraCerebro {
+  const N = f.alfa.length;
+  const parte = new Uint8Array(N);
+  const surco = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const tallo = f.alfa[i] > 0 && f.alfa[i] < 0.6;
+    parte[i] = tallo ? 3 : f.pos[i * 3] > 0 ? 0 : 1;
+    surco[i] = tallo ? 0 : Math.max(0, (1 - f.alfa[i]) / 0.38);
+    if (f.alfa[i] > 0) f.alfa[i] = tallo ? Math.pow(Math.max(0, Math.min(1, (f.pos[i * 3 + 1] + 1.75) / 1.05)), 1.5) : 1;
+  }
+  return { parte, surco, relleno: new Uint8Array(N), ...coloresCerebro(N, (k) => [f.pos[k * 3], f.pos[k * 3 + 1], f.pos[k * 3 + 2]], rnd) };
 }
 
 /* ====================================================================== */
