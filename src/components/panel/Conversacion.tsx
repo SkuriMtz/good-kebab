@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, useState, type ReactNode, type RefObject, typ
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
 import { Enlace } from "./Piezas";
-import { FondoFragmentos } from "./FondoFragmentos";
 import { PilaAgentes } from "./Mensajes";
 
 /**
@@ -88,7 +87,6 @@ export function Conversacion({
 
   return (
     <div className="pc-conv">
-      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__caja", ".pc-conv__legal", ".pc-conv__aviso"]} repartir />
       <header className="pc-conv__cabeza">
         <div ref={cajaMenu} className="pc-conv__titulo-caja">
           <button
