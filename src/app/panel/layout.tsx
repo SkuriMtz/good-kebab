@@ -62,7 +62,12 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     <ArmazonReal
       datos={{
         nombre,
+        nombreCompleto: completo.includes("@") ? nombre : completo,
+        correo: user.email ?? "",
         plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),
+        usados: cuenta.usados,
+        total: cuenta.plan.mensajesMes,
+        gmail: conGoogle,
         activos: cuenta.activos,
         pendientes: pendientes.total,
         fijados,

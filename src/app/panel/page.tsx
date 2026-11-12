@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
 import { Seccion } from "@/components/panel/Secciones";
-import { AjustesReal, CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
+import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
 import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
@@ -30,7 +30,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=estadisticas (&periodo=7d|30d|mes): cómo va el negocio (VistaNegocio, del trabajador B).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
- * - ?vista=ajustes: el plan (solo se ve), la apariencia, el correo y el equipo.
+ * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage({ searchParams }: { searchParams: Parametros }) {
   const supabase = await createClient();
@@ -90,10 +90,6 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   if (searchParams.vista === "negocio") return <TuNegocio tab={pestanaDe(searchParams.tab)} plan={cuenta.plan.id} conectada={texto(searchParams.conectada, 40)} error={texto(searchParams.error, 40)} app={texto(searchParams.app, 40)} />;
 
   if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;
-
-  if (searchParams.vista === "ajustes") {
-    return <AjustesReal plan={cuenta.plan.nombre} usados={cuenta.usados} total={cuenta.plan.mensajesMes} conGoogle={conGoogle} activos={cuenta.activos} correo={user.email ?? ""} />;
-  }
 
   const enPendientes = searchParams.vista === "pendientes";
   // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más

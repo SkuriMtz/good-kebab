@@ -511,7 +511,7 @@ export function Chat({
               }}
             />
           }
-          uso={<UsoPlan plan={plan.nombre.replace(/^Atendel\s+/, "")} usados={usados} total={plan.mensajesMes} href="/panel?vista=ajustes" />}
+          uso={<UsoPlan plan={plan.nombre.replace(/^Atendel\s+/, "")} usados={usados} total={plan.mensajesMes} href="/panel?vista=ajustes&seccion=plan" />}
           franja={<FranjaPendientes n={pendientes} href="/panel?vista=pendientes" />}
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}

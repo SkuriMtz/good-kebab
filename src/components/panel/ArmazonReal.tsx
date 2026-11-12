@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useLayoutEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
+import type { DatosAjustes } from "./Ajustes";
 import type { Periodo } from "@/lib/estadisticas";
 import type { ResumenInfo } from "@/lib/resumen-negocio";
 import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafica";
@@ -16,8 +17,15 @@ import { PEDIDOS } from "./pedidos";
 
 export type DatosArmazonReal = {
   nombre: string;
+  nombreCompleto: string;
+  correo: string;
   /** "Free", "One" o "Max". */
   plan: string;
+  /** Mensajes usados este mes y los del plan. */
+  usados: number;
+  total: number;
+  /** ¿Entró con Google? (entonces Clara lee su Gmail) */
+  gmail: boolean;
   activos: IdAgente[];
   pendientes: number | null;
   fijados: ChatMenu[];
@@ -89,7 +97,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   );
 
   const cuenta: ElementoCuenta[] = [
-    { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes" },
+    { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes&seccion=plan" },
     { id: "planes", etiqueta: "Ver los planes", detalle: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
     { id: "contacto", etiqueta: "Escríbenos", icono: "mensaje", href: "/contacto" },
     { id: "sitio", etiqueta: "Ir al sitio de Atendel", icono: "inicio", href: "/" },
@@ -105,6 +113,24 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
       },
     },
   ];
+
+  const salirA = async (alcance: "local" | "global") => {
+    await createClient().auth.signOut({ scope: alcance });
+    router.replace("/");
+    router.refresh();
+  };
+  const ajustes: DatosAjustes = {
+    nombre: datos.nombreCompleto,
+    correo: datos.correo,
+    plan: `Atendel ${datos.plan}`,
+    usados: datos.usados,
+    total: datos.total,
+    gmail: datos.gmail,
+    activos: datos.activos,
+    hrefs: { correo: "/panel?vista=correo#gmail", agentes: "/panel/agentes", apps: "/panel?vista=negocio&tab=apps" },
+    salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
+    salirDeTodo: () => salirA("global"),
+  };
 
   const indice: ResultadoBusqueda[] = [
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/panel" },
@@ -207,6 +233,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         recientes={recientes}
         usuario={{ nombre: datos.nombre, plan: datos.plan }}
         cuenta={cuenta}
+        ajustes={ajustes}
         indice={indice}
         alCapturarClic={alCapturarClic}
         info={info}

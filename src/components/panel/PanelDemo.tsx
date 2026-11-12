@@ -18,7 +18,7 @@ import { nombresDe } from "./Mensajes";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { ContextoNavegar, Enlace } from "./Piezas";
 import { Seccion } from "./Secciones";
-import { AgentesDemo, AjustesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
+import { AgentesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, type CitaDemo } from "./SeccionesDemo";
 import { PEDIDOS, esArea } from "./pedidos";
 import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
@@ -93,7 +93,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
-    { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes" },
+    { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=plan" },
     { id: "planes", etiqueta: "Ver los planes", detalle: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
     { id: "crear", etiqueta: "Crear mi cuenta", icono: "perfil", href: "/entrar" },
     { id: "salir", etiqueta: "Salir de la demostración", icono: "cerrar-sesion", href: "/" },
@@ -190,8 +190,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     );
   } else if (valida === "correo") {
     contenido = <CorreoDemo prioridad={params.get("prioridad") ?? "todo"} de={texto("de")} />;
-  } else if (valida === "ajustes") {
-    contenido = <AjustesDemo />;
   } else if (conv) {
     contenido = <ConversacionDemo guion={guion} conv={conv} />;
   } else if (con && !guion.listo) {
@@ -244,6 +242,18 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         recientes={recientes}
         usuario={{ nombre: DEMO_USUARIA.nombre.split(" ")[0], plan: PLAN.nombre.replace(/^Atendel\s+/, "") }}
         cuenta={cuenta}
+        ajustes={{
+          nombre: DEMO_USUARIA.nombre,
+          correo: DEMO_USUARIA.correo,
+          plan: PLAN.nombre,
+          usados: DEMO_NEGOCIO.mensajesUsados,
+          total: PLAN.mensajesMes,
+          gmail: true,
+          activos: ["lola", "clara", "victor", "iris"],
+          hrefs: { correo: "/pruebalo?vista=correo", agentes: "/pruebalo?vista=agentes", apps: "/pruebalo?vista=negocio&tab=apps" },
+          salir: { etiqueta: "Salir de la demostración", texto: "Vuelves al sitio de Atendel.", href: "/" },
+          demo: true,
+        }}
         indice={indiceConChats}
         info={info}
         aviso={

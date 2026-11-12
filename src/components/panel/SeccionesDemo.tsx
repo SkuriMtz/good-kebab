@@ -4,13 +4,11 @@ import { useState, type CSSProperties } from "react";
 import { Icono } from "@/components/base/Iconos";
 import { filasEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
 import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
-import { DEMO_CORREOS, DEMO_ESTADOS, DEMO_NEGOCIO, DEMO_SEMANA_AGENTE, DEMO_USUARIA, type CorreoDemo } from "@/lib/demo-dashboard";
+import { DEMO_CORREOS, DEMO_ESTADOS, DEMO_SEMANA_AGENTE, type CorreoDemo } from "@/lib/demo-dashboard";
 import { diaLocal, sumarDias } from "@/lib/estadisticas";
-import { PLAN_POR_ID } from "@/lib/planes";
 import { AREAS, AREA_DE_AGENTE, type IdArea } from "./pedidos";
 import { Enlace, Modal, Odometro, Pildoras, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
-import { BloqueAjustes, ElegirTema, ListaCitas, ListaCorreos, Seccion, Tablero, TarjetaAgente, TarjetaPlan, type ColumnaTablero, type FilaCitaDatos, type ItemTablero } from "./Secciones";
-import { nombresDe } from "./Mensajes";
+import { ListaCitas, ListaCorreos, Seccion, Tablero, TarjetaAgente, type ColumnaTablero, type FilaCitaDatos, type ItemTablero } from "./Secciones";
 
 /* =====================================================================
    Las secciones de /pruebalo, con los DATOS DE EJEMPLO de
@@ -18,7 +16,6 @@ import { nombresDe } from "./Mensajes";
    panel lo dice arriba ("Datos de ejemplo").
    ===================================================================== */
 
-const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 
 export function haceTexto(min: number) {
   if (min < 60) return `hace ${min} min`;
@@ -491,43 +488,6 @@ export function CorreoDemo({ prioridad, de }: { prioridad: string; de?: string }
         ) : null}
       </div>
       {lista.length ? <ListaCorreos correos={lista.map(fila)} /> : <Vacio icono="correo" titulo="Nada con este filtro" />}
-    </Seccion>
-  );
-}
-
-/* ---------- Ajustes ---------- */
-
-export function AjustesDemo() {
-  return (
-    <Seccion>
-      <TituloSeccion titulo="Ajustes" texto="Tu plan, cómo se ve el panel, tu correo y tu equipo." />
-      <BloqueAjustes id="aj-plan" titulo="Tu plan" texto="El plan solo se ve aquí. Para cambiarlo, escríbenos.">
-        <TarjetaPlan plan={PLAN.nombre} usados={DEMO_NEGOCIO.mensajesUsados} total={PLAN.mensajesMes} />
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-tema" titulo="Apariencia" texto="Oscuro es el de siempre; claro es una tarjeta sobre gris.">
-        <ElegirTema />
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-correo" titulo="Correo" texto="Clara lee el Gmail del negocio. Solo lectura: nunca envía ni borra nada.">
-        <p className="pc-ajuste__estado">
-          <span className="pc-estado pc-estado--exito">Gmail conectado</span>
-          <Enlace href="/pruebalo?vista=correo" className="pc-enlace">
-            Ir a Correo
-          </Enlace>
-        </p>
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-equipo" titulo="Tu equipo" texto={`Trabajan contigo: ${nombresDe(["lola", "clara", "victor", "iris"])}.`}>
-        <p className="pc-ajuste__estado">
-          <Enlace href="/pruebalo?vista=agentes" className="pc-enlace">
-            Ver a tu equipo
-          </Enlace>
-        </p>
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-cuenta" titulo="Tu cuenta" texto={`${DEMO_USUARIA.nombre} · ${DEMO_USUARIA.correo}`}>
-        <Enlace href="/" className={claseBoton("borde", true)}>
-          <Icono nombre="cerrar-sesion" tam={16} />
-          Salir de la demostración
-        </Enlace>
-      </BloqueAjustes>
     </Seccion>
   );
 }

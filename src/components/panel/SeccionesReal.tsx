@@ -3,14 +3,11 @@
 import type { CorreoPendiente } from "@/lib/pendientes";
 import { accionValida, normalizar } from "@/lib/estadisticas";
 import type { PasoPanel } from "@/lib/pasos";
-import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import type { IdAgente } from "@/lib/agentes";
 import { planMinimo } from "@/lib/planes";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { Icono } from "@/components/base/Iconos";
 import { Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
-import { BloqueAjustes, ElegirTema, Seccion, Tablero, TarjetaPlan, type ItemTablero } from "./Secciones";
-import { nombresDe } from "./Mensajes";
+import { Seccion, Tablero, type ItemTablero } from "./Secciones";
 import { nombreRemitente } from "./remitente";
 
 /* =====================================================================
@@ -154,53 +151,3 @@ export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string;
   );
 }
 
-/* ---------- Ajustes ---------- */
-
-export function AjustesReal({ plan, usados, total, conGoogle, activos, correo }: { plan: string; usados: number; total: number; conGoogle: boolean; activos: IdAgente[]; correo: string }) {
-  const router = useRouter();
-  return (
-    <Seccion>
-      <TituloSeccion titulo="Ajustes" texto="Tu plan, cómo se ve el panel, tu correo y tu equipo." />
-      <BloqueAjustes id="aj-plan" titulo="Tu plan" texto="El plan solo se ve aquí. Para cambiarlo, escríbenos.">
-        <TarjetaPlan plan={plan} usados={usados} total={total} />
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-tema" titulo="Apariencia" texto="Oscuro es el de siempre; claro es una tarjeta sobre gris.">
-        <ElegirTema />
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-correo" titulo="Correo" texto="Clara lee tu Gmail. Solo lectura: nunca envía ni borra nada.">
-        <p className="pc-ajuste__estado">
-          <span className={`pc-estado pc-estado--${conGoogle ? "exito" : "neutro"}`}>{conGoogle ? "Gmail conectado" : "Sin Gmail"}</span>
-          <Enlace href="/panel?vista=correo#gmail" className="pc-enlace">
-            {conGoogle ? "Ir a Correo" : "Conectar Gmail"}
-          </Enlace>
-        </p>
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-equipo" titulo="Tu equipo" texto={activos.length ? `Trabajan contigo: ${nombresDe(activos)}.` : "Todavía no eliges a tu equipo."}>
-        <p className="pc-ajuste__estado">
-          {activos.map((id) => (
-            <span key={id} className="pc-estado pc-estado--neutro">
-              {AGENTE_POR_ID[id].nombre}
-            </span>
-          ))}
-          <Enlace href="/panel/agentes" className="pc-enlace">
-            Elegir en Agentes
-          </Enlace>
-        </p>
-      </BloqueAjustes>
-      <BloqueAjustes id="aj-cuenta" titulo="Tu cuenta" texto={correo}>
-        <button
-          type="button"
-          className={claseBoton("borde", true)}
-          onClick={async () => {
-            await createClient().auth.signOut();
-            router.replace("/");
-            router.refresh();
-          }}
-        >
-          <Icono nombre="cerrar-sesion" tam={16} />
-          Cerrar sesión
-        </button>
-      </BloqueAjustes>
-    </Seccion>
-  );
-}

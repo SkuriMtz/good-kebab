@@ -257,7 +257,7 @@ export function InicioDemo({
             }}
           />
         }
-        uso={<UsoPlan plan="Max" usados={usados} total={total} href="/pruebalo?vista=ajustes" />}
+        uso={<UsoPlan plan="Max" usados={usados} total={total} href="/pruebalo?vista=ajustes&seccion=plan" />}
         franja={<FranjaPendientes n={pendientes} href="/pruebalo?vista=pendientes" />}
         area={area}
         hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}

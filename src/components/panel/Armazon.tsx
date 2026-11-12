@@ -1,17 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
-import { ponerTema } from "@/lib/tema";
 import { serifPanel } from "./fuente";
 import { PilaAgentes } from "./Mensajes";
 import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
+import { VentanaAjustes, esIdAjuste, type DatosAjustes, type IdAjuste } from "./Ajustes";
+import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
-import { useTema } from "./useTema";
 import "./panel.css";
 
 export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
@@ -39,6 +39,8 @@ type Props = {
   alCapturarClic?: (e: MouseEvent<HTMLDivElement>) => void;
   /** El panel de información de la derecha (en el inicio y en el chat): qué pestaña y cómo cambiarla o cerrarse. */
   info?: (p: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => ReactNode;
+  /** Lo que muestra la ventana de Ajustes (se abre con el engrane del pie del menú o con un enlace a ?vista=ajustes). */
+  ajustes: DatosAjustes;
   children: ReactNode;
 };
 
@@ -55,10 +57,10 @@ const ANGOSTO = "(max-width: 1359px)";
  * El armazón del panel: el menú de 288px (en oscuro, igual a la captura;
  * en claro, una tarjeta blanca flotante sobre el lienzo gris), con
  * "+ Nueva conversación", las secciones, Fijados y Recientes, y el pie con
- * tu cuenta y el tema. En celular, el menú es un cajón (foco adentro y Esc
+ * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recientes, usuario, cuenta, indice, aviso, alCapturarClic, info, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recientes, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -74,10 +76,13 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   const [celular, setCelular] = useState(false);
   /** La entrada con el logo de vidrio (una vez por pestaña). */
   const [entrada, setEntrada] = useState<FaseEntrada>("espera");
+  /** La ventana de Ajustes: abierta o no, y en qué parte (la parte se queda al cerrar, para que salga animada). */
+  const [ajustesAbierto, setAjustesAbierto] = useState(false);
+  const [parteAjustes, setParteAjustes] = useState<IdAjuste>("cuenta");
+  const parametros = useSearchParams();
   const menuRef = useRef<HTMLElement>(null);
   const principalRef = useRef<HTMLDivElement>(null);
   const hamburguesa = useRef<HTMLButtonElement>(null);
-  const tema = useTema();
 
   useEffect(() => {
     try {
@@ -176,6 +181,57 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       }
       return !o;
     });
+  };
+
+  // Ajustes es una ventana: los enlaces a ?vista=ajustes (y llegar con esa dirección) la abren
+  const abrirAjustes = useCallback((parte?: string | null) => {
+    setParteAjustes(esIdAjuste(parte) ? parte : "cuenta");
+    setAjustesAbierto(true);
+    setCajon(false);
+  }, []);
+  useEffect(() => {
+    if (parametros.get("vista") === "ajustes") abrirAjustes(parametros.get("seccion"));
+  }, [parametros, abrirAjustes]);
+  useEffect(() => {
+    const clic = (e: globalThis.MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]");
+      const href = a?.getAttribute("href");
+      if (!href || !href.includes("vista=ajustes")) return;
+      const u = new URL(href, window.location.href);
+      if (u.origin !== window.location.origin || u.searchParams.get("vista") !== "ajustes") return;
+      e.preventDefault();
+      e.stopPropagation();
+      abrirAjustes(u.searchParams.get("seccion"));
+    };
+    document.addEventListener("click", clic, true);
+    return () => document.removeEventListener("click", clic, true);
+  }, [abrirAjustes]);
+
+  const preferencias = {
+    menuCompacto: oculto,
+    alCambiarMenu: (compacto: boolean) => {
+      if (compacto !== oculto) alternarOculto();
+    },
+    infoAlAbrir: infoAbierta,
+    alCambiarInfo: (abierta: boolean) => {
+      try {
+        window.localStorage.setItem(CLAVE_INFO, abierta ? "1" : "0");
+      } catch {
+        /* sin almacenamiento */
+      }
+      ponerInfo(abierta);
+    },
+    verEntrada: () => {
+      try {
+        window.sessionStorage.removeItem(CLAVE_ENTRADA);
+      } catch {
+        /* sin almacenamiento */
+      }
+      document.documentElement.removeAttribute("data-entrada-vista");
+      setAjustesAbierto(false);
+      setEntrada("espera");
+    },
   };
 
   // ⌘K / Ctrl K: el buscador, sin animación (se abre con el teclado muchas veces al día)
@@ -304,7 +360,6 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
             {item("citas", "Citas", "calendario", hrefs.citas)}
             {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
             {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
-            {item("ajustes", "Ajustes", "ajustes", hrefs.ajustes)}
           </nav>
 
           <div className="pc-menu__listas">
@@ -315,14 +370,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           {aviso ? <div className="pc-aviso-demo">{aviso}</div> : null}
           <div className="pc-menu__pie">
             <MenuCuenta usuario={usuario} elementos={cuenta} />
-            <button
-              type="button"
-              className="pc-icono"
-              onClick={() => ponerTema(tema === "oscuro" ? "claro" : "oscuro")}
-              aria-label={tema === "oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-              title={tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
-            >
-              <Icono nombre={tema === "oscuro" ? "sol" : "luna"} tam={18} />
+            <button type="button" className="pc-icono" onClick={() => abrirAjustes("cuenta")} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
+              <Icono nombre="ajustes" tam={18} />
             </button>
           </div>
         </div>
@@ -396,6 +445,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       ) : null}
 
       <Buscador abierto={buscar !== null} instantaneo={buscar?.instantaneo ?? false} alCerrar={() => setBuscar(null)} indice={indice} />
+      <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
     </div>
   );
