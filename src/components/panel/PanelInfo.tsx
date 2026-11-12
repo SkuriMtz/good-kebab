@@ -450,39 +450,92 @@ function Tablero({
   );
 }
 
-/** Los clientes por día en una línea delgada con su sombra; el periodo anterior, punteado. */
+const formatoDiaLargo = new Intl.DateTimeFormat("es-MX", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const diaLargo = (d: string) => {
+  if (!d) return "";
+  const t = formatoDiaLargo.format(new Date(`${d}T12:00:00Z`)).replace(/\./g, "").replace(",", "");
+  return t.charAt(0).toLocaleUpperCase("es-MX") + t.slice(1);
+};
+
+/**
+ * Los clientes por día en una línea delgada con su sombra; el periodo anterior,
+ * punteado. Al pasar el cursor (o el dedo, o con las flechas) se marca el día
+ * más cercano y una etiqueta dice la fecha y cuántos clientes hubo.
+ */
 function Linea({ dias, actual, antes }: { dias: string[]; actual: number[]; antes: number[] }) {
   const id = useId().replace(/:/g, "");
+  const [sel, setSel] = useState<number | null>(null);
   const W = 312;
   const H = 96;
+  const n = actual.length;
   const max = Math.max(1, ...actual, ...antes);
-  const x = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * W);
+  const x = (i: number, cuantos: number) => (cuantos <= 1 ? 0 : (i / (cuantos - 1)) * W);
   const y = (v: number) => H - 4 - (v / max) * (H - 12);
   const camino = (serie: number[]) => serie.map((v, i) => `${i ? "L" : "M"}${x(i, serie.length).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
   const linea = camino(actual);
   const area = `${linea} L${W} ${H} L0 ${H} Z`;
   const total = actual.reduce((a, b) => a + b, 0);
+
+  const elegir = (clientX: number, el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    const k = Math.round(((clientX - r.left) / Math.max(1, r.width)) * (n - 1));
+    setSel(Math.max(0, Math.min(n - 1, k)));
+  };
+  const izq = sel === null ? 0 : (x(sel, n) / W) * 100;
+  const arribaAhora = sel === null ? 0 : (y(actual[sel]) / H) * 100;
+  const hayAntes = sel !== null && antes.length === n;
+  const arribaAntes = hayAntes && sel !== null ? (y(antes[sel]) / H) * 100 : 0;
+  // La etiqueta va al lado de la línea, hacia donde hay más espacio
+  const lado = izq > 55 ? "der" : "izq";
+
   return (
     <figure className="pc-linea">
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`Clientes por día, ${total} en total: ${actual.join(", ")}`}>
-        <defs>
-          <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={COLOR.azul} stopOpacity="0.22" />
-            <stop offset="100%" stopColor={COLOR.azul} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0.25, 0.5, 0.75].map((k) => (
-          <line key={k} x1="0" x2={W} y1={H * k} y2={H * k} className="pc-linea__guia" />
-        ))}
-        {antes.length > 1 ? <path d={camino(antes)} className="pc-linea__antes" /> : null}
-        <path d={area} fill={`url(#${id})`} />
-        <path d={linea} className="pc-linea__ahora" />
-        {actual.map((v, i) => (
-          <circle key={i} cx={x(i, actual.length)} cy={y(v)} r="6" className="pc-linea__punto">
-            <title>{`${dia(dias[i] ?? "")}: ${v}`}</title>
-          </circle>
-        ))}
-      </svg>
+      <div
+        className="pc-linea__zona"
+        tabIndex={0}
+        role="img"
+        aria-label={`Clientes por día, ${total} en total: ${actual.map((v, i) => `${diaLargo(dias[i] ?? "")} ${v}`).join(", ")}`}
+        onPointerMove={(e) => elegir(e.clientX, e.currentTarget)}
+        onPointerDown={(e) => elegir(e.clientX, e.currentTarget)}
+        onPointerLeave={() => setSel(null)}
+        onFocus={() => setSel((s) => s ?? n - 1)}
+        onBlur={() => setSel(null)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            setSel((s) => Math.max(0, Math.min(n - 1, (s ?? n - 1) + (e.key === "ArrowLeft" ? -1 : 1))));
+          } else if (e.key === "Escape") setSel(null);
+        }}
+      >
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={COLOR.azul} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={COLOR.azul} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0.25, 0.5, 0.75].map((k) => (
+            <line key={k} x1="0" x2={W} y1={H * k} y2={H * k} className="pc-linea__guia" />
+          ))}
+          {antes.length > 1 ? <path d={camino(antes)} className="pc-linea__antes" /> : null}
+          <path d={area} fill={`url(#${id})`} />
+          <path d={linea} className="pc-linea__ahora" />
+        </svg>
+        {sel !== null ? (
+          <>
+            <span className="pc-linea__vertical" style={{ left: `${izq}%` }} aria-hidden="true" />
+            {hayAntes ? <span className="pc-linea__marca pc-linea__marca--antes" style={{ left: `${izq}%`, top: `${arribaAntes}%` }} aria-hidden="true" /> : null}
+            <span className="pc-linea__marca" style={{ left: `${izq}%`, top: `${arribaAhora}%` }} aria-hidden="true" />
+            <span className="pc-linea__tip" data-lado={lado} style={{ left: `${izq}%` }} aria-hidden="true">
+              <span className="pc-linea__tip-dia">{diaLargo(dias[sel] ?? "")}</span>
+              <span className="pc-linea__tip-num">
+                {numero.format(actual[sel])} {actual[sel] === 1 ? "cliente" : "clientes"}
+              </span>
+              {hayAntes ? <span className="pc-linea__tip-antes">Antes: {numero.format(antes[sel])}</span> : null}
+            </span>
+          </>
+        ) : null}
+      </div>
       <figcaption className="pc-linea__ejes">
         <span>{dias[0] ? dia(dias[0]) : ""}</span>
         <span>máx. {max}</span>
