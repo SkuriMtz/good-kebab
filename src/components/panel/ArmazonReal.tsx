@@ -42,7 +42,7 @@ export type DatosArmazonReal = {
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS = ["pendientes", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
 function claveDe(url: URL) {
@@ -173,6 +173,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/panel" },
     { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y quién está en él", icono: "agentes", href: "/panel/agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
+    { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
     { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps conectadas", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/panel?vista=negocio" },
     { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va tu negocio", icono: "grafica", href: "/panel?vista=estadisticas" },
@@ -260,6 +261,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           inicio: "/panel",
           agentes: "/panel/agentes",
           pendientes: "/panel?vista=pendientes",
+          hecho: "/panel?vista=hecho",
           citas: "/panel?vista=citas",
           negocio: "/panel?vista=negocio",
           estadisticas: "/panel?vista=estadisticas",

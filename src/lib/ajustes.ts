@@ -53,9 +53,8 @@ export type Avisos = {
 export type DatosCfdi = { rfc: string; razonSocial: string; regimen: string; codigoPostal: string; uso: string; correo: string };
 
 export type AjustesCuenta = {
-  trato: "tu" | "usted";
-  estilo: "cercano" | "formal" | "breve";
-  emojis: boolean;
+  /** Cómo quiere que le escriban a sus clientes, con sus palabras (como las instrucciones de una IA). */
+  instrucciones: string;
   firma: string;
   reglas: Partial<Record<IdAgente, string>>;
   zonaHoraria: string;
@@ -65,13 +64,12 @@ export type AjustesCuenta = {
   cfdi: DatosCfdi;
 };
 
+export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;
 export const MAX_REGLAS = 600;
 
 export const AJUSTES_INICIALES: AjustesCuenta = {
-  trato: "tu",
-  estilo: "cercano",
-  emojis: false,
+  instrucciones: "",
   firma: "",
   reglas: {},
   zonaHoraria: "America/Mexico_City",
@@ -106,9 +104,7 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     if (r) reglas[id] = r;
   }
   return {
-    trato: uno(a.trato, ["tu", "usted"] as const, b.trato),
-    estilo: uno(a.estilo, ["cercano", "formal", "breve"] as const, b.estilo),
-    emojis: si(a.emojis, b.emojis),
+    instrucciones: texto(a.instrucciones, MAX_INSTRUCCIONES),
     firma: texto(a.firma, MAX_FIRMA),
     reglas,
     zonaHoraria: uno(
@@ -156,9 +152,7 @@ export const rfcValido = (rfc: string) => /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test
 export function bloqueParaAgentes(a: AjustesCuenta, agentes: readonly IdAgente[]): string {
   const zona = ZONAS_HORARIAS.find((z) => z.id === a.zonaHoraria)?.nombre ?? "Centro";
   const lineas = [
-    `- Trato con sus clientes: ${a.trato === "usted" ? "de usted" : "de tú"}.`,
-    `- Estilo: ${a.estilo === "formal" ? "formal y respetuoso" : a.estilo === "breve" ? "breve y directo, sin rodeos" : "cercano y cálido"}.`,
-    `- Emojis en mensajes para clientes: ${a.emojis ? "sí, pocos y con medida" : "no uses emojis"}.`,
+    a.instrucciones ? `- Cómo escribirles a sus clientes (con sus palabras): «${a.instrucciones}»` : null,
     a.firma ? `- Si escribes un mensaje para que el dueño lo mande a un cliente, fírmalo como: «${a.firma}».` : null,
     `- Zona horaria del negocio: ${zona} (${a.zonaHoraria}). Las horas que menciones van en esa zona.`,
     ...agentes.filter((id) => a.reglas[id]).map((id) => `- Reglas del dueño para ${AGENTE_POR_ID[id].nombre}: «${a.reglas[id]}»`),

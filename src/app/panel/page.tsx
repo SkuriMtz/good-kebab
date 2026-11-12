@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
+import { Hecho } from "@/components/panel/Hecho";
+import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
 import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
@@ -28,6 +30,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Lola (vacía hasta conectar WhatsApp).
  * - ?vista=negocio (&tab=perfil|documentos|apps; al regresar del permiso &conectada=app o &error=código&app=app): Tu negocio.
  * - ?vista=estadisticas (&periodo=7d|30d|mes): cómo va el negocio (VistaNegocio, del trabajador B).
+ * - ?vista=hecho: lo que el equipo ya terminó (pedidos con respuesta y correos resumidos).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
@@ -56,6 +59,17 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
         <VistaNegocio datos={datos} periodo={periodo} base="/panel" />
       </Seccion>
     );
+  }
+
+  if (searchParams.vista === "hecho") {
+    // Lo que el equipo ya terminó: cada pedido con respuesta y los correos que Clara resumió
+    const ids = await negociosDe(supabase, user.id);
+    const [{ data: msjs }, { data: convs }, { data: res }] = await Promise.all([
+      supabase.from("mensajes").select("conversacion_id, rol, contenido, agente, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(400),
+      supabase.from("conversaciones").select("id, agente").eq("owner_id", user.id).order("actualizado_en", { ascending: false }).limit(200),
+      supabase.from("resumenes_correo").select("id, remitente, asunto, creado_en").in("negocio_id", ids).order("creado_en", { ascending: false }).limit(30),
+    ]);
+    return <Hecho items={armarHecho(msjs ?? [], convs ?? [], res ?? [])} ahora={Date.now()} />;
   }
 
   if (searchParams.vista === "actividad") {

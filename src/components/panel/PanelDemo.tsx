@@ -23,6 +23,8 @@ import { responderConReglas } from "@/lib/pregunta-grafica";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { ActividadDemo } from "./Actividad";
+import { Hecho } from "./Hecho";
+import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
 import { nombresDe } from "./Mensajes";
@@ -44,7 +46,7 @@ import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["agentes", "pendientes", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["agentes", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 
 function claveDe(url: URL) {
@@ -115,6 +117,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/pruebalo" },
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y su semana", icono: "agentes", href: "/pruebalo?vista=agentes" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
+      { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=hecho", claves: "terminado listo historial tareas trabajos excel" },
       { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda de mañana", icono: "calendario", href: "/pruebalo?vista=citas" },
       { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps de Estudio Luna", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/pruebalo?vista=negocio" },
       { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va Estudio Luna", icono: "grafica", href: "/pruebalo?vista=estadisticas" },
@@ -188,6 +191,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         <VistaNegocio datos={datosNegocioEjemplo(periodo, new Date(ahora))} periodo={periodo} base="/pruebalo" insignia={<span className="pc-estado pc-estado--azul">Datos de ejemplo</span>} />
       </Seccion>
     );
+  } else if (valida === "hecho") {
+    contenido = <Hecho items={hechoDeEjemplo(ahora)} ahora={ahora} demo />;
   } else if (valida === "actividad") {
     const h = Number(params.get("hora"));
     const dia = texto("dia", 10);
@@ -243,6 +248,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           inicio: "/pruebalo",
           agentes: "/pruebalo?vista=agentes",
           pendientes: "/pruebalo?vista=pendientes",
+          hecho: "/pruebalo?vista=hecho",
           citas: "/pruebalo?vista=citas",
           negocio: "/pruebalo?vista=negocio",
           estadisticas: "/pruebalo?vista=estadisticas",
@@ -261,7 +267,12 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           activos: ["lola", "clara", "victor", "iris"],
           gmail: true,
           conectadas: ["google_calendar"],
-          ajustes: { ...AJUSTES_INICIALES, firma: "Estudio Luna", reglas: { lola: "Confirma las citas un día antes." } },
+          ajustes: {
+            ...AJUSTES_INICIALES,
+            instrucciones: "Háblales de tú y con calidez. Mensajes cortos, sin emojis. Si preguntan precio, dáselo y ofrece agendar.",
+            firma: "Estudio Luna",
+            reglas: { lola: "Confirma las citas un día antes." },
+          },
           perfil: PERFIL_DEMO,
           hrefs: { agentes: "/pruebalo?vista=agentes", apps: "/pruebalo?vista=negocio&tab=apps", documentos: "/pruebalo?vista=negocio&tab=documentos", negocio: "/pruebalo?vista=negocio" },
           salir: { etiqueta: "Salir de la demostración", texto: "Vuelves al sitio de Atendel.", href: "/" },

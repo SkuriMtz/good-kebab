@@ -7,6 +7,7 @@ import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import {
   ACENTOS,
   MAX_FIRMA,
+  MAX_INSTRUCCIONES,
   MAX_REGLAS,
   REGIMENES_FISCALES,
   USOS_CFDI,
@@ -92,7 +93,7 @@ export type PreferenciasPanel = {
 
 type Parte = { id: IdAjuste; etiqueta: string; icono: NombreIcono | "marca"; claves: string; grupo: number; sub: string };
 const PARTES: Parte[] = [
-  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes trato tu usted estilo firma emojis tono saben", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
+  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
   { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
   { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris activar desactivar reglas", grupo: 1, sub: "Activa o desactiva a cada uno y dale sus reglas." },
@@ -184,8 +185,8 @@ function Campo({ valor, alCambiar, etiqueta, ejemplo, max, tipo = "text", ancho 
   );
 }
 
-function Area({ valor, alCambiar, etiqueta, ejemplo, max }: { valor: string; alCambiar: (v: string) => void; etiqueta: string; ejemplo?: string; max: number }) {
-  return <textarea className="pc-aj-area" aria-label={etiqueta} value={valor} placeholder={ejemplo} maxLength={max} rows={3} onChange={(e) => alCambiar(e.target.value)} />;
+function Area({ valor, alCambiar, etiqueta, ejemplo, max, filas = 3 }: { valor: string; alCambiar: (v: string) => void; etiqueta: string; ejemplo?: string; max: number; filas?: number }) {
+  return <textarea className="pc-aj-area" aria-label={etiqueta} value={valor} placeholder={ejemplo} maxLength={max} rows={filas} onChange={(e) => alCambiar(e.target.value)} />;
 }
 
 function Selector({ valor, alCambiar, etiqueta, opciones, vacio }: { valor: string; alCambiar: (v: string) => void; etiqueta: string; opciones: readonly { id: string; nombre: string }[]; vacio?: string }) {
@@ -352,32 +353,19 @@ export function VentanaAjustes({
   if (seccion === "atendel") {
     contenido = (
       <>
-        <Grupo titulo="Cómo hablan con tus clientes">
-          <Fila titulo="Trato" texto="Cómo se dirigen a tus clientes en los mensajes que te proponen.">
-            <Segmentos
-              etiqueta="Trato"
-              activa={ajustes.trato}
-              alElegir={(v) => cambiar("trato", v)}
-              opciones={[
-                { id: "tu", etiqueta: "Tú" },
-                { id: "usted", etiqueta: "Usted" },
-              ]}
+        <Grupo titulo="Cómo le escriben a tus clientes">
+          <Fila titulo="Tus instrucciones" texto="Escríbelo con tus palabras, como se lo explicarías a alguien nuevo. Tus agentes lo siguen en cada mensaje que te proponen." apilada>
+            <Area
+              etiqueta="Cómo quieres que le escriban a tus clientes"
+              valor={ajustes.instrucciones}
+              alCambiar={(v) => cambiar("instrucciones", v)}
+              ejemplo={"Ej.: Háblales de tú y con calidez. Mensajes cortos, sin emojis. Si preguntan precio, dáselo y ofrece agendar. Despídete con «Gracias por escribirnos»."}
+              max={MAX_INSTRUCCIONES}
+              filas={5}
             />
-          </Fila>
-          <Fila titulo="Estilo" texto="Cálido, formal o al grano.">
-            <Segmentos
-              etiqueta="Estilo"
-              activa={ajustes.estilo}
-              alElegir={(v) => cambiar("estilo", v)}
-              opciones={[
-                { id: "cercano", etiqueta: "Cercano" },
-                { id: "formal", etiqueta: "Formal" },
-                { id: "breve", etiqueta: "Breve" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Emojis" texto="Pocos y con medida, en los mensajes para tus clientes.">
-            <Interruptor etiqueta="Emojis" activo={ajustes.emojis} alCambiar={(v) => cambiar("emojis", v)} />
+            <span className="pc-aj-cuenta">
+              {ajustes.instrucciones.length.toLocaleString("es-MX")} / {MAX_INSTRUCCIONES.toLocaleString("es-MX")}
+            </span>
           </Fila>
           <Fila titulo="Firma" texto="Con qué nombre firman los mensajes para tus clientes.">
             <Campo etiqueta="Firma" valor={ajustes.firma} alCambiar={(v) => cambiar("firma", v)} ejemplo={datos.negocio} max={MAX_FIRMA} />
