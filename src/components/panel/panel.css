@@ -5999,3 +5999,27 @@ a.pc-correo__accion:hover {
 .pc .pc-menu__buscar:focus-visible .pc-menu__atajo {
   opacity: 1;
 }
+
+/* =====================================================================
+   29. Más proporciones de un chat normal: una raya tenue bajo la barra,
+   el primer mensaje cerca de ella (sin el "Hoy" del principio) y la
+   respuesta más cerca de tu mensaje
+   ===================================================================== */
+.pc-conv__cabeza {
+  border-bottom: 1px solid var(--pc-division);
+}
+.pc-conv__columna {
+  padding-top: 36px;
+}
+.pc-hilo > .pc-dia[data-hoy]:first-child {
+  display: none;
+}
+.pc-hilo {
+  gap: 24px;
+}
+.pc-msj--agente {
+  gap: 4px;
+}
+.pc-msj__quien {
+  min-height: 20px;
+}

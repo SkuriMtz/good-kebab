@@ -232,10 +232,10 @@ export function AvisoHilo({ children, icono = "usuarios", error = false, nuevo }
   );
 }
 
-/** Separador del día ("Hoy", "Ayer"). */
+/** Separador del día ("Hoy", "Ayer"). Un "Hoy" al principio de la conversación no se muestra (como en un chat normal). */
 export function DiaHilo({ children }: { children: ReactNode }) {
   return (
-    <p className="pc-dia">
+    <p className="pc-dia" data-hoy={children === "Hoy" ? "" : undefined}>
       <span>{children}</span>
     </p>
   );
