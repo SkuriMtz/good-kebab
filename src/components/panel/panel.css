@@ -6580,3 +6580,42 @@ a.pc-correo__accion:hover {
     display: none;
   }
 }
+
+/* Pendientes: las pestañas "Por revisar" y "Hecho" */
+.pc-pestanas {
+  display: flex;
+  gap: 22px;
+  margin: 6px 0 18px;
+  border-bottom: 1px solid var(--pc-division);
+}
+.pc-pestanas__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: -1px;
+  padding: 10px 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease;
+}
+.pc-pestanas__tab:hover {
+  color: var(--pc-texto);
+}
+.pc-pestanas__tab[aria-current="page"] {
+  border-bottom-color: var(--pc-texto);
+  color: var(--pc-texto);
+}
+.pc-pestanas__cuenta {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

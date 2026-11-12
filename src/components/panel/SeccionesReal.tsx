@@ -8,6 +8,7 @@ import { planMinimo } from "@/lib/planes";
 import { Icono } from "@/components/base/Iconos";
 import { Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
+import { PestanasPendientes } from "./Hecho";
 import { nombreRemitente } from "./remitente";
 
 /* =====================================================================
@@ -83,6 +84,7 @@ export function PendientesReal({
   return (
     <Seccion ancha>
       <TituloSeccion titulo="Pendientes" texto="Lo que espera tu visto bueno. Clara deja aquí los correos que piden algo; Lola y Víctor se suman cuando estén conectados." />
+      <PestanasPendientes base="/panel?vista=pendientes" activa="revisar" porRevisar={(totalCorreos ?? 0) + pasos.length} />
       <div className="pc-filtros">
         <Pildoras
           etiqueta="Filtrar pendientes"

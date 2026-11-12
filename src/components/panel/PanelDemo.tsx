@@ -103,7 +103,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const fijados = ordenados.filter(esFijado).map(aMenu);
   const recientes = ordenados.filter((c) => !esFijado(c)).map(aMenu);
 
-  const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
+  const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida === "hecho" ? "pendientes" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
     { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=uso" },
@@ -117,7 +117,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/pruebalo" },
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y su semana", icono: "agentes", href: "/pruebalo?vista=agentes" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
-      { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=hecho", claves: "terminado listo historial tareas trabajos excel" },
+      { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
       { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda de mañana", icono: "calendario", href: "/pruebalo?vista=citas" },
       { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps de Estudio Luna", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/pruebalo?vista=negocio" },
       { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va Estudio Luna", icono: "grafica", href: "/pruebalo?vista=estadisticas" },
@@ -169,6 +169,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
+  } else if (valida === "hecho" || (valida === "pendientes" && params.get("tab") === "hecho")) {
+    contenido = <Hecho items={hechoDeEjemplo(ahora)} ahora={ahora} base="/pruebalo?vista=pendientes" porRevisar={porRevisar} demo />;
   } else if (valida === "pendientes") {
     const area = params.get("area");
     contenido = (
@@ -191,8 +193,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         <VistaNegocio datos={datosNegocioEjemplo(periodo, new Date(ahora))} periodo={periodo} base="/pruebalo" insignia={<span className="pc-estado pc-estado--azul">Datos de ejemplo</span>} />
       </Seccion>
     );
-  } else if (valida === "hecho") {
-    contenido = <Hecho items={hechoDeEjemplo(ahora)} ahora={ahora} demo />;
   } else if (valida === "actividad") {
     const h = Number(params.get("hora"));
     const dia = texto("dia", 10);
@@ -248,7 +248,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           inicio: "/pruebalo",
           agentes: "/pruebalo?vista=agentes",
           pendientes: "/pruebalo?vista=pendientes",
-          hecho: "/pruebalo?vista=hecho",
           citas: "/pruebalo?vista=citas",
           negocio: "/pruebalo?vista=negocio",
           estadisticas: "/pruebalo?vista=estadisticas",

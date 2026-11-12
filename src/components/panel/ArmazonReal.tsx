@@ -68,7 +68,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const c = params.get("c");
   const valida = vista && VISTAS.includes(vista) ? vista : null;
   // Actividad es un detalle de Estadísticas: se marca Estadísticas en el menú
-  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
+  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida === "hecho" ? "pendientes" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
   const clave = ruta === "/panel" ? `/panel?${valida ?? "chat"}` : ruta;
 
   // La vista nueva ya se pintó: la transición puede seguir
@@ -173,7 +173,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/panel" },
     { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y quién está en él", icono: "agentes", href: "/panel/agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
-    { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=hecho", claves: "terminado listo historial tareas trabajos excel" },
+    { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
     { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps conectadas", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/panel?vista=negocio" },
     { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va tu negocio", icono: "grafica", href: "/panel?vista=estadisticas" },
@@ -261,7 +261,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           inicio: "/panel",
           agentes: "/panel/agentes",
           pendientes: "/panel?vista=pendientes",
-          hecho: "/panel?vista=hecho",
           citas: "/panel?vista=citas",
           negocio: "/panel?vista=negocio",
           estadisticas: "/panel?vista=estadisticas",

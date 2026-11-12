@@ -12,10 +12,27 @@ import { Enlace, Pildoras, TituloSeccion, Vacio, retrasoEscalon } from "./Piezas
 import { Seccion } from "./Secciones";
 
 /* =====================================================================
-   Hecho: lo que tu equipo ya terminó (al lado de Pendientes, que es lo
-   que espera tu visto bueno). Por día, con quién lo hizo, qué entregó y
-   con qué apps. Se filtra por agente.
+   Pendientes > Hecho: lo que tu equipo ya terminó (la otra pestaña de
+   Pendientes, junto a "Por revisar", que es lo que espera tu visto bueno).
+   Por día, con quién lo hizo, qué entregó y con qué apps. Se filtra por
+   agente.
    ===================================================================== */
+
+/** Las dos pestañas de Pendientes: lo que espera tu visto bueno y lo que ya quedó. */
+export function PestanasPendientes({ base, activa, porRevisar }: { base: string; activa: "revisar" | "hecho"; porRevisar?: number | null }) {
+  return (
+    <nav className="pc-pestanas" aria-label="Pendientes">
+      <Enlace href={base} className="pc-pestanas__tab" aria-current={activa === "revisar" ? "page" : undefined}>
+        Por revisar
+        {porRevisar ? <span className="pc-pestanas__cuenta">{porRevisar}</span> : null}
+      </Enlace>
+      <Enlace href={`${base}&tab=hecho`} className="pc-pestanas__tab" aria-current={activa === "hecho" ? "page" : undefined}>
+        <Icono nombre="check-doble" tam={16} />
+        Hecho
+      </Enlace>
+    </nav>
+  );
+}
 
 const zona = "America/Mexico_City";
 const diaDe = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: zona }).format(new Date(iso));
@@ -29,7 +46,7 @@ function nombreDia(dia: string, hoy: string, ayer: string) {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-export function Hecho({ items, ahora, demo = false }: { items: ItemHecho[]; ahora: number; demo?: boolean }) {
+export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items: ItemHecho[]; ahora: number; /** La dirección de Pendientes (?vista=pendientes). */ base: string; porRevisar?: number | null; demo?: boolean }) {
   const [quien, setQuien] = useState<"todo" | IdAgente>("todo");
   const filtrados = quien === "todo" ? items : items.filter((i) => i.agente === quien);
   const hoy = diaDe(new Date(ahora).toISOString());
@@ -48,9 +65,10 @@ export function Hecho({ items, ahora, demo = false }: { items: ItemHecho[]; ahor
   return (
     <Seccion>
       <TituloSeccion
-        titulo="Hecho"
+        titulo="Pendientes"
         texto={`Lo que tu equipo ya terminó: lo que le pediste y lo que entregó.${items.length ? ` ${semana.toLocaleString("es-MX")} ${semana === 1 ? "cosa" : "cosas"} en los últimos 7 días.` : ""}${demo ? " (Datos de ejemplo.)" : ""}`}
       />
+      <PestanasPendientes base={base} activa="hecho" porRevisar={porRevisar} />
       {items.length ? (
         <div className="pc-filtros">
           <Pildoras

@@ -8,6 +8,7 @@ import { DEMO_CORREOS, DEMO_ESTADOS, DEMO_SEMANA_AGENTE, type CorreoDemo } from 
 import { diaLocal, sumarDias } from "@/lib/estadisticas";
 import { AREAS, AREA_DE_AGENTE, type IdArea } from "./pedidos";
 import { Enlace, Modal, Odometro, Pildoras, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
+import { PestanasPendientes } from "./Hecho";
 import { ListaCitas, ListaCorreos, Seccion, Tablero, TarjetaAgente, type ColumnaTablero, type FilaCitaDatos, type ItemTablero } from "./Secciones";
 
 /* =====================================================================
@@ -135,6 +136,7 @@ export function PendientesDemo({
   return (
     <Seccion ancha>
       <TituloSeccion titulo="Pendientes" texto="Lo que tu equipo dejó listo y espera tu visto bueno. Apruébalo con el botón o arrástralo a Aprobado." />
+      <PestanasPendientes base="/pruebalo?vista=pendientes" activa="revisar" porRevisar={items.filter((i) => i.columna === "revisar").length} />
       <div className="pc-filtros">
         <Pildoras
           etiqueta="Filtrar por área"
