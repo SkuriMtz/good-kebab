@@ -7,6 +7,9 @@ const POS = [
   [72, 72],
 ];
 
+/** La marca como texto SVG (para dibujarla fuera de React, por ejemplo en el vidrio de la entrada al panel). */
+export const MARCA_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${POS.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="19" fill="${COLORES[i]}"/>`).join("")}</svg>`;
+
 /** La marca: los cuatro agentes como cuatro círculos, uno por color. */
 export function Marca({ className = "h-[22px] w-[22px]" }: { className?: string }) {
   return (

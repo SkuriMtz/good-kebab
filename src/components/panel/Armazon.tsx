@@ -9,6 +9,7 @@ import { serifPanel } from "./fuente";
 import { PilaAgentes } from "./Mensajes";
 import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
+import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { useTema } from "./useTema";
 import "./panel.css";
@@ -71,6 +72,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   const [listo, setListo] = useState(false);
   const [buscar, setBuscar] = useState<{ instantaneo: boolean } | null>(null);
   const [celular, setCelular] = useState(false);
+  /** La entrada con el logo de vidrio (una vez por pestaña). */
+  const [entrada, setEntrada] = useState<FaseEntrada>("espera");
   const menuRef = useRef<HTMLElement>(null);
   const principalRef = useRef<HTMLDivElement>(null);
   const hamburguesa = useRef<HTMLButtonElement>(null);
@@ -241,6 +244,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       data-cajon={cajon ? "abierto" : undefined}
       data-info={info ? (infoAbierta ? "abierta" : "cerrada") : undefined}
       data-listo={listo ? "" : undefined}
+      data-entrada={entrada ?? undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">
@@ -392,6 +396,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       ) : null}
 
       <Buscador abierto={buscar !== null} instantaneo={buscar?.instantaneo ?? false} alCerrar={() => setBuscar(null)} indice={indice} />
+      {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
     </div>
   );
 }

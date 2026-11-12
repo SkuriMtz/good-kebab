@@ -18,6 +18,7 @@ import "../estilos/inicio.css";
 import "../estilos/transiciones.css";
 import { headers } from "next/headers";
 import { metadatosInicio } from "@/lib/seo";
+import { SCRIPT_ENTRADA } from "@/lib/entrada";
 import { SCRIPT_TEMA } from "@/lib/tema";
 import { TransicionPaginas } from "@/components/TransicionPaginas";
 import { IdiomaProvider } from "@/i18n/Idioma";
@@ -92,6 +93,7 @@ export default function RootLayout({
       <head>
         {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_ENTRADA }} />
       </head>
       <body className={`${FUENTES} font-sans`}>
         <IdiomaProvider idioma={idioma}>

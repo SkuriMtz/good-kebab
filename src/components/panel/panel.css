@@ -5480,3 +5480,92 @@ a.pc-correo__accion:hover {
     animation: none;
   }
 }
+
+/* =====================================================================
+   26. La entrada al panel (EntradaPanel.tsx): el logo de Atendel se arma
+   en vidrio, vuela a su lugar y el panel aparece detrás. Una vez por pestaña.
+   ===================================================================== */
+.pc-entrada {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+}
+:root[data-entrada-vista] .pc-entrada {
+  display: none;
+}
+/* Mientras se arma el logo, el panel espera escondido (sin moverse) */
+:root:not([data-entrada-vista]) .pc[data-entrada="espera"] > :not(.pc-entrada) {
+  opacity: 0;
+}
+.pc-entrada__fondo {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+:root[data-tema="claro"] .pc-entrada__fondo {
+  background: #e9e9eb;
+}
+.pc-entrada__caja {
+  position: relative;
+  width: min(520px, 100vw);
+  height: min(520px, 100vh);
+}
+.pc-entrada .pc-entrada__vidrio {
+  position: absolute;
+  inset: 0;
+  transition: opacity 200ms ease;
+}
+.pc-entrada[data-fase="vuela"] .pc-entrada__vidrio {
+  opacity: 0;
+}
+.pc-entrada__logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  will-change: transform;
+}
+.pc-entrada[data-fase="vuela"] .pc-entrada__logo {
+  opacity: 1;
+}
+.pc-entrada__marca {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* La marca a la que vuela el logo se esconde hasta que llega */
+[data-entrada-destino] {
+  opacity: 0 !important;
+}
+/* El panel aparece: el centro sube un poco y la información llega del lado */
+.pc[data-entrada="entra"] .pc-principal {
+  animation: pc-entra-centro 780ms 60ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pc[data-entrada="entra"][data-info="abierta"] .pc-lateral {
+  animation: pc-entra-lado 780ms 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (min-width: 860px) {
+  .pc[data-entrada="entra"] .pc-menu {
+    animation: pc-entra-menu 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes pc-entra-centro {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+}
+@keyframes pc-entra-lado {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+@keyframes pc-entra-menu {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
