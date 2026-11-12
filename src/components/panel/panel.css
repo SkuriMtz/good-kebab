@@ -5433,3 +5433,34 @@ a.pc-correo__accion:hover {
     top: 56px;
   }
 }
+
+/* =====================================================================
+   25. Sin cuadro detrás y con calma: los mensajes entran despacio (fundido,
+   un poco de desenfoque y un desliz corto) y el borde de abajo ya no tapa
+   el fondo (se desvanecen los mensajes, no los fragmentos)
+   ===================================================================== */
+.pc-conv__pie::before {
+  display: none;
+}
+.pc-conv__mensajes {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 32px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 32px), transparent 100%);
+}
+.pc-msj--nuevo {
+  animation: pc-msj-calma 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pc-msj-calma {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(12px);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-msj--nuevo {
+    animation: none;
+  }
+}

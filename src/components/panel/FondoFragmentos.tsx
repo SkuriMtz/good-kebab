@@ -32,7 +32,12 @@ const CORRIENTES: { p: [Punto, Punto, Punto, Punto]; ancho: number; peso: number
   { p: [[0.03, 1.08], [0.24, 0.72], [-0.07, 0.34], [0.17, -0.08]], ancho: 70, peso: 0.4 },
   { p: [[0.98, 1.06], [0.75, 0.66], [1.07, 0.3], [0.84, -0.08]], ancho: 70, peso: 0.4 },
   { p: [[0.06, 0.17], [0.36, -0.07], [0.64, 0.25], [0.95, 0.04]], ancho: 42, peso: 0.2 },
+  // Con `repartir` (la conversación): dos corrientes anchas por el centro, más tenues, para que no quede un hueco
+  { p: [[0.3, 1.08], [0.58, 0.72], [0.36, 0.32], [0.62, -0.08]], ancho: 170, peso: 0.24 },
+  { p: [[0.7, 1.08], [0.42, 0.68], [0.66, 0.3], [0.4, -0.08]], ancho: 170, peso: 0.2 },
 ];
+/** Qué tan visibles son los fragmentos de las corrientes del centro (detrás del texto). */
+const CENTRO_ALFA = 0.7;
 
 /** Las 3 capas: tamaño, opacidad (oscuro / claro), parallax, rapidez y qué tanto se abren de la corriente. */
 const CAPAS = [
@@ -118,7 +123,7 @@ function dibujosPrecalculados(dpr: number) {
  * `proteger`: lo que se lee (selectores), cada uno con su caja exacta.
  * `bandas`: columnas protegidas de arriba abajo (la columna de mensajes).
  */
-export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[]; bandas?: string[] }) {
+export function FondoFragmentos({ proteger, bandas = [], repartir = false }: { proteger: string[]; bandas?: string[]; /** También por el centro (la conversación), no solo a los lados. */ repartir?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const claveZonas = `${proteger.join("|")}#${bandas.join("|")}`;
 
@@ -156,8 +161,9 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
     const crear = () => {
       const r = azar(11);
       const celular = w < 600;
-      const n = celular ? 60 : Math.max(120, Math.min(220, Math.round((w * h) / 5500)));
-      const corrientes = celular ? [0, 1] : [0, 1, 2];
+      const base = celular ? 60 : Math.max(120, Math.min(220, Math.round((w * h) / 5500)));
+      const n = repartir ? Math.round(base * 1.4) : base;
+      const corrientes = repartir ? (celular ? [0, 1, 3] : [0, 1, 2, 3, 4]) : celular ? [0, 1] : [0, 1, 2];
       piezas = Array.from({ length: n }, () => {
         const k = r();
         const capa = k < CAPAS[0].parte ? 0 : k < CAPAS[0].parte + CAPAS[1].parte ? 1 : 2;
@@ -228,7 +234,7 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
         // Se desvanecen al empezar y al terminar su corriente (no aparecen de golpe)
         const extremos = suave(0, 0.07, q.t) * (1 - suave(0.93, 1, q.t));
         const titila = q.titila ? 0.55 + 0.45 * Math.sin(reloj * q.titila + q.fase) : 1;
-        const alfa = Math.min(1, c.alfa[claro] * q.a) * m * extremos * titila;
+        const alfa = Math.min(1, c.alfa[claro] * q.a) * m * extremos * titila * (q.corriente >= 3 ? CENTRO_ALFA : 1);
         if (alfa <= 0.01) continue;
         const img = dibujos[q.capa][q.color];
         const lado = (img.width / dpr) * (q.tam / (c.tam[1] * 2));
@@ -326,7 +332,7 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
       window.removeEventListener(EVENTO_TEMA, alTema);
       reducir.removeEventListener("change", alReducir);
     };
-  }, [claveZonas]);
+  }, [claveZonas, repartir]);
 
   return <canvas ref={ref} className="pc-fondo" aria-hidden="true" />;
 }

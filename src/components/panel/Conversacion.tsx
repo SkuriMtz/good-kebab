@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode, RefObject, UIEvent } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject, type UIEvent } from "react";
 import type { IdAgente } from "@/lib/agentes";
 import { FondoFragmentos } from "./FondoFragmentos";
 import { PilaAgentes } from "./Mensajes";
@@ -37,9 +37,25 @@ export function Conversacion({
   scrollRef?: RefObject<HTMLDivElement>;
   alDesplazar?: (e: UIEvent<HTMLDivElement>) => void;
 }) {
+  // Mientras la respuesta se va escribiendo, la vista la sigue (si estabas abajo)
+  const interno = useRef<HTMLDivElement>(null);
+  const vista = scrollRef ?? interno;
+  const columna = useRef<HTMLDivElement>(null);
+  const cerca = useRef(true);
+  useEffect(() => {
+    const el = vista.current;
+    const col = columna.current;
+    if (!el || !col || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (cerca.current) el.scrollTop = el.scrollHeight;
+    });
+    ro.observe(col);
+    return () => ro.disconnect();
+  }, [vista]);
+
   return (
     <div className="pc-conv">
-      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__pie"]} />
+      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__caja", ".pc-conv__legal", ".pc-conv__aviso"]} repartir />
       <header className="pc-conv__cabeza">
         <PilaAgentes agentes={agentes} tam={24} />
         <div className="pc-conv__cabeza-texto">
@@ -50,8 +66,19 @@ export function Conversacion({
         </div>
         {acciones ? <div className="pc-conv__acciones">{acciones}</div> : null}
       </header>
-      <div ref={scrollRef} className="pc-conv__mensajes" data-lenis-prevent onScroll={alDesplazar}>
-        <div className="pc-conv__columna">{children}</div>
+      <div
+        ref={vista}
+        className="pc-conv__mensajes"
+        data-lenis-prevent
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          cerca.current = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+          alDesplazar?.(e);
+        }}
+      >
+        <div ref={columna} className="pc-conv__columna">
+          {children}
+        </div>
       </div>
       <div className="pc-conv__pie">
         {aviso ? <div className="pc-conv__aviso">{aviso}</div> : null}

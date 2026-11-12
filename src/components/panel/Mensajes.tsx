@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Texto } from "@/components/Texto";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
@@ -96,8 +96,11 @@ export function MensajeAgente({
   pie?: ReactNode;
 }) {
   const info = AGENTE_POR_ID[agente];
+  // Si llegó en vivo, se va escribiendo con calma (no de golpe)
+  const [enVivo] = useState(enCurso);
+  const visible = useRevelar(texto, enVivo);
   return (
-    <div className={`pc-msj pc-msj--agente${nuevo ? " pc-msj--nuevo" : ""}${cabeza ? "" : " pc-msj--sigue"}`} aria-busy={enCurso || undefined}>
+    <div className={`pc-msj pc-msj--agente${nuevo ? " pc-msj--nuevo" : ""}${cabeza ? "" : " pc-msj--sigue"}`} aria-busy={enCurso || visible.length < texto.length || undefined}>
       {cabeza ? (
         <p className="pc-msj__quien">
           <AvatarAgente agente={agente} tam={24} />
@@ -106,15 +109,70 @@ export function MensajeAgente({
           {hora ? <span className="pc-msj__hora">{hora}</span> : null}
         </p>
       ) : null}
-      {texto ? (
+      {visible ? (
         <div className="pc-msj__texto">
-          <Texto texto={texto} />
+          <Texto texto={visible} />
         </div>
       ) : null}
-      {tarjeta}
-      {pie}
+      {visible.length >= texto.length ? (
+        <>
+          {tarjeta}
+          {pie}
+        </>
+      ) : null}
     </div>
   );
+}
+
+/** Corta el texto en palabras sin dejar unas **negritas** abiertas. */
+export function cortarTexto(texto: string, n: number) {
+  let parte = texto.slice(0, n);
+  const espacio = parte.lastIndexOf(" ");
+  if (n < texto.length && espacio > 0) parte = parte.slice(0, espacio);
+  if ((parte.match(/\*\*/g)?.length ?? 0) % 2 === 1) parte += "**";
+  return parte;
+}
+
+/** Letras por segundo al escribir una respuesta: tranquilo y parejo (si se queda muy atrás, apura un poco). */
+export const RITMO_LETRAS = 60;
+
+/**
+ * Muestra `texto` poco a poco a un ritmo tranquilo mientras `activo`; si el
+ * texto crece (llega en vivo), lo va alcanzando sin saltos. Con "reducir
+ * movimiento", todo de una vez.
+ */
+export function useRevelar(texto: string, activo: boolean) {
+  const [n, setN] = useState(activo ? 0 : texto.length);
+  const actual = useRef(n);
+  const largo = texto.length;
+  const alcanzado = n >= largo;
+  useEffect(() => {
+    if (!activo || alcanzado) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      actual.current = largo;
+      setN(largo);
+      return;
+    }
+    let cuadro = 0;
+    let antes = performance.now();
+    let resto = 0;
+    const paso = (t: number) => {
+      const dt = Math.min(64, t - antes);
+      antes = t;
+      const falta = largo - actual.current;
+      resto += ((RITMO_LETRAS + Math.max(0, falta - 160) * 0.6) * dt) / 1000;
+      const mas = Math.floor(resto);
+      if (mas > 0) {
+        resto -= mas;
+        actual.current = Math.min(largo, actual.current + mas);
+        setN(actual.current);
+      }
+      if (actual.current < largo) cuadro = requestAnimationFrame(paso);
+    };
+    cuadro = requestAnimationFrame(paso);
+    return () => cancelAnimationFrame(cuadro);
+  }, [activo, alcanzado, largo]);
+  return activo && n < largo ? cortarTexto(texto, n) : texto;
 }
 
 /**
