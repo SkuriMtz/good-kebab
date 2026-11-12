@@ -185,6 +185,10 @@ export const en: Diccionario = {
       sub: "Four agents, each with their own job.",
       texto: "Tap any of them to see everything they do.",
     },
+    apps: {
+      titulo: "Connects with the apps you already use",
+      nota: (n: number) => `${n} apps, with your own account and read-only.`,
+    },
     planes: {
       titulo: "Plans",
       texto: "Start for free. One and Max open in stages: join the waitlist and we'll let you know.",

@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
+import { AppsMarquesina, APPS_CONECTABLES } from "@/components/inicio-dala/AppsMarquesina";
 import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
 import { Planes } from "@/components/Planes";
@@ -121,6 +122,9 @@ export default function Inicio() {
           <CarruselAgentes />
         </div>
       </section>
+
+      {/* 6b. Las apps con las que se conecta (una sola fila que se desliza) */}
+      <AppsMarquesina titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
 
       {/* 7. Planes: las tarjetas de siempre (Free, One y Max) y cuándo sale */}
       <section id="precios" className="ini-bloque ini-planes ini-planes--tarjetas" data-escena="planes" aria-labelledby="planes-titulo">

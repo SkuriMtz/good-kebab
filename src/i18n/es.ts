@@ -155,6 +155,10 @@ export const es = {
       sub: "Cuatro agentes, cada uno en lo suyo.",
       texto: "Toca a cualquiera para ver todo lo que hace.",
     },
+    apps: {
+      titulo: "Se conecta con las apps que ya usas",
+      nota: (n: number) => `${n} apps, con tu propia cuenta y solo para leer.`,
+    },
     planes: {
       titulo: "Planes",
       texto: "Empieza gratis. One y Max abren por etapas: anótate en la lista y te avisamos.",
