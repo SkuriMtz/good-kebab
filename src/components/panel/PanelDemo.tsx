@@ -140,6 +140,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
             estadisticas: "/pruebalo?vista=estadisticas",
             negocio: "/pruebalo?vista=negocio&tab=apps",
             documentos: "/pruebalo?vista=negocio&tab=documentos",
+            ajustes: "/pruebalo?vista=ajustes",
             chatCon: (a) => `/pruebalo?con=${a}`,
           }}
           alCerrar={alCerrar}

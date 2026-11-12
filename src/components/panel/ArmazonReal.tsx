@@ -158,6 +158,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               estadisticas: "/panel?vista=estadisticas",
               negocio: "/panel?vista=negocio&tab=apps",
               documentos: "/panel?vista=negocio&tab=documentos",
+            ajustes: "/panel?vista=ajustes",
               chatCon: (a) => `/panel?agente=${a}`,
             }}
             alCerrar={alCerrar}
