@@ -111,7 +111,7 @@ export function MensajeAgente({
       ) : null}
       {visible ? (
         <div className="pc-msj__texto">
-          <Texto texto={visible} />
+          <Texto texto={visible} suave={enVivo} />
         </div>
       ) : null}
       {visible.length >= texto.length ? (
@@ -133,11 +133,11 @@ export function cortarTexto(texto: string, n: number) {
   return parte;
 }
 
-/** Letras por segundo al escribir una respuesta: tranquilo y parejo (si se queda muy atrás, apura un poco). */
-export const RITMO_LETRAS = 60;
+/** Letras por segundo al escribir una respuesta: a ritmo normal; si se queda atrás, alcanza rápido. */
+export const RITMO_LETRAS = 240;
 
 /**
- * Muestra `texto` poco a poco a un ritmo tranquilo mientras `activo`; si el
+ * Muestra `texto` poco a poco a ritmo normal mientras `activo`; si el
  * texto crece (llega en vivo), lo va alcanzando sin saltos. Con "reducir
  * movimiento", todo de una vez.
  */
@@ -160,7 +160,7 @@ export function useRevelar(texto: string, activo: boolean) {
       const dt = Math.min(64, t - antes);
       antes = t;
       const falta = largo - actual.current;
-      resto += ((RITMO_LETRAS + Math.max(0, falta - 160) * 0.6) * dt) / 1000;
+      resto += ((RITMO_LETRAS + Math.max(0, falta - 120) * 3) * dt) / 1000;
       const mas = Math.floor(resto);
       if (mas > 0) {
         resto -= mas;

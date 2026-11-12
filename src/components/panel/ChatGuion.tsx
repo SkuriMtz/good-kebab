@@ -10,7 +10,7 @@ import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
 import { FranjaPendientes, UsoPlan } from "./Franja";
 import { Inicio } from "./Inicio";
-import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe, RITMO_LETRAS, cortarTexto } from "./Mensajes";
+import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { NuevoGrupo } from "./NuevoGrupo";
 import { Icono } from "@/components/base/Iconos";
 import { Enlace, claseBoton } from "./Piezas";
@@ -113,16 +113,16 @@ export function useGuion() {
       const anterior = turnos[i - 1];
       if (t.recibe && anterior) agregar(id, { de: "paso", texto: "le pasa lo que sigue a", hora: ahora(), paso: { de: anterior.agente, a: t.recibe } });
       setPendiente({ conv: id, agente: t.agente });
-      const espera = quieto ? 400 : Math.min(2400, 1200 + t.texto.length * 3);
+      const espera = quieto ? 400 : Math.min(1800, 900 + t.texto.length * 2);
       timers.current.push(
         window.setTimeout(() => {
           agregar(id, { de: t.agente, texto: t.texto, hora: ahora(), tarjeta: t.tarjeta });
           if (i + 1 < turnos.length) setPendiente(null);
-          timers.current.push(window.setTimeout(() => turno(i + 1), i + 1 < turnos.length ? 1400 : 0));
+          timers.current.push(window.setTimeout(() => turno(i + 1), i + 1 < turnos.length ? 1100 : 0));
         }, espera),
       );
     };
-    timers.current.push(window.setTimeout(() => turno(0), 600));
+    timers.current.push(window.setTimeout(() => turno(0), 450));
   };
 
   const enviar = (c: ConvGuion, texto: string) => {
@@ -284,31 +284,24 @@ export function InicioDemo({
 
 function MensajeQueLlega({ m, cabeza, ultimo, alCrecer }: { m: MsjBase & { de: IdAgente }; cabeza: boolean; ultimo: boolean; alCrecer: () => void }) {
   const nuevo = m.id >= PRIMER_NUEVO;
-  const [n, setN] = useState(() => (!nuevo || yaLlegaron.has(m.id) || reducido() ? m.texto.length : 0));
-  const completo = n >= m.texto.length;
+  // Solo la primera vez que llega se escribe en vivo (al volver a la conversación ya está)
+  const [enVivo] = useState(() => nuevo && !yaLlegaron.has(m.id) && !reducido());
   useEffect(() => {
-    if (completo) {
-      yaLlegaron.add(m.id);
-      return;
-    }
-    // Un ritmo tranquilo y parejo (como en el panel de verdad); los textos largos apuran un poco
-    const paso = Math.max(2, Math.ceil(m.texto.length / 180));
-    const t = window.setInterval(() => setN((v) => Math.min(m.texto.length, v + paso)), Math.round((1000 * paso) / RITMO_LETRAS));
-    return () => window.clearInterval(t);
-  }, [completo, m.id, m.texto.length]);
+    yaLlegaron.add(m.id);
+  }, [m.id]);
   useLayoutEffect(() => {
     alCrecer();
-  }, [n, alCrecer]);
+  }, [alCrecer]);
   return (
     <MensajeAgente
       agente={m.de}
-      texto={completo ? m.texto : cortarTexto(m.texto, n)}
+      texto={m.texto}
       cabeza={cabeza}
       nuevo={nuevo}
-      enCurso={!completo}
+      enCurso={enVivo}
       hora={cabeza ? m.hora : undefined}
-      tarjeta={m.tarjeta && completo ? <TarjetaTrabajo tarjeta={m.tarjeta} aprobable /> : null}
-      pie={completo && ultimo ? <Copiar texto={m.texto.replace(/\*\*/g, "")} /> : null}
+      tarjeta={m.tarjeta ? <TarjetaTrabajo tarjeta={m.tarjeta} aprobable /> : null}
+      pie={ultimo ? <Copiar texto={m.texto.replace(/\*\*/g, "")} /> : null}
     />
   );
 }

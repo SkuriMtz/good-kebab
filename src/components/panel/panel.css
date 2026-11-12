@@ -5464,3 +5464,19 @@ a.pc-correo__accion:hover {
     animation: none;
   }
 }
+
+/* Las palabras que van llegando entran con un fundido suave (no saltan) */
+.t-palabra {
+  animation: t-palabra 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes t-palabra {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-palabra {
+    animation: none;
+  }
+}
