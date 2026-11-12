@@ -144,10 +144,12 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const enConversacion = c ? [...fijados, ...recientes].find((x) => x.id === c)?.agentes : undefined;
   const info =
     activa === "inicio" || activa === "chat"
-      ? ({ tab, alCambiarTab, alCerrar }: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => (
+      ? ({ tab, pedido, alIr, alVer, alCerrar }: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => (
           <PanelInfo
             tab={tab}
-            alCambiarTab={alCambiarTab}
+            pedido={pedido}
+          alIr={alIr}
+          alVer={alVer}
             ejemplo={false}
             cargar={cargarInfo}
             equipo={datos.activos}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { LOGO_APP } from "@/lib/conexiones/logos";
@@ -26,8 +26,14 @@ export const esTabInfo = (v: unknown): v is TabInfo => TABS_INFO.some((t) => t.i
 export type PendienteInfo = { id: string; agente: IdAgente; titulo: string; detalle?: string };
 
 type Props = {
+  /** La parte que se está viendo (marca su ícono arriba). */
   tab: TabInfo;
-  alCambiarTab: (t: TabInfo) => void;
+  /** Cada vez que cambia, el panel se desliza hasta `tab` (al picar un ícono). */
+  pedido: number;
+  /** Ir a una parte (las pestañas de adentro, en pantallas angostas). */
+  alIr: (t: TabInfo) => void;
+  /** Al desplazarse a mano: qué parte quedó arriba (solo marca su ícono). */
+  alVer: (t: TabInfo) => void;
   /** /pruebalo: datos de ejemplo. */
   ejemplo: boolean;
   /** Trae el resumen de un periodo (en /pruebalo se calcula; en /panel se pide a la API). */
@@ -58,13 +64,12 @@ function cambio(c: Cifra): number | null {
 const ESTADO_DOC: Record<Documento["estado"], string> = { listo: "Listo", procesando: "Leyendo…", error: "Con error" };
 
 /**
- * El panel de la derecha, con la forma sobria de un panel de contexto:
- * secciones con su título, filas de ícono y texto, una barra delgada de
- * proporciones y una leyenda de cuadritos con su número a la derecha;
- * líneas finas entre secciones. Cada ícono de arriba a la derecha abre una
- * pestaña. Lo que no tiene de dónde contarse dice "Sin datos": nada se inventa.
+ * El panel de la derecha: todo en una columna que se baja (resumen, tu
+ * equipo, por revisar, apps conectadas y documentos), con títulos técnicos y
+ * líneas finas entre partes. Los íconos de arriba deslizan hasta su parte.
+ * Lo que no tiene de dónde contarse dice "Sin datos": nada se inventa.
  */
-export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConversacion = [], pendientes, pendientesLista, hrefs, alCerrar }: Props) {
+export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, equipo, enConversacion = [], pendientes, pendientesLista, hrefs, alCerrar }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>("7d");
   const [datos, setDatos] = useState<ResumenInfo | null>(null);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
@@ -87,10 +92,8 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
     };
   }, [cargar, periodo]);
 
-  // Documentos y apps: se leen la primera vez que se abre esa pestaña
-  const verArchivos = tab === "archivos";
+  // Apps y documentos: se leen al abrir el panel
   useEffect(() => {
-    if (!verArchivos) return;
     let vivo = true;
     fuente
       .listarApps()
@@ -103,18 +106,60 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
     return () => {
       vivo = false;
     };
-  }, [fuente, verArchivos]);
+  }, [fuente]);
+
+  // Todo va en una sola columna: los íconos de arriba deslizan hasta su parte,
+  // y al bajar a mano se marca el ícono de la parte que quedó arriba.
+  const raiz = useRef<HTMLDivElement>(null);
+  const quietoHasta = useRef(0);
+  const tabActual = useRef(tab);
+  tabActual.current = tab;
+  const alto = () => raiz.current?.querySelector<HTMLElement>(".pc-ctx__arriba")?.offsetHeight ?? 0;
+  useEffect(() => {
+    const cont = raiz.current?.closest<HTMLElement>(".pc-lateral");
+    const el = document.getElementById(`pc-info-${tabActual.current}`);
+    if (!cont || !el) return;
+    quietoHasta.current = Date.now() + 800;
+    const destino = el.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - alto();
+    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    cont.scrollTo({ top: Math.max(0, destino), behavior: quieto || pedido === 0 ? "auto" : "smooth" });
+  }, [pedido]);
+  useEffect(() => {
+    const cont = raiz.current?.closest<HTMLElement>(".pc-lateral");
+    if (!cont) return;
+    let cuadro = 0;
+    const revisar = () => {
+      cuadro = 0;
+      if (Date.now() < quietoHasta.current) return;
+      const linea = cont.getBoundingClientRect().top + alto() + 96;
+      let visto: TabInfo = TABS_INFO[0].id;
+      for (const t of TABS_INFO) {
+        const el = document.getElementById(`pc-info-${t.id}`);
+        if (el && el.getBoundingClientRect().top <= linea) visto = t.id;
+      }
+      if (cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 4) visto = TABS_INFO[TABS_INFO.length - 1].id;
+      if (visto !== tabActual.current) alVer(visto);
+    };
+    const alDesplazar = () => {
+      if (!cuadro) cuadro = requestAnimationFrame(revisar);
+    };
+    cont.addEventListener("scroll", alDesplazar, { passive: true });
+    return () => {
+      cont.removeEventListener("scroll", alDesplazar);
+      cancelAnimationFrame(cuadro);
+    };
+  }, [alVer]);
 
   const enChat = new Set(enConversacion);
   const otros = equipo.filter((a) => !enChat.has(a));
 
   return (
-    <div className="pc-ctx" aria-busy={estado === "cargando"}>
+    <div ref={raiz} className="pc-ctx" aria-busy={estado === "cargando"}>
       {/* Angosto (flota) y celular: cerrar y las pestañas van aquí */}
       <div className="pc-ctx__arriba">
-        <div className="pc-ctx__tabs" role="tablist" aria-label="Información">
+        <div className="pc-ctx__tabs" role="toolbar" aria-label="Ir a">
           {TABS_INFO.map((t) => (
-            <button key={t.id} type="button" role="tab" aria-selected={t.id === tab} className="pc-ctx__tab" onClick={() => alCambiarTab(t.id)} title={t.etiqueta} aria-label={t.etiqueta}>
+            <button key={t.id} type="button" aria-pressed={t.id === tab} className="pc-ctx__tab" onClick={() => alIr(t.id)} title={t.etiqueta} aria-label={`Ir a ${t.etiqueta.toLowerCase()}`}>
               <Icono nombre={t.icono} tam={17} />
             </button>
           ))}
@@ -124,15 +169,14 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
         </button>
       </div>
 
-      <div key={tab} className="pc-ctx__cuerpo">
-        {tab === "resumen" ? (
+      <div className="pc-ctx__cuerpo">
+        <div id="pc-info-resumen" className="pc-ctx__grupo">
           <Tablero datos={datos} estado={estado} periodo={periodo} setPeriodo={setPeriodo} ejemplo={ejemplo} hrefEstadisticas={hrefs.estadisticas} />
-        ) : null}
+        </div>
 
-        {tab === "equipo" ? (
-          <>
+        <div id="pc-info-equipo" className="pc-ctx__grupo">
             {enConversacion.length ? (
-              <Seccion titulo="En esta conversación">
+              <Seccion titulo="Tu equipo · en esta conversación">
                 {[...enConversacion].map((a) => (
                   <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} aqui />
                 ))}
@@ -141,10 +185,9 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
             <Seccion titulo={enConversacion.length ? "El resto de tu equipo" : "Tu equipo"}>
               {otros.length ? otros.map((a) => <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} />) : <p className="pc-ctx__nota">Todo tu equipo está en esta conversación.</p>}
             </Seccion>
-          </>
-        ) : null}
+        </div>
 
-        {tab === "pendientes" ? (
+        <div id="pc-info-pendientes" className="pc-ctx__grupo">
           <Seccion titulo="Por revisar">
             <div className="pc-kpi pc-kpi--solo">
               <span className="pc-kpi__valor">{pendientes === null ? "—" : numero.format(pendientes)}</span>
@@ -175,10 +218,9 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
               <Icono nombre="flecha" tam={14} />
             </Enlace>
           </Seccion>
-        ) : null}
+        </div>
 
-        {tab === "archivos" ? (
-          <>
+        <div id="pc-info-archivos" className="pc-ctx__grupo">
             <Seccion titulo="Apps conectadas">
               {apps === null ? (
                 <p className="pc-ctx__nota">Leyendo…</p>
@@ -221,8 +263,7 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
                 <span className="pc-ctx__fila-texto">Subir un documento</span>
               </Enlace>
             </Seccion>
-          </>
-        ) : null}
+        </div>
       </div>
     </div>
   );

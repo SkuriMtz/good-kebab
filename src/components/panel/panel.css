@@ -5007,3 +5007,25 @@ a.pc-correo__accion:hover {
     animation: none;
   }
 }
+
+/* =====================================================================
+   20. Todo en una columna: cada parte separada por una línea; en pantallas
+   angostas, los íconos para ir a cada parte se quedan fijos arriba
+   ===================================================================== */
+.pc-ctx__grupo + .pc-ctx__grupo {
+  border-top: 1px solid var(--pc-division);
+}
+.pc-ctx__tab[aria-pressed="true"] {
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+}
+@media (max-width: 1359px) {
+  .pc-ctx__arriba {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--pc-division);
+    background: var(--pc-menu);
+  }
+}

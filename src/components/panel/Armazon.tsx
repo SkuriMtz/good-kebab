@@ -37,7 +37,7 @@ type Props = {
   /** Antes de que un enlace navegue (el panel lo usa para la transición entre vistas). */
   alCapturarClic?: (e: MouseEvent<HTMLDivElement>) => void;
   /** El panel de información de la derecha (en el inicio y en el chat): qué pestaña y cómo cambiarla o cerrarse. */
-  info?: (p: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => ReactNode;
+  info?: (p: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => ReactNode;
   children: ReactNode;
 };
 
@@ -64,6 +64,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   /** La información se arma la primera vez que se abre y se queda (así también se anima al cerrarse). */
   const [infoMontada, setInfoMontada] = useState(false);
   const [tab, setTab] = useState<TabInfo>("resumen");
+  /** Sube cada vez que se pide ir a una parte: el panel se desliza hasta ella. */
+  const [pedido, setPedido] = useState(0);
   const [angosto, setAngosto] = useState(false);
   /** Hasta que se lee lo guardado no hay transiciones (si no, el menú y la información se moverían al cargar). */
   const [listo, setListo] = useState(false);
@@ -138,10 +140,17 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       /* sin almacenamiento */
     }
   }, []);
-  /** Un ícono de arriba: abre esa pestaña; si ya está abierta, cierra la información. */
+  const irA = useCallback(
+    (t: TabInfo) => {
+      cambiarTab(t);
+      setPedido((n) => n + 1);
+    },
+    [cambiarTab],
+  );
+  /** Un ícono de arriba: abre la información en esa parte; si ya se está viendo, la cierra. */
   const alPicarTab = (t: TabInfo) => {
     if (infoAbierta && tab === t) return ponerInfo(false);
-    cambiarTab(t);
+    irA(t);
     ponerInfo(true);
   };
 
@@ -376,7 +385,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
             aria-hidden={infoAbierta ? undefined : true}
             {...(infoAbierta ? {} : INERTE)}
           >
-            <div className="pc-lateral__dentro">{infoAbierta || infoMontada ? info({ tab, alCambiarTab: cambiarTab, alCerrar: cerrarInfo }) : null}</div>
+            <div className="pc-lateral__dentro">{infoAbierta || infoMontada ? info({ tab, pedido, alIr: irA, alVer: cambiarTab, alCerrar: cerrarInfo }) : null}</div>
           </aside>
           {angosto ? <div className="pc-velo-info" aria-hidden="true" data-visible={infoAbierta ? "" : undefined} onClick={cerrarInfo} /> : null}
         </>

@@ -124,10 +124,12 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const cargarInfo = useCallback(async (p: Periodo) => resumirNegocio(datosNegocioEjemplo(p, new Date(ahora))), [ahora]);
   const info = valida
     ? undefined
-    : ({ tab, alCambiarTab, alCerrar }: { tab: TabInfo; alCambiarTab: (t: TabInfo) => void; alCerrar: () => void }) => (
+    : ({ tab, pedido, alIr, alVer, alCerrar }: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => (
         <PanelInfo
           tab={tab}
-          alCambiarTab={alCambiarTab}
+          pedido={pedido}
+          alIr={alIr}
+          alVer={alVer}
           ejemplo
           cargar={cargarInfo}
           equipo={AGENTES_INFO.map((a) => a.id)}
