@@ -5,7 +5,7 @@ import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "
 import { flushSync } from "react-dom";
 import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { Personaje } from "@/components/agentes/Personaje";
-import { Giro, Icono } from "@/components/base/Iconos";
+import { Giro } from "@/components/base/Iconos";
 import { ContextoChats } from "@/components/panel/contexto";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
@@ -534,27 +534,12 @@ export function Chat({
       <VistaConversacion
         agentes={participantes}
         titulo={tituloConv}
-        sub={
-          enCurso ? (
-            <span className="pc-conv__escribe">{estadoEnCurso ?? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…`}</span>
-          ) : grupo ? (
-            `Grupo · ${nombresDe(grupo)}`
-          ) : (
-            `${info.area} · ${info.abarca}`
-          )
-        }
-        acciones={
-          <>
-            <Enlace href="/panel" className="pc-icono" aria-label="Nueva conversación" title="Nueva conversación">
-              <Icono nombre="mas" tam={18} />
-            </Enlace>
-            {actualConv ? (
-              <button type="button" className="pc-icono" aria-label="Borrar esta conversación" title="Borrar esta conversación" onClick={() => setPorBorrar(actualConv)}>
-                <Icono nombre="basura" tam={17} />
-              </button>
-            ) : null}
-          </>
-        }
+        sub={grupo ? `Grupo · ${nombresDe(grupo)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
+        estado={enCurso ? (estadoEnCurso ?? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…`) : null}
+        menu={[
+          { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel" },
+          ...(actualConv ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, alElegir: () => setPorBorrar(actualConv), peligroso: true }] : []),
+        ]}
         scrollRef={scrollRef}
         alDesplazar={(e) => {
           const el = e.currentTarget;

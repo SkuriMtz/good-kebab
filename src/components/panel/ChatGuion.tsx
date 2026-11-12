@@ -12,8 +12,7 @@ import { FranjaPendientes, UsoPlan } from "./Franja";
 import { Inicio } from "./Inicio";
 import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { NuevoGrupo } from "./NuevoGrupo";
-import { Icono } from "@/components/base/Iconos";
-import { Enlace, claseBoton } from "./Piezas";
+import { claseBoton } from "./Piezas";
 import { SelectorAgente, type OpcionAgente } from "./Selector";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 
@@ -329,19 +328,12 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
     <Conversacion
       agentes={conv.agentes}
       titulo={conv.titulo}
-      sub={escribe ? <span className="pc-conv__escribe">{AGENTE_POR_ID[escribe].nombre} está escribiendo…</span> : grupo ? `Grupo · ${nombresDe(conv.agentes)}` : `${info.area} · ${info.abarca}`}
-      acciones={
-        <>
-          <Enlace href="/pruebalo" className="pc-icono" aria-label="Nueva conversación" title="Nueva conversación">
-            <Icono nombre="mas" tam={18} />
-          </Enlace>
-          {guion.convs.length > 1 ? (
-            <Enlace href="/pruebalo" className="pc-icono" aria-label="Borrar esta conversación" title="Borrar esta conversación" onClick={() => guion.borrar(conv.id)}>
-              <Icono nombre="basura" tam={17} />
-            </Enlace>
-          ) : null}
-        </>
-      }
+      sub={grupo ? `Grupo · ${nombresDe(conv.agentes)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
+      estado={escribe ? `${AGENTE_POR_ID[escribe].nombre} está escribiendo…` : null}
+      menu={[
+        { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/pruebalo" },
+        ...(guion.convs.length > 1 ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, href: "/pruebalo", alElegir: () => guion.borrar(conv.id), peligroso: true }] : []),
+      ]}
       scrollRef={scrollRef}
       alDesplazar={(e) => {
         const el = e.currentTarget;
