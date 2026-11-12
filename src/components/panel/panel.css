@@ -5338,3 +5338,98 @@ a.pc-correo__accion:hover {
     max-width: 85%;
   }
 }
+
+/* =====================================================================
+   24. Como Claude: una columna centrada y angosta, con aire a los lados,
+   letra un poco más chica y la caja de escribir delgada (gana sobre 22 y 23)
+   ===================================================================== */
+.pc {
+  --pc-columna-chat: 740px;
+}
+.pc-conv__columna {
+  width: min(100% - 64px, var(--pc-columna-chat));
+  padding: 32px 0 40px;
+}
+.pc-hilo {
+  gap: 28px;
+}
+.pc-msj--sigue {
+  margin-top: -14px;
+}
+.pc-msj__texto {
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+.pc-msj--agente .pc-msj__texto,
+.pc-msj--agente .pc-msj__cuerpo {
+  max-width: none;
+}
+.pc-burbuja {
+  max-width: 85%;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+.pc-conv__pie {
+  padding: 0 24px 14px;
+}
+.pc-conv__caja,
+.pc-conv__aviso {
+  width: min(100%, 780px);
+}
+.pc-conv__cabeza {
+  height: 52px;
+  padding: 0 20px 0 24px;
+}
+.pc-conv__titulo {
+  font-size: 15px;
+}
+.pc-conv__sub {
+  font-size: 12.5px;
+}
+.pc-barra-info {
+  top: 10px;
+}
+
+/* La caja de escribir, delgada */
+.pc .pc-caja[data-forma="fila"] .prompt-bar__field {
+  padding: 6px 6px 6px 8px;
+  border-radius: 16px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__input {
+  min-height: 36px;
+  padding: 6px 4px;
+  font-size: 15px;
+  line-height: 24px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__tool {
+  width: 36px;
+  height: 36px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__send {
+  width: 32px;
+  height: 32px;
+  margin: 2px;
+}
+
+/* El menú, con filas como las de Claude */
+.pc-menu__nuevo,
+.pc-menu__item {
+  height: 36px;
+}
+.pc-menu__nuevo {
+  height: 38px;
+}
+.pc-menu__chat {
+  height: 34px;
+}
+
+@media (max-width: 859px) {
+  .pc-conv__columna {
+    width: calc(100% - 32px);
+  }
+  .pc-barra-info {
+    top: 56px;
+  }
+}
