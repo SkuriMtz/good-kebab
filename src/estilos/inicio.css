@@ -1221,16 +1221,14 @@
 }
 .ini-apps__ventana {
   overflow: hidden;
+  padding: 20px 0;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
 }
 .ini-apps__pista {
   display: flex;
   width: max-content;
-  animation: ini-apps 70s linear infinite;
-}
-.ini-apps__ventana:hover .ini-apps__pista {
-  animation-play-state: paused;
+  will-change: transform;
 }
 .ini-apps__grupo {
   display: flex;
@@ -1250,7 +1248,6 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 20px -10px rgb(0 0 0 / 0.6);
-  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .ini-apps__app img {
   display: block;
@@ -1263,22 +1260,15 @@
   color: var(--ini-gris);
   font-size: clamp(13px, 1vw, 15px);
 }
-@keyframes ini-apps {
-  to {
-    transform: translateX(-50%);
-  }
-}
-@media (hover: hover) and (pointer: fine) {
-  .ini-apps__app:hover {
-    transform: translateY(-3px) scale(1.06);
-  }
-}
 @media (max-width: 899px) {
   .ini-apps {
     padding: 72px 0;
   }
   .ini-apps__titulo {
     padding: 0 24px;
+  }
+  .ini-apps__ventana {
+    padding: 16px 0;
   }
   .ini-apps__app {
     width: 42px;
@@ -1291,10 +1281,5 @@
   }
   .ini-apps__nota {
     padding: 0 24px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ini-apps__pista {
-    animation: none;
   }
 }

@@ -1,6 +1,7 @@
 import { CATALOGO } from "@/lib/conexiones/catalogo";
 import { LOGO_APP } from "@/lib/conexiones/logos";
 import type { IdApp } from "@/lib/nucleo-tipos";
+import { PistaSuave } from "./PistaSuave";
 
 /** Primero las más conocidas; después, las demás del catálogo que ya se conectan. */
 const PRIMERO: IdApp[] = [
@@ -41,9 +42,8 @@ export const APPS_CONECTABLES = CATALOGO.filter((a) => a.fase === 1).length;
 
 /**
  * "Se conecta con las apps que ya usas": los logos de las apps que Atendel
- * conecta, en una sola fila que se desliza despacio (solo CSS, sin
- * JavaScript). Se detiene al pasar el cursor; con "reducir movimiento" queda
- * quieta. Las marcas son de sus dueños: aquí solo dicen con qué se conecta,
+ * conecta, en una sola fila que se desliza despacio. Con el cursor encima se
+ * frena suave (ver PistaSuave); con "reducir movimiento" queda quieta. Las marcas son de sus dueños: aquí solo dicen con qué se conecta,
  * no que sean clientes.
  */
 export function AppsMarquesina({ titulo, nota }: { titulo: string; nota: string }) {
@@ -51,7 +51,7 @@ export function AppsMarquesina({ titulo, nota }: { titulo: string; nota: string 
   const fila = (copia: boolean) => (
     <ul className="ini-apps__grupo" aria-hidden={copia || undefined} aria-label={copia ? undefined : titulo}>
       {apps.map((a) => (
-        <li key={a.id} className="ini-apps__app" title={copia ? undefined : a.nombre}>
+        <li key={a.id} className="ini-apps__app">
           {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
           <img src={LOGO_APP[a.id]} alt={copia ? "" : a.nombre} width={26} height={26} loading="lazy" decoding="async" />
         </li>
@@ -64,10 +64,10 @@ export function AppsMarquesina({ titulo, nota }: { titulo: string; nota: string 
         {titulo}
       </h2>
       <div className="ini-apps__ventana">
-        <div className="ini-apps__pista">
+        <PistaSuave>
           {fila(false)}
           {fila(true)}
-        </div>
+        </PistaSuave>
       </div>
       <p className="ini-apps__nota">{nota}</p>
     </section>
