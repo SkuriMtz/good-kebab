@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
+import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
@@ -161,12 +162,15 @@ export async function POST(request: NextRequest) {
 
   // 6. Contexto (solo lectura): si Clara está, los resúmenes de correo recientes (nunca el texto
   //    original); para todos, el perfil del negocio y los fragmentos de sus documentos
-  const [correos, perfil, documentos] = await Promise.all([
+  const [correos, perfil, documentos, ajustesGuardados] = await Promise.all([
     participantes.includes("clara") ? contextoCorreo(supabase, user.id) : undefined,
     contextoPerfil(supabase, user.id),
     bloqueDocumentos(supabase, mensaje),
+    // Lo que el dueño eligió en Ajustes (trato, estilo, firma, zona horaria, reglas por agente)
+    supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
   ]);
   const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
+  const preferencias = bloqueParaAgentes(limpiarAjustes(ajustesGuardados.data?.datos), participantes);
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
@@ -202,7 +206,9 @@ export async function POST(request: NextRequest) {
           system:
             (grupo
               ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
-              : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio)) + conApps,
+              : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio)) +
+            preferencias +
+            conApps,
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
         const pedir = (p: PeticionRonda) =>

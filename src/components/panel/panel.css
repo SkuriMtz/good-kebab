@@ -6023,3 +6023,434 @@ a.pc-correo__accion:hover {
 .pc-msj__quien {
   min-height: 20px;
 }
+
+/* =====================================================================
+   30. Ajustes con las medidas de los de Claude: menú de 220px con
+   renglones de 34px, renglones de 68px con raya, títulos de grupo con
+   aire arriba, interruptores, segmentos, campos y renglones hijos con
+   sangría (gana sobre la 27)
+   ===================================================================== */
+.pc-modal.pc-ajustes {
+  width: min(1040px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 48px));
+  max-height: min(760px, calc(100dvh - 48px));
+}
+.pc-ajustes .pc-modal__cabeza {
+  height: 52px;
+  padding: 0 12px 0 20px;
+}
+.pc-ajustes .pc-modal__titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 16px;
+}
+.pc-aj__estado {
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+.pc-aj__estado[data-error] {
+  color: var(--pc-error);
+}
+.pc-aj {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+.pc-aj__nav {
+  padding: 14px 10px;
+}
+.pc-aj__buscar {
+  height: 34px;
+  border-radius: 9px;
+}
+.pc-aj__lista {
+  gap: 1px;
+  margin-top: 12px;
+}
+.pc-aj__lista li[data-corte] {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.pc-aj__parte {
+  gap: 11px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.pc-aj__marca {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.pc-aj__contenido {
+  padding: 22px 28px 48px;
+}
+.pc-aj__titulo {
+  font-size: 16px;
+}
+.pc-aj__sub {
+  margin-top: 2px;
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+}
+.pc-aj__aviso,
+.pc-aj-nota {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--pc-hover);
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.pc-aj-nota--error {
+  color: var(--pc-error);
+}
+.pc-aj-grupo {
+  margin-top: 18px;
+}
+.pc-aj-grupo + .pc-aj-grupo {
+  margin-top: 36px;
+}
+.pc-aj-grupo__titulo {
+  padding-bottom: 6px;
+  font-size: 15px;
+}
+.pc-aj-grupo__texto {
+  margin-top: -2px;
+  padding-bottom: 6px;
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+}
+.pc-aj-fila {
+  gap: 24px;
+  min-height: 68px;
+  padding: 14px 0;
+}
+.pc-aj-fila__titulo {
+  font-size: 14px;
+}
+.pc-aj-fila__sub {
+  max-width: 56ch;
+  font-size: 13.5px;
+}
+/* El renglón hijo (depende del de arriba): con sangría y sin raya entre los dos */
+.pc-aj-fila[data-hija] {
+  padding-top: 0;
+  padding-left: 24px;
+}
+.pc-aj-fila:has(+ .pc-aj-fila[data-hija]) {
+  border-bottom: 0;
+}
+.pc-aj-fila[data-apilada] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.pc-aj-fila[data-apilada] .pc-aj-fila__control {
+  justify-content: stretch;
+}
+.pc-aj-bloque {
+  border-bottom: 1px solid var(--pc-division);
+}
+.pc-aj-bloque:last-child {
+  border-bottom: 0;
+}
+.pc-aj-bloque .pc-aj-fila {
+  border-bottom: 0;
+}
+.pc-aj-fila__control {
+  gap: 10px;
+}
+/* Interruptor */
+.pc-aj-switch {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 21px;
+  border-radius: 999px;
+  background: var(--pc-borde);
+  transition: background-color 160ms ease;
+}
+.pc-aj-switch[aria-checked="true"] {
+  background: var(--pc-acento);
+}
+.pc-aj-switch__bola {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 180ms var(--pc-sale);
+}
+.pc-aj-switch[aria-checked="true"] .pc-aj-switch__bola {
+  transform: translateX(15px);
+}
+.pc-aj-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Segmentos */
+.pc-aj-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--pc-division);
+  border-radius: 9px;
+  background: var(--pc-hover);
+}
+.pc-aj-seg__op {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.pc-aj-seg__op:hover {
+  color: var(--pc-texto);
+}
+.pc-aj-seg__op[aria-checked="true"] {
+  background: var(--pc-menu);
+  box-shadow: 0 0 0 1px var(--pc-borde);
+  color: var(--pc-texto);
+}
+/* Campos */
+.pc-aj-campo,
+.pc-aj-area,
+.pc-aj-select select {
+  border: 1px solid var(--pc-division);
+  background: var(--pc-hover);
+  color: var(--pc-texto);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 140ms ease;
+}
+.pc-aj-campo {
+  width: 240px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+.pc-aj-campo[data-ancho="chico"] {
+  width: 104px;
+}
+.pc-aj-campo[type="time"] {
+  width: 132px;
+}
+.pc-aj-area {
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.pc-aj-campo:focus,
+.pc-aj-area:focus,
+.pc-aj-select select:focus {
+  border-color: var(--pc-texto-2);
+}
+.pc-aj-campo[aria-invalid="true"] {
+  border-color: var(--pc-error);
+}
+.pc-aj-campo:disabled {
+  opacity: 0.5;
+}
+.pc-aj-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.pc-aj-select select {
+  width: 300px;
+  max-width: 100%;
+  height: 32px;
+  padding: 0 32px 0 12px;
+  border-radius: 8px;
+  appearance: none;
+}
+.pc-aj-select select option {
+  background: var(--pc-menu);
+  color: var(--pc-texto);
+}
+.pc-aj-select svg {
+  position: absolute;
+  right: 10px;
+  color: var(--pc-texto-2);
+  pointer-events: none;
+}
+.pc-aj-valor {
+  min-width: 0;
+  height: 32px;
+  border-radius: 8px;
+}
+.pc-aj-pronto {
+  padding: 2px 8px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  color: var(--pc-texto-2);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.pc-aj-cargando {
+  padding: 16px 0;
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+}
+.pc-aj-colores {
+  display: flex;
+  gap: 10px;
+}
+.pc-aj-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: box-shadow 140ms ease;
+}
+.pc-aj-color[aria-checked="true"] {
+  box-shadow:
+    0 0 0 2px var(--pc-menu),
+    0 0 0 4px var(--pc-texto);
+}
+.pc-aj-horas {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+}
+.pc-aj-uso {
+  margin-bottom: 4px;
+  padding: 16px;
+  border: 1px solid var(--pc-division);
+  border-radius: 12px;
+}
+.pc-aj-uso__fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.pc-aj-uso__fila strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.pc-aj-uso__pct {
+  color: var(--pc-texto-2);
+}
+.pc-aj-tabla {
+  margin-top: 8px;
+  border: 1px solid var(--pc-division);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.pc-aj-tabla__fila {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-top: 1px solid var(--pc-division);
+  font-size: 14px;
+}
+.pc-aj-tabla__fila--cabeza {
+  min-height: 38px;
+  border-top: 0;
+  background: var(--pc-hover);
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-aj-tabla__nombre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pc-aj-tabla__tu {
+  color: var(--pc-texto-2);
+}
+.pc-aj-avatar--chico {
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+@media (max-width: 859px) {
+  .pc-modal.pc-ajustes {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+  .pc-aj {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pc-aj__lista li[data-corte] {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .pc-aj__contenido {
+    padding: 18px 18px 40px;
+  }
+  .pc-aj-campo,
+  .pc-aj-select,
+  .pc-aj-select select {
+    width: 100%;
+  }
+  .pc-aj-fila__control {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .pc-aj-tabla__fila {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 10px 14px;
+  }
+  .pc-aj-tabla__fila--cabeza {
+    display: none;
+  }
+}
+
+/* El color que elige en Ajustes > Apariencia (botones, enlaces, barras, interruptores) */
+.pc[data-acento="morado"] {
+  --pc-acento: #7c5cff;
+  --pc-acento-hover: #6b4bef;
+  --pc-enlace: #b3a2ff;
+}
+:root[data-tema="claro"] .pc[data-acento="morado"] {
+  --pc-enlace: #5f3df0;
+}
+.pc[data-acento="verde"] {
+  --pc-acento: #13805f;
+  --pc-acento-hover: #0f6c50;
+  --pc-enlace: #4fd1a5;
+}
+:root[data-tema="claro"] .pc[data-acento="verde"] {
+  --pc-enlace: #0f7356;
+}
+.pc[data-acento="ambar"] {
+  --pc-acento: #a86400;
+  --pc-acento-hover: #8f5500;
+  --pc-enlace: #f5b94a;
+}
+:root[data-tema="claro"] .pc[data-acento="ambar"] {
+  --pc-enlace: #8f5500;
+}
+/* El tamaño de la letra del chat */
+.pc[data-letra="chica"] .pc-msj__texto,
+.pc[data-letra="chica"] .pc-burbuja {
+  font-size: 14.5px;
+}
+.pc[data-letra="grande"] .pc-msj__texto,
+.pc[data-letra="grande"] .pc-burbuja {
+  font-size: 17px;
+}

@@ -5,6 +5,7 @@ import { useCallback, useLayoutEffect, useMemo, useState, type MouseEvent, type 
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
 import type { DatosAjustes } from "./Ajustes";
+import type { AjustesCuenta } from "@/lib/ajustes";
 import type { Periodo } from "@/lib/estadisticas";
 import type { ResumenInfo } from "@/lib/resumen-negocio";
 import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafica";
@@ -16,8 +17,16 @@ import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
 
 export type DatosArmazonReal = {
+  userId: string;
   nombre: string;
   nombreCompleto: string;
+  negocio: string;
+  planId: string;
+  /** Los agentes que incluye su plan. */
+  planAgentes: IdAgente[];
+  /** Las apps conectadas (IdApp). */
+  conectadas: string[];
+  ajustes: AjustesCuenta;
   correo: string;
   /** "Free", "One" o "Max". */
   plan: string;
@@ -97,7 +106,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   );
 
   const cuenta: ElementoCuenta[] = [
-    { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes&seccion=plan" },
+    { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes&seccion=uso" },
     { id: "planes", etiqueta: "Ver los planes", detalle: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
     { id: "contacto", etiqueta: "Escríbenos", icono: "mensaje", href: "/contacto" },
     { id: "sitio", etiqueta: "Ir al sitio de Atendel", icono: "inicio", href: "/" },
@@ -119,17 +128,45 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     router.replace("/");
     router.refresh();
   };
+  /** Un PUT a la API; devuelve el error que diga o null. */
+  const poner = async (url: string, cuerpo: unknown) => {
+    try {
+      const r = await fetch(url, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
+      if (r.ok) return null;
+      const j = (await r.json().catch(() => null)) as { error?: string } | null;
+      return j?.error ?? "No se pudo guardar. Intenta de nuevo.";
+    } catch {
+      return "Sin conexión: no se guardó.";
+    }
+  };
   const ajustes: DatosAjustes = {
     nombre: datos.nombreCompleto,
     correo: datos.correo,
-    plan: `Atendel ${datos.plan}`,
-    usados: datos.usados,
-    total: datos.total,
-    gmail: datos.gmail,
+    negocio: datos.negocio,
+    plan: { id: datos.planId, nombre: `Atendel ${datos.plan}`, usados: datos.usados, total: datos.total, agentes: datos.planAgentes },
     activos: datos.activos,
-    hrefs: { correo: "/panel?vista=correo#gmail", agentes: "/panel/agentes", apps: "/panel?vista=negocio&tab=apps" },
+    gmail: datos.gmail,
+    conectadas: datos.conectadas,
+    ajustes: datos.ajustes,
+    hrefs: { agentes: "/panel/agentes", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
     salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
     salirDeTodo: () => salirA("global"),
+    guardar: {
+      ajustes: (a) => poner("/api/ajustes", { ajustes: a }),
+      perfil: (cambios) => poner("/api/negocio/perfil", cambios),
+      equipo: async (agentes) => {
+        const { error: e } = await createClient().from("agentes_elegidos").upsert({ owner_id: datos.userId, agentes, actualizado_en: new Date().toISOString() });
+        if (e) return "No se pudo guardar tu equipo. Intenta de nuevo.";
+        router.refresh();
+        return null;
+      },
+      nombre: async (nombre) => {
+        const { error: e } = await createClient().auth.updateUser({ data: { full_name: nombre } });
+        if (e) return "No se pudo guardar tu nombre.";
+        router.refresh();
+        return null;
+      },
+    },
   };
 
   const indice: ResultadoBusqueda[] = [

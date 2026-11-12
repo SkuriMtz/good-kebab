@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { ArmazonReal } from "@/components/panel/ArmazonReal";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
+import { limpiarAjustes } from "@/lib/ajustes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
@@ -28,7 +29,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   const conGoogle = proveedores.includes("google");
   const cuenta = await cargarCuenta(supabase, user.id);
 
-  const [{ data: convs }, pendientes] = await Promise.all([
+  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }] = await Promise.all([
     supabase
       .from("conversaciones")
       .select("id, agente, titulo, tema, participantes, actualizado_en")
@@ -37,7 +38,12 @@ export default async function PanelLayout({ children }: { children: ReactNode })
       .limit(40),
     // Las mismas 5 filas que pide el Inicio: la lectura se comparte (cache)
     cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 5),
+    // Ajustes > lo que eligió (si la tabla aún no existe, quedan los de fábrica)
+    supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
+    // Ajustes > Conexiones: qué apps están conectadas (sin tokens)
+    supabase.from("conexiones").select("apps, estado").eq("owner_id", user.id),
   ]);
+  const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
 
   // Fijados: los grupos con nombre. Recientes: todo lo demás (también "Todo el equipo")
   const fijados: ChatMenu[] = [];
@@ -62,7 +68,13 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     <ArmazonReal
       datos={{
         nombre,
+        userId: user.id,
         nombreCompleto: completo.includes("@") ? nombre : completo,
+        negocio: cuenta.negocio,
+        planId: cuenta.plan.id,
+        planAgentes: [...cuenta.plan.agentes],
+        conectadas,
+        ajustes: limpiarAjustes(filaAjustes?.datos),
         correo: user.email ?? "",
         plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),
         usados: cuenta.usados,

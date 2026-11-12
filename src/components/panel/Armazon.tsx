@@ -10,6 +10,7 @@ import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
 import { VentanaAjustes, esIdAjuste, type DatosAjustes, type IdAjuste } from "./Ajustes";
+import type { Acento, Letra } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import "./panel.css";
@@ -78,7 +79,10 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   const [entrada, setEntrada] = useState<FaseEntrada>("espera");
   /** La ventana de Ajustes: abierta o no, y en qué parte (la parte se queda al cerrar, para que salga animada). */
   const [ajustesAbierto, setAjustesAbierto] = useState(false);
-  const [parteAjustes, setParteAjustes] = useState<IdAjuste>("cuenta");
+  const [parteAjustes, setParteAjustes] = useState<IdAjuste>("atendel");
+  /** El color y la letra que eligió en Ajustes > Apariencia. */
+  const [apariencia, setApariencia] = useState<{ acento: Acento; letra: Letra }>({ acento: ajustes.ajustes.acento, letra: ajustes.ajustes.letra });
+  const alCambiarApariencia = useCallback((a: { acento: Acento; letra: Letra }) => setApariencia((x) => (x.acento === a.acento && x.letra === a.letra ? x : a)), []);
   const parametros = useSearchParams();
   const menuRef = useRef<HTMLElement>(null);
   const principalRef = useRef<HTMLDivElement>(null);
@@ -185,7 +189,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
 
   // Ajustes es una ventana: los enlaces a ?vista=ajustes (y llegar con esa dirección) la abren
   const abrirAjustes = useCallback((parte?: string | null) => {
-    setParteAjustes(esIdAjuste(parte) ? parte : "cuenta");
+    setParteAjustes(esIdAjuste(parte) ? parte : "atendel");
     setAjustesAbierto(true);
     setCajon(false);
   }, []);
@@ -222,6 +226,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       }
       ponerInfo(abierta);
     },
+    alCambiarApariencia,
     verEntrada: () => {
       try {
         window.sessionStorage.removeItem(CLAVE_ENTRADA);
@@ -301,6 +306,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       data-info={info ? (infoAbierta ? "abierta" : "cerrada") : undefined}
       data-listo={listo ? "" : undefined}
       data-entrada={entrada ?? undefined}
+      data-acento={apariencia.acento !== "azul" ? apariencia.acento : undefined}
+      data-letra={apariencia.letra !== "normal" ? apariencia.letra : undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">
@@ -370,7 +377,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           {aviso ? <div className="pc-aviso-demo">{aviso}</div> : null}
           <div className="pc-menu__pie">
             <MenuCuenta usuario={usuario} elementos={cuenta} />
-            <button type="button" className="pc-icono" onClick={() => abrirAjustes("cuenta")} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
+            <button type="button" className="pc-icono" onClick={() => abrirAjustes("atendel")} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
               <Icono nombre="ajustes" tam={18} />
             </button>
           </div>

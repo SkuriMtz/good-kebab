@@ -6,6 +6,17 @@ import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaN
 import { datosNegocioEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
 import { AGENTES_INFO, esIdAgente } from "@/lib/agentes";
 import { DEMO_APROBACIONES, DEMO_NEGOCIO, DEMO_USUARIA } from "@/lib/demo-dashboard";
+import { AJUSTES_INICIALES } from "@/lib/ajustes";
+import type { CampoPerfil } from "@/lib/nucleo-tipos";
+
+/** Ajustes > Mi negocio en la demostración: datos de ejemplo (no se guardan). */
+const PERFIL_DEMO: Partial<Record<CampoPerfil, string>> = {
+  a_que_se_dedica: "Atendemos con cita a clientes de la zona; también vendemos productos en el local.",
+  servicios_y_precios: "Servicio básico · $350\nServicio completo · $600\nPaquete del mes · $1,200",
+  horarios: "Lunes a viernes de 10:00 a 19:00\nSábado de 10:00 a 15:00",
+  ubicacion: "Calle Ejemplo 123, Col. Centro",
+  formas_de_pago: "Efectivo, transferencia y tarjeta",
+};
 import { periodoDe, type Periodo } from "@/lib/estadisticas";
 import { resumirNegocio } from "@/lib/resumen-negocio";
 import { responderConReglas } from "@/lib/pregunta-grafica";
@@ -93,7 +104,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
-    { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=plan" },
+    { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=uso" },
     { id: "planes", etiqueta: "Ver los planes", detalle: "Para cambiar de plan, escríbenos", icono: "estrella", href: "/precios" },
     { id: "crear", etiqueta: "Crear mi cuenta", icono: "perfil", href: "/entrar" },
     { id: "salir", etiqueta: "Salir de la demostración", icono: "cerrar-sesion", href: "/" },
@@ -245,12 +256,14 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         ajustes={{
           nombre: DEMO_USUARIA.nombre,
           correo: DEMO_USUARIA.correo,
-          plan: PLAN.nombre,
-          usados: DEMO_NEGOCIO.mensajesUsados,
-          total: PLAN.mensajesMes,
-          gmail: true,
+          negocio: "Estudio Luna",
+          plan: { id: PLAN.id, nombre: PLAN.nombre, usados: DEMO_NEGOCIO.mensajesUsados, total: PLAN.mensajesMes, agentes: PLAN.agentes },
           activos: ["lola", "clara", "victor", "iris"],
-          hrefs: { correo: "/pruebalo?vista=correo", agentes: "/pruebalo?vista=agentes", apps: "/pruebalo?vista=negocio&tab=apps" },
+          gmail: true,
+          conectadas: ["google_calendar"],
+          ajustes: { ...AJUSTES_INICIALES, firma: "Estudio Luna", reglas: { lola: "Confirma las citas un día antes." } },
+          perfil: PERFIL_DEMO,
+          hrefs: { agentes: "/pruebalo?vista=agentes", apps: "/pruebalo?vista=negocio&tab=apps", documentos: "/pruebalo?vista=negocio&tab=documentos", negocio: "/pruebalo?vista=negocio" },
           salir: { etiqueta: "Salir de la demostración", texto: "Vuelves al sitio de Atendel.", href: "/" },
           demo: true,
         }}
