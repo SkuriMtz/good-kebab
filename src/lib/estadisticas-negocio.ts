@@ -39,6 +39,7 @@ export type Canal = "correo" | "whatsapp";
 
 /** Un número del periodo y el del periodo anterior. null = no hay de dónde contarlo ("—"). */
 export type Cifra = { valor: number | null; antes: number | null };
+export type SerieDia = { dias: Dia[]; actual: number[]; antes: number[] };
 
 export type ClienteTop = {
   clave: string;
@@ -79,6 +80,10 @@ export type DatosNegocio = {
   respuestas: Cifra & { conversaciones: number | null; agentes: IdAgente[] };
   /** Clientes distintos por día, en el periodo y en el anterior. null = sin de dónde contar. */
   serie: { dias: Dia[]; diasAntes: Dia[]; actual: number[]; antes: number[] } | null;
+  /** Lo mismo por día (en el periodo y en el anterior) para citas, respuestas y correos. null = sin de dónde contar. */
+  series: { citas: SerieDia | null; respuestas: SerieDia | null; correos: SerieDia | null };
+  /** Movimiento (mensajes y correos) por hora del día, de 0 a 23, en el periodo. */
+  porHora: number[] | null;
   temas: TemaTop[];
   quienes: ClienteTop[];
   /** Movimiento (mensajes y correos) por día de la semana (0 = lunes) y hora (0–23). */
@@ -197,6 +202,19 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
   const movDia = new Map<Dia, number>();
   const movHora = Array<number>(24).fill(0);
   const temas = new Map<string, TemaTop & { porAgente: Map<IdAgente | null, number> }>();
+  const nuevaSerie = (): SerieDia => ({ dias: actual.dias, actual: actual.dias.map(() => 0), antes: anterior.dias.map(() => 0) });
+  const sCitas = nuevaSerie();
+  const sRespuestas = nuevaSerie();
+  const sCorreos = nuevaSerie();
+  /** Uno más en su día, sea del periodo o del anterior. */
+  const sumar = (s: SerieDia, dia: Dia) => {
+    const i = indice.get(dia);
+    if (i !== undefined) s.actual[i] += 1;
+    else {
+      const j = indiceAntes.get(dia);
+      if (j !== undefined) s.antes[j] += 1;
+    }
+  };
 
   const mover = (dia: Dia, hora: number) => {
     calor[diaSemana(dia)][hora] += 1;
@@ -242,6 +260,7 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
     const quien = partirRemitente(r.remitente);
     if (quien) deCliente(quien.clave, quien.nombre, "correo", "clara", dia);
     if (enAnterior.has(dia)) correosAntes += 1;
+    sumar(sCorreos, dia);
     if (!enActual.has(dia)) continue;
     correos += 1;
     mover(dia, hora);
@@ -262,6 +281,7 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
     const [dia, hora] = enZona(m.creado_en);
     const delEquipo = m.rol === "assistant";
     if (enAnterior.has(dia) && delEquipo) respuestasAntes += 1;
+    if (delEquipo) sumar(sRespuestas, dia);
     if (!enActual.has(dia)) continue;
     mover(dia, hora);
     if (delEquipo) {
@@ -278,6 +298,7 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
     const [dia, hora] = enZona(w.creado_en);
     if (w.de === "cliente") deCliente(claveWhatsapp(w.cliente), w.cliente, "whatsapp", w.agente, dia);
     if (enAnterior.has(dia) && w.de === "equipo") respuestasAntes += 1;
+    if (w.de === "equipo") sumar(sRespuestas, dia);
     if (!enActual.has(dia)) continue;
     mover(dia, hora);
     chatsWhatsapp.add(w.conversacion);
@@ -301,6 +322,7 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
     const enSemana = new Map(dias.map((d) => [d, 0]));
     for (const c of e.citas) {
       const [dia] = enZona(c.creado_en);
+      sumar(sCitas, dia);
       if (enAnterior.has(dia)) agendadasAntes += 1;
       if (enActual.has(dia)) {
         agendadas += 1;
@@ -342,6 +364,12 @@ export function calcularNegocio(e: EntradaNegocio): DatosNegocio {
     serie: hayClientes
       ? { dias: actual.dias, diasAntes: anterior.dias, actual: porDia.map((s) => s.size), antes: porDiaAntes.map((s) => s.size) }
       : null,
+    series: {
+      citas: e.citas ? sCitas : null,
+      respuestas: e.mensajes.length || hayWhatsapp ? sRespuestas : null,
+      correos: hayCorreo ? sCorreos : null,
+    },
+    porHora: hayMovimiento ? movHora : null,
     temas: [...temas.values()]
       .map(({ texto, accion, total, agente }): TemaTop => ({ texto, accion, total, agente }))
       .sort((a, b) => orden(a, b, a.texto, b.texto))

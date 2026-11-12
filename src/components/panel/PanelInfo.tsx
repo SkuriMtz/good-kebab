@@ -351,6 +351,7 @@ function Tablero({
             {ejemplo ? "Datos de ejemplo" : "En vivo"}
           </span>
         </div>
+        <Grafica datos={datos} />
         <div className="pc-segmentos" role="radiogroup" aria-label="Periodo">
           {PERIODOS.map((p) => (
             <button key={p.id} type="button" role="radio" aria-checked={periodo === p.id} className="pc-segmentos__opcion" onClick={() => setPeriodo(p.id)}>
@@ -391,18 +392,6 @@ function Tablero({
           </>
         )}
       </section>
-
-      {datos?.serie && datos.serie.actual.length > 1 ? (
-        <section className="pc-ctx__seccion">
-          <div className="pc-ctx__cabeza">
-            <h3 className="pc-ctx__titulo">Clientes por día</h3>
-            <span className="pc-ctx__leyenda-linea">
-              <i className="pc-ctx__linea" aria-hidden="true" /> Ahora <i className="pc-ctx__linea pc-ctx__linea--antes" aria-hidden="true" /> Antes
-            </span>
-          </div>
-          <Linea dias={datos.serie.dias} actual={datos.serie.actual} antes={datos.serie.antes} />
-        </section>
-      ) : null}
 
       {nuevos !== null && regresan !== null && total > 0 ? (
         <section className="pc-ctx__seccion">
@@ -457,34 +446,196 @@ const diaLargo = (d: string) => {
   return t.charAt(0).toLocaleUpperCase("es-MX") + t.slice(1);
 };
 
+type IdGrafica = "clientes" | "citas" | "respuestas" | "correos" | "hora" | "semana";
+type Punto = { etiqueta: string; valor: number; antes?: number };
+const GRAFICAS: readonly { id: IdGrafica; nombre: string; detalle: string; unidad: [string, string] }[] = [
+  { id: "clientes", nombre: "Clientes por día", detalle: "Personas distintas que te escribieron", unidad: ["cliente", "clientes"] },
+  { id: "citas", nombre: "Citas agendadas por día", detalle: "Las que se agendaron cada día", unidad: ["cita", "citas"] },
+  { id: "respuestas", nombre: "Respuestas por día", detalle: "Mensajes que contestó tu equipo", unidad: ["respuesta", "respuestas"] },
+  { id: "correos", nombre: "Correos atendidos por día", detalle: "Correos de clientes que resumió o respondió", unidad: ["correo", "correos"] },
+  { id: "hora", nombre: "A qué hora te escriben", detalle: "Mensajes y correos por hora del día", unidad: ["mensaje", "mensajes"] },
+  { id: "semana", nombre: "Qué días te escriben más", detalle: "Mensajes y correos por día de la semana", unidad: ["mensaje", "mensajes"] },
+];
+const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+/** Los puntos de cada gráfica, o null si todavía no hay de dónde contar. */
+function puntosDe(id: IdGrafica, d: ResumenInfo): { puntos: Punto[]; ejes: [string, string] } | null {
+  const porDia = (dias: string[], actual: number[], antes: number[]) =>
+    actual.length > 1
+      ? { puntos: actual.map((v, i) => ({ etiqueta: diaLargo(dias[i] ?? ""), valor: v, antes: antes.length === actual.length ? antes[i] : undefined })), ejes: [dia(dias[0] ?? ""), dia(dias[dias.length - 1] ?? "")] as [string, string] }
+      : null;
+  if (id === "clientes") return d.serie ? porDia(d.serie.dias, d.serie.actual, d.serie.antes) : null;
+  if (id === "hora") return d.porHora ? { puntos: d.porHora.map((v, h) => ({ etiqueta: `${h}:00 a ${h + 1}:00`, valor: v })), ejes: ["0 h", "23 h"] } : null;
+  if (id === "semana") return d.porSemana ? { puntos: d.porSemana.map((v, i) => ({ etiqueta: DIAS_SEMANA[i], valor: v })), ejes: ["lun", "dom"] } : null;
+  const s = d.series[id];
+  return s ? porDia(s.dias, s.actual, s.antes) : null;
+}
+
 /**
- * Los clientes por día en una línea delgada con su sombra; el periodo anterior,
- * punteado. Al pasar el cursor (o el dedo, o con las flechas) se marca el día
- * más cercano y una etiqueta dice la fecha y cuántos clientes hubo.
+ * La gráfica del resumen: arriba, un botón con lo que se está viendo; al
+ * picarlo sale un buscador chico con las demás gráficas (clientes, citas,
+ * respuestas, correos, a qué hora y qué días te escriben). Lo elegido se
+ * dibuja ahí mismo. Las que todavía no tienen datos se ven apagadas.
  */
-function Linea({ dias, actual, antes }: { dias: string[]; actual: number[]; antes: number[] }) {
+function Grafica({ datos }: { datos: ResumenInfo | null }) {
+  const [id, setId] = useState<IdGrafica>("clientes");
+  const actual = GRAFICAS.find((g) => g.id === id) ?? GRAFICAS[0];
+  const dibujo = datos ? puntosDe(id, datos) : null;
+  const conAntes = !!dibujo?.puntos.some((p) => p.antes !== undefined);
+  return (
+    <div className="pc-grafica">
+      <div className="pc-grafica__cabeza">
+        <SelectorGrafica actual={id} datos={datos} alElegir={setId} />
+        {conAntes ? (
+          <span className="pc-ctx__leyenda-linea">
+            <i className="pc-ctx__linea" aria-hidden="true" /> Ahora <i className="pc-ctx__linea pc-ctx__linea--antes" aria-hidden="true" /> Antes
+          </span>
+        ) : null}
+      </div>
+      {dibujo ? (
+        <Linea key={id} puntos={dibujo.puntos} ejes={dibujo.ejes} unidad={actual.unidad} nombre={actual.nombre} />
+      ) : (
+        <p className="pc-grafica__vacia">{datos ? "Todavía no hay datos para esta gráfica." : " "}</p>
+      )}
+    </div>
+  );
+}
+
+const sinAcentos = (t: string) =>
+  t
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+function SelectorGrafica({ actual, datos, alElegir }: { actual: IdGrafica; datos: ResumenInfo | null; alElegir: (id: IdGrafica) => void }) {
+  const [abierto, setAbierto] = useState(false);
+  const [q, setQ] = useState("");
+  const [cursor, setCursor] = useState(0);
+  const raiz = useRef<HTMLDivElement>(null);
+  const boton = useRef<HTMLButtonElement>(null);
+  const entrada = useRef<HTMLInputElement>(null);
+  const id = useId();
+  const nombre = GRAFICAS.find((g) => g.id === actual)?.nombre ?? "";
+  const opciones = GRAFICAS.filter((g) => sinAcentos(`${g.nombre} ${g.detalle}`).includes(sinAcentos(q.trim())));
+  const hay = (g: IdGrafica) => !!datos && puntosDe(g, datos) !== null;
+
+  useEffect(() => {
+    if (!abierto) return;
+    setQ("");
+    setCursor(Math.max(0, GRAFICAS.findIndex((g) => g.id === actual)));
+    entrada.current?.focus({ preventScroll: true });
+    const fuera = (e: PointerEvent) => {
+      if (!raiz.current?.contains(e.target as Node)) setAbierto(false);
+    };
+    window.addEventListener("pointerdown", fuera);
+    return () => window.removeEventListener("pointerdown", fuera);
+  }, [abierto, actual]);
+
+  const elegir = (g: IdGrafica) => {
+    if (!hay(g)) return;
+    alElegir(g);
+    setAbierto(false);
+    boton.current?.focus({ preventScroll: true });
+  };
+
+  return (
+    <div ref={raiz} className="pc-sel">
+      <button ref={boton} type="button" className="pc-sel__boton" aria-haspopup="dialog" aria-expanded={abierto} aria-controls={`${id}-pop`} onClick={() => setAbierto((a) => !a)}>
+        <span>{nombre}</span>
+        <Icono nombre="chevron" tam={14} trazo={2} />
+      </button>
+      {abierto ? (
+        <div id={`${id}-pop`} className="pc-sel__pop" role="dialog" aria-label="Elegir qué ver en la gráfica">
+          <div className="pc-sel__campo">
+            <Icono nombre="buscar" tam={14} />
+            <input
+              ref={entrada}
+              className="pc-sel__entrada"
+              placeholder="Buscar gráfica…"
+              value={q}
+              role="combobox"
+              aria-expanded="true"
+              aria-controls={`${id}-lista`}
+              aria-activedescendant={opciones[cursor] ? `${id}-${opciones[cursor].id}` : undefined}
+              aria-label="Buscar gráfica"
+              onChange={(e) => {
+                setQ(e.target.value);
+                setCursor(0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (opciones.length) setCursor((c) => (c + (e.key === "ArrowDown" ? 1 : opciones.length - 1)) % opciones.length);
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (opciones[cursor]) elegir(opciones[cursor].id);
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  setAbierto(false);
+                  boton.current?.focus({ preventScroll: true });
+                }
+              }}
+            />
+          </div>
+          <ul id={`${id}-lista`} className="pc-sel__lista" role="listbox" aria-label="Gráficas">
+            {opciones.map((g, i) => {
+              const con = hay(g.id);
+              return (
+                <li
+                  key={g.id}
+                  id={`${id}-${g.id}`}
+                  role="option"
+                  aria-selected={g.id === actual}
+                  aria-disabled={!con || undefined}
+                  className="pc-sel__opcion"
+                  data-cursor={i === cursor || undefined}
+                  onPointerEnter={() => setCursor(i)}
+                  onClick={() => elegir(g.id)}
+                >
+                  <span className="pc-sel__textos">
+                    <span className="pc-sel__nombre">{g.nombre}</span>
+                    <span className="pc-sel__detalle">{con ? g.detalle : "Sin datos aún"}</span>
+                  </span>
+                  {g.id === actual ? <Icono nombre="check" tam={14} trazo={2} /> : null}
+                </li>
+              );
+            })}
+            {opciones.length === 0 ? <li className="pc-sel__nada">Nada coincide con “{q}”.</li> : null}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Una línea delgada con su sombra (y la del periodo anterior, punteada, si la
+ * hay). Al pasar el cursor (o el dedo, o con las flechas) se marca el punto
+ * más cercano y una etiqueta dice cuál es y cuánto hubo.
+ */
+function Linea({ puntos, ejes, unidad, nombre }: { puntos: Punto[]; ejes: [string, string]; unidad: [string, string]; nombre: string }) {
   const id = useId().replace(/:/g, "");
   const [sel, setSel] = useState<number | null>(null);
   const W = 312;
   const H = 96;
-  const n = actual.length;
+  const n = puntos.length;
+  const actual = puntos.map((p) => p.valor);
+  const antes = puntos.every((p) => p.antes !== undefined) ? puntos.map((p) => p.antes as number) : [];
   const max = Math.max(1, ...actual, ...antes);
-  const x = (i: number, cuantos: number) => (cuantos <= 1 ? 0 : (i / (cuantos - 1)) * W);
+  const x = (i: number) => (n <= 1 ? 0 : (i / (n - 1)) * W);
   const y = (v: number) => H - 4 - (v / max) * (H - 12);
-  const camino = (serie: number[]) => serie.map((v, i) => `${i ? "L" : "M"}${x(i, serie.length).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  const camino = (serie: number[]) => serie.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
   const linea = camino(actual);
   const area = `${linea} L${W} ${H} L0 ${H} Z`;
-  const total = actual.reduce((a, b) => a + b, 0);
+  const cuanto = (v: number) => `${numero.format(v)} ${v === 1 ? unidad[0] : unidad[1]}`;
 
   const elegir = (clientX: number, el: HTMLElement) => {
     const r = el.getBoundingClientRect();
     const k = Math.round(((clientX - r.left) / Math.max(1, r.width)) * (n - 1));
     setSel(Math.max(0, Math.min(n - 1, k)));
   };
-  const izq = sel === null ? 0 : (x(sel, n) / W) * 100;
-  const arribaAhora = sel === null ? 0 : (y(actual[sel]) / H) * 100;
+  const izq = sel === null ? 0 : (x(sel) / W) * 100;
   const hayAntes = sel !== null && antes.length === n;
-  const arribaAntes = hayAntes && sel !== null ? (y(antes[sel]) / H) * 100 : 0;
   // La etiqueta va al lado de la línea, hacia donde hay más espacio
   const lado = izq > 55 ? "der" : "izq";
 
@@ -494,7 +645,7 @@ function Linea({ dias, actual, antes }: { dias: string[]; actual: number[]; ante
         className="pc-linea__zona"
         tabIndex={0}
         role="img"
-        aria-label={`Clientes por día, ${total} en total: ${actual.map((v, i) => `${diaLargo(dias[i] ?? "")} ${v}`).join(", ")}`}
+        aria-label={`${nombre}: ${puntos.map((p) => `${p.etiqueta} ${p.valor}`).join(", ")}`}
         onPointerMove={(e) => elegir(e.clientX, e.currentTarget)}
         onPointerDown={(e) => elegir(e.clientX, e.currentTarget)}
         onPointerLeave={() => setSel(null)}
@@ -524,22 +675,20 @@ function Linea({ dias, actual, antes }: { dias: string[]; actual: number[]; ante
         {sel !== null ? (
           <>
             <span className="pc-linea__vertical" style={{ left: `${izq}%` }} aria-hidden="true" />
-            {hayAntes ? <span className="pc-linea__marca pc-linea__marca--antes" style={{ left: `${izq}%`, top: `${arribaAntes}%` }} aria-hidden="true" /> : null}
-            <span className="pc-linea__marca" style={{ left: `${izq}%`, top: `${arribaAhora}%` }} aria-hidden="true" />
+            {hayAntes ? <span className="pc-linea__marca pc-linea__marca--antes" style={{ left: `${izq}%`, top: `${(y(antes[sel]) / H) * 100}%` }} aria-hidden="true" /> : null}
+            <span className="pc-linea__marca" style={{ left: `${izq}%`, top: `${(y(actual[sel]) / H) * 100}%` }} aria-hidden="true" />
             <span className="pc-linea__tip" data-lado={lado} style={{ left: `${izq}%` }} aria-hidden="true">
-              <span className="pc-linea__tip-dia">{diaLargo(dias[sel] ?? "")}</span>
-              <span className="pc-linea__tip-num">
-                {numero.format(actual[sel])} {actual[sel] === 1 ? "cliente" : "clientes"}
-              </span>
+              <span className="pc-linea__tip-dia">{puntos[sel].etiqueta}</span>
+              <span className="pc-linea__tip-num">{cuanto(actual[sel])}</span>
               {hayAntes ? <span className="pc-linea__tip-antes">Antes: {numero.format(antes[sel])}</span> : null}
             </span>
           </>
         ) : null}
       </div>
       <figcaption className="pc-linea__ejes">
-        <span>{dias[0] ? dia(dias[0]) : ""}</span>
+        <span>{ejes[0]}</span>
         <span>máx. {max}</span>
-        <span>{dias.length ? dia(dias[dias.length - 1]) : ""}</span>
+        <span>{ejes[1]}</span>
       </figcaption>
     </figure>
   );

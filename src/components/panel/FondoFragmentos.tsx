@@ -42,7 +42,9 @@ const CAPAS = [
 ] as const;
 
 type Pieza = { corriente: number; capa: number; t: number; d: number; vt: number; tam: number; color: number; giro: number; vg: number; a: number; titila: number; fase: number };
-type Zona = { x: number; y: number; w: number; h: number };
+type Zona = { x: number; y: number; w: number; h: number; suave?: boolean };
+/** En una banda (la columna de mensajes) los fragmentos no se apagan: se quedan a esta fuerza. */
+const EN_BANDA = 0.4;
 
 /** Números al azar repetibles (mulberry32): el mismo campo en cada visita. */
 function azar(semilla: number) {
@@ -145,7 +147,7 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
         [...document.querySelectorAll(sel)].map((el) => {
           const b = el.getBoundingClientRect();
           return banda
-            ? { x: b.left - r.left - MARGEN, y: -1e5, w: b.width + 2 * MARGEN, h: 2e5 }
+            ? { x: b.left - r.left - MARGEN, y: -1e5, w: b.width + 2 * MARGEN, h: 2e5, suave: true }
             : { x: b.left - r.left - MARGEN, y: b.top - r.top - MARGEN, w: b.width + 2 * MARGEN, h: b.height + 2 * MARGEN };
         });
       zonas = [...selectores[0].flatMap((s) => de(s, false)), ...selectores[1].flatMap((s) => de(s, true))];
@@ -191,17 +193,23 @@ export function FondoFragmentos({ proteger, bandas = [] }: { proteger: string[];
 
     /** 0 dentro de una zona protegida (o a menos de MARGEN), 1 lejos de todas. */
     const mascara = (x: number, y: number, radio: number) => {
-      let d = Infinity;
+      let duro = Infinity;
+      let suave = Infinity;
       for (const z of zonas) {
         const dx = Math.max(z.x - x, 0, x - (z.x + z.w));
         const dy = Math.max(z.y - y, 0, y - (z.y + z.h));
-        d = Math.min(d, Math.hypot(dx, dy));
+        const d = Math.hypot(dx, dy);
+        if (z.suave) suave = Math.min(suave, d);
+        else duro = Math.min(duro, d);
       }
-      d -= radio;
-      if (d <= 0) return 0;
-      if (d >= RAMPA) return 1;
-      const t = d / RAMPA;
-      return t * t * (3 - 2 * t);
+      const rampa = (d: number) => {
+        d -= radio;
+        if (d <= 0) return 0;
+        if (d >= RAMPA) return 1;
+        const t = d / RAMPA;
+        return t * t * (3 - 2 * t);
+      };
+      return Math.min(rampa(duro), EN_BANDA + (1 - EN_BANDA) * rampa(suave));
     };
 
     const dibujar = () => {

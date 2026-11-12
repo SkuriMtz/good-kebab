@@ -5109,3 +5109,205 @@ a.pc-correo__accion:hover {
     animation: none;
   }
 }
+
+/* =====================================================================
+   21. La gráfica del resumen con su selector (botón + buscador chico)
+   ===================================================================== */
+.pc-grafica {
+  margin-bottom: 18px;
+}
+.pc-grafica__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pc-grafica__vacia {
+  display: grid;
+  place-items: center;
+  height: 112px;
+  border: 1px dashed var(--pc-borde);
+  border-radius: 8px;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-sel {
+  position: relative;
+  min-width: 0;
+}
+.pc-sel__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 30px;
+  margin-left: -8px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pc-texto);
+  font: 500 14px/1 var(--pc-sans);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.pc-sel__boton > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-sel__boton > svg {
+  flex: none;
+  color: var(--pc-texto-2);
+  transition: transform 160ms var(--pc-sale);
+}
+.pc-sel__boton[aria-expanded="true"] {
+  border-color: var(--pc-borde);
+  background: var(--pc-hover);
+}
+.pc-sel__boton[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+.pc-sel__pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -8px;
+  z-index: 10;
+  width: 296px;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 10px;
+  background: var(--pc-menu);
+  box-shadow: var(--pc-sombra-levanta);
+  transform-origin: top left;
+  animation: pc-pop-abre 160ms var(--pc-sale);
+}
+.pc-sel__campo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin-bottom: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 7px;
+  color: var(--pc-texto-2);
+}
+.pc-sel__entrada {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pc-texto);
+  font: 13.5px/1 var(--pc-sans);
+  outline: none;
+}
+.pc-sel__entrada::placeholder {
+  color: var(--pc-placeholder);
+}
+.pc-sel__lista {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.pc-sel__opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pc-sel__opcion[data-cursor] {
+  background: var(--pc-hover);
+}
+.pc-sel__opcion[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.5;
+}
+.pc-sel__opcion > svg {
+  flex: none;
+  color: var(--pc-texto);
+}
+.pc-sel__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pc-sel__nombre {
+  font-size: 13.5px;
+}
+.pc-sel__detalle {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-sel__nada {
+  padding: 10px;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc-sel__boton:hover {
+    background: var(--pc-hover);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-sel__pop {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   22. El chat más espacioso: columna más ancha, más aire entre mensajes;
+   los fragmentos se ven tenues detrás (sin el rectángulo vacío)
+   ===================================================================== */
+.pc {
+  --pc-columna-chat: 780px;
+}
+.pc-conv__columna {
+  width: min(100% - 64px, var(--pc-columna-chat));
+  padding: 40px 0 56px;
+}
+.pc-hilo {
+  gap: 36px;
+}
+.pc-msj--sigue {
+  margin-top: -20px;
+}
+.pc-burbuja {
+  padding: 13px 20px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.pc-conv__pie {
+  padding: 0 32px 18px;
+}
+.pc-conv__caja,
+.pc-conv__aviso {
+  width: min(100%, var(--pc-columna-chat));
+}
+.pc-grafica__cabeza .pc-sel {
+  flex: 1 1 auto;
+}
+.pc-grafica__cabeza .pc-ctx__leyenda-linea {
+  flex: none;
+}
+.pc-sel__entrada:focus,
+.pc-sel__entrada:focus-visible {
+  outline: none;
+}
+.pc-sel__campo:focus-within {
+  border-color: var(--pc-texto-2);
+}
