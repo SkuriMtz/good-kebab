@@ -8,6 +8,7 @@ import { APP_POR_ID } from "@/lib/conexiones/catalogo";
 import { PERIODOS, type Periodo } from "@/lib/estadisticas";
 import type { Cifra } from "@/lib/estadisticas-negocio";
 import type { ResumenInfo } from "@/lib/resumen-negocio";
+import { DIAS_SEMANA, GRAFICAS, MAX_PREGUNTA, type IdGrafica, type RespuestaGrafica } from "@/lib/pregunta-grafica";
 import type { Documento, IdApp } from "@/lib/nucleo-tipos";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace } from "./Piezas";
@@ -38,6 +39,8 @@ type Props = {
   ejemplo: boolean;
   /** Trae el resumen de un periodo (en /pruebalo se calcula; en /panel se pide a la API). */
   cargar: (p: Periodo) => Promise<ResumenInfo | null>;
+  /** Contesta una pregunta sobre los números (en /panel con IA; en /pruebalo con reglas). */
+  preguntar: Preguntar;
   /** Tu equipo (los agentes activos). */
   equipo: readonly IdAgente[];
   /** Los agentes de la conversación abierta, si hay una. */
@@ -69,7 +72,7 @@ const ESTADO_DOC: Record<Documento["estado"], string> = { listo: "Listo", proces
  * líneas finas entre partes. Los íconos de arriba deslizan hasta su parte.
  * Lo que no tiene de dónde contarse dice "Sin datos": nada se inventa.
  */
-export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, equipo, enConversacion = [], pendientes, pendientesLista, hrefs, alCerrar }: Props) {
+export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, preguntar, equipo, enConversacion = [], pendientes, pendientesLista, hrefs, alCerrar }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>("7d");
   const [datos, setDatos] = useState<ResumenInfo | null>(null);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
@@ -171,7 +174,7 @@ export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, equipo, e
 
       <div className="pc-ctx__cuerpo">
         <div id="pc-info-resumen" className="pc-ctx__grupo">
-          <Tablero datos={datos} estado={estado} periodo={periodo} setPeriodo={setPeriodo} ejemplo={ejemplo} hrefEstadisticas={hrefs.estadisticas} />
+          <Tablero datos={datos} estado={estado} periodo={periodo} setPeriodo={setPeriodo} ejemplo={ejemplo} hrefEstadisticas={hrefs.estadisticas} preguntar={preguntar} />
         </div>
 
         <div id="pc-info-equipo" className="pc-ctx__grupo">
@@ -319,7 +322,9 @@ function Tablero({
   setPeriodo,
   ejemplo,
   hrefEstadisticas,
+  preguntar,
 }: {
+  preguntar: Preguntar;
   datos: ResumenInfo | null;
   estado: "cargando" | "listo" | "error";
   periodo: Periodo;
@@ -351,7 +356,7 @@ function Tablero({
             {ejemplo ? "Datos de ejemplo" : "En vivo"}
           </span>
         </div>
-        <Grafica datos={datos} />
+        <Grafica datos={datos} ejemplo={ejemplo} preguntar={preguntar} />
         <div className="pc-segmentos" role="radiogroup" aria-label="Periodo">
           {PERIODOS.map((p) => (
             <button key={p.id} type="button" role="radio" aria-checked={periodo === p.id} className="pc-segmentos__opcion" onClick={() => setPeriodo(p.id)}>
@@ -446,17 +451,8 @@ const diaLargo = (d: string) => {
   return t.charAt(0).toLocaleUpperCase("es-MX") + t.slice(1);
 };
 
-type IdGrafica = "clientes" | "citas" | "respuestas" | "correos" | "hora" | "semana";
 type Punto = { etiqueta: string; valor: number; antes?: number };
-const GRAFICAS: readonly { id: IdGrafica; nombre: string; detalle: string; unidad: [string, string] }[] = [
-  { id: "clientes", nombre: "Clientes por día", detalle: "Personas distintas que te escribieron", unidad: ["cliente", "clientes"] },
-  { id: "citas", nombre: "Citas agendadas por día", detalle: "Las que se agendaron cada día", unidad: ["cita", "citas"] },
-  { id: "respuestas", nombre: "Respuestas por día", detalle: "Mensajes que contestó tu equipo", unidad: ["respuesta", "respuestas"] },
-  { id: "correos", nombre: "Correos atendidos por día", detalle: "Correos de clientes que resumió o respondió", unidad: ["correo", "correos"] },
-  { id: "hora", nombre: "A qué hora te escriben", detalle: "Mensajes y correos por hora del día", unidad: ["mensaje", "mensajes"] },
-  { id: "semana", nombre: "Qué días te escriben más", detalle: "Mensajes y correos por día de la semana", unidad: ["mensaje", "mensajes"] },
-];
-const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const DIAS_SEMANA_T = DIAS_SEMANA.map((d) => d.charAt(0).toUpperCase() + d.slice(1));
 
 /** Los puntos de cada gráfica, o null si todavía no hay de dónde contar. */
 function puntosDe(id: IdGrafica, d: ResumenInfo): { puntos: Punto[]; ejes: [string, string] } | null {
@@ -466,26 +462,116 @@ function puntosDe(id: IdGrafica, d: ResumenInfo): { puntos: Punto[]; ejes: [stri
       : null;
   if (id === "clientes") return d.serie ? porDia(d.serie.dias, d.serie.actual, d.serie.antes) : null;
   if (id === "hora") return d.porHora ? { puntos: d.porHora.map((v, h) => ({ etiqueta: `${h}:00 a ${h + 1}:00`, valor: v })), ejes: ["0 h", "23 h"] } : null;
-  if (id === "semana") return d.porSemana ? { puntos: d.porSemana.map((v, i) => ({ etiqueta: DIAS_SEMANA[i], valor: v })), ejes: ["lun", "dom"] } : null;
-  const s = d.series[id];
-  return s ? porDia(s.dias, s.actual, s.antes) : null;
+  if (id === "semana") return d.porSemana ? { puntos: d.porSemana.map((v, i) => ({ etiqueta: DIAS_SEMANA_T[i], valor: v })), ejes: ["lun", "dom"] } : null;
+  const serie = d.series[id];
+  return serie ? porDia(serie.dias, serie.actual, serie.antes) : null;
 }
 
+export type Preguntar = (pregunta: string, datos: ResumenInfo) => Promise<RespuestaGrafica | { error: string }>;
+
+const SUGERENCIAS = ["¿A qué hora me escriben más?", "¿Cuántos clientes nuevos tuve?", "¿Qué día se agendan más citas?"];
+
 /**
- * La gráfica del resumen: arriba, un botón con lo que se está viendo; al
- * picarlo sale un buscador chico con las demás gráficas (clientes, citas,
- * respuestas, correos, a qué hora y qué días te escriben). Lo elegido se
- * dibuja ahí mismo. Las que todavía no tienen datos se ven apagadas.
+ * La gráfica del resumen, con IA: escribes una pregunta ("¿a qué hora me
+ * escriben más?") y la gráfica cambia a la que la responde, con una respuesta
+ * corta arriba hecha solo con tus números. En /pruebalo la respuesta sale de
+ * reglas (la demo nunca llama a la IA) y así lo dice.
  */
-function Grafica({ datos }: { datos: ResumenInfo | null }) {
+function Grafica({ datos, ejemplo, preguntar }: { datos: ResumenInfo | null; ejemplo: boolean; preguntar: Preguntar }) {
   const [id, setId] = useState<IdGrafica>("clientes");
-  const actual = GRAFICAS.find((g) => g.id === id) ?? GRAFICAS[0];
+  const [q, setQ] = useState("");
+  const [pensando, setPensando] = useState(false);
+  const [respuesta, setRespuesta] = useState<RespuestaGrafica | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const entrada = useRef<HTMLInputElement>(null);
+  const actual = GRAFICAS[id];
   const dibujo = datos ? puntosDe(id, datos) : null;
   const conAntes = !!dibujo?.puntos.some((p) => p.antes !== undefined);
+
+  // Al cambiar de periodo la respuesta ya no aplica (sus números eran de otro periodo)
+  const periodo = datos?.periodo;
+  useEffect(() => {
+    setRespuesta(null);
+    setAviso(null);
+  }, [periodo]);
+
+  const preguntarYa = async (texto: string) => {
+    const pregunta = texto.trim().slice(0, MAX_PREGUNTA);
+    if (!pregunta || !datos || pensando) return;
+    setPensando(true);
+    setAviso(null);
+    try {
+      const r = await preguntar(pregunta, datos);
+      if ("error" in r) setAviso(r.error);
+      else {
+        setRespuesta(r);
+        setId(r.grafica);
+        setQ("");
+      }
+    } catch {
+      setAviso("No se pudo contestar. Intenta de nuevo.");
+    } finally {
+      setPensando(false);
+    }
+  };
+
   return (
     <div className="pc-grafica">
+      <form
+        className="pc-pregunta"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void preguntarYa(q);
+        }}
+      >
+        <Icono nombre="rayo" tam={15} />
+        <input
+          ref={entrada}
+          className="pc-pregunta__entrada"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Pregúntale algo a tus números…"
+          maxLength={MAX_PREGUNTA}
+          aria-label="Pregunta sobre tus números"
+          disabled={!datos}
+        />
+        <button type="submit" className="pc-pregunta__enviar" aria-label="Preguntar" disabled={!q.trim() || pensando || !datos}>
+          <Icono nombre="flecha" tam={14} />
+        </button>
+      </form>
+      {!respuesta && !pensando && !q ? (
+        <div className="pc-pregunta__ideas" aria-label="Ideas de preguntas">
+          {SUGERENCIAS.map((t) => (
+            <button key={t} type="button" className="pc-pregunta__idea" onClick={() => void preguntarYa(t)} disabled={!datos}>
+              {t}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div aria-live="polite">
+        {pensando ? <p className="pc-respuesta pc-respuesta--pensando">Revisando tus números…</p> : null}
+        {aviso ? <p className="pc-respuesta pc-respuesta--aviso">{aviso}</p> : null}
+        {respuesta && !pensando ? (
+          <div className="pc-respuesta">
+            <p className="pc-respuesta__texto">{respuesta.texto}</p>
+            <div className="pc-respuesta__pie">
+              <span>{respuesta.fuente === "ia" ? "IA · con tus números" : ejemplo ? "Ejemplo · sin IA" : "Respuesta rápida · sin IA"}</span>
+              <button
+                type="button"
+                className="pc-respuesta__quitar"
+                onClick={() => {
+                  setRespuesta(null);
+                  entrada.current?.focus();
+                }}
+              >
+                Otra pregunta
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
       <div className="pc-grafica__cabeza">
-        <SelectorGrafica actual={id} datos={datos} alElegir={setId} />
+        <span className="pc-grafica__titulo">{actual.nombre}</span>
         {conAntes ? (
           <span className="pc-ctx__leyenda-linea">
             <i className="pc-ctx__linea" aria-hidden="true" /> Ahora <i className="pc-ctx__linea pc-ctx__linea--antes" aria-hidden="true" /> Antes
@@ -497,113 +583,6 @@ function Grafica({ datos }: { datos: ResumenInfo | null }) {
       ) : (
         <p className="pc-grafica__vacia">{datos ? "Todavía no hay datos para esta gráfica." : " "}</p>
       )}
-    </div>
-  );
-}
-
-const sinAcentos = (t: string) =>
-  t
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-function SelectorGrafica({ actual, datos, alElegir }: { actual: IdGrafica; datos: ResumenInfo | null; alElegir: (id: IdGrafica) => void }) {
-  const [abierto, setAbierto] = useState(false);
-  const [q, setQ] = useState("");
-  const [cursor, setCursor] = useState(0);
-  const raiz = useRef<HTMLDivElement>(null);
-  const boton = useRef<HTMLButtonElement>(null);
-  const entrada = useRef<HTMLInputElement>(null);
-  const id = useId();
-  const nombre = GRAFICAS.find((g) => g.id === actual)?.nombre ?? "";
-  const opciones = GRAFICAS.filter((g) => sinAcentos(`${g.nombre} ${g.detalle}`).includes(sinAcentos(q.trim())));
-  const hay = (g: IdGrafica) => !!datos && puntosDe(g, datos) !== null;
-
-  useEffect(() => {
-    if (!abierto) return;
-    setQ("");
-    setCursor(Math.max(0, GRAFICAS.findIndex((g) => g.id === actual)));
-    entrada.current?.focus({ preventScroll: true });
-    const fuera = (e: PointerEvent) => {
-      if (!raiz.current?.contains(e.target as Node)) setAbierto(false);
-    };
-    window.addEventListener("pointerdown", fuera);
-    return () => window.removeEventListener("pointerdown", fuera);
-  }, [abierto, actual]);
-
-  const elegir = (g: IdGrafica) => {
-    if (!hay(g)) return;
-    alElegir(g);
-    setAbierto(false);
-    boton.current?.focus({ preventScroll: true });
-  };
-
-  return (
-    <div ref={raiz} className="pc-sel">
-      <button ref={boton} type="button" className="pc-sel__boton" aria-haspopup="dialog" aria-expanded={abierto} aria-controls={`${id}-pop`} onClick={() => setAbierto((a) => !a)}>
-        <span>{nombre}</span>
-        <Icono nombre="chevron" tam={14} trazo={2} />
-      </button>
-      {abierto ? (
-        <div id={`${id}-pop`} className="pc-sel__pop" role="dialog" aria-label="Elegir qué ver en la gráfica">
-          <div className="pc-sel__campo">
-            <Icono nombre="buscar" tam={14} />
-            <input
-              ref={entrada}
-              className="pc-sel__entrada"
-              placeholder="Buscar gráfica…"
-              value={q}
-              role="combobox"
-              aria-expanded="true"
-              aria-controls={`${id}-lista`}
-              aria-activedescendant={opciones[cursor] ? `${id}-${opciones[cursor].id}` : undefined}
-              aria-label="Buscar gráfica"
-              onChange={(e) => {
-                setQ(e.target.value);
-                setCursor(0);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                  e.preventDefault();
-                  if (opciones.length) setCursor((c) => (c + (e.key === "ArrowDown" ? 1 : opciones.length - 1)) % opciones.length);
-                } else if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (opciones[cursor]) elegir(opciones[cursor].id);
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  setAbierto(false);
-                  boton.current?.focus({ preventScroll: true });
-                }
-              }}
-            />
-          </div>
-          <ul id={`${id}-lista`} className="pc-sel__lista" role="listbox" aria-label="Gráficas">
-            {opciones.map((g, i) => {
-              const con = hay(g.id);
-              return (
-                <li
-                  key={g.id}
-                  id={`${id}-${g.id}`}
-                  role="option"
-                  aria-selected={g.id === actual}
-                  aria-disabled={!con || undefined}
-                  className="pc-sel__opcion"
-                  data-cursor={i === cursor || undefined}
-                  onPointerEnter={() => setCursor(i)}
-                  onClick={() => elegir(g.id)}
-                >
-                  <span className="pc-sel__textos">
-                    <span className="pc-sel__nombre">{g.nombre}</span>
-                    <span className="pc-sel__detalle">{con ? g.detalle : "Sin datos aún"}</span>
-                  </span>
-                  {g.id === actual ? <Icono nombre="check" tam={14} trazo={2} /> : null}
-                </li>
-              );
-            })}
-            {opciones.length === 0 ? <li className="pc-sel__nada">Nada coincide con “{q}”.</li> : null}
-          </ul>
-        </div>
-      ) : null}
     </div>
   );
 }

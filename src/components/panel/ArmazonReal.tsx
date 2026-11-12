@@ -6,6 +6,7 @@ import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
 import type { Periodo } from "@/lib/estadisticas";
 import type { ResumenInfo } from "@/lib/resumen-negocio";
+import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafica";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ContextoChats } from "./contexto";
@@ -141,6 +142,24 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     const r = await fetch(`/api/negocio/resumen?periodo=${p}`, { cache: "no-store" });
     return r.ok ? ((await r.json()) as ResumenInfo) : null;
   }, []);
+  // Preguntarle a la gráfica: la IA con tus números; si no está disponible, reglas (sin IA)
+  const preguntarInfo = useCallback(async (pregunta: string, datos: ResumenInfo) => {
+    try {
+      const r = await fetch("/api/negocio/pregunta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pregunta, periodo: datos.periodo }),
+      });
+      if (r.ok) return (await r.json()) as RespuestaGrafica;
+      if (r.status === 429 || r.status === 400) {
+        const e = (await r.json().catch(() => null)) as { error?: string } | null;
+        return { error: e?.error ?? "No se pudo contestar." };
+      }
+    } catch {
+      /* sin red: se contesta con reglas */
+    }
+    return responderConReglas(pregunta, datos);
+  }, []);
   const enConversacion = c ? [...fijados, ...recientes].find((x) => x.id === c)?.agentes : undefined;
   const info =
     activa === "inicio" || activa === "chat"
@@ -152,6 +171,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           alVer={alVer}
             ejemplo={false}
             cargar={cargarInfo}
+            preguntar={preguntarInfo}
             equipo={datos.activos}
             enConversacion={enConversacion}
             pendientes={datos.pendientes}

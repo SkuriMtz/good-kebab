@@ -39,7 +39,7 @@ export function Conversacion({
 }) {
   return (
     <div className="pc-conv">
-      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__pie"]} bandas={[".pc-conv__columna"]} />
+      <FondoFragmentos proteger={[".pc-conv__cabeza", ".pc-conv__pie"]} />
       <header className="pc-conv__cabeza">
         <PilaAgentes agentes={agentes} tam={24} />
         <div className="pc-conv__cabeza-texto">

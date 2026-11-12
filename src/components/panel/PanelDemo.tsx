@@ -8,6 +8,7 @@ import { AGENTES_INFO, esIdAgente } from "@/lib/agentes";
 import { DEMO_APROBACIONES, DEMO_NEGOCIO, DEMO_USUARIA } from "@/lib/demo-dashboard";
 import { periodoDe, type Periodo } from "@/lib/estadisticas";
 import { resumirNegocio } from "@/lib/resumen-negocio";
+import { responderConReglas } from "@/lib/pregunta-grafica";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { ActividadDemo } from "./Actividad";
@@ -132,6 +133,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           alVer={alVer}
           ejemplo
           cargar={cargarInfo}
+          preguntar={async (pregunta, datos) => responderConReglas(pregunta, datos)}
           equipo={AGENTES_INFO.map((a) => a.id)}
           enConversacion={conv?.agentes}
           pendientes={porRevisar}
