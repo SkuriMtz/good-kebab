@@ -54,10 +54,6 @@ function cambio(c: Cifra): number | null {
   if (c.valor === null || c.antes === null || c.antes === 0) return null;
   return Math.round(((c.valor - c.antes) / c.antes) * 100);
 }
-const textoCambio = (c: Cifra) => {
-  const d = cambio(c);
-  return d === null ? "—" : `${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d)}%`;
-};
 
 const ESTADO_DOC: Record<Documento["estado"], string> = { listo: "Listo", procesando: "Leyendo…", error: "Con error" };
 
@@ -75,7 +71,6 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
   const [apps, setApps] = useState<IdApp[] | null>(null);
   const [docs, setDocs] = useState<Documento[] | null>(null);
   const fuente = useFuenteNegocio();
-  const idPeriodo = useId();
 
   useEffect(() => {
     let vivo = true;
@@ -131,35 +126,7 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
 
       <div key={tab} className="pc-ctx__cuerpo">
         {tab === "resumen" ? (
-          <>
-            <Seccion titulo="Tu negocio">
-              <Fila icono="negocio" texto={datos?.negocio ?? "Tu negocio"} fin={hrefs.ajustes ? <Enlace href={hrefs.ajustes} className="pc-ctx__accion" aria-label="Ajustes" title="Ajustes"><Icono nombre="ajustes" tam={16} /></Enlace> : null} />
-              <Fila
-                icono="reloj"
-                texto={
-                  <label className="pc-ctx__selector" htmlFor={idPeriodo}>
-                    <select id={idPeriodo} value={periodo} onChange={(e) => setPeriodo(e.target.value as Periodo)}>
-                      {PERIODOS.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.id === "mes" ? "Este mes" : `Últimos ${p.etiqueta}`}
-                        </option>
-                      ))}
-                    </select>
-                    <Icono nombre="chevron" tam={14} trazo={2} />
-                  </label>
-                }
-              />
-              <Fila icono="rayo" texto={ejemplo ? "Datos de ejemplo" : "En vivo"} fin={<span className={`pc-ctx__luz${ejemplo ? " pc-ctx__luz--ejemplo" : ""}`} aria-hidden="true" />} />
-            </Seccion>
-
-            <Seccion titulo="Actividad">
-              {estado === "error" ? (
-                <p className="pc-ctx__nota">No se pudieron leer tus números. Intenta en un momento.</p>
-              ) : (
-                <Actividad datos={datos} cargando={estado === "cargando"} hrefEstadisticas={hrefs.estadisticas} />
-              )}
-            </Seccion>
-          </>
+          <Tablero datos={datos} estado={estado} periodo={periodo} setPeriodo={setPeriodo} ejemplo={ejemplo} hrefEstadisticas={hrefs.estadisticas} />
         ) : null}
 
         {tab === "equipo" ? (
@@ -167,7 +134,7 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
             {enConversacion.length ? (
               <Seccion titulo="En esta conversación">
                 {[...enConversacion].map((a) => (
-                  <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} />
+                  <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} aqui />
                 ))}
               </Seccion>
             ) : null}
@@ -179,25 +146,33 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
 
         {tab === "pendientes" ? (
           <Seccion titulo="Por revisar">
-            <div className="pc-ctx__total">
-              <span>{pendientes === null ? "—" : `${numero.format(pendientes)} ${pendientes === 1 ? "espera" : "esperan"} tu visto bueno`}</span>
+            <div className="pc-kpi pc-kpi--solo">
+              <span className="pc-kpi__valor">{pendientes === null ? "—" : numero.format(pendientes)}</span>
+              <span className="pc-kpi__etiqueta">{pendientes === 1 ? "cosa espera tu visto bueno" : "cosas esperan tu visto bueno"}</span>
             </div>
             {pendientesLista && pendientesLista.length ? (
-              <ul className="pc-ctx__leyenda">
-                {pendientesLista.slice(0, 8).map((p) => (
+              <ul className="pc-ctx__lista">
+                {pendientesLista.slice(0, 6).map((p) => (
                   <li key={p.id}>
-                    <Enlace href={hrefs.pendientes} className="pc-ctx__dato pc-ctx__dato--enlace">
-                      <span className="pc-ctx__cuadro" style={{ "--c": colorAgente(p.agente) } as CSSProperties} aria-hidden="true" />
-                      <span className="pc-ctx__dato-texto">{p.titulo}</span>
-                      <span className="pc-ctx__dato-num">{AGENTE_POR_ID[p.agente].nombre}</span>
+                    <Enlace href={hrefs.pendientes} className="pc-ctx__fila pc-ctx__fila--enlace pc-ctx__fila--doble">
+                      <AvatarAgente agente={p.agente} tam={28} />
+                      <span className="pc-ctx__fila-texto">
+                        <span className="pc-ctx__fila-nombre">{p.titulo}</span>
+                        <span className="pc-ctx__fila-sub">
+                          {AGENTE_POR_ID[p.agente].nombre}
+                          {p.detalle ? ` · ${p.detalle}` : ""}
+                        </span>
+                      </span>
                     </Enlace>
                   </li>
                 ))}
               </ul>
-            ) : null}
-            <Enlace href={hrefs.pendientes} className="pc-ctx__fila pc-ctx__fila--enlace">
-              <Icono nombre="chevron-derecha" tam={14} trazo={2} />
-              <span className="pc-ctx__fila-texto">Abrir Pendientes</span>
+            ) : (
+              <p className="pc-ctx__nota">Ábrelos para aprobar, editar o descartar lo que preparó tu equipo.</p>
+            )}
+            <Enlace href={hrefs.pendientes} className="pc-ctx__boton">
+              Abrir Pendientes
+              <Icono nombre="flecha" tam={14} />
             </Enlace>
           </Seccion>
         ) : null}
@@ -213,6 +188,10 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
                     {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
                     <img className="pc-ctx__logo" src={LOGO_APP[id]} alt="" width={18} height={18} loading="lazy" decoding="async" />
                     <span className="pc-ctx__fila-texto">{APP_POR_ID[id]?.nombre ?? id}</span>
+                    <span className="pc-ctx__estado">
+                      <span className="pc-ctx__luz" aria-hidden="true" />
+                      Conectada
+                    </span>
                   </div>
                 ))
               ) : (
@@ -231,7 +210,7 @@ export function PanelInfo({ tab, alCambiarTab, ejemplo, cargar, equipo, enConver
                   <div key={d.id} className="pc-ctx__fila pc-ctx__fila--tenue">
                     <Icono nombre={d.tipo === "link" ? "enlace" : "documento"} tam={17} />
                     <span className="pc-ctx__fila-texto">{d.nombre}</span>
-                    {d.estado !== "listo" ? <span className="pc-ctx__fila-fin">{ESTADO_DOC[d.estado]}</span> : null}
+                    <span className={`pc-ctx__estado pc-ctx__estado--${d.estado}`}>{ESTADO_DOC[d.estado]}</span>
                   </div>
                 ))
               ) : (
@@ -260,106 +239,214 @@ function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) 
   );
 }
 
-function Fila({ icono, texto, fin }: { icono: NombreIcono; texto: ReactNode; fin?: ReactNode }) {
-  return (
-    <div className="pc-ctx__fila">
-      <Icono nombre={icono} tam={17} />
-      <span className="pc-ctx__fila-texto">{texto}</span>
-      {fin ? <span className="pc-ctx__fila-fin">{fin}</span> : null}
-    </div>
-  );
-}
-
-function FilaAgente({ agente, href }: { agente: IdAgente; href: string }) {
+function FilaAgente({ agente, href, aqui = false }: { agente: IdAgente; href: string; aqui?: boolean }) {
   const a = AGENTE_POR_ID[agente];
   return (
-    <Enlace href={href} className="pc-ctx__fila pc-ctx__fila--enlace">
-      <AvatarAgente agente={agente} tam={20} />
-      <span className="pc-ctx__fila-texto">{a.nombre}</span>
-      <span className="pc-ctx__fila-fin">{a.area}</span>
+    <Enlace href={href} className="pc-ctx__fila pc-ctx__fila--enlace pc-ctx__fila--doble">
+      <AvatarAgente agente={agente} tam={28} />
+      <span className="pc-ctx__fila-texto">
+        <span className="pc-ctx__fila-nombre">{a.nombre}</span>
+        <span className="pc-ctx__fila-sub">
+          {a.area} · {a.abarca}
+        </span>
+      </span>
+      {aqui ? <span className="pc-ctx__etiqueta">En el chat</span> : <Icono nombre="chevron-derecha" tam={14} trazo={2} />}
     </Enlace>
   );
 }
 
+const AYUDA_KPI: Record<string, string> = {
+  clientes: "Personas distintas que te escribieron",
+  citas: "Citas que se agendaron (sin las canceladas)",
+  respuestas: "Mensajes que contestó tu equipo",
+  correos: "Correos de clientes que tu equipo resumió o respondió",
+};
+
+const formatoDia = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
+const dia = (d: string) => formatoDia.format(new Date(`${d}T12:00:00Z`)).replace(".", "");
+
 /**
- * Como un medidor de contexto: arriba, cuántos clientes y su cambio; una
- * barra delgada con nuevos contra los que regresan; y la leyenda (cuadrito,
- * nombre, número y su parte o su cambio). Al final, "De qué te escriben"
- * plegado, con su cuenta.
+ * El resumen, claro y sobrio (como un tablero de empresa): el periodo, cuatro
+ * cifras en una cuadrícula con su cambio, los clientes por día en una línea
+ * (el periodo anterior, punteado), nuevos contra los que regresan y de qué
+ * te escriben.
  */
-function Actividad({ datos, cargando, hrefEstadisticas }: { datos: ResumenInfo | null; cargando: boolean; hrefEstadisticas: string }) {
-  const [temas, setTemas] = useState(false);
-  const idTemas = useId();
-  const clientes = datos?.clientes.valor ?? null;
+function Tablero({
+  datos,
+  estado,
+  periodo,
+  setPeriodo,
+  ejemplo,
+  hrefEstadisticas,
+}: {
+  datos: ResumenInfo | null;
+  estado: "cargando" | "listo" | "error";
+  periodo: Periodo;
+  setPeriodo: (p: Periodo) => void;
+  ejemplo: boolean;
+  hrefEstadisticas: string;
+}) {
+  const contra = PERIODOS.find((p) => p.id === periodo)?.contra ?? "";
+  const cifras: { id: string; etiqueta: string; c: Cifra; hay: boolean }[] = datos
+    ? [
+        { id: "clientes", etiqueta: "Clientes", c: datos.clientes, hay: datos.clientes.valor !== null },
+        { id: "citas", etiqueta: "Citas agendadas", c: datos.citas.agendadas, hay: datos.canales.citas },
+        { id: "respuestas", etiqueta: "Respuestas", c: datos.respuestas, hay: datos.respuestas.valor !== null },
+        { id: "correos", etiqueta: "Correos atendidos", c: datos.correos, hay: datos.correos.valor !== null },
+      ]
+    : ["Clientes", "Citas agendadas", "Respuestas", "Correos atendidos"].map((e, i) => ({ id: `x${i}`, etiqueta: e, c: { valor: null, antes: null }, hay: false }));
   const nuevos = datos?.clientes.nuevos ?? null;
   const regresan = datos?.clientes.regresan ?? null;
   const total = (nuevos ?? 0) + (regresan ?? 0);
-  const parte = (n: number | null) => (n !== null && total > 0 ? (n / total) * 100 : 0);
-
-  const filas: { id: string; color: string; texto: string; ayuda?: string; num: string; fin: string }[] = datos
-    ? [
-        ...(nuevos !== null && regresan !== null && total > 0
-          ? [
-              { id: "nuevos", color: COLOR.azul, texto: "Clientes nuevos", ayuda: "Escribieron por primera vez en este periodo", num: numero.format(nuevos), fin: pct(parte(nuevos)) },
-              { id: "regresan", color: COLOR.verde, texto: "Clientes que regresan", ayuda: "Ya te habían escrito antes", num: numero.format(regresan), fin: pct(parte(regresan)) },
-            ]
-          : []),
-        { id: "citas", color: COLOR.naranja, texto: "Citas agendadas", num: datos.canales.citas && datos.citas.agendadas.valor !== null ? numero.format(datos.citas.agendadas.valor) : "Sin datos", fin: datos.canales.citas ? textoCambio(datos.citas.agendadas) : "" },
-        { id: "respuestas", color: COLOR.gris, texto: "Respuestas de tu equipo", num: datos.respuestas.valor !== null ? numero.format(datos.respuestas.valor) : "Sin datos", fin: datos.respuestas.valor !== null ? textoCambio(datos.respuestas) : "" },
-        { id: "correos", color: COLOR.gris, texto: "Correos atendidos", num: datos.correos.valor !== null ? numero.format(datos.correos.valor) : "Sin datos", fin: datos.correos.valor !== null ? textoCambio(datos.correos) : "" },
-      ]
-    : [];
+  const maxTema = datos?.temas.length ? Math.max(...datos.temas.map((t) => t.total)) : 1;
 
   return (
-    <div className="pc-ctx__medidor" data-cargando={cargando || undefined}>
-      <div className="pc-ctx__total">
-        <span>{clientes === null ? (cargando ? " " : "Sin datos de clientes") : `${numero.format(clientes)} ${clientes === 1 ? "cliente" : "clientes"}`}</span>
-        {datos && clientes !== null ? <span className="pc-ctx__total-fin">{textoCambio(datos.clientes)} vs. antes</span> : null}
-      </div>
-      <div className="pc-ctx__barra" aria-hidden="true">
-        {total > 0 ? (
+    <>
+      <section className="pc-ctx__seccion">
+        <div className="pc-ctx__cabeza">
+          <h3 className="pc-ctx__titulo">Resumen</h3>
+          <span className="pc-ctx__estado">
+            <span className={`pc-ctx__luz${ejemplo ? " pc-ctx__luz--ejemplo" : ""}`} aria-hidden="true" />
+            {ejemplo ? "Datos de ejemplo" : "En vivo"}
+          </span>
+        </div>
+        <div className="pc-segmentos" role="radiogroup" aria-label="Periodo">
+          {PERIODOS.map((p) => (
+            <button key={p.id} type="button" role="radio" aria-checked={periodo === p.id} className="pc-segmentos__opcion" onClick={() => setPeriodo(p.id)}>
+              {p.etiqueta}
+            </button>
+          ))}
+        </div>
+
+        {estado === "error" ? (
+          <p className="pc-ctx__nota">No se pudieron leer tus números. Intenta en un momento.</p>
+        ) : (
           <>
-            <span style={{ width: `${parte(nuevos)}%`, background: COLOR.azul }} />
-            <span style={{ width: `${parte(regresan)}%`, background: COLOR.verde }} />
+            <ul className="pc-kpis" data-cargando={estado === "cargando" || undefined}>
+              {cifras.map((f) => {
+                const d = f.hay ? cambio(f.c) : null;
+                return (
+                  <li key={f.id} className="pc-kpi">
+                    <span className="pc-kpi__etiqueta" title={AYUDA_KPI[f.id]}>{f.etiqueta}</span>
+                    <span key={`${periodo}-${f.c.valor}`} className="pc-kpi__valor">
+                      {f.hay && f.c.valor !== null ? numero.format(f.c.valor) : "—"}
+                    </span>
+                    {f.hay ? (
+                      d === null ? (
+                        <span className="pc-kpi__nota">Sin comparar</span>
+                      ) : (
+                        <span className={`pc-kpi__cambio pc-kpi__cambio--${d > 0 ? "sube" : d < 0 ? "baja" : "igual"}`}>
+                          {d > 0 ? "↑" : d < 0 ? "↓" : "→"} {Math.abs(d)}%
+                        </span>
+                      )
+                    ) : (
+                      <span className="pc-kpi__nota">{estado === "cargando" ? " " : "Sin datos aún"}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="pc-ctx__pie-chico">Cambio {contra}.</p>
           </>
-        ) : null}
-      </div>
-      <ul className="pc-ctx__leyenda">
-        {filas.map((f) => (
-          <li key={f.id} className="pc-ctx__dato">
-            <span className="pc-ctx__cuadro" style={{ "--c": f.color } as CSSProperties} aria-hidden="true" />
-            <span className={`pc-ctx__dato-texto${f.ayuda ? " pc-ctx__dato-texto--ayuda" : ""}`} title={f.ayuda}>
-              {f.texto}
+        )}
+      </section>
+
+      {datos?.serie && datos.serie.actual.length > 1 ? (
+        <section className="pc-ctx__seccion">
+          <div className="pc-ctx__cabeza">
+            <h3 className="pc-ctx__titulo">Clientes por día</h3>
+            <span className="pc-ctx__leyenda-linea">
+              <i className="pc-ctx__linea" aria-hidden="true" /> Ahora <i className="pc-ctx__linea pc-ctx__linea--antes" aria-hidden="true" /> Antes
             </span>
-            <span className="pc-ctx__dato-num">{f.num}</span>
-            <span className="pc-ctx__dato-fin">{f.fin}</span>
-          </li>
-        ))}
-      </ul>
+          </div>
+          <Linea dias={datos.serie.dias} actual={datos.serie.actual} antes={datos.serie.antes} />
+        </section>
+      ) : null}
+
+      {nuevos !== null && regresan !== null && total > 0 ? (
+        <section className="pc-ctx__seccion">
+          <h3 className="pc-ctx__titulo">Clientes nuevos y que regresan</h3>
+          <div className="pc-ctx__barra pc-ctx__barra--gruesa" aria-hidden="true">
+            <span style={{ width: `${(nuevos / total) * 100}%`, background: COLOR.azul }} />
+            <span style={{ width: `${(regresan / total) * 100}%`, background: COLOR.verde }} />
+          </div>
+          <ul className="pc-ctx__leyenda">
+            <li className="pc-ctx__dato">
+              <span className="pc-ctx__cuadro" style={{ "--c": COLOR.azul } as CSSProperties} aria-hidden="true" />
+              <span className="pc-ctx__dato-texto pc-ctx__dato-texto--ayuda" title="Te escribieron por primera vez en este periodo">Nuevos</span>
+              <span className="pc-ctx__dato-num">{numero.format(nuevos)}</span>
+              <span className="pc-ctx__dato-fin">{pct((nuevos / total) * 100)}</span>
+            </li>
+            <li className="pc-ctx__dato">
+              <span className="pc-ctx__cuadro" style={{ "--c": COLOR.verde } as CSSProperties} aria-hidden="true" />
+              <span className="pc-ctx__dato-texto pc-ctx__dato-texto--ayuda" title="Ya te habían escrito antes">Regresan</span>
+              <span className="pc-ctx__dato-num">{numero.format(regresan)}</span>
+              <span className="pc-ctx__dato-fin">{pct((regresan / total) * 100)}</span>
+            </li>
+          </ul>
+        </section>
+      ) : null}
+
       {datos && datos.temas.length ? (
-        <>
-          <button type="button" className="pc-ctx__plegar" aria-expanded={temas} aria-controls={idTemas} onClick={() => setTemas((t) => !t)}>
-            <Icono nombre="chevron-derecha" tam={14} trazo={2} />
-            <span className="pc-ctx__dato-texto">De qué te escriben</span>
-            <span className="pc-ctx__dato-num">{datos.temas.length}</span>
-          </button>
-          <ul id={idTemas} className="pc-ctx__leyenda pc-ctx__leyenda--temas" hidden={!temas}>
+        <section className="pc-ctx__seccion">
+          <h3 className="pc-ctx__titulo">De qué te escriben</h3>
+          <ol className="pc-temas">
             {datos.temas.map((t) => (
-              <li key={t.texto} className="pc-ctx__dato">
-                <span className="pc-ctx__cuadro" style={{ "--c": COLOR.gris } as CSSProperties} aria-hidden="true" />
-                <span className="pc-ctx__dato-texto">{t.texto}</span>
-                <span className="pc-ctx__dato-num">{numero.format(t.total)}</span>
-                <span className="pc-ctx__dato-fin" />
+              <li key={t.texto} className="pc-temas__fila">
+                <span className="pc-temas__texto">{t.texto}</span>
+                <span className="pc-temas__num">{numero.format(t.total)}</span>
+                <span className="pc-temas__barra" style={{ "--w": `${(t.total / maxTema) * 100}%` } as CSSProperties} aria-hidden="true" />
               </li>
             ))}
-          </ul>
-        </>
+          </ol>
+          <Enlace href={hrefEstadisticas} className="pc-ctx__boton">
+            Ver estadísticas completas
+            <Icono nombre="flecha" tam={14} />
+          </Enlace>
+        </section>
       ) : null}
-      <p className="pc-ctx__pie">
-        <Enlace href={hrefEstadisticas} className="pc-ctx__enlace">
-          Ver estadísticas
-        </Enlace>
-      </p>
-    </div>
+    </>
+  );
+}
+
+/** Los clientes por día en una línea delgada con su sombra; el periodo anterior, punteado. */
+function Linea({ dias, actual, antes }: { dias: string[]; actual: number[]; antes: number[] }) {
+  const id = useId().replace(/:/g, "");
+  const W = 312;
+  const H = 96;
+  const max = Math.max(1, ...actual, ...antes);
+  const x = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * W);
+  const y = (v: number) => H - 4 - (v / max) * (H - 12);
+  const camino = (serie: number[]) => serie.map((v, i) => `${i ? "L" : "M"}${x(i, serie.length).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  const linea = camino(actual);
+  const area = `${linea} L${W} ${H} L0 ${H} Z`;
+  const total = actual.reduce((a, b) => a + b, 0);
+  return (
+    <figure className="pc-linea">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`Clientes por día, ${total} en total: ${actual.join(", ")}`}>
+        <defs>
+          <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={COLOR.azul} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={COLOR.azul} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map((k) => (
+          <line key={k} x1="0" x2={W} y1={H * k} y2={H * k} className="pc-linea__guia" />
+        ))}
+        {antes.length > 1 ? <path d={camino(antes)} className="pc-linea__antes" /> : null}
+        <path d={area} fill={`url(#${id})`} />
+        <path d={linea} className="pc-linea__ahora" />
+        {actual.map((v, i) => (
+          <circle key={i} cx={x(i, actual.length)} cy={y(v)} r="6" className="pc-linea__punto">
+            <title>{`${dia(dias[i] ?? "")}: ${v}`}</title>
+          </circle>
+        ))}
+      </svg>
+      <figcaption className="pc-linea__ejes">
+        <span>{dias[0] ? dia(dias[0]) : ""}</span>
+        <span>máx. {max}</span>
+        <span>{dias.length ? dia(dias[dias.length - 1]) : ""}</span>
+      </figcaption>
+    </figure>
   );
 }

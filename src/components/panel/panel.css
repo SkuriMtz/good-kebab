@@ -4686,3 +4686,324 @@ a.pc-correo__accion:hover {
     transition: none;
   }
 }
+
+/* =====================================================================
+   19. El panel de información, claro y profesional (tablero de empresa):
+   títulos técnicos en mayúsculas pequeñas, cifras en letra de máquina en
+   una cuadrícula de líneas finas, una gráfica de línea delgada y listas
+   ===================================================================== */
+.pc-ctx__titulo {
+  margin-bottom: 12px;
+  color: var(--pc-texto-2);
+  font: 500 11.5px/1.2 var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pc-ctx__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.pc-ctx__cabeza .pc-ctx__titulo {
+  margin: 0;
+}
+.pc-ctx__estado {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+}
+.pc-ctx__estado--procesando {
+  color: var(--pc-atencion);
+}
+.pc-ctx__estado--error {
+  color: var(--pc-error);
+}
+.pc-ctx__luz {
+  width: 7px;
+  height: 7px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-exito) 18%, transparent);
+}
+.pc-ctx__luz--ejemplo {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-enlace) 18%, transparent);
+}
+
+/* El periodo: un control segmentado */
+.pc-segmentos {
+  display: flex;
+  margin-bottom: 14px;
+  padding: 2px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 9px;
+}
+.pc-segmentos__opcion {
+  flex: 1;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  font: 500 12.5px/1 var(--pc-sans);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.pc-segmentos__opcion[aria-checked="true"] {
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+}
+
+/* Las cuatro cifras: una cuadrícula con líneas finas */
+.pc-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--pc-borde);
+  border-radius: 10px;
+  background: var(--pc-borde);
+  list-style: none;
+}
+.pc-kpis[data-cargando] {
+  opacity: 0.6;
+}
+.pc-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 13px 14px 12px;
+  background: var(--pc-menu);
+}
+.pc-kpi__etiqueta {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-kpi__valor {
+  color: var(--pc-texto);
+  font: 500 24px/1.1 var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  animation: pc-info-aparece 240ms ease;
+}
+.pc-kpi__cambio {
+  align-self: flex-start;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font: 500 11.5px/1.3 var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.pc-kpi__cambio--sube {
+  background: color-mix(in srgb, #3fb27f 14%, transparent);
+  color: #3fb27f;
+}
+.pc-kpi__cambio--baja {
+  background: color-mix(in srgb, #e5654b 14%, transparent);
+  color: #e5654b;
+}
+.pc-kpi__cambio--igual {
+  background: var(--pc-boton);
+  color: var(--pc-texto-2);
+}
+.pc-kpi__nota {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-kpi--solo {
+  padding: 0 0 14px;
+  background: none;
+}
+.pc-kpi--solo .pc-kpi__valor {
+  font-size: 34px;
+}
+.pc-kpi--solo .pc-kpi__etiqueta {
+  font-size: 13.5px;
+  white-space: normal;
+}
+.pc-ctx__pie-chico {
+  margin-top: 8px;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+
+/* Clientes por día: una línea delgada */
+.pc-ctx__leyenda-linea {
+  display: inline-flex;
+  align-items: center;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-ctx__linea {
+  display: inline-block;
+  width: 14px;
+  margin: 0 6px 0 10px;
+  border-top: 2px solid #4a86f0;
+}
+.pc-ctx__linea:first-child {
+  margin-left: 0;
+}
+.pc-ctx__linea--antes {
+  border-top: 1.5px dashed var(--pc-texto-2);
+}
+.pc-linea svg {
+  display: block;
+  width: 100%;
+  height: 96px;
+  overflow: visible;
+}
+.pc-linea__guia {
+  stroke: var(--pc-raya);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.pc-linea__ahora {
+  fill: none;
+  stroke: #4a86f0;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.pc-linea__antes {
+  fill: none;
+  stroke: var(--pc-texto-2);
+  stroke-opacity: 0.55;
+  stroke-width: 1.25;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.pc-linea__punto {
+  fill: transparent;
+}
+.pc-linea__punto:hover {
+  fill: #4a86f0;
+  fill-opacity: 0.35;
+}
+.pc-linea__ejes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--pc-texto-2);
+  font: 11px/1 var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Nuevos y que regresan */
+.pc-ctx__barra--gruesa {
+  height: 6px;
+  margin: 2px 0 12px;
+  border-radius: 3px;
+}
+
+/* De qué te escriben: lista con su barra fina */
+.pc-temas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-temas__fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  font-size: 14px;
+}
+.pc-temas__texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-temas__num {
+  color: var(--pc-texto-2);
+  font: 13px/1.3 var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.pc-temas__barra {
+  grid-column: 1 / -1;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to right, color-mix(in srgb, #4a86f0 75%, transparent) var(--w), var(--pc-raya) var(--w));
+}
+
+/* Listas con dos renglones (equipo y pendientes) */
+.pc-ctx__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-ctx__fila--doble {
+  min-height: 54px;
+  gap: 12px;
+}
+.pc-ctx__fila--doble .pc-ctx__fila-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pc-ctx__fila-nombre {
+  overflow: hidden;
+  color: var(--pc-texto);
+  font-size: 14.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-ctx__fila-sub {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-ctx__etiqueta {
+  flex: none;
+  padding: 3px 8px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  color: var(--pc-texto-2);
+  font-size: 11.5px;
+}
+.pc-ctx__boton {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin-top: 16px;
+  padding: 0 12px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 8px;
+  color: var(--pc-texto);
+  font-size: 13.5px;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    transform var(--pc-micro) var(--pc-sale);
+}
+.pc-ctx__boton:active {
+  transform: scale(0.98);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc-ctx__boton:hover,
+  .pc-segmentos__opcion:hover {
+    background: var(--pc-hover);
+    color: var(--pc-texto);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-kpi__valor {
+    animation: none;
+  }
+}
