@@ -5,11 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * El límite de la IA en /pruebalo (migración 0010): 20 mensajes al día por
- * visitante y 1,000 al día entre todos. La huella es un hash de la IP y el
+ * visitante y 300 al día entre todos. La huella es un hash de la IP y el
  * navegador (nunca se guarda la IP).
  */
 
-export const MODELO_DEMO = "claude-haiku-4-5";
+export const MODELO_DEMO = "claude-sonnet-5-5";
 
 export function huella(req: NextRequest) {
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || req.headers.get("x-real-ip") || "sin-ip";

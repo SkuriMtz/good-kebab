@@ -14,7 +14,7 @@ import { responderConHerramientas, type HerramientaChat, type PeticionRonda } fr
 /**
  * POST /api/demo/chat → la IA de verdad en /pruebalo, con los datos de
  * ejemplo de Estudio Luna. Sin cuenta: nada se guarda en la base (solo el
- * contador del límite). Modelo económico (Haiku), respuestas cortas y un
+ * contador del límite). Modelo Sonnet 5.5, respuestas cortas y un
  * límite de 20 mensajes al día por visitante (src/lib/demo-ia.ts).
  *
  * Herramientas de la demostración: crear_presentacion (la presentación viaja
