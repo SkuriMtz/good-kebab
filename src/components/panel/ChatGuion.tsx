@@ -315,7 +315,7 @@ export function InicioDemo({
   }, [agentePedido]);
   const agentes: IdAgente[] = esIdAgente(eleccion) ? [eleccion] : [...IDS_AGENTES];
   // En vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
-  const sugerencia = useSugerencia(agentes);
+  const { texto: sugerencia, cambiando } = useSugerencia(agentes);
 
   const opciones: OpcionAgente[] = [
     { id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(IDS_AGENTES), agentes: [...IDS_AGENTES] },
@@ -331,7 +331,7 @@ export function InicioDemo({
         caja={
           <PromptBar
             key={`${eleccion}-${pide ?? ""}`}
-            className="pc-caja"
+            className={`pc-caja${cambiando ? " pc-caja--cambia" : ""}`}
             initialText={pide}
             placeholder={sugerencia}
             forma="fila"

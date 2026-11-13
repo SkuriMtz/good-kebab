@@ -6967,3 +6967,12 @@ a.pc-correo__accion:hover {
     height: 40px;
   }
 }
+
+/* La sugerencia de la caja de la conversación nueva cambia sola (sugerencias.ts):
+   la anterior se desvanece en 220ms y la siguiente aparece igual */
+.pc .pc-caja .prompt-bar__input::placeholder {
+  transition: color 220ms ease;
+}
+.pc .pc-caja--cambia .prompt-bar__input::placeholder {
+  color: transparent;
+}

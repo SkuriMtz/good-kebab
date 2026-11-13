@@ -174,7 +174,7 @@ export function Chat({
   const sinMensajes = usados >= plan.mensajesMes;
   // En la conversación nueva, en vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
   const enInicio = !actual && mensajes.length === 0 && !cargando;
-  const sugerencia = useSugerencia(grupo ?? [agente]);
+  const { texto: sugerencia, cambiando } = useSugerencia(grupo ?? [agente], enInicio);
   const filtro = params.get("area");
   const area: IdArea = esArea(filtro) ? filtro : "todo";
 
@@ -423,7 +423,7 @@ export function Chat({
     ) : (
       <PromptBar
         key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
-        className="pc-caja"
+        className={enInicio && cambiando ? "pc-caja pc-caja--cambia" : "pc-caja"}
         initialText={caja.texto}
         placeholder={enInicio ? sugerencia : grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
         forma="fila"
