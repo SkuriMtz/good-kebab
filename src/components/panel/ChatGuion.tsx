@@ -19,6 +19,7 @@ import { claseBoton } from "./Piezas";
 import { SelectorAgente, type OpcionAgente } from "./Selector";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 import { modeloElegido, useModelo } from "./modelo";
+import { SelectorModelo } from "./SelectorModelo";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 
@@ -377,9 +378,10 @@ export function InicioDemo({
     <>
       <Inicio
         saludo={saludo}
+        uso={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} />}
         caja={
           <PromptBar
-            key={`${eleccion}-${pide ?? ""}${selector.listo ? "-m" : ""}`}
+            key={`${eleccion}-${pide ?? ""}`}
             className={`pc-caja${cambiando ? " pc-caja--cambia" : ""}`}
             initialText={pide}
             placeholder={sugerencia}
@@ -387,10 +389,7 @@ export function InicioDemo({
             sources={fuentesDe(agentes)}
             plusActions={subida.acciones}
             commands={comandosDe(agentes)}
-            models={selector.opciones}
-            defaultModel={selector.modelo}
-            modelLabel="Modelo"
-            onModelChange={selector.elegir}
+            models={[]}
             efforts={[]}
             onSend={(texto) => {
               const limpio = texto.trim();
@@ -499,17 +498,14 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
       }}
       caja={
         <PromptBar
-          key={`${conv.id}${selector.listo ? "-m" : ""}`}
+          key={conv.id}
           className="pc-caja"
           placeholder={grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`}
           forma="fila"
           sources={fuentesDe(conv.agentes)}
           plusActions={subida.acciones}
           commands={comandosDe(conv.agentes)}
-          models={selector.opciones}
-          defaultModel={selector.modelo}
-          modelLabel="Modelo"
-          onModelChange={selector.elegir}
+          models={[]}
           efforts={[]}
           busy={ocupado !== null}
           onSend={(t) => {
@@ -522,6 +518,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           dictarPronto
         />
       }
+      modelo={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} hacia="arriba" />}
       legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.${guion.quedan !== null && guion.quedan <= 5 ? ` Te quedan ${guion.quedan} mensajes hoy.` : ""}`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">

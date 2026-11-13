@@ -26,6 +26,7 @@ import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 import type { Bloqueo } from "@/lib/uso-estado";
 import { useModelo } from "@/components/panel/modelo";
+import { SelectorModelo } from "@/components/panel/SelectorModelo";
 
 export type Conversacion = {
   id: string;
@@ -467,7 +468,7 @@ export function Chat({
       </p>
     ) : (
       <PromptBar
-        key={`${grupo ? grupo.join("-") : agente}-${caja.n}${selector.listo ? "-m" : ""}`}
+        key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
         className={enInicio && cambiando ? "pc-caja pc-caja--cambia" : "pc-caja"}
         initialText={caja.texto}
         placeholder={enInicio ? sugerencia : grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
@@ -475,10 +476,7 @@ export function Chat({
         sources={fuentes}
         plusActions={subida.acciones}
         commands={comandosDe(participantes)}
-        models={selector.opciones}
-        defaultModel={selector.modelo}
-        modelLabel="Modelo"
-        onModelChange={selector.elegir}
+        models={[]}
         efforts={[]}
         busy={enviando}
         onSend={(t) => enviar(t)}
@@ -548,6 +546,7 @@ export function Chat({
         <Inicio
           saludo={saludo}
           caja={barra}
+          uso={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} />}
           selector={
             <SelectorAgente
               opciones={opciones}
@@ -592,6 +591,7 @@ export function Chat({
         }}
         caja={barra}
         legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.`}
+        modelo={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} hacia="arriba" />}
       >
         {cargando ? (
           <p className="pc-cargando" role="status">

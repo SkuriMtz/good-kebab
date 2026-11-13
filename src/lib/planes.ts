@@ -26,9 +26,9 @@ export type LimiteUso = { sesion: number; semana: number };
 /** Los modelos que se eligen en el chat. */
 export type IdModelo = "rapido" | "avanzado";
 export type ModeloApi = "claude-haiku-5-5" | "claude-opus-5-5";
-export const MODELOS: Record<IdModelo, { id: IdModelo; nombre: string; detalle: string; aviso?: string; api: ModeloApi; esfuerzo: "low" | "medium" }> = {
-  rapido: { id: "rapido", nombre: "Rápido", detalle: "Ayuda todos los días", api: "claude-haiku-5-5", esfuerzo: "medium" },
-  avanzado: { id: "avanzado", nombre: "Avanzado", detalle: "Resuelve tareas pesadas", aviso: "Gasta más", api: "claude-opus-5-5", esfuerzo: "medium" },
+export const MODELOS: Record<IdModelo, { id: IdModelo; nombre: string; corto: string; detalle: string; aviso?: string; api: ModeloApi; esfuerzo: "low" | "medium" }> = {
+  rapido: { id: "rapido", nombre: "Rápido", corto: "Día a día", detalle: "Ayuda todos los días", api: "claude-haiku-5-5", esfuerzo: "medium" },
+  avanzado: { id: "avanzado", nombre: "Avanzado", corto: "Tareas pesadas", detalle: "Resuelve tareas pesadas", aviso: "Gasta más", api: "claude-opus-5-5", esfuerzo: "medium" },
 };
 export const esIdModelo = (v: unknown): v is IdModelo => v === "rapido" || v === "avanzado";
 

@@ -133,7 +133,7 @@ const OPCIONES: Opcion[] = [
   { parte: "apariencia", titulo: "Movimiento", claves: "animaciones reducir movimiento accesibilidad" },
   { parte: "apariencia", titulo: "Contraste alto", claves: "contraste leer vista accesibilidad bordes" },
   { parte: "apariencia", titulo: "Subrayar enlaces", claves: "enlaces links subrayado accesibilidad" },
-  { parte: "apariencia", titulo: "Idioma", claves: `lenguaje traducir language ${IDIOMAS.map((i) => `${i.es} ${i.nombre}`).join(" ")}` },
+  { parte: "apariencia", titulo: "Idioma de tus agentes", claves: `idioma lenguaje traducir language respuestas ${IDIOMAS.map((i) => `${i.es} ${i.nombre}`).join(" ")}` },
   { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
   { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
   { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
@@ -768,7 +768,14 @@ export function VentanaAjustes({
               ))}
             </div>
           </Fila>
-          <Fila titulo="Idioma" texto="En el que te contestan tus agentes y escriben a tus clientes. El panel, por ahora, en español.">
+          <Fila
+            titulo="Idioma de tus agentes"
+            texto={
+              ajustes.idioma === "es-MX"
+                ? "En el que te contestan tus agentes y escriben a tus clientes. Los menús del panel, por ahora, en español."
+                : `Listo: tus agentes ya te contestan en ${IDIOMAS.find((i) => i.id === ajustes.idioma)?.es ?? "ese idioma"}, también lo que escriben a tus clientes. Los menús del panel, por ahora, siguen en español.`
+            }
+          >
             <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} />
           </Fila>
         </Grupo>

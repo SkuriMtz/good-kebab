@@ -28,6 +28,7 @@ export function Conversacion({
   children,
   caja,
   legal,
+  modelo,
   aviso,
   scrollRef,
   alDesplazar,
@@ -43,6 +44,8 @@ export function Conversacion({
   children: ReactNode;
   caja: ReactNode;
   legal?: ReactNode;
+  /** Abajo a la derecha de la caja: el selector de modelo (como en la barra de Claude). */
+  modelo?: ReactNode;
   /** Arriba de la caja (límite del plan, un error). */
   aviso?: ReactNode;
   scrollRef?: RefObject<HTMLDivElement>;
@@ -151,7 +154,14 @@ export function Conversacion({
       <div className="pc-conv__pie">
         {aviso ? <div className="pc-conv__aviso">{aviso}</div> : null}
         <div className="pc-conv__caja">{caja}</div>
-        {legal ? <p className="pc-conv__legal">{legal}</p> : null}
+        {modelo ? (
+          <div className="pc-conv__bajo">
+            {legal ? <p className="pc-conv__legal">{legal}</p> : <span />}
+            {modelo}
+          </div>
+        ) : legal ? (
+          <p className="pc-conv__legal">{legal}</p>
+        ) : null}
       </div>
     </div>
   );

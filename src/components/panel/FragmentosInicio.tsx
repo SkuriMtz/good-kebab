@@ -33,9 +33,9 @@ type Fragmento = {
 };
 
 const CAPAS = [
-  { n: 0.5, tam: [3, 5], alfa: [0.32, 0.5], vuelta: 0.012 },
-  { n: 0.35, tam: [5, 8], alfa: [0.42, 0.66], vuelta: 0.02 },
-  { n: 0.15, tam: [8, 12], alfa: [0.3, 0.5], vuelta: 0.03 },
+  { n: 0.5, tam: [4, 7], alfa: [0.32, 0.5], vuelta: 0.012 },
+  { n: 0.35, tam: [7, 11], alfa: [0.42, 0.66], vuelta: 0.02 },
+  { n: 0.15, tam: [11, 16], alfa: [0.3, 0.5], vuelta: 0.03 },
 ] as const;
 
 const azar = (a: number, b: number) => a + Math.random() * (b - a);
