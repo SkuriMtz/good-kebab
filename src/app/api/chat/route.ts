@@ -13,9 +13,18 @@ import { planMinimo } from "@/lib/planes";
 import { Gasto, leerUso, registrarUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
-import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
-import { herramientasDelChat, instruccionesHerramientas } from "@/lib/herramientas/preparar";
-import { accionesDelChat, instruccionesAcciones } from "@/lib/herramientas/acciones";
+import {
+  responderConHerramientas,
+  type PeticionRonda,
+} from "@/lib/herramientas/ciclo";
+import {
+  herramientasDelChat,
+  instruccionesHerramientas,
+} from "@/lib/herramientas/preparar";
+import {
+  accionesDelChat,
+  instruccionesAcciones,
+} from "@/lib/herramientas/acciones";
 import { marcoEstado } from "@/lib/estado-chat";
 
 /**
@@ -47,7 +56,8 @@ const HISTORIAL = 30; // mensajes previos que se le mandan a la IA
 /** Marca que antecede a un error a mitad de la respuesta (el cliente la detecta). */
 const MARCA_ERROR = "\u0000ERROR:";
 
-const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });
+const error = (mensaje: string, status: number) =>
+  NextResponse.json({ error: mensaje }, { status });
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -66,34 +76,52 @@ export async function POST(request: NextRequest) {
     return error("Petición inválida", 400);
   }
   const mensaje = typeof body.mensaje === "string" ? body.mensaje.trim() : "";
-  const conversacionId = typeof body.conversacionId === "string" ? body.conversacionId : null;
+  const conversacionId =
+    typeof body.conversacionId === "string" ? body.conversacionId : null;
   if (!mensaje) return error("Escribe un mensaje.", 400);
-  if (mensaje.length > MAX_MENSAJE) return error(`El mensaje es muy largo (máximo ${MAX_MENSAJE} caracteres).`, 400);
+  if (mensaje.length > MAX_MENSAJE)
+    return error(
+      `El mensaje es muy largo (máximo ${MAX_MENSAJE} caracteres).`,
+      400,
+    );
   // ¿El cliente sabe mostrar las líneas de estado? (si no, el stream es solo texto)
-  const conEstados = body.estados === true || request.headers.get("x-atendel-estados") === "1";
+  const conEstados =
+    body.estados === true || request.headers.get("x-atendel-estados") === "1";
 
   // Con quién: la conversación existente manda; si es nueva, lo que pidió el cliente
   let agente: IdAgente;
   let grupo: IdAgente[] | null = null;
   let tema: string | null = null;
-  let conv: { id: string; agente: string; participantes: string[] | null; tema: string | null } | null = null;
+  let conv: {
+    id: string;
+    agente: string;
+    participantes: string[] | null;
+    tema: string | null;
+  } | null = null;
   if (conversacionId) {
     const { data } = await supabase
       .from("conversaciones")
       .select("id, agente, participantes, tema")
       .eq("id", conversacionId)
       .maybeSingle();
-    if (!data || !esIdAgente(data.agente)) return error("No se encontró la conversación.", 404);
+    if (!data || !esIdAgente(data.agente))
+      return error("No se encontró la conversación.", 404);
     conv = data;
     agente = data.agente;
-    grupo = Array.isArray(data.participantes) ? data.participantes.filter(esIdAgente) : null;
+    grupo = Array.isArray(data.participantes)
+      ? data.participantes.filter(esIdAgente)
+      : null;
     tema = data.tema ?? null;
   } else if (Array.isArray(body.agentes)) {
     const pedidos = Array.from(new Set(body.agentes.filter(esIdAgente)));
-    if (pedidos.length < 2 || pedidos.length !== body.agentes.length) return error("Un grupo necesita al menos 2 agentes.", 400);
+    if (pedidos.length < 2 || pedidos.length !== body.agentes.length)
+      return error("Un grupo necesita al menos 2 agentes.", 400);
     grupo = pedidos;
     agente = pedidos[0];
-    tema = typeof body.tema === "string" && body.tema.trim() ? body.tema.trim().slice(0, 120) : null;
+    tema =
+      typeof body.tema === "string" && body.tema.trim()
+        ? body.tema.trim().slice(0, 120)
+        : null;
   } else {
     if (!esIdAgente(body.agente)) return error("Ese agente no existe.", 400);
     agente = body.agente;
@@ -114,10 +142,17 @@ export async function POST(request: NextRequest) {
   }
   // El límite de uso del plan (como Claude: sesión de 5 horas y semana)
   const limite = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
-  if (limite) return NextResponse.json({ error: limite.texto, hasta: limite.hasta }, { status: 429 });
+  if (limite)
+    return NextResponse.json(
+      { error: limite.texto, hasta: limite.hasta },
+      { status: 429 },
+    );
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    return error("La IA todavía no está configurada: falta la llave de Anthropic (ANTHROPIC_API_KEY) en Vercel.", 503);
+    return error(
+      "La IA todavía no está configurada: falta la llave de Anthropic (ANTHROPIC_API_KEY) en Vercel.",
+      503,
+    );
   }
 
   // 4. Conversación: la existente (RLS garantiza que es suya) o una nueva
@@ -133,15 +168,20 @@ export async function POST(request: NextRequest) {
     for (const m of (previos ?? []).reverse()) {
       const rol = m.rol === "assistant" ? "assistant" : "user";
       // En grupos cada respuesta lleva su marca; varias seguidas se juntan en un solo turno
-      const contenido = grupo && rol === "assistant" ? conMarca(esIdAgente(m.agente) ? m.agente : agente, m.contenido) : m.contenido;
+      const contenido =
+        grupo && rol === "assistant"
+          ? conMarca(esIdAgente(m.agente) ? m.agente : agente, m.contenido)
+          : m.contenido;
       const ultimo = historial[historial.length - 1];
-      if (ultimo && ultimo.role === rol && typeof ultimo.content === "string") ultimo.content += `\n\n${contenido}`;
+      if (ultimo && ultimo.role === rol && typeof ultimo.content === "string")
+        ultimo.content += `\n\n${contenido}`;
       else historial.push({ role: rol, content: contenido });
     }
     // La conversación debe empezar con un mensaje de la persona
     while (historial.length && historial[0].role !== "user") historial.shift();
     // Y alternar: si el último guardado es de la persona (una respuesta que falló), se junta con el nuevo
-    if (historial.length && historial[historial.length - 1].role === "user") historial.pop();
+    if (historial.length && historial[historial.length - 1].role === "user")
+      historial.pop();
   } else {
     const titulo = (tema ?? mensaje).replace(/\s+/g, " ").slice(0, 80);
     const { data: nueva, error: errNueva } = await supabase
@@ -149,35 +189,68 @@ export async function POST(request: NextRequest) {
       .insert({ owner_id: user.id, agente, titulo, participantes: grupo, tema })
       .select("id")
       .single();
-    if (errNueva || !nueva) return error("No se pudo crear la conversación.", 500);
+    if (errNueva || !nueva)
+      return error("No se pudo crear la conversación.", 500);
     idConversacion = nueva.id as string;
   }
 
   // 5. Guardar el mensaje y contarlo (para las estadísticas; el límite lo pone el uso real)
   const { error: errMensaje } = await supabase
     .from("mensajes")
-    .insert({ conversacion_id: idConversacion, owner_id: user.id, rol: "user", contenido: mensaje });
+    .insert({
+      conversacion_id: idConversacion,
+      owner_id: user.id,
+      rol: "user",
+      contenido: mensaje,
+    });
   if (errMensaje) return error("No se pudo guardar tu mensaje.", 500);
   await supabase.rpc("sumar_mensaje");
 
   // 6. Contexto (solo lectura): si Clara está, los resúmenes de correo recientes (nunca el texto
   //    original); para todos, el perfil del negocio y los fragmentos de sus documentos
   const [correos, perfil, documentos, ajustesGuardados] = await Promise.all([
-    participantes.includes("clara") ? contextoCorreo(supabase, user.id) : undefined,
+    participantes.includes("clara")
+      ? contextoCorreo(supabase, user.id)
+      : undefined,
     contextoPerfil(supabase, user.id),
     bloqueDocumentos(supabase, mensaje),
     // Lo que el dueño eligió en Ajustes (trato, estilo, firma, zona horaria, reglas por agente)
-    supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
+    supabase
+      .from("ajustes_cuenta")
+      .select("datos")
+      .eq("owner_id", user.id)
+      .maybeSingle(),
   ]);
-  const datosNegocio = [perfil, documentos].filter(Boolean).join("\n\n");
-  const preferencias = bloqueParaAgentes(limpiarAjustes(ajustesGuardados.data?.datos), participantes);
+  // En las instrucciones solo va lo que casi no cambia (para que la IA lo guarde en caché);
+  // los fragmentos de documentos cambian con cada mensaje: van junto al mensaje
+  const datosNegocio = perfil || "";
+  const preferencias = bloqueParaAgentes(
+    limpiarAjustes(ajustesGuardados.data?.datos),
+    participantes,
+  );
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
-  const deApps = herramientasDelChat({ supabase, userId: user.id, participantes, conexiones });
+  const deApps = herramientasDelChat({
+    supabase,
+    userId: user.id,
+    participantes,
+    conexiones,
+  });
   // 6c. Acciones de Atendel: armar presentaciones y dejar envíos en Pendientes (nunca manda solo)
-  const herramientas = [...deApps, ...accionesDelChat({ supabase, userId: user.id, participantes, conversacionId: idConversacion, negocio: cuenta.negocio })];
-  const conApps = instruccionesHerramientas(participantes, deApps, conexiones) + instruccionesAcciones(participantes);
+  const herramientas = [
+    ...deApps,
+    ...accionesDelChat({
+      supabase,
+      userId: user.id,
+      participantes,
+      conversacionId: idConversacion,
+      negocio: cuenta.negocio,
+    }),
+  ];
+  const conApps =
+    instruccionesHerramientas(participantes, deApps, conexiones) +
+    instruccionesAcciones(participantes);
 
   // 7. Responder en vivo
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -207,17 +280,40 @@ export async function POST(request: NextRequest) {
       try {
         const base = {
           max_tokens: 8000,
-          system:
-            (grupo
-              ? instruccionesGrupo(grupo, cuenta.negocio, tema, correos, datosNegocio)
-              : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio)) +
-            preferencias +
-            conApps,
+          // Caché: las instrucciones se guardan 5 minutos y los siguientes mensajes las leen
+          // por ~5 % de su precio (no cambian entre mensajes: nada de horas ni documentos aquí)
+          system: [
+            {
+              type: "text" as const,
+              cache_control: { type: "ephemeral" as const },
+              text:
+                (grupo
+                  ? instruccionesGrupo(
+                      grupo,
+                      cuenta.negocio,
+                      tema,
+                      correos,
+                      datosNegocio,
+                    )
+                  : instruccionesDe(
+                      agente,
+                      cuenta.negocio,
+                      correos,
+                      datosNegocio,
+                    )) +
+                preferencias +
+                conApps,
+            },
+          ],
         };
         // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
         const pedir = (p: PeticionRonda) =>
           cuenta.plan.modelo === "claude-haiku-4-5"
-            ? client.beta.messages.stream({ ...base, ...p, model: cuenta.plan.modelo })
+            ? client.beta.messages.stream({
+                ...base,
+                ...p,
+                model: cuenta.plan.modelo,
+              })
             : client.beta.messages.stream({
                 ...base,
                 ...p,
@@ -230,7 +326,23 @@ export async function POST(request: NextRequest) {
         // Texto en vivo; si pide herramientas, se corren (solo lectura) y sigue (máximo 4 rondas)
         const { final } = await responderConHerramientas({
           pedir,
-          mensajes: [...historial, { role: "user" as const, content: mensaje }],
+          // El último mensaje lleva otra marca de caché: las rondas con apps de esta respuesta releen todo barato
+          mensajes: [
+            ...historial,
+            {
+              role: "user" as const,
+              content: [
+                ...(documentos
+                  ? [{ type: "text" as const, text: documentos }]
+                  : []),
+                {
+                  type: "text" as const,
+                  text: mensaje,
+                  cache_control: { type: "ephemeral" as const },
+                },
+              ],
+            },
+          ],
           herramientas,
           alTexto: (d) => {
             respuesta += d;
@@ -246,20 +358,26 @@ export async function POST(request: NextRequest) {
           senal: corte.signal,
         });
         if (final?.stop_reason === "refusal" && !respuesta) {
-          respuesta = "No puedo ayudarte con eso. ¿Te ayudo con otra cosa del negocio?";
+          respuesta =
+            "No puedo ayudarte con eso. ¿Te ayudo con otra cosa del negocio?";
           enviar(respuesta);
         }
       } catch (e) {
         let texto = "No se pudo obtener la respuesta. Intenta de nuevo.";
-        if (e instanceof Anthropic.AuthenticationError) texto = "La llave de Anthropic no es válida.";
-        else if (e instanceof Anthropic.RateLimitError) texto = "La IA está saturada. Espera unos segundos.";
-        else if (e instanceof Anthropic.BadRequestError) texto = "La IA rechazó la petición. Revisa el saldo de Anthropic.";
+        if (e instanceof Anthropic.AuthenticationError)
+          texto = "La llave de Anthropic no es válida.";
+        else if (e instanceof Anthropic.RateLimitError)
+          texto = "La IA está saturada. Espera unos segundos.";
+        else if (e instanceof Anthropic.BadRequestError)
+          texto = "La IA rechazó la petición. Revisa el saldo de Anthropic.";
         enviar(MARCA_ERROR + texto);
       } finally {
         await registrarUso(supabase, gasto, "chat");
         if (respuesta.trim()) {
           // En grupo, cada intervención se guarda como mensaje de su agente
-          const piezas = grupo ? partirIntervenciones(respuesta, grupo).filter((p) => p.texto) : [{ agente, texto: respuesta }];
+          const piezas = grupo
+            ? partirIntervenciones(respuesta, grupo).filter((p) => p.texto)
+            : [{ agente, texto: respuesta }];
           await supabase.from("mensajes").insert(
             piezas.map((p) => ({
               conversacion_id: idFinal,
