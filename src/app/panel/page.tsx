@@ -10,6 +10,8 @@ import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
+import { leerUso } from "@/lib/uso";
+import { bloqueoConHora } from "@/lib/uso-estado";
 import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
 import { cargarNegocio } from "@/lib/estadisticas-negocio";
 import { cargarPendientes, correosFiltrados, negociosDe, opcionesPendientes } from "@/lib/pendientes";
@@ -104,6 +106,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   }
 
   const cuenta = await cargarCuenta(supabase, user.id);
+  const bloqueo = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
 
   if (searchParams.vista === "negocio") return <TuNegocio tab={pestanaDe(searchParams.tab)} plan={cuenta.plan.id} conectada={texto(searchParams.conectada, 40)} error={texto(searchParams.error, 40)} app={texto(searchParams.app, 40)} />;
 
@@ -146,7 +149,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
     <Chat
       planId={cuenta.plan.id}
       activos={cuenta.activos}
-      usadosIniciales={cuenta.usados}
+      bloqueoInicial={bloqueo}
       conversacionesIniciales={conversaciones}
       agenteInicial={agente}
       conversacionInicial={texto(searchParams.c, 100) ?? null}

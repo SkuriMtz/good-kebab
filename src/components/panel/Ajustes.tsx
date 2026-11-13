@@ -35,6 +35,7 @@ import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from 
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 import { useFuenteNegocio } from "./negocio/fuente";
+import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
 
 /**
  * AJUSTES: una ventana (no una página) que se abre con el engrane del pie del
@@ -67,7 +68,8 @@ export type DatosAjustes = {
   nombre: string;
   correo: string;
   negocio: string;
-  plan: { id: string; nombre: string; usados: number; total: number; agentes: readonly IdAgente[] };
+  /** El plan y su uso (como Claude: sesión de 5 horas y semana, en porcentaje). */
+  plan: { id: string; nombre: string; uso: EstadoUso; agentes: readonly IdAgente[] };
   activos: IdAgente[];
   /** Tu equipo del negocio (a quién se le pueden mandar cosas por WhatsApp). */
   contactos: ContactoEquipo[];
@@ -163,10 +165,12 @@ const OPCIONES: Opcion[] = [
   { parte: "notificaciones", titulo: "Por correo", claves: "avisos email" },
   { parte: "notificaciones", titulo: "Por WhatsApp", claves: "avisos whatsapp" },
   { parte: "notificaciones", titulo: "No molestar en la noche", claves: "silencio noche horas" },
-  { parte: "uso", titulo: "Mensajes con tu equipo", claves: "mensajes limite quedan reinicia reinicio mes porcentaje usado" },
+  { parte: "uso", titulo: "Sesión actual", claves: "sesion limite 5 horas reinicia porcentaje usado uso" },
+  { parte: "uso", titulo: "Esta semana", claves: "semana semanal limite reinicia lunes porcentaje usado uso" },
   { parte: "uso", titulo: "Documentos", claves: "documentos archivos limite guardados" },
   { parte: "uso", titulo: "Espacio de tus documentos", claves: "espacio megas mb gb almacenamiento archivos peso" },
-  { parte: "uso", titulo: "Si se acaban", claves: "limite mensajes" },
+  { parte: "uso", titulo: "Si llegas al límite", claves: "limite se acaba mensajes reinicio" },
+  { parte: "uso", titulo: "No contamos mensajes", claves: "como se mide uso mensajes tokens" },
   { parte: "plan", titulo: "Tu plan", claves: "plan max one free cambiar" },
   { parte: "plan", titulo: "Forma de pago", claves: "tarjeta pagar cobro" },
   { parte: "plan", titulo: "Facturas", claves: "facturas recibos" },
@@ -194,7 +198,7 @@ const PARTES: Parte[] = [
   { id: "conexiones", etiqueta: "Conexiones", icono: "enlace", claves: "whatsapp correo gmail outlook calendario redes instagram google business apps", grupo: 1, sub: "WhatsApp, correo, calendario, redes y Google Business." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos silencio correo noche", grupo: 2, sub: "Qué avisos llegan, por dónde y horas de silencio." },
-  { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "mensajes mes reinicia limite", grupo: 2, sub: "Cuánto llevas del plan y cuándo se reinicia." },
+  { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 2, sub: "Cuánto llevas de tu sesión y de la semana." },
   { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 2, sub: "Plan, pago, facturas y datos para CFDI." },
   { id: "privacidad", etiqueta: "Privacidad", icono: "escudo", claves: "aviso borrar exportar datos seguridad", grupo: 3, sub: "Aviso de privacidad, borrar o exportar tus datos y seguridad." },
   { id: "cuenta", etiqueta: "Cuenta", icono: "persona", claves: "perfil nombre correo zona horaria sesion salir", grupo: 3, sub: "Tus datos, zona horaria y sesión." },
@@ -382,12 +386,12 @@ function BarraLimite({ titulo, detalle, usados, total, aviso }: { titulo: string
 
 /**
  * Ajustes > Uso, como el de Claude: "Límites de tu plan" con una barra por
- * límite (los mensajes del mes y los documentos que guardas). Solo números
+ * límite (la sesión de 5 horas, la semana y los documentos). Solo números
  * de verdad: los del plan y los de la cuenta. La barra pasa de azul a ámbar
  * (60 %), naranja (80 %) y rojo (90 %); al llenarse brilla y avisa qué pasa.
  * En tu cuenta, "Actualizar" vuelve a leer lo usado sin recargar la página.
  */
-function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string }) {
+function LimitesUso({ datos }: { datos: DatosAjustes }) {
   const fuente = useFuenteNegocio();
   const router = useRouter();
   const [documentos, setDocumentos] = useState<number | null>(null);
@@ -396,6 +400,9 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
   const [leido, setLeido] = useState<Date | null>(null);
   const pedido = useRef(false);
   const [vuelta, setVuelta] = useState(0);
+  // Las horas de reinicio se escriben ya en el navegador (con su reloj), sin diferencias con el servidor
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
 
   useEffect(() => {
     let vivo = true;
@@ -418,19 +425,22 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
   }, [actualizando]);
 
   const plan = datos.plan;
-  const quedan = Math.max(0, plan.total - plan.usados);
-  const pctMensajes = porcentaje(plan.usados, plan.total);
+  const { sesion, semana, zona } = plan.uso;
+  const pctSesion = pctDe(sesion);
+  const pctSemana = pctDe(semana);
+  const detalleSesion = !montado ? "" : sesion.reinicia ? `Se reinicia ${cuandoReinicia(sesion.reinicia, zona)}` : "Empieza con tu siguiente mensaje";
+  const detalleSemana = !montado || !semana.reinicia ? "" : `Se reinicia ${cuandoReinicia(semana.reinicia, zona)}`;
+  const avisoDe = (pct: number, cual: "sesion" | "semana", reinicia: string | null) =>
+    !montado || pct < 80
+      ? null
+      : pct >= 100
+        ? `Llegaste al límite ${cual === "sesion" ? "de esta sesión" : "de esta semana"}. Tu equipo vuelve a contestar ${reinicia ? cuandoReinicia(reinicia, zona) : "pronto"}.`
+        : `Ya usaste el ${pct} % ${cual === "sesion" ? "de esta sesión" : "de esta semana"}.`;
   const maxDocumentos = MAX_DOCUMENTOS_POR_PLAN[plan.id as keyof typeof MAX_DOCUMENTOS_POR_PLAN] ?? null;
   const maxEspacio = (MAX_MB_DOCUMENTOS_POR_PLAN[plan.id as keyof typeof MAX_MB_DOCUMENTOS_POR_PLAN] ?? 0) * 1024 * 1024;
   const pctEspacio = porcentaje(espacio, maxEspacio);
   const avisoEspacio = pctEspacio >= 100 ? "Ya no hay espacio: borra algún documento para subir otro." : pctEspacio >= 80 ? `Te quedan ${formatoPeso(Math.max(0, maxEspacio - espacio))}.` : null;
   const n = (v: number) => v.toLocaleString("es-MX");
-  const avisoMensajes =
-    pctMensajes >= 100
-      ? `Se acabaron los mensajes de este mes. Tu equipo vuelve a contestar en el chat el ${reinicio}.`
-      : pctMensajes >= 80
-        ? `${quedan === 1 ? "Te queda 1 mensaje" : `Te quedan ${n(quedan)} mensajes`} hasta el ${reinicio}.`
-        : null;
   const pctDocumentos = documentos !== null && maxDocumentos ? porcentaje(documentos, maxDocumentos) : 0;
   const quedanDocumentos = documentos !== null && maxDocumentos ? Math.max(0, maxDocumentos - documentos) : 0;
   const avisoDocumentos =
@@ -441,7 +451,10 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
       <h3 className="pc-aj-limites__titulo">
         Límites de tu plan <span>{plan.nombre.replace(/^Atendel\s+/, "")}</span>
       </h3>
-      <BarraLimite titulo="Mensajes con tu equipo" detalle={`Se reinicia el ${reinicio}`} usados={plan.usados} total={plan.total} aviso={avisoMensajes} />
+      <BarraLimite titulo="Sesión actual" detalle={detalleSesion} usados={sesion.usado} total={sesion.limite} aviso={avisoDe(pctSesion, "sesion", sesion.reinicia)} />
+      <h4 className="pc-aj-limites__sub">Límite semanal</h4>
+      <BarraLimite titulo="Esta semana" detalle={detalleSemana} usados={semana.usado} total={semana.limite} aviso={avisoDe(pctSemana, "semana", semana.reinicia)} />
+      {documentos !== null && maxDocumentos ? <h4 className="pc-aj-limites__sub">Lo que guardas</h4> : null}
       {documentos !== null && maxDocumentos ? (
         <BarraLimite titulo="Documentos" detalle={`${n(documentos)} de ${n(maxDocumentos)} que puedes guardar`} usados={documentos} total={maxDocumentos} aviso={avisoDocumentos} />
       ) : null}
@@ -686,10 +699,6 @@ export function VentanaAjustes({
   }, [resaltar, seccion]);
   const parte = PARTES.find((p) => p.id === seccion) ?? PARTES[0];
   const libre = datos.plan.id !== "free";
-  const reinicio = useMemo(() => {
-    const d = new Date();
-    return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)));
-  }, []);
   const conectada = (app: string) => (app === "gmail" && datos.gmail) || datos.conectadas.includes(app);
 
   let contenido: ReactNode;
@@ -910,7 +919,7 @@ export function VentanaAjustes({
   } else if (seccion === "agentes") {
     contenido = (
       <>
-        {!libre ? <p className="pc-aj-nota">Con Atendel Free trabajas con Clara. Con One se suma Lola, y con Max tienes a todo el equipo.</p> : null}
+        {!libre ? <p className="pc-aj-nota">Con Atendel Free trabajas con Clara. Con One o Max tienes a todo el equipo; Max trae 5 veces el uso de One.</p> : null}
         {avisoEquipo ? <p className="pc-aj-nota pc-aj-nota--error">{avisoEquipo}</p> : null}
         <Grupo>
           {AGENTES_INFO.map((a) => {
@@ -1106,10 +1115,14 @@ export function VentanaAjustes({
   } else if (seccion === "uso") {
     contenido = (
       <>
-        <LimitesUso datos={datos} reinicio={reinicio} />
-        <Grupo titulo="Cómo se cuenta">
-          <Fila titulo="Un mensaje" texto="Cada mensaje que le mandas a tu equipo y cada pregunta a la gráfica de tu resumen." />
-          <Fila titulo="Si se acaban" texto="Tu equipo deja de contestar en el chat hasta el día 1. Lo que ya leyó y tus datos se quedan.">
+        <LimitesUso datos={datos} />
+        <Grupo titulo="Cómo se mide">
+          <Fila
+            titulo="No contamos mensajes"
+            texto="Medimos cuánto trabaja tu equipo en cada respuesta, como Claude. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más."
+          />
+          <Fila titulo="Sesión de 5 horas" texto="Empieza con tu primer mensaje y se reinicia 5 horas después. Además hay un límite por semana, que se reinicia el lunes." />
+          <Fila titulo="Si llegas al límite" texto="Tu equipo deja de contestar en el chat hasta que se reinicie. Lo que ya leyó y tus datos se quedan.">
             <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("plan")}>
               Ver mi plan
             </button>

@@ -18,6 +18,7 @@ import { organizar, type OrganizacionChats } from "@/lib/organizacion-chats";
 import { nombresDe } from "./Mensajes";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
+import type { EstadoUso } from "@/lib/uso-estado";
 
 export type DatosArmazonReal = {
   userId: string;
@@ -35,9 +36,8 @@ export type DatosArmazonReal = {
   correo: string;
   /** "Free", "One" o "Max". */
   plan: string;
-  /** Mensajes usados este mes y los del plan. */
-  usados: number;
-  total: number;
+  /** El uso del plan: sesión de 5 horas y semana (como Claude). */
+  uso: EstadoUso;
   /** ¿Entró con Google? (entonces Clara lee su Gmail) */
   gmail: boolean;
   activos: IdAgente[];
@@ -174,7 +174,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     nombre: datos.nombreCompleto,
     correo: datos.correo,
     negocio: datos.negocio,
-    plan: { id: datos.planId, nombre: `Atendel ${datos.plan}`, usados: datos.usados, total: datos.total, agentes: datos.planAgentes },
+    plan: { id: datos.planId, nombre: `Atendel ${datos.plan}`, uso: datos.uso, agentes: datos.planAgentes },
     activos: datos.activos,
     gmail: datos.gmail,
     conectadas: datos.conectadas,

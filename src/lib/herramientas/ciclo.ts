@@ -39,6 +39,8 @@ export type HerramientaChat = {
 type Flujo = AsyncIterable<Anthropic.Beta.BetaRawMessageStreamEvent> & {
   finalMessage(): Promise<Anthropic.Beta.BetaMessage>;
   abort(): void;
+  /** Lo que lleva la ronda (aunque se corte). */
+  readonly currentMessage?: Anthropic.Beta.BetaMessage;
 };
 
 export type PeticionRonda = {
@@ -124,6 +126,8 @@ export async function responderConHerramientas(o: {
   alEstado: (texto: string) => void;
   /** El flujo vigente (para cortarlo si la persona toca "Detener"). */
   alFlujo?: (f: Flujo) => void;
+  /** Lo que gastó cada ronda (tokens): para el límite de uso del plan. Si se corta a la mitad, lo que alcanzó a gastar. */
+  alUso?: (m: Anthropic.Beta.BetaMessage) => void;
   senal: AbortSignal;
 }): Promise<{ texto: string; final: Anthropic.Beta.BetaMessage | null; rondas: number }> {
   const mensajes = [...o.mensajes];
@@ -158,7 +162,11 @@ export async function responderConHerramientas(o: {
         o.alTexto(d);
       }
       final = await flujo.finalMessage();
+      o.alUso?.(final);
     } catch (e) {
+      // Cortada (Detener o error): cuenta lo que la ronda alcanzó a leer y escribir
+      const parcial = flujo.currentMessage;
+      if (parcial) o.alUso?.(parcial);
       // JSON ilegible en una herramienta: se repite la ronda (si aún no se mostró texto)
       if (esErrorJson(e) && !deRonda && reintentosJson++ < 2) continue;
       throw e;

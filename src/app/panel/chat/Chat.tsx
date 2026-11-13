@@ -24,6 +24,7 @@ import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
+import type { Bloqueo } from "@/lib/uso-estado";
 
 export type Conversacion = {
   id: string;
@@ -116,7 +117,7 @@ export function conVista(cambio: () => void) {
 export function Chat({
   planId,
   activos,
-  usadosIniciales,
+  bloqueoInicial,
   conversacionesIniciales,
   agenteInicial,
   conversacionInicial,
@@ -126,7 +127,8 @@ export function Chat({
 }: {
   planId: IdPlan;
   activos: IdAgente[];
-  usadosIniciales: number;
+  /** Si ya se llegó al límite de uso (sesión de 5 horas o semana): el aviso y hasta cuándo. */
+  bloqueoInicial: Bloqueo | null;
   conversacionesIniciales: Conversacion[];
   /** ?agente=: hablar solo con ese agente. Sin esto, con todo el equipo (si el plan trae grupos). */
   agenteInicial: IdAgente | null;
@@ -149,7 +151,15 @@ export function Chat({
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [usados, setUsados] = useState(usadosIniciales);
+  const [bloqueo, setBloqueo] = useState(bloqueoInicial);
+  // A la hora en que se reinicia el límite, el chat se vuelve a abrir solo
+  useEffect(() => {
+    if (!bloqueo?.hasta) return;
+    const falta = new Date(bloqueo.hasta).getTime() - Date.now();
+    if (falta > 2_147_000_000) return;
+    const t = window.setTimeout(() => setBloqueo(null), Math.max(0, falta) + 1000);
+    return () => window.clearTimeout(t);
+  }, [bloqueo]);
   const [aviso, setAviso] = useState<string | null>(null);
   const [porBorrar, setPorBorrar] = useState<Conversacion | null>(null);
   const [caja, setCaja] = useState<{ texto?: string; n: number }>({ texto: textoInicial, n: 0 });
@@ -172,7 +182,7 @@ export function Chat({
   const info = AGENTE_POR_ID[agente];
   const participantes: IdAgente[] = grupo ?? [agente];
   const disponible = participantes.every((id) => activos.includes(id));
-  const sinMensajes = usados >= plan.mensajesMes;
+  const sinMensajes = bloqueo !== null;
   // En la conversación nueva, en vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
   const enInicio = !actual && mensajes.length === 0 && !cargando;
   const { texto: sugerencia, cambiando } = useSugerencia(grupo ?? [agente], enInicio);
@@ -357,11 +367,12 @@ export function Chat({
         signal: control.signal,
       });
       if (!res.ok || !res.body) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        const j = (await res.json().catch(() => ({}))) as { error?: string; hasta?: string | null };
+        // Llegó al límite de uso: el aviso va en lugar de la caja (y se quita solo a la hora del reinicio)
+        if (res.status === 429 && j.error) setBloqueo({ texto: j.error, hasta: j.hasta ?? null });
         actualizar({ enCurso: false, error: j.error ?? "No se pudo enviar el mensaje." });
         return;
       }
-      setUsados((u) => u + 1);
       const idConv = res.headers.get("X-Conversacion-Id");
       if (idConv && idConv !== actual) {
         setActual(idConv);
@@ -441,7 +452,7 @@ export function Chat({
   const barra = disponible ? (
     sinMensajes ? (
       <p className="pc-aviso-caja">
-        Llegaste a los {plan.mensajesMes.toLocaleString("es-MX")} mensajes de este mes.{" "}
+        {bloqueo?.texto}{" "}
         <Enlace href="/precios" className="pc-enlace">
           Ver los planes
         </Enlace>

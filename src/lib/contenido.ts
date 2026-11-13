@@ -38,7 +38,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Qué incluye cada plan?",
-    r: "Con Free trabajas con Clara, tu agente de correo, y tienes pocos mensajes al mes. One suma a Lola, tu agente de atención para WhatsApp y citas. Max desbloquea a los cuatro agentes, eliges quién está en tu equipo y tienes muchos más mensajes y respuestas más elaboradas.",
+    r: "Con Free trabajas con Clara, tu agente de correo, con uso para probarlo. One y Max traen a los cuatro agentes: eliges quién está en tu equipo, chats en grupo y respuestas más elaboradas. Lo único que cambia es el uso: Max tiene 5 veces el de One.",
   },
   {
     p: "¿Qué puedo usar desde hoy?",

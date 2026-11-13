@@ -20,7 +20,7 @@ export function FranjaPendientes({ n, href }: { n: number | null; href: string }
 export function UsoPlan({ plan, usados, total, href }: { plan: string; usados: number; total: number; href: string }) {
   const pct = Math.min(100, Math.round((usados / Math.max(1, total)) * 100));
   return (
-    <Enlace href={href} className="pc-uso" aria-label={`Atendel ${plan}: ${pct} % de los mensajes del mes usados. Ver tu plan`}>
+    <Enlace href={href} className="pc-uso" aria-label={`Atendel ${plan}: ${pct} % de tu uso. Ver tu plan`}>
       <span className="pc-uso__plan">{plan}</span>
       <span className="pc-uso__tenue" aria-hidden="true">
         · <Odometro valor={pct} /> % usado

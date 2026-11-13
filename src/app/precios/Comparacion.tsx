@@ -4,7 +4,7 @@ import { Icono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
 import type { Plan } from "@/lib/planes";
-import { agenteDe, numero, planesDe, t, type Idioma } from "@/i18n";
+import { agenteDe, planesDe, t, type Idioma } from "@/i18n";
 
 const NOMBRE_CORTO: Record<Plan["id"], string> = { free: "Free", one: "One", max: "Max" };
 
@@ -30,7 +30,7 @@ function Celda({ si, plan, incluido, noIncluido }: { si: boolean; plan: Plan; in
  * Comparación por agente (/precios#comparar): una tabla de verdad, sin
  * caja, con líneas de 1px como las tablas de comparación de Apple. Cada fila
  * es un agente con su personaje; las columnas, los planes. Todo sale de
- * src/lib/planes.ts (agentes, mensajes al mes y lo que incluye).
+ * src/lib/planes.ts (agentes, uso y lo que incluye).
  */
 export function Comparacion({ idioma = "es" }: { idioma?: Idioma }) {
   const d = t(idioma);
@@ -94,11 +94,11 @@ export function Comparacion({ idioma = "es" }: { idioma?: Idioma }) {
           </tr>
           <tr>
             <th scope="row" className="comparar__funcion">
-              {C.mensajesMes}
+              {C.uso}
             </th>
             {PLANES.map((p) => (
               <td key={p.id} className={`comparar__cifra${p.id === "free" ? " comparar__hoy" : ""}`}>
-                {numero(idioma, p.mensajesMes)}
+                {p.uso}
               </td>
             ))}
           </tr>

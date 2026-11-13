@@ -31,15 +31,14 @@ export function Preguntas({
 
 /* ---------------------------------------------------------------------
    Preguntas sobre planes (para /precios y /preguntas). Todo sale de lo que
-   ya hace la app: src/lib/planes.ts (precios, mensajes, agentes), el chat
-   (avisa al llegar al límite del mes; el conteo es por mes) y
-   /panel/agentes (con Max eliges tu equipo). El plan no lo cambia la
+   ya hace la app: src/lib/planes.ts (precios, uso, agentes), el chat
+   (avisa al llegar al límite de la sesión o de la semana, como Claude) y
+   /panel/agentes (con One o Max eliges tu equipo). El plan no lo cambia la
    persona desde su cuenta.
    --------------------------------------------------------------------- */
 const free = PLAN_POR_ID.free;
 const one = PLAN_POR_ID.one;
 const max = PLAN_POR_ID.max;
-const n = (x: number) => x.toLocaleString("es-MX");
 
 export const PREGUNTAS_PLANES: Pregunta[] = [
   {
@@ -51,8 +50,8 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
     r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo.",
   },
   {
-    p: "¿Qué pasa si se me acaban los mensajes?",
-    r: `El chat te avisa que llegaste a los mensajes del mes (${n(free.mensajesMes)} en Free, ${n(one.mensajesMes)} en One y ${n(max.mensajesMes)} en Max) y deja de enviar hasta el mes siguiente, cuando el conteo empieza de nuevo.`,
+    p: "¿Cómo se mide el uso?",
+    r: `Como en Claude: no contamos mensajes, medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. ${max.nombre} tiene ${Math.round(max.limite.semana / one.limite.semana)} veces el uso de ${one.nombre}.`,
   },
   {
     p: "¿Cómo cambio de plan?",
@@ -60,7 +59,7 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
   },
   {
     p: "¿Puedo elegir qué agentes uso?",
-    r: "Sí, con Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
+    r: "Sí, con One o Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
   },
 ];
 

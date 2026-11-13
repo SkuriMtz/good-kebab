@@ -12,7 +12,7 @@ import { PLANES, type IdPlan } from "@/lib/planes";
 
 export type Pregunta = { p: string; r: string };
 type TextoAgente = { area: string; abarca: string; lema: string; capacidades: string[]; sugerencias: string[] };
-type TextoPlan = { nivel: string; precio: string | null; resumen: string; incluye: string[] };
+type TextoPlan = { nivel: string; precio: string | null; resumen: string; incluye: string[]; uso: string };
 export type Segmento = {
   id: string;
   nombre: string;
@@ -28,7 +28,7 @@ const porAgente = Object.fromEntries(
 ) as Record<IdAgente, TextoAgente>;
 
 const porPlan = Object.fromEntries(
-  PLANES.map((p) => [p.id, { nivel: p.nivel, precio: p.precio, resumen: p.resumen, incluye: p.incluye }]),
+  PLANES.map((p) => [p.id, { nivel: p.nivel, precio: p.precio, resumen: p.resumen, incluye: p.incluye, uso: p.uso }]),
 ) as Record<IdPlan, TextoPlan>;
 
 const pregunta = (inicio: string) => PREGUNTAS.filter((q) => q.p.startsWith(inicio));
@@ -46,7 +46,7 @@ export const es = {
     descripcionInicio:
       "Lola contesta tu WhatsApp y agenda citas, Clara ordena tu correo, Víctor trae de regreso a tus clientes e Iris lleva el trabajo de oficina. Agentes de IA para negocios que atienden personas.",
     agentes: ["Agentes", "Lola, Clara, Víctor e Iris: qué hace cada agente de Atendel, cómo habla y en qué plan viene."],
-    precios: ["Precios", "Atendel Free es gratis y trae a Clara, tu agente de correo. One suma a Lola; Max, a los cuatro agentes."],
+    precios: ["Precios", "Atendel Free es gratis y trae a Clara, tu agente de correo. One y Max traen a los cuatro agentes; Max, con 5 veces el uso de One."],
     preguntas: [
       "Posibles preguntas",
       "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
@@ -317,11 +317,11 @@ export const es = {
     etiqueta: "Precios · Free, One y Max",
     titulo: "Empieza gratis. Crece cuando tu negocio lo pida.",
     intro:
-      "Free para conocer a Clara, tu agente de correo. One para sumar a Lola en la atención por WhatsApp y citas. Max para tener a los cuatro.",
+      "Free para conocer a Clara, tu agente de correo. One y Max traen a los cuatro agentes y todo lo demás: Max, con 5 veces el uso de One.",
     planes: "Planes",
     compararEtiqueta: "Comparación",
     compararTitulo: "Quién trabaja contigo en cada plan",
-    compararTexto: "Cada plan suma agentes y mensajes. Clara está en todos; Lola llega con One; Víctor e Iris, con Max.",
+    compararTexto: "Clara está en todos los planes. One y Max traen a los cuatro agentes y lo mismo; lo único que cambia es el uso: Max tiene 5 veces el de One.",
     antes: "Antes de decidir",
     preguntasTitulo: "Preguntas sobre los planes",
     cierreTitulo: "Pruébalos antes de decidir.",
@@ -337,7 +337,7 @@ export const es = {
     noIncluido: "No incluido",
     agentes: "Agentes",
     enElChat: "En el chat",
-    mensajesMes: "Mensajes al mes",
+    uso: "Uso del chat",
     funciones: ["Chats en grupo con tus agentes", "Eliges quién está en tu equipo", "Respuestas más elaboradas"],
   },
 
@@ -368,8 +368,8 @@ export const es = {
           },
           { p: "¿Necesito tarjeta para empezar?", r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo." },
           {
-            p: "¿Qué pasa si se me acaban los mensajes?",
-            r: "El chat te avisa que llegaste a los mensajes del mes (30 en Free, 600 en One y 3,000 en Max) y deja de enviar hasta el mes siguiente, cuando el conteo empieza de nuevo.",
+            p: "¿Cómo se mide el uso?",
+            r: "Como en Claude: no contamos mensajes, medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. Max tiene 5 veces el uso de One.",
           },
           {
             p: "¿Cómo cambio de plan?",
@@ -377,7 +377,7 @@ export const es = {
           },
           {
             p: "¿Puedo elegir qué agentes uso?",
-            r: "Sí, con Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
+            r: "Sí, con One o Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
           },
         ],
       },

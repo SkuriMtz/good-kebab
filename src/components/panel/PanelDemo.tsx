@@ -30,6 +30,7 @@ import { PEDIDOS, esArea } from "./pedidos";
 import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
 import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
+import { usoDeEjemplo } from "@/lib/uso-estado";
 
 /* =====================================================================
    /pruebalo: el mismo panel con DATOS DE EJEMPLO de un negocio inventado
@@ -42,6 +43,8 @@ import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
 
 const VISTAS = ["agentes", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
+/** El uso de ejemplo de Estudio Luna (sesión al 18 %, semana al 43 %). */
+const USO_DEMO = usoDeEjemplo(PLAN.limite);
 
 function claveDe(url: URL) {
   const v = url.searchParams.get("vista");
@@ -306,7 +309,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           nombre: DEMO_USUARIA.nombre,
           correo: DEMO_USUARIA.correo,
           negocio: "Estudio Luna",
-          plan: { id: PLAN.id, nombre: PLAN.nombre, usados: DEMO_NEGOCIO.mensajesUsados, total: PLAN.mensajesMes, agentes: PLAN.agentes },
+          plan: { id: PLAN.id, nombre: PLAN.nombre, uso: USO_DEMO, agentes: PLAN.agentes },
           activos: ["lola", "clara", "victor", "iris"],
           gmail: true,
           conectadas: ["google_calendar"],

@@ -76,7 +76,7 @@ export const en: Diccionario = {
     descripcionInicio:
       "Lola answers your WhatsApp and books appointments, Clara organizes your email, Víctor brings your clients back and Iris handles the office work. AI agents for businesses that serve people.",
     agentes: ["Agents", "Lola, Clara, Víctor and Iris: what each Atendel agent does, how they talk and which plan includes them."],
-    precios: ["Pricing", "Atendel Free is free and comes with Clara, your email agent. One adds Lola; Max, all four agents."],
+    precios: ["Pricing", "Atendel Free is free and comes with Clara, your email agent. One and Max come with all four agents; Max, with 5 times the usage of One."],
     preguntas: [
       "Questions you might have",
       "How to get started, what each plan includes, how the agents work with your clients and how we protect your data.",
@@ -480,18 +480,21 @@ export const en: Diccionario = {
       nivel: "Free",
       precio: "$0",
       resumen: "Get to know Atendel with your email agent.",
-      incluye: ["Clara, your email agent", "30 chat messages a month", "Email summaries"],
+      incluye: ["Clara, your email agent", "Usage to try it out", "Email summaries"],
+      uso: "To try it out",
     },
     one: {
-      nivel: "Mid",
+      nivel: "Complete",
       precio: null,
-      resumen: "Your email and your client service.",
+      resumen: "The whole team, for your day to day.",
       incluye: [
-        "Clara, your email agent",
-        "Lola, your front desk agent: WhatsApp and appointments",
+        "All 4 agents: Front desk, Email, Clients and Office",
+        "You choose who's on your team",
         "Group chats with your agents",
-        "600 chat messages a month",
+        "More thorough answers",
+        "Usage for your day to day",
       ],
+      uso: "Standard usage",
     },
     max: {
       nivel: "Complete",
@@ -501,9 +504,10 @@ export const en: Diccionario = {
         "All 4 agents: Front desk, Email, Clients and Office",
         "You choose who's on your team",
         "Group chats with your agents",
-        "3,000 chat messages a month",
         "More thorough answers",
+        "5 times the usage of One",
       ],
+      uso: "5 times the usage of One",
     },
   },
   tarjetasPlanes: {
@@ -524,11 +528,11 @@ export const en: Diccionario = {
   paginaPrecios: {
     etiqueta: "Pricing · Free, One and Max",
     titulo: "Start for free. Grow when your business needs it.",
-    intro: "Free to get to know Clara, your email agent. One to add Lola for WhatsApp and appointments. Max to have all four.",
+    intro: "Free to get to know Clara, your email agent. One and Max come with all four agents and everything else: Max, with 5 times the usage of One.",
     planes: "Plans",
     compararEtiqueta: "Comparison",
     compararTitulo: "Who works with you on each plan",
-    compararTexto: "Each plan adds agents and messages. Clara is on all of them; Lola comes with One; Víctor and Iris, with Max.",
+    compararTexto: "Clara is on every plan. One and Max come with all four agents and the same features; the only difference is usage: Max has 5 times that of One.",
     antes: "Before you decide",
     preguntasTitulo: "Questions about the plans",
     cierreTitulo: "Try them before you decide.",
@@ -544,7 +548,7 @@ export const en: Diccionario = {
     noIncluido: "Not included",
     agentes: "Agents",
     enElChat: "In the chat",
-    mensajesMes: "Messages per month",
+    uso: "Chat usage",
     funciones: ["Group chats with your agents", "You choose who's on your team", "More thorough answers"],
   },
 
@@ -586,7 +590,7 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "What does each plan include?",
-            r: "With Free you work with Clara, your email agent, and get a few messages a month. One adds Lola, your front desk agent for WhatsApp and appointments. Max unlocks all four agents: you choose who's on your team, with many more messages and more thorough answers.",
+            r: "With Free you work with Clara, your email agent, with enough usage to try it out. One and Max come with all four agents: you choose who's on your team, with group chats and more thorough answers. The only difference is usage: Max has 5 times that of One.",
           },
           {
             p: "How much does it cost?",
@@ -594,8 +598,8 @@ export const en: Diccionario = {
           },
           { p: "Do I need a card to start?", r: "No. You sign in with your email, no password, and start working with Clara, your email agent." },
           {
-            p: "What happens if I run out of messages?",
-            r: "The chat lets you know you've reached your messages for the month (30 on Free, 600 on One and 3,000 on Max) and stops sending until next month, when the count starts over.",
+            p: "How is usage measured?",
+            r: "Like Claude: we don't count messages, we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
           },
           {
             p: "How do I change plans?",
@@ -603,7 +607,7 @@ export const en: Diccionario = {
           },
           {
             p: "Can I choose which agents I use?",
-            r: "Yes, with Max: in your dashboard, under My agents, you decide who's on your team: Lola, Clara, Víctor and Iris.",
+            r: "Yes, with One or Max: in your dashboard, under My agents, you decide who's on your team: Lola, Clara, Víctor and Iris.",
           },
         ],
       },

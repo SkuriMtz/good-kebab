@@ -4,6 +4,7 @@ import { ArmazonReal } from "@/components/panel/ArmazonReal";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { limpiarAjustes } from "@/lib/ajustes";
 import { ORGANIZACION_VACIA, limpiarOrganizacion } from "@/lib/organizacion-chats";
+import { leerUso } from "@/lib/uso";
 import { cargarCuenta } from "@/lib/cuenta";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
@@ -29,6 +30,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   const proveedores = (user.app_metadata?.providers as string[] | undefined) ?? [];
   const conGoogle = proveedores.includes("google");
   const cuenta = await cargarCuenta(supabase, user.id);
+  // El uso del plan (sesión de 5 horas y semana), para Ajustes > Uso
+  const uso = await leerUso(supabase, user.id, cuenta.plan);
 
   const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }] = await Promise.all([
     supabase
@@ -83,8 +86,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         ajustes: limpiarAjustes(filaAjustes?.datos),
         correo: user.email ?? "",
         plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),
-        usados: cuenta.usados,
-        total: cuenta.plan.mensajesMes,
+        uso,
         gmail: conGoogle,
         activos: cuenta.activos,
         pendientes: pendientes.total,

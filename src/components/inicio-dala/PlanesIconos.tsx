@@ -23,9 +23,9 @@ function renglones() {
   const nombre = (p: Plan) => p.nombre.replace("Atendel ", "");
   const [free, one, max] = PLANES;
   return [
-    { id: "free", nombre: nombre(free), sub: `${free.precio ?? "Próximamente"} · ${agentesDe(free)} · ${free.mensajesMes} mensajes al mes`, color: "#ffb829" },
+    { id: "free", nombre: nombre(free), sub: `${free.precio ?? "Próximamente"} · ${agentesDe(free)} · ${free.uso}`, color: "#ffb829" },
     { id: "one", nombre: nombre(one), sub: `${one.precio ?? "Próximamente"} · ${agentesDe(one)}`, color: "#1a9a86" },
-    { id: "max", nombre: nombre(max), sub: `${max.precio ?? "Próximamente"} · ${agentesDe(max)}`, color: "#ffb829" },
+    { id: "max", nombre: nombre(max), sub: `${max.precio ?? "Próximamente"} · ${agentesDe(max)} · ${max.uso}`, color: "#ffb829" },
     { id: "cuando-sale", nombre: "Cuándo sale", sub: "Free ya está abierto; One y Max por etapas", color: "#a078fe" },
   ];
 }

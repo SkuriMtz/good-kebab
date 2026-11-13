@@ -6,6 +6,8 @@ import { cargarNegocio } from "@/lib/estadisticas-negocio";
 import { ESQUEMA, INSTRUCCIONES, MAX_PREGUNTA, datosParaIA, esIdGrafica, type RespuestaGrafica } from "@/lib/pregunta-grafica";
 import { resumirNegocio } from "@/lib/resumen-negocio";
 import { createClient } from "@/lib/supabase/server";
+import { Gasto, leerUso, registrarUso } from "@/lib/uso";
+import { mensajeLimite } from "@/lib/uso-estado";
 
 /**
  * PREGUNTARLE A LA GRÁFICA (panel de información > Resumen)
@@ -42,9 +44,9 @@ export async function POST(req: NextRequest) {
   const periodo = periodoDe(body.periodo);
 
   const cuenta = await cargarCuenta(supabase, user.id);
-  if (cuenta.usados >= cuenta.plan.mensajesMes) {
-    return error(`Llegaste a los ${cuenta.plan.mensajesMes} mensajes de este mes de ${cuenta.plan.nombre}.`, 429);
-  }
+  // El límite de uso del plan (el mismo del chat: sesión de 5 horas y semana)
+  const limite = mensajeLimite(await leerUso(supabase, user.id, cuenta.plan));
+  if (limite) return error(limite, 429);
   if (!process.env.ANTHROPIC_API_KEY) return error("La IA todavía no está configurada.", 503);
 
   let datos;
@@ -73,12 +75,16 @@ export async function POST(req: NextRequest) {
             betas: ["server-side-fallback-2026-07-01"],
             fallbacks: "default",
           });
+    // Lo que costó cuenta para el límite, aunque la respuesta no sirva
+    const gasto = new Gasto();
+    gasto.sumar(respuesta, cuenta.plan.modelo);
+    await registrarUso(supabase, gasto, "pregunta");
     if (respuesta.stop_reason === "refusal" || respuesta.stop_reason === "max_tokens") return error("La IA no pudo contestar esa pregunta.", 502);
     const texto = respuesta.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
     const salida = JSON.parse(texto) as { grafica?: unknown; respuesta?: unknown };
     if (!esIdGrafica(salida.grafica) || typeof salida.respuesta !== "string" || !salida.respuesta.trim()) return error("La IA no pudo contestar esa pregunta.", 502);
 
-    // Cuenta como un mensaje del mes (como el chat)
+    // Cuenta como un mensaje (para las estadísticas, como el chat)
     await supabase.rpc("sumar_mensaje");
     const resultado: RespuestaGrafica = { grafica: salida.grafica, texto: salida.respuesta.trim().slice(0, 600), fuente: "ia" };
     return NextResponse.json(resultado, { headers: { "Cache-Control": "private, no-store" } });

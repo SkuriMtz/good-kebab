@@ -5,7 +5,7 @@ import { PLANES } from "@/lib/planes";
 
 // Lo que cuesta empezar: sale de los datos reales del plan Free
 const FREE = PLANES.find((p) => p.id === "free")!;
-const REGISTRO = [[FREE.nombre, FREE.precio].filter(Boolean).join(" · "), `${FREE.mensajesMes} mensajes al mes`, "Entras con tu correo"];
+const REGISTRO = [[FREE.nombre, FREE.precio].filter(Boolean).join(" · "), FREE.uso, "Entras con tu correo"];
 
 const { lola, clara, victor, iris } = AGENTE_POR_ID;
 

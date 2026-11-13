@@ -688,7 +688,7 @@ export async function cargarEstadisticas(
     mensajes: mensajes.filas,
     conversaciones: conversaciones.filas,
     resumenes: resumenes.filas,
-    plan: { id: c.plan.id, nombre: c.plan.nombre, limite: c.plan.mensajesMes },
+    plan: { id: c.plan.id, nombre: c.plan.nombre, limite: 0 /* el límite ya no es de mensajes: es de uso (src/lib/uso.ts) */ },
     usados: c.usados,
     activos: c.activos,
     recortado: mensajes.recortado || resumenes.recortado,

@@ -1,23 +1,37 @@
 import { IDS_AGENTES, type IdAgente } from "./agentes";
 
 /**
- * Los planes de Atendel. Los límites de mensajes y los precios son
- * provisionales: cámbialos aquí y se actualizan en toda la app.
+ * Los planes de Atendel. One y Max traen lo mismo (los 4 agentes, el mismo
+ * modelo y las mismas funciones); lo único que cambia es cuánto uso traen:
+ * Max, 5 veces el de One. Free es para probar, con Clara.
+ *
+ * El uso es un límite como el de Claude, no un número de mensajes: se mide
+ * lo que de verdad cuesta cada respuesta de la IA (tokens de entrada y de
+ * salida por el precio de su modelo, ver src/lib/uso.ts). Un mensaje corto
+ * gasta poco; uno largo, una conversación larga, documentos o apps
+ * consultadas gastan más. Hay dos ventanas, como en Claude: una sesión de
+ * 5 horas (empieza con tu primer mensaje) y la semana (se reinicia el lunes).
+ * Los límites y los precios son provisionales: cámbialos aquí.
  */
 
 export type IdPlan = "free" | "one" | "max";
 
+/** Cuánto se puede gastar en cada ventana, en micro-dólares de costo real (1,000,000 = 1 USD). */
+export type LimiteUso = { sesion: number; semana: number };
+
 export type Plan = {
   id: IdPlan;
   nombre: string;
-  /** Qué tan completo es: Gratis, Medio o Completo. */
+  /** Qué tan completo es: Gratis o Completo. */
   nivel: string;
   /** null = todavía sin precio publicado */
   precio: string | null;
   resumen: string;
   incluye: string[];
-  /** Mensajes al mes con los agentes en el chat. */
-  mensajesMes: number;
+  /** El límite de uso de la IA en el chat (por sesión de 5 horas y por semana). */
+  limite: LimiteUso;
+  /** Cómo se dice su uso en las páginas: "Para probar", "Uso estándar", "5 veces el uso de One". */
+  uso: string;
   /** Agentes que se pueden usar con este plan. */
   agentes: readonly IdAgente[];
   /** Modelo de Claude que contesta en este plan. */
@@ -26,6 +40,21 @@ export type Plan = {
   esfuerzo: "low" | "medium";
 };
 
+/** Las horas de la sesión, como en Claude. */
+export const HORAS_SESION = 5;
+
+/**
+ * Los límites, en micro-dólares de costo de la IA. Con un mensaje típico
+ * (~$0.01 en Free con Haiku; ~$0.05 a $0.10 en One y Max con Opus):
+ *   Free: sesión $0.06 (~6 mensajes), semana $0.15 (~15).
+ *   One:  sesión $2 (~20 a 40 mensajes), semana $9 (~90 a 180).
+ *   Max:  5 veces One: sesión $10, semana $45.
+ * Lo más que puede costar la IA de una cuenta al mes (usándola al tope cada
+ * semana): Free ~$0.65, One ~$39, Max ~$196 USD.
+ */
+const ONE: LimiteUso = { sesion: 2_000_000, semana: 9_000_000 };
+const VECES_MAX = 5;
+
 export const PLANES: Plan[] = [
   {
     id: "free",
@@ -33,8 +62,9 @@ export const PLANES: Plan[] = [
     nivel: "Gratis",
     precio: "Gratis",
     resumen: "Para conocer Atendel con tu agente de correo.",
-    incluye: ["Clara, tu agente de correo", "30 mensajes al mes en el chat", "Resúmenes de correo"],
-    mensajesMes: 30,
+    incluye: ["Clara, tu agente de correo", "Uso para probarlo", "Resúmenes de correo"],
+    limite: { sesion: 60_000, semana: 150_000 },
+    uso: "Para probar",
     agentes: ["clara"],
     // El plan gratis usa el modelo más económico
     modelo: "claude-haiku-4-5",
@@ -43,19 +73,21 @@ export const PLANES: Plan[] = [
   {
     id: "one",
     nombre: "Atendel One",
-    nivel: "Medio",
+    nivel: "Completo",
     precio: null,
-    resumen: "Tu correo y tu atención a clientes.",
+    resumen: "Todo el equipo, para tu día a día.",
     incluye: [
-      "Clara, tu agente de correo",
-      "Lola, tu agente de atención: WhatsApp y citas",
+      "Los 4 agentes: Atención, Correo, Clientes y Oficina",
+      "Eliges quién está en tu equipo",
       "Chats en grupo con tus agentes",
-      "600 mensajes al mes en el chat",
+      "Respuestas más elaboradas",
+      "Uso para el día a día",
     ],
-    mensajesMes: 600,
-    agentes: ["clara", "lola"],
+    limite: ONE,
+    uso: "Uso estándar",
+    agentes: IDS_AGENTES,
     modelo: "claude-opus-5-5",
-    esfuerzo: "low",
+    esfuerzo: "medium",
   },
   {
     id: "max",
@@ -67,10 +99,11 @@ export const PLANES: Plan[] = [
       "Los 4 agentes: Atención, Correo, Clientes y Oficina",
       "Eliges quién está en tu equipo",
       "Chats en grupo con tus agentes",
-      "3,000 mensajes al mes en el chat",
       "Respuestas más elaboradas",
+      "5 veces el uso de One",
     ],
-    mensajesMes: 3000,
+    limite: { sesion: ONE.sesion * VECES_MAX, semana: ONE.semana * VECES_MAX },
+    uso: "5 veces el uso de One",
     agentes: IDS_AGENTES,
     modelo: "claude-opus-5-5",
     esfuerzo: "medium",

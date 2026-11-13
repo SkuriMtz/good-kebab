@@ -10,6 +10,8 @@ import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { planMinimo } from "@/lib/planes";
+import { Gasto, leerUso, registrarUso } from "@/lib/uso";
+import { bloqueoConHora } from "@/lib/uso-estado";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
 import { herramientasDelChat, instruccionesHerramientas } from "@/lib/herramientas/preparar";
@@ -110,12 +112,9 @@ export async function POST(request: NextRequest) {
       403,
     );
   }
-  if (cuenta.usados >= cuenta.plan.mensajesMes) {
-    return error(
-      `Llegaste a los ${cuenta.plan.mensajesMes} mensajes de este mes de ${cuenta.plan.nombre}.`,
-      429,
-    );
-  }
+  // El límite de uso del plan (como Claude: sesión de 5 horas y semana)
+  const limite = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
+  if (limite) return NextResponse.json({ error: limite.texto, hasta: limite.hasta }, { status: 429 });
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return error("La IA todavía no está configurada: falta la llave de Anthropic (ANTHROPIC_API_KEY) en Vercel.", 503);
@@ -154,7 +153,7 @@ export async function POST(request: NextRequest) {
     idConversacion = nueva.id as string;
   }
 
-  // 5. Guardar el mensaje y contarlo en el uso del mes
+  // 5. Guardar el mensaje y contarlo (para las estadísticas; el límite lo pone el uso real)
   const { error: errMensaje } = await supabase
     .from("mensajes")
     .insert({ conversacion_id: idConversacion, owner_id: user.id, rol: "user", contenido: mensaje });
@@ -195,6 +194,8 @@ export async function POST(request: NextRequest) {
     },
     async start(controller) {
       let respuesta = "";
+      // Lo que de verdad cuesta esta respuesta (todas sus rondas): cuenta para el límite del plan
+      const gasto = new Gasto();
       // Si la persona detiene la respuesta, el flujo se cierra: ya no se escribe en él
       const enviar = (texto: string) => {
         try {
@@ -241,6 +242,7 @@ export async function POST(request: NextRequest) {
           alFlujo: (f) => {
             flujo = f;
           },
+          alUso: (m) => gasto.sumar(m, cuenta.plan.modelo),
           senal: corte.signal,
         });
         if (final?.stop_reason === "refusal" && !respuesta) {
@@ -254,6 +256,7 @@ export async function POST(request: NextRequest) {
         else if (e instanceof Anthropic.BadRequestError) texto = "La IA rechazó la petición. Revisa el saldo de Anthropic.";
         enviar(MARCA_ERROR + texto);
       } finally {
+        await registrarUso(supabase, gasto, "chat");
         if (respuesta.trim()) {
           // En grupo, cada intervención se guarda como mensaje de su agente
           const piezas = grupo ? partirIntervenciones(respuesta, grupo).filter((p) => p.texto) : [{ agente, texto: respuesta }];

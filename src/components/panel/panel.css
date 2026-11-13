@@ -8265,3 +8265,9 @@ a.pc-correo__accion:hover {
     grid-row: 1;
   }
 }
+/* Los subtítulos de Uso ("Límite semanal", "Documentos"), como "Weekly limits" en Claude */
+.pc .pc-aj-limites__sub {
+  margin: 22px 0 2px;
+  color: var(--pc-texto);
+  font: 500 15px/1.3 var(--pc-sans);
+}
