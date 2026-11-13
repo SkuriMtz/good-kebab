@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { datosNegocioEjemplo } from "@/components/dashboard/estadisticas-negocio/ejemplo";
-import { AGENTES_INFO, esIdAgente } from "@/lib/agentes";
+import { AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { DEMO_APROBACIONES, DEMO_NEGOCIO, DEMO_USUARIA } from "@/lib/demo-dashboard";
 import { AJUSTES_INICIALES } from "@/lib/ajustes";
 import type { CampoPerfil } from "@/lib/nucleo-tipos";
@@ -26,7 +26,7 @@ import { ActividadDemo } from "./Actividad";
 import { Hecho } from "./Hecho";
 import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
-import { ConversacionDemo, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
+import { ConversacionDemo, EVENTO_PENDIENTE_DEMO, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
 import { nombresDe } from "./Mensajes";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { ContextoNavegar, Enlace } from "./Piezas";
@@ -63,6 +63,16 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const router = useRouter();
   const guion = useGuion();
   const [tablero, setTablero] = useState(() => tableroInicial(DEMO_APROBACIONES));
+  // Lo que un agente deja en Pendientes desde el chat de ejemplo (un envío por aprobar)
+  useEffect(() => {
+    const llega = (e: Event) => {
+      const p = (e as CustomEvent<{ id: string; agente: IdAgente; titulo: string; para: string; texto: string; nota: string }>).detail;
+      if (!p) return;
+      setTablero((t) => (t.some((i) => i.id === p.id) ? t : [{ ...p, columna: "revisar" as const, hace: "ahora", movible: true }, ...t]));
+    };
+    window.addEventListener(EVENTO_PENDIENTE_DEMO, llega);
+    return () => window.removeEventListener(EVENTO_PENDIENTE_DEMO, llega);
+  }, []);
   const [citasExtra, setCitasExtra] = useState<CitaDemo[]>([]);
 
   const vista = params.get("vista");
@@ -266,6 +276,11 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           activos: ["lola", "clara", "victor", "iris"],
           gmail: true,
           conectadas: ["google_calendar"],
+          // Ejemplo: números de prueba, no son de nadie
+          contactos: [
+            { id: "demo-luis", nombre: "Luis", rol: "Recepción", whatsapp: "+525500000001" },
+            { id: "demo-sofia", nombre: "Sofía", rol: "Encargada", whatsapp: "+525500000002" },
+          ],
           ajustes: {
             ...AJUSTES_INICIALES,
             instrucciones: "Háblales de tú y con calidez. Mensajes cortos, sin emojis. Si preguntan precio, dáselo y ofrece agendar.",

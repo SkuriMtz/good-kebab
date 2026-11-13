@@ -5,6 +5,7 @@ import { Texto } from "@/components/Texto";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { Tarjeta } from "@/components/chat/Piezas";
+import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 
 /*
@@ -268,6 +269,7 @@ export function TarjetaTrabajo({ tarjeta, aprobable = false }: { tarjeta: Tarjet
         </dl>
       ) : null}
       {tarjeta.cita ? <blockquote className="pc-trabajo__cita">{tarjeta.cita}</blockquote> : null}
+      {tarjeta.presentacion ? <DescargarPresentacion datos={tarjeta.presentacion} nombre={tarjeta.datos?.find(([k]) => k === "Archivo")?.[1] ?? "Presentacion.pptx"} /> : null}
       {aprobable && tarjeta.tipo === "programado" && !aprobado ? (
         <div className="pc-trabajo__acciones">
           <button type="button" className="pc-boton pc-boton--principal pc-boton--chico" onClick={() => setAprobado(true)}>
@@ -275,6 +277,40 @@ export function TarjetaTrabajo({ tarjeta, aprobable = false }: { tarjeta: Tarjet
           </button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** /pruebalo: arma la presentación de ejemplo en el navegador (la misma librería del panel) y la descarga. */
+function DescargarPresentacion({ datos, nombre }: { datos: DatosPresentacion; nombre: string }) {
+  const [armando, setArmando] = useState(false);
+  return (
+    <div className="pc-trabajo__acciones">
+      <button
+        type="button"
+        className="pc-boton pc-boton--borde pc-boton--chico"
+        disabled={armando}
+        onClick={async () => {
+          setArmando(true);
+          try {
+            const { generarPresentacion, TIPO_PPTX } = await import("@/lib/archivos/presentacion");
+            const bytes = await generarPresentacion(datos);
+            const url = URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>], { type: TIPO_PPTX }));
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = nombre;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+          } finally {
+            setArmando(false);
+          }
+        }}
+      >
+        <Icono nombre="documento" tam={15} />
+        {armando ? "Armando…" : "Descargar"}
+      </button>
     </div>
   );
 }

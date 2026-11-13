@@ -6,6 +6,7 @@ import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
 import type { DatosAjustes } from "./Ajustes";
 import type { AjustesCuenta } from "@/lib/ajustes";
+import type { ContactoEquipo } from "@/lib/equipo";
 import type { Periodo } from "@/lib/estadisticas";
 import type { ResumenInfo } from "@/lib/resumen-negocio";
 import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafica";
@@ -26,6 +27,8 @@ export type DatosArmazonReal = {
   planAgentes: IdAgente[];
   /** Las apps conectadas (IdApp). */
   conectadas: string[];
+  /** Ajustes > Equipo. */
+  contactos: ContactoEquipo[];
   ajustes: AjustesCuenta;
   correo: string;
   /** "Free", "One" o "Max". */
@@ -147,6 +150,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     activos: datos.activos,
     gmail: datos.gmail,
     conectadas: datos.conectadas,
+    contactos: datos.contactos,
     ajustes: datos.ajustes,
     hrefs: { agentes: "/panel/agentes", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
     salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
@@ -159,6 +163,17 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         if (e) return "No se pudo guardar tu equipo. Intenta de nuevo.";
         router.refresh();
         return null;
+      },
+      contactos: {
+        agregar: async (c) => {
+          const { data, error: e } = await createClient().from("equipo_contactos").insert({ owner_id: datos.userId, ...c }).select("id, nombre, rol, whatsapp").single();
+          if (e || !data) return "No se pudo agregar a esa persona. Intenta de nuevo.";
+          return { id: String(data.id), nombre: String(data.nombre), rol: String(data.rol ?? ""), whatsapp: String(data.whatsapp) };
+        },
+        quitar: async (id) => {
+          const { error: e } = await createClient().from("equipo_contactos").delete().eq("id", id).eq("owner_id", datos.userId);
+          return e ? "No se pudo quitar. Intenta de nuevo." : null;
+        },
       },
       nombre: async (nombre) => {
         const { error: e } = await createClient().auth.updateUser({ data: { full_name: nombre } });

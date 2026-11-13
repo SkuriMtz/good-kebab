@@ -17,6 +17,8 @@ import { createClient } from "./supabase/server";
  */
 
 export type CorreoPendiente = { id: string; remitente: string | null; asunto: string | null; accion_sugerida: string; creado_en: string };
+/** Un envío que dejó un agente (proponer_envio_whatsapp) y espera tu visto bueno. */
+export type EnvioPendiente = { id: string; agente: string | null; destinatarios: { nombre: string }[]; mensaje: string; archivo: string | null; creado_en: string };
 
 export type Pendientes = {
   /** Correos con una acción sugerida (exacto). null si no se pudo leer. */
@@ -25,9 +27,11 @@ export type Pendientes = {
   lista: CorreoPendiente[];
   /** Los primeros pasos que faltan. */
   pasos: PasoPanel[];
+  /** Los envíos por WhatsApp que esperan tu visto bueno. */
+  envios: EnvioPendiente[];
   /** Todos los pasos (para el círculo de avance). */
   todosLosPasos: PasoPanel[];
-  /** correos + pasos; null si no se pudieron leer los correos. */
+  /** correos + pasos + envíos; null si no se pudieron leer los correos. */
   total: number | null;
 };
 
@@ -43,7 +47,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
   const ids = await negociosDe(supabase, userId);
 
   // El mismo filtro para contar y para listar: no nula, no vacía y que no empiece con "ninguna"
-  const [cuenta, correos, conversaciones, grupos, perfil, apps] = await Promise.all([
+  const [cuenta, correos, conversaciones, grupos, perfil, apps, envios] = await Promise.all([
     supabase
       .from("resumenes_correo")
       .select("id", { count: "exact", head: true })
@@ -68,7 +72,23 @@ export const cargarPendientes = cache(async function cargarPendientes(
     // Tu negocio (migración 0006): el perfil y las apps conectadas. Si la tabla aún no existe, el paso sale por hacer
     supabase.from("perfil_negocio").select(CAMPOS_PERFIL.join(", ")).eq("owner_id", userId).maybeSingle(),
     supabase.from("conexiones").select("proveedor", { count: "exact", head: true }).eq("owner_id", userId).eq("estado", "activa"),
+    // Los envíos que dejó un agente (migración 0009); si la tabla aún no existe, no hay
+    supabase.from("envios").select("id, agente, destinatarios, mensaje, creado_en, archivos(nombre)").eq("owner_id", userId).eq("estado", "por_aprobar").order("creado_en", { ascending: false }).limit(20),
   ]);
+  const listaEnvios: EnvioPendiente[] = envios.error
+    ? []
+    : (envios.data ?? []).map((e) => {
+        const arch = (e as { archivos?: { nombre?: string } | { nombre?: string }[] | null }).archivos;
+        const nombreArch = Array.isArray(arch) ? arch[0]?.nombre : arch?.nombre;
+        return {
+          id: String(e.id),
+          agente: (e.agente as string | null) ?? null,
+          destinatarios: Array.isArray(e.destinatarios) ? (e.destinatarios as { nombre?: unknown }[]).map((d) => ({ nombre: typeof d?.nombre === "string" ? d.nombre : "" })) : [],
+          mensaje: String(e.mensaje ?? ""),
+          archivo: nombreArch ?? null,
+          creado_en: String(e.creado_en),
+        };
+      });
   const filaPerfil = (perfil.error ? null : perfil.data) as Record<string, unknown> | null;
   const camposPerfil = CAMPOS_PERFIL.filter((c) => typeof filaPerfil?.[c] === "string" && (filaPerfil[c] as string).trim().length > 0).length;
 
@@ -88,8 +108,9 @@ export const cargarPendientes = cache(async function cargarPendientes(
     correos: n,
     lista: correos.error ? [] : ((correos.data ?? []) as CorreoPendiente[]),
     pasos,
+    envios: listaEnvios,
     todosLosPasos,
-    total: n === null ? null : n + pasos.length,
+    total: n === null ? null : n + pasos.length + listaEnvios.length,
   };
 });
 

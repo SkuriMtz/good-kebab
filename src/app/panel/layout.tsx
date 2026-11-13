@@ -29,7 +29,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   const conGoogle = proveedores.includes("google");
   const cuenta = await cargarCuenta(supabase, user.id);
 
-  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }] = await Promise.all([
+  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }] = await Promise.all([
     supabase
       .from("conversaciones")
       .select("id, agente, titulo, tema, participantes, actualizado_en")
@@ -42,6 +42,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
     // Ajustes > Conexiones: qué apps están conectadas (sin tokens)
     supabase.from("conexiones").select("apps, estado").eq("owner_id", user.id),
+    // Ajustes > Equipo: las personas del negocio y su WhatsApp (migración 0009)
+    supabase.from("equipo_contactos").select("id, nombre, rol, whatsapp").eq("owner_id", user.id).order("creado_en"),
   ]);
   const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
 
@@ -74,6 +76,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         planId: cuenta.plan.id,
         planAgentes: [...cuenta.plan.agentes],
         conectadas,
+        contactos: (contactos ?? []).map((c) => ({ id: String(c.id), nombre: String(c.nombre), rol: String(c.rol ?? ""), whatsapp: String(c.whatsapp) })),
         ajustes: limpiarAjustes(filaAjustes?.datos),
         correo: user.email ?? "",
         plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),

@@ -356,7 +356,74 @@ function vistaPrevia(c: Conversacion, mensajes: Mensaje[]) {
   return c.agentes.length > 1 ? `${AGENTE_POR_ID[u.de].nombre}: ${plano}` : plano;
 }
 
-export type Turno = { agente: IdAgente; texto: string; tarjeta?: Tarjeta; recibe?: IdAgente };
+export type Turno = {
+  agente: IdAgente;
+  texto: string;
+  tarjeta?: Tarjeta;
+  recibe?: IdAgente;
+  /** /pruebalo: lo que este turno deja en Pendientes (un envío por aprobar). */
+  pendiente?: { id: string; agente: IdAgente; titulo: string; para: string; texto: string; nota: string };
+};
+
+/** El equipo de ejemplo de Estudio Luna (el mismo de Ajustes > Equipo en /pruebalo). */
+const EQUIPO_EJEMPLO = "Luis y Sofía";
+
+/** "haz la presentación de “ejemplo” y mándasela al equipo por WhatsApp": Iris la arma y Lola deja el envío en Pendientes. */
+function presentacionYEnvio(texto: string, miembros: readonly IdAgente[]): Turno[] | null {
+  const plano = sinAcentos(texto);
+  const presentacion = /presentaci|diapositiva|power ?point|pptx/.test(plano);
+  const envio = /whats|manda|envia|comparte|pasale|pasaselo|mandaselo|mandasela/.test(plano) && /equipo|todos|luis|sofia|whats/.test(plano);
+  if (!presentacion && !envio) return null;
+  const hace = (a: IdAgente) => (miembros.includes(a) ? a : miembros[0]);
+  const turnos: Turno[] = [];
+  let archivo = "";
+  if (presentacion) {
+    const m = /presentaci[oó]n\s+(?:de\s+|del\s+|sobre\s+|para\s+)?["“«']?([^"”»'\n.,;]{2,40})/i.exec(texto);
+    const nombre = (m?.[1] ?? "").replace(/\s+y\s+(m[aá]nd|env|comp|p[aá]s).*$/i, "").replace(/["”»']/g, "").trim();
+    const titulo = nombre && !/^(el|la|los|las|un|una)$/i.test(nombre) ? nombre.charAt(0).toUpperCase() + nombre.slice(1) : "Estudio Luna";
+    archivo = `${titulo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9 ]+/g, " ").trim().replace(/\s+/g, "-").slice(0, 60) || "Presentacion"}.pptx`;
+    const diapositivas = [
+      { titulo: "Quiénes somos", puntos: ["Atendemos con cita a clientes de la zona", "También vendemos productos en el local", "Te contestamos por WhatsApp a cualquier hora"] },
+      { titulo: "Servicios y precios", puntos: ["Servicio básico · $350", "Servicio completo · $600", "Paquete del mes · $1,200"] },
+      { titulo: "Horario", puntos: ["Lunes a viernes de 10:00 a 19:00", "Sábado de 10:00 a 15:00"] },
+      { titulo: "Cómo agendar", puntos: ["Escríbenos por WhatsApp", "Te confirmamos un día antes", "Aceptamos efectivo, transferencia y tarjeta"] },
+      { titulo: "Siguientes pasos", puntos: ["Revisar la presentación en equipo", "Ajustar precios del próximo mes"] },
+    ];
+    turnos.push({
+      agente: hace("iris"),
+      texto: `Listo: armé **${titulo}** en PowerPoint, con portada y ${diapositivas.length} diapositivas (quiénes somos, servicios y precios, horario, cómo agendar y siguientes pasos). Descárgala desde la tarjeta.`,
+      tarjeta: {
+        tipo: "archivo",
+        sello: "PowerPoint",
+        estado: "Listo",
+        titulo,
+        datos: [
+          ["Diapositivas", String(diapositivas.length + 1)],
+          ["Archivo", archivo],
+        ],
+        presentacion: { titulo, subtitulo: "Quiénes somos y cómo trabajamos", negocio: "Estudio Luna", diapositivas },
+      },
+    });
+  }
+  if (envio) {
+    const quien = hace("lola");
+    const mensaje = archivo ? `Hola, les comparto la presentación «${archivo.replace(/\.pptx$/, "")}». Échenle un ojo antes de la junta.` : "Hola, les comparto lo que pidió el jefe. Cualquier duda, me dicen.";
+    turnos.push({
+      agente: quien,
+      recibe: turnos.length ? quien : undefined,
+      texto: `Te dejé el envío en **Pendientes** para tu visto bueno: ${archivo ? `la presentación va` : "el mensaje va"} a **${EQUIPO_EJEMPLO}** (tu equipo) por WhatsApp. No sale nada hasta que lo apruebes.`,
+      pendiente: {
+        id: `envio-${Date.now()}`,
+        agente: quien,
+        titulo: archivo ? `Mandar «${archivo}» por WhatsApp` : "Mandar un mensaje por WhatsApp",
+        para: `A ${EQUIPO_EJEMPLO} (tu equipo)`,
+        texto: mensaje,
+        nota: "Al aprobar: se le manda a cada quien por WhatsApp",
+      },
+    });
+  }
+  return turnos;
+}
 
 /** Quién contesta y qué: una acción "/", alguien mencionado con "@", o quien habló al último. */
 export function responder(texto: string, c: Conversacion): Turno[] {
@@ -368,6 +435,8 @@ export function responder(texto: string, c: Conversacion): Turno[] {
     if (otro) turnos.push({ agente: otro, texto: COMPLEMENTO[accion.key][otro]!, recibe: otro });
     return turnos;
   }
+  const hecho = presentacionYEnvio(texto, miembros);
+  if (hecho) return hecho;
   const plano = sinAcentos(texto);
   const mencion = miembros.find((id) => plano.includes(`@${sinAcentos(AGENTE_POR_ID[id].nombre)}`));
   const anterior = [...c.mensajes].reverse().find((x) => x.de !== "tu" && x.de !== "sistema" && x.de !== "paso")?.de as

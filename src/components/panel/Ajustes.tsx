@@ -19,6 +19,7 @@ import {
   type DatosCfdi,
   type Letra,
 } from "@/lib/ajustes";
+import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
 import type { CampoPerfil } from "@/lib/nucleo-tipos";
 import { planMinimo } from "@/lib/planes";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
@@ -58,6 +59,8 @@ export type DatosAjustes = {
   negocio: string;
   plan: { id: string; nombre: string; usados: number; total: number; agentes: readonly IdAgente[] };
   activos: IdAgente[];
+  /** Tu equipo del negocio (a quién se le pueden mandar cosas por WhatsApp). */
+  contactos: ContactoEquipo[];
   gmail: boolean;
   /** Las apps conectadas (IdApp). */
   conectadas: string[];
@@ -75,6 +78,7 @@ export type DatosAjustes = {
     perfil: (cambios: Partial<Record<CampoPerfil, string>>) => Promise<string | null>;
     equipo: (agentes: IdAgente[]) => Promise<string | null>;
     nombre: (nombre: string) => Promise<string | null>;
+    contactos: { agregar: (c: Omit<ContactoEquipo, "id">) => Promise<ContactoEquipo | string>; quitar: (id: string) => Promise<string | null> };
   };
   /** En /pruebalo: los datos son de ejemplo. */
   demo?: boolean;
@@ -98,7 +102,7 @@ const PARTES: Parte[] = [
   { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
   { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris activar desactivar reglas", grupo: 1, sub: "Activa o desactiva a cada uno y dale sus reglas." },
   { id: "conexiones", etiqueta: "Conexiones", icono: "enlace", claves: "whatsapp correo gmail outlook calendario redes instagram google business apps", grupo: 1, sub: "WhatsApp, correo, calendario, redes y Google Business." },
-  { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas", grupo: 1, sub: "Invitar personas, roles y agendas." },
+  { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos silencio correo noche", grupo: 2, sub: "Qué avisos llegan, por dónde y horas de silencio." },
   { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "mensajes mes reinicia limite", grupo: 2, sub: "Cuánto llevas del plan y cuándo se reinicia." },
   { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 2, sub: "Plan, pago, facturas y datos para CFDI." },
@@ -283,6 +287,43 @@ export function VentanaAjustes({
   const [perfil, setPerfil] = useState<Partial<Record<CampoPerfil, string>> | null>(datos.perfil ?? null);
   const [cambiosPerfil, setCambiosPerfil] = useState<Partial<Record<CampoPerfil, string>>>({});
   const guardar = datos.guardar;
+  const [contactos, setContactos] = useState<ContactoEquipo[]>(datos.contactos);
+  const [nuevo, setNuevo] = useState({ nombre: "", rol: "", whatsapp: "" });
+  const [avisoContacto, setAvisoContacto] = useState<string | null>(null);
+
+  async function agregarContacto() {
+    const whatsapp = normalizarWhatsapp(nuevo.whatsapp);
+    if (!nuevo.nombre.trim()) return setAvisoContacto("Escribe el nombre.");
+    if (!whatsapp) return setAvisoContacto("Revisa el WhatsApp: 10 dígitos si es de México, o con + y la lada del país.");
+    if (contactos.some((c) => c.whatsapp === whatsapp)) return setAvisoContacto("Ese número ya está en tu equipo.");
+    setAvisoContacto(null);
+    const c = { nombre: nuevo.nombre.trim().slice(0, 80), rol: nuevo.rol.trim().slice(0, 60), whatsapp };
+    if (!guardar) {
+      setContactos((l) => [...l, { ...c, id: `demo-${Date.now()}` }]);
+      setNuevo({ nombre: "", rol: "", whatsapp: "" });
+      return;
+    }
+    setEstado("guardando");
+    const r = await guardar.contactos.agregar(c);
+    if (typeof r === "string") {
+      setEstado({ error: r });
+      return;
+    }
+    setContactos((l) => [...l, r]);
+    setNuevo({ nombre: "", rol: "", whatsapp: "" });
+    setEstado("guardado");
+  }
+  async function quitarContacto(id: string) {
+    const antes = contactos;
+    setContactos((l) => l.filter((c) => c.id !== id));
+    if (!guardar) return;
+    setEstado("guardando");
+    const e = await guardar.contactos.quitar(id);
+    if (e) {
+      setContactos(antes);
+      setEstado({ error: e });
+    } else setEstado("guardado");
+  }
 
   useEffect(() => {
     if (!abierta) setBusqueda("");
@@ -559,23 +600,15 @@ export function VentanaAjustes({
   } else if (seccion === "equipo") {
     contenido = (
       <>
-        <Grupo>
-          <Fila titulo="Invitar personas" texto="Por ahora cada cuenta es de una persona. Pronto podrás invitar a quien te ayuda en el negocio.">
-            <Pronto />
-            <button type="button" className={claseBoton("borde", true)} disabled>
-              <Icono nombre="mas" tam={16} />
-              Invitar
-            </button>
-          </Fila>
-        </Grupo>
-        <Grupo titulo="Personas" texto="Quién entra a este panel, qué puede hacer y con qué agenda trabaja.">
-          <div className="pc-aj-tabla" role="table" aria-label="Personas">
-            <div className="pc-aj-tabla__fila pc-aj-tabla__fila--cabeza" role="row">
+        <Grupo titulo="Tu equipo" texto="Las personas de tu negocio. Tus agentes les pueden mandar cosas por WhatsApp (una presentación, un aviso), siempre con tu visto bueno. No entran al panel.">
+          <div className="pc-aj-tabla" role="table" aria-label="Tu equipo">
+            <div className="pc-aj-tabla__fila pc-aj-tabla__fila--equipo pc-aj-tabla__fila--cabeza" role="row">
               <span role="columnheader">Nombre</span>
-              <span role="columnheader">Rol</span>
-              <span role="columnheader">Agenda</span>
+              <span role="columnheader">Puesto</span>
+              <span role="columnheader">WhatsApp</span>
+              <span role="columnheader" className="pc-aj-sr">Quitar</span>
             </div>
-            <div className="pc-aj-tabla__fila" role="row">
+            <div className="pc-aj-tabla__fila pc-aj-tabla__fila--equipo" role="row">
               <span role="cell" className="pc-aj-tabla__nombre">
                 <span className="pc-aj-avatar pc-aj-avatar--chico" aria-hidden="true">
                   {(nombre.trim()[0] ?? "A").toUpperCase()}
@@ -583,11 +616,50 @@ export function VentanaAjustes({
                 {nombre || "Tú"} <span className="pc-aj-tabla__tu">(tú)</span>
               </span>
               <span role="cell">Dueño</span>
-              <span role="cell">{conectada("google_calendar") ? "Google Calendar" : "Sin agenda conectada"}</span>
+              <span role="cell" className="pc-aj-tabla__tu">—</span>
+              <span role="cell" />
             </div>
+            {contactos.map((c) => (
+              <div key={c.id} className="pc-aj-tabla__fila pc-aj-tabla__fila--equipo" role="row">
+                <span role="cell" className="pc-aj-tabla__nombre">
+                  <span className="pc-aj-avatar pc-aj-avatar--chico pc-aj-avatar--gris" aria-hidden="true">
+                    {(c.nombre.trim()[0] ?? "?").toUpperCase()}
+                  </span>
+                  {c.nombre}
+                </span>
+                <span role="cell">{c.rol || "—"}</span>
+                <span role="cell" className="cifras">
+                  {mostrarWhatsapp(c.whatsapp)}
+                </span>
+                <span role="cell">
+                  <button type="button" className="pc-icono" aria-label={`Quitar a ${c.nombre}`} title="Quitar" onClick={() => quitarContacto(c.id)}>
+                    <Icono nombre="basura" tam={16} />
+                  </button>
+                </span>
+              </div>
+            ))}
           </div>
+          <form
+            className="pc-aj-nuevo"
+            onSubmit={(e) => {
+              e.preventDefault();
+              agregarContacto();
+            }}
+          >
+            <Campo etiqueta="Nombre" valor={nuevo.nombre} alCambiar={(v) => setNuevo((n) => ({ ...n, nombre: v }))} ejemplo="Nombre" max={80} />
+            <Campo etiqueta="Puesto" valor={nuevo.rol} alCambiar={(v) => setNuevo((n) => ({ ...n, rol: v }))} ejemplo="Puesto (opcional)" max={60} ancho="chico" />
+            <Campo tipo="tel" etiqueta="WhatsApp" valor={nuevo.whatsapp} alCambiar={(v) => setNuevo((n) => ({ ...n, whatsapp: v }))} ejemplo="55 1234 5678" max={20} />
+            <button type="submit" className={claseBoton("borde", true)} disabled={!nuevo.nombre.trim() || !nuevo.whatsapp.trim()}>
+              <Icono nombre="mas" tam={16} />
+              Agregar
+            </button>
+          </form>
+          {avisoContacto ? <p className="pc-aj-nota pc-aj-nota--error">{avisoContacto}</p> : null}
         </Grupo>
-        <Grupo titulo="Roles y agendas">
+        <Grupo titulo="Entrar al panel">
+          <Fila titulo="Invitar personas" texto="Que alguien de tu equipo entre a este panel con su propia cuenta.">
+            <Pronto />
+          </Fila>
           <Fila titulo="Roles" texto="Dar permisos distintos a cada persona (por ejemplo, que vea citas pero no números).">
             <Pronto />
           </Fila>

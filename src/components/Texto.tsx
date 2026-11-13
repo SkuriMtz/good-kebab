@@ -6,8 +6,30 @@ function palabras(texto: string, suave: boolean): ReactNode {
   return texto.split(/(\s+)/).map((p, k) => (p && !/^\s+$/.test(p) ? <span key={k} className="t-palabra">{p}</span> : p));
 }
 
-/** **negritas** dentro de una línea (sin HTML: todo se pinta como texto). */
+/**
+ * Enlaces [texto](/ruta) dentro de una línea: solo a rutas de Atendel (que
+ * empiezan con "/", como /api/archivos/… o /panel?vista=pendientes). Un enlace
+ * a otro sitio se queda como texto: así nadie mete enlaces raros en una respuesta.
+ */
+function conEnlaces(texto: string, suave: boolean): ReactNode[] {
+  return texto.split(/(\[[^\]\n]{1,120}\]\(\/(?!\/)[^)\s]{0,300}\))/g).map((parte, i) => {
+    const m = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(parte);
+    if (!m) return <Fragment key={i}>{enNegritas(parte, suave)}</Fragment>;
+    const descarga = m[2].startsWith("/api/archivos/");
+    return (
+      <a key={i} href={m[2]} className={descarga ? "t-enlace t-enlace--archivo" : "t-enlace"} {...(descarga ? { download: true } : {})}>
+        {enNegritas(m[1], suave)}
+      </a>
+    );
+  });
+}
+
 function enLinea(texto: string, suave = false): ReactNode[] {
+  return conEnlaces(texto, suave);
+}
+
+/** **negritas** dentro de una línea (sin HTML: todo se pinta como texto). */
+function enNegritas(texto: string, suave = false): ReactNode[] {
   return texto.split(/(\*\*[^*]+\*\*)/g).map((parte, i) =>
     parte.startsWith("**") && parte.endsWith("**") && parte.length > 4 ? (
       <strong key={i} className="font-semibold text-tinta">

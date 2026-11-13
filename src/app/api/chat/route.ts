@@ -13,6 +13,7 @@ import { planMinimo } from "@/lib/planes";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import { responderConHerramientas, type PeticionRonda } from "@/lib/herramientas/ciclo";
 import { herramientasDelChat, instruccionesHerramientas } from "@/lib/herramientas/preparar";
+import { accionesDelChat, instruccionesAcciones } from "@/lib/herramientas/acciones";
 import { marcoEstado } from "@/lib/estado-chat";
 
 /**
@@ -174,8 +175,10 @@ export async function POST(request: NextRequest) {
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
-  const herramientas = herramientasDelChat({ supabase, userId: user.id, participantes, conexiones });
-  const conApps = instruccionesHerramientas(participantes, herramientas, conexiones);
+  const deApps = herramientasDelChat({ supabase, userId: user.id, participantes, conexiones });
+  // 6c. Acciones de Atendel: armar presentaciones y dejar envíos en Pendientes (nunca manda solo)
+  const herramientas = [...deApps, ...accionesDelChat({ supabase, userId: user.id, participantes, conversacionId: idConversacion, negocio: cuenta.negocio })];
+  const conApps = instruccionesHerramientas(participantes, deApps, conexiones) + instruccionesAcciones(participantes);
 
   // 7. Responder en vivo
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

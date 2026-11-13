@@ -17,19 +17,23 @@ export type ItemHecho = {
   detalle?: string;
   /** Las apps que usó (IdApp), si se sabe. */
   apps?: string[];
-  /** El archivo que entregó, si hubo. */
+  /** El archivo que entregó, si hubo, y dónde se descarga. */
   archivo?: string;
+  archivoHref?: string;
   href?: string;
 };
 
 type Msj = { conversacion_id: string; rol: string; contenido: string; agente: string | null; creado_en: string };
 type Conv = { id: string; agente: string | null };
 type Resumen = { id: string; remitente: string | null; asunto: string | null; creado_en: string };
+type Archivo = { id: string; nombre: string; agente: string | null; conversacion_id: string | null; creado_en: string };
+type Envio = { id: string; agente: string | null; destinatarios: unknown; estado: string; creado_en: string; resuelto_en: string | null; archivos?: { nombre?: string } | { nombre?: string }[] | null };
 
 /** Una línea legible: sin marcas de formato, sin saltos y recortada. */
 function linea(texto: string, max: number) {
   const limpio = texto
     .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .split("\n")
     .map((l) => l.replace(/^[\s>#*\-•\d.)]+/, "").replace(/[*_`~|]/g, "").trim())
     .filter((l) => l.length > 2)
@@ -39,7 +43,8 @@ function linea(texto: string, max: number) {
   return limpio.length > max ? `${limpio.slice(0, max - 1).trimEnd()}…` : limpio;
 }
 
-export function armarHecho(mensajes: Msj[], conversaciones: Conv[], resumenes: Resumen[]): ItemHecho[] {
+export function armarHecho(mensajes: Msj[], conversaciones: Conv[], resumenes: Resumen[], archivos: Archivo[] = [], envios: Envio[] = []): ItemHecho[] {
+  const usados = new Set<string>();
   const agenteDe = new Map(conversaciones.map((c) => [c.id, c.agente]));
   const porConv = new Map<string, Msj[]>();
   for (const m of mensajes) {
@@ -59,8 +64,33 @@ export function armarHecho(mensajes: Msj[], conversaciones: Conv[], resumenes: R
       const quien = esIdAgente(resp.agente) ? resp.agente : esIdAgente(agenteDe.get(conv)) ? (agenteDe.get(conv) as IdAgente) : "lola";
       const pedido = linea(m.contenido, 120);
       if (!pedido) return;
-      items.push({ id: `m-${conv}-${i}`, en: resp.creado_en, agente: quien, titulo: pedido, detalle: linea(resp.contenido, 170), href: `/panel?c=${encodeURIComponent(conv)}` });
+      // El archivo que armó al contestar este pedido (misma conversación, entre el pedido y la respuesta)
+      const arch = archivos.find((a) => !usados.has(a.id) && a.conversacion_id === conv && a.creado_en >= m.creado_en && a.creado_en <= resp.creado_en);
+      if (arch) usados.add(arch.id);
+      items.push({
+        id: `m-${conv}-${i}`,
+        en: resp.creado_en,
+        agente: quien,
+        titulo: pedido,
+        detalle: linea(resp.contenido, 170),
+        href: `/panel?c=${encodeURIComponent(conv)}`,
+        ...(arch ? { archivo: arch.nombre, archivoHref: `/api/archivos/${arch.id}` } : {}),
+      });
     });
+  }
+  // Los archivos que no quedaron junto a un pedido
+  for (const a of archivos) {
+    if (usados.has(a.id)) continue;
+    items.push({ id: `a-${a.id}`, en: a.creado_en, agente: esIdAgente(a.agente) ? a.agente : "iris", titulo: `Armó «${a.nombre}»`, archivo: a.nombre, archivoHref: `/api/archivos/${a.id}`, href: a.conversacion_id ? `/panel?c=${encodeURIComponent(a.conversacion_id)}` : undefined });
+  }
+  // Los envíos que aprobaste
+  for (const e of envios) {
+    const n = Array.isArray(e.destinatarios) ? e.destinatarios.length : 0;
+    const arch = Array.isArray(e.archivos) ? e.archivos[0]?.nombre : e.archivos?.nombre;
+    const que = arch ? `«${arch}»` : "un mensaje";
+    const quien = esIdAgente(e.agente) ? e.agente : "lola";
+    if (e.estado === "enviado") items.push({ id: `e-${e.id}`, en: e.resuelto_en ?? e.creado_en, agente: quien, titulo: `Mandó ${que} por WhatsApp`, detalle: `A ${n} ${n === 1 ? "persona" : "personas"} de tu equipo, con tu visto bueno.`, apps: ["whatsapp_business"] });
+    else if (e.estado === "aprobado") items.push({ id: `e-${e.id}`, en: e.resuelto_en ?? e.creado_en, agente: quien, titulo: `Aprobaste mandar ${que} por WhatsApp`, detalle: `A ${n} ${n === 1 ? "persona" : "personas"}. Sale en cuanto WhatsApp quede conectado.`, apps: ["whatsapp_business"] });
   }
   for (const r of resumenes) {
     const quien = nombreRemitente(r.remitente);

@@ -65,12 +65,15 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   if (searchParams.vista === "hecho" || (searchParams.vista === "pendientes" && searchParams.tab === "hecho")) {
     // Lo que el equipo ya terminó: cada pedido con respuesta y los correos que Clara resumió
     const ids = await negociosDe(supabase, user.id);
-    const [{ data: msjs }, { data: convs }, { data: res }] = await Promise.all([
+    const [{ data: msjs }, { data: convs }, { data: res }, { data: archivos }, { data: envios }] = await Promise.all([
       supabase.from("mensajes").select("conversacion_id, rol, contenido, agente, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(400),
       supabase.from("conversaciones").select("id, agente").eq("owner_id", user.id).order("actualizado_en", { ascending: false }).limit(200),
       supabase.from("resumenes_correo").select("id, remitente, asunto, creado_en").in("negocio_id", ids).order("creado_en", { ascending: false }).limit(30),
+      // Lo que armó tu equipo y lo que aprobaste mandar (migración 0009; sin ella, nada)
+      supabase.from("archivos").select("id, nombre, agente, conversacion_id, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(60),
+      supabase.from("envios").select("id, agente, destinatarios, estado, creado_en, resuelto_en, archivos(nombre)").eq("owner_id", user.id).in("estado", ["aprobado", "enviado"]).order("creado_en", { ascending: false }).limit(40),
     ]);
-    return <Hecho items={armarHecho(msjs ?? [], convs ?? [], res ?? [])} ahora={Date.now()} base="/panel?vista=pendientes" />;
+    return <Hecho items={armarHecho(msjs ?? [], convs ?? [], res ?? [], archivos ?? [], envios ?? [])} ahora={Date.now()} base="/panel?vista=pendientes" />;
   }
 
   if (searchParams.vista === "actividad") {
@@ -119,6 +122,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       <PendientesReal
         correos={filtrados ?? pendientes.lista}
         pasos={pendientes.pasos}
+        envios={pendientes.envios}
         totalCorreos={pendientes.correos}
         tipo={texto(searchParams.tipo)}
         de={texto(searchParams.de)}

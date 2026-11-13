@@ -30,6 +30,9 @@ const PRIMER_NUEVO = 1000;
 const ahora = () => new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
 const reducido = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Un envío que un agente deja en Pendientes en /pruebalo (lo escucha PanelDemo). */
+export const EVENTO_PENDIENTE_DEMO = "atendel:demo-pendiente";
+
 /** El título de una conversación del guion para el menú: el nombre del grupo, o lo que se pidió. */
 function tituloDe(c: ConvBase) {
   if (c.agentes.length > 1) return c.nombre;
@@ -116,6 +119,8 @@ export function useGuion() {
       timers.current.push(
         window.setTimeout(() => {
           agregar(id, { de: t.agente, texto: t.texto, hora: ahora(), tarjeta: t.tarjeta });
+          // Lo que deja en Pendientes (un envío por aprobar) llega al tablero de /pruebalo
+          if (t.pendiente) window.dispatchEvent(new CustomEvent(EVENTO_PENDIENTE_DEMO, { detail: t.pendiente }));
           if (i + 1 < turnos.length) setPendiente(null);
           timers.current.push(window.setTimeout(() => turno(i + 1), i + 1 < turnos.length ? 1100 : 0));
         }, espera),

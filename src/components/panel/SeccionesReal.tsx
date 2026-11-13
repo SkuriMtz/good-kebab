@@ -1,14 +1,15 @@
 "use client";
 
-import type { CorreoPendiente } from "@/lib/pendientes";
+import type { CorreoPendiente, EnvioPendiente } from "@/lib/pendientes";
 import { accionValida, normalizar } from "@/lib/estadisticas";
 import type { PasoPanel } from "@/lib/pasos";
-import type { IdAgente } from "@/lib/agentes";
+import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { planMinimo } from "@/lib/planes";
 import { Icono } from "@/components/base/Iconos";
 import { Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
 import { PestanasPendientes } from "./Hecho";
+import { AccionesEnvio } from "./Envios";
 import { nombreRemitente } from "./remitente";
 
 /* =====================================================================
@@ -23,6 +24,7 @@ const fecha = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short",
 export function PendientesReal({
   correos,
   pasos,
+  envios = [],
   totalCorreos,
   tipo,
   de,
@@ -30,6 +32,8 @@ export function PendientesReal({
 }: {
   correos: CorreoPendiente[];
   pasos: PasoPanel[];
+  /** Lo que un agente dejó listo para mandar por WhatsApp (solo sale con tu visto bueno). */
+  envios?: EnvioPendiente[];
   totalCorreos: number | null;
   tipo?: string;
   de?: string;
@@ -41,6 +45,21 @@ export function PendientesReal({
   const buscada = accion ? clave(accion) : "";
   const visibles = correos.filter((c) => (!de || nombreRemitente(c.remitente) === de) && (!accion || clave(c.accion_sugerida) === buscada));
   const items: ItemTablero[] = [
+    ...(filtro !== "todo" || de || accion
+      ? []
+      : envios.map((e) => {
+          const nombres = e.destinatarios.map((d) => d.nombre).filter(Boolean);
+          return {
+            id: `e-${e.id}`,
+            columna: "revisar" as const,
+            agente: esIdAgente(e.agente) ? e.agente : undefined,
+            titulo: e.archivo ? `Mandar «${e.archivo}» por WhatsApp` : "Mandar un mensaje por WhatsApp",
+            para: nombres.length ? `A ${nombres.length > 3 ? `${nombres.slice(0, 3).join(", ")} y ${nombres.length - 3} más` : nombres.join(", ")}` : undefined,
+            texto: e.mensaje,
+            nota: "Al aprobar: se le manda a cada quien por WhatsApp",
+            acciones: <AccionesEnvio id={e.id} />,
+          };
+        })),
     ...(filtro === "pasos"
       ? []
       : visibles.map((c) => {
@@ -84,13 +103,13 @@ export function PendientesReal({
   return (
     <Seccion ancha>
       <TituloSeccion titulo="Pendientes" texto="Lo que espera tu visto bueno. Clara deja aquí los correos que piden algo; Lola y Víctor se suman cuando estén conectados." />
-      <PestanasPendientes base="/panel?vista=pendientes" activa="revisar" porRevisar={(totalCorreos ?? 0) + pasos.length} />
+      <PestanasPendientes base="/panel?vista=pendientes" activa="revisar" porRevisar={(totalCorreos ?? 0) + pasos.length + envios.length} />
       <div className="pc-filtros">
         <Pildoras
           etiqueta="Filtrar pendientes"
           activa={filtro}
           opciones={[
-            { id: "todo", etiqueta: "Todo", href: "/panel?vista=pendientes", cuenta: (totalCorreos ?? 0) + pasos.length },
+            { id: "todo", etiqueta: "Todo", href: "/panel?vista=pendientes", cuenta: (totalCorreos ?? 0) + pasos.length + envios.length },
             { id: "correos", etiqueta: "Correos", href: "/panel?vista=pendientes&tipo=correos", cuenta: totalCorreos },
             { id: "pasos", etiqueta: "Primeros pasos", href: "/panel?vista=pendientes&tipo=pasos", cuenta: pasos.length },
           ]}

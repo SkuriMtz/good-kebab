@@ -6619,3 +6619,71 @@ a.pc-correo__accion:hover {
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+
+/* =====================================================================
+   32. Presentaciones y envíos: enlaces en las respuestas, botones de un
+   envío en Pendientes, la tabla del equipo y el archivo en Hecho
+   ===================================================================== */
+.t-enlace {
+  color: var(--pc-enlace, #6aa8ff);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.t-enlace--archivo::before {
+  content: "↓ ";
+}
+.pc-envio__aviso {
+  flex-basis: 100%;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-envio__aviso--error {
+  color: var(--pc-error);
+}
+.pc-aj-tabla__fila--equipo {
+  grid-template-columns: 1.3fr 1fr 1.2fr 40px;
+}
+.pc-aj-avatar--gris {
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+}
+.pc-aj-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.pc-aj-nuevo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pc-aj-nuevo .pc-aj-campo {
+  width: 200px;
+}
+.pc-aj-nuevo .pc-aj-campo[data-ancho="chico"] {
+  width: 150px;
+}
+.pc-hecho__archivo--enlace {
+  transition: background-color 120ms ease;
+}
+.pc-hecho__archivo--enlace:hover {
+  background: var(--pc-hover);
+}
+.pc-hecho__que--enlace:hover {
+  text-decoration: underline;
+}
+@media (max-width: 859px) {
+  .pc-aj-tabla__fila--equipo {
+    grid-template-columns: 1fr;
+  }
+  .pc-aj-nuevo .pc-aj-campo,
+  .pc-aj-nuevo .pc-aj-campo[data-ancho="chico"] {
+    width: 100%;
+  }
+}

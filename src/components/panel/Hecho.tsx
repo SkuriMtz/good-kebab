@@ -92,7 +92,13 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
                     </span>
                     <AvatarAgente agente={it.agente} tam={26} />
                     <span className="pc-hecho__textos">
-                      <span className="pc-hecho__que">{it.titulo}</span>
+                      {it.archivoHref && it.href ? (
+                        <Enlace href={it.href} className="pc-hecho__que pc-hecho__que--enlace">
+                          {it.titulo}
+                        </Enlace>
+                      ) : (
+                        <span className="pc-hecho__que">{it.titulo}</span>
+                      )}
                       {it.detalle ? (
                         <span className="pc-hecho__detalle">
                           <strong>{AGENTE_POR_ID[it.agente].nombre}:</strong> {it.detalle}
@@ -100,7 +106,12 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
                       ) : null}
                       {it.archivo || it.apps?.length ? (
                         <span className="pc-hecho__extras">
-                          {it.archivo ? (
+                          {it.archivo && it.archivoHref ? (
+                            <a href={it.archivoHref} className="pc-hecho__archivo pc-hecho__archivo--enlace" title={`Descargar ${it.archivo}`}>
+                              <Icono nombre="documento" tam={14} />
+                              {it.archivo}
+                            </a>
+                          ) : it.archivo ? (
                             <span className="pc-hecho__archivo">
                               <Icono nombre="documento" tam={14} />
                               {it.archivo}
@@ -123,7 +134,8 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
                 );
                 return (
                   <li key={it.id} className="pc-entra" style={{ "--d": `${retrasoEscalon(n++)}ms` } as CSSProperties}>
-                    {it.href ? (
+                    {/* Con archivo, la fila no es un enlace (el archivo y el título sí): no se anidan enlaces */}
+                    {it.href && !it.archivoHref ? (
                       <Enlace href={it.href} className="pc-hecho__fila pc-hecho__fila--picable">
                         {fila}
                       </Enlace>

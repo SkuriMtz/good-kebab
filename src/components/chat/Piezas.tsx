@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Texto } from "@/components/Texto";
 import { claseBotonBase } from "@/components/base/Boton";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
+import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { PERSONAJES, Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, type IdAgente } from "@/lib/agentes";
 
@@ -242,6 +243,8 @@ export type Tarjeta = {
   datos?: [string, string][];
   /** Texto citado (el mensaje que se va a mandar). */
   cita?: string;
+  /** /pruebalo: la presentación de ejemplo, que se arma en el navegador al descargarla. */
+  presentacion?: DatosPresentacion;
 };
 
 const ICONO_TARJETA: Record<Tarjeta["tipo"], NombreIcono> = { cita: "calendario", programado: "reloj", archivo: "documento" };
