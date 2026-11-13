@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
@@ -28,11 +29,12 @@ import {
   type DatosCfdi,
 } from "@/lib/ajustes";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
-import type { CampoPerfil } from "@/lib/nucleo-tipos";
+import { MAX_DOCUMENTOS_POR_PLAN, type CampoPerfil } from "@/lib/nucleo-tipos";
 import { planMinimo } from "@/lib/planes";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
+import { useFuenteNegocio } from "./negocio/fuente";
 
 /**
  * AJUSTES: una ventana (no una página) que se abre con el engrane del pie del
@@ -161,8 +163,8 @@ const OPCIONES: Opcion[] = [
   { parte: "notificaciones", titulo: "Por correo", claves: "avisos email" },
   { parte: "notificaciones", titulo: "Por WhatsApp", claves: "avisos whatsapp" },
   { parte: "notificaciones", titulo: "No molestar en la noche", claves: "silencio noche horas" },
-  { parte: "uso", titulo: "Te quedan", claves: "mensajes limite quedan" },
-  { parte: "uso", titulo: "Se reinicia", claves: "reinicio mes" },
+  { parte: "uso", titulo: "Mensajes con tu equipo", claves: "mensajes limite quedan reinicia reinicio mes porcentaje usado" },
+  { parte: "uso", titulo: "Documentos", claves: "documentos archivos limite guardados" },
   { parte: "uso", titulo: "Si se acaban", claves: "limite mensajes" },
   { parte: "plan", titulo: "Tu plan", claves: "plan max one free cambiar" },
   { parte: "plan", titulo: "Forma de pago", claves: "tarjeta pagar cobro" },
@@ -340,6 +342,121 @@ function Desplegable<T extends string>({ valor, alCambiar, etiqueta, opciones, l
       </select>
       <Icono nombre="chevron" tam={16} />
     </span>
+  );
+}
+
+/** Qué tan cerca está del límite: el color de la barra se va poniendo más fuerte. */
+type NivelUso = "azul" | "ambar" | "naranja" | "rojo" | "lleno";
+const nivelDe = (pct: number): NivelUso => (pct >= 100 ? "lleno" : pct >= 90 ? "rojo" : pct >= 80 ? "naranja" : pct >= 60 ? "ambar" : "azul");
+/** El porcentaje usado, sin decir 100 si todavía queda algo ni 0 si ya se usó algo. */
+const porcentaje = (usados: number, total: number) => {
+  if (total <= 0) return 0;
+  const p = Math.round((usados / total) * 100);
+  if (usados >= total) return 100;
+  return Math.min(99, Math.max(usados > 0 ? 1 : 0, p));
+};
+
+/** Un renglón de límite como en Claude: el nombre y cuándo se reinicia, la barra larga y "% usado". */
+function BarraLimite({ titulo, detalle, usados, total, aviso }: { titulo: string; detalle: string; usados: number; total: number; aviso?: string | null }) {
+  const pct = porcentaje(usados, total);
+  const nivel = nivelDe(pct);
+  return (
+    <div className="pc-aj-limite" data-nivel={nivel} data-fila={titulo}>
+      <div className="pc-aj-limite__textos">
+        <span className="pc-aj-limite__titulo">{titulo}</span>
+        <span className="pc-aj-limite__detalle">{detalle}</span>
+      </div>
+      <div className="pc-aj-limite__barra" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={titulo} aria-valuetext={`${pct} % usado`}>
+        <span className="pc-aj-limite__lleno" style={{ "--v": pct / 100 } as CSSProperties} />
+      </div>
+      <span className="pc-aj-limite__pct">{pct} % usado</span>
+      {aviso ? (
+        <p className="pc-aj-limite__aviso" role={nivel === "lleno" || nivel === "rojo" ? "alert" : undefined}>
+          {aviso}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Ajustes > Uso, como el de Claude: "Límites de tu plan" con una barra por
+ * límite (los mensajes del mes y los documentos que guardas). Solo números
+ * de verdad: los del plan y los de la cuenta. La barra pasa de azul a ámbar
+ * (60 %), naranja (80 %) y rojo (90 %); al llenarse brilla y avisa qué pasa.
+ * En tu cuenta, "Actualizar" vuelve a leer lo usado sin recargar la página.
+ */
+function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string }) {
+  const fuente = useFuenteNegocio();
+  const router = useRouter();
+  const [documentos, setDocumentos] = useState<number | null>(null);
+  const [actualizando, iniciar] = useTransition();
+  const [leido, setLeido] = useState<Date | null>(null);
+  const pedido = useRef(false);
+  const [vuelta, setVuelta] = useState(0);
+
+  useEffect(() => {
+    let vivo = true;
+    fuente
+      .listarDocumentos()
+      .then((l) => vivo && setDocumentos(l.length))
+      .catch(() => vivo && setDocumentos(null));
+    return () => {
+      vivo = false;
+    };
+  }, [fuente, vuelta]);
+  useEffect(() => {
+    if (actualizando || !pedido.current) return;
+    pedido.current = false;
+    setLeido(new Date());
+  }, [actualizando]);
+
+  const plan = datos.plan;
+  const quedan = Math.max(0, plan.total - plan.usados);
+  const pctMensajes = porcentaje(plan.usados, plan.total);
+  const maxDocumentos = MAX_DOCUMENTOS_POR_PLAN[plan.id as keyof typeof MAX_DOCUMENTOS_POR_PLAN] ?? null;
+  const n = (v: number) => v.toLocaleString("es-MX");
+  const avisoMensajes =
+    pctMensajes >= 100
+      ? `Se acabaron los mensajes de este mes. Tu equipo vuelve a contestar en el chat el ${reinicio}.`
+      : pctMensajes >= 80
+        ? `${quedan === 1 ? "Te queda 1 mensaje" : `Te quedan ${n(quedan)} mensajes`} hasta el ${reinicio}.`
+        : null;
+  const pctDocumentos = documentos !== null && maxDocumentos ? porcentaje(documentos, maxDocumentos) : 0;
+  const quedanDocumentos = documentos !== null && maxDocumentos ? Math.max(0, maxDocumentos - documentos) : 0;
+  const avisoDocumentos =
+    pctDocumentos >= 100 ? "Llegaste al límite: borra alguno para subir otro." : pctDocumentos >= 80 ? `${quedanDocumentos === 1 ? "Te queda 1 documento" : `Te quedan ${n(quedanDocumentos)} documentos`}.` : null;
+
+  return (
+    <section className="pc-aj-grupo pc-aj-limites">
+      <h3 className="pc-aj-limites__titulo">
+        Límites de tu plan <span>{plan.nombre.replace(/^Atendel\s+/, "")}</span>
+      </h3>
+      <BarraLimite titulo="Mensajes con tu equipo" detalle={`Se reinicia el ${reinicio}`} usados={plan.usados} total={plan.total} aviso={avisoMensajes} />
+      {documentos !== null && maxDocumentos ? (
+        <BarraLimite titulo="Documentos" detalle={`${n(documentos)} de ${n(maxDocumentos)} que puedes guardar`} usados={documentos} total={maxDocumentos} aviso={avisoDocumentos} />
+      ) : null}
+      {datos.demo ? null : (
+        <div className="pc-aj-limites__pie">
+          <span>{leido ? `Actualizado a las ${leido.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" })}` : "Lo que llevas hasta ahora"}</span>
+          <button
+            type="button"
+            className="pc-aj-limites__recargar"
+            aria-label="Actualizar lo usado"
+            title="Actualizar"
+            disabled={actualizando}
+            data-girando={actualizando ? "" : undefined}
+            onClick={() => {
+              pedido.current = true;
+              setVuelta((v) => v + 1);
+              iniciar(() => router.refresh());
+            }}
+          >
+            <Icono nombre="recargar" tam={16} />
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -557,7 +674,6 @@ export function VentanaAjustes({
   }, [resaltar, seccion]);
   const parte = PARTES.find((p) => p.id === seccion) ?? PARTES[0];
   const libre = datos.plan.id !== "free";
-  const pct = Math.min(100, Math.round((datos.plan.usados / Math.max(1, datos.plan.total)) * 100));
   const reinicio = useMemo(() => {
     const d = new Date();
     return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)));
@@ -978,25 +1094,7 @@ export function VentanaAjustes({
   } else if (seccion === "uso") {
     contenido = (
       <>
-        <Grupo>
-          <div className="pc-aj-uso">
-            <div className="pc-aj-uso__fila">
-              <p>
-                <strong>{numero.format(datos.plan.usados)}</strong> de {numero.format(datos.plan.total)} mensajes este mes
-              </p>
-              <p className="pc-aj-uso__pct">{pct} %</p>
-            </div>
-            <div className="pc-barra" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Mensajes del mes usados">
-              <span className="pc-barra__lleno" style={{ "--v": pct / 100 } as CSSProperties} />
-            </div>
-          </div>
-          <Fila titulo="Te quedan" texto="Mensajes de este mes.">
-            <Valor>{numero.format(Math.max(0, datos.plan.total - datos.plan.usados))}</Valor>
-          </Fila>
-          <Fila titulo="Se reinicia" texto="El primer día de cada mes.">
-            <Valor>{reinicio}</Valor>
-          </Fila>
-        </Grupo>
+        <LimitesUso datos={datos} reinicio={reinicio} />
         <Grupo titulo="Cómo se cuenta">
           <Fila titulo="Un mensaje" texto="Cada mensaje que le mandas a tu equipo y cada pregunta a la gráfica de tu resumen." />
           <Fila titulo="Si se acaban" texto="Tu equipo deja de contestar en el chat hasta el día 1. Lo que ya leyó y tus datos se quedan.">

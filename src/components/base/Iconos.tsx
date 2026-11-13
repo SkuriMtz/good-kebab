@@ -32,6 +32,7 @@ export type NombreIcono =
   | "luna"
   | "enviar"
   | "reloj"
+  | "recargar"
   | "mas"
   // Base 4b: dashboard y chat
   | "campana"
@@ -159,6 +160,12 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
     <>
       <path d="M20.5 3.5 10 14" />
       <path d="m20.5 3.5-6.5 17-4-6.5-6.5-4 17-6.5Z" />
+    </>
+  ),
+  recargar: (
+    <>
+      <path d="M20 12a8 8 0 1 1-2.34-5.66L20 8.5" />
+      <path d="M20 4v4.5h-4.5" />
     </>
   ),
   reloj: (

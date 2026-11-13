@@ -8060,3 +8060,208 @@ a.pc-correo__accion:hover {
 .pc .pc-aj-muestra .pc-msj__texto {
   margin: 0;
 }
+
+/* =====================================================================
+   37. Ajustes > Uso como el de Claude: "Límites de tu plan" con barras
+   largas. El color sube de tono mientras más cerca del límite: azul,
+   ámbar (60 %), naranja (80 %), rojo (90 %) y, lleno, rojo que brilla.
+   ===================================================================== */
+.pc .pc-aj-limites {
+  --uso-azul: #3d7bff;
+  --uso-ambar: #f5a524;
+  --uso-naranja: #fb6a2c;
+  --uso-rojo: #ef4444;
+  --uso-texto-rojo: #ff8a80;
+  --uso-texto-naranja: #ffaa73;
+}
+:root[data-tema="claro"] .pc .pc-aj-limites {
+  --uso-azul: #2563eb;
+  --uso-ambar: #d97706;
+  --uso-naranja: #ea580c;
+  --uso-rojo: #dc2626;
+  --uso-texto-rojo: #b91c1c;
+  --uso-texto-naranja: #b4450a;
+}
+.pc .pc-aj-limites__titulo {
+  margin: 0 0 6px;
+  color: var(--pc-texto);
+  font: 500 17px/1.3 var(--pc-sans);
+}
+.pc .pc-aj-limites__titulo span {
+  margin-left: 6px;
+  color: var(--pc-texto-2);
+  font-weight: 400;
+}
+.pc .pc-aj-limite {
+  --uso: var(--uso-azul);
+  display: grid;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(120px, 1.5fr) 86px;
+  align-items: center;
+  column-gap: 28px;
+  padding: 18px 0;
+}
+.pc .pc-aj-limite + .pc-aj-limite {
+  border-top: 1px solid var(--pc-division);
+}
+.pc .pc-aj-limite[data-nivel="ambar"] {
+  --uso: var(--uso-ambar);
+}
+.pc .pc-aj-limite[data-nivel="naranja"] {
+  --uso: var(--uso-naranja);
+}
+.pc .pc-aj-limite:is([data-nivel="rojo"], [data-nivel="lleno"]) {
+  --uso: var(--uso-rojo);
+}
+.pc .pc-aj-limite__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.pc .pc-aj-limite__titulo {
+  color: var(--pc-texto);
+  font: 400 15px/1.35 var(--pc-sans);
+}
+.pc .pc-aj-limite__detalle {
+  color: var(--pc-texto-2);
+  font: 400 13.5px/1.35 var(--pc-sans);
+}
+.pc .pc-aj-limite__barra {
+  height: 8px;
+  border-radius: 999px;
+  /* El riel lleva un poco del mismo color: rojo tenue cuando está casi lleno */
+  background: color-mix(in srgb, var(--uso) 16%, var(--pc-hover));
+  overflow: hidden;
+  transition: background-color 300ms ease;
+}
+.pc .pc-aj-limite__lleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--uso);
+  transform: scaleX(var(--v));
+  transform-origin: left;
+  transition:
+    transform 700ms var(--pc-odo-curva),
+    background-color 300ms ease;
+}
+@starting-style {
+  .pc .pc-aj-limite__lleno {
+    transform: scaleX(0);
+  }
+}
+.pc .pc-aj-limite:is([data-nivel="rojo"], [data-nivel="lleno"]) .pc-aj-limite__barra {
+  overflow: visible;
+}
+.pc .pc-aj-limite:is([data-nivel="rojo"], [data-nivel="lleno"]) .pc-aj-limite__lleno {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--uso) 55%, transparent);
+}
+.pc .pc-aj-limite[data-nivel="lleno"] .pc-aj-limite__lleno {
+  animation: pc-uso-lleno 2.4s ease-in-out infinite;
+}
+@keyframes pc-uso-lleno {
+  50% {
+    box-shadow: 0 0 18px color-mix(in srgb, var(--uso) 80%, transparent);
+  }
+}
+.pc .pc-aj-limite__pct {
+  color: var(--pc-texto-2);
+  font: 400 14px/1 var(--pc-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.pc .pc-aj-limite[data-nivel="naranja"] .pc-aj-limite__pct {
+  color: var(--uso-texto-naranja);
+}
+.pc .pc-aj-limite:is([data-nivel="rojo"], [data-nivel="lleno"]) .pc-aj-limite__pct {
+  color: var(--uso-texto-rojo);
+  font-weight: 600;
+}
+.pc .pc-aj-limite__aviso {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--uso-texto-naranja);
+  font: 400 13.5px/1.4 var(--pc-sans);
+}
+.pc .pc-aj-limite__aviso::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--uso);
+}
+.pc .pc-aj-limite:is([data-nivel="rojo"], [data-nivel="lleno"]) .pc-aj-limite__aviso {
+  color: var(--uso-texto-rojo);
+}
+.pc .pc-aj-limite[data-resaltada] {
+  animation: pc-fila-resaltada 1600ms var(--pc-claude-sale);
+}
+.pc .pc-aj-limites__pie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pc-division);
+  color: var(--pc-texto-2);
+  font: 400 13.5px/1.3 var(--pc-sans);
+}
+.pc .pc-aj-limites__recargar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  cursor: pointer;
+  transition: transform 160ms var(--pc-claude-sale);
+}
+.pc .pc-aj-limites__recargar:active {
+  transform: scale(0.92);
+}
+.pc .pc-aj-limites__recargar:focus-visible {
+  outline: 2px solid var(--pc-foco);
+  outline-offset: 1px;
+}
+.pc .pc-aj-limites__recargar[data-girando] svg {
+  animation: pc-uso-gira 700ms linear infinite;
+}
+@keyframes pc-uso-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-aj-limites__recargar:hover {
+    background: var(--pc-hover);
+    color: var(--pc-texto);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc .pc-aj-limite[data-nivel="lleno"] .pc-aj-limite__lleno,
+  .pc .pc-aj-limites__recargar[data-girando] svg {
+    animation: none;
+  }
+}
+/* Celular: el nombre y el % arriba, la barra abajo a todo lo ancho */
+@media (max-width: 640px) {
+  .pc .pc-aj-limite {
+    grid-template-columns: 1fr auto;
+    row-gap: 10px;
+  }
+  .pc .pc-aj-limite__barra {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .pc .pc-aj-limite__pct {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
