@@ -21,7 +21,7 @@ export function huella(req: NextRequest) {
 export async function usarMensajeDemo(req: NextRequest): Promise<{ quedan: number } | { error: string; status: number }> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("sumar_uso_demo", { p_huella: huella(req) });
-  if (error) return { error: "La IA de la demostración no está disponible ahora.", status: 503 };
+  if (error) return { error: "La IA de la demostración no está disponible ahora (el contador no responde; ver /api/demo/estado).", status: 503 };
   const n = typeof data === "number" ? data : -1;
   if (n === -2) return { error: "La demostración ya usó todos sus mensajes con IA de hoy. Vuelve mañana o crea tu cuenta.", status: 503 };
   if (n < 0) return { error: "Llegaste a los 20 mensajes con IA de la demostración por hoy. Crea tu cuenta para seguir con tu propio negocio.", status: 429 };

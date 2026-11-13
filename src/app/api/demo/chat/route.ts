@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   while (historial[0]?.role === "assistant") historial.shift();
   if (historial[historial.length - 1]?.role === "user") historial.pop();
 
-  if (!process.env.ANTHROPIC_API_KEY) return error("La IA de la demostración no está disponible ahora.", 503);
+  if (!process.env.ANTHROPIC_API_KEY) return error("La IA de la demostración no está conectada (falta la llave; ver /api/demo/estado).", 503);
   const uso = await usarMensajeDemo(req);
   if ("error" in uso) return error(uso.error, uso.status);
 
