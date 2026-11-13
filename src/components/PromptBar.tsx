@@ -35,7 +35,7 @@ export type PromptBarSource = {
   attach?: boolean;
 };
 export type PromptBarCommand = { key: string; name: string; description?: string };
-export type PromptBarModel = { key: string; name: string; tag?: string };
+export type PromptBarModel = { key: string; name: string; tag?: string; /** Una píldora a la derecha ("Gasta más", "Nuevo"). */ badge?: string };
 /** Una acción del menú "+" (arriba de los agentes): "Subir un documento", "Conectar una app". */
 export type PromptBarAction = { key: string; name: string; description?: string; icon: IconSvgElement | ReactElement; onSelect: () => void };
 type Fila = PromptBarSource | PromptBarCommand | PromptBarModel | PromptBarAction;
@@ -617,6 +617,7 @@ export default function PromptBar({
                   {open === "model" ? (
                     <>
                       <span className="prompt-bar__row-tag">{"tag" in row ? row.tag : null}</span>
+                      {"badge" in row && row.badge ? <span className="prompt-bar__row-badge">{row.badge}</span> : null}
                       <span className="prompt-bar__row-check" data-on={row.key === model?.key ? "" : undefined}>
                         <HugeiconsIcon icon={Tick02Icon} size={13} strokeWidth={2.5} />
                       </span>

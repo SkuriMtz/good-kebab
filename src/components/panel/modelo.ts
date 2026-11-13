@@ -46,7 +46,7 @@ export function useModelo(permitidos: readonly IdModelo[]) {
 
   /** Las opciones del selector de la caja: nombre y para qué es. */
   const opciones = useMemo<PromptBarModel[]>(
-    () => clave.split(",").filter(esIdModelo).map((id) => ({ key: id, name: MODELOS[id].nombre, tag: MODELOS[id].detalle })),
+    () => clave.split(",").filter(esIdModelo).map((id) => ({ key: id, name: MODELOS[id].nombre, tag: MODELOS[id].detalle, badge: MODELOS[id].aviso })),
     [clave],
   );
 
