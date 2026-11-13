@@ -7551,3 +7551,47 @@ a.pc-correo__accion:hover {
     font-size: 16px;
   }
 }
+
+/* Con el dedo (celular y tableta): los renglones y botones crecen a 40px para picarlos fácil;
+   en computadora se quedan con las medidas de Claude */
+@media (pointer: coarse) {
+  .pc .pc-menu__nuevo,
+  .pc .pc-menu__item,
+  .pc .pc-menu__buscar,
+  .pc .pc-menu__chat,
+  .pc .pc-menu__titulo-boton,
+  .pc .pc-cuenta__boton {
+    height: 40px;
+  }
+  .pc .pc-menu__ocultar,
+  .pc .pc-menu__pie > .pc-icono,
+  .pc .pc-barra-info .pc-icono {
+    width: 40px;
+    height: 40px;
+  }
+  .pc .pc-franja {
+    height: 52px;
+  }
+  .pc .pc-franja__boton,
+  .pc .pc-franja__cerrar {
+    height: 36px;
+  }
+  .pc .pc-franja__cerrar {
+    width: 36px;
+  }
+  .pc .pc-inicio .pc-caja .prompt-bar__tool,
+  .pc .pc-inicio .pc-caja .prompt-bar__send,
+  .pc .pc-conv__caja .pc-caja[data-forma="fila"] .prompt-bar__field .prompt-bar__tool,
+  .pc .pc-conv__caja .pc-caja[data-forma="fila"] .prompt-bar__field .prompt-bar__send {
+    width: 40px;
+    height: 40px;
+  }
+  .pc .pc-conv__caja .pc-caja[data-forma="fila"] .prompt-bar__entrada {
+    min-height: 52px;
+  }
+  .pc .pc-conv__caja .pc-caja[data-forma="fila"] .prompt-bar__input {
+    min-height: 50px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+}
