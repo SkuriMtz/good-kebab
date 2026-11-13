@@ -4,13 +4,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
-import { serifPanel } from "./fuente";
+import { clasesFuentesApariencia, serifPanel } from "./fuente";
 import { PilaAgentes } from "./Mensajes";
 import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
 import { VentanaAjustes, esIdAjuste, type DatosAjustes, type IdAjuste } from "./Ajustes";
-import type { Apariencia } from "@/lib/ajustes";
+import { aparienciaDe, type Apariencia } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
@@ -92,10 +92,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
   const [conectar, setConectar] = useState<{ app: IdApp | null } | null>(null);
   const [avisoApp, setAvisoApp] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
   /** El color y la letra que eligió en Ajustes > Apariencia. */
-  const [apariencia, setApariencia] = useState<Apariencia>(() => {
-    const a = ajustes.ajustes;
-    return { acento: a.acento, letra: a.letra, fuente: a.fuente, respuestas: a.respuestas, ancho: a.ancho, movimiento: a.movimiento, idioma: a.idioma };
-  });
+  const [apariencia, setApariencia] = useState<Apariencia>(() => aparienciaDe(ajustes.ajustes));
   const alCambiarApariencia = useCallback((a: Apariencia) => setApariencia((x) => ((Object.keys(a) as (keyof Apariencia)[]).every((k) => x[k] === a[k]) ? x : a)), []);
   // El idioma de las respuestas: la demostración lo manda con cada mensaje (en /panel lo lee el servidor de tus ajustes)
   useEffect(() => {
@@ -362,7 +359,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
 
   return (
     <div
-      className={`pc ${serifPanel.variable}`}
+      className={`pc ${serifPanel.variable} ${clasesFuentesApariencia}`}
       data-menu={oculto ? "oculto" : undefined}
       data-cajon={cajon ? "abierto" : undefined}
       data-info={info ? (infoAbierta ? "abierta" : "cerrada") : undefined}
@@ -374,6 +371,11 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
       data-respuestas={apariencia.respuestas !== "sans" ? apariencia.respuestas : undefined}
       data-ancho={apariencia.ancho !== "normal" ? apariencia.ancho : undefined}
       data-movimiento={apariencia.movimiento !== "sistema" ? apariencia.movimiento : undefined}
+      data-interlineado={apariencia.interlineado !== "normal" ? apariencia.interlineado : undefined}
+      data-densidad={apariencia.densidad !== "normal" ? apariencia.densidad : undefined}
+      data-contraste={apariencia.contraste !== "normal" ? apariencia.contraste : undefined}
+      data-enlaces={apariencia.enlaces !== "normal" ? apariencia.enlaces : undefined}
+      data-horas={apariencia.horas !== "mostrar" ? apariencia.horas : undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">

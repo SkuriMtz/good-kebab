@@ -6307,6 +6307,8 @@ a.pc-correo__accion:hover {
 }
 .pc-aj-colores {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
 }
 .pc-aj-color {
@@ -6446,6 +6448,38 @@ a.pc-correo__accion:hover {
 }
 :root[data-tema="claro"] .pc[data-acento="ambar"] {
   --pc-enlace: #8f5500;
+}
+.pc[data-acento="rosa"] {
+  --pc-acento: #c2337a;
+  --pc-acento-hover: #a92a69;
+  --pc-enlace: #ff8cc6;
+}
+:root[data-tema="claro"] .pc[data-acento="rosa"] {
+  --pc-enlace: #ad2266;
+}
+.pc[data-acento="rojo"] {
+  --pc-acento: #c9363c;
+  --pc-acento-hover: #b02d33;
+  --pc-enlace: #ff9592;
+}
+:root[data-tema="claro"] .pc[data-acento="rojo"] {
+  --pc-enlace: #b4262c;
+}
+.pc[data-acento="turquesa"] {
+  --pc-acento: #0d7a89;
+  --pc-acento-hover: #0a6875;
+  --pc-enlace: #5fd6e6;
+}
+:root[data-tema="claro"] .pc[data-acento="turquesa"] {
+  --pc-enlace: #0a6a77;
+}
+.pc[data-acento="grafito"] {
+  --pc-acento: #5b5e6b;
+  --pc-acento-hover: #4c4f5b;
+  --pc-enlace: #c4c6d0;
+}
+:root[data-tema="claro"] .pc[data-acento="grafito"] {
+  --pc-enlace: #44464f;
 }
 /* El tamaño de la letra del chat */
 .pc[data-letra="chica"] .pc-msj__texto,
@@ -7802,15 +7836,12 @@ a.pc-correo__accion:hover {
   border-radius: 8px;
   background: transparent;
   color: inherit;
-  font: 400 14.5px/20px var(--pc-sans);
+  /* Con `letra`, el valor se ve en la letra que se eligió (como en Claude) */
+  font: 400 14.5px/20px var(--pc-desp-letra, var(--pc-sans));
   text-align: right;
   text-overflow: ellipsis;
   appearance: none;
   cursor: pointer;
-}
-.pc .pc-aj-desp[data-serif] select {
-  font-family: var(--pc-serif);
-  font-size: 15.5px;
 }
 .pc .pc-aj-desp select option {
   background: var(--pc-menu);
@@ -7882,19 +7913,128 @@ a.pc-correo__accion:hover {
 }
 
 /* Lo que se eligió en Apariencia, en todo el panel */
+/* Letra de la interfaz (los archivos están en src/fonts/apariencia y solo se bajan si se usan) */
+.pc[data-fuente="inter"] {
+  --pc-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="dm-sans"] {
+  --pc-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="manrope"] {
+  --pc-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="plex"] {
+  --pc-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="nunito"] {
+  --pc-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="grotesk"] {
+  --pc-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-fuente="atkinson"] {
+  --pc-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+}
 .pc[data-fuente="sistema"] {
   --pc-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
-.pc[data-respuestas="serif"] .pc-msj--agente .pc-msj__texto {
-  font-family: var(--pc-serif);
+/* Letra de las respuestas de los agentes (y la muestra de Apariencia) */
+.pc[data-respuestas="source-serif"] {
+  --pc-respuestas: var(--pc-serif);
+}
+.pc[data-respuestas="newsreader"] {
+  --pc-respuestas: var(--font-newsreader), ui-serif, Georgia, serif;
+}
+.pc[data-respuestas="lora"] {
+  --pc-respuestas: var(--font-lora), ui-serif, Georgia, serif;
+}
+.pc[data-respuestas="literata"] {
+  --pc-respuestas: var(--font-literata), ui-serif, Georgia, serif;
+}
+.pc[data-respuestas="merriweather"] {
+  --pc-respuestas: var(--font-merriweather), ui-serif, Georgia, serif;
+}
+.pc[data-respuestas="fraunces"] {
+  --pc-respuestas: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+.pc[data-respuestas="atkinson"] {
+  --pc-respuestas: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+}
+.pc[data-respuestas] :is(.pc-msj--agente, .pc-aj-muestra) .pc-msj__texto {
+  font-family: var(--pc-respuestas, var(--pc-sans));
+}
+.pc[data-respuestas="source-serif"] :is(.pc-msj--agente, .pc-aj-muestra) .pc-msj__texto {
   font-variation-settings: "opsz" 16;
 }
+/* Espacio entre renglones */
+.pc[data-interlineado="compacto"] :is(.pc-msj__texto, .pc-burbuja) {
+  line-height: 1.45;
+}
+.pc[data-interlineado="amplio"] :is(.pc-msj__texto, .pc-burbuja) {
+  line-height: 1.9;
+}
+/* Ancho de la conversación */
 .pc[data-ancho="angosto"] {
   --pc-columna-chat: 640px;
 }
 .pc[data-ancho="ancho"] {
   --pc-columna-chat: 900px;
 }
+/* Densidad: los renglones del menú (con mouse; con el dedo se quedan en 40px) y los mensajes */
+@media (pointer: fine) {
+  .pc[data-densidad="compacta"] :is(.pc-menu__nuevo, .pc-menu__item, .pc-menu__buscar, .pc-menu__chat) {
+    height: 28px;
+  }
+  .pc[data-densidad="compacta"] .pc-chat__mas {
+    top: 2px;
+  }
+  .pc[data-densidad="espaciosa"] :is(.pc-menu__nuevo, .pc-menu__item, .pc-menu__buscar, .pc-menu__chat) {
+    height: 36px;
+  }
+  .pc[data-densidad="espaciosa"] .pc-chat__mas {
+    top: 6px;
+  }
+}
+.pc[data-densidad="compacta"] .pc-hilo {
+  gap: 14px;
+}
+.pc[data-densidad="espaciosa"] .pc-hilo {
+  gap: 36px;
+}
+/* La hora de cada mensaje */
+.pc[data-horas="ocultar"] .pc-msj__hora {
+  display: none;
+}
+/* Contraste alto: el texto de apoyo, las rayas y los bordes, más marcados */
+.pc[data-contraste="alto"],
+.pc[data-contraste="alto"] .pc-menu {
+  --pc-texto: #ffffff;
+  --pc-texto-2: #d4d4d4;
+  --pc-placeholder: #c4c4c4;
+  --pc-borde: #737373;
+  --pc-borde-suave: #5c5c5c;
+  --pc-division: #5c5c5c;
+  --pc-raya: #5c5c5c;
+  --pc-pildora-borde: #737373;
+}
+:root[data-tema="claro"] .pc[data-contraste="alto"],
+:root[data-tema="claro"] .pc[data-contraste="alto"] .pc-menu {
+  --pc-texto: #000000;
+  --pc-texto-2: #2e2e2e;
+  --pc-placeholder: #3d3d3d;
+  --pc-borde: #8a8a8a;
+  --pc-borde-suave: #a3a3a3;
+  --pc-division: #a3a3a3;
+  --pc-raya: #a3a3a3;
+  --pc-pildora-borde: #8a8a8a;
+}
+/* Subrayar enlaces */
+.pc[data-enlaces="subrayados"] :is(.pc-msj__texto a, .pc-burbuja a, .t-enlace, .pc-enlace) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+/* Movimiento reducido */
 .pc[data-movimiento="reducido"] *,
 .pc[data-movimiento="reducido"] *::before,
 .pc[data-movimiento="reducido"] *::after {
@@ -7902,4 +8042,21 @@ a.pc-correo__accion:hover {
   animation-iteration-count: 1 !important;
   transition-duration: 1ms !important;
   scroll-behavior: auto !important;
+}
+/* La muestra de las respuestas en Apariencia */
+.pc .pc-aj-muestra {
+  margin: 4px 0 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 12px;
+  background: var(--pc-lienzo);
+}
+.pc .pc-aj-muestra__quien {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--pc-texto-2);
+  font: 500 12px/1.3 var(--pc-sans);
+}
+.pc .pc-aj-muestra .pc-msj__texto {
+  margin: 0;
 }

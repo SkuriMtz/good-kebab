@@ -9,19 +9,54 @@ import { AGENTE_POR_ID, IDS_AGENTES, type IdAgente } from "./agentes";
  * las instrucciones que el chat (/api/chat) le da a los agentes.
  */
 
-export const ACENTOS = ["azul", "morado", "verde", "ambar"] as const;
+export const ACENTOS = ["azul", "morado", "rosa", "rojo", "ambar", "verde", "turquesa", "grafito"] as const;
 export type Acento = (typeof ACENTOS)[number];
 export const LETRAS = ["chica", "normal", "grande"] as const;
 export type Letra = (typeof LETRAS)[number];
 /** Apariencia, como la de Claude: la letra del panel y la de las respuestas, el ancho de la conversación y el movimiento. */
-export const FUENTES = ["geist", "sistema"] as const;
+export const FUENTES = ["geist", "inter", "dm-sans", "manrope", "plex", "nunito", "grotesk", "atkinson", "sistema"] as const;
 export type Fuente = (typeof FUENTES)[number];
-export const RESPUESTAS = ["sans", "serif"] as const;
+/** "sans": la misma letra de la interfaz. */
+export const RESPUESTAS = ["sans", "source-serif", "newsreader", "lora", "literata", "merriweather", "fraunces", "atkinson"] as const;
 export type LetraRespuestas = (typeof RESPUESTAS)[number];
+/** Cómo se llama cada letra en Apariencia (y la variable con que se pinta). */
+export const NOMBRE_FUENTE: Record<Fuente, string> = {
+  geist: "Predeterminada · Geist",
+  inter: "Inter",
+  "dm-sans": "DM Sans",
+  manrope: "Manrope",
+  plex: "IBM Plex Sans",
+  nunito: "Nunito",
+  grotesk: "Space Grotesk",
+  atkinson: "Atkinson Hyperlegible (más fácil de leer)",
+  sistema: "La de tu equipo (sistema)",
+};
+export const NOMBRE_RESPUESTAS: Record<LetraRespuestas, string> = {
+  sans: "La misma de la interfaz",
+  "source-serif": "Source Serif",
+  newsreader: "Newsreader",
+  lora: "Lora",
+  literata: "Literata",
+  merriweather: "Merriweather",
+  fraunces: "Fraunces",
+  atkinson: "Atkinson Hyperlegible (más fácil de leer)",
+};
 export const ANCHOS = ["angosto", "normal", "ancho"] as const;
 export type AnchoChat = (typeof ANCHOS)[number];
 export const MOVIMIENTOS = ["sistema", "reducido"] as const;
 export type Movimiento = (typeof MOVIMIENTOS)[number];
+/** El espacio entre renglones de las respuestas. */
+export const INTERLINEADOS = ["compacto", "normal", "amplio"] as const;
+export type Interlineado = (typeof INTERLINEADOS)[number];
+/** Qué tan juntas van las cosas: renglones del menú y mensajes. */
+export const DENSIDADES = ["compacta", "normal", "espaciosa"] as const;
+export type Densidad = (typeof DENSIDADES)[number];
+export const CONTRASTES = ["normal", "alto"] as const;
+export type Contraste = (typeof CONTRASTES)[number];
+export const ENLACES = ["normal", "subrayados"] as const;
+export type Enlaces = (typeof ENLACES)[number];
+export const HORAS = ["mostrar", "ocultar"] as const;
+export type Horas = (typeof HORAS)[number];
 
 /**
  * En qué idioma te contestan tus agentes (y escriben lo que dejan listo para
@@ -140,12 +175,20 @@ export type AjustesCuenta = {
   ancho: AnchoChat;
   movimiento: Movimiento;
   idioma: IdIdioma;
+  interlineado: Interlineado;
+  densidad: Densidad;
+  contraste: Contraste;
+  enlaces: Enlaces;
+  horas: Horas;
   avisos: Avisos;
   cfdi: DatosCfdi;
 };
 
 /** Lo de Apariencia que se ve en todo el panel en cuanto cambia. */
-export type Apariencia = Pick<AjustesCuenta, "acento" | "letra" | "fuente" | "respuestas" | "ancho" | "movimiento" | "idioma">;
+export const CLAVES_APARIENCIA = ["acento", "letra", "fuente", "respuestas", "ancho", "movimiento", "idioma", "interlineado", "densidad", "contraste", "enlaces", "horas"] as const;
+export type Apariencia = Pick<AjustesCuenta, (typeof CLAVES_APARIENCIA)[number]>;
+/** Solo lo de Apariencia, de unos ajustes. */
+export const aparienciaDe = (a: AjustesCuenta): Apariencia => Object.fromEntries(CLAVES_APARIENCIA.map((k) => [k, a[k]])) as Apariencia;
 
 export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;
@@ -163,6 +206,11 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   ancho: "normal",
   movimiento: "sistema",
   idioma: "es-MX",
+  interlineado: "normal",
+  densidad: "normal",
+  contraste: "normal",
+  enlaces: "normal",
+  horas: "mostrar",
   avisos: { pendientes: true, citas: true, urgentes: true, resumen: false, correo: false, silencio: false, desde: "21:00", hasta: "08:00" },
   cfdi: { rfc: "", razonSocial: "", regimen: "", codigoPostal: "", uso: "G03", correo: "" },
 };
@@ -203,9 +251,15 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     acento: uno(a.acento, ACENTOS, b.acento),
     letra: uno(a.letra, LETRAS, b.letra),
     fuente: uno(a.fuente, FUENTES, b.fuente),
-    respuestas: uno(a.respuestas, RESPUESTAS, b.respuestas),
+    // "serif" era la única serif antes de que hubiera varias
+    respuestas: uno(a.respuestas === "serif" ? "source-serif" : a.respuestas, RESPUESTAS, b.respuestas),
     ancho: uno(a.ancho, ANCHOS, b.ancho),
     movimiento: uno(a.movimiento, MOVIMIENTOS, b.movimiento),
+    interlineado: uno(a.interlineado, INTERLINEADOS, b.interlineado),
+    densidad: uno(a.densidad, DENSIDADES, b.densidad),
+    contraste: uno(a.contraste, CONTRASTES, b.contraste),
+    enlaces: uno(a.enlaces, ENLACES, b.enlaces),
+    horas: uno(a.horas, HORAS, b.horas),
     idioma: uno(
       a.idioma,
       IDIOMAS.map((i) => i.id),

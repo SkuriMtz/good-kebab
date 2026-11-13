@@ -6,8 +6,12 @@ import { Marca } from "@/components/Logo";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import {
   ACENTOS,
+  FUENTES,
   IDIOMAS,
   MAX_FIRMA,
+  NOMBRE_FUENTE,
+  NOMBRE_RESPUESTAS,
+  RESPUESTAS,
   MAX_INSTRUCCIONES,
   MAX_REGLAS,
   REGIMENES_FISCALES,
@@ -15,7 +19,10 @@ import {
   ZONAS_HORARIAS,
   rfcValido,
   type Acento,
+  type Fuente,
+  type LetraRespuestas,
   type AjustesCuenta,
+  aparienciaDe,
   type Apariencia,
   type Avisos,
   type DatosCfdi,
@@ -111,12 +118,17 @@ const OPCIONES: Opcion[] = [
   { parte: "atendel", titulo: "Documentos", claves: "archivos pdf docx subir" },
   { parte: "atendel", titulo: "Tu visto bueno antes de enviar", claves: "aprobar aprobacion enviar revisar" },
   { parte: "apariencia", titulo: "Tema", claves: "oscuro claro sistema modo noche dia" },
-  { parte: "apariencia", titulo: "Color", claves: "acento azul morado verde ambar botones" },
-  { parte: "apariencia", titulo: "Letra del panel", claves: "fuente tipografia tipo de letra geist sistema" },
-  { parte: "apariencia", titulo: "Letra de las respuestas", claves: "fuente tipografia serif respuestas" },
+  { parte: "apariencia", titulo: "Color", claves: "acento azul morado rosa rojo ambar verde turquesa grafito gris botones" },
+  { parte: "apariencia", titulo: "Letra de la interfaz", claves: `fuente tipografia tipo de letra panel ${FUENTES.map((f) => NOMBRE_FUENTE[f]).join(" ")}` },
+  { parte: "apariencia", titulo: "Letra de las respuestas", claves: `fuente tipografia serif respuestas ${RESPUESTAS.map((f) => NOMBRE_RESPUESTAS[f]).join(" ")}` },
   { parte: "apariencia", titulo: "Tamaño del texto del chat", claves: "letra grande chica tamano texto" },
+  { parte: "apariencia", titulo: "Espacio entre renglones", claves: "interlineado renglones lineas amplio compacto" },
   { parte: "apariencia", titulo: "Ancho de la conversación", claves: "angosto ancho columna chat" },
-  { parte: "apariencia", titulo: "Movimiento", claves: "animaciones reducir movimiento" },
+  { parte: "apariencia", titulo: "Densidad", claves: "compacta espaciosa espacio juntas separadas menu mensajes" },
+  { parte: "apariencia", titulo: "Hora de cada mensaje", claves: "hora mensajes ocultar mostrar tiempo" },
+  { parte: "apariencia", titulo: "Movimiento", claves: "animaciones reducir movimiento accesibilidad" },
+  { parte: "apariencia", titulo: "Contraste alto", claves: "contraste leer vista accesibilidad bordes" },
+  { parte: "apariencia", titulo: "Subrayar enlaces", claves: "enlaces links subrayado accesibilidad" },
   { parte: "apariencia", titulo: "Idioma", claves: `lenguaje traducir language ${IDIOMAS.map((i) => `${i.es} ${i.nombre}`).join(" ")}` },
   { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
   { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
@@ -185,11 +197,38 @@ const PARTES: Parte[] = [
   { id: "cuenta", etiqueta: "Cuenta", icono: "persona", claves: "perfil nombre correo zona horaria sesion salir", grupo: 3, sub: "Tus datos, zona horaria y sesión." },
 ];
 
+/** Con qué letra se ve cada opción en su desplegable (las variables las pone el armazón del panel). */
+const LETRA_FUENTE: Record<Fuente, string> = {
+  geist: "var(--font-geist-sans), sans-serif",
+  inter: "var(--font-inter), sans-serif",
+  "dm-sans": "var(--font-dm-sans), sans-serif",
+  manrope: "var(--font-manrope), sans-serif",
+  plex: "var(--font-plex), sans-serif",
+  nunito: "var(--font-nunito), sans-serif",
+  grotesk: "var(--font-grotesk), sans-serif",
+  atkinson: "var(--font-atkinson), sans-serif",
+  sistema: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+};
+const LETRA_RESPUESTAS: Record<LetraRespuestas, string> = {
+  sans: "var(--pc-sans)",
+  "source-serif": "var(--pc-serif)",
+  newsreader: "var(--font-newsreader), serif",
+  lora: "var(--font-lora), serif",
+  literata: "var(--font-literata), serif",
+  merriweather: "var(--font-merriweather), serif",
+  fraunces: "var(--font-fraunces), serif",
+  atkinson: "var(--font-atkinson), sans-serif",
+};
+
 const COLOR_ACENTO: Record<Acento, { nombre: string; color: string }> = {
   azul: { nombre: "Azul", color: "#3d7bff" },
   morado: { nombre: "Morado", color: "#8052ff" },
-  verde: { nombre: "Verde", color: "#1fa77e" },
+  rosa: { nombre: "Rosa", color: "#e0408f" },
+  rojo: { nombre: "Rojo", color: "#e5484d" },
   ambar: { nombre: "Ámbar", color: "#e09a12" },
+  verde: { nombre: "Verde", color: "#1fa77e" },
+  turquesa: { nombre: "Turquesa", color: "#14a5b8" },
+  grafito: { nombre: "Grafito", color: "#8b8d98" },
 };
 
 /** Al abrir, el foco va al contenido (no a la X, que en celular saldría con el anillo azul). React no pasa `autofocus` como atributo: así sí. */
@@ -288,13 +327,13 @@ const Pronto = () => <span className="pc-aj-pronto">Pronto</span>;
 const Estado = ({ tono, children }: { tono: "exito" | "neutro"; children: ReactNode }) => <span className={`pc-estado pc-estado--${tono}`}>{children}</span>;
 const Valor = ({ children }: { children: ReactNode }) => <span className="pc-aj-valor">{children}</span>;
 
-/** Un desplegable sencillo, como los de Claude: el valor y una flechita, sin caja. */
-function Desplegable<T extends string>({ valor, alCambiar, etiqueta, opciones, serif = false }: { valor: T; alCambiar: (v: T) => void; etiqueta: string; opciones: readonly { id: T; nombre: string }[]; serif?: boolean }) {
+/** Un desplegable sencillo, como los de Claude: el valor y una flechita, sin caja. `letra`: el valor se ve en esa letra (como "Anthropic Serif" en Claude). */
+function Desplegable<T extends string>({ valor, alCambiar, etiqueta, opciones, letra }: { valor: T; alCambiar: (v: T) => void; etiqueta: string; opciones: readonly { id: T; nombre: string; letra?: string }[]; letra?: string }) {
   return (
-    <span className="pc-aj-desp" data-serif={serif ? "" : undefined}>
+    <span className="pc-aj-desp" style={letra ? ({ "--pc-desp-letra": letra } as CSSProperties) : undefined}>
       <select aria-label={etiqueta} value={valor} onChange={(e) => alCambiar(e.target.value as T)}>
         {opciones.map((o) => (
-          <option key={o.id} value={o.id}>
+          <option key={o.id} value={o.id} style={o.letra ? { fontFamily: o.letra } : undefined}>
             {o.nombre}
           </option>
         ))}
@@ -441,8 +480,8 @@ export function VentanaAjustes({
   // Lo de Apariencia se ve en todo el panel en cuanto cambia
   const { alCambiarApariencia } = preferencias;
   useEffect(() => {
-    alCambiarApariencia({ acento: ajustes.acento, letra: ajustes.letra, fuente: ajustes.fuente, respuestas: ajustes.respuestas, ancho: ajustes.ancho, movimiento: ajustes.movimiento, idioma: ajustes.idioma });
-  }, [ajustes.acento, ajustes.letra, ajustes.fuente, ajustes.respuestas, ajustes.ancho, ajustes.movimiento, ajustes.idioma, alCambiarApariencia]);
+    alCambiarApariencia(aparienciaDe(ajustes));
+  }, [ajustes, alCambiarApariencia]);
 
   // El perfil del negocio se lee la primera vez que se abre "Mi negocio" (cuenta real)
   useEffect(() => {
@@ -591,15 +630,18 @@ export function VentanaAjustes({
               ))}
             </div>
           </Fila>
-          <Fila titulo="Letra del panel">
+          <Fila titulo="Idioma" texto="En el que te contestan tus agentes y escriben a tus clientes. El panel, por ahora, en español.">
+            <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} />
+          </Fila>
+        </Grupo>
+        <Grupo titulo="Letra">
+          <Fila titulo="Letra de la interfaz">
             <Desplegable
-              etiqueta="Letra del panel"
+              etiqueta="Letra de la interfaz"
               valor={ajustes.fuente}
               alCambiar={(v) => cambiar("fuente", v)}
-              opciones={[
-                { id: "geist", nombre: "Predeterminada · Geist" },
-                { id: "sistema", nombre: "La de tu equipo (sistema)" },
-              ]}
+              letra="var(--pc-sans)"
+              opciones={FUENTES.map((f) => ({ id: f, nombre: NOMBRE_FUENTE[f], letra: LETRA_FUENTE[f] }))}
             />
           </Fila>
           <Fila titulo="Letra de las respuestas">
@@ -607,11 +649,8 @@ export function VentanaAjustes({
               etiqueta="Letra de las respuestas"
               valor={ajustes.respuestas}
               alCambiar={(v) => cambiar("respuestas", v)}
-              serif={ajustes.respuestas === "serif"}
-              opciones={[
-                { id: "sans", nombre: "Geist" },
-                { id: "serif", nombre: "Source Serif" },
-              ]}
+              letra="var(--pc-respuestas, var(--pc-sans))"
+              opciones={RESPUESTAS.map((f) => ({ id: f, nombre: NOMBRE_RESPUESTAS[f], letra: LETRA_RESPUESTAS[f] }))}
             />
           </Fila>
           <Fila titulo="Tamaño del texto del chat">
@@ -626,6 +665,24 @@ export function VentanaAjustes({
               ]}
             />
           </Fila>
+          <Fila titulo="Espacio entre renglones">
+            <Desplegable
+              etiqueta="Espacio entre renglones"
+              valor={ajustes.interlineado}
+              alCambiar={(v) => cambiar("interlineado", v)}
+              opciones={[
+                { id: "compacto", nombre: "Compacto" },
+                { id: "normal", nombre: "Normal" },
+                { id: "amplio", nombre: "Amplio" },
+              ]}
+            />
+          </Fila>
+          <div className="pc-aj-muestra" aria-hidden="true">
+            <span className="pc-aj-muestra__quien">Así se ven las respuestas</span>
+            <p className="pc-msj__texto">Listo: confirmé las 6 citas de mañana. Dos pidieron cambiar de hora; te dejé las opciones para que elijas.</p>
+          </div>
+        </Grupo>
+        <Grupo titulo="Conversación">
           <Fila titulo="Ancho de la conversación">
             <Desplegable
               etiqueta="Ancho de la conversación"
@@ -638,7 +695,24 @@ export function VentanaAjustes({
               ]}
             />
           </Fila>
-          <Fila titulo="Movimiento">
+          <Fila titulo="Densidad" texto="Qué tan juntos van los renglones del menú y los mensajes.">
+            <Desplegable
+              etiqueta="Densidad"
+              valor={ajustes.densidad}
+              alCambiar={(v) => cambiar("densidad", v)}
+              opciones={[
+                { id: "compacta", nombre: "Compacta" },
+                { id: "normal", nombre: "Normal" },
+                { id: "espaciosa", nombre: "Espaciosa" },
+              ]}
+            />
+          </Fila>
+          <Fila titulo="Hora de cada mensaje">
+            <Interruptor etiqueta="Hora de cada mensaje" activo={ajustes.horas === "mostrar"} alCambiar={(v) => cambiar("horas", v ? "mostrar" : "ocultar")} />
+          </Fila>
+        </Grupo>
+        <Grupo titulo="Accesibilidad">
+          <Fila titulo="Movimiento" texto="Reducido quita las animaciones del panel.">
             <Desplegable
               etiqueta="Movimiento"
               valor={ajustes.movimiento}
@@ -649,8 +723,11 @@ export function VentanaAjustes({
               ]}
             />
           </Fila>
-          <Fila titulo="Idioma" texto="En el que te contestan tus agentes y escriben a tus clientes. El panel, por ahora, en español.">
-            <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} />
+          <Fila titulo="Contraste alto" texto="Textos y bordes más marcados.">
+            <Interruptor etiqueta="Contraste alto" activo={ajustes.contraste === "alto"} alCambiar={(v) => cambiar("contraste", v ? "alto" : "normal")} />
+          </Fila>
+          <Fila titulo="Subrayar enlaces" texto="Para distinguirlos sin depender del color.">
+            <Interruptor etiqueta="Subrayar enlaces" activo={ajustes.enlaces === "subrayados"} alCambiar={(v) => cambiar("enlaces", v ? "subrayados" : "normal")} />
           </Fila>
         </Grupo>
         <Grupo titulo="Panel">
