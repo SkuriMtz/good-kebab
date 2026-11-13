@@ -7739,3 +7739,9 @@ a.pc-correo__accion:hover {
   top: 11px;
   left: 11px;
 }
+
+/* Al escribir, la caja ya no se marca con un borde claro: se queda igual (lo pidió el dueño) */
+.pc .pc-caja .prompt-bar__field::before,
+.pc .pc-caja .prompt-bar__field:focus-within::before {
+  display: none;
+}
