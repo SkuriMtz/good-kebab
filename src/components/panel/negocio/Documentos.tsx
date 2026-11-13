@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type DragEvent, type FormEvent } from "react";
 import { Giro, Icono } from "@/components/base/Iconos";
-import type { Documento, EstadoAppPersona } from "@/lib/nucleo-tipos";
+import { espacioDe, formatoPeso, type Documento, type EstadoAppPersona } from "@/lib/nucleo-tipos";
 import { Enlace, Modal, Subtitulo, Tarjeta, Vacio, claseBoton, retrasoEscalon } from "../Piezas";
 import { ACEPTA_DOCUMENTOS, EVENTO_DOCUMENTOS, mensajeDe, normalizarLink, useFuenteNegocio, validarArchivo, validarLink } from "./fuente";
 import { abrirDrive, driveDisponible } from "./drive";
@@ -24,7 +24,7 @@ type Aviso = { tono: "ok" | "error"; texto: string } | null;
  * a Apps). La lista dice qué se está leyendo, qué está listo y qué falló,
  * y el límite del plan ("3 de 20").
  */
-export function DocumentosNegocio({ max }: { /** Cuántos documentos deja el plan. */ max: number }) {
+export function DocumentosNegocio({ max, maxMb }: { /** Cuántos documentos deja el plan. */ max: number; /** Cuánto espacio (MB) deja el plan. */ maxMb: number }) {
   const fuente = useFuenteNegocio();
   const id = useId();
   const [docs, setDocs] = useState<Documento[] | null>(null);
@@ -101,7 +101,9 @@ export function DocumentosNegocio({ max }: { /** Cuántos documentos deja el pla
   }, [aviso]);
 
   const total = (docs?.length ?? 0) + subiendo.length;
-  const lleno = total >= max;
+  const espacioUsado = (docs ?? []).reduce((t, d) => t + espacioDe(d), 0);
+  const espacioMax = maxMb * 1024 * 1024;
+  const lleno = total >= max || espacioUsado >= espacioMax;
 
   const subir = async (archivos: File[]) => {
     if (!archivos.length) return;
@@ -117,6 +119,21 @@ export function DocumentosNegocio({ max }: { /** Cuántos documentos deja el pla
     if (buenos.length > cupo) {
       malos.push(cupo === 0 ? `Ya tienes ${max} documentos, el máximo de tu plan. Borra uno para subir otro.` : `Solo caben ${cupo} más en tu plan: se suben los primeros.`);
       buenos.splice(cupo);
+    }
+    // El espacio: se suben los que quepan, en orden (sin subir de balde un archivo que el servidor va a rechazar)
+    let libre = espacioMax - espacioUsado;
+    const sinEspacio = buenos.filter((a) => {
+      if (a.size <= libre) {
+        libre -= a.size;
+        return false;
+      }
+      return true;
+    });
+    if (sinEspacio.length) {
+      malos.push(
+        `${sinEspacio.length === 1 ? `«${sinEspacio[0].name}» no cabe` : `${sinEspacio.length} archivos no caben`}: tu plan guarda hasta ${formatoPeso(espacioMax)} y llevas ${formatoPeso(espacioUsado)}. Borra algún documento para hacer espacio.`,
+      );
+      buenos.splice(0, buenos.length, ...buenos.filter((a) => !sinEspacio.includes(a)));
     }
     setErroresArchivo(malos);
     if (!buenos.length) return;
@@ -352,6 +369,9 @@ export function DocumentosNegocio({ max }: { /** Cuántos documentos deja el pla
               <span className="pc-docs__limite cifras" data-lleno={lleno ? "" : undefined}>
                 {formatoMx.format(total)} de {formatoMx.format(max)}
                 <span className="pc-oculto"> documentos que deja tu plan</span>
+                <span aria-hidden="true"> · </span>
+                {formatoPeso(espacioUsado)} de {formatoPeso(espacioMax)}
+                <span className="pc-oculto"> de espacio</span>
               </span>
             ) : null
           }

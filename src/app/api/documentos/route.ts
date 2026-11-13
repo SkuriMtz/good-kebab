@@ -129,7 +129,7 @@ async function subirArchivo(request: NextRequest, supabase: SupabaseClient, user
   if (archivo.size > MAX_BYTES_DOCUMENTO) return error(`El archivo pesa más de ${megas} MB.`, 413);
   const bytes = new Uint8Array(await archivo.arrayBuffer());
   const tipo = revisarArchivo(archivo.name || "documento", bytes);
-  await revisarLimiteDocumentos(supabase, userId);
+  await revisarLimiteDocumentos(supabase, userId, bytes.length);
   const doc = await guardarArchivo(supabase, userId, { id: randomUUID(), nombre: archivo.name, tipo, bytes, yaSubido: false });
   return NextResponse.json(doc, { status: 201 });
 }
@@ -152,7 +152,7 @@ async function procesarSubido(supabase: SupabaseClient, userId: string, ruta: st
   const bytes = new Uint8Array(await blob.arrayBuffer());
   try {
     revisarArchivo(`archivo.${m[2]}`, bytes);
-    await revisarLimiteDocumentos(supabase, userId);
+    await revisarLimiteDocumentos(supabase, userId, bytes.length);
     const doc = await guardarArchivo(supabase, userId, { id: m[1], nombre: nombreTexto, tipo, bytes, yaSubido: true });
     return NextResponse.json(doc, { status: 201 });
   } catch (e) {
@@ -177,6 +177,7 @@ async function guardarArchivo(
     nombre: nombreSeguro(datos.nombre, `Documento.${datos.tipo}`),
     tipo: datos.tipo,
     ruta,
+    bytes: datos.bytes.length,
   });
   if (!datos.yaSubido) {
     const { error: errSubir } = await supabase.storage

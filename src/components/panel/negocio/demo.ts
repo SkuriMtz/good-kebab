@@ -71,8 +71,8 @@ function inicial(): EstadoDemo {
   return {
     perfil: perfilCompleto({ ...PERFIL_INICIAL, actualizado_en: new Date(ahora - 2 * DIA).toISOString() }),
     documentos: [
-      { id: "demo-precios", nombre: "Lista de precios.pdf", tipo: "pdf", estado: "listo", error: null, caracteres: 3412, url: null, creado_en: new Date(ahora - 3 * DIA).toISOString() },
-      { id: "demo-politicas", nombre: "Políticas de cancelación.docx", tipo: "docx", estado: "listo", error: null, caracteres: 1860, url: null, creado_en: new Date(ahora - 9 * DIA).toISOString() },
+      { id: "demo-precios", nombre: "Lista de precios.pdf", tipo: "pdf", estado: "listo", error: null, caracteres: 3412, bytes: 186_000, url: null, creado_en: new Date(ahora - 3 * DIA).toISOString() },
+      { id: "demo-politicas", nombre: "Políticas de cancelación.docx", tipo: "docx", estado: "listo", error: null, caracteres: 1860, bytes: 24_000, url: null, creado_en: new Date(ahora - 9 * DIA).toISOString() },
       {
         id: "demo-preguntas",
         nombre: "estudioluna.example/preguntas",
@@ -148,7 +148,7 @@ export const fuenteDemo: FuenteNegocio = {
     // TXT y MD se pueden contar aquí mismo; PDF y DOCX se leen en tu cuenta real
     const caracteres = ext === "txt" || ext === "md" ? (await archivo.text()).length : 0;
     await pausa(650);
-    return agregarDocumento({ id: nuevoId(), nombre: archivo.name, tipo: ext, estado: "procesando", error: null, caracteres, url: null, creado_en: new Date().toISOString() });
+    return agregarDocumento({ id: nuevoId(), nombre: archivo.name, tipo: ext, estado: "procesando", error: null, caracteres, bytes: archivo.size, url: null, creado_en: new Date().toISOString() });
   },
   async agregarLink(texto) {
     const url = new URL(normalizarLink(texto));

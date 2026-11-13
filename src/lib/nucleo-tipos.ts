@@ -50,11 +50,31 @@ export type Documento = {
   estado: EstadoDocumento;
   error: string | null;
   caracteres: number;
+  /** Lo que pesa el archivo guardado (0 si no hay archivo: links, Drive). */
+  bytes?: number;
   url: string | null;
   creado_en: string;
 };
 export const MAX_BYTES_DOCUMENTO = 10 * 1024 * 1024;
-export const MAX_DOCUMENTOS_POR_PLAN = { free: 3, one: 20, max: 100 } as const;
+/**
+ * Documentos por plan y espacio por cuenta (en MB). La base de datos los
+ * vuelve a revisar con un trigger (migración 0012, mismos números). Lo que
+ * pesa es el tamaño, no el número: por eso hay tope de espacio. A la IA le
+ * da igual cuántos haya: con cada mensaje solo van los 6 fragmentos que
+ * mejor responden (máx. 5000 caracteres).
+ */
+export const MAX_DOCUMENTOS_POR_PLAN = { free: 10, one: 100, max: 500 } as const;
+export const MAX_MB_DOCUMENTOS_POR_PLAN = { free: 25, one: 500, max: 2048 } as const;
+/** El espacio que ocupa un documento: su archivo o su texto, lo que sea más grande. */
+export const espacioDe = (d: Pick<Documento, "bytes" | "caracteres">) => Math.max(d.bytes ?? 0, d.caracteres ?? 0);
+/** "820 KB", "12 MB", "1.5 MB", "2 GB". */
+export function formatoPeso(bytes: number) {
+  const mb = bytes / (1024 * 1024);
+  const corto = (n: number) => n.toLocaleString("es-MX", { maximumFractionDigits: n < 10 ? 1 : 0 });
+  if (mb >= 1024) return `${corto(mb / 1024)} GB`;
+  if (mb >= 1) return `${corto(mb)} MB`;
+  return `${Math.max(bytes > 0 ? 1 : 0, Math.round(bytes / 1024))} KB`;
+}
 
 /* ---------------- Apps conectadas (tablas conexiones y apps_interes) ---------------- */
 

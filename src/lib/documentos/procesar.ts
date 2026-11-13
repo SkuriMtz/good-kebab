@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cargarCuenta } from "@/lib/cuenta";
-import { MAX_DOCUMENTOS_POR_PLAN, type Documento, type TipoDocumento } from "@/lib/nucleo-tipos";
+import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, type Documento, type TipoDocumento } from "@/lib/nucleo-tipos";
 import { normalizarTexto, trocear } from "./trocear";
 
 /**
@@ -26,7 +26,7 @@ import { normalizarTexto, trocear } from "./trocear";
 export const MAX_CARACTERES_DOCUMENTO = 300_000;
 const LOTE_FRAGMENTOS = 100;
 /** Columnas que forman un `Documento` del contrato. */
-export const COLUMNAS_DOCUMENTO = "id, nombre, tipo, estado, error, caracteres, url, creado_en";
+export const COLUMNAS_DOCUMENTO = "id, nombre, tipo, estado, error, caracteres, bytes, url, creado_en";
 const MAX_NOMBRE = 200;
 const MAX_ERROR = 500;
 
@@ -68,20 +68,30 @@ export function nombreSeguro(nombre: string | null | undefined, respaldo = "Docu
 const mensajeCorto = (mensaje: string) => (mensaje.length > MAX_ERROR ? `${mensaje.slice(0, MAX_ERROR - 1)}…` : mensaje);
 
 /**
- * Revisa que la persona todavía pueda agregar documentos según su plan.
- * Lanza ErrorDocumento(403) si ya llegó al límite.
+ * Revisa que la persona todavía pueda agregar documentos según su plan:
+ * cuántos tiene y cuánto espacio ocupan (con `bytesNuevo`, lo que pesa el
+ * archivo que va a subir). Lanza ErrorDocumento(403) si ya llegó al límite.
  */
-export async function revisarLimiteDocumentos(supabase: SupabaseClient, userId: string): Promise<void> {
-  const [cuenta, { count, error }] = await Promise.all([
+export async function revisarLimiteDocumentos(supabase: SupabaseClient, userId: string, bytesNuevo = 0): Promise<void> {
+  const [cuenta, { data, error }] = await Promise.all([
     cargarCuenta(supabase, userId),
-    supabase.from("documentos").select("id", { count: "exact", head: true }).eq("owner_id", userId),
+    supabase.from("documentos").select("bytes, caracteres").eq("owner_id", userId).limit(MAX_DOCUMENTOS_POR_PLAN.max + 1),
   ]);
   if (faltaMigracion(error)) throw new ErrorDocumento(MENSAJES.baseDeDatos, 503);
   if (error) throw new ErrorDocumento("No pudimos revisar tus documentos. Intenta de nuevo.", 500);
+  const filas = (data ?? []) as { bytes: number | null; caracteres: number | null }[];
   const maximo = MAX_DOCUMENTOS_POR_PLAN[cuenta.plan.id];
-  if ((count ?? 0) >= maximo) {
+  if (filas.length >= maximo) {
     throw new ErrorDocumento(
       `Llegaste al límite de ${maximo} documentos de ${cuenta.plan.nombre}. Borra alguno para agregar otro.`,
+      403,
+    );
+  }
+  const maximoMb = MAX_MB_DOCUMENTOS_POR_PLAN[cuenta.plan.id];
+  const usado = filas.reduce((t, d) => t + espacioDe({ bytes: Number(d.bytes ?? 0), caracteres: Number(d.caracteres ?? 0) }), 0);
+  if (usado + bytesNuevo > maximoMb * 1024 * 1024) {
+    throw new ErrorDocumento(
+      `Llegaste al límite de espacio de ${cuenta.plan.nombre} (${maximoMb.toLocaleString("es-MX")} MB). Borra algún documento para agregar otro.`,
       403,
     );
   }
@@ -94,7 +104,7 @@ export async function revisarLimiteDocumentos(supabase: SupabaseClient, userId: 
 export async function crearDocumento(
   supabase: SupabaseClient,
   userId: string,
-  datos: { id?: string; nombre: string; tipo: TipoDocumento; url?: string | null; ruta?: string | null },
+  datos: { id?: string; nombre: string; tipo: TipoDocumento; url?: string | null; ruta?: string | null; bytes?: number },
 ): Promise<Documento> {
   const { data, error } = await supabase
     .from("documentos")
@@ -106,6 +116,7 @@ export async function crearDocumento(
       estado: "procesando",
       url: datos.url ?? null,
       ruta: datos.ruta ?? null,
+      bytes: datos.bytes ?? 0,
     })
     .select(COLUMNAS_DOCUMENTO)
     .single();

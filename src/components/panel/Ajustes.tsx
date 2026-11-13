@@ -29,7 +29,7 @@ import {
   type DatosCfdi,
 } from "@/lib/ajustes";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
-import { MAX_DOCUMENTOS_POR_PLAN, type CampoPerfil } from "@/lib/nucleo-tipos";
+import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil } from "@/lib/nucleo-tipos";
 import { planMinimo } from "@/lib/planes";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
@@ -165,6 +165,7 @@ const OPCIONES: Opcion[] = [
   { parte: "notificaciones", titulo: "No molestar en la noche", claves: "silencio noche horas" },
   { parte: "uso", titulo: "Mensajes con tu equipo", claves: "mensajes limite quedan reinicia reinicio mes porcentaje usado" },
   { parte: "uso", titulo: "Documentos", claves: "documentos archivos limite guardados" },
+  { parte: "uso", titulo: "Espacio de tus documentos", claves: "espacio megas mb gb almacenamiento archivos peso" },
   { parte: "uso", titulo: "Si se acaban", claves: "limite mensajes" },
   { parte: "plan", titulo: "Tu plan", claves: "plan max one free cambiar" },
   { parte: "plan", titulo: "Forma de pago", claves: "tarjeta pagar cobro" },
@@ -390,6 +391,7 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
   const fuente = useFuenteNegocio();
   const router = useRouter();
   const [documentos, setDocumentos] = useState<number | null>(null);
+  const [espacio, setEspacio] = useState(0);
   const [actualizando, iniciar] = useTransition();
   const [leido, setLeido] = useState<Date | null>(null);
   const pedido = useRef(false);
@@ -399,7 +401,11 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
     let vivo = true;
     fuente
       .listarDocumentos()
-      .then((l) => vivo && setDocumentos(l.length))
+      .then((l) => {
+        if (!vivo) return;
+        setDocumentos(l.length);
+        setEspacio(l.reduce((t, d) => t + espacioDe(d), 0));
+      })
       .catch(() => vivo && setDocumentos(null));
     return () => {
       vivo = false;
@@ -415,6 +421,9 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
   const quedan = Math.max(0, plan.total - plan.usados);
   const pctMensajes = porcentaje(plan.usados, plan.total);
   const maxDocumentos = MAX_DOCUMENTOS_POR_PLAN[plan.id as keyof typeof MAX_DOCUMENTOS_POR_PLAN] ?? null;
+  const maxEspacio = (MAX_MB_DOCUMENTOS_POR_PLAN[plan.id as keyof typeof MAX_MB_DOCUMENTOS_POR_PLAN] ?? 0) * 1024 * 1024;
+  const pctEspacio = porcentaje(espacio, maxEspacio);
+  const avisoEspacio = pctEspacio >= 100 ? "Ya no hay espacio: borra algún documento para subir otro." : pctEspacio >= 80 ? `Te quedan ${formatoPeso(Math.max(0, maxEspacio - espacio))}.` : null;
   const n = (v: number) => v.toLocaleString("es-MX");
   const avisoMensajes =
     pctMensajes >= 100
@@ -435,6 +444,9 @@ function LimitesUso({ datos, reinicio }: { datos: DatosAjustes; reinicio: string
       <BarraLimite titulo="Mensajes con tu equipo" detalle={`Se reinicia el ${reinicio}`} usados={plan.usados} total={plan.total} aviso={avisoMensajes} />
       {documentos !== null && maxDocumentos ? (
         <BarraLimite titulo="Documentos" detalle={`${n(documentos)} de ${n(maxDocumentos)} que puedes guardar`} usados={documentos} total={maxDocumentos} aviso={avisoDocumentos} />
+      ) : null}
+      {documentos !== null && maxEspacio ? (
+        <BarraLimite titulo="Espacio de tus documentos" detalle={`${formatoPeso(espacio)} de ${formatoPeso(maxEspacio)}`} usados={espacio} total={maxEspacio} aviso={avisoEspacio} />
       ) : null}
       {datos.demo ? null : (
         <div className="pc-aj-limites__pie">

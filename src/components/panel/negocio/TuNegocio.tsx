@@ -1,6 +1,6 @@
 "use client";
 
-import { MAX_DOCUMENTOS_POR_PLAN } from "@/lib/nucleo-tipos";
+import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN } from "@/lib/nucleo-tipos";
 import type { IdPlan } from "@/lib/planes";
 import { Pildoras, TituloSeccion } from "../Piezas";
 import { Seccion } from "../Secciones";
@@ -36,7 +36,7 @@ export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNe
       </div>
       {/* Cada pestaña entra de nuevo (key): su entrada escalonada vuelve a correr */}
       <div key={tab} className="pc-negocio" id="pc-negocio-panel">
-        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}
+        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} maxMb={MAX_MB_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}
       </div>
     </Seccion>
   );
