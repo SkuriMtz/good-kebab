@@ -7251,3 +7251,417 @@ a.pc-correo__accion:hover {
     background: var(--pc-boton);
   }
 }
+
+/* =====================================================================
+   35. El "⋯" de cada conversación (MenuChats.tsx): como el de Claude.
+   Aparece al pasar el cursor (o en la abierta); abre un menú con Fijar,
+   Cambiar nombre, Mover a grupo, Archivar y Eliminar, con sus atajos.
+   Los grupos son como carpetas. Al abrir, los tres puntos brincan uno tras
+   otro y el menú crece desde ellos (200ms, ease-out); sus renglones entran
+   escalonados. Al pasar a "Mover a grupo", la vista se desliza.
+   ===================================================================== */
+.pc .pc-chat {
+  position: relative;
+}
+.pc .pc-chat > .pc-menu__chat {
+  padding-right: 34px;
+}
+.pc .pc-chat__mas {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    transform 150ms var(--pc-claude-sale);
+}
+.pc .pc-chat:hover > .pc-chat__mas,
+.pc .pc-chat:focus-within > .pc-chat__mas,
+.pc .pc-chat[data-actual] > .pc-chat__mas,
+.pc .pc-chat__mas[aria-expanded="true"] {
+  opacity: 1;
+}
+.pc .pc-chat__mas:hover,
+.pc .pc-chat__mas[aria-expanded="true"] {
+  background: #4a4a4a;
+  color: var(--pc-texto);
+}
+:root[data-tema="claro"] .pc .pc-chat__mas:hover,
+:root[data-tema="claro"] .pc .pc-chat__mas[aria-expanded="true"] {
+  background: #dcdcdf;
+}
+.pc .pc-chat__mas:active {
+  transform: scale(0.9);
+}
+.pc .pc-chat__mas:focus-visible {
+  outline: 2px solid var(--pc-foco);
+  outline-offset: 1px;
+}
+/* El renglón con el menú abierto se queda marcado */
+.pc .pc-chat[data-abierto] > .pc-menu__chat:not([aria-current="page"]) {
+  background: var(--pc-hover);
+}
+/* Los tres puntos brincan uno tras otro al abrir */
+.pc .pc-puntos circle {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.pc .pc-chat__mas[aria-expanded="true"] .pc-puntos circle {
+  animation: pc-punto 380ms var(--pc-claude-sale) both;
+}
+.pc .pc-chat__mas[aria-expanded="true"] .pc-puntos circle:nth-child(2) {
+  animation-delay: 45ms;
+}
+.pc .pc-chat__mas[aria-expanded="true"] .pc-puntos circle:nth-child(3) {
+  animation-delay: 90ms;
+}
+@keyframes pc-punto {
+  35% {
+    transform: translateY(-2.5px) scale(1.15);
+  }
+}
+@media (pointer: coarse) {
+  .pc .pc-chat__mas {
+    top: 4px;
+    width: 32px;
+    height: 32px;
+    opacity: 0.7;
+  }
+  .pc .pc-chat > .pc-menu__chat {
+    padding-right: 40px;
+  }
+}
+/* Cambiar el nombre ahí mismo */
+.pc .pc-chat__campo {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #5a5a5a;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: var(--pc-texto);
+  font: 400 14px/20px var(--pc-sans);
+  letter-spacing: 0.015em;
+  outline: none;
+}
+:root[data-tema="claro"] .pc .pc-chat__campo {
+  border-color: #b8b8bd;
+  background: #fff;
+}
+/* Los grupos, como carpetas: la carpeta, el nombre, cuántas tiene y adentro sus conversaciones con una guía */
+.pc .pc-carpeta__fila {
+  width: 100%;
+  cursor: pointer;
+}
+.pc .pc-carpeta__icono {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  color: var(--pc-texto-2);
+}
+.pc .pc-carpeta__fila[aria-expanded="true"] .pc-carpeta__icono {
+  color: var(--pc-texto);
+}
+.pc .pc-carpeta__cuantos {
+  flex: none;
+  min-width: 18px;
+  color: var(--pc-texto-2);
+  font: 400 12.5px/1 var(--pc-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: opacity 120ms ease;
+}
+.pc .pc-chat:hover .pc-carpeta__cuantos,
+.pc .pc-chat:focus-within .pc-carpeta__cuantos,
+.pc .pc-chat[data-abierto] .pc-carpeta__cuantos {
+  opacity: 0;
+}
+.pc .pc-carpeta__lista {
+  margin: 2px 0 2px 18px;
+  padding-left: 6px;
+  border-left: 1px solid var(--pc-raya);
+}
+.pc .pc-menu__vacio--grupo {
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+
+/* El menú flotante */
+.pc .pc-flota {
+  position: fixed;
+  z-index: 90;
+  width: 220px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  background: #2a2a2a;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 36px rgba(0, 0, 0, 0.45);
+  color: var(--pc-texto);
+  transform-origin: top right;
+  animation: pc-flota-entra 200ms var(--pc-claude-sale) both;
+}
+.pc .pc-flota:has(.pc-mover) {
+  width: 268px;
+}
+.pc .pc-flota[data-arriba] {
+  transform-origin: bottom right;
+}
+.pc .pc-flota[data-saliendo] {
+  animation: pc-flota-sale 120ms ease-in both;
+  pointer-events: none;
+}
+:root[data-tema="claro"] .pc .pc-flota {
+  border-color: #e4e4e7;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(16, 16, 24, 0.06),
+    0 14px 36px rgba(16, 16, 24, 0.14);
+}
+@keyframes pc-flota-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.94);
+  }
+}
+@keyframes pc-flota-sale {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+.pc .pc-flota__vista[data-dir="adelante"] {
+  animation: pc-vista-adelante 200ms var(--pc-claude-sale) both;
+}
+.pc .pc-flota__vista[data-dir="atras"] {
+  animation: pc-vista-atras 200ms var(--pc-claude-sale) both;
+}
+@keyframes pc-vista-adelante {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+@keyframes pc-vista-atras {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+.pc .pc-flota__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pc-texto);
+  font: 400 14px/20px var(--pc-sans);
+  letter-spacing: 0.01em;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  animation: pc-flota-item 240ms var(--pc-claude-sale) both;
+  animation-delay: calc(40ms + var(--i, 0) * 22ms);
+}
+@keyframes pc-flota-item {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+.pc .pc-flota__item:hover,
+.pc .pc-flota__item:focus-visible {
+  background: #3a3a3a;
+}
+:root[data-tema="claro"] .pc .pc-flota__item:hover,
+:root[data-tema="claro"] .pc .pc-flota__item:focus-visible {
+  background: #f1f1f3;
+}
+.pc .pc-flota__item--peligro {
+  color: #ff6b63;
+}
+:root[data-tema="claro"] .pc .pc-flota__item--peligro {
+  color: #c62828;
+}
+.pc .pc-flota__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 5px 0;
+}
+.pc .pc-flota__textos > span:first-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pc .pc-flota__detalle {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: normal;
+}
+.pc .pc-flota__atajo {
+  flex: none;
+  color: #8f8f8f;
+  font: 400 12px/1 var(--pc-sans);
+  text-transform: uppercase;
+}
+.pc .pc-flota__icono {
+  flex: none;
+  color: var(--pc-texto-2);
+}
+.pc .pc-flota__raya {
+  height: 1px;
+  margin: 4px 6px;
+  border: 0;
+  background: #3a3a3a;
+}
+:root[data-tema="claro"] .pc .pc-flota__raya {
+  background: #ececee;
+}
+
+/* Mover a grupo: sobrio, de oficina (cabecera, buscador, lista con conteos y crear) */
+.pc .pc-mover__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 6px 0 2px;
+}
+.pc .pc-mover__volver {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  cursor: pointer;
+}
+.pc .pc-mover__volver:hover,
+.pc .pc-mover__volver:focus-visible {
+  background: #3a3a3a;
+  color: var(--pc-texto);
+  outline: none;
+}
+.pc .pc-mover__titulo {
+  color: var(--pc-texto);
+  font: 500 13.5px/1 var(--pc-sans);
+  letter-spacing: 0.01em;
+}
+.pc .pc-mover__buscar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin: 4px 4px 6px;
+  padding: 0 10px;
+  border: 1px solid #3f3f3f;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: var(--pc-texto-2);
+  transition: border-color 150ms ease;
+}
+.pc .pc-mover__buscar:focus-within {
+  border-color: #6a6a6a;
+}
+:root[data-tema="claro"] .pc .pc-mover__buscar {
+  border-color: #dcdcdf;
+  background: #f7f7f8;
+}
+.pc .pc-mover__buscar input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pc-texto);
+  font: 400 13.5px/20px var(--pc-sans);
+  outline: none;
+}
+.pc .pc-mover__buscar input::placeholder {
+  color: #8a8a8a;
+}
+.pc .pc-mover__seccion {
+  margin: 2px 10px 4px;
+  color: #8a8a8a;
+  font: 500 11px/1.4 var(--pc-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pc .pc-mover__lista {
+  max-height: 232px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.pc .pc-mover__grupo[aria-current="true"] {
+  cursor: default;
+}
+.pc .pc-mover__cuantos {
+  flex: none;
+  color: #8a8a8a;
+  font: 400 12px/1 var(--pc-sans);
+  font-variant-numeric: tabular-nums;
+}
+.pc .pc-mover__check {
+  flex: none;
+  color: var(--pc-acento);
+}
+.pc .pc-mover__nombre {
+  font-weight: 600;
+}
+.pc .pc-mover__nada {
+  margin: 4px 10px 8px;
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+/* El botón rojo de Eliminar (en la ventana de confirmar) */
+.pc .pc-boton--peligro {
+  background: #d93a3a;
+  color: #fff;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-boton--peligro:hover {
+    background: #c22f2f;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc .pc-flota,
+  .pc .pc-flota[data-saliendo],
+  .pc .pc-flota__item,
+  .pc .pc-flota__vista[data-dir],
+  .pc .pc-chat__mas[aria-expanded="true"] .pc-puntos circle {
+    animation: none;
+  }
+}
+/* Con el dedo no hay teclado: sin las letras de los atajos */
+@media (pointer: coarse) {
+  .pc .pc-flota kbd.pc-flota__atajo {
+    display: none;
+  }
+  .pc .pc-flota__item {
+    min-height: 40px;
+  }
+}

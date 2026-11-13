@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { limpiarAjustes } from "@/lib/ajustes";
+import { limpiarOrganizacion } from "@/lib/organizacion-chats";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -27,7 +28,11 @@ export async function PUT(request: NextRequest) {
     return error("No pudimos leer los ajustes.", 400);
   }
   const datos = limpiarAjustes(cuerpo?.ajustes);
-  const { error: e } = await supabase.from("ajustes_cuenta").upsert({ owner_id: user.id, datos, actualizado_en: new Date().toISOString() });
+  // Cómo acomoda sus conversaciones vive en la misma fila (PUT /api/chats/organizacion): se conserva
+  const { data: fila } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
+  const previos = fila?.datos && typeof fila.datos === "object" && !Array.isArray(fila.datos) ? (fila.datos as Record<string, unknown>) : {};
+  const conOrganizacion = "organizacion" in previos ? { ...datos, organizacion: limpiarOrganizacion(previos.organizacion) } : datos;
+  const { error: e } = await supabase.from("ajustes_cuenta").upsert({ owner_id: user.id, datos: conOrganizacion, actualizado_en: new Date().toISOString() });
   if (e) return error("No se pudieron guardar tus ajustes. Intenta de nuevo.", 500);
   return NextResponse.json({ ajustes: datos }, { headers: { "Cache-Control": "private, no-store" } });
 }

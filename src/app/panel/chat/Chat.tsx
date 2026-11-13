@@ -7,6 +7,7 @@ import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { Personaje } from "@/components/agentes/Personaje";
 import { Giro } from "@/components/base/Iconos";
 import { ContextoChats } from "@/components/panel/contexto";
+import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO } from "@/components/panel/MenuChats";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
@@ -215,6 +216,34 @@ export function Chat({
     reiniciar(null, id, null);
     ponerUrl({ agente: id });
   };
+
+  // El "⋯" del menú cambió el nombre o eliminó una conversación: la cabecera se actualiza y,
+  // si era la abierta, se vuelve a una conversación nueva
+  const alEliminarDesdeMenu = useRef<(id: string) => void>(() => undefined);
+  alEliminarDesdeMenu.current = (id: string) => {
+    setConversaciones((l) => l.filter((x) => x.id !== id));
+    if (actual === id) {
+      const c = todas.current.find((x) => x.id === id);
+      reiniciar(null, c?.agente ?? agente, null);
+      ponerUrl({});
+    }
+  };
+  useEffect(() => {
+    const renombrada = (e: Event) => {
+      const d = (e as CustomEvent<{ id: string; titulo: string; campo: string }>).detail;
+      setConversaciones((l) => {
+        const base = l.some((x) => x.id === d.id) ? l : [...l, ...todas.current.filter((x) => x.id === d.id)];
+        return base.map((x) => (x.id === d.id ? { ...x, titulo: d.titulo, ...(d.campo === "tema" ? { tema: d.titulo } : {}) } : x));
+      });
+    };
+    const eliminada = (e: Event) => alEliminarDesdeMenu.current((e as CustomEvent<{ id: string }>).detail.id);
+    window.addEventListener(EVENTO_CHAT_RENOMBRADO, renombrada);
+    window.addEventListener(EVENTO_CHAT_ELIMINADO, eliminada);
+    return () => {
+      window.removeEventListener(EVENTO_CHAT_RENOMBRADO, renombrada);
+      window.removeEventListener(EVENTO_CHAT_ELIMINADO, eliminada);
+    };
+  }, []);
 
   const nuevoGrupo = (ids: IdAgente[], temaNuevo: string | null) => {
     reiniciar(ids, ids[0], temaNuevo);

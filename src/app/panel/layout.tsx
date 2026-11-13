@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArmazonReal } from "@/components/panel/ArmazonReal";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { limpiarAjustes } from "@/lib/ajustes";
+import { ORGANIZACION_VACIA, limpiarOrganizacion } from "@/lib/organizacion-chats";
 import { cargarCuenta } from "@/lib/cuenta";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
@@ -47,9 +48,10 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   ]);
   const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
 
-  // Fijados: los grupos con nombre. Recientes: todo lo demás (también "Todo el equipo")
-  const fijados: ChatMenu[] = [];
-  const recientes: ChatMenu[] = [];
+  // Las conversaciones y cómo las acomodó (fijadas, archivadas, grupos). Si nunca ha
+  // acomodado nada, los grupos con nombre empiezan fijados (como antes)
+  const chats: ChatMenu[] = [];
+  const conNombre: string[] = [];
   for (const c of convs ?? []) {
     const id = String(c.id);
     const agente = esIdAgente(c.agente) ? c.agente : null;
@@ -57,10 +59,11 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     const agentes = grupo.length >= 2 ? grupo : agente ? [agente] : [];
     if (!agentes.length) continue;
     const titulo = ((c.tema as string | null) || (c.titulo as string | null) || "Conversación").replace(/\s+/g, " ").trim();
-    const item = { id, titulo, href: `/panel?c=${encodeURIComponent(id)}`, agentes };
-    if (grupo.length >= 2 && c.tema) fijados.push(item);
-    else if (recientes.length < 20) recientes.push(item);
+    chats.push({ id, titulo, href: `/panel?c=${encodeURIComponent(id)}`, agentes, campo: c.tema ? "tema" : "titulo" });
+    if (grupo.length >= 2 && c.tema) conNombre.push(id);
   }
+  const datosGuardados = filaAjustes?.datos && typeof filaAjustes.datos === "object" ? (filaAjustes.datos as Record<string, unknown>) : {};
+  const organizacion = "organizacion" in datosGuardados ? limpiarOrganizacion(datosGuardados.organizacion) : { ...ORGANIZACION_VACIA, fijadas: conNombre };
 
   const meta = user.user_metadata ?? {};
   const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined) || user.email || "Tu cuenta";
@@ -85,8 +88,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         gmail: conGoogle,
         activos: cuenta.activos,
         pendientes: pendientes.total,
-        fijados,
-        recientes,
+        chats,
+        organizacion,
       }}
     >
       {children}

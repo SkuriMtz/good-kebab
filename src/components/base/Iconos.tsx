@@ -64,7 +64,9 @@ export type NombreIcono =
   | "rayo"
   // Tu negocio: subir documentos y agregar links
   | "subir"
-  | "enlace";
+  | "enlace"
+  | "carpeta"
+  | "archivar";
 
 const TRAZOS: Record<NombreIcono, ReactNode> = {
   chevron: <path d="m6 9 6 6 6-6" />,
@@ -303,6 +305,13 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
     <>
       <path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1" />
       <path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" />
+    </>
+  ),
+  carpeta: <path d="M3.5 7.5a2 2 0 0 1 2-2h3.6l2 2h7.4a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />,
+  archivar: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="4" rx="1" />
+      <path d="M5 8.5v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9M10 12.5h4" />
     </>
   ),
 };

@@ -19,6 +19,8 @@ import { Hecho } from "./Hecho";
 import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, EVENTO_PENDIENTE_DEMO, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
+import { useOrganizacionChats, type AccionesChats } from "./MenuChats";
+import { limpiarOrganizacion, organizar, type OrganizacionChats } from "@/lib/organizacion-chats";
 import { nombresDe } from "./Mensajes";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { ContextoNavegar, Enlace } from "./Piezas";
@@ -48,7 +50,9 @@ function claveDe(url: URL) {
 }
 
 /** ¿Es un grupo con nombre? (empieza con "Creaste el grupo…"): va en Fijados. */
-const esFijado = (c: ConvGuion) => c.agentes.length > 1 && c.mensajes[0]?.de === "sistema";
+/** Cómo empieza acomodado el ejemplo: los dos grupos fijados y un grupo "Proveedores" con lo de Iris. */
+const ORGANIZACION_DEMO: OrganizacionChats = { fijadas: ["recepcion", "cierre"], archivadas: [], grupos: [{ id: "g-proveedores", nombre: "Proveedores", chats: ["iris"] }] };
+const CLAVE_ORGANIZACION = "atendel-pruebalo-organizacion";
 
 export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la página (la misma en el servidor y aquí). */ ahora: number }) {
   const params = useSearchParams();
@@ -102,8 +106,40 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const porRevisar = tablero.filter((i) => i.columna === "revisar").length;
   const ordenados = [...guion.convs].sort((a, b) => b.orden - a.orden);
   const aMenu = (c: ConvGuion): ChatMenu => ({ id: c.id, titulo: c.titulo, href: `/pruebalo?con=${c.id}`, agentes: c.agentes });
-  const fijados = ordenados.filter(esFijado).map(aMenu);
-  const recientes = ordenados.filter((c) => !esFijado(c)).map(aMenu);
+  const chats = ordenados.map(aMenu);
+  // Fijadas, archivadas y grupos del ejemplo: viven en la pestaña
+  const [organizacion, organizarChats] = useOrganizacionChats(
+    ORGANIZACION_DEMO,
+    (o) => {
+      try {
+        window.sessionStorage.setItem(CLAVE_ORGANIZACION, JSON.stringify(o));
+      } catch {
+        /* sin almacenamiento: no se recuerda */
+      }
+    },
+    () => {
+      try {
+        const g = window.sessionStorage.getItem(CLAVE_ORGANIZACION);
+        return g ? limpiarOrganizacion(JSON.parse(g)) : null;
+      } catch {
+        return null;
+      }
+    },
+  );
+  const acciones: AccionesChats = {
+    organizar: organizarChats,
+    renombrar: async (id, titulo) => {
+      guion.renombrar(id, titulo);
+      return null;
+    },
+    eliminar: async (id) => {
+      if (guion.convs.length <= 1) return "Deja al menos una conversación en el ejemplo.";
+      guion.borrar(id);
+      organizarChats((o) => organizar.olvidar(o, id));
+      if (params.get("con") === id) navegar("/pruebalo");
+      return null;
+    },
+  };
 
   const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida === "hecho" ? "pendientes" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
@@ -133,8 +169,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   );
   const indiceConChats: ResultadoBusqueda[] = [
     ...indice,
-    ...fijados.map((g) => ({ id: `f-${g.id}`, grupo: "Fijados", titulo: g.titulo, detalle: nombresDe(g.agentes), agentes: g.agentes, href: g.href })),
-    ...recientes.map((r) => ({ id: `r-${r.id}`, grupo: "Recientes", titulo: r.titulo, agentes: r.agentes, href: r.href })),
+    ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
   ];
 
   // El panel de información de la derecha: en el inicio y en las conversaciones
@@ -262,8 +297,9 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           ajustes: "/pruebalo?vista=ajustes",
         }}
         pendientes={porRevisar}
-        fijados={fijados}
-        recientes={recientes}
+        chats={chats}
+        organizacion={organizacion}
+        acciones={acciones}
         usuario={{ nombre: DEMO_USUARIA.nombre.split(" ")[0], plan: PLAN.nombre.replace(/^Atendel\s+/, "") }}
         cuenta={cuenta}
         ajustes={{

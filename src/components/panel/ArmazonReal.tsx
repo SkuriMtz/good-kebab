@@ -13,6 +13,8 @@ import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafic
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ContextoChats } from "./contexto";
+import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO, useOrganizacionChats, type AccionesChats } from "./MenuChats";
+import { organizar, type OrganizacionChats } from "@/lib/organizacion-chats";
 import { nombresDe } from "./Mensajes";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
@@ -40,8 +42,9 @@ export type DatosArmazonReal = {
   gmail: boolean;
   activos: IdAgente[];
   pendientes: number | null;
-  fijados: ChatMenu[];
-  recientes: ChatMenu[];
+  /** Las conversaciones (de la más nueva a la más vieja) y cómo las acomodó (fijadas, archivadas, grupos). */
+  chats: ChatMenu[];
+  organizacion: OrganizacionChats;
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
@@ -64,8 +67,11 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const ruta = usePathname();
   const params = useSearchParams();
   const router = useRouter();
-  const [fijados, setFijados] = useState(datos.fijados);
-  const [recientes, setRecientes] = useState(datos.recientes);
+  const [chats, setChats] = useState(datos.chats);
+  // Fijadas, archivadas y grupos: se guardan en la cuenta (PUT /api/chats/organizacion)
+  const [organizacion, organizarChats] = useOrganizacionChats(datos.organizacion, (o) =>
+    fetch("/api/chats/organizacion", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ organizacion: o }) }).catch(() => undefined),
+  );
 
   const vista = params.get("vista");
   const c = params.get("c");
@@ -96,17 +102,39 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const avisos = useMemo(
     () => ({
       agregar: (chat: ChatMenu, fijado: boolean) => {
-        const poner = (l: ChatMenu[]) => [chat, ...l.filter((x) => x.id !== chat.id)];
-        if (fijado) setFijados(poner);
-        else setRecientes(poner);
+        setChats((l) => [chat, ...l.filter((x) => x.id !== chat.id)]);
+        if (fijado) organizarChats((o) => organizar.fijar(o, chat.id, true));
       },
       quitar: (id: string) => {
-        setFijados((l) => l.filter((x) => x.id !== id));
-        setRecientes((l) => l.filter((x) => x.id !== id));
+        setChats((l) => l.filter((x) => x.id !== id));
+        organizarChats((o) => organizar.olvidar(o, id));
       },
     }),
-    [],
+    [organizarChats],
   );
+
+  // El "⋯" de cada conversación del menú
+  const acciones: AccionesChats = {
+    organizar: organizarChats,
+    renombrar: async (id, titulo) => {
+      const chat = chats.find((x) => x.id === id);
+      // Un grupo con nombre lo guarda en "tema" (y se pone también como título)
+      const cambio = chat?.campo === "tema" ? { tema: titulo, titulo } : { titulo };
+      const { error } = await createClient().from("conversaciones").update(cambio).eq("id", id);
+      if (error) return "No se pudo cambiar el nombre. Intenta de nuevo.";
+      setChats((l) => l.map((x) => (x.id === id ? { ...x, titulo } : x)));
+      window.dispatchEvent(new CustomEvent(EVENTO_CHAT_RENOMBRADO, { detail: { id, titulo, campo: chat?.campo ?? "titulo" } }));
+      return null;
+    },
+    eliminar: async (id) => {
+      const { error } = await createClient().from("conversaciones").delete().eq("id", id);
+      if (error) return "No se pudo eliminar la conversación. Intenta de nuevo.";
+      setChats((l) => l.filter((x) => x.id !== id));
+      organizarChats((o) => organizar.olvidar(o, id));
+      window.dispatchEvent(new CustomEvent(EVENTO_CHAT_ELIMINADO, { detail: { id } }));
+      return null;
+    },
+  };
 
   const cuenta: ElementoCuenta[] = [
     { id: "plan", etiqueta: "Mi plan y uso", detalle: `Atendel ${datos.plan}`, icono: "facturacion", href: "/panel?vista=ajustes&seccion=uso" },
@@ -204,8 +232,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
       claves: a.capacidades.join(" "),
       href: `/panel?agente=${a.id}`,
     })),
-    ...fijados.map((g) => ({ id: `f-${g.id}`, grupo: "Fijados", titulo: g.titulo, detalle: nombresDe(g.agentes), agentes: g.agentes, href: g.href })),
-    ...recientes.map((r) => ({ id: `r-${r.id}`, grupo: "Recientes", titulo: r.titulo, agentes: r.agentes, href: r.href })),
+    ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
     ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
       id: `p-${p.id}`,
       grupo: "Pídele a tu equipo",
@@ -239,7 +266,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     }
     return responderConReglas(pregunta, datos);
   }, []);
-  const enConversacion = c ? [...fijados, ...recientes].find((x) => x.id === c)?.agentes : undefined;
+  const enConversacion = c ? chats.find((x) => x.id === c)?.agentes : undefined;
   const info =
     activa === "inicio" || activa === "chat"
       ? ({ tab, pedido, alIr, alVer, alCerrar }: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => (
@@ -282,8 +309,9 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           ajustes: "/panel?vista=ajustes",
         }}
         pendientes={datos.pendientes}
-        fijados={fijados}
-        recientes={recientes}
+        chats={chats}
+        organizacion={organizacion}
+        acciones={acciones}
         usuario={{ nombre: datos.nombre, plan: datos.plan }}
         cuenta={cuenta}
         ajustes={ajustes}

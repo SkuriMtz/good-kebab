@@ -61,6 +61,8 @@ const yaLlegaron = new Set<number>();
 
 /** Las conversaciones nuevas de esta visita, para que no se pierdan al recargar (solo en esta pestaña). */
 const CLAVE_SESION = "atendel-pruebalo-chats";
+/** Las conversaciones del ejemplo que se eliminaron o renombraron en esta pestaña. */
+const CLAVE_CAMBIOS = "atendel-pruebalo-cambios";
 const esConvGuardada = (c: unknown): c is ConvGuion => {
   const x = c as ConvGuion;
   return Boolean(x && typeof x.id === "string" && x.id.startsWith("n") && Array.isArray(x.agentes) && x.agentes.every(esIdAgente) && Array.isArray(x.mensajes) && typeof x.titulo === "string");
@@ -90,6 +92,14 @@ export function useGuion() {
         orden.current = Math.max(orden.current, ...nuevas.map((c) => c.orden));
         setConvs((cs) => [...nuevas.filter((n) => !cs.some((c) => c.id === n.id)), ...cs]);
       }
+      // Lo que se eliminó o renombró de las de ejemplo
+      const cambios = JSON.parse(window.sessionStorage.getItem(CLAVE_CAMBIOS) ?? "{}") as { borradas?: unknown; nombres?: unknown };
+      const borradas = Array.isArray(cambios.borradas) ? cambios.borradas.filter((x): x is string => typeof x === "string") : [];
+      const nombres = cambios.nombres && typeof cambios.nombres === "object" ? (cambios.nombres as Record<string, unknown>) : {};
+      setConvs((cs) => {
+        const quedan = cs.filter((c) => !borradas.includes(c.id));
+        return (quedan.length ? quedan : cs).map((c) => (typeof nombres[c.id] === "string" ? { ...c, titulo: String(nombres[c.id]).slice(0, 80) } : c));
+      });
     } catch {
       /* sin almacenamiento: se empieza de cero */
     }
@@ -271,12 +281,34 @@ export function useGuion() {
     setPendiente(null);
   };
 
+  /** Recuerda en la pestaña lo que cambió de las conversaciones de ejemplo (las nuevas ya se guardan completas). */
+  const recordar = (cambio: (c: { borradas: string[]; nombres: Record<string, string> }) => void) => {
+    try {
+      const c = JSON.parse(window.sessionStorage.getItem(CLAVE_CAMBIOS) ?? "{}") as { borradas?: string[]; nombres?: Record<string, string> };
+      const datos = { borradas: Array.isArray(c.borradas) ? c.borradas : [], nombres: c.nombres && typeof c.nombres === "object" ? c.nombres : {} };
+      cambio(datos);
+      window.sessionStorage.setItem(CLAVE_CAMBIOS, JSON.stringify(datos));
+    } catch {
+      /* sin almacenamiento: no se recuerda */
+    }
+  };
+
   const borrar = (id: string) => {
     if (pendiente?.conv === id) detener();
     setConvs((cs) => (cs.length > 1 ? cs.filter((c) => c.id !== id) : cs));
+    recordar((c) => {
+      if (!c.borradas.includes(id)) c.borradas.push(id);
+    });
   };
 
-  return { convs, pendiente, listo, quedan, enviar, crear, borrar, detener };
+  const renombrar = (id: string, titulo: string) => {
+    setConvs((cs) => cs.map((c) => (c.id === id ? { ...c, titulo } : c)));
+    recordar((c) => {
+      c.nombres[id] = titulo;
+    });
+  };
+
+  return { convs, pendiente, listo, quedan, enviar, crear, borrar, renombrar, detener };
 }
 export type Guion = ReturnType<typeof useGuion>;
 

@@ -14,12 +14,15 @@ import type { Acento, Letra } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
+import { SeccionesChats, type AccionesChats } from "./MenuChats";
+import type { OrganizacionChats } from "@/lib/organizacion-chats";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
 export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
-export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[] };
+/** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
+export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[]; campo?: "tema" | "titulo" };
 export type ResultadoBusqueda = { id: string; grupo: string; titulo: string; detalle?: string; href: string; icono?: NombreIcono; agentes?: IdAgente[]; claves?: string };
 export type ElementoCuenta = { id: string; etiqueta: string; detalle?: string; href?: string; alElegir?: () => void; icono: NombreIcono; peligroso?: boolean };
 
@@ -30,10 +33,12 @@ type Props = {
   hrefs: { inicio: string; agentes: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
-  /** Los chats en grupo. */
-  fijados: ChatMenu[];
-  /** Las conversaciones. */
-  recientes: ChatMenu[];
+  /** Las conversaciones, de la más nueva a la más vieja. */
+  chats: ChatMenu[];
+  /** Cómo las acomodó: fijadas, archivadas y sus grupos. */
+  organizacion: OrganizacionChats;
+  /** Lo que hace el "⋯" de cada conversación (Fijar, Cambiar nombre, Mover a grupo, Archivar, Eliminar). */
+  acciones: AccionesChats;
   usuario: { nombre: string; plan: string };
   cuenta: ElementoCuenta[];
   indice: ResultadoBusqueda[];
@@ -64,7 +69,7 @@ const ANGOSTO = "(max-width: 1359px)";
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recientes, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -416,8 +421,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           </nav>
 
           <div className="pc-menu__listas">
-            <ListaChats titulo="Fijados" chats={fijados} actual={chatActual} grupos vacio="Tus chats en grupo aparecen aquí." />
-            <ListaChats titulo="Recientes" chats={recientes} actual={chatActual} vacio="Aquí aparecen tus conversaciones." />
+            <SeccionesChats chats={chats} organizacion={organizacion} acciones={acciones} actual={chatActual} avisar={(texto, tono = "ok") => setAvisoApp({ tono, texto })} />
           </div>
 
           {aviso ? <div className="pc-aviso-demo">{aviso}</div> : null}
@@ -522,41 +526,6 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
     </div>
-  );
-}
-
-/* ---------- Fijados y Recientes ---------- */
-
-function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: string; chats: ChatMenu[]; actual?: string | null; grupos?: boolean; vacio: string }) {
-  const [abierta, setAbierta] = useState(true);
-  const id = useId();
-  return (
-    <section className="pc-menu__grupo">
-      <h2 className="pc-menu__titulo">
-        <button type="button" className="pc-menu__titulo-boton" aria-expanded={abierta} aria-controls={id} onClick={() => setAbierta((a) => !a)}>
-          {titulo}
-          <Icono nombre="chevron" tam={12} trazo={2} className="pc-menu__chevron" />
-        </button>
-      </h2>
-      <div id={id} className="pc-plegable" data-cerrado={abierta ? undefined : ""} aria-hidden={abierta ? undefined : true} {...(abierta ? {} : INERTE)}>
-        <div className="pc-plegable__dentro">
-        {chats.length ? (
-          <ul className="pc-menu__chats">
-            {chats.map((c) => (
-              <li key={c.id}>
-                <Enlace href={c.href} className="pc-menu__chat" aria-current={actual === c.id ? "page" : undefined} title={c.titulo}>
-                  {grupos ? <Icono nombre="usuarios" tam={20} /> : null}
-                  <span className="pc-menu__chat-texto">{c.titulo}</span>
-                </Enlace>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="pc-menu__vacio">{vacio}</p>
-        )}
-        </div>
-      </div>
-    </section>
   );
 }
 
