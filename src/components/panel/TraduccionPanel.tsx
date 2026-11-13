@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
+import { SUGERENCIAS } from "./sugerencias";
 
 /**
  * TODO el panel en el idioma de Ajustes > Apariencia (no solo los agentes).
@@ -133,6 +134,8 @@ export function TraduccionPanel({ idioma }: { idioma: string }) {
       escribiendo = true;
       recorrer(raiz);
       escribiendo = false;
+      // Los ejemplos de la caja cambian solos cada pocos segundos: se piden todos de una vez
+      for (const t of Object.values(SUGERENCIAS).flat()) if (!cache.has(t)) pendientes.add(t);
       pedir();
     };
 
