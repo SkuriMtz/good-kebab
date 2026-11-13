@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { MAX_NOMBRE_GRUPO, idGrupo, organizar, repartir, type OrganizacionChats } from "@/lib/organizacion-chats";
 import type { ChatMenu } from "./Armazon";
+import { AvatarAgente, nombresDe } from "./Mensajes";
+import type { IdAgente } from "@/lib/agentes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 
 /** Lo que hace el menú "⋯" (cada panel lo guarda a su manera: /panel en la cuenta, /pruebalo en la pestaña). */
@@ -79,13 +81,12 @@ export function SeccionesChats({
     cerrar(false);
   };
 
-  const fila = (c: ChatMenu, dentro = false, icono = false) => (
+  const fila = (c: ChatMenu, dentro = false) => (
     <FilaChat
       key={c.id}
       chat={c}
       actual={actual === c.id}
       dentro={dentro}
-      icono={icono}
       abierto={abierto?.tipo === "chat" && abierto.id === c.id}
       renombrando={renombrando?.tipo === "chat" && renombrando.id === c.id}
       alAbrir={(boton) => abrir({ tipo: "chat", id: c.id, ancla: boton.getBoundingClientRect(), vista: "principal", dir: "inicio" }, boton)}
@@ -105,7 +106,7 @@ export function SeccionesChats({
     <>
       {s.fijados.length ? (
         <ListaPlegable titulo="Fijados">
-          <ul className="pc-menu__chats">{s.fijados.map((c) => fila(c, false, true))}</ul>
+          <ul className="pc-menu__chats">{s.fijados.map((c) => fila(c))}</ul>
         </ListaPlegable>
       ) : null}
 
@@ -272,13 +273,30 @@ function Puntos() {
   );
 }
 
+/* ---------- Con quién es cada conversación ---------- */
+
+/**
+ * Las caras de los agentes de una conversación, en el lugar del ícono (22px):
+ * uno, su cara; dos, encimados en diagonal; tres, en triángulo; cuatro, en
+ * cuadro (como la marca de Atendel). Así se ve con quién hablas sin abrirla.
+ */
+function Caritas({ agentes }: { agentes: readonly IdAgente[] }) {
+  const lista = agentes.slice(0, 4);
+  return (
+    <span className="pc-caritas" data-n={lista.length} aria-label={nombresDe(lista)} role="img">
+      {lista.map((a) => (
+        <AvatarAgente key={a} agente={a} tam={lista.length === 1 ? 20 : lista.length === 2 ? 15 : 11} />
+      ))}
+    </span>
+  );
+}
+
 /* ---------- Una conversación del menú ---------- */
 
 function FilaChat({
   chat,
   actual,
   dentro,
-  icono,
   abierto,
   renombrando,
   alAbrir,
@@ -288,8 +306,6 @@ function FilaChat({
   chat: ChatMenu;
   actual: boolean;
   dentro: boolean;
-  /** En Fijados todas llevan ícono (grupo de agentes o conversación) para alinearse. */
-  icono: boolean;
   abierto: boolean;
   renombrando: boolean;
   alAbrir: (boton: HTMLElement) => void;
@@ -302,8 +318,8 @@ function FilaChat({
       {renombrando ? (
         <CampoNombre inicial={chat.titulo} max={MAX_TITULO_CHAT} etiqueta="Nuevo nombre de la conversación" alGuardar={alRenombrar} alCancelar={alCancelar} />
       ) : (
-        <Enlace href={chat.href} className="pc-menu__chat" aria-current={actual ? "page" : undefined} title={chat.titulo}>
-          {icono ? <Icono nombre={chat.agentes.length > 1 ? "usuarios" : "mensaje"} tam={20} /> : null}
+        <Enlace href={chat.href} className="pc-menu__chat" aria-current={actual ? "page" : undefined} title={`${chat.titulo} · ${nombresDe(chat.agentes)}`}>
+          <Caritas agentes={chat.agentes} />
           <span className="pc-menu__chat-texto">{chat.titulo}</span>
         </Enlace>
       )}
