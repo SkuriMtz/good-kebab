@@ -59,21 +59,6 @@ export function Inicio({
         <div className="pc-inicio__franja">{franja}</div>
       </div>
 
-      <section className="pc-pide" aria-labelledby="pc-pide-titulo">
-        <div className="pc-pide__cabeza">
-          <h2 id="pc-pide-titulo" className="pc-pide__titulo">
-            Pídele a tu equipo
-          </h2>
-          <Pildoras etiqueta="Filtrar por área" activa={area} opciones={AREAS.map((a) => ({ id: a.id, etiqueta: a.etiqueta, href: hrefArea(a.id) }))} />
-        </div>
-        <ul className="pc-pide__rejilla" key={area}>
-          {tarjetas.map((t, i) => (
-            <li key={t.pedido.id} className="pc-entra" style={{ "--d": `${retrasoEscalon(i)}ms` } as CSSProperties}>
-              <TarjetaPide {...t} indice={i} />
-            </li>
-          ))}
-        </ul>
-      </section>
     </div>
   );
 }
