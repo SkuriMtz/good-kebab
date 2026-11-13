@@ -223,13 +223,11 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     // Una conversación nueva de esta visita: se recupera de la pestaña en un momento
     contenido = <div className="pc-conv" aria-busy="true" />;
   } else {
-    const area = params.get("area");
     const agente = params.get("agente");
     contenido = (
       <InicioDemo
         guion={guion}
         saludo={saludo}
-        area={esArea(area) ? area : "todo"}
         agentePedido={esIdAgente(agente) ? agente : null}
         pide={texto("pide", 2000)}
         pendientes={porRevisar}

@@ -17,7 +17,9 @@ import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, Ta
 import { NuevoGrupo } from "./NuevoGrupo";
 import { claseBoton } from "./Piezas";
 import { SelectorAgente, type OpcionAgente } from "./Selector";
-import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
+import { PEDIDOS } from "./pedidos";
+import { TrabajoReciente } from "./Recientes";
+import { hechoDeEjemplo } from "@/lib/hecho";
 
 /* =====================================================================
    El chat de /pruebalo: contesta la IA DE VERDAD (/api/demo/chat, con los
@@ -294,7 +296,6 @@ const comandosDe = (ids: readonly IdAgente[]) => ACCIONES.filter((a) => ids.incl
 export function InicioDemo({
   guion,
   saludo,
-  area,
   agentePedido,
   pide,
   pendientes,
@@ -304,7 +305,6 @@ export function InicioDemo({
 }: {
   guion: Guion;
   saludo: string;
-  area: IdArea;
   agentePedido: IdAgente | null;
   pide?: string;
   pendientes: number;
@@ -327,7 +327,8 @@ export function InicioDemo({
     ...AGENTES_INFO.map((a) => ({ id: a.id, etiqueta: a.nombre, detalle: `${a.area} · ${a.abarca}`, agentes: [a.id] })),
     { id: "nuevo-grupo", etiqueta: "Nuevo grupo…", agentes: [], accion: true },
   ];
-  const conFiltro = area === "todo" ? "" : `&area=${area}`;
+  // Lo último que terminó el equipo de ejemplo (las mismas cosas que la pestaña Hecho)
+  const [recientes] = useState(() => hechoDeEjemplo(Date.now()).slice(0, 3));
 
   return (
     <>
@@ -339,7 +340,7 @@ export function InicioDemo({
             className="pc-caja"
             initialText={pide}
             placeholder={info ? `Pídele algo a ${info.nombre}…` : "Pregúntale a tu equipo… (escribe @ para elegir agente)"}
-            forma="fila"
+            forma="caja"
             sources={fuentesDe(agentes)}
             plusActions={subida.acciones}
             commands={comandosDe(agentes)}
@@ -369,9 +370,7 @@ export function InicioDemo({
         }
         uso={<UsoPlan plan="Max" usados={usados} total={total} href="/pruebalo?vista=ajustes&seccion=uso" />}
         franja={<FranjaPendientes n={pendientes} href="/pruebalo?vista=pendientes" />}
-        area={area}
-        hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}
-        tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}
+        recientes={<TrabajoReciente items={recientes} verTodo="/pruebalo?vista=pendientes&tab=hecho" />}
       />
       <NuevoGrupo
         abierto={creando}
@@ -474,7 +473,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           dictarPronto
         />
       }
-      legal={`Datos de ejemplo de Estudio Luna. Contesta la IA de verdad${guion.quedan !== null ? ` · te quedan ${guion.quedan} mensajes hoy` : " (hasta 20 mensajes al día)"}.`}
+      legal={`Datos de ejemplo · IA de verdad${guion.quedan !== null ? ` · te quedan ${guion.quedan} mensajes hoy` : " (hasta 20 mensajes al día)"}.`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
         {ms.map((m, i) => {

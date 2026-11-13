@@ -17,7 +17,8 @@ import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
 import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
 import { FranjaPendientes, UsoPlan } from "@/components/panel/Franja";
-import { esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
+import { TrabajoReciente } from "@/components/panel/Recientes";
+import type { ItemHecho } from "@/lib/hecho";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
@@ -122,7 +123,7 @@ export function Chat({
   textoInicial,
   saludo,
   pendientes,
-  conGoogle,
+  recientes,
 }: {
   planId: IdPlan;
   activos: IdAgente[];
@@ -137,8 +138,8 @@ export function Chat({
   saludo: string;
   /** Lo que espera tu visto bueno (null: no se pudo leer). */
   pendientes: number | null;
-  /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
-  conGoogle: boolean;
+  /** Lo último que terminó el equipo (las tres primeras de la pestaña Hecho). */
+  recientes: ItemHecho[];
 }) {
   const plan = PLAN_POR_ID[planId];
   const puedeGrupos = activos.length >= 2;
@@ -175,8 +176,6 @@ export function Chat({
   const participantes: IdAgente[] = grupo ?? [agente];
   const disponible = participantes.every((id) => activos.includes(id));
   const sinMensajes = usados >= plan.mensajesMes;
-  const filtro = params.get("area");
-  const area: IdArea = esArea(filtro) ? filtro : "todo";
 
   /** Escribe la dirección sin ir al servidor (Next la sincroniza); el filtro del Inicio se queda. */
   const ponerUrl = (p: Record<string, string>) => {
@@ -412,6 +411,7 @@ export function Chat({
   const actualConv = actual ? todas.current.find((x) => x.id === actual) : undefined;
   const tituloConv = actualConv?.titulo ?? (grupo ? (tema ?? (esEquipo ? "Todo el equipo" : nombresDe(grupo))) : info.nombre);
 
+  const enInicio = !actual && mensajes.length === 0 && !cargando;
   const barra = disponible ? (
     sinMensajes ? (
       <p className="pc-aviso-caja">
@@ -426,7 +426,7 @@ export function Chat({
         className="pc-caja"
         initialText={caja.texto}
         placeholder={grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
-        forma="fila"
+        forma={enInicio ? "caja" : "fila"}
         sources={fuentes}
         plusActions={subida.acciones}
         commands={comandosDe(participantes)}
@@ -460,7 +460,7 @@ export function Chat({
   );
 
   /* ---------- Inicio: todavía no hay conversación ---------- */
-  if (!actual && mensajes.length === 0 && !cargando) {
+  if (enInicio) {
     const opciones: OpcionAgente[] = [
       ...(puedeGrupos ? [{ id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(activos), agentes: activos }] : []),
       ...AGENTES_INFO.map((a) => ({
@@ -473,29 +473,8 @@ export function Chat({
       ...(grupo && !esEquipo ? [{ id: "grupo", etiqueta: tema ?? nombresDe(grupo), detalle: "Tu grupo", agentes: grupo }] : []),
       ...(puedeGrupos ? [{ id: "nuevo-grupo", etiqueta: "Nuevo grupo…", agentes: [], accion: true }] : []),
     ];
-    const conFiltro = area === "todo" ? "" : `&area=${area}`;
-    const tarjetas = pedidosDe(area)
-      .map((p) => {
-        const enEquipo = activos.includes(p.agente);
-        const enPlan = plan.agentes.includes(p.agente);
-        // Clara lee tu Gmail: sin Gmail, la tarjeta lleva a conectarlo. WhatsApp todavía no: Lola deja el mensaje listo
-        const sinGmail = p.requiere === "gmail" && !conGoogle;
-        return {
-          pedido: p,
-          href: !enEquipo ? (enPlan ? "/panel/agentes" : "/precios") : sinGmail ? "/panel?vista=correo#gmail" : `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}`,
-          bloqueado: enEquipo ? undefined : enPlan ? "Fuera de tu equipo" : `Llega con ${planMinimo(p.agente).nombre}`,
-          insignia: !enEquipo
-            ? undefined
-            : p.requiere === "whatsapp"
-              ? { texto: "WhatsApp · pronto", tono: "neutro" as const }
-              : sinGmail
-                ? { texto: "Conecta Gmail", tono: "atencion" as const }
-                : undefined,
-        };
-      })
-      .sort((a, b) => Number(Boolean(a.bloqueado)) - Number(Boolean(b.bloqueado)));
     return (
-      // Las píldoras y las tarjetas cambian la dirección sin ir al servidor: el chat no necesita nada más
+      // Los enlaces del Inicio cambian la dirección sin ir al servidor: el chat no necesita nada más
       <ContextoNavegar.Provider value={navegarAqui}>
         <Inicio
           saludo={saludo}
@@ -513,9 +492,7 @@ export function Chat({
           }
           uso={<UsoPlan plan={plan.nombre.replace(/^Atendel\s+/, "")} usados={usados} total={plan.mensajesMes} href="/panel?vista=ajustes&seccion=uso" />}
           franja={<FranjaPendientes n={pendientes} href="/panel?vista=pendientes" />}
-          area={area}
-          hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
-          tarjetas={tarjetas}
+          recientes={<TrabajoReciente items={recientes} verTodo="/panel?vista=pendientes&tab=hecho" />}
         />
         {aviso ? (
           <p role="alert" className="pc-aviso-flota">

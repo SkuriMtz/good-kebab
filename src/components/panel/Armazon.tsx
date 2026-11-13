@@ -292,7 +292,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
 
   const item = (id: IdSeccion, etiqueta: string, icono: NombreIcono, href: string, extra?: ReactNode) => (
     <Enlace href={href} className="pc-menu__item" aria-current={activa === id ? "page" : undefined} title={oculto ? etiqueta : undefined}>
-      <Icono nombre={icono} tam={18} />
+      <Icono nombre={icono} tam={20} />
       <span className="pc-menu__item-texto">{etiqueta}</span>
       {extra}
     </Enlace>
@@ -323,11 +323,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
         }}
       >
         <div className="pc-menu__tarjeta">
+          {/* Como Claude: el botón del menú a la izquierda y el nombre en serif (la marca va en el saludo) */}
           <div className="pc-menu__cabeza">
-            <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
-              <Marca className="pc-logo__marca" />
-              <span className="pc-logo__nombre">Atendel</span>
-            </Enlace>
             <button
               type="button"
               className="pc-icono pc-menu__ocultar"
@@ -336,17 +333,20 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
               title={celular ? "Cerrar el menú" : oculto ? "Abrir el menú" : "Encoger el menú"}
               aria-expanded={celular ? undefined : !oculto}
             >
-              <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={18} />
+              <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={20} />
             </button>
+            <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+              <span className="pc-logo__nombre">Atendel</span>
+            </Enlace>
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
             <Enlace href={hrefs.inicio} className="pc-menu__nuevo" aria-current={activa === "inicio" ? "page" : undefined} title={oculto ? "Nueva conversación" : undefined}>
-              <Icono nombre="mas" tam={18} />
+              <Icono nombre="mas" tam={20} />
               <span>Nueva conversación</span>
             </Enlace>
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
-              <Icono nombre="buscar" tam={18} />
+              <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
               <kbd className="pc-menu__atajo" aria-hidden="true">
                 ⌘K
@@ -378,7 +378,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
           <div className="pc-menu__pie">
             <MenuCuenta usuario={usuario} elementos={cuenta} />
             <button type="button" className="pc-icono" onClick={() => abrirAjustes("atendel")} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
-              <Icono nombre="ajustes" tam={18} />
+              <Icono nombre="ajustes" tam={20} />
             </button>
           </div>
         </div>
@@ -468,7 +468,7 @@ function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: 
       <h2 className="pc-menu__titulo">
         <button type="button" className="pc-menu__titulo-boton" aria-expanded={abierta} aria-controls={id} onClick={() => setAbierta((a) => !a)}>
           {titulo}
-          <span className="pc-menu__triangulo" aria-hidden="true" />
+          <Icono nombre="chevron" tam={12} trazo={2} className="pc-menu__chevron" />
         </button>
       </h2>
       <div id={id} className="pc-plegable" data-cerrado={abierta ? undefined : ""} aria-hidden={abierta ? undefined : true} {...(abierta ? {} : INERTE)}>
@@ -478,7 +478,7 @@ function ListaChats({ titulo, chats, actual, grupos = false, vacio }: { titulo: 
             {chats.map((c) => (
               <li key={c.id}>
                 <Enlace href={c.href} className="pc-menu__chat" aria-current={actual === c.id ? "page" : undefined} title={c.titulo}>
-                  {grupos ? <PilaAgentes agentes={c.agentes} tam={18} /> : null}
+                  {grupos ? <Icono nombre="usuarios" tam={20} /> : null}
                   <span className="pc-menu__chat-texto">{c.titulo}</span>
                 </Enlace>
               </li>
