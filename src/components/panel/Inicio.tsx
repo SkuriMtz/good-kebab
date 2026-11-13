@@ -37,7 +37,9 @@ export function Inicio({
   saludo: string;
   caja: ReactNode;
   selector: ReactNode;
-  uso: ReactNode;
+  /** A la derecha de la fila (hoy no se usa: el dueño quitó "Max · 43 % usado"). */
+  uso?: ReactNode;
+  /** Abajo de la fila (hoy no se usa: el dueño quitó "3 esperan tu visto bueno"). */
   franja?: ReactNode;
   area: IdArea;
   hrefArea: (a: IdArea) => string;
@@ -54,9 +56,9 @@ export function Inicio({
         <div className="pc-inicio__caja">{caja}</div>
         <div className="pc-inicio__fila">
           <div className="pc-inicio__izq">{selector}</div>
-          <div className="pc-inicio__der">{uso}</div>
+          {uso ? <div className="pc-inicio__der">{uso}</div> : null}
         </div>
-        <div className="pc-inicio__franja">{franja}</div>
+        {franja ? <div className="pc-inicio__franja">{franja}</div> : null}
       </div>
 
     </div>

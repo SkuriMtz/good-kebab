@@ -109,11 +109,9 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
 
   if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;
 
-  const enPendientes = searchParams.vista === "pendientes";
-  // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más
-  const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), enPendientes ? 100 : 5);
-
-  if (enPendientes) {
+  if (searchParams.vista === "pendientes") {
+    // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más
+    const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 100);
     // Con ?de= o ?accion= (desde Estadísticas o Correo) se busca en la base, no solo en los 100 más recientes
     const de = texto(searchParams.de);
     const accion = texto(searchParams.accion);
@@ -154,7 +152,6 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       conversacionInicial={texto(searchParams.c, 100) ?? null}
       textoInicial={texto(searchParams.pide, 2000)}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
-      pendientes={pendientes.total}
       conGoogle={conGoogle}
     />
   );

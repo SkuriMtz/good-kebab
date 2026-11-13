@@ -11,7 +11,7 @@ import { partirIntervenciones } from "@/lib/grupo";
 import type { Tarjeta } from "@/components/chat/Piezas";
 import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
-import { FranjaPendientes, UsoPlan } from "./Franja";
+import { useSugerencia } from "./sugerencias";
 import { Inicio } from "./Inicio";
 import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { NuevoGrupo } from "./NuevoGrupo";
@@ -297,9 +297,6 @@ export function InicioDemo({
   area,
   agentePedido,
   pide,
-  pendientes,
-  usados,
-  total,
   alEmpezar,
 }: {
   guion: Guion;
@@ -307,9 +304,6 @@ export function InicioDemo({
   area: IdArea;
   agentePedido: IdAgente | null;
   pide?: string;
-  pendientes: number;
-  usados: number;
-  total: number;
   /** Ya se creó la conversación y se envió el texto: el panel abre ?con=. */
   alEmpezar: (id: string) => void;
 }) {
@@ -320,7 +314,8 @@ export function InicioDemo({
     if (agentePedido) setEleccion(agentePedido);
   }, [agentePedido]);
   const agentes: IdAgente[] = esIdAgente(eleccion) ? [eleccion] : [...IDS_AGENTES];
-  const info = agentes.length === 1 ? AGENTE_POR_ID[agentes[0]] : null;
+  // En vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
+  const sugerencia = useSugerencia(agentes);
 
   const opciones: OpcionAgente[] = [
     { id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(IDS_AGENTES), agentes: [...IDS_AGENTES] },
@@ -338,7 +333,7 @@ export function InicioDemo({
             key={`${eleccion}-${pide ?? ""}`}
             className="pc-caja"
             initialText={pide}
-            placeholder={info ? `Pídele algo a ${info.nombre}…` : "Pregúntale a tu equipo… (escribe @ para elegir agente)"}
+            placeholder={sugerencia}
             forma="fila"
             sources={fuentesDe(agentes)}
             plusActions={subida.acciones}
@@ -367,8 +362,6 @@ export function InicioDemo({
             }}
           />
         }
-        uso={<UsoPlan plan="Max" usados={usados} total={total} href="/pruebalo?vista=ajustes&seccion=uso" />}
-        franja={<FranjaPendientes n={pendientes} href="/pruebalo?vista=pendientes" />}
         area={area}
         hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}
         tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}
@@ -474,7 +467,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           dictarPronto
         />
       }
-      legal={`Datos de ejemplo de Estudio Luna. Contesta la IA de verdad${guion.quedan !== null ? ` · te quedan ${guion.quedan} mensajes hoy` : " (hasta 20 mensajes al día)"}.`}
+      legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.${guion.quedan !== null && guion.quedan <= 5 ? ` Te quedan ${guion.quedan} mensajes hoy.` : ""}`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
         {ms.map((m, i) => {

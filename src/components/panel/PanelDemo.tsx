@@ -232,9 +232,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         area={esArea(area) ? area : "todo"}
         agentePedido={esIdAgente(agente) ? agente : null}
         pide={texto("pide", 2000)}
-        pendientes={porRevisar}
-        usados={DEMO_NEGOCIO.mensajesUsados}
-        total={PLAN.mensajesMes}
         alEmpezar={(id) => navegar(`/pruebalo?con=${id}`)}
       />
     );

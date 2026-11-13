@@ -16,7 +16,7 @@ import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
 import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
-import { FranjaPendientes, UsoPlan } from "@/components/panel/Franja";
+import { useSugerencia } from "@/components/panel/sugerencias";
 import { esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
 import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
@@ -121,7 +121,6 @@ export function Chat({
   conversacionInicial,
   textoInicial,
   saludo,
-  pendientes,
   conGoogle,
 }: {
   planId: IdPlan;
@@ -135,8 +134,6 @@ export function Chat({
   textoInicial?: string;
   /** "Buenas noches, Ana" (con la hora de la Ciudad de México, igual en el servidor y aquí). */
   saludo: string;
-  /** Lo que espera tu visto bueno (null: no se pudo leer). */
-  pendientes: number | null;
   /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
   conGoogle: boolean;
 }) {
@@ -175,6 +172,9 @@ export function Chat({
   const participantes: IdAgente[] = grupo ?? [agente];
   const disponible = participantes.every((id) => activos.includes(id));
   const sinMensajes = usados >= plan.mensajesMes;
+  // En la conversación nueva, en vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
+  const enInicio = !actual && mensajes.length === 0 && !cargando;
+  const sugerencia = useSugerencia(grupo ?? [agente]);
   const filtro = params.get("area");
   const area: IdArea = esArea(filtro) ? filtro : "todo";
 
@@ -425,7 +425,7 @@ export function Chat({
         key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
         className="pc-caja"
         initialText={caja.texto}
-        placeholder={grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
+        placeholder={enInicio ? sugerencia : grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
         forma="fila"
         sources={fuentes}
         plusActions={subida.acciones}
@@ -460,7 +460,7 @@ export function Chat({
   );
 
   /* ---------- Inicio: todavía no hay conversación ---------- */
-  if (!actual && mensajes.length === 0 && !cargando) {
+  if (enInicio) {
     const opciones: OpcionAgente[] = [
       ...(puedeGrupos ? [{ id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(activos), agentes: activos }] : []),
       ...AGENTES_INFO.map((a) => ({
@@ -511,8 +511,6 @@ export function Chat({
               }}
             />
           }
-          uso={<UsoPlan plan={plan.nombre.replace(/^Atendel\s+/, "")} usados={usados} total={plan.mensajesMes} href="/panel?vista=ajustes&seccion=uso" />}
-          franja={<FranjaPendientes n={pendientes} href="/panel?vista=pendientes" />}
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
           tarjetas={tarjetas}
