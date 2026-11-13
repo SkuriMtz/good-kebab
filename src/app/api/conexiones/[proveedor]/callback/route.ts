@@ -34,17 +34,17 @@ export async function GET(request: NextRequest, { params }: { params: { proveedo
     }
   }
   const state = qs.get("state") ?? "";
-  if (!estado || estado.uid !== user.id || !state || !iguales(estado.state, state)) return volverAApps(request, p, { error: "estado" });
+  if (!estado || estado.uid !== user.id || !state || !iguales(estado.state, state)) return volverAApps(request, p, { error: "estado" }, estado?.volver);
   // El redirect_uri tiene que ser el mismo con el que se pidió
-  if (new URL(estado.redirectUri).origin !== request.nextUrl.origin) return volverAApps(request, p, { error: "estado" });
+  if (new URL(estado.redirectUri).origin !== request.nextUrl.origin) return volverAApps(request, p, { error: "estado" }, estado?.volver);
   const app = estado.app;
-  if (qs.get("error")) return volverAApps(request, p, { error: "cancelado", app });
+  if (qs.get("error")) return volverAApps(request, p, { error: "cancelado", app }, estado?.volver);
   const code = qs.get("code") ?? "";
-  if (!code || code.length > 4096) return volverAApps(request, p, { error: "estado", app });
-  if (!configurado(p).ok) return volverAApps(request, p, { error: "configuracion", app });
+  if (!code || code.length > 4096) return volverAApps(request, p, { error: "estado", app }, estado?.volver);
+  if (!configurado(p).ok) return volverAApps(request, p, { error: "configuracion", app }, estado?.volver);
 
   const a = adaptador(p);
-  if (!a.intercambiar) return volverAApps(request, p, { error: "configuracion", app });
+  if (!a.intercambiar) return volverAApps(request, p, { error: "configuracion", app }, estado?.volver);
   // Lo que llegó de regreso (state incluido) gana sobre los extra de "conectar":
   // Shopify firma esos valores con su HMAC y el adaptador los verifica tal cual
   const query: Record<string, string> = Object.fromEntries(Array.from(qs.entries()).filter(([k]) => k !== "code"));
@@ -52,11 +52,11 @@ export async function GET(request: NextRequest, { params }: { params: { proveedo
   try {
     tokens = await a.intercambiar({ code, redirectUri: estado.redirectUri, codeVerifier: estado.verifier, query: { ...estado.q, ...query } });
   } catch {
-    return volverAApps(request, p, { error: "intercambio", app });
+    return volverAApps(request, p, { error: "intercambio", app }, estado?.volver);
   }
 
   const apps = appsFinales(estado.apps, tokens);
-  if (!apps.includes(app)) return volverAApps(request, p, { error: "permiso", app });
+  if (!apps.includes(app)) return volverAApps(request, p, { error: "permiso", app }, estado?.volver);
   let cuenta = NOMBRE_PROVEEDOR[p];
   try {
     cuenta = (await a.cuenta(tokens)) || cuenta;
@@ -80,10 +80,10 @@ export async function GET(request: NextRequest, { params }: { params: { proveedo
   if (!ok) {
     // Solo si no había conexión: revocar el token nuevo podría tumbar el permiso guardado
     if (!fila && a.revocar) await a.revocar(tokens).catch(() => undefined);
-    return volverAApps(request, p, { error: "guardar", app });
+    return volverAApps(request, p, { error: "guardar", app }, estado?.volver);
   }
   if (anterior && a.revocar && debeRevocarAnterior(p, fila?.cuenta, cuenta, anterior, tokens)) {
     await a.revocar(anterior).catch(() => undefined);
   }
-  return volverAApps(request, p, { conectada: app });
+  return volverAApps(request, p, { conectada: app }, estado?.volver);
 }

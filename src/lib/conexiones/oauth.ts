@@ -157,7 +157,21 @@ export type EstadoOAuth = {
   uid: string;
   /** Vence (ms). */
   exp: number;
+  /** A dónde regresar: sin esto, a Tu negocio → Apps; "chat", al chat (y a la conversación `c`, si había una abierta). */
+  volver?: Volver;
 };
+
+/** Regresar al chat después del permiso (se conectó desde «Conectar una app» del chat). */
+export type Volver = { a: "chat"; c?: string };
+
+/** ?volver=chat (&c=<conversación>) validado: solo "chat" y un id de conversación sencillo. */
+export function leerVolver(params: { get(nombre: string): string | null } | Partial<Volver> | null | undefined): Volver | undefined {
+  if (!params) return undefined;
+  const a = "get" in params && typeof params.get === "function" ? params.get("volver") : (params as Partial<Volver>).a;
+  const c = "get" in params && typeof params.get === "function" ? params.get("c") : (params as Partial<Volver>).c;
+  if (a !== "chat") return undefined;
+  return typeof c === "string" && /^[\w-]{1,100}$/.test(c) ? { a: "chat", c } : { a: "chat" };
+}
 
 export function leerEstadoOAuth(texto: string, ahora = Date.now()): EstadoOAuth | null {
   try {
@@ -166,7 +180,7 @@ export function leerEstadoOAuth(texto: string, ahora = Date.now()): EstadoOAuth 
     if (typeof e.redirectUri !== "string" || typeof e.verifier !== "string" || typeof e.exp !== "number") return null;
     if (!Array.isArray(e.apps) || !e.q || typeof e.q !== "object") return null;
     if (e.exp < ahora) return null;
-    return e as EstadoOAuth;
+    return { ...(e as EstadoOAuth), volver: leerVolver(e.volver) };
   } catch {
     return null;
   }

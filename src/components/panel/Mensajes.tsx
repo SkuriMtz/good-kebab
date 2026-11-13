@@ -7,6 +7,7 @@ import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { Tarjeta } from "@/components/chat/Piezas";
 import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import { PERSONAJES } from "@/lib/personajes";
 
 /*
  * Las piezas de la conversación del panel nuevo, como un chat de IA de hoy:
@@ -199,26 +200,31 @@ export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente
           <span className="pc-msj__area">{info.area}</span>
         </p>
       ) : null}
-      <LineaEscribe texto={texto ?? `${info.nombre} está escribiendo…`} />
+      <LineaEscribe texto={texto} agente={agente} etiqueta={`${info.nombre} está escribiendo`} />
     </div>
   );
 }
 
 /**
- * La línea tenue con los tres triangulitos que laten: "está escribiendo…"
- * o lo que hace un agente con una app ("Clara está revisando tu correo…").
+ * Mientras un agente contesta: tres fragmentos (triangulitos huecos) que
+ * ruedan uno tras otro; cada uno brinca y gira un tercio de vuelta (cae
+ * igual que como empezó, así el ciclo no salta). Violeta, el color del
+ * agente y turquesa. Sin texto: "Lola está escribiendo" solo lo oye el
+ * lector de pantalla (`etiqueta`). Si el agente está usando una app, sí se
+ * lee lo que hace ("Clara está revisando tu correo…").
  */
-export function LineaEscribe({ texto }: { texto: string }) {
+export function LineaEscribe({ texto, agente, etiqueta }: { texto?: string; agente?: IdAgente; etiqueta?: string }) {
+  const colores = ["#8052ff", agente ? PERSONAJES[agente].color : "#3d7bff", "#23d9b5"];
   return (
-    <p className="pc-escribe" role="status">
+    <p className="pc-escribe" role="status" data-solo={texto ? undefined : ""}>
       <span className="pc-escribe__tris" aria-hidden="true">
-        {["#8052ff", "#3d7bff", "#23d9b5"].map((c) => (
-          <svg key={c} viewBox="0 0 12 12" width="11" height="11" focusable="false">
-            <path d="M6 1.6 10.6 10 1.4 10Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+        {colores.map((c, i) => (
+          <svg key={i} viewBox="0 0 12 12" width="12" height="12" focusable="false">
+            <path d="M6 1.3 10.6 9.25 1.4 9.25Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
           </svg>
         ))}
       </span>
-      <span className="pc-escribe__texto">{texto}</span>
+      {texto ? <span className="pc-escribe__texto">{texto}</span> : etiqueta ? <span className="pc-oculto">{etiqueta}</span> : null}
     </p>
   );
 }

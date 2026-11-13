@@ -543,6 +543,7 @@ export default function PromptBar({
           role={open === "effort" ? "dialog" : "listbox"}
           aria-label={open === "at" ? (plusOpen && plusActions.length ? "Más opciones" : "Agentes") : open === "slash" ? "Acciones" : open === "model" ? "Modelos" : "Esfuerzo"}
           data-kind={open}
+          data-mas={plusOpen && plusActions.length ? "" : undefined}
         >
           {open === "effort" ? (
             <>

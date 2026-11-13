@@ -13,6 +13,9 @@ import { VentanaAjustes, esIdAjuste, type DatosAjustes, type IdAjuste } from "./
 import type { Acento, Letra } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
+import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
+import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
 export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
@@ -80,6 +83,9 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   /** La ventana de Ajustes: abierta o no, y en qué parte (la parte se queda al cerrar, para que salga animada). */
   const [ajustesAbierto, setAjustesAbierto] = useState(false);
   const [parteAjustes, setParteAjustes] = useState<IdAjuste>("atendel");
+  /** "Conectar una app" desde el chat (null: cerrada) y el aviso al regresar del permiso. */
+  const [conectar, setConectar] = useState<{ app: IdApp | null } | null>(null);
+  const [avisoApp, setAvisoApp] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
   /** El color y la letra que eligió en Ajustes > Apariencia. */
   const [apariencia, setApariencia] = useState<{ acento: Acento; letra: Letra }>({ acento: ajustes.ajustes.acento, letra: ajustes.ajustes.letra });
   const alCambiarApariencia = useCallback((a: { acento: Acento; letra: Letra }) => setApariencia((x) => (x.acento === a.acento && x.letra === a.letra ? x : a)), []);
@@ -196,21 +202,61 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
   useEffect(() => {
     if (parametros.get("vista") === "ajustes") abrirAjustes(parametros.get("seccion"));
   }, [parametros, abrirAjustes]);
+  // "Conectar una app": con un enlace ?conectar=<app> (lo pone el agente en su respuesta) o con el "+" de la caja
+  const abrirConectar = useCallback((app: string | null) => {
+    setConectar({ app: esIdApp(app) ? app : null });
+    setCajon(false);
+  }, []);
+  useEffect(() => {
+    const c = parametros.get("conectar");
+    if (c !== null) abrirConectar(c);
+  }, [parametros, abrirConectar]);
+  useEffect(() => {
+    const evento = (e: Event) => abrirConectar((e as CustomEvent<{ app: string | null }>).detail?.app ?? null);
+    window.addEventListener(EVENTO_CONECTAR, evento);
+    return () => window.removeEventListener(EVENTO_CONECTAR, evento);
+  }, [abrirConectar]);
+  // De regreso del permiso a este chat (?conectada=gmail o ?error=…&app=…): el aviso arriba, y se quita de la dirección
+  useEffect(() => {
+    if (parametros.get("vista") === "negocio") return; // Apps tiene su propio aviso
+    const lista = parametros.get("conectada");
+    const error = parametros.get("error");
+    if (!lista && !error) return;
+    const app = esIdApp(lista) ? APP_POR_ID[lista] : null;
+    const fallo = parametros.get("app");
+    const appFallo = esIdApp(fallo) ? APP_POR_ID[fallo] : null;
+    if (app) setAvisoApp({ tono: "ok", texto: `Listo: ${app.nombre} quedó conectada. Ya la puedes usar en el chat.` });
+    else if (error) setAvisoApp({ tono: "error", texto: `${appFallo ? `${appFallo.nombre}: ` : ""}${error === "cancelado" ? "no se dio el permiso. Puedes intentarlo otra vez." : "no se pudo conectar. Vuelve a intentarlo."}` });
+    const url = new URL(window.location.href);
+    for (const k of ["conectada", "error", "app"]) url.searchParams.delete(k);
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [parametros]);
+  useEffect(() => {
+    if (!avisoApp) return;
+    const t = window.setTimeout(() => setAvisoApp(null), avisoApp.tono === "ok" ? 6000 : 9000);
+    return () => window.clearTimeout(t);
+  }, [avisoApp]);
   useEffect(() => {
     const clic = (e: globalThis.MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a[href]");
       const href = a?.getAttribute("href");
-      if (!href || !href.includes("vista=ajustes")) return;
+      if (!href || !(href.includes("vista=ajustes") || href.includes("conectar="))) return;
       const u = new URL(href, window.location.href);
-      if (u.origin !== window.location.origin || u.searchParams.get("vista") !== "ajustes") return;
-      e.preventDefault();
-      e.stopPropagation();
-      abrirAjustes(u.searchParams.get("seccion"));
+      if (u.origin !== window.location.origin) return;
+      if (u.searchParams.get("vista") === "ajustes") {
+        e.preventDefault();
+        e.stopPropagation();
+        abrirAjustes(u.searchParams.get("seccion"));
+      } else if (u.searchParams.has("conectar") && !u.pathname.startsWith("/api/")) {
+        e.preventDefault();
+        e.stopPropagation();
+        abrirConectar(u.searchParams.get("conectar"));
+      }
     };
     document.addEventListener("click", clic, true);
     return () => document.removeEventListener("click", clic, true);
-  }, [abrirAjustes]);
+  }, [abrirAjustes, abrirConectar]);
 
   const preferencias = {
     menuCompacto: oculto,
@@ -452,6 +498,27 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, fijados, recien
       ) : null}
 
       <Buscador abierto={buscar !== null} instantaneo={buscar?.instantaneo ?? false} alCerrar={() => setBuscar(null)} indice={indice} />
+      <ConectarApps
+        abierta={conectar !== null}
+        enfocar={conectar?.app ?? null}
+        alCerrar={() => {
+          setConectar(null);
+          // Si se abrió con ?conectar=, se quita de la dirección (al recargar ya no sale)
+          const url = new URL(window.location.href);
+          if (!url.searchParams.has("conectar")) return;
+          url.searchParams.delete("conectar");
+          window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        }}
+      />
+      {avisoApp ? (
+        <div className={`pc-aviso-subida pc-aviso-subida--${avisoApp.tono}`} role={avisoApp.tono === "error" ? "alert" : "status"}>
+          <Icono nombre={avisoApp.tono === "ok" ? "check-circulo" : "alerta"} tam={16} />
+          <span className="pc-aviso-subida__texto">{avisoApp.texto}</span>
+          <button type="button" className="pc-icono pc-aviso-subida__cerrar" onClick={() => setAvisoApp(null)} aria-label="Cerrar el aviso">
+            <Icono nombre="cerrar" tam={14} />
+          </button>
+        </div>
+      ) : null}
       <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
     </div>

@@ -146,9 +146,19 @@ export function instruccionesHerramientas(participantes: readonly IdAgente[], he
         .join("\n"),
     );
   }
-  if (conError.length) partes.push(`La conexión con ${conError.map((a) => a.nombre).join(", ")} tiene un error: si te piden algo de ahí, di que hay que volver a conectarla en Tu negocio → Apps.`);
+  // Los enlaces ?conectar=<app> abren "Conectar una app" en el mismo chat (el panel los convierte en botón)
+  if (conError.length)
+    partes.push(
+      `La conexión con ${conError.map((a) => a.nombre).join(", ")} tiene un error: si te piden algo de ahí, dilo en una frase y agrega en una línea aparte su enlace para volver a conectarla: ${conError.map((a) => `[Volver a conectar ${a.nombre}](/panel?conectar=${a.id})`).join(" · ")}.`,
+    );
   if (porConectar.length) {
-    partes.push(`Apps que la persona todavía no conecta y que te servirían: ${porConectar.map((a) => a.nombre).join(", ")}. Si te piden algo de ellas, di que se conectan en Tu negocio → Apps; no digas que ya las ves.`);
+    partes.push(
+      [
+        `Apps que la persona todavía no conecta y que te servirían: ${porConectar.map((a) => a.nombre).join(", ")}. No digas que ya las ves.`,
+        "Si te piden algo que necesita una de ellas, dilo en una frase y agrega en una línea aparte su enlace para conectarla sin salir del chat (copia el enlace tal cual; uno solo, el que hace falta):",
+        porConectar.map((a) => `- [Conectar ${a.nombre}](/panel?conectar=${a.id})`).join("\n"),
+      ].join("\n"),
+    );
   }
   return partes.length ? `\n\n${partes.join("\n\n")}` : "";
 }

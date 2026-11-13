@@ -16,8 +16,10 @@ function conEnlaces(texto: string, suave: boolean): ReactNode[] {
     const m = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(parte);
     if (!m) return <Fragment key={i}>{enNegritas(parte, suave)}</Fragment>;
     const descarga = m[2].startsWith("/api/archivos/");
+    // ?conectar=<app>: el panel abre "Conectar una app" ahí mismo; se ve como botón
+    const conectar = !descarga && /[?&]conectar=[a-z_]{2,40}(&|$)/.test(m[2]);
     return (
-      <a key={i} href={m[2]} className={descarga ? "t-enlace t-enlace--archivo" : "t-enlace"} {...(descarga ? { download: true } : {})}>
+      <a key={i} href={m[2]} className={descarga ? "t-enlace t-enlace--archivo" : conectar ? "t-enlace t-enlace--conectar" : "t-enlace"} {...(descarga ? { download: true } : {})}>
         {enNegritas(m[1], suave)}
       </a>
     );

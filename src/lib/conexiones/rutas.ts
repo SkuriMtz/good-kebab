@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Proveedor } from "@/lib/nucleo-tipos";
 import { createClient } from "@/lib/supabase/server";
 import { esProveedor } from "./catalogo";
-import { nombreCookie, origenPermitido, rutaCookie } from "./oauth";
+import { nombreCookie, origenPermitido, rutaCookie, type Volver } from "./oauth";
 
 /** Piezas que comparten las rutas /api/conexiones/[proveedor]/*. */
 
@@ -21,12 +21,20 @@ export async function preparar(params: { proveedor: string }) {
   return { proveedor: params.proveedor as Proveedor, supabase, user } as const;
 }
 
-/** A la pestaña Apps de Tu negocio, con lo que pasó (conectada=… o error=…). */
-export function volverAApps(request: NextRequest, p: Proveedor, datos: Record<string, string>) {
+/**
+ * A la pestaña Apps de Tu negocio, con lo que pasó (conectada=… o error=…).
+ * Si se conectó desde el chat (`volver`), regresa al chat (y a esa
+ * conversación), donde sale el aviso.
+ */
+export function volverAApps(request: NextRequest, p: Proveedor, datos: Record<string, string>, volver?: Volver) {
   const base = origenPermitido(request.nextUrl.origin) ?? request.nextUrl.origin;
   const url = new URL("/panel", base);
-  url.searchParams.set("vista", "negocio");
-  url.searchParams.set("tab", "apps");
+  if (volver?.a === "chat") {
+    if (volver.c) url.searchParams.set("c", volver.c);
+  } else {
+    url.searchParams.set("vista", "negocio");
+    url.searchParams.set("tab", "apps");
+  }
   for (const [k, v] of Object.entries(datos)) url.searchParams.set(k, v);
   const res = NextResponse.redirect(url, { headers: { "Cache-Control": "no-store" } });
   // El cookie de la ida y vuelta se borra siempre

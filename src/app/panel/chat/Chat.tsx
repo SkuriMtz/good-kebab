@@ -398,9 +398,6 @@ export function Chat({
     });
   });
   const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
-  // Quién escribe ahora (para los tres puntos y la cabecera)
-  const enCurso = visibles[visibles.length - 1]?.enCurso ? (visibles[visibles.length - 1].de as IdAgente) : null;
-  const estadoEnCurso = enCurso ? visibles[visibles.length - 1].estado : null;
 
   const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
     key: id,
@@ -533,7 +530,6 @@ export function Chat({
         agentes={participantes}
         titulo={tituloConv}
         sub={grupo ? `Grupo · ${nombresDe(grupo)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
-        estado={enCurso ? (estadoEnCurso ?? `${AGENTE_POR_ID[enCurso].nombre} está escribiendo…`) : null}
         menu={[
           { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel" },
           ...(actualConv ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, alElegir: () => setPorBorrar(actualConv), peligroso: true }] : []),
@@ -580,7 +576,7 @@ export function Chat({
                           {p.error}
                         </p>
                       ) : p.enCurso && p.estado ? (
-                        <LineaEscribe texto={p.estado} />
+                        <LineaEscribe texto={p.estado} agente={p.de} />
                       ) : !p.enCurso && i === visibles.length - 1 ? (
                         <Copiar texto={p.texto} />
                       ) : null

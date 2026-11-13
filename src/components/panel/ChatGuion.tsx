@@ -435,7 +435,6 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
       agentes={conv.agentes}
       titulo={conv.titulo}
       sub={grupo ? `Grupo · ${nombresDe(conv.agentes)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
-      estado={escribe ? `${AGENTE_POR_ID[escribe].nombre} está escribiendo…` : null}
       menu={[
         { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/pruebalo" },
         ...(guion.convs.length > 1 ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, href: "/pruebalo", alElegir: () => guion.borrar(conv.id), peligroso: true }] : []),

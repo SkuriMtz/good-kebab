@@ -6976,3 +6976,278 @@ a.pc-correo__accion:hover {
 .pc .pc-caja--cambia .prompt-bar__input::placeholder {
   color: transparent;
 }
+
+
+/* =====================================================================
+   34. Mientras contesta, el "+" de la caja y "Conectar una app"
+   ===================================================================== */
+/* Fragmentos que ruedan: cada uno brinca y gira un tercio de vuelta (cae
+   igual que como empezó), uno tras otro. Sin el texto "está escribiendo". */
+.pc .pc-escribe {
+  gap: 10px;
+  min-height: 24px;
+}
+.pc .pc-escribe__tris {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 20px;
+  padding-bottom: 2px;
+}
+.pc .pc-escribe__tris svg {
+  width: 13px;
+  height: 13px;
+  transform-origin: 50% 55%;
+  animation: pc-rueda 1.35s cubic-bezier(0.45, 0, 0.25, 1) infinite backwards;
+}
+.pc .pc-escribe__tris svg:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.pc .pc-escribe__tris svg:nth-child(3) {
+  animation-delay: 0.32s;
+}
+@keyframes pc-rueda {
+  0% {
+    opacity: 0.4;
+    transform: translateY(0) rotate(0deg) scale(0.9);
+  }
+  28% {
+    opacity: 1;
+    transform: translateY(-5px) rotate(60deg) scale(1);
+  }
+  56%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0) rotate(120deg) scale(0.9);
+  }
+}
+
+/* El "+": se vuelve ✕ al abrir (gira 45°) y abre una lista limpia: íconos de
+   línea, renglones de 36px y una raya entre lo que agregas y los agentes */
+.pc .pc-caja .prompt-bar__mas .prompt-bar__tool svg {
+  transition: transform 200ms var(--pc-claude-sale);
+}
+.pc .pc-caja .prompt-bar__mas .prompt-bar__tool[data-on] {
+  background: transparent;
+  color: var(--pc-texto);
+}
+.pc .pc-caja .prompt-bar__mas .prompt-bar__tool[data-on] svg {
+  transform: rotate(45deg);
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] {
+  right: auto;
+  left: 8px;
+  width: 252px;
+  padding: 8px;
+  border: 1px solid #2e2e2e;
+  border-radius: 20px;
+  background: #1f1f1f;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  transform-origin: bottom left;
+  animation: pc-mas-arriba 200ms var(--pc-claude-sale) both;
+}
+:root[data-tema="claro"] .pc .pc-caja .prompt-bar__menu[data-mas] {
+  border-color: #e4e4e7;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 16, 24, 0.14);
+}
+/* En la conversación nueva sale por debajo de la caja, como si saliera de ella */
+.pc .pc-inicio .pc-caja .prompt-bar__menu[data-mas] {
+  top: calc(100% - 10px);
+  bottom: auto;
+  z-index: 0;
+  padding-top: 18px;
+  transform-origin: top left;
+  animation-name: pc-mas-abajo;
+}
+.pc .pc-inicio .pc-caja .prompt-bar__field {
+  z-index: 1;
+}
+/* La caja con su menú, encima de la fila de abajo ("Todo el equipo") */
+.pc .pc-inicio .pc-caja {
+  position: relative;
+  z-index: 3;
+}
+@keyframes pc-mas-abajo {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes pc-mas-arriba {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__glow {
+  right: 8px;
+  left: 8px;
+  border-radius: 12px;
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row {
+  gap: 14px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row-icon {
+  width: 20px;
+  color: var(--pc-texto-2);
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row-name {
+  color: var(--pc-texto);
+  font: 400 15px/20px var(--pc-sans);
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row-desc {
+  display: none;
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row--ultima-accion {
+  margin-bottom: 13px;
+}
+.pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row--ultima-accion::after {
+  right: 12px;
+  bottom: -7px;
+  left: 12px;
+  border-bottom-color: #3a3a3a;
+}
+:root[data-tema="claro"] .pc .pc-caja .prompt-bar__menu[data-mas] .prompt-bar__row--ultima-accion::after {
+  border-bottom-color: #e4e4e7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc .pc-caja .prompt-bar__menu[data-mas],
+  .pc .pc-inicio .pc-caja .prompt-bar__menu[data-mas] {
+    animation: none;
+  }
+  .pc .pc-caja .prompt-bar__mas .prompt-bar__tool svg {
+    transition: none;
+  }
+}
+
+/* "Conectar una app" (ConectarApps.tsx): una lista de filas con logo, para qué sirve y su botón */
+.pc .pc-conectar__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc .pc-conectar__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 2px;
+  border-top: 1px solid var(--pc-division);
+}
+.pc .pc-conectar__fila:first-child {
+  border-top: 0;
+}
+.pc .pc-conectar__fila[data-enfocada] {
+  margin: 0 -10px;
+  padding: 10px 12px;
+  border-top-color: transparent;
+  border-radius: 12px;
+  background: var(--pc-hover);
+}
+.pc .pc-conectar__fila[data-enfocada] + .pc-conectar__fila {
+  border-top-color: transparent;
+}
+.pc .pc-conectar__logo {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.pc .pc-conectar__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pc .pc-conectar__nombre {
+  color: var(--pc-texto);
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.pc .pc-conectar__detalle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.pc .pc-conectar__fila > .pc-boton,
+.pc .pc-conectar__fila > a,
+.pc .pc-conectar__fila > button {
+  flex: none;
+}
+.pc .pc-conectar__lista-ok {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--pc-exito);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pc .pc-conectar__pronto {
+  flex: none;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc .pc-conectar__ejemplo {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--pc-hover);
+  color: var(--pc-texto-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.pc .pc-conectar__error {
+  margin: 0 0 8px;
+  color: var(--pc-error);
+  font-size: 13.5px;
+}
+
+/* El enlace que pone el agente para conectar una app: se ve como botón */
+.pc .t-enlace--conectar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0;
+  padding: 6px 14px 6px 12px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  background: var(--pc-superficie);
+  color: var(--pc-texto);
+  font: 500 14px/20px var(--pc-sans);
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    transform 150ms var(--pc-claude-sale);
+}
+.pc .t-enlace--conectar::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.pc .t-enlace--conectar:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .t-enlace--conectar:hover {
+    background: var(--pc-boton);
+  }
+}
