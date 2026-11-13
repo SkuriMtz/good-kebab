@@ -7,19 +7,11 @@ import { datosNegocioEjemplo } from "@/components/dashboard/estadisticas-negocio
 import { AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { DEMO_APROBACIONES, DEMO_NEGOCIO, DEMO_USUARIA } from "@/lib/demo-dashboard";
 import { AJUSTES_INICIALES } from "@/lib/ajustes";
-import type { CampoPerfil } from "@/lib/nucleo-tipos";
+import { EQUIPO_DEMO, PERFIL_DEMO } from "@/lib/demo-negocio";
 
-/** Ajustes > Mi negocio en la demostración: datos de ejemplo (no se guardan). */
-const PERFIL_DEMO: Partial<Record<CampoPerfil, string>> = {
-  a_que_se_dedica: "Atendemos con cita a clientes de la zona; también vendemos productos en el local.",
-  servicios_y_precios: "Servicio básico · $350\nServicio completo · $600\nPaquete del mes · $1,200",
-  horarios: "Lunes a viernes de 10:00 a 19:00\nSábado de 10:00 a 15:00",
-  ubicacion: "Calle Ejemplo 123, Col. Centro",
-  formas_de_pago: "Efectivo, transferencia y tarjeta",
-};
 import { periodoDe, type Periodo } from "@/lib/estadisticas";
 import { resumirNegocio } from "@/lib/resumen-negocio";
-import { responderConReglas } from "@/lib/pregunta-grafica";
+import { responderConReglas, type RespuestaGrafica } from "@/lib/pregunta-grafica";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { ActividadDemo } from "./Actividad";
@@ -157,7 +149,16 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           alVer={alVer}
           ejemplo
           cargar={cargarInfo}
-          preguntar={async (pregunta, datos) => responderConReglas(pregunta, datos)}
+          preguntar={async (pregunta, datos) => {
+            // La IA de verdad con los números de ejemplo; si no hay IA (límite, sin llave, sin red), contestan las reglas
+            try {
+              const r = await fetch("/api/demo/pregunta", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pregunta, datos }) });
+              if (r.ok) return (await r.json()) as RespuestaGrafica;
+            } catch {
+              /* sin red */
+            }
+            return responderConReglas(pregunta, datos);
+          }}
           equipo={AGENTES_INFO.map((a) => a.id)}
           enConversacion={conv?.agentes}
           pendientes={porRevisar}
@@ -276,11 +277,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           activos: ["lola", "clara", "victor", "iris"],
           gmail: true,
           conectadas: ["google_calendar"],
-          // Ejemplo: números de prueba, no son de nadie
-          contactos: [
-            { id: "demo-luis", nombre: "Luis", rol: "Recepción", whatsapp: "+525500000001" },
-            { id: "demo-sofia", nombre: "Sofía", rol: "Encargada", whatsapp: "+525500000002" },
-          ],
+          contactos: EQUIPO_DEMO,
           ajustes: {
             ...AJUSTES_INICIALES,
             instrucciones: "Háblales de tú y con calidez. Mensajes cortos, sin emojis. Si preguntan precio, dáselo y ofrece agendar.",
@@ -297,7 +294,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         aviso={
           <>
             <span className="pc-estado pc-estado--azul">Datos de ejemplo</span>
-            <span className="pc-aviso-demo__texto">Estudio Luna · no llama a la IA</span>
+            <span className="pc-aviso-demo__texto">Estudio Luna · con IA de verdad</span>
             <Enlace href="/entrar" className="pc-enlace">
               Crear mi cuenta
             </Enlace>

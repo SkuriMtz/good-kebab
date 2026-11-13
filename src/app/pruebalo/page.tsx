@@ -12,8 +12,9 @@ export const metadata: Metadata = {
  * Pruébalo: el panel nuevo con datos de ejemplo de un negocio inventado
  * (src/lib/demo-dashboard.ts). La vista sale de la dirección y se pinta
  * desde el servidor (?vista=agentes, ?con=lola…): no aparece antes el
- * Inicio. Lo demás pasa en el navegador. El chat es el guion local de
- * ChatDemo: no llama a la IA.
+ * Inicio. Lo demás pasa en el navegador. El chat contesta con la IA de
+ * verdad (/api/demo/chat, datos de ejemplo, 20 mensajes al día por visita);
+ * si no hay IA, con el guion local de ChatDemo.
  */
 export default function Pruebalo({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // La página depende de la dirección: se pinta en cada visita con la vista pedida

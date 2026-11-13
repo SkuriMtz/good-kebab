@@ -6,6 +6,9 @@ import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
 import { useSubirDesdeChat } from "./negocio/SubirDesdeChat";
 import { Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
+import { separarDatos } from "@/lib/demo-marcas";
+import { partirIntervenciones } from "@/lib/grupo";
+import type { Tarjeta } from "@/components/chat/Piezas";
 import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
 import { FranjaPendientes, UsoPlan } from "./Franja";
@@ -17,7 +20,10 @@ import { SelectorAgente, type OpcionAgente } from "./Selector";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 
 /* =====================================================================
-   El chat de /pruebalo: el GUION LOCAL de ChatDemo (no llama a la IA).
+   El chat de /pruebalo: contesta la IA DE VERDAD (/api/demo/chat, con los
+   datos de ejemplo de Estudio Luna y un límite de 20 mensajes al día). Si la
+   IA no está disponible o se acabó el límite, avisa y contesta el GUION
+   LOCAL de ChatDemo, como antes.
    Las conversaciones de ejemplo, las acciones "/" y las respuestas son
    las mismas del chat de demostración del sitio; aquí se pintan con la
    forma del panel nuevo y la respuesta "llega" palabra por palabra.
@@ -63,7 +69,11 @@ const esConvGuardada = (c: unknown): c is ConvGuion => {
 /** El estado del chat de ejemplo. Vive arriba (en el panel de ejemplo) para que no se pierda al cambiar de sección. */
 export function useGuion() {
   const [convs, setConvs] = useState<ConvGuion[]>(() => INICIO.map((c) => ({ ...c, titulo: tituloDe(c) })));
-  const [pendiente, setPendiente] = useState<{ conv: string; agente: IdAgente } | null>(null);
+  /** Quién está contestando; `puntos`: todavía no llega texto (se ven los puntitos). */
+  const [pendiente, setPendiente] = useState<{ conv: string; agente: IdAgente; puntos?: boolean } | null>(null);
+  /** Cuántos mensajes con IA le quedan hoy a esta visita (lo dice el servidor). */
+  const [quedan, setQuedan] = useState<number | null>(null);
+  const corte = useRef<AbortController | null>(null);
   /** Ya se leyó lo guardado en la pestaña (antes de esto, una ?con=n… todavía puede aparecer). */
   const [listo, setListo] = useState(false);
   const siguiente = useRef(PRIMER_NUEVO);
@@ -129,12 +139,106 @@ export function useGuion() {
     timers.current.push(window.setTimeout(() => turno(0), 450));
   };
 
+  /** Un mensaje nuevo que se va a ir llenando (regresa su id). */
+  const nuevo = (conv: string, m: Omit<MsjBase, "id">) => {
+    const id = siguiente.current++;
+    setConvs((cs) => cs.map((c) => (c.id === conv ? { ...c, orden: ++orden.current, mensajes: [...c.mensajes, { ...m, id }].slice(-60) } : c)));
+    return id;
+  };
+  const cambiarMensaje = (conv: string, id: number, cambios: Partial<MsjBase>) =>
+    setConvs((cs) => cs.map((c) => (c.id === conv ? { ...c, mensajes: c.mensajes.map((m) => (m.id === id ? { ...m, ...cambios } : m)) } : c)));
+
+  /** La IA de verdad: el texto llega en vivo; en grupo, cada quien en su mensaje. */
+  const conIA = async (c: ConvGuion, texto: string) => {
+    const plano = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const mencion = c.agentes.find((a) => plano.includes(`@${AGENTE_POR_ID[a].nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()}`));
+    setPendiente({ conv: c.id, agente: mencion ?? c.agentes[0], puntos: true });
+    const control = new AbortController();
+    corte.current = control;
+    const historial = c.mensajes.filter((m) => m.de === "tu" || esIdAgente(m.de)).map((m) => ({ de: m.de, texto: m.texto })).slice(-16);
+    const ids: number[] = [];
+    let tarjeta: Tarjeta | null = null;
+    let vistos = 0;
+    let acumulado = "";
+    const procesar = () => {
+      const corteError = acumulado.indexOf("\u0000ERROR:");
+      const crudo = corteError >= 0 ? acumulado.slice(0, corteError) : acumulado;
+      const { texto: limpio, datos } = separarDatos(crudo);
+      for (const d of datos.slice(vistos)) {
+        vistos++;
+        if (d.tipo === "presentacion") {
+          const t: Tarjeta = {
+            tipo: "archivo",
+            sello: "PowerPoint",
+            estado: "Listo",
+            titulo: d.datos.titulo,
+            datos: [
+              ["Diapositivas", String(d.datos.diapositivas.length + 1)],
+              ["Archivo", d.archivo],
+            ],
+            presentacion: d.datos,
+          };
+          if (ids.length) cambiarMensaje(c.id, ids[ids.length - 1], { tarjeta: t });
+          else tarjeta = t;
+        } else if (d.tipo === "envio") {
+          const p = d.pendiente;
+          window.dispatchEvent(new CustomEvent(EVENTO_PENDIENTE_DEMO, { detail: { ...p, agente: esIdAgente(p.agente) ? p.agente : c.agentes[0] } }));
+        }
+      }
+      const piezas = c.agentes.length > 1 ? partirIntervenciones(limpio, c.agentes, true) : [{ agente: c.agentes[0], texto: limpio.trim() }];
+      piezas.forEach((p, i) => {
+        if (ids[i] === undefined) {
+          if (!p.texto) return;
+          ids[i] = nuevo(c.id, { de: p.agente, texto: p.texto, hora: ahora(), ...(tarjeta ? { tarjeta } : {}) });
+          tarjeta = null;
+          setPendiente({ conv: c.id, agente: p.agente, puntos: false });
+        } else cambiarMensaje(c.id, ids[i], { de: p.agente, texto: p.texto });
+      });
+      return corteError >= 0 ? acumulado.slice(corteError + "\u0000ERROR:".length) : null;
+    };
+    try {
+      const r = await fetch("/api/demo/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null }),
+        signal: control.signal,
+      });
+      if (!r.ok || !r.body) {
+        const j = (await r.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(j?.error ?? "La IA de la demostración no está disponible ahora.");
+      }
+      const q = Number(r.headers.get("X-Demo-Quedan"));
+      if (Number.isFinite(q)) setQuedan(q);
+      const lector = r.body.getReader();
+      const decodificar = new TextDecoder();
+      let fallo: string | null = null;
+      for (;;) {
+        const { done, value } = await lector.read();
+        if (done) break;
+        acumulado += decodificar.decode(value, { stream: true });
+        fallo = procesar();
+      }
+      acumulado += decodificar.decode();
+      fallo = procesar();
+      if (fallo) agregar(c.id, { de: "sistema", texto: fallo, hora: ahora() });
+      if (tarjeta && !ids.length) nuevo(c.id, { de: c.agentes.includes("iris") ? "iris" : c.agentes[0], texto: "Listo, aquí está.", hora: ahora(), tarjeta });
+      setPendiente(null);
+    } catch (e) {
+      if (control.signal.aborted) return;
+      // Sin IA (límite, sin llave o sin red): se avisa y contesta el guion de ejemplo
+      agregar(c.id, { de: "sistema", texto: `${e instanceof Error ? e.message : "La IA no está disponible ahora."} Te contesto con un ejemplo.`, hora: ahora() });
+      correr(c.id, responderDemo(texto, c));
+    } finally {
+      if (corte.current === control) corte.current = null;
+    }
+  };
+
   const enviar = (c: ConvGuion, texto: string) => {
     const limpio = texto.trim();
     if (!limpio || pendiente) return;
     limpiar();
     agregar(c.id, { de: "tu", texto: limpio, hora: ahora() });
-    correr(c.id, responderDemo(limpio, c));
+    void conIA(c, limpio);
   };
 
   /** Una conversación nueva (sin nombre: un chat; con nombre: un grupo que saluda). */
@@ -162,6 +266,8 @@ export function useGuion() {
 
   const detener = () => {
     limpiar();
+    corte.current?.abort();
+    corte.current = null;
     setPendiente(null);
   };
 
@@ -170,7 +276,7 @@ export function useGuion() {
     setConvs((cs) => (cs.length > 1 ? cs.filter((c) => c.id !== id) : cs));
   };
 
-  return { convs, pendiente, listo, enviar, crear, borrar, detener };
+  return { convs, pendiente, listo, quedan, enviar, crear, borrar, detener };
 }
 export type Guion = ReturnType<typeof useGuion>;
 
@@ -314,7 +420,9 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   const scrollRef = useRef<HTMLDivElement>(null);
   const pegado = useRef(true);
   const subida = useSubirDesdeChat();
-  const escribe = guion.pendiente?.conv === conv.id ? guion.pendiente.agente : null;
+  const ocupado = guion.pendiente?.conv === conv.id ? guion.pendiente : null;
+  // Los puntitos solo mientras no llega texto; luego el mensaje se escribe solo
+  const escribe = ocupado && ocupado.puntos !== false ? ocupado.agente : null;
   const grupo = conv.agentes.length > 1;
   const info = AGENTE_POR_ID[conv.agentes[0]];
 
@@ -355,7 +463,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           commands={comandosDe(conv.agentes)}
           models={[]}
           efforts={[]}
-          busy={escribe !== null}
+          busy={ocupado !== null}
           onSend={(t) => {
             lanzarFragmentos(document.querySelector(".pc-conv__caja .pc-caja"));
             guion.enviar(conv, t);
@@ -366,7 +474,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           dictarPronto
         />
       }
-      legal="Datos de ejemplo: las respuestas son un guion, no la IA. En tu panel contestan tus agentes de verdad."
+      legal={`Datos de ejemplo de Estudio Luna. Contesta la IA de verdad${guion.quedan !== null ? ` · te quedan ${guion.quedan} mensajes hoy` : " (hasta 20 mensajes al día)"}.`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
         {ms.map((m, i) => {
