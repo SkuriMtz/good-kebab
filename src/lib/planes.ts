@@ -45,14 +45,15 @@ export const HORAS_SESION = 5;
 
 /**
  * Los límites, en micro-dólares de costo de la IA. Con un mensaje típico
- * (~$0.01 en Free con Haiku; ~$0.05 a $0.10 en One y Max con Opus):
- *   Free: sesión $0.06 (~6 mensajes), semana $0.15 (~15).
- *   One:  sesión $2 (~20 a 40 mensajes), semana $9 (~90 a 180).
- *   Max:  5 veces One: sesión $10, semana $45.
+ * sin caché (~$0.01 en Free con Haiku; ~$0.05 a $0.10 en One y Max con
+ * Opus), y más mensajes cuando la caché ayuda (mensajes seguidos):
+ *   Free: sesión $0.12 (~12 mensajes), semana $0.30 (~30 a 40).
+ *   One:  sesión $4 (~40 a 80 mensajes), semana $18 (~180 a 360; ~200 a 400 con caché).
+ *   Max:  5 veces One: sesión $20, semana $90.
  * Lo más que puede costar la IA de una cuenta al mes (usándola al tope cada
- * semana): Free ~$0.65, One ~$39, Max ~$196 USD.
+ * semana, sin ayuda de la caché): Free ~$1.30, One ~$78, Max ~$390 USD.
  */
-const ONE: LimiteUso = { sesion: 2_000_000, semana: 9_000_000 };
+const ONE: LimiteUso = { sesion: 4_000_000, semana: 18_000_000 };
 const VECES_MAX = 5;
 
 export const PLANES: Plan[] = [
@@ -63,7 +64,7 @@ export const PLANES: Plan[] = [
     precio: "Gratis",
     resumen: "Para conocer Atendel con tu agente de correo.",
     incluye: ["Clara, tu agente de correo", "Uso para probarlo", "Resúmenes de correo"],
-    limite: { sesion: 60_000, semana: 150_000 },
+    limite: { sesion: 120_000, semana: 300_000 },
     uso: "Para probar",
     agentes: ["clara"],
     // El plan gratis usa el modelo más económico
