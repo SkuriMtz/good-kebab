@@ -10,7 +10,7 @@ import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
 import { VentanaAjustes, esIdAjuste, type DatosAjustes, type IdAjuste } from "./Ajustes";
-import type { Acento, Letra } from "@/lib/ajustes";
+import type { Apariencia } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
@@ -92,8 +92,19 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
   const [conectar, setConectar] = useState<{ app: IdApp | null } | null>(null);
   const [avisoApp, setAvisoApp] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
   /** El color y la letra que eligió en Ajustes > Apariencia. */
-  const [apariencia, setApariencia] = useState<{ acento: Acento; letra: Letra }>({ acento: ajustes.ajustes.acento, letra: ajustes.ajustes.letra });
-  const alCambiarApariencia = useCallback((a: { acento: Acento; letra: Letra }) => setApariencia((x) => (x.acento === a.acento && x.letra === a.letra ? x : a)), []);
+  const [apariencia, setApariencia] = useState<Apariencia>(() => {
+    const a = ajustes.ajustes;
+    return { acento: a.acento, letra: a.letra, fuente: a.fuente, respuestas: a.respuestas, ancho: a.ancho, movimiento: a.movimiento, idioma: a.idioma };
+  });
+  const alCambiarApariencia = useCallback((a: Apariencia) => setApariencia((x) => ((Object.keys(a) as (keyof Apariencia)[]).every((k) => x[k] === a[k]) ? x : a)), []);
+  // El idioma de las respuestas: la demostración lo manda con cada mensaje (en /panel lo lee el servidor de tus ajustes)
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem("atendel-idioma", apariencia.idioma);
+    } catch {
+      /* sin almacenamiento */
+    }
+  }, [apariencia.idioma]);
   const parametros = useSearchParams();
   const menuRef = useRef<HTMLElement>(null);
   const principalRef = useRef<HTMLDivElement>(null);
@@ -359,6 +370,10 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
       data-entrada={entrada ?? undefined}
       data-acento={apariencia.acento !== "azul" ? apariencia.acento : undefined}
       data-letra={apariencia.letra !== "normal" ? apariencia.letra : undefined}
+      data-fuente={apariencia.fuente !== "geist" ? apariencia.fuente : undefined}
+      data-respuestas={apariencia.respuestas !== "sans" ? apariencia.respuestas : undefined}
+      data-ancho={apariencia.ancho !== "normal" ? apariencia.ancho : undefined}
+      data-movimiento={apariencia.movimiento !== "sistema" ? apariencia.movimiento : undefined}
       onClickCapture={alCapturarClic}
     >
       <a href="#pc-contenido" className="pc-saltar">

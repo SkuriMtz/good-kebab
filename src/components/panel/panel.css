@@ -7745,3 +7745,161 @@ a.pc-correo__accion:hover {
 .pc .pc-caja .prompt-bar__field:focus-within::before {
   display: none;
 }
+
+/* =====================================================================
+   36. Ajustes > Apariencia como la de Claude, y lo que cambia en el panel
+   ===================================================================== */
+/* El tema con tres íconos (sistema, claro, oscuro) */
+.pc .pc-aj-tema {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--pc-hover);
+}
+.pc .pc-aj-tema__op {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms var(--pc-claude-sale);
+}
+.pc .pc-aj-tema__op[aria-checked="true"] {
+  border-color: var(--pc-borde);
+  background: var(--pc-boton);
+  color: var(--pc-texto);
+}
+.pc .pc-aj-tema__op:active {
+  transform: scale(0.94);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-aj-tema__op:not([aria-checked="true"]):hover {
+    color: var(--pc-texto);
+  }
+}
+/* El desplegable sencillo: el valor y una flechita, sin caja */
+.pc .pc-aj-desp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 260px;
+  color: var(--pc-texto);
+}
+.pc .pc-aj-desp select {
+  max-width: 100%;
+  height: 32px;
+  padding: 0 26px 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: 400 14.5px/20px var(--pc-sans);
+  text-align: right;
+  text-overflow: ellipsis;
+  appearance: none;
+  cursor: pointer;
+}
+.pc .pc-aj-desp[data-serif] select {
+  font-family: var(--pc-serif);
+  font-size: 15.5px;
+}
+.pc .pc-aj-desp select option {
+  background: var(--pc-menu);
+  color: var(--pc-texto);
+  font-family: var(--pc-sans);
+}
+.pc .pc-aj-desp > svg {
+  position: absolute;
+  right: 4px;
+  color: var(--pc-texto-2);
+  pointer-events: none;
+}
+.pc .pc-aj-desp select:focus-visible {
+  outline: 2px solid var(--pc-foco);
+  outline-offset: 1px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-aj-desp select:hover {
+    background: var(--pc-hover);
+  }
+}
+/* El buscador de Ajustes: también lo de adentro de cada parte */
+.pc .pc-aj__seccion-buscar {
+  margin: 10px 0 4px;
+  padding: 0 12px;
+  color: var(--pc-texto-2);
+  font: 500 11.5px/1.4 var(--pc-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pc .pc-aj__seccion-buscar[data-corte] {
+  padding-top: 10px;
+  border-top: 1px solid var(--pc-division);
+}
+.pc .pc-aj__opcion {
+  height: auto;
+  min-height: 40px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.pc .pc-aj__opcion-textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+.pc .pc-aj__opcion-titulo {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pc .pc-aj__opcion-donde {
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+/* El renglón que se eligió en el buscador se marca un momento */
+.pc .pc-aj-fila[data-resaltada] {
+  animation: pc-fila-resaltada 1600ms var(--pc-claude-sale);
+}
+@keyframes pc-fila-resaltada {
+  0%,
+  35% {
+    background: color-mix(in srgb, var(--pc-acento) 16%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+/* Lo que se eligió en Apariencia, en todo el panel */
+.pc[data-fuente="sistema"] {
+  --pc-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.pc[data-respuestas="serif"] .pc-msj--agente .pc-msj__texto {
+  font-family: var(--pc-serif);
+  font-variation-settings: "opsz" 16;
+}
+.pc[data-ancho="angosto"] {
+  --pc-columna-chat: 640px;
+}
+.pc[data-ancho="ancho"] {
+  --pc-columna-chat: 900px;
+}
+.pc[data-movimiento="reducido"] *,
+.pc[data-movimiento="reducido"] *::before,
+.pc[data-movimiento="reducido"] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}

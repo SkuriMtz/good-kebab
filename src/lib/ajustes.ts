@@ -13,6 +13,81 @@ export const ACENTOS = ["azul", "morado", "verde", "ambar"] as const;
 export type Acento = (typeof ACENTOS)[number];
 export const LETRAS = ["chica", "normal", "grande"] as const;
 export type Letra = (typeof LETRAS)[number];
+/** Apariencia, como la de Claude: la letra del panel y la de las respuestas, el ancho de la conversación y el movimiento. */
+export const FUENTES = ["geist", "sistema"] as const;
+export type Fuente = (typeof FUENTES)[number];
+export const RESPUESTAS = ["sans", "serif"] as const;
+export type LetraRespuestas = (typeof RESPUESTAS)[number];
+export const ANCHOS = ["angosto", "normal", "ancho"] as const;
+export type AnchoChat = (typeof ANCHOS)[number];
+export const MOVIMIENTOS = ["sistema", "reducido"] as const;
+export type Movimiento = (typeof MOVIMIENTOS)[number];
+
+/**
+ * En qué idioma te contestan tus agentes (y escriben lo que dejan listo para
+ * tus clientes). El panel por ahora está en español. `es`: cómo se le dice al
+ * agente en sus instrucciones.
+ */
+export const IDIOMAS = [
+  { id: "es-MX", nombre: "Español (México)", es: "español de México" },
+  { id: "es-ES", nombre: "Español (España)", es: "español de España" },
+  { id: "es-419", nombre: "Español (Latinoamérica)", es: "español neutro de Latinoamérica" },
+  { id: "en-US", nombre: "English (US)", es: "inglés de Estados Unidos" },
+  { id: "en-GB", nombre: "English (UK)", es: "inglés británico" },
+  { id: "pt-BR", nombre: "Português (Brasil)", es: "portugués de Brasil" },
+  { id: "pt-PT", nombre: "Português (Portugal)", es: "portugués de Portugal" },
+  { id: "fr-FR", nombre: "Français", es: "francés" },
+  { id: "fr-CA", nombre: "Français (Canada)", es: "francés de Canadá" },
+  { id: "de-DE", nombre: "Deutsch", es: "alemán" },
+  { id: "it-IT", nombre: "Italiano", es: "italiano" },
+  { id: "nl-NL", nombre: "Nederlands", es: "neerlandés" },
+  { id: "ca-ES", nombre: "Català", es: "catalán" },
+  { id: "eu-ES", nombre: "Euskara", es: "euskera" },
+  { id: "gl-ES", nombre: "Galego", es: "gallego" },
+  { id: "pl-PL", nombre: "Polski", es: "polaco" },
+  { id: "cs-CZ", nombre: "Čeština", es: "checo" },
+  { id: "sk-SK", nombre: "Slovenčina", es: "eslovaco" },
+  { id: "hu-HU", nombre: "Magyar", es: "húngaro" },
+  { id: "ro-RO", nombre: "Română", es: "rumano" },
+  { id: "bg-BG", nombre: "Български", es: "búlgaro" },
+  { id: "hr-HR", nombre: "Hrvatski", es: "croata" },
+  { id: "sr-RS", nombre: "Srpski", es: "serbio" },
+  { id: "sl-SI", nombre: "Slovenščina", es: "esloveno" },
+  { id: "el-GR", nombre: "Ελληνικά", es: "griego" },
+  { id: "sv-SE", nombre: "Svenska", es: "sueco" },
+  { id: "nb-NO", nombre: "Norsk", es: "noruego" },
+  { id: "da-DK", nombre: "Dansk", es: "danés" },
+  { id: "fi-FI", nombre: "Suomi", es: "finés" },
+  { id: "is-IS", nombre: "Íslenska", es: "islandés" },
+  { id: "et-EE", nombre: "Eesti", es: "estonio" },
+  { id: "lv-LV", nombre: "Latviešu", es: "letón" },
+  { id: "lt-LT", nombre: "Lietuvių", es: "lituano" },
+  { id: "uk-UA", nombre: "Українська", es: "ucraniano" },
+  { id: "ru-RU", nombre: "Русский", es: "ruso" },
+  { id: "tr-TR", nombre: "Türkçe", es: "turco" },
+  { id: "ar", nombre: "العربية", es: "árabe" },
+  { id: "he-IL", nombre: "עברית", es: "hebreo" },
+  { id: "fa-IR", nombre: "فارسی", es: "persa" },
+  { id: "hi-IN", nombre: "हिन्दी", es: "hindi" },
+  { id: "bn-BD", nombre: "বাংলা", es: "bengalí" },
+  { id: "ur-PK", nombre: "اردو", es: "urdu" },
+  { id: "ta-IN", nombre: "தமிழ்", es: "tamil" },
+  { id: "id-ID", nombre: "Bahasa Indonesia", es: "indonesio" },
+  { id: "ms-MY", nombre: "Bahasa Melayu", es: "malayo" },
+  { id: "fil-PH", nombre: "Filipino", es: "filipino" },
+  { id: "vi-VN", nombre: "Tiếng Việt", es: "vietnamita" },
+  { id: "th-TH", nombre: "ไทย", es: "tailandés" },
+  { id: "zh-CN", nombre: "中文（简体）", es: "chino simplificado" },
+  { id: "zh-TW", nombre: "中文（繁體）", es: "chino tradicional" },
+  { id: "ja-JP", nombre: "日本語", es: "japonés" },
+  { id: "ko-KR", nombre: "한국어", es: "coreano" },
+  { id: "sw-KE", nombre: "Kiswahili", es: "suajili" },
+  { id: "af-ZA", nombre: "Afrikaans", es: "afrikáans" },
+  { id: "gn-PY", nombre: "Avañe'ẽ (guaraní)", es: "guaraní" },
+  { id: "nah-MX", nombre: "Náhuatl", es: "náhuatl" },
+  { id: "yua-MX", nombre: "Maaya t'aan (maya)", es: "maya yucateco" },
+] as const;
+export type IdIdioma = (typeof IDIOMAS)[number]["id"];
 
 export const ZONAS_HORARIAS = [
   { id: "America/Mexico_City", nombre: "Centro (CDMX, Guadalajara, Monterrey)" },
@@ -60,9 +135,17 @@ export type AjustesCuenta = {
   zonaHoraria: string;
   acento: Acento;
   letra: Letra;
+  fuente: Fuente;
+  respuestas: LetraRespuestas;
+  ancho: AnchoChat;
+  movimiento: Movimiento;
+  idioma: IdIdioma;
   avisos: Avisos;
   cfdi: DatosCfdi;
 };
+
+/** Lo de Apariencia que se ve en todo el panel en cuanto cambia. */
+export type Apariencia = Pick<AjustesCuenta, "acento" | "letra" | "fuente" | "respuestas" | "ancho" | "movimiento" | "idioma">;
 
 export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;
@@ -75,6 +158,11 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   zonaHoraria: "America/Mexico_City",
   acento: "azul",
   letra: "normal",
+  fuente: "geist",
+  respuestas: "sans",
+  ancho: "normal",
+  movimiento: "sistema",
+  idioma: "es-MX",
   avisos: { pendientes: true, citas: true, urgentes: true, resumen: false, correo: false, silencio: false, desde: "21:00", hasta: "08:00" },
   cfdi: { rfc: "", razonSocial: "", regimen: "", codigoPostal: "", uso: "G03", correo: "" },
 };
@@ -114,6 +202,15 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     ),
     acento: uno(a.acento, ACENTOS, b.acento),
     letra: uno(a.letra, LETRAS, b.letra),
+    fuente: uno(a.fuente, FUENTES, b.fuente),
+    respuestas: uno(a.respuestas, RESPUESTAS, b.respuestas),
+    ancho: uno(a.ancho, ANCHOS, b.ancho),
+    movimiento: uno(a.movimiento, MOVIMIENTOS, b.movimiento),
+    idioma: uno(
+      a.idioma,
+      IDIOMAS.map((i) => i.id),
+      b.idioma,
+    ),
     avisos: {
       pendientes: si(av.pendientes, b.avisos.pendientes),
       citas: si(av.citas, b.avisos.citas),
@@ -151,7 +248,11 @@ export const rfcValido = (rfc: string) => /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test
 /** Las preferencias de la cuenta, como instrucciones para los agentes de esta conversación. */
 export function bloqueParaAgentes(a: AjustesCuenta, agentes: readonly IdAgente[]): string {
   const zona = ZONAS_HORARIAS.find((z) => z.id === a.zonaHoraria)?.nombre ?? "Centro";
+  const idioma = IDIOMAS.find((i) => i.id === a.idioma);
   const lineas = [
+    idioma && idioma.id !== "es-MX"
+      ? `- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), también los mensajes que dejes listos para sus clientes, aunque estas instrucciones estén en español. Si el dueño te escribe en otro idioma, contéstale en ${idioma.es} de todos modos, salvo que te pida cambiar.`
+      : null,
     a.instrucciones ? `- Cómo escribirles a sus clientes (con sus palabras): «${a.instrucciones}»` : null,
     a.firma ? `- Si escribes un mensaje para que el dueño lo mande a un cliente, fírmalo como: «${a.firma}».` : null,
     `- Zona horaria del negocio: ${zona} (${a.zonaHoraria}). Las horas que menciones van en esa zona.`,

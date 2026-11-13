@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
+import { IDIOMAS } from "@/lib/ajustes";
 import { MAX_DIAPOSITIVAS, MAX_PUNTOS, nombreArchivo, validarPresentacion } from "@/lib/archivos/presentacion";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 import { MODELO_DEMO, usarMensajeDemo } from "@/lib/demo-ia";
@@ -48,7 +49,7 @@ type Linea = { de: string; texto: string };
 
 export async function POST(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? "0") > 60_000) return error("El mensaje es demasiado largo.", 413);
-  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown };
+  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown; idioma?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -60,6 +61,8 @@ export async function POST(req: NextRequest) {
   if (!mensaje) return error("Escribe un mensaje.", 400);
   const grupo = agentes.length > 1 ? agentes : null;
   const tema = typeof body.tema === "string" ? body.tema.trim().slice(0, 120) : null;
+  // El idioma de Ajustes > Apariencia (solo uno de la lista)
+  const idioma = IDIOMAS.find((i) => i.id === body.idioma && i.id !== "es-MX");
 
   // El historial (lo de la pestaña): los últimos 16, con las marcas de grupo
   const lineas = (Array.isArray(body.historial) ? (body.historial as Linea[]) : [])
@@ -87,7 +90,10 @@ export async function POST(req: NextRequest) {
   let flujo: { abort: () => void } | null = null;
   const datos = datosDemoParaIA();
   const correos = agentes.includes("clara") ? correosDemoParaIA() : undefined;
-  const system = (grupo ? instruccionesGrupo(grupo, NEGOCIO, tema, correos, datos) : instruccionesDe(agentes[0], NEGOCIO, correos, datos)) + DEMO;
+  const system =
+    (grupo ? instruccionesGrupo(grupo, NEGOCIO, tema, correos, datos) : instruccionesDe(agentes[0], NEGOCIO, correos, datos)) +
+    DEMO +
+    (idioma ? `\n- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), aunque estas instrucciones estén en español.` : "");
   const hace = (a: IdAgente): IdAgente => (agentes.includes(a) ? a : agentes[0]);
 
   const cuerpo = new ReadableStream<Uint8Array>({

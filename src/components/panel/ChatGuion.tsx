@@ -31,6 +31,15 @@ import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 
 export type ConvGuion = ConvBase & { titulo: string };
 
+/** El idioma que se eligió en Ajustes > Apariencia (lo guarda el armazón en la pestaña). */
+const idiomaElegido = () => {
+  try {
+    return window.sessionStorage.getItem("atendel-idioma") ?? "es-MX";
+  } catch {
+    return "es-MX";
+  }
+};
+
 /** Los mensajes nuevos empiezan aquí (los del guion de inicio son menores). */
 const PRIMER_NUEVO = 1000;
 const ahora = () => new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -210,7 +219,7 @@ export function useGuion() {
       const r = await fetch("/api/demo/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null }),
+        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null, idioma: idiomaElegido() }),
         signal: control.signal,
       });
       if (!r.ok || !r.body) {

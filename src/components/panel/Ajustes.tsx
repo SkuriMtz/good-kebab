@@ -6,6 +6,7 @@ import { Marca } from "@/components/Logo";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import {
   ACENTOS,
+  IDIOMAS,
   MAX_FIRMA,
   MAX_INSTRUCCIONES,
   MAX_REGLAS,
@@ -15,9 +16,9 @@ import {
   rfcValido,
   type Acento,
   type AjustesCuenta,
+  type Apariencia,
   type Avisos,
   type DatosCfdi,
-  type Letra,
 } from "@/lib/ajustes";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
 import type { CampoPerfil } from "@/lib/nucleo-tipos";
@@ -91,11 +92,85 @@ export type PreferenciasPanel = {
   infoAlAbrir: boolean;
   alCambiarInfo: (abierta: boolean) => void;
   verEntrada: () => void;
-  /** El acento y la letra se ven en todo el panel. */
-  alCambiarApariencia: (a: { acento: Acento; letra: Letra }) => void;
+  /** El acento, la letra, el ancho y lo demás de Apariencia se ven en todo el panel. */
+  alCambiarApariencia: (a: Apariencia) => void;
 };
 
 type Parte = { id: IdAjuste; etiqueta: string; icono: NombreIcono | "marca"; claves: string; grupo: number; sub: string };
+
+/**
+ * Lo que hay dentro de cada parte, para el buscador: el renglón (su título,
+ * tal cual sale) y otras palabras con que alguien lo buscaría. Al elegirlo se
+ * abre esa parte y el renglón se marca un momento.
+ */
+type Opcion = { parte: IdAjuste; titulo: string; claves?: string };
+const OPCIONES: Opcion[] = [
+  { parte: "atendel", titulo: "Tus instrucciones", claves: "como escriben trato tono estilo forma de hablar ia prompt clientes" },
+  { parte: "atendel", titulo: "Firma", claves: "nombre mensajes despedida" },
+  { parte: "atendel", titulo: "Perfil del negocio", claves: "datos negocio" },
+  { parte: "atendel", titulo: "Documentos", claves: "archivos pdf docx subir" },
+  { parte: "atendel", titulo: "Tu visto bueno antes de enviar", claves: "aprobar aprobacion enviar revisar" },
+  { parte: "apariencia", titulo: "Tema", claves: "oscuro claro sistema modo noche dia" },
+  { parte: "apariencia", titulo: "Color", claves: "acento azul morado verde ambar botones" },
+  { parte: "apariencia", titulo: "Letra del panel", claves: "fuente tipografia tipo de letra geist sistema" },
+  { parte: "apariencia", titulo: "Letra de las respuestas", claves: "fuente tipografia serif respuestas" },
+  { parte: "apariencia", titulo: "Tamaño del texto del chat", claves: "letra grande chica tamano texto" },
+  { parte: "apariencia", titulo: "Ancho de la conversación", claves: "angosto ancho columna chat" },
+  { parte: "apariencia", titulo: "Movimiento", claves: "animaciones reducir movimiento" },
+  { parte: "apariencia", titulo: "Idioma", claves: `lenguaje traducir language ${IDIOMAS.map((i) => `${i.es} ${i.nombre}`).join(" ")}` },
+  { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
+  { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
+  { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
+  { parte: "negocio", titulo: "Nombre del negocio", claves: "nombre empresa" },
+  { parte: "negocio", titulo: "A qué te dedicas", claves: "giro descripcion" },
+  { parte: "negocio", titulo: "Servicios y precios", claves: "precios lista servicios costos" },
+  { parte: "negocio", titulo: "Horario", claves: "horas dias abierto" },
+  { parte: "negocio", titulo: "Ubicación", claves: "direccion como llegar mapa" },
+  { parte: "negocio", titulo: "Formas de pago", claves: "efectivo tarjeta transferencia" },
+  { parte: "agentes", titulo: "Lola", claves: "atencion whatsapp citas activar reglas" },
+  { parte: "agentes", titulo: "Clara", claves: "correo gmail activar reglas" },
+  { parte: "agentes", titulo: "Víctor", claves: "clientes seguimiento activar reglas" },
+  { parte: "agentes", titulo: "Iris", claves: "oficina excel reportes activar reglas" },
+  { parte: "conexiones", titulo: "WhatsApp", claves: "whatsapp business mensajes" },
+  { parte: "conexiones", titulo: "Correo · Gmail", claves: "gmail google correo" },
+  { parte: "conexiones", titulo: "Correo · Outlook", claves: "outlook hotmail microsoft correo" },
+  { parte: "conexiones", titulo: "Calendario", claves: "google calendar agenda" },
+  { parte: "conexiones", titulo: "Redes · Instagram", claves: "instagram redes" },
+  { parte: "conexiones", titulo: "Redes · Messenger", claves: "facebook messenger redes" },
+  { parte: "conexiones", titulo: "Google Business", claves: "resenas reseñas google maps perfil" },
+  { parte: "conexiones", titulo: "Todas las apps", claves: "stripe drive excel apps conectar" },
+  { parte: "equipo", titulo: "Invitar personas", claves: "invitar empleados acceso" },
+  { parte: "equipo", titulo: "Roles", claves: "permisos" },
+  { parte: "equipo", titulo: "Agenda por persona", claves: "agenda calendario empleados" },
+  { parte: "notificaciones", titulo: "Pendientes nuevos", claves: "avisos aprobar" },
+  { parte: "notificaciones", titulo: "Citas", claves: "avisos agenda" },
+  { parte: "notificaciones", titulo: "Correos urgentes", claves: "avisos correo" },
+  { parte: "notificaciones", titulo: "Resumen del día", claves: "avisos resumen diario" },
+  { parte: "notificaciones", titulo: "Por correo", claves: "avisos email" },
+  { parte: "notificaciones", titulo: "Por WhatsApp", claves: "avisos whatsapp" },
+  { parte: "notificaciones", titulo: "No molestar en la noche", claves: "silencio noche horas" },
+  { parte: "uso", titulo: "Te quedan", claves: "mensajes limite quedan" },
+  { parte: "uso", titulo: "Se reinicia", claves: "reinicio mes" },
+  { parte: "uso", titulo: "Si se acaban", claves: "limite mensajes" },
+  { parte: "plan", titulo: "Tu plan", claves: "plan max one free cambiar" },
+  { parte: "plan", titulo: "Forma de pago", claves: "tarjeta pagar cobro" },
+  { parte: "plan", titulo: "Facturas", claves: "facturas recibos" },
+  { parte: "plan", titulo: "RFC", claves: "rfc sat cfdi" },
+  { parte: "plan", titulo: "Nombre o razón social", claves: "razon social cfdi" },
+  { parte: "plan", titulo: "Régimen fiscal", claves: "regimen sat cfdi" },
+  { parte: "plan", titulo: "Código postal", claves: "cp cfdi" },
+  { parte: "plan", titulo: "Uso del CFDI", claves: "uso cfdi g03" },
+  { parte: "plan", titulo: "Correo para facturas", claves: "correo facturas cfdi" },
+  { parte: "privacidad", titulo: "Aviso de privacidad", claves: "privacidad aviso" },
+  { parte: "privacidad", titulo: "Exportar tus datos", claves: "descargar exportar copia datos" },
+  { parte: "privacidad", titulo: "Borrar tu cuenta", claves: "eliminar borrar cuenta datos" },
+  { parte: "privacidad", titulo: "Contraseñas y llaves", claves: "contrasena llaves seguridad tokens" },
+  { parte: "cuenta", titulo: "Foto de perfil", claves: "foto avatar imagen" },
+  { parte: "cuenta", titulo: "Nombre", claves: "nombre perfil" },
+  { parte: "cuenta", titulo: "Correo", claves: "email correo electronico" },
+  { parte: "cuenta", titulo: "Zona horaria", claves: "hora horario zona" },
+  { parte: "cuenta", titulo: "Cerrar sesión en todos lados", claves: "salir sesion dispositivos" },
+];
 const PARTES: Parte[] = [
   { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
@@ -130,9 +205,9 @@ const numero = new Intl.NumberFormat("es-MX");
 /* ---------- Piezas ---------- */
 
 /** Un renglón: qué es (con una línea de ayuda) a la izquierda y el control a la derecha. `hija`: depende del de arriba (va con sangría). */
-function Fila({ titulo, texto, children, hija = false, apilada = false }: { titulo: ReactNode; texto?: ReactNode; children?: ReactNode; hija?: boolean; apilada?: boolean }) {
+function Fila({ titulo, texto, children, hija = false, apilada = false, ancla }: { titulo: ReactNode; texto?: ReactNode; children?: ReactNode; hija?: boolean; apilada?: boolean; /** Con qué la encuentra el buscador (si el título no es solo texto). */ ancla?: string }) {
   return (
-    <div className="pc-aj-fila" data-hija={hija ? "" : undefined} data-apilada={apilada ? "" : undefined}>
+    <div className="pc-aj-fila" data-hija={hija ? "" : undefined} data-apilada={apilada ? "" : undefined} data-fila={ancla ?? (typeof titulo === "string" ? titulo : undefined)}>
       <div className="pc-aj-fila__texto">
         <p className="pc-aj-fila__titulo">{titulo}</p>
         {texto ? <p className="pc-aj-fila__sub">{texto}</p> : null}
@@ -213,8 +288,24 @@ const Pronto = () => <span className="pc-aj-pronto">Pronto</span>;
 const Estado = ({ tono, children }: { tono: "exito" | "neutro"; children: ReactNode }) => <span className={`pc-estado pc-estado--${tono}`}>{children}</span>;
 const Valor = ({ children }: { children: ReactNode }) => <span className="pc-aj-valor">{children}</span>;
 
-/** El tema: lo de siempre (oscuro, claro o como el sistema), como segmentos. */
-function SegmentosTema() {
+/** Un desplegable sencillo, como los de Claude: el valor y una flechita, sin caja. */
+function Desplegable<T extends string>({ valor, alCambiar, etiqueta, opciones, serif = false }: { valor: T; alCambiar: (v: T) => void; etiqueta: string; opciones: readonly { id: T; nombre: string }[]; serif?: boolean }) {
+  return (
+    <span className="pc-aj-desp" data-serif={serif ? "" : undefined}>
+      <select aria-label={etiqueta} value={valor} onChange={(e) => alCambiar(e.target.value as T)}>
+        {opciones.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.nombre}
+          </option>
+        ))}
+      </select>
+      <Icono nombre="chevron" tam={16} />
+    </span>
+  );
+}
+
+/** El tema con tres íconos, como en Claude: como el sistema, claro u oscuro. */
+function TemaIconos() {
   const [actual, setActual] = useState<PreferenciaTema>("oscuro");
   useEffect(() => {
     const leer = () => setActual(preferenciaActual());
@@ -222,20 +313,31 @@ function SegmentosTema() {
     window.addEventListener(EVENTO_TEMA, leer);
     return () => window.removeEventListener(EVENTO_TEMA, leer);
   }, []);
+  const opciones: { id: PreferenciaTema; nombre: string; icono: NombreIcono }[] = [
+    { id: "sistema", nombre: "Como el sistema", icono: "monitor" },
+    { id: "claro", nombre: "Claro", icono: "sol" },
+    { id: "oscuro", nombre: "Oscuro", icono: "luna" },
+  ];
   return (
-    <Segmentos
-      etiqueta="Tema"
-      activa={actual}
-      alElegir={(p) => {
-        setActual(p);
-        ponerTema(p);
-      }}
-      opciones={[
-        { id: "oscuro", etiqueta: "Oscuro" },
-        { id: "claro", etiqueta: "Claro" },
-        { id: "sistema", etiqueta: "Sistema" },
-      ]}
-    />
+    <div className="pc-aj-tema" role="radiogroup" aria-label="Tema">
+      {opciones.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          role="radio"
+          aria-checked={actual === o.id}
+          aria-label={o.nombre}
+          title={o.nombre}
+          className="pc-aj-tema__op"
+          onClick={() => {
+            setActual(o.id);
+            ponerTema(o.id);
+          }}
+        >
+          <Icono nombre={o.icono} tam={18} />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -278,6 +380,8 @@ export function VentanaAjustes({
   preferencias: PreferenciasPanel;
 }) {
   const [busqueda, setBusqueda] = useState("");
+  /** El renglón que se eligió en el buscador: se busca, se centra y se marca un momento. */
+  const [resaltar, setResaltar] = useState<{ titulo: string; n: number } | null>(null);
   const [saliendo, setSaliendo] = useState(false);
   const [estado, setEstado] = useState<EstadoGuardado>("listo");
   const [ajustes, setAjustes] = useState<AjustesCuenta>(datos.ajustes);
@@ -334,11 +438,11 @@ export function VentanaAjustes({
   useGuardadoDiferido(nombre.trim(), guardar ? (n) => (n ? guardar.nombre(n) : Promise.resolve("Escribe tu nombre.")) : undefined, setEstado, 900);
   useGuardadoDiferido(cambiosPerfil, guardar ? (c) => (Object.keys(c).length ? guardar.perfil(c) : Promise.resolve(null)) : undefined, setEstado, 900);
 
-  // El acento y la letra se ven en todo el panel en cuanto cambian
+  // Lo de Apariencia se ve en todo el panel en cuanto cambia
   const { alCambiarApariencia } = preferencias;
   useEffect(() => {
-    alCambiarApariencia({ acento: ajustes.acento, letra: ajustes.letra });
-  }, [ajustes.acento, ajustes.letra, alCambiarApariencia]);
+    alCambiarApariencia({ acento: ajustes.acento, letra: ajustes.letra, fuente: ajustes.fuente, respuestas: ajustes.respuestas, ancho: ajustes.ancho, movimiento: ajustes.movimiento, idioma: ajustes.idioma });
+  }, [ajustes.acento, ajustes.letra, ajustes.fuente, ajustes.respuestas, ajustes.ancho, ajustes.movimiento, ajustes.idioma, alCambiarApariencia]);
 
   // El perfil del negocio se lee la primera vez que se abre "Mi negocio" (cuenta real)
   useEffect(() => {
@@ -381,6 +485,37 @@ export function VentanaAjustes({
     const q = sinAcentos(busqueda.trim());
     return q ? PARTES.filter((p) => sinAcentos(`${p.etiqueta} ${p.claves} ${p.sub}`).includes(q)) : PARTES;
   }, [busqueda]);
+  // Lo de adentro de cada parte: primero lo que empieza con lo que se escribió
+  const opciones = useMemo(() => {
+    const q = sinAcentos(busqueda.trim());
+    if (q.length < 2) return [];
+    const palabras = q.split(/\s+/).filter(Boolean);
+    return OPCIONES.map((o) => {
+      const t = sinAcentos(o.titulo);
+      const todo = `${t} ${sinAcentos(o.claves ?? "")}`;
+      // Primero lo que empieza igual, luego lo que lo contiene, luego si están todas las palabras
+      const peso = t.startsWith(q) ? 0 : t.includes(q) ? 1 : palabras.every((w) => todo.includes(w)) ? 2 : 3;
+      return { o, peso };
+    })
+      .filter((x) => x.peso < 3)
+      .sort((a, b) => a.peso - b.peso)
+      .slice(0, 12)
+      .map((x) => x.o);
+  }, [busqueda]);
+  useEffect(() => {
+    if (!resaltar) return;
+    // Cuando ya se pintó la parte: el renglón al centro y marcado un momento
+    const t = window.setTimeout(() => {
+      const fila = [...document.querySelectorAll<HTMLElement>(".pc-aj__contenido [data-fila]")].find((f) => f.dataset.fila === resaltar.titulo);
+      if (!fila) return;
+      fila.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      fila.removeAttribute("data-resaltada");
+      void fila.offsetWidth;
+      fila.setAttribute("data-resaltada", "");
+      fila.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [resaltar, seccion]);
   const parte = PARTES.find((p) => p.id === seccion) ?? PARTES[0];
   const libre = datos.plan.id !== "free";
   const pct = Math.min(100, Math.round((datos.plan.usados / Math.max(1, datos.plan.total)) * 100));
@@ -432,13 +567,14 @@ export function VentanaAjustes({
       </>
     );
   } else if (seccion === "apariencia") {
+    // Como la de Claude: renglones con su raya, el nombre a la izquierda y el control a la derecha
     contenido = (
       <>
-        <Grupo>
-          <Fila titulo="Tema" texto="Oscuro es el de siempre; claro es una tarjeta sobre gris.">
-            <SegmentosTema />
+        <Grupo titulo="General">
+          <Fila titulo="Tema">
+            <TemaIconos />
           </Fila>
-          <Fila titulo="Color" texto="El de los botones, los enlaces y las barras.">
+          <Fila titulo="Color">
             <div className="pc-aj-colores" role="radiogroup" aria-label="Color">
               {ACENTOS.map((a) => (
                 <button
@@ -455,20 +591,66 @@ export function VentanaAjustes({
               ))}
             </div>
           </Fila>
-          <Fila titulo="Tamaño de la letra" texto="La de los mensajes del chat.">
-            <Segmentos
-              etiqueta="Tamaño de la letra"
-              activa={ajustes.letra}
-              alElegir={(v) => cambiar("letra", v)}
+          <Fila titulo="Letra del panel">
+            <Desplegable
+              etiqueta="Letra del panel"
+              valor={ajustes.fuente}
+              alCambiar={(v) => cambiar("fuente", v)}
               opciones={[
-                { id: "chica", etiqueta: "Chica" },
-                { id: "normal", etiqueta: "Normal" },
-                { id: "grande", etiqueta: "Grande" },
+                { id: "geist", nombre: "Predeterminada · Geist" },
+                { id: "sistema", nombre: "La de tu equipo (sistema)" },
               ]}
             />
           </Fila>
-          <Fila titulo="Idioma" texto="El panel y tus agentes hablan español. Inglés llega pronto.">
-            <Valor>Español (México)</Valor>
+          <Fila titulo="Letra de las respuestas">
+            <Desplegable
+              etiqueta="Letra de las respuestas"
+              valor={ajustes.respuestas}
+              alCambiar={(v) => cambiar("respuestas", v)}
+              serif={ajustes.respuestas === "serif"}
+              opciones={[
+                { id: "sans", nombre: "Geist" },
+                { id: "serif", nombre: "Source Serif" },
+              ]}
+            />
+          </Fila>
+          <Fila titulo="Tamaño del texto del chat">
+            <Desplegable
+              etiqueta="Tamaño del texto del chat"
+              valor={ajustes.letra}
+              alCambiar={(v) => cambiar("letra", v)}
+              opciones={[
+                { id: "chica", nombre: "Chico" },
+                { id: "normal", nombre: "Mediano" },
+                { id: "grande", nombre: "Grande" },
+              ]}
+            />
+          </Fila>
+          <Fila titulo="Ancho de la conversación">
+            <Desplegable
+              etiqueta="Ancho de la conversación"
+              valor={ajustes.ancho}
+              alCambiar={(v) => cambiar("ancho", v)}
+              opciones={[
+                { id: "angosto", nombre: "Angosto" },
+                { id: "normal", nombre: "Normal" },
+                { id: "ancho", nombre: "Ancho" },
+              ]}
+            />
+          </Fila>
+          <Fila titulo="Movimiento">
+            <Desplegable
+              etiqueta="Movimiento"
+              valor={ajustes.movimiento}
+              alCambiar={(v) => cambiar("movimiento", v)}
+              opciones={[
+                { id: "sistema", nombre: "Sistema" },
+                { id: "reducido", nombre: "Reducido" },
+              ]}
+            />
+          </Fila>
+          <Fila titulo="Idioma" texto="En el que te contestan tus agentes y escriben a tus clientes. El panel, por ahora, en español.">
+            <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} />
           </Fila>
         </Grupo>
         <Grupo titulo="Panel">
@@ -532,6 +714,7 @@ export function VentanaAjustes({
             return (
               <div key={a.id} className="pc-aj-bloque">
                 <Fila
+                  ancla={a.nombre}
                   titulo={
                     <span className="pc-aj-agente">
                       <AvatarAgente agente={a.id} tam={26} />
@@ -919,7 +1102,31 @@ export function VentanaAjustes({
                 </button>
               </li>
             ))}
-            {partes.length === 0 ? <li className="pc-aj__nada">Nada con “{busqueda.trim()}”.</li> : null}
+            {opciones.length ? (
+              <>
+                <li className="pc-aj__seccion-buscar" data-corte={partes.length ? "" : undefined}>
+                  Dentro de Ajustes
+                </li>
+                {opciones.map((o) => (
+                  <li key={`${o.parte}-${o.titulo}`}>
+                    <button
+                      type="button"
+                      className="pc-aj__parte pc-aj__opcion"
+                      onClick={() => {
+                        alElegir(o.parte);
+                        setResaltar({ titulo: o.titulo, n: Date.now() });
+                      }}
+                    >
+                      <span className="pc-aj__opcion-textos">
+                        <span className="pc-aj__opcion-titulo">{o.titulo}</span>
+                        <span className="pc-aj__opcion-donde">{PARTES.find((p) => p.id === o.parte)?.etiqueta}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </>
+            ) : null}
+            {partes.length === 0 && opciones.length === 0 ? <li className="pc-aj__nada">Nada con “{busqueda.trim()}”.</li> : null}
           </ul>
         </nav>
         <div className="pc-aj__contenido" key={seccion} tabIndex={-1} {...AUTOFOCO}>
