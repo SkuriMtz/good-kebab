@@ -8279,41 +8279,44 @@ a.pc-correo__accion:hover {
    arriba, el modelo abajo, la palomita a la izquierda y "Gasta más" en
    píldora. En la conversación nueva sale abajo; en el chat, arriba.
    ===================================================================== */
+/* Mitad y mitad entre la caja de antes (borde fino, esquinas de 16px, 48px)
+   y la de Gemini (píldora de 56px sin borde): 52px, esquinas de 24px, un
+   borde muy tenue, botones redondos y la píldora del modelo más chica */
 .pc .pc-caja[data-forma="fila"] .prompt-bar__field {
-  padding: 8px 8px 8px 10px;
-  border-color: transparent;
-  border-radius: 30px;
+  padding: 7px 7px 7px 9px;
+  border-color: color-mix(in srgb, var(--pc-borde) 55%, transparent);
+  border-radius: 24px;
 }
 :root[data-tema="claro"] .pc .pc-caja[data-forma="fila"] .prompt-bar__field {
   border-color: #e7e7ea;
-  border-radius: 30px;
+  border-radius: 24px;
 }
 .pc .pc-caja[data-forma="fila"] .prompt-bar__input {
-  min-height: 40px;
-  padding: 8px 6px;
-  font-size: 16px;
+  min-height: 38px;
+  padding: 7px 5px;
+  font-size: 15.5px;
   line-height: 24px;
 }
 .pc .pc-caja[data-forma="fila"] .prompt-bar__tool {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
 }
 .pc .pc-caja[data-forma="fila"] .prompt-bar__send {
-  width: 40px;
-  height: 40px;
-  margin: 0;
+  width: 36px;
+  height: 36px;
+  margin: 1px;
 }
 /* La píldora del modelo */
 .pc .pc-caja .prompt-bar__pick {
-  gap: 8px;
-  height: 40px;
-  padding: 0 14px 0 16px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 11px 0 13px;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--pc-texto) 8%, transparent);
+  background: color-mix(in srgb, var(--pc-texto) 7%, transparent);
   color: var(--pc-texto);
-  font: 400 15px/1 var(--pc-sans);
+  font: 400 14px/1 var(--pc-sans);
   transition:
     background-color 150ms ease,
     transform 160ms var(--pc-claude-sale);
@@ -8420,19 +8423,23 @@ a.pc-correo__accion:hover {
   }
 }
 
-/* El resplandor azul detrás del Inicio: un poco más grande y más notorio */
-.pc-inicio__resplandor {
-  top: calc(38.4vh - 330px);
-  width: min(1240px, 170%);
-  height: 760px;
-}
-.pc .pc-inicio__resplandor {
-  background:
-    radial-gradient(42% 48% at 42% 50%, rgba(61, 123, 255, 0.2), transparent 70%),
-    radial-gradient(36% 42% at 60% 46%, rgba(128, 82, 255, 0.13), transparent 70%),
-    radial-gradient(30% 34% at 52% 64%, rgba(35, 217, 181, 0.07), transparent 70%);
-  opacity: 0.85;
-}
-:root[data-tema="claro"] .pc .pc-inicio__resplandor {
+/* Detrás del Inicio, en lugar del resplandor azul: fragmentos flotando
+   solo dentro de un círculo que se desvanece en la orilla (FragmentosInicio.tsx) */
+.pc .pc-inicio__fragmentos {
+  top: calc(38.4vh - 300px);
+  width: min(980px, 150%);
+  height: 600px;
+  background: none;
   opacity: 1;
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+}
+:root[data-tema="claro"] .pc .pc-inicio__fragmentos {
+  opacity: 1;
+}
+@media (max-width: 640px) {
+  .pc .pc-inicio__fragmentos {
+    top: calc(38.4vh - 220px);
+    height: 440px;
+  }
 }

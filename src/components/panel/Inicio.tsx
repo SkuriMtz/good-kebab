@@ -6,6 +6,7 @@ import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { AREAS, type IdArea, type Pedido } from "./pedidos";
 import { Marca } from "@/components/Logo";
+import { FragmentosInicio } from "./FragmentosInicio";
 import { COLORES_FRAGMENTO, Enlace, Pildoras, retrasoEscalon } from "./Piezas";
 
 export type TarjetaPedido = {
@@ -21,8 +22,8 @@ export type TarjetaPedido = {
  * del dueño: el saludo en serif (su centro al ~38 % del alto) con la marca
  * de fragmentos, la caja de 672px, la fila de abajo (con quién hablas a la
  * izquierda; plan y uso a la derecha), la franja de pendientes y la
- * cuadrícula "Pídele a tu equipo" con sus píldoras. En claro, el
- * resplandor tenue de los fragmentos detrás (Luma).
+ * cuadrícula "Pídele a tu equipo" con sus píldoras. Detrás, fragmentos
+ * de Atendel flotando dentro de un círculo (FragmentosInicio).
  */
 export function Inicio({
   saludo,
@@ -47,7 +48,7 @@ export function Inicio({
 }) {
   return (
     <div className="pc-inicio">
-      <div className="pc-inicio__resplandor" aria-hidden="true" />
+      <FragmentosInicio />
       <div className="pc-inicio__centro">
         <h1 className="pc-saludo">
           <Marca className="pc-saludo__marca pc-logo-entra" />
