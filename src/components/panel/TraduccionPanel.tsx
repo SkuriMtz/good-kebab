@@ -21,7 +21,7 @@ import { useEffect, useLayoutEffect } from "react";
  */
 
 const ATRIBUTOS = ["placeholder", "aria-label", "title"] as const;
-const SALTAR = '[translate="no"], .pc-msj__texto, .pc-burbuja, .pc-msj__cuerpo, textarea, input, select, option, script, style, code, pre, [contenteditable="true"], .pc-escribe';
+const SALTAR = '[translate="no"], .pc-msj__texto, .pc-burbuja, .pc-msj__cuerpo, textarea, input, script, style, code, pre, [contenteditable="true"], .pc-escribe';
 /** En los atributos (placeholder, aria-label, title) sí entran las cajas de texto: solo su contenido se salta. */
 const SALTAR_ATRIBUTOS = '[translate="no"], .pc-msj__texto, .pc-burbuja, .pc-msj__cuerpo, script, style, code, pre';
 const LOTE = 120;

@@ -336,10 +336,25 @@ const Estado = ({ tono, children }: { tono: "exito" | "neutro"; children: ReactN
 const Valor = ({ children }: { children: ReactNode }) => <span className="pc-aj-valor">{children}</span>;
 
 /** Un desplegable sencillo, como los de Claude: el valor y una flechita, sin caja. `letra`: el valor se ve en esa letra (como "Anthropic Serif" en Claude). */
-function Desplegable<T extends string>({ valor, alCambiar, etiqueta, opciones, letra }: { valor: T; alCambiar: (v: T) => void; etiqueta: string; opciones: readonly { id: T; nombre: string; letra?: string }[]; letra?: string }) {
+function Desplegable<T extends string>({
+  valor,
+  alCambiar,
+  etiqueta,
+  opciones,
+  letra,
+  sinTraducir = false,
+}: {
+  valor: T;
+  alCambiar: (v: T) => void;
+  etiqueta: string;
+  opciones: readonly { id: T; nombre: string; letra?: string }[];
+  letra?: string;
+  /** Las opciones no se traducen (la lista de idiomas: cada uno en su idioma). */
+  sinTraducir?: boolean;
+}) {
   return (
     <span className="pc-aj-desp" style={letra ? ({ "--pc-desp-letra": letra } as CSSProperties) : undefined}>
-      <select aria-label={etiqueta} value={valor} onChange={(e) => alCambiar(e.target.value as T)}>
+      <select aria-label={etiqueta} value={valor} onChange={(e) => alCambiar(e.target.value as T)} translate={sinTraducir ? "no" : undefined}>
         {opciones.map((o) => (
           <option key={o.id} value={o.id} style={o.letra ? { fontFamily: o.letra } : undefined}>
             {o.nombre}
@@ -769,7 +784,7 @@ export function VentanaAjustes({
             </div>
           </Fila>
           <Fila titulo="Idioma" texto="Todo el panel y las respuestas de tus agentes (también lo que escriben a tus clientes). La primera vez tarda unos segundos en traducirse.">
-            <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} />
+            <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} sinTraducir />
           </Fila>
         </Grupo>
         <Grupo titulo="Letra">
