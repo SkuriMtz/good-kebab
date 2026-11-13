@@ -59,9 +59,9 @@ export const HORAS = ["mostrar", "ocultar"] as const;
 export type Horas = (typeof HORAS)[number];
 
 /**
- * En qué idioma te contestan tus agentes (y escriben lo que dejan listo para
- * tus clientes). El panel por ahora está en español. `es`: cómo se le dice al
- * agente en sus instrucciones.
+ * El idioma de todo: el panel (TraduccionPanel lo traduce con /api/traducir)
+ * y las respuestas de tus agentes (también lo que dejan listo para tus
+ * clientes). `es`: cómo se le dice al agente en sus instrucciones.
  */
 export const IDIOMAS = [
   { id: "es-MX", nombre: "Español (México)", es: "español de México" },

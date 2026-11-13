@@ -5,6 +5,10 @@ import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, t
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
 import { clasesFuentesApariencia, serifPanel } from "./fuente";
+import { TraduccionPanel } from "./TraduccionPanel";
+
+/** La misma cookie que IDIOMA_COOKIE de src/i18n (sin importar los diccionarios del sitio). */
+const IDIOMA_COOKIE = "atendel-idioma";
 import { PilaAgentes } from "./Mensajes";
 import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
@@ -98,6 +102,9 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
   useEffect(() => {
     try {
       window.sessionStorage.setItem("atendel-idioma", apariencia.idioma);
+      // La página pública solo tiene español e inglés: si eliges uno de esos, también cambia
+      const sitio = apariencia.idioma.startsWith("en") ? "en" : apariencia.idioma.startsWith("es") ? "es" : null;
+      if (sitio) document.cookie = `${IDIOMA_COOKIE}=${sitio}; path=/; max-age=31536000; samesite=lax`;
     } catch {
       /* sin almacenamiento */
     }
@@ -378,6 +385,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
       data-horas={apariencia.horas !== "mostrar" ? apariencia.horas : undefined}
       onClickCapture={alCapturarClic}
     >
+      {/* Todo el panel en el idioma de Ajustes > Apariencia */}
+      <TraduccionPanel idioma={apariencia.idioma} />
       <a href="#pc-contenido" className="pc-saltar">
         Ir al contenido
       </a>
