@@ -18,6 +18,12 @@ import { NuevoGrupo } from "./NuevoGrupo";
 import { claseBoton } from "./Piezas";
 import { SelectorAgente, type OpcionAgente } from "./Selector";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
+import { modeloElegido, useModelo } from "./modelo";
+import { PLAN_POR_ID } from "@/lib/planes";
+import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
+
+/** El plan de la demostración (Max: trae Rápido y Avanzado). */
+const PLAN_DEMO = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 
 /* =====================================================================
    El chat de /pruebalo: contesta la IA DE VERDAD (/api/demo/chat, con los
@@ -219,7 +225,7 @@ export function useGuion() {
       const r = await fetch("/api/demo/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null, idioma: idiomaElegido() }),
+        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null, idioma: idiomaElegido(), modelo: modeloElegido() }),
         signal: control.signal,
       });
       if (!r.ok || !r.body) {
@@ -350,6 +356,8 @@ export function InicioDemo({
 }) {
   const [eleccion, setEleccion] = useState<string>(agentePedido ?? "equipo");
   const subida = useSubirDesdeChat();
+  // Rápido o Avanzado, como en tu cuenta (la demostración es Max: trae los dos)
+  const selector = useModelo(PLAN_DEMO.modelos);
   const [creando, setCreando] = useState(false);
   useEffect(() => {
     if (agentePedido) setEleccion(agentePedido);
@@ -371,7 +379,7 @@ export function InicioDemo({
         saludo={saludo}
         caja={
           <PromptBar
-            key={`${eleccion}-${pide ?? ""}`}
+            key={`${eleccion}-${pide ?? ""}${selector.listo ? "-m" : ""}`}
             className={`pc-caja${cambiando ? " pc-caja--cambia" : ""}`}
             initialText={pide}
             placeholder={sugerencia}
@@ -379,7 +387,10 @@ export function InicioDemo({
             sources={fuentesDe(agentes)}
             plusActions={subida.acciones}
             commands={comandosDe(agentes)}
-            models={[]}
+            models={selector.opciones}
+            defaultModel={selector.modelo}
+            modelLabel="Modelo"
+            onModelChange={selector.elegir}
             efforts={[]}
             onSend={(texto) => {
               const limpio = texto.trim();
@@ -454,6 +465,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   const scrollRef = useRef<HTMLDivElement>(null);
   const pegado = useRef(true);
   const subida = useSubirDesdeChat();
+  const selector = useModelo(PLAN_DEMO.modelos);
   const ocupado = guion.pendiente?.conv === conv.id ? guion.pendiente : null;
   // Los puntitos solo mientras no llega texto; luego el mensaje se escribe solo
   const escribe = ocupado && ocupado.puntos !== false ? ocupado.agente : null;
@@ -487,14 +499,17 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
       }}
       caja={
         <PromptBar
-          key={conv.id}
+          key={`${conv.id}${selector.listo ? "-m" : ""}`}
           className="pc-caja"
           placeholder={grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`}
           forma="fila"
           sources={fuentesDe(conv.agentes)}
           plusActions={subida.acciones}
           commands={comandosDe(conv.agentes)}
-          models={[]}
+          models={selector.opciones}
+          defaultModel={selector.modelo}
+          modelLabel="Modelo"
+          onModelChange={selector.elegir}
           efforts={[]}
           busy={ocupado !== null}
           onSend={(t) => {

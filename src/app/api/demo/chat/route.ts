@@ -5,7 +5,8 @@ import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
 import { IDIOMAS } from "@/lib/ajustes";
 import { MAX_DIAPOSITIVAS, MAX_PUNTOS, nombreArchivo, validarPresentacion } from "@/lib/archivos/presentacion";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
-import { MODELO_DEMO, usarMensajeDemo } from "@/lib/demo-ia";
+import { usarMensajeDemo } from "@/lib/demo-ia";
+import { MODELOS, esIdModelo } from "@/lib/planes";
 import { marcoDato } from "@/lib/demo-marcas";
 import { EQUIPO_DEMO, correosDemoParaIA, datosDemoParaIA } from "@/lib/demo-negocio";
 import { elegirContactos } from "@/lib/equipo";
@@ -49,7 +50,7 @@ type Linea = { de: string; texto: string };
 
 export async function POST(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? "0") > 60_000) return error("El mensaje es demasiado largo.", 413);
-  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown; idioma?: unknown };
+  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown; idioma?: unknown; modelo?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
   const agentes = Array.from(new Set((Array.isArray(body.agentes) ? body.agentes : []).filter(esIdAgente))).slice(0, 4) as IdAgente[];
   if (!agentes.length) return error("¿Con quién hablas?", 400);
   const mensaje = typeof body.mensaje === "string" ? body.mensaje.trim().slice(0, 2000) : "";
+  // El modelo que eligió en el selector (Rápido si no dice)
+  const modelo = MODELOS[esIdModelo(body.modelo) ? body.modelo : "rapido"];
   if (!mensaje) return error("Escribe un mensaje.", 400);
   const grupo = agentes.length > 1 ? agentes : null;
   const tema = typeof body.tema === "string" ? body.tema.trim().slice(0, 120) : null;
@@ -177,7 +180,19 @@ export async function POST(req: NextRequest) {
         },
       ];
       try {
-        const pedir = (p: PeticionRonda) => client.beta.messages.stream({ max_tokens: 1500, system, ...p, model: MODELO_DEMO });
+        // Rápido (Haiku 5.5) o Avanzado (Opus 5.5), como en tu cuenta; los dos cuentan igual en el límite diario de la demostración
+        const pedir = (p: PeticionRonda) =>
+          modelo.api === "claude-opus-5-5"
+            ? client.beta.messages.stream({
+                max_tokens: 3000,
+                system,
+                ...p,
+                model: modelo.api,
+                output_config: { effort: "low" },
+                betas: ["server-side-fallback-2026-07-01"],
+                fallbacks: "default",
+              })
+            : client.beta.messages.stream({ max_tokens: 3000, system, ...p, model: modelo.api, output_config: { effort: "low" } });
         await responderConHerramientas({
           pedir,
           mensajes: [...historial, { role: "user" as const, content: mensaje }],

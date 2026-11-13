@@ -8,6 +8,7 @@ import { resumirNegocio } from "@/lib/resumen-negocio";
 import { createClient } from "@/lib/supabase/server";
 import { Gasto, leerUso, registrarUso } from "@/lib/uso";
 import { mensajeLimite } from "@/lib/uso-estado";
+import { MODELOS } from "@/lib/planes";
 
 /**
  * PREGUNTARLE A LA GRÁFICA (panel de información > Resumen)
@@ -58,26 +59,21 @@ export async function POST(req: NextRequest) {
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const base = {
-    max_tokens: 1024,
+    // Con margen: el modelo piensa un poco antes de escribir el JSON
+    max_tokens: 2048,
     system: INSTRUCCIONES,
     messages: [{ role: "user" as const, content: `DATOS:\n${JSON.stringify(datosParaIA(datos))}\n\nPREGUNTA:\n${pregunta}` }],
   };
   try {
-    // Free usa Haiku (sin ajuste de esfuerzo); One y Max usan Opus, con poco esfuerzo (es una respuesta corta)
-    const respuesta =
-      cuenta.plan.modelo === "claude-haiku-4-5"
-        ? await client.messages.create({ ...base, model: cuenta.plan.modelo, output_config: { format: { type: "json_schema", schema: ESQUEMA } } })
-        : await client.beta.messages.create({
-            ...base,
-            model: cuenta.plan.modelo,
-            output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA } },
-            // Si el modelo declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
-            betas: ["server-side-fallback-2026-07-01"],
-            fallbacks: "default",
-          });
+    // Es una respuesta corta con forma fija: la contesta el modelo Rápido (Haiku 5.5), con poco esfuerzo
+    const respuesta = await client.messages.create({
+      ...base,
+      model: MODELOS.rapido.api,
+      output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA } },
+    });
     // Lo que costó cuenta para el límite, aunque la respuesta no sirva
     const gasto = new Gasto();
-    gasto.sumar(respuesta, cuenta.plan.modelo);
+    gasto.sumar(respuesta, MODELOS.rapido.api);
     await registrarUso(supabase, gasto, "pregunta");
     if (respuesta.stop_reason === "refusal" || respuesta.stop_reason === "max_tokens") return error("La IA no pudo contestar esa pregunta.", 502);
     const texto = respuesta.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");

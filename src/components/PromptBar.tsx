@@ -62,6 +62,8 @@ type Props = {
   efforts?: string[];
   defaultEffort?: string;
   onEffortChange?: (effort: string) => void;
+  /** Al elegir otro modelo en el selector. */
+  onModelChange?: (key: string) => void;
   busy?: boolean;
   onSend?: (text: string, extra: { attachments: string[]; model?: PromptBarModel; effort: string }) => void;
   onStop?: () => void;
@@ -170,6 +172,7 @@ export default function PromptBar({
   efforts = [],
   defaultEffort = "",
   onEffortChange,
+  onModelChange,
   busy = false,
   onSend,
   onStop,
@@ -201,8 +204,8 @@ export default function PromptBar({
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const lastOpen = useRef<string | null>(null);
   const dictation = useRef(0);
-  const latest = useRef({ onSend, onStop, onAttach, onDictate, onEffortChange });
-  latest.current = { onSend, onStop, onAttach, onDictate, onEffortChange };
+  const latest = useRef({ onSend, onStop, onAttach, onDictate, onEffortChange, onModelChange });
+  latest.current = { onSend, onStop, onAttach, onDictate, onEffortChange, onModelChange };
 
   const [draft, setDraft] = useState(initialText);
   const [attachments, setAttachments] = useState<string[]>([]);
@@ -425,6 +428,7 @@ export default function PromptBar({
   const pick = (row: Fila) => {
     if (open === "model") {
       setModelKey(row.key);
+      latest.current.onModelChange?.(row.key);
       setModelOpen(false);
       focusInput();
       return;

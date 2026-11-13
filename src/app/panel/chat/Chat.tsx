@@ -25,6 +25,7 @@ import { partirIntervenciones } from "@/lib/grupo";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 import type { Bloqueo } from "@/lib/uso-estado";
+import { useModelo } from "@/components/panel/modelo";
 
 export type Conversacion = {
   id: string;
@@ -141,6 +142,8 @@ export function Chat({
   conGoogle: boolean;
 }) {
   const plan = PLAN_POR_ID[planId];
+  // Rápido o Avanzado (como el selector de Claude); se recuerda en este navegador
+  const selector = useModelo(plan.modelos);
   const puedeGrupos = activos.length >= 2;
   const [agente, setAgente] = useState<IdAgente>(agenteInicial ?? activos[0] ?? "clara");
   const [grupo, setGrupo] = useState<IdAgente[] | null>(!agenteInicial && puedeGrupos ? activos : null);
@@ -357,7 +360,12 @@ export function Chat({
 
     // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
     // estados: true → el stream trae lo que hace el agente con las apps ("\u0001…\u0002", src/lib/estado-chat.ts)
-    const cuerpo = grupo && !actual ? { agentes: grupo, tema, mensaje: limpio, estados: true } : { agente, mensaje: limpio, conversacionId: actual, estados: true };
+    const cuerpo = {
+      ...(grupo && !actual ? { agentes: grupo, tema } : { agente, conversacionId: actual }),
+      mensaje: limpio,
+      modelo: selector.modelo,
+      estados: true,
+    };
 
     try {
       const res = await fetch("/api/chat", {
@@ -459,7 +467,7 @@ export function Chat({
       </p>
     ) : (
       <PromptBar
-        key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
+        key={`${grupo ? grupo.join("-") : agente}-${caja.n}${selector.listo ? "-m" : ""}`}
         className={enInicio && cambiando ? "pc-caja pc-caja--cambia" : "pc-caja"}
         initialText={caja.texto}
         placeholder={enInicio ? sugerencia : grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
@@ -467,7 +475,10 @@ export function Chat({
         sources={fuentes}
         plusActions={subida.acciones}
         commands={comandosDe(participantes)}
-        models={[]}
+        models={selector.opciones}
+        defaultModel={selector.modelo}
+        modelLabel="Modelo"
+        onModelChange={selector.elegir}
         efforts={[]}
         busy={enviando}
         onSend={(t) => enviar(t)}

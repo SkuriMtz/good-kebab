@@ -171,6 +171,7 @@ const OPCIONES: Opcion[] = [
   { parte: "uso", titulo: "Espacio de tus documentos", claves: "espacio megas mb gb almacenamiento archivos peso" },
   { parte: "uso", titulo: "Si llegas al límite", claves: "limite se acaba mensajes reinicio" },
   { parte: "uso", titulo: "No contamos mensajes", claves: "como se mide uso mensajes tokens" },
+  { parte: "uso", titulo: "Rápido o Avanzado", claves: "modelo rapido avanzado haiku opus gasta" },
   { parte: "plan", titulo: "Tu plan", claves: "plan max one free cambiar" },
   { parte: "plan", titulo: "Forma de pago", claves: "tarjeta pagar cobro" },
   { parte: "plan", titulo: "Facturas", claves: "facturas recibos" },
@@ -1121,6 +1122,7 @@ export function VentanaAjustes({
             titulo="No contamos mensajes"
             texto="Medimos cuánto trabaja tu equipo en cada respuesta, como Claude. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más."
           />
+          <Fila titulo="Rápido o Avanzado" texto="En el chat eliges el modelo. Rápido es para el día a día y gasta muy poco; Avanzado es para lo pesado (Excel, análisis) y gasta unas 40 veces más por mensaje." />
           <Fila titulo="Sesión de 5 horas" texto="Empieza con tu primer mensaje y se reinicia 5 horas después. Además hay un límite por semana, que se reinicia el lunes." />
           <Fila titulo="Si llegas al límite" texto="Tu equipo deja de contestar en el chat hasta que se reinicie. Lo que ya leyó y tus datos se quedan.">
             <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("plan")}>

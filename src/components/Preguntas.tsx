@@ -51,7 +51,7 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
   },
   {
     p: "¿Cómo se mide el uso?",
-    r: `Como en Claude: no contamos mensajes, medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. ${max.nombre} tiene ${Math.round(max.limite.semana / one.limite.semana)} veces el uso de ${one.nombre}.`,
+    r: `Como en Claude: no contamos mensajes, medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más, y el modelo Avanzado gasta mucho más que el Rápido. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. ${max.nombre} tiene ${Math.round(max.limite.semana / one.limite.semana)} veces el uso de ${one.nombre}.`,
   },
   {
     p: "¿Cómo cambio de plan?",

@@ -9,7 +9,7 @@ import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
-import { planMinimo } from "@/lib/planes";
+import { MODELOS, esIdModelo, planMinimo, type IdModelo } from "@/lib/planes";
 import { Gasto, leerUso, registrarUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
@@ -140,6 +140,12 @@ export async function POST(request: NextRequest) {
       403,
     );
   }
+  // El modelo que eligió en el chat (Rápido o Avanzado), si su plan lo trae
+  const idModelo: IdModelo = esIdModelo(body.modelo) ? body.modelo : cuenta.plan.modelos[0];
+  if (!cuenta.plan.modelos.includes(idModelo)) {
+    return error(`El modelo ${MODELOS[idModelo].nombre} viene con Atendel One y Max.`, 403);
+  }
+  const modelo = MODELOS[idModelo];
   // El límite de uso del plan (como Claude: sesión de 5 horas y semana)
   const limite = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
   if (limite)
@@ -306,22 +312,23 @@ export async function POST(request: NextRequest) {
             },
           ],
         };
-        // Free usa Haiku (más económico, sin ajuste de esfuerzo); One y Max usan Opus
+        // Rápido (Haiku 5.5) o Avanzado (Opus 5.5). Solo Opus tiene el respaldo del servidor:
+        // si declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
         const pedir = (p: PeticionRonda) =>
-          cuenta.plan.modelo === "claude-haiku-4-5"
+          modelo.api === "claude-opus-5-5"
             ? client.beta.messages.stream({
                 ...base,
                 ...p,
-                model: cuenta.plan.modelo,
+                model: modelo.api,
+                output_config: { effort: modelo.esfuerzo },
+                betas: ["server-side-fallback-2026-07-01"],
+                fallbacks: "default",
               })
             : client.beta.messages.stream({
                 ...base,
                 ...p,
-                model: cuenta.plan.modelo,
-                output_config: { effort: cuenta.plan.esfuerzo },
-                // Si el modelo declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
-                betas: ["server-side-fallback-2026-07-01"],
-                fallbacks: "default",
+                model: modelo.api,
+                output_config: { effort: modelo.esfuerzo },
               });
         // Texto en vivo; si pide herramientas, se corren (solo lectura) y sigue (máximo 4 rondas)
         const { final } = await responderConHerramientas({
@@ -354,7 +361,7 @@ export async function POST(request: NextRequest) {
           alFlujo: (f) => {
             flujo = f;
           },
-          alUso: (m) => gasto.sumar(m, cuenta.plan.modelo),
+          alUso: (m) => gasto.sumar(m, modelo.api),
           senal: corte.signal,
         });
         if (final?.stop_reason === "refusal" && !respuesta) {

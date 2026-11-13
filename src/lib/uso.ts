@@ -23,7 +23,10 @@ const PRECIOS: Record<string, Precio> = {
   "claude-opus-4-8": { entrada: 5, salida: 25, cacheLee: 0.5, cacheEscribe: 6.25 },
   "claude-sonnet-5-5": { entrada: 2, salida: 10, cacheLee: 0.1, cacheEscribe: 2.5 },
   "claude-haiku-4-5": { entrada: 1, salida: 5, cacheLee: 0.1, cacheEscribe: 1.25 },
+  // Hasta 100 mil tokens de entrada; arriba de eso cuesta 5 veces (ver abajo)
+  "claude-haiku-5-5": { entrada: 0.1, salida: 0.5, cacheLee: 0.01, cacheEscribe: 0.125 },
 };
+const HAIKU_55_LARGO: Precio = { entrada: 0.5, salida: 2.5, cacheLee: 0.05, cacheEscribe: 0.625 };
 /** Si contesta un modelo que no está en la lista (un respaldo), se cobra como el más caro de arriba. */
 const PRECIO_DESCONOCIDO: Precio = PRECIOS["claude-opus-5"];
 
@@ -33,7 +36,8 @@ type Tokens = { input_tokens: number; output_tokens: number; cache_read_input_to
 /** Lo que costó una respuesta, en micro-dólares (redondeado hacia arriba, mínimo 1). */
 export function costoDe(modelo: string, u: Tokens | null | undefined): number {
   if (!u) return 0;
-  const p = PRECIOS[modelo] ?? PRECIO_DESCONOCIDO;
+  const leidos = (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0);
+  const p = modelo === "claude-haiku-5-5" && leidos > 100_000 ? HAIKU_55_LARGO : (PRECIOS[modelo] ?? PRECIO_DESCONOCIDO);
   const total =
     (u.input_tokens ?? 0) * p.entrada + (u.output_tokens ?? 0) * p.salida + (u.cache_read_input_tokens ?? 0) * p.cacheLee + (u.cache_creation_input_tokens ?? 0) * p.cacheEscribe;
   return total > 0 ? Math.max(1, Math.ceil(total)) : 0;

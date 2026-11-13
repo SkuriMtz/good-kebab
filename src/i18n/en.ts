@@ -491,7 +491,7 @@ export const en: Diccionario = {
         "All 4 agents: Front desk, Email, Clients and Office",
         "You choose who's on your team",
         "Group chats with your agents",
-        "More thorough answers",
+        "Fast and Advanced models",
         "Usage for your day to day",
       ],
       uso: "Standard usage",
@@ -504,7 +504,7 @@ export const en: Diccionario = {
         "All 4 agents: Front desk, Email, Clients and Office",
         "You choose who's on your team",
         "Group chats with your agents",
-        "More thorough answers",
+        "Fast and Advanced models",
         "5 times the usage of One",
       ],
       uso: "5 times the usage of One",
@@ -549,7 +549,7 @@ export const en: Diccionario = {
     agentes: "Agents",
     enElChat: "In the chat",
     uso: "Chat usage",
-    funciones: ["Group chats with your agents", "You choose who's on your team", "More thorough answers"],
+    funciones: ["Group chats with your agents", "You choose who's on your team", "Fast and Advanced models"],
   },
 
   preguntas: {
@@ -590,7 +590,7 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "What does each plan include?",
-            r: "With Free you work with Clara, your email agent, with enough usage to try it out. One and Max come with all four agents: you choose who's on your team, with group chats and more thorough answers. The only difference is usage: Max has 5 times that of One.",
+            r: "With Free you work with Clara, your email agent, with enough usage to try it out. One and Max come with all four agents: you choose who's on your team, with group chats and both models (Fast for everyday work and Advanced for heavy tasks). The only difference is usage: Max has 5 times that of One.",
           },
           {
             p: "How much does it cost?",
@@ -599,7 +599,7 @@ export const en: Diccionario = {
           { p: "Do I need a card to start?", r: "No. You sign in with your email, no password, and start working with Clara, your email agent." },
           {
             p: "How is usage measured?",
-            r: "Like Claude: we don't count messages, we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
+            r: "Like Claude: we don't count messages, we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more, and the Advanced model uses much more than Fast. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
           },
           {
             p: "How do I change plans?",
