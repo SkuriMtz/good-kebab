@@ -131,18 +131,14 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
     );
   }
 
-  // El Inicio y las conversaciones: el chat. Para "Trabajo reciente" del Inicio se lee lo
-  // mismo que la pestaña Hecho, en poquito (solo salen las tres más nuevas)
-  const ids = await negociosDe(supabase, user.id);
-  const [{ data: convs }, { data: msjs }, { data: res }, { data: archivos }, { data: envios }] = await Promise.all([
-    supabase.from("conversaciones").select("id, agente, titulo, actualizado_en, participantes, tema").eq("owner_id", user.id).order("actualizado_en", { ascending: false }).limit(60),
-    supabase.from("mensajes").select("conversacion_id, rol, contenido, agente, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(40),
-    supabase.from("resumenes_correo").select("id, remitente, asunto, creado_en").in("negocio_id", ids).order("creado_en", { ascending: false }).limit(3),
-    supabase.from("archivos").select("id, nombre, agente, conversacion_id, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(3),
-    supabase.from("envios").select("id, agente, destinatarios, estado, creado_en, resuelto_en, archivos(nombre)").eq("owner_id", user.id).in("estado", ["aprobado", "enviado"]).order("creado_en", { ascending: false }).limit(3),
-  ]);
+  // El Inicio y las conversaciones: el chat
+  const { data: convs } = await supabase
+    .from("conversaciones")
+    .select("id, agente, titulo, actualizado_en, participantes, tema")
+    .eq("owner_id", user.id)
+    .order("actualizado_en", { ascending: false })
+    .limit(60);
   const conversaciones = ((convs ?? []) as Conversacion[]).filter((c) => esIdAgente(c.agente));
-  const recientes = armarHecho(msjs ?? [], convs ?? [], res ?? [], archivos ?? [], envios ?? []).slice(0, 3);
   const meta = user.user_metadata ?? {};
   const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
   const nombre = completo ? completo.split(" ")[0] : undefined;
@@ -159,7 +155,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       textoInicial={texto(searchParams.pide, 2000)}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       pendientes={pendientes.total}
-      recientes={recientes}
+      conGoogle={conGoogle}
     />
   );
 }
