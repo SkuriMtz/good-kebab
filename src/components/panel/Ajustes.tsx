@@ -470,6 +470,22 @@ function LimitesUso({ datos }: { datos: DatosAjustes }) {
       <BarraLimite titulo="Sesión actual" detalle={detalleSesion} usados={sesion.usado} total={sesion.limite} aviso={avisoDe(pctSesion, "sesion", sesion.reinicia)} />
       <h4 className="pc-aj-limites__sub">Límite semanal</h4>
       <BarraLimite titulo="Esta semana" detalle={detalleSemana} usados={semana.usado} total={semana.limite} aviso={avisoDe(pctSemana, "semana", semana.reinicia)} />
+      {plan.uso.trabajo ? (
+        <>
+          <h4 className="pc-aj-limites__sub">Trabajo por su cuenta</h4>
+          <BarraLimite
+            titulo="Esta semana, por su cuenta"
+            detalle={!montado || !plan.uso.trabajo.reinicia ? "Aparte del chat" : `Aparte del chat · se reinicia ${cuandoReinicia(plan.uso.trabajo.reinicia, zona)}`}
+            usados={plan.uso.trabajo.usado}
+            total={plan.uso.trabajo.limite}
+            aviso={
+              !montado || pctDe(plan.uso.trabajo) < 100
+                ? null
+                : `Llegó a su límite de la semana: vuelve a trabajar por su cuenta ${plan.uso.trabajo.reinicia ? cuandoReinicia(plan.uso.trabajo.reinicia, zona) : "pronto"}. El chat no se ve afectado.`
+            }
+          />
+        </>
+      ) : null}
       {documentos !== null && maxDocumentos ? <h4 className="pc-aj-limites__sub">Lo que guardas</h4> : null}
       {documentos !== null && maxDocumentos ? (
         <BarraLimite titulo="Documentos" detalle={`${n(documentos)} de ${n(maxDocumentos)} que puedes guardar`} usados={documentos} total={maxDocumentos} aviso={avisoDocumentos} />
@@ -739,6 +755,11 @@ export function VentanaAjustes({
           {ajustes.revisionDiaria === "activa" ? (
             <Fila titulo="A qué hora" texto="En la zona horaria de tu cuenta." hija>
               <Selector etiqueta="Hora de la revisión diaria" valor={ajustes.horaRevision} alCambiar={(v) => cambiar("horaRevision", v as HoraRevision)} opciones={HORAS_REVISION.map((h) => ({ id: h, nombre: h }))} />
+            </Fila>
+          ) : null}
+          {ajustes.revisionDiaria === "activa" ? (
+            <Fila titulo="Que trabajen por su cuenta" texto="Después de la revisión, con IA te dejan listos los borradores de los correos que esperan y el plan del día. Llega a la Oficina para que lo revises: nada se envía solo. Tiene su propio límite, aparte del chat." hija>
+              <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
             </Fila>
           ) : null}
         </Grupo>

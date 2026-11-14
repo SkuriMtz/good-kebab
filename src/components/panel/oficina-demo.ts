@@ -9,6 +9,45 @@ export function oficinaDeEjemplo(ahora: number): ItemOficina[] {
   const hace = (min: number) => new Date(ahora - min * 60_000).toISOString();
   return [
     {
+      id: "t1",
+      nombre: "Borradores para 2 correos que esperan",
+      tipo: "informe",
+      agente: "clara",
+      en: hace(95),
+      revision: "revisar",
+      detalle: "Lo hizo por su cuenta en la revisión de la mañana. Nada se envía sin ti.",
+      vista: {
+        tipo: "texto",
+        partes: [
+          {
+            titulo: "Para Limpieza Brillo: Factura de noviembre",
+            texto: "Hola, gracias por la factura. La pagamos antes del 20 de noviembre y les mandamos el comprobante por este medio. Saludos, Estudio Luna.",
+          },
+          {
+            titulo: "Para Papelería Centro: Cotización de material",
+            texto: "Hola, gracias por la cotización. Antes de confirmar, ¿nos pueden decir el tiempo de entrega y si el precio incluye envío? Quedamos atentos. Saludos, Estudio Luna.",
+          },
+        ],
+      },
+    },
+    {
+      id: "t2",
+      nombre: "Plan del día",
+      tipo: "informe",
+      agente: "iris",
+      en: hace(95),
+      revision: "revisar",
+      detalle: "Lo que conviene hacer hoy, con lo que hay. Lo armó por su cuenta.",
+      vista: {
+        tipo: "texto",
+        partes: [
+          { titulo: "Lo primero", texto: "Aprueba los 2 mensajes de confirmación de mañana para que Lola los mande temprano." },
+          { titulo: "Después", texto: "Revisa los borradores de Clara: la factura de Limpieza Brillo vence el 20." },
+          { titulo: "Para que tu equipo trabaje mejor", texto: "Sube tu lista de precios: hoy 3 personas preguntaron precios por WhatsApp." },
+        ],
+      },
+    },
+    {
       id: "o1",
       nombre: "Reporte de citas de octubre.xlsx",
       tipo: "xlsx",

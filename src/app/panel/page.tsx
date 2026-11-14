@@ -58,11 +58,13 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
 
   if (searchParams.vista === "oficina") {
-    const [{ data }, { data: rev }, { data: filaAjustes }] = await Promise.all([
+    const [{ data }, { data: rev }, { data: filaAjustes }, { data: hechos }] = await Promise.all([
       supabase.from("archivos").select("id, nombre, tipo, agente, conversacion_id, creado_en, revision").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(100),
       // La revisión diaria más reciente (la arma la base de datos sola, migración 0015)
       supabase.from("revisiones").select("id, fecha, creado_en, partes, faltan, leido_en").eq("owner_id", user.id).order("fecha", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
+      // Lo que hicieron por su cuenta (migración 0016)
+      supabase.from("trabajos").select("id, agente, titulo, detalle, partes, revision, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(50),
     ]);
     const aj = limpiarAjustes(filaAjustes?.datos);
     const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: aj.zonaHoraria }).format(new Date());
@@ -77,7 +79,27 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       revision: REVISIONES.find((r) => r === a.revision) ?? "revisar",
       abrir: `/api/archivos/${a.id}`,
       conversacion: a.conversacion_id ? String(a.conversacion_id) : undefined,
+      tabla: "archivos" as const,
     }));
+    for (const t of hechos ?? []) {
+      const partes = (Array.isArray(t.partes) ? t.partes : []).flatMap((p) => {
+        const x = p as { titulo?: unknown; texto?: unknown };
+        return typeof x.titulo === "string" && typeof x.texto === "string" ? [{ titulo: x.titulo, texto: x.texto }] : [];
+      });
+      if (!partes.length) continue;
+      items.push({
+        id: String(t.id),
+        nombre: String(t.titulo),
+        tipo: "informe",
+        agente: esIdAgente(t.agente) ? t.agente : null,
+        en: String(t.creado_en),
+        revision: REVISIONES.find((r) => r === t.revision) ?? "revisar",
+        detalle: t.detalle ? String(t.detalle) : undefined,
+        vista: { tipo: "texto", partes },
+        tabla: "trabajos",
+      });
+    }
+    items.sort((a, b) => b.en.localeCompare(a.en));
     return (
       <OficinaReal
         items={items}

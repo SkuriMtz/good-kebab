@@ -175,6 +175,8 @@ export type AjustesCuenta = {
   zonaHoraria: string;
   revisionDiaria: RevisionDiaria;
   horaRevision: HoraRevision;
+  /** Después de la revisión, la IA trabaja por su cuenta (borradores y plan del día, a la Oficina). */
+  trabajoAutonomo: RevisionDiaria;
   acento: Acento;
   letra: Letra;
   fuente: Fuente;
@@ -208,6 +210,7 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   zonaHoraria: "America/Mexico_City",
   revisionDiaria: "activa",
   horaRevision: "08:00",
+  trabajoAutonomo: "activa",
   acento: "azul",
   letra: "normal",
   fuente: "geist",
@@ -259,6 +262,7 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     ),
     revisionDiaria: uno(a.revisionDiaria, REVISIONES, b.revisionDiaria),
     horaRevision: uno(a.horaRevision, HORAS_REVISION, b.horaRevision),
+    trabajoAutonomo: uno(a.trabajoAutonomo, REVISIONES, b.trabajoAutonomo),
     acento: uno(a.acento, ACENTOS, b.acento),
     letra: uno(a.letra, LETRAS, b.letra),
     fuente: uno(a.fuente, FUENTES, b.fuente),

@@ -81,7 +81,10 @@ export async function leerUso(supabase: SupabaseClient, userId: string, plan: Pl
   const d = (Array.isArray(r.data) ? r.data[0] : r.data) as { sesion_inicio: string | null; sesion_costo: number | string; semana_inicio: string; semana_costo: number | string } | null;
   const ahora = Date.now();
   const lunes = d?.semana_inicio ? new Date(d.semana_inicio).getTime() : ahora;
+  // El trabajo por su cuenta (aparte del chat): lo de esta semana
+  const { data: trabajo } = await supabase.from("trabajo_uso").select("costo").eq("owner_id", userId).gte("creado_en", new Date(lunes).toISOString());
   return {
+    trabajo: { usado: (trabajo ?? []).reduce((n, t) => n + (Number(t.costo) || 0), 0), limite: plan.trabajo.semana, reinicia: new Date(lunes + 7 * 86_400_000).toISOString() },
     sesion: {
       usado: d?.sesion_inicio ? Number(d.sesion_costo) || 0 : 0,
       limite: plan.limite.sesion,

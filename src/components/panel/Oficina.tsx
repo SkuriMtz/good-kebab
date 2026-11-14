@@ -19,7 +19,7 @@ import { RevisionDiaria, type DatosRevision } from "./RevisionDiaria";
    ===================================================================== */
 
 export type Revision = "revisar" | "aprobado" | "cambios";
-export type TipoArchivo = "pptx" | "xlsx" | "docx" | "pdf";
+export type TipoArchivo = "pptx" | "xlsx" | "docx" | "pdf" | "informe";
 
 /** Lo que se ve al abrirlo en la demostración (en la cuenta real se descarga el archivo). */
 export type VistaPrevia =
@@ -42,6 +42,8 @@ export type ItemOficina = {
   /** La conversación donde se pidió (cuenta real). */
   conversacion?: string;
   vista?: VistaPrevia;
+  /** De dónde viene en la cuenta real: un archivo, o algo que hicieron por su cuenta (tabla trabajos). */
+  tabla?: "archivos" | "trabajos";
 };
 
 const TIPOS: Record<TipoArchivo, { nombre: string; icono: NombreIcono }> = {
@@ -49,6 +51,7 @@ const TIPOS: Record<TipoArchivo, { nombre: string; icono: NombreIcono }> = {
   xlsx: { nombre: "Excel", icono: "documento" },
   docx: { nombre: "Documento", icono: "documento" },
   pdf: { nombre: "PDF", icono: "documento" },
+  informe: { nombre: "Por su cuenta", icono: "documento" },
 };
 
 const ESTADO: Record<Revision, { texto: string; clase: string }> = {
@@ -91,7 +94,7 @@ function Miniatura({ tipo }: { tipo: TipoArchivo }) {
           <span />
         </span>
       )}
-      <span className="pc-oficina__mini-tipo">{tipo.toUpperCase()}</span>
+      <span className="pc-oficina__mini-tipo">{tipo === "informe" ? "IA" : tipo.toUpperCase()}</span>
     </span>
   );
 }
@@ -382,7 +385,8 @@ export function OficinaReal({
     void createClient().from("revisiones").update({ leido_en: new Date().toISOString() }).eq("id", revision.id).then(() => router.refresh());
   }, [revision?.id, revision?.leida, router]);
   const marcar = async (id: string, revision: Revision) => {
-    const { error } = await createClient().from("archivos").update({ revision, revisado_en: new Date().toISOString() }).eq("id", id);
+    const tabla = lista.find((x) => x.id === id)?.tabla ?? "archivos";
+    const { error } = await createClient().from(tabla).update({ revision, revisado_en: new Date().toISOString() }).eq("id", id);
     if (error) return "No se pudo guardar. Intenta de nuevo.";
     setLista((l) => l.map((x) => (x.id === id ? { ...x, revision } : x)));
     router.refresh();

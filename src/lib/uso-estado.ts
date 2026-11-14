@@ -16,7 +16,13 @@ export type VentanaUso = {
   reinicia: string | null;
 };
 
-export type EstadoUso = { sesion: VentanaUso; semana: VentanaUso; zona: string };
+export type EstadoUso = {
+  sesion: VentanaUso;
+  semana: VentanaUso;
+  zona: string;
+  /** El trabajo por su cuenta: su propio límite por semana, aparte del chat (migración 0016). */
+  trabajo?: VentanaUso;
+};
 
 export const ZONA_PREDETERMINADA = "America/Mexico_City";
 
