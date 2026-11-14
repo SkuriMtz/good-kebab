@@ -33,7 +33,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   // El uso del plan (sesión de 5 horas y semana), para Ajustes > Uso
   const uso = await leerUso(supabase, user.id, cuenta.plan);
 
-  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }] = await Promise.all([
+  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }, { count: porRevisarOficina }] = await Promise.all([
     supabase
       .from("conversaciones")
       .select("id, agente, titulo, tema, participantes, actualizado_en")
@@ -48,6 +48,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     supabase.from("conexiones").select("apps, estado").eq("owner_id", user.id),
     // Ajustes > Equipo: las personas del negocio y su WhatsApp (migración 0009)
     supabase.from("equipo_contactos").select("id, nombre, rol, whatsapp").eq("owner_id", user.id).order("creado_en"),
+    // La Oficina: los archivos que tu equipo te dejó y siguen por revisar (migración 0014)
+    supabase.from("archivos").select("id", { count: "exact", head: true }).eq("owner_id", user.id).eq("revision", "revisar"),
   ]);
   const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
 
@@ -90,6 +92,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         gmail: conGoogle,
         activos: cuenta.activos,
         pendientes: pendientes.total,
+        oficina: porRevisarOficina ?? null,
         chats,
         organizacion,
       }}

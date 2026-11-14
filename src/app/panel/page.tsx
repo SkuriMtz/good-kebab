@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
 import { Hecho } from "@/components/panel/Hecho";
+import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
@@ -36,6 +37,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  *   equipo ya terminó (pedidos con respuesta y correos resumidos).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
+ * - ?vista=oficina: lo que tu equipo te dejó (archivos) para revisar, aprobar o pedir cambios.
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage({ searchParams }: { searchParams: Parametros }) {
@@ -52,6 +54,28 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   const texto = (v: unknown, max = 200) => (typeof v === "string" && v ? v.slice(0, max) : undefined);
 
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
+
+  if (searchParams.vista === "oficina") {
+    const { data } = await supabase
+      .from("archivos")
+      .select("id, nombre, tipo, agente, conversacion_id, creado_en, revision")
+      .eq("owner_id", user.id)
+      .order("creado_en", { ascending: false })
+      .limit(100);
+    const TIPOS: TipoArchivo[] = ["pptx", "xlsx", "docx", "pdf"];
+    const REVISIONES: Revision[] = ["revisar", "aprobado", "cambios"];
+    const items: ItemOficina[] = (data ?? []).map((a) => ({
+      id: String(a.id),
+      nombre: String(a.nombre),
+      tipo: TIPOS.find((t) => t === a.tipo) ?? "pptx",
+      agente: esIdAgente(a.agente) ? a.agente : null,
+      en: String(a.creado_en),
+      revision: REVISIONES.find((r) => r === a.revision) ?? "revisar",
+      abrir: `/api/archivos/${a.id}`,
+      conversacion: a.conversacion_id ? String(a.conversacion_id) : undefined,
+    }));
+    return <OficinaReal items={items} ahora={Date.now()} />;
+  }
 
   if (searchParams.vista === "estadisticas") {
     // Estadísticas centradas en el negocio (trabajador B): su vista trae su propio buscador

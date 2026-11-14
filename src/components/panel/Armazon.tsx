@@ -23,7 +23,7 @@ import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
-export type IdSeccion = "inicio" | "chat" | "agentes" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
 export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[]; campo?: "tema" | "titulo" };
 export type ResultadoBusqueda = { id: string; grupo: string; titulo: string; detalle?: string; href: string; icono?: NombreIcono; agentes?: IdAgente[]; claves?: string };
@@ -33,9 +33,11 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; agentes: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
+  hrefs: { inicio: string; oficina: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
+  /** Lo que la Oficina tiene por revisar (archivos que te dejó tu equipo). */
+  oficina?: number | null;
   /** Las conversaciones, de la más nueva a la más vieja. */
   chats: ChatMenu[];
   /** Cómo las acomodó: fijadas, archivadas y sus grupos. */
@@ -72,7 +74,7 @@ const ANGOSTO = "(max-width: 1359px)";
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -445,7 +447,17 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
                 ⌘K
               </kbd>
             </button>
-            {item("agentes", "Agentes", "agentes", hrefs.agentes)}
+            {item(
+              "oficina",
+              "Oficina",
+              "documento",
+              hrefs.oficina,
+              oficina ? (
+                <span className="pc-menu__cuenta" aria-label={`${oficina} por revisar`}>
+                  {oficina}
+                </span>
+              ) : null,
+            )}
             {item(
               "pendientes",
               "Pendientes",

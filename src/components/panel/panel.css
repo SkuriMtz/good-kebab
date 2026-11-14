@@ -8805,3 +8805,235 @@ a.pc-correo__accion:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================================
+   41. Oficina: lo que tu equipo te dejó para revisar. Tarjetas con una
+   miniatura según el tipo (tabla, lámina, hoja), sin colores de marca.
+   ===================================================================== */
+.pc-oficina {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-oficina > li {
+  display: grid;
+}
+.pc .pc-oficina__tarjeta {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
+.pc-oficina__mini {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 76px;
+  height: 92px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+  background: var(--pc-lienzo);
+}
+.pc-oficina__mini-tipo {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  color: var(--pc-texto-2);
+  font: 600 10px/1 var(--pc-sans);
+  letter-spacing: 0.06em;
+  transform: translateX(-50%);
+}
+.pc-oficina__mini-tabla {
+  display: grid;
+  grid-template-columns: repeat(3, 14px);
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.pc-oficina__mini-tabla > span {
+  height: 8px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--pc-texto) 16%, transparent);
+}
+.pc-oficina__mini-tabla > span:nth-child(-n + 3) {
+  background: color-mix(in srgb, var(--pc-texto) 34%, transparent);
+}
+.pc-oficina__mini-lamina {
+  display: grid;
+  gap: 4px;
+  width: 52px;
+  margin-bottom: 14px;
+  padding: 7px 6px;
+  border: 1px solid color-mix(in srgb, var(--pc-texto) 22%, transparent);
+  border-radius: 4px;
+}
+.pc-oficina__mini-lamina > span,
+.pc-oficina__mini-hoja > span {
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--pc-texto) 20%, transparent);
+}
+.pc-oficina__mini-lamina > span:first-child {
+  width: 70%;
+  height: 6px;
+  background: color-mix(in srgb, var(--pc-texto) 40%, transparent);
+}
+.pc-oficina__mini-hoja {
+  display: grid;
+  gap: 5px;
+  width: 40px;
+  margin-bottom: 14px;
+}
+.pc-oficina__mini-hoja > span:nth-child(2n) {
+  width: 75%;
+}
+.pc-oficina__cuerpo {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+.pc-oficina__arriba {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.pc-oficina__tipo {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-oficina__nombre {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-oficina__detalle {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.pc-oficina__quien {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-oficina__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.pc-citas-aviso--error svg {
+  color: var(--pc-error);
+}
+
+/* Revisar: lo que trae el archivo */
+.pc-previa {
+  display: grid;
+  gap: 10px;
+}
+.pc-previa__tabla-caja {
+  overflow-x: auto;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+}
+.pc-previa__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.pc-previa__tabla th,
+.pc-previa__tabla td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--pc-division);
+  text-align: left;
+  white-space: nowrap;
+}
+.pc-previa__tabla th {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+.pc-previa__tabla tbody tr:last-child td {
+  border-bottom: 0;
+  font-weight: 500;
+}
+.pc-previa__nota {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-previa__laminas {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-previa__lamina {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  aspect-ratio: 16 / 10;
+  padding: 14px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+  background: var(--pc-lienzo);
+}
+.pc-previa__numero {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  color: var(--pc-texto-2);
+  font-size: 11px;
+}
+.pc-previa__lamina-titulo {
+  font-family: var(--pc-serif);
+  font-size: 17px;
+}
+.pc-previa__lamina ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 16px;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-previa__hoja {
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+  background: var(--pc-lienzo);
+}
+.pc-previa__hoja h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.pc-previa__hoja p {
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+:root[data-tema="claro"] :is(.pc-oficina__mini, .pc-previa__lamina, .pc-previa__hoja) {
+  background: #fff;
+}
+@media (max-width: 640px) {
+  .pc-oficina {
+    grid-template-columns: 1fr;
+  }
+  .pc-oficina__mini {
+    width: 60px;
+    height: 76px;
+  }
+}

@@ -42,13 +42,15 @@ export type DatosArmazonReal = {
   gmail: boolean;
   activos: IdAgente[];
   pendientes: number | null;
+  /** Los archivos que la Oficina tiene por revisar. */
+  oficina: number | null;
   /** Las conversaciones (de la más nueva a la más vieja) y cómo las acomodó (fijadas, archivadas, grupos). */
   chats: ChatMenu[];
   organizacion: OrganizacionChats;
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS = ["pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["oficina", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
 function claveDe(url: URL) {
@@ -179,7 +181,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     conectadas: datos.conectadas,
     contactos: datos.contactos,
     ajustes: datos.ajustes,
-    hrefs: { agentes: "/panel/agentes", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
+    hrefs: { agentes: "/panel?vista=ajustes&seccion=agentes", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
     salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
     salirDeTodo: () => salirA("global"),
     guardar: {
@@ -207,7 +209,8 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
 
   const indice: ResultadoBusqueda[] = [
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/panel" },
-    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Quién hace cada cosa", icono: "agentes", href: "/panel/agentes" },
+    { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
+    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Qué hace cada uno y sus reglas", icono: "agentes", href: "/panel?vista=ajustes&seccion=agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
@@ -223,7 +226,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
       detalle: a.abarca,
       agentes: [a.id],
       claves: a.capacidades.join(" "),
-      href: `/panel/agentes?agente=${a.id}`,
+      href: "/panel?vista=ajustes&seccion=agentes",
     })),
     ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
     ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
@@ -280,7 +283,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               negocio: "/panel?vista=negocio&tab=apps",
               documentos: "/panel?vista=negocio&tab=documentos",
             ajustes: "/panel?vista=ajustes",
-              agente: (a) => `/panel/agentes?agente=${a}`,
+              agente: () => "/panel?vista=ajustes&seccion=agentes",
             }}
             alCerrar={alCerrar}
           />
@@ -294,7 +297,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         chatActual={c}
         hrefs={{
           inicio: "/panel",
-          agentes: "/panel/agentes",
+          oficina: "/panel?vista=oficina",
           pendientes: "/panel?vista=pendientes",
           citas: "/panel?vista=citas",
           negocio: "/panel?vista=negocio",
@@ -302,6 +305,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           ajustes: "/panel?vista=ajustes",
         }}
         pendientes={datos.pendientes}
+        oficina={datos.oficina}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}
