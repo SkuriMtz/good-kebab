@@ -9,7 +9,6 @@ import { TraduccionPanel } from "./TraduccionPanel";
 
 /** La misma cookie que IDIOMA_COOKIE de src/i18n (sin importar los diccionarios del sitio). */
 const IDIOMA_COOKIE = "atendel-idioma";
-import { PilaAgentes } from "./Mensajes";
 import { TABS_INFO, esTabInfo, type TabInfo } from "./PanelInfo";
 import { Marca } from "@/components/Logo";
 import { EntradaPanel, type FaseEntrada } from "./EntradaPanel";
@@ -724,7 +723,7 @@ function Buscador({ abierto, instantaneo, alCerrar, indice }: { abierto: boolean
             onPointerEnter={() => setCursor(i)}
             onClick={() => ir(r)}
           >
-            {r.agentes?.length ? <PilaAgentes agentes={r.agentes} tam={20} /> : <Icono nombre={r.icono ?? "flecha"} tam={18} />}
+            <Icono nombre={r.icono ?? (r.agentes?.length ? "mensaje" : "flecha")} tam={18} />
             <span className="pc-buscador__textos">
               <span className="pc-buscador__titulo">{r.titulo}</span>
               {r.detalle ? <span className="pc-buscador__detalle">{r.detalle}</span> : null}

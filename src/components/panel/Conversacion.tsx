@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, useState, type ReactNode, type RefObject, typ
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { IdAgente } from "@/lib/agentes";
 import { Enlace } from "./Piezas";
-import { PilaAgentes } from "./Mensajes";
 
 /**
  * La conversación abierta, en el mismo lugar que el Inicio: una cabecera
@@ -106,7 +105,6 @@ export function Conversacion({
           </button>
           <div id={idMenu} className="pc-conv__menu" role="menu" data-abierto={menuAbierto ? "" : undefined} {...(menuAbierto ? {} : INERTE)}>
             <div className="pc-conv__menu-quien">
-              <PilaAgentes agentes={agentes} tam={20} />
               <span>{sub}</span>
             </div>
             {menu.map((m) => {

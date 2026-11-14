@@ -10,7 +10,7 @@ import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO } from "@/components/pane
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
-import { AvisoHilo, DiaHilo, EquipoAtendel, MensajeTuyo, RespuestaAtendel, nombresDe } from "@/components/panel/Mensajes";
+import { AvisoHilo, DiaHilo, MensajeTuyo, RespuestaAtendel, nombresDe } from "@/components/panel/Mensajes";
 import { separarEstado } from "@/lib/estado-chat";
 import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
@@ -503,7 +503,7 @@ export function Chat({
           saludo={saludo}
           caja={barra}
           uso={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} />}
-          selector={<EquipoAtendel agentes={activos} />}
+          selector={null}
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
           tarjetas={tarjetas}

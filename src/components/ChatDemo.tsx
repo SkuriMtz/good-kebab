@@ -201,12 +201,11 @@ export const INICIO: Conversacion[] = [
     sinLeer: 0,
     orden: 9,
     mensajes: [
-      m("sistema", "09:58", "Creaste el grupo «Recepción» con Lola y Víctor."),
-      m("tu", "10:02", "Escribió Sofía Ramírez por WhatsApp: quiere agendar su primera cita. ¿Quién la atiende?"),
+      m("tu", "10:02", "Escribió Sofía Ramírez por WhatsApp: quiere agendar su primera cita."),
       m(
         "lola",
         "10:02",
-        "Yo. Le ofrecí jueves 11:00 o viernes 10:00 y eligió **viernes a las 10:00**. Ya le mandé su confirmación con la ubicación.",
+        "Listo. Le ofrecí jueves 11:00 o viernes 10:00 y eligió **viernes a las 10:00**. Ya le mandé su confirmación con la ubicación.",
         {
           tarjeta: {
             tipo: "cita",
@@ -222,14 +221,12 @@ export const INICIO: Conversacion[] = [
         },
       ),
       m("lola", "10:02", "Como es su primera vez, le pedí que llegue 10 minutos antes para llenar su ficha."),
-      paso("lola", "victor", "10:03", "le pasa el seguimiento a"),
       m(
         "victor",
         "10:03",
-        "Yo me encargo de después: el sábado le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña en Google.",
+        "Para después de su cita: el sábado le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña en Google. En 4 semanas le recuerdo agendar la siguiente. ¿Te parece?",
       ),
-      m("victor", "10:03", "Y en 4 semanas le recuerdo agendar su siguiente cita. ¿Te parece?"),
-      m("tu", "10:04", "Perfecto. @Víctor que el mensaje sea corto"),
+      m("tu", "10:04", "Perfecto, que el mensaje del sábado sea corto"),
       m("victor", "10:04", "Va, este le mandaría:", {
         tarjeta: {
           tipo: "programado",
@@ -238,7 +235,7 @@ export const INICIO: Conversacion[] = [
           cita: "Hola, Sofía. ¿Cómo te fue en tu primera cita? Si te gustó, nos ayudas mucho con una reseña. ¡Te esperamos pronto!",
         },
       }),
-      m("lola", "10:05", "Lo anoté en su ficha para que no le lleguen dos mensajes el mismo día."),
+      m("lola", "10:05", "También lo anoté en su ficha para que no le lleguen dos mensajes el mismo día."),
     ],
   },
   {
@@ -248,7 +245,6 @@ export const INICIO: Conversacion[] = [
     sinLeer: 1,
     orden: 7,
     mensajes: [
-      m("sistema", "18:02", "Creaste el grupo «Cierre de mes» con Clara e Iris.", { dia: "Ayer" }),
       m("tu", "18:03", "¿Cómo nos fue en septiembre?", { dia: "Ayer" }),
       m(
         "iris",
@@ -256,9 +252,8 @@ export const INICIO: Conversacion[] = [
         "Bien: **342 citas**, 18 más que en agosto, y **47 clientes nuevos**. Las faltas bajaron de 26 a 21.",
         { dia: "Ayer" },
       ),
-      paso("iris", "clara", "18:04", "le pasa los pagos a", "Ayer"),
       m("clara", "18:04", "De pagos: quedan **2 facturas** por pagar, $10,630 en total. La más próxima vence el jueves.", { dia: "Ayer" }),
-      m("tu", "08:15", "@Iris pásamelo en Excel"),
+      m("tu", "08:15", "Pásamelo en Excel"),
       m("iris", "08:16", "Listo. Te dejé el reporte con una hoja de citas y otra de pagos.", {
         tarjeta: {
           tipo: "archivo",

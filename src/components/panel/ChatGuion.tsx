@@ -12,7 +12,7 @@ import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
 import { useSugerencia } from "./sugerencias";
 import { Inicio } from "./Inicio";
-import { DiaHilo, EquipoAtendel, MensajeTuyo, RespuestaAtendel, TarjetaTrabajo, nombresDe } from "./Mensajes";
+import { DiaHilo, MensajeTuyo, RespuestaAtendel, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { claseBoton } from "./Piezas";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 import { modeloElegido, useModelo } from "./modelo";
@@ -383,7 +383,7 @@ export function InicioDemo({
             dictarPronto
           />
         }
-        selector={<EquipoAtendel agentes={agentes} />}
+        selector={null}
         area={area}
         hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}
         tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}

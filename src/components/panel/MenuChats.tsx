@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { MAX_NOMBRE_GRUPO, idGrupo, organizar, repartir, type OrganizacionChats } from "@/lib/organizacion-chats";
 import type { ChatMenu } from "./Armazon";
-import { AvatarAgente, nombresDe } from "./Mensajes";
 import type { IdAgente } from "@/lib/agentes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 
@@ -275,22 +274,6 @@ function Puntos() {
 
 /* ---------- Con quién es cada conversación ---------- */
 
-/**
- * Las caras de los agentes de una conversación, en el lugar del ícono (22px):
- * uno, su cara; dos, encimados en diagonal; tres, en triángulo; cuatro, en
- * cuadro (como la marca de Atendel). Así se ve con quién hablas sin abrirla.
- */
-function Caritas({ agentes }: { agentes: readonly IdAgente[] }) {
-  const lista = agentes.slice(0, 4);
-  return (
-    <span className="pc-caritas" data-n={lista.length} aria-label={nombresDe(lista)} role="img">
-      {lista.map((a) => (
-        <AvatarAgente key={a} agente={a} tam={lista.length === 1 ? 20 : lista.length === 2 ? 15 : 11} />
-      ))}
-    </span>
-  );
-}
-
 /* ---------- Una conversación del menú ---------- */
 
 function FilaChat({
@@ -318,8 +301,7 @@ function FilaChat({
       {renombrando ? (
         <CampoNombre inicial={chat.titulo} max={MAX_TITULO_CHAT} etiqueta="Nuevo nombre de la conversación" alGuardar={alRenombrar} alCancelar={alCancelar} />
       ) : (
-        <Enlace href={chat.href} className="pc-menu__chat" aria-current={actual ? "page" : undefined} title={`${chat.titulo} · ${nombresDe(chat.agentes)}`}>
-          <Caritas agentes={chat.agentes} />
+        <Enlace href={chat.href} className="pc-menu__chat" aria-current={actual ? "page" : undefined} title={chat.titulo}>
           <span className="pc-menu__chat-texto">{chat.titulo}</span>
         </Enlace>
       )}
