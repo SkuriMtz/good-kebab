@@ -599,7 +599,7 @@ export const en: Diccionario = {
           { p: "Do I need a card to start?", r: "No. You sign in with your email, no password, and start working with Clara, your email agent." },
           {
             p: "How is usage measured?",
-            r: "Like Claude: we don't count messages, we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more, and the Advanced model uses much more than Fast. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
+            r: "We don't count messages: we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more, and the Advanced model uses much more than Fast. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
           },
           {
             p: "How do I change plans?",

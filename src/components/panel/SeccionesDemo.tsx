@@ -33,7 +33,7 @@ const TONO_ESTADO = { azul: "azul", exito: "exito", atencion: "atencion", neutro
 export function AgentesDemo({ enfocado }: { enfocado?: IdAgente }) {
   return (
     <Seccion>
-      <TituloSeccion titulo="Agentes" texto="Tu equipo de Estudio Luna: lo que hace cada quien y cómo va su semana." />
+      <TituloSeccion titulo="Agentes" texto="Le escribes a Atendel y él le pasa cada tarea al agente que le toca, o a varios a la vez. Así va la semana de cada uno en Estudio Luna." />
       <div className="pc-agentes">
         {AGENTES_INFO.map((a, i) => {
           const e = DEMO_ESTADOS[a.id];
@@ -65,22 +65,22 @@ export function AgentesDemo({ enfocado }: { enfocado?: IdAgente }) {
               }
               acciones={
                 <>
-                  <Enlace href={`/pruebalo?con=${a.id}`} className={claseBoton("borde", true)}>
-                    Hablar con {a.nombre}
-                  </Enlace>
                   {a.id === "clara" ? (
-                    <Enlace href="/pruebalo?vista=correo" className={claseBoton("fantasma", true)}>
+                    <Enlace href="/pruebalo?vista=correo" className={claseBoton("borde", true)}>
                       Abrir Correo
                     </Enlace>
                   ) : a.id === "lola" ? (
-                    <Enlace href="/pruebalo?vista=citas" className={claseBoton("fantasma", true)}>
+                    <Enlace href="/pruebalo?vista=citas" className={claseBoton("borde", true)}>
                       Ver Citas
                     </Enlace>
                   ) : (
-                    <Enlace href={`/pruebalo?vista=pendientes&area=${AREA_DE_AGENTE[a.id]}`} className={claseBoton("fantasma", true)}>
+                    <Enlace href={`/pruebalo?vista=pendientes&area=${AREA_DE_AGENTE[a.id]}`} className={claseBoton("borde", true)}>
                       Sus pendientes
                     </Enlace>
                   )}
+                  <Enlace href="/pruebalo?vista=ajustes&seccion=agentes" className={claseBoton("fantasma", true)}>
+                    Sus reglas
+                  </Enlace>
                 </>
               }
             />
@@ -123,8 +123,8 @@ export function PendientesDemo({
             <Enlace href={`/pruebalo?vista=correo&de=${encodeURIComponent(c.remitente)}`} className={claseBoton("borde", true)}>
               Ver en Correo
             </Enlace>
-            <Enlace href="/pruebalo?con=clara" className={claseBoton("fantasma", true)}>
-              Pedírselo a Clara
+            <Enlace href={`/pruebalo?pide=${encodeURIComponent(`Ayúdame con el correo de ${c.remitente}: ${c.accion}`)}`} className={claseBoton("fantasma", true)}>
+              Pedírselo a Atendel
             </Enlace>
           </>
         ),

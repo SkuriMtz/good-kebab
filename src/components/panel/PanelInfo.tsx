@@ -48,7 +48,7 @@ type Props = {
   pendientes: number | null;
   /** Los primeros pendientes, si se tienen a la mano (en /pruebalo). */
   pendientesLista?: PendienteInfo[];
-  hrefs: { pendientes: string; estadisticas: string; negocio: string; documentos: string; ajustes?: string; chatCon: (a: IdAgente) => string };
+  hrefs: { pendientes: string; estadisticas: string; negocio: string; documentos: string; ajustes?: string; agente: (a: IdAgente) => string };
   alCerrar: () => void;
 };
 
@@ -154,7 +154,6 @@ export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, preguntar
   }, [alVer]);
 
   const enChat = new Set(enConversacion);
-  const otros = equipo.filter((a) => !enChat.has(a));
 
   return (
     <div ref={raiz} className="pc-ctx" aria-busy={estado === "cargando"}>
@@ -178,15 +177,10 @@ export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, preguntar
         </div>
 
         <div id="pc-info-equipo" className="pc-ctx__grupo">
-            {enConversacion.length ? (
-              <Seccion titulo="Tu equipo · en esta conversación">
-                {[...enConversacion].map((a) => (
-                  <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} aqui />
-                ))}
-              </Seccion>
-            ) : null}
-            <Seccion titulo={enConversacion.length ? "El resto de tu equipo" : "Tu equipo"}>
-              {otros.length ? otros.map((a) => <FilaAgente key={a} agente={a} href={hrefs.chatCon(a)} />) : <p className="pc-ctx__nota">Todo tu equipo está en esta conversación.</p>}
+            <Seccion titulo="Tu equipo">
+              {equipo.map((a) => (
+                <FilaAgente key={a} agente={a} href={hrefs.agente(a)} aqui={enChat.has(a)} />
+              ))}
             </Seccion>
         </div>
 
@@ -291,7 +285,7 @@ function FilaAgente({ agente, href, aqui = false }: { agente: IdAgente; href: st
           {a.area} · {a.abarca}
         </span>
       </span>
-      {aqui ? <span className="pc-ctx__etiqueta">En el chat</span> : <Icono nombre="chevron-derecha" tam={14} trazo={2} />}
+      {aqui ? <span className="pc-ctx__etiqueta">Ayudó aquí</span> : <Icono nombre="chevron-derecha" tam={14} trazo={2} />}
     </Enlace>
   );
 }

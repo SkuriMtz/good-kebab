@@ -30,7 +30,6 @@ import {
 } from "@/lib/ajustes";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
 import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil } from "@/lib/nucleo-tipos";
-import { planMinimo } from "@/lib/planes";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
@@ -70,7 +69,6 @@ export type DatosAjustes = {
   negocio: string;
   /** El plan y su uso (como Claude: sesión de 5 horas y semana, en porcentaje). */
   plan: { id: string; nombre: string; uso: EstadoUso; agentes: readonly IdAgente[] };
-  activos: IdAgente[];
   /** Tu equipo del negocio (a quién se le pueden mandar cosas por WhatsApp). */
   contactos: ContactoEquipo[];
   gmail: boolean;
@@ -88,7 +86,6 @@ export type DatosAjustes = {
   guardar?: {
     ajustes: (a: AjustesCuenta) => Promise<string | null>;
     perfil: (cambios: Partial<Record<CampoPerfil, string>>) => Promise<string | null>;
-    equipo: (agentes: IdAgente[]) => Promise<string | null>;
     nombre: (nombre: string) => Promise<string | null>;
     contactos: { agregar: (c: Omit<ContactoEquipo, "id">) => Promise<ContactoEquipo | string>; quitar: (id: string) => Promise<string | null> };
   };
@@ -195,7 +192,7 @@ const PARTES: Parte[] = [
   { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
   { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
-  { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris activar desactivar reglas", grupo: 1, sub: "Activa o desactiva a cada uno y dale sus reglas." },
+  { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris reglas equipo", grupo: 1, sub: "Lo que hace cada uno y las reglas que les dejas." },
   { id: "conexiones", etiqueta: "Conexiones", icono: "enlace", claves: "whatsapp correo gmail outlook calendario redes instagram google business apps", grupo: 1, sub: "WhatsApp, correo, calendario, redes y Google Business." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos silencio correo noche", grupo: 2, sub: "Qué avisos llegan, por dónde y horas de silencio." },
@@ -583,8 +580,6 @@ export function VentanaAjustes({
   const [estado, setEstado] = useState<EstadoGuardado>("listo");
   const [ajustes, setAjustes] = useState<AjustesCuenta>(datos.ajustes);
   const [nombre, setNombre] = useState(datos.nombre);
-  const [activos, setActivos] = useState<IdAgente[]>(datos.activos);
-  const [avisoEquipo, setAvisoEquipo] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<Partial<Record<CampoPerfil, string>> | null>(datos.perfil ?? null);
   const [cambiosPerfil, setCambiosPerfil] = useState<Partial<Record<CampoPerfil, string>>>({});
   const guardar = datos.guardar;
@@ -662,22 +657,6 @@ export function VentanaAjustes({
     setCambiosPerfil((x) => ({ ...x, [c]: v }));
   };
 
-  async function alternarAgente(id: IdAgente) {
-    const esta = activos.includes(id);
-    if (esta && activos.length === 1) return setAvisoEquipo("Tu equipo necesita al menos un agente.");
-    const nuevos = esta ? activos.filter((x) => x !== id) : [...activos, id];
-    const antes = activos;
-    setActivos(nuevos);
-    setAvisoEquipo(null);
-    if (!guardar) return;
-    setEstado("guardando");
-    const e = await guardar.equipo(nuevos);
-    if (e) {
-      setActivos(antes);
-      setEstado({ error: e });
-    } else setEstado("guardado");
-  }
-
   const partes = useMemo(() => {
     const q = sinAcentos(busqueda.trim());
     return q ? PARTES.filter((p) => sinAcentos(`${p.etiqueta} ${p.claves} ${p.sub}`).includes(q)) : PARTES;
@@ -714,7 +693,6 @@ export function VentanaAjustes({
     return () => window.clearTimeout(t);
   }, [resaltar, seccion]);
   const parte = PARTES.find((p) => p.id === seccion) ?? PARTES[0];
-  const libre = datos.plan.id !== "free";
   const conectada = (app: string) => (app === "gmail" && datos.gmail) || datos.conectadas.includes(app);
 
   let contenido: ReactNode;
@@ -935,40 +913,31 @@ export function VentanaAjustes({
   } else if (seccion === "agentes") {
     contenido = (
       <>
-        {!libre ? <p className="pc-aj-nota">Con Atendel Free trabajas con Clara. Con One o Max tienes a todo el equipo; Max trae 5 veces el uso de One.</p> : null}
-        {avisoEquipo ? <p className="pc-aj-nota pc-aj-nota--error">{avisoEquipo}</p> : null}
+        <p className="pc-aj-nota">Le escribes a Atendel y él le pasa cada tarea al agente que le toca. Los cuatro trabajan para ti en todos los planes; aquí les dejas sus reglas.</p>
         <Grupo>
-          {AGENTES_INFO.map((a) => {
-            const enPlan = datos.plan.agentes.includes(a.id);
-            const activo = activos.includes(a.id) && enPlan;
-            return (
-              <div key={a.id} className="pc-aj-bloque">
-                <Fila
-                  ancla={a.nombre}
-                  titulo={
-                    <span className="pc-aj-agente">
-                      <AvatarAgente agente={a.id} tam={26} />
-                      {a.nombre} · {a.area}
-                    </span>
-                  }
-                  texto={enPlan ? a.lema : `Disponible con ${planMinimo(a.id).nombre}.`}
-                >
-                  <Interruptor etiqueta={`${a.nombre} en tu equipo`} activo={activo} deshabilitado={!enPlan || !libre} alCambiar={() => alternarAgente(a.id)} />
-                </Fila>
-                {activo ? (
-                  <Fila titulo={`Reglas para ${a.nombre}`} texto="Lo que siempre debe tomar en cuenta." hija apilada>
-                    <Area
-                      etiqueta={`Reglas para ${a.nombre}`}
-                      valor={ajustes.reglas[a.id] ?? ""}
-                      alCambiar={(v) => cambiar("reglas", { ...ajustes.reglas, [a.id]: v })}
-                      ejemplo={a.id === "lola" ? "Ej.: Confirma las citas un día antes. No des precios por mensaje." : a.id === "clara" ? "Ej.: Lo de proveedores no es urgente." : a.id === "victor" ? "Ej.: A quien no viene en 2 meses, mándale un saludo." : "Ej.: Los reportes, en pesos y por semana."}
-                      max={MAX_REGLAS}
-                    />
-                  </Fila>
-                ) : null}
-              </div>
-            );
-          })}
+          {AGENTES_INFO.map((a) => (
+            <div key={a.id} className="pc-aj-bloque">
+              <Fila
+                ancla={a.nombre}
+                titulo={
+                  <span className="pc-aj-agente">
+                    <AvatarAgente agente={a.id} tam={26} />
+                    {a.nombre} · {a.area}
+                  </span>
+                }
+                texto={a.lema}
+              />
+              <Fila titulo={`Reglas para ${a.nombre}`} texto="Lo que siempre debe tomar en cuenta." hija apilada>
+                <Area
+                  etiqueta={`Reglas para ${a.nombre}`}
+                  valor={ajustes.reglas[a.id] ?? ""}
+                  alCambiar={(v) => cambiar("reglas", { ...ajustes.reglas, [a.id]: v })}
+                  ejemplo={a.id === "lola" ? "Ej.: Confirma las citas un día antes. No des precios por mensaje." : a.id === "clara" ? "Ej.: Lo de proveedores no es urgente." : a.id === "victor" ? "Ej.: A quien no viene en 2 meses, mándale un saludo." : "Ej.: Los reportes, en pesos y por semana."}
+                  max={MAX_REGLAS}
+                />
+              </Fila>
+            </div>
+          ))}
         </Grupo>
         <Grupo>
           <Fila titulo="Todo de tus agentes" texto="Qué hace cada uno y con qué apps trabaja.">
@@ -1135,7 +1104,7 @@ export function VentanaAjustes({
         <Grupo titulo="Cómo se mide">
           <Fila
             titulo="No contamos mensajes"
-            texto="Medimos cuánto trabaja tu equipo en cada respuesta, como Claude. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más."
+            texto="Medimos cuánto trabaja tu equipo en cada respuesta. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más."
           />
           <Fila titulo="Rápido o Avanzado" texto="En el chat eliges el modelo. Rápido es para el día a día y gasta muy poco; Avanzado es para lo pesado (Excel, análisis) y gasta unas 40 veces más por mensaje." />
           <Fila titulo="Sesión de 5 horas" texto="Empieza con tu primer mensaje y se reinicia 5 horas después. Además hay un límite por semana, que se reinicia el lunes." />

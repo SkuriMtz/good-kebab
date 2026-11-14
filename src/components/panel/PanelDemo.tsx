@@ -155,7 +155,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   const indice: ResultadoBusqueda[] = useMemo(
     () => [
-      { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/pruebalo" },
+      { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/pruebalo" },
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y su semana", icono: "agentes", href: "/pruebalo?vista=agentes" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
       { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
@@ -165,8 +165,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Lo que Clara leyó hoy", icono: "correo", href: "/pruebalo?vista=correo" },
       { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó", icono: "rayo", href: "/pruebalo?vista=actividad" },
       { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/pruebalo?vista=ajustes" },
-      ...AGENTES_INFO.map((a) => ({ id: `a-${a.id}`, grupo: "Tu equipo", titulo: `Hablar con ${a.nombre}`, detalle: `${a.area} · ${a.abarca}`, agentes: [a.id], claves: a.capacidades.join(" "), href: `/pruebalo?con=${a.id}` })),
-      ...PEDIDOS.map((p) => ({ id: `p-${p.id}`, grupo: "Pídele a tu equipo", titulo: p.titulo, detalle: p.detalle, agentes: [p.agente], href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}` })),
+      ...AGENTES_INFO.map((a) => ({ id: `a-${a.id}`, grupo: "Agentes", titulo: `${a.nombre} · ${a.area}`, detalle: a.abarca, agentes: [a.id], claves: a.capacidades.join(" "), href: `/pruebalo?vista=agentes&agente=${a.id}` })),
+      ...PEDIDOS.map((p) => ({ id: `p-${p.id}`, grupo: "Pídele a Atendel", titulo: p.titulo, detalle: p.detalle, agentes: [p.agente], href: `/pruebalo?pide=${encodeURIComponent(p.texto)}` })),
     ],
     [],
   );
@@ -208,7 +208,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
             negocio: "/pruebalo?vista=negocio&tab=apps",
             documentos: "/pruebalo?vista=negocio&tab=documentos",
             ajustes: "/pruebalo?vista=ajustes",
-            chatCon: (a) => `/pruebalo?con=${a}`,
+            agente: (a) => `/pruebalo?vista=agentes&agente=${a}`,
           }}
           alCerrar={alCerrar}
         />
@@ -310,7 +310,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           correo: DEMO_USUARIA.correo,
           negocio: "Estudio Luna",
           plan: { id: PLAN.id, nombre: PLAN.nombre, uso: USO_DEMO, agentes: PLAN.agentes },
-          activos: ["lola", "clara", "victor", "iris"],
           gmail: true,
           conectadas: ["google_calendar"],
           contactos: EQUIPO_DEMO,

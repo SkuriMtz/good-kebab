@@ -7,7 +7,7 @@ export type Cuenta = {
   plan: Plan;
   /** Agentes que la persona eligió para su equipo. */
   elegidos: IdAgente[];
-  /** Agentes que de verdad puede usar (lo elegido que su plan permite). */
+  /** Los agentes que trabajan para la persona: todos los de su plan. */
   activos: IdAgente[];
   usados: number;
   negocio: string;
@@ -28,9 +28,9 @@ export async function cargarCuenta(supabase: SupabaseClient, userId: string): Pr
   const plan = planDe(sus.data?.plan);
   // Sin elección guardada: todo lo que su plan incluye
   const elegidos = eleg.data ? (eleg.data.agentes as unknown[]).filter(esIdAgente) : [...plan.agentes];
-  const permitidos = plan.agentes.filter((id) => elegidos.includes(id));
-  // Si lo que eligió antes ya no está en su plan, se queda con todo lo que el plan incluye
-  const activos = plan.id === "free" || !permitidos.length ? [...plan.agentes] : permitidos;
+  // Le escribes a Atendel y él reparte el trabajo: los 4 agentes trabajan siempre
+  // (todos los planes los traen). Lo que se eligió antes ya no apaga a nadie.
+  const activos = [...plan.agentes];
 
   return {
     plan,

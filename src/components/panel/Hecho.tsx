@@ -152,7 +152,7 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
         <Vacio
           agente="iris"
           titulo={items.length ? "Nada de ese agente todavía" : "Todavía no hay nada hecho"}
-          texto={items.length ? "Prueba con otro o con Todo." : "Pídele algo a tu equipo en el chat: lo que termine aparece aquí, con lo que entregó."}
+          texto={items.length ? "Prueba con otro o con Todo." : "Pídele algo a Atendel en el chat: lo que tu equipo termine aparece aquí, con lo que entregó."}
         />
       )}
     </Seccion>

@@ -48,7 +48,7 @@ export type ItemTablero = {
   /** Se puede aprobar y cambiar (en /pruebalo). */
   movible?: boolean;
   editado?: boolean;
-  /** Enlaces propios (en /panel: "Ver en Correo", "Pedírselo a Clara"). */
+  /** Enlaces propios (en /panel: "Ver en Correo", "Pedírselo a Atendel"). */
   acciones?: ReactNode;
 };
 

@@ -484,7 +484,7 @@ export function Chat({
         const sinGmail = p.requiere === "gmail" && !conGoogle;
         return {
           pedido: p,
-          href: !enEquipo ? (enPlan ? "/panel/agentes" : "/precios") : sinGmail ? "/panel?vista=correo#gmail" : `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}`,
+          href: !enEquipo ? (enPlan ? "/panel/agentes" : "/precios") : sinGmail ? "/panel?vista=correo#gmail" : `/panel?pide=${encodeURIComponent(p.texto)}${conFiltro}`,
           bloqueado: enEquipo ? undefined : enPlan ? "Fuera de tu equipo" : `Llega con ${planMinimo(p.agente).nombre}`,
           insignia: !enEquipo
             ? undefined

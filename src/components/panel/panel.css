@@ -2155,9 +2155,9 @@ button.pc-tarjeta {
   gap: 12px;
   padding: 16px;
 }
+/* El que se buscó: borde un poco más claro, sin aro azul */
 .pc-agente:has([data-enfocado]) {
-  border-color: var(--pc-foco);
-  box-shadow: 0 0 0 1px var(--pc-foco);
+  border-color: color-mix(in srgb, var(--pc-texto) 38%, transparent);
 }
 .pc-agente__cabeza {
   display: flex;

@@ -77,8 +77,8 @@ export function PendientesReal({
                 <Enlace href={`/panel?vista=correo&de=${encodeURIComponent(quien)}#historial`} className={claseBoton("borde", true)}>
                   Ver en Correo
                 </Enlace>
-                <Enlace href={`/panel?agente=clara&pide=${encodeURIComponent(`Ayúdame con el correo de ${quien} («${c.asunto ?? "sin asunto"}»): ${c.accion_sugerida}`)}`} className={claseBoton("fantasma", true)}>
-                  Pedírselo a Clara
+                <Enlace href={`/panel?pide=${encodeURIComponent(`Ayúdame con el correo de ${quien} («${c.asunto ?? "sin asunto"}»): ${c.accion_sugerida}`)}`} className={claseBoton("fantasma", true)}>
+                  Pedírselo a Atendel
                 </Enlace>
               </>
             ),
@@ -152,11 +152,11 @@ export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string;
       <Vacio
         agente="lola"
         titulo="Todavía no hay citas"
-        texto="Tus citas aparecen aquí cuando conectes WhatsApp con Lola. Mientras, puedes pedirle en el chat los mensajes para confirmar o reagendar."
+        texto="Tus citas aparecen aquí cuando conectes WhatsApp. Mientras, pídele a Atendel en el chat los mensajes para confirmar o reagendar."
         accion={
           conLola ? (
-            <Enlace href={`/panel?agente=lola&pide=${encodeURIComponent("Escribe un mensaje para confirmar las citas de mañana, corto y amable.")}`} className={claseBoton("principal", true)}>
-              Pedírselo a Lola
+            <Enlace href={`/panel?pide=${encodeURIComponent("Escribe un mensaje para confirmar las citas de mañana, corto y amable.")}`} className={claseBoton("principal", true)}>
+              Pedírselo a Atendel
             </Enlace>
           ) : (
             <Enlace href="/precios" className={claseBoton("borde", true)}>

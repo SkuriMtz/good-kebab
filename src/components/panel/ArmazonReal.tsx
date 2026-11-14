@@ -175,7 +175,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     correo: datos.correo,
     negocio: datos.negocio,
     plan: { id: datos.planId, nombre: `Atendel ${datos.plan}`, uso: datos.uso, agentes: datos.planAgentes },
-    activos: datos.activos,
     gmail: datos.gmail,
     conectadas: datos.conectadas,
     contactos: datos.contactos,
@@ -186,12 +185,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     guardar: {
       ajustes: (a) => poner("/api/ajustes", { ajustes: a }),
       perfil: (cambios) => poner("/api/negocio/perfil", cambios),
-      equipo: async (agentes) => {
-        const { error: e } = await createClient().from("agentes_elegidos").upsert({ owner_id: datos.userId, agentes, actualizado_en: new Date().toISOString() });
-        if (e) return "No se pudo guardar tu equipo. Intenta de nuevo.";
-        router.refresh();
-        return null;
-      },
       contactos: {
         agregar: async (c) => {
           const { data, error: e } = await createClient().from("equipo_contactos").insert({ owner_id: datos.userId, ...c }).select("id, nombre, rol, whatsapp").single();
@@ -213,8 +206,8 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   };
 
   const indice: ResultadoBusqueda[] = [
-    { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a tu equipo", icono: "mas", href: "/panel" },
-    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Tu equipo y quién está en él", icono: "agentes", href: "/panel/agentes" },
+    { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/panel" },
+    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Quién hace cada cosa", icono: "agentes", href: "/panel/agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
@@ -225,21 +218,21 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/panel?vista=ajustes" },
     ...AGENTES_INFO.filter((a) => datos.activos.includes(a.id)).map((a) => ({
       id: `a-${a.id}`,
-      grupo: "Tu equipo",
-      titulo: `Hablar con ${a.nombre}`,
-      detalle: `${a.area} · ${a.abarca}`,
+      grupo: "Agentes",
+      titulo: `${a.nombre} · ${a.area}`,
+      detalle: a.abarca,
       agentes: [a.id],
       claves: a.capacidades.join(" "),
-      href: `/panel?agente=${a.id}`,
+      href: `/panel/agentes?agente=${a.id}`,
     })),
     ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
     ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
       id: `p-${p.id}`,
-      grupo: "Pídele a tu equipo",
+      grupo: "Pídele a Atendel",
       titulo: p.titulo,
       detalle: p.detalle,
       agentes: [p.agente],
-      href: `/panel?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}`,
+      href: `/panel?pide=${encodeURIComponent(p.texto)}`,
     })),
   ];
 
@@ -287,7 +280,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               negocio: "/panel?vista=negocio&tab=apps",
               documentos: "/panel?vista=negocio&tab=documentos",
             ajustes: "/panel?vista=ajustes",
-              chatCon: (a) => `/panel?agente=${a}`,
+              agente: (a) => `/panel/agentes?agente=${a}`,
             }}
             alCerrar={alCerrar}
           />

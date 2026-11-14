@@ -369,7 +369,7 @@ export const es = {
           { p: "¿Necesito tarjeta para empezar?", r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo." },
           {
             p: "¿Cómo se mide el uso?",
-            r: "Como en Claude: no contamos mensajes, medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más, y el modelo Avanzado gasta mucho más que el Rápido. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. Max tiene 5 veces el uso de One.",
+            r: "No contamos mensajes: medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más, y el modelo Avanzado gasta mucho más que el Rápido. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. Max tiene 5 veces el uso de One.",
           },
           {
             p: "¿Cómo cambio de plan?",
