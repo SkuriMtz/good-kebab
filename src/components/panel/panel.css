@@ -8280,7 +8280,35 @@ a.pc-correo__accion:hover {
    estilo Gemini: para qué sirve arriba, el modelo abajo, la palomita a la
    izquierda y "Gasta más" en píldora.
    ===================================================================== */
-/* La caja queda como estaba antes (borde, esquinas de 16px y 48px de alto: sección 21) */
+/* La caja como estaba antes (borde y esquinas de 16px), un poco más chaparra:
+   de ~50px a ~42px. Con el dedo, los botones se quedan de 36px para picarlos fácil */
+.pc .pc-caja[data-forma="fila"] .prompt-bar__field {
+  padding: 4px 4px 4px 6px;
+  border-radius: 14px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__input {
+  min-height: 32px;
+  padding: 4px 4px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__tool {
+  width: 32px;
+  height: 32px;
+}
+.pc .pc-caja[data-forma="fila"] .prompt-bar__send {
+  width: 28px;
+  height: 28px;
+  margin: 2px;
+}
+@media (pointer: coarse) {
+  .pc .pc-caja[data-forma="fila"] .prompt-bar__tool {
+    width: 36px;
+    height: 36px;
+  }
+  .pc .pc-caja[data-forma="fila"] .prompt-bar__send {
+    width: 32px;
+    height: 32px;
+  }
+}
 
 /* El selector, afuera de la caja */
 .pc .pc-modelo {
