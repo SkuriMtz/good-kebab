@@ -17,7 +17,8 @@ import { conTransicion, rutaPintada } from "@/lib/transiciones";
 import { ActividadDemo } from "./Actividad";
 import { Hecho } from "./Hecho";
 import { Oficina, type ItemOficina } from "./Oficina";
-import { oficinaDeEjemplo } from "./oficina-demo";
+import { oficinaDeEjemplo, revisionDeEjemplo } from "./oficina-demo";
+import { RevisionDiaria } from "./RevisionDiaria";
 import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, EVENTO_PENDIENTE_DEMO, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
@@ -229,7 +230,18 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       setOficina((l) => l.map((x) => (x.id === id ? { ...x, revision } : x)));
       return null;
     };
-    contenido = <Oficina items={oficina} ahora={ahora} hrefChat="/pruebalo" demo alAprobar={(id) => marcar(id, "aprobado")} alPedirCambios={(item) => marcar(item.id, "cambios")} />;
+    const revision = revisionDeEjemplo(ahora, porRevisarOficina);
+    contenido = (
+      <Oficina
+        items={oficina}
+        ahora={ahora}
+        hrefChat="/pruebalo"
+        demo
+        arriba={<RevisionDiaria revision={revision} hoy={revision.fecha} hora="08:00" activa zona="America/Mexico_City" hrefAjustes="/pruebalo?vista=ajustes&seccion=atendel" alRevisar={() => null} />}
+        alAprobar={(id) => marcar(id, "aprobado")}
+        alPedirCambios={(item) => marcar(item.id, "cambios")}
+      />
+    );
   } else if (valida === "hecho" || (valida === "pendientes" && params.get("tab") === "hecho")) {
     contenido = <Hecho items={hechoDeEjemplo(ahora)} ahora={ahora} base="/pruebalo?vista=pendientes" porRevisar={porRevisar} demo />;
   } else if (valida === "pendientes") {

@@ -18,6 +18,8 @@ import {
   REGIMENES_FISCALES,
   USOS_CFDI,
   ZONAS_HORARIAS,
+  HORAS_REVISION,
+  type HoraRevision,
   rfcValido,
   type Acento,
   type Fuente,
@@ -144,6 +146,7 @@ const OPCIONES: Opcion[] = [
   { parte: "agentes", titulo: "Clara", claves: "correo gmail activar reglas" },
   { parte: "agentes", titulo: "Víctor", claves: "clientes seguimiento activar reglas" },
   { parte: "agentes", titulo: "Iris", claves: "oficina excel reportes activar reglas" },
+  { parte: "atendel", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
   { parte: "conexiones", titulo: "WhatsApp", claves: "whatsapp business mensajes" },
   { parte: "conexiones", titulo: "Correo · Gmail", claves: "gmail google correo" },
   { parte: "conexiones", titulo: "Correo · Outlook", claves: "outlook hotmail microsoft correo" },
@@ -189,7 +192,7 @@ const OPCIONES: Opcion[] = [
   { parte: "cuenta", titulo: "Cerrar sesión en todos lados", claves: "salir sesion dispositivos" },
 ];
 const PARTES: Parte[] = [
-  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
+  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
   { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
   { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris reglas equipo", grupo: 1, sub: "Lo que hace cada uno y las reglas que les dejas." },
@@ -728,6 +731,16 @@ export function VentanaAjustes({
               Ver documentos
             </Enlace>
           </Fila>
+        </Grupo>
+        <Grupo titulo="Revisión diaria">
+          <Fila titulo="Que revisen todo solos" texto="Cada día, a esa hora, cada agente revisa su parte y te deja en la Oficina lo que falta, aunque no entres al panel.">
+            <Interruptor etiqueta="Revisión diaria" activo={ajustes.revisionDiaria === "activa"} alCambiar={(v) => cambiar("revisionDiaria", v ? "activa" : "apagada")} />
+          </Fila>
+          {ajustes.revisionDiaria === "activa" ? (
+            <Fila titulo="A qué hora" texto="En la zona horaria de tu cuenta." hija>
+              <Selector etiqueta="Hora de la revisión diaria" valor={ajustes.horaRevision} alCambiar={(v) => cambiar("horaRevision", v as HoraRevision)} opciones={HORAS_REVISION.map((h) => ({ id: h, nombre: h }))} />
+            </Fila>
+          ) : null}
         </Grupo>
         <Grupo titulo="Siempre">
           <Fila titulo="Tu visto bueno antes de enviar" texto="Por ahora tus agentes solo leen y te proponen: nada sale a tus clientes sin ti.">

@@ -9037,3 +9037,120 @@ a.pc-correo__accion:hover {
     height: 76px;
   }
 }
+
+/* =====================================================================
+   42. Revisión diaria (arriba de la Oficina): cada agente con lo que falta
+   ===================================================================== */
+.pc-revision {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 32px;
+  padding: 18px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 14px;
+  background: var(--pc-tarjeta);
+}
+.pc-revision__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pc-revision__textos {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.pc-revision__titulo {
+  font-size: 16px;
+  font-weight: 600;
+}
+.pc-revision__titulo::first-letter {
+  text-transform: uppercase;
+}
+.pc-revision__resumen {
+  color: var(--pc-texto-2);
+  font-size: 14px;
+}
+.pc-revision__agentes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-revision__agente {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-top: 1px solid var(--pc-division);
+}
+.pc-revision__quien {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.pc-revision__nombre {
+  font-size: 14px;
+  font-weight: 600;
+}
+.pc-revision__area {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-revision__ok {
+  margin-left: auto;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-revision__faltan {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0 0 0 30px;
+  list-style: none;
+}
+.pc .pc-revision__falta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: var(--pc-texto);
+  font-size: 14px;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.pc .pc-revision__falta > svg {
+  flex: none;
+  color: var(--pc-texto-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-revision__falta:hover {
+    background: var(--pc-hover);
+  }
+}
+.pc-revision__pie {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc .pc-revision__pie a {
+  color: var(--pc-texto);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pc-oficina__titulo {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .pc-revision {
+    padding: 14px;
+  }
+  .pc-revision__faltan {
+    padding-left: 0;
+  }
+}

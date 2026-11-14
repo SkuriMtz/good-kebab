@@ -1,4 +1,5 @@
 import type { ItemOficina } from "./Oficina";
+import type { DatosRevision } from "./RevisionDiaria";
 
 /**
  * La Oficina de ejemplo de /pruebalo (Estudio Luna): lo que el equipo dejó
@@ -100,4 +101,26 @@ export function oficinaDeEjemplo(ahora: number): ItemOficina[] {
       },
     },
   ];
+}
+
+/** La revisión de hoy de Estudio Luna (en la cuenta real la arma la base de datos sola, cada día). */
+export function revisionDeEjemplo(ahora: number, porRevisar: number): DatosRevision {
+  // A las 8:00 de hoy en la Ciudad de México (UTC−6); antes de las 8, la de ayer
+  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(new Date(ahora));
+  let creado = new Date(`${hoy}T08:00:00-06:00`);
+  if (creado.getTime() > ahora) creado = new Date(creado.getTime() - 86_400_000);
+  const fecha = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(creado);
+  const partes: DatosRevision["partes"] = [
+    { agente: "lola", faltan: [{ texto: "2 mensajes esperan tu visto bueno para enviarse.", href: "/pruebalo?vista=pendientes" }] },
+    {
+      agente: "clara",
+      faltan: [
+        { texto: "3 correos de estos días esperan respuesta.", href: "/pruebalo?vista=pendientes" },
+        { texto: "1 factura vence esta semana: Limpieza Brillo, el 20.", href: "/pruebalo?vista=correo" },
+      ],
+    },
+    { agente: "victor", faltan: [] },
+    { agente: "iris", faltan: porRevisar ? [{ texto: porRevisar === 1 ? "1 archivo espera tu revisión en la Oficina." : `${porRevisar} archivos esperan tu revisión en la Oficina.`, href: "/pruebalo?vista=oficina" }] : [] },
+  ];
+  return { fecha, creado: creado.toISOString(), partes, faltan: partes.reduce((n, p) => n + p.faltan.length, 0) };
 }

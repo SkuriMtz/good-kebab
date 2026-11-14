@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, Modal, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
+import { RevisionDiaria, type DatosRevision } from "./RevisionDiaria";
 
 /* =====================================================================
    OFICINA: lo que tu equipo te dejó mientras no estabas (una presentación,
@@ -166,7 +167,10 @@ export function Oficina({
   alPedirCambios,
   hrefChat,
   demo = false,
+  arriba,
 }: {
+  /** Arriba de los archivos: la revisión diaria de tu equipo. */
+  arriba?: ReactNode;
   items: ItemOficina[];
   ahora: number;
   /** Devuelve un error o null. */
@@ -211,7 +215,9 @@ export function Oficina({
 
   return (
     <Seccion>
-      <TituloSeccion titulo="Oficina" texto="Lo que tu equipo te dejó mientras no estabas: una presentación, un Excel, un informe. Ábrelo, apruébalo o pide cambios." />
+      <TituloSeccion titulo="Oficina" texto="Lo que tu equipo te dejó mientras no estabas: su revisión del día y los archivos que te hizo. Ábrelos, apruébalos o pide cambios." />
+      {arriba}
+      <h2 className="pc-oficina__titulo">Archivos</h2>
       <div className="pc-filtros" role="group" aria-label="Qué ver">
         <button type="button" className="pc-pildora" aria-pressed={tab === "revisar"} onClick={() => setTab("revisar")}>
           Por revisar
@@ -351,9 +357,30 @@ export function Oficina({
 }
 
 /** La Oficina de la cuenta real: aprobar guarda la revisión; pedir cambios la guarda y abre el chat con lo que pediste. */
-export function OficinaReal({ items, ahora }: { items: ItemOficina[]; ahora: number }) {
+export function OficinaReal({
+  items,
+  ahora,
+  revision,
+  hoy,
+  hora,
+  activa,
+  zona,
+}: {
+  zona: string;
+  items: ItemOficina[];
+  ahora: number;
+  revision: DatosRevision | null;
+  hoy: string;
+  hora: string;
+  activa: boolean;
+}) {
   const router = useRouter();
   const [lista, setLista] = useState(items);
+  // Ya la viste: se marca leída (solo cambia leido_en)
+  useEffect(() => {
+    if (!revision?.id || revision.leida) return;
+    void createClient().from("revisiones").update({ leido_en: new Date().toISOString() }).eq("id", revision.id).then(() => router.refresh());
+  }, [revision?.id, revision?.leida, router]);
   const marcar = async (id: string, revision: Revision) => {
     const { error } = await createClient().from("archivos").update({ revision, revisado_en: new Date().toISOString() }).eq("id", id);
     if (error) return "No se pudo guardar. Intenta de nuevo.";
@@ -366,6 +393,22 @@ export function OficinaReal({ items, ahora }: { items: ItemOficina[]; ahora: num
       items={lista}
       ahora={ahora}
       hrefChat="/panel"
+      arriba={
+        <RevisionDiaria
+          revision={revision}
+          hoy={hoy}
+          hora={hora}
+          activa={activa}
+          zona={zona}
+          hrefAjustes="/panel?vista=ajustes&seccion=atendel"
+          alRevisar={async () => {
+            const { error } = await createClient().rpc("revisar_ahora");
+            if (error) return "No se pudo revisar ahora. Intenta de nuevo.";
+            router.refresh();
+            return null;
+          }}
+        />
+      }
       alAprobar={(id) => marcar(id, "aprobado")}
       alPedirCambios={async (item, texto) => {
         const e = await marcar(item.id, "cambios");

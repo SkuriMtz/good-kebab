@@ -4,6 +4,8 @@ import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaN
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
 import { Hecho } from "@/components/panel/Hecho";
 import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
+import { partesDe } from "@/components/panel/RevisionDiaria";
+import { limpiarAjustes } from "@/lib/ajustes";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
@@ -56,12 +58,14 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
 
   if (searchParams.vista === "oficina") {
-    const { data } = await supabase
-      .from("archivos")
-      .select("id, nombre, tipo, agente, conversacion_id, creado_en, revision")
-      .eq("owner_id", user.id)
-      .order("creado_en", { ascending: false })
-      .limit(100);
+    const [{ data }, { data: rev }, { data: filaAjustes }] = await Promise.all([
+      supabase.from("archivos").select("id, nombre, tipo, agente, conversacion_id, creado_en, revision").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(100),
+      // La revisión diaria más reciente (la arma la base de datos sola, migración 0015)
+      supabase.from("revisiones").select("id, fecha, creado_en, partes, faltan, leido_en").eq("owner_id", user.id).order("fecha", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
+    ]);
+    const aj = limpiarAjustes(filaAjustes?.datos);
+    const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: aj.zonaHoraria }).format(new Date());
     const TIPOS: TipoArchivo[] = ["pptx", "xlsx", "docx", "pdf"];
     const REVISIONES: Revision[] = ["revisar", "aprobado", "cambios"];
     const items: ItemOficina[] = (data ?? []).map((a) => ({
@@ -74,7 +78,21 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       abrir: `/api/archivos/${a.id}`,
       conversacion: a.conversacion_id ? String(a.conversacion_id) : undefined,
     }));
-    return <OficinaReal items={items} ahora={Date.now()} />;
+    return (
+      <OficinaReal
+        items={items}
+        ahora={Date.now()}
+        hoy={hoy}
+        hora={aj.horaRevision}
+        zona={aj.zonaHoraria}
+        activa={aj.revisionDiaria === "activa"}
+        revision={
+          rev
+            ? { id: String(rev.id), fecha: String(rev.fecha), creado: String(rev.creado_en), partes: partesDe(rev.partes), faltan: Number(rev.faltan) || 0, leida: rev.leido_en !== null }
+            : null
+        }
+      />
+    );
   }
 
   if (searchParams.vista === "estadisticas") {

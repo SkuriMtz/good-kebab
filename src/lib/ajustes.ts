@@ -57,6 +57,11 @@ export const ENLACES = ["normal", "subrayados"] as const;
 export type Enlaces = (typeof ENLACES)[number];
 export const HORAS = ["mostrar", "ocultar"] as const;
 export type Horas = (typeof HORAS)[number];
+/** La revisión diaria: cada día, a esa hora, tus agentes revisan solos su parte y te dejan lo que falta (lo hace la base de datos, migración 0015). */
+export const REVISIONES = ["activa", "apagada"] as const;
+export type RevisionDiaria = (typeof REVISIONES)[number];
+export const HORAS_REVISION = ["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"] as const;
+export type HoraRevision = (typeof HORAS_REVISION)[number];
 
 /**
  * El idioma de todo: el panel (TraduccionPanel lo traduce con /api/traducir)
@@ -168,6 +173,8 @@ export type AjustesCuenta = {
   firma: string;
   reglas: Partial<Record<IdAgente, string>>;
   zonaHoraria: string;
+  revisionDiaria: RevisionDiaria;
+  horaRevision: HoraRevision;
   acento: Acento;
   letra: Letra;
   fuente: Fuente;
@@ -199,6 +206,8 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   firma: "",
   reglas: {},
   zonaHoraria: "America/Mexico_City",
+  revisionDiaria: "activa",
+  horaRevision: "08:00",
   acento: "azul",
   letra: "normal",
   fuente: "geist",
@@ -248,6 +257,8 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
       ZONAS_HORARIAS.map((z) => z.id),
       b.zonaHoraria,
     ),
+    revisionDiaria: uno(a.revisionDiaria, REVISIONES, b.revisionDiaria),
+    horaRevision: uno(a.horaRevision, HORAS_REVISION, b.horaRevision),
     acento: uno(a.acento, ACENTOS, b.acento),
     letra: uno(a.letra, LETRAS, b.letra),
     fuente: uno(a.fuente, FUENTES, b.fuente),

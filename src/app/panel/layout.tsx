@@ -33,7 +33,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   // El uso del plan (sesión de 5 horas y semana), para Ajustes > Uso
   const uso = await leerUso(supabase, user.id, cuenta.plan);
 
-  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }, { count: porRevisarOficina }] = await Promise.all([
+  const [{ data: convs }, pendientes, { data: filaAjustes }, { data: conexiones }, { data: contactos }, { count: porRevisarOficina }, { count: revisionNueva }] = await Promise.all([
     supabase
       .from("conversaciones")
       .select("id, agente, titulo, tema, participantes, actualizado_en")
@@ -50,6 +50,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     supabase.from("equipo_contactos").select("id, nombre, rol, whatsapp").eq("owner_id", user.id).order("creado_en"),
     // La Oficina: los archivos que tu equipo te dejó y siguen por revisar (migración 0014)
     supabase.from("archivos").select("id", { count: "exact", head: true }).eq("owner_id", user.id).eq("revision", "revisar"),
+    // La revisión diaria que todavía no ves y que encontró algo (migración 0015)
+    supabase.from("revisiones").select("id", { count: "exact", head: true }).eq("owner_id", user.id).is("leido_en", null).gt("faltan", 0),
   ]);
   const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
 
@@ -92,7 +94,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         gmail: conGoogle,
         activos: cuenta.activos,
         pendientes: pendientes.total,
-        oficina: porRevisarOficina ?? null,
+        oficina: (porRevisarOficina ?? 0) + Math.min(1, revisionNueva ?? 0) || null,
         chats,
         organizacion,
       }}
