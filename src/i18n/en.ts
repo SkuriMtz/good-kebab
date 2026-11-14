@@ -479,8 +479,8 @@ export const en: Diccionario = {
     free: {
       nivel: "Free",
       precio: "$0",
-      resumen: "Get to know Atendel with your email agent.",
-      incluye: ["Clara, your email agent", "Usage to try it out", "Email summaries"],
+      resumen: "Get to know Atendel with its whole team.",
+      incluye: ["All 4 agents: Front desk, Email, Clients and Office", "Fast model", "Usage to try it out"],
       uso: "To try it out",
     },
     one: {

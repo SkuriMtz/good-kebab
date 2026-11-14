@@ -3,23 +3,20 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
-import { Personaje } from "@/components/agentes/Personaje";
+import PromptBar from "@/components/PromptBar";
 import { Giro } from "@/components/base/Iconos";
 import { ContextoChats } from "@/components/panel/contexto";
 import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO } from "@/components/panel/MenuChats";
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
-import { AvisoHilo, Copiar, DiaHilo, Escribiendo, LineaEscribe, MensajeAgente, MensajeTuyo, nombresDe } from "@/components/panel/Mensajes";
+import { AvisoHilo, DiaHilo, EquipoAtendel, MensajeTuyo, RespuestaAtendel, nombresDe } from "@/components/panel/Mensajes";
 import { separarEstado } from "@/lib/estado-chat";
 import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
-import { NuevoGrupo } from "@/components/panel/NuevoGrupo";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
-import { SelectorAgente, type OpcionAgente } from "@/components/panel/Selector";
 import { useSugerencia } from "@/components/panel/sugerencias";
 import { esArea, pedidosDe, type IdArea } from "@/components/panel/pedidos";
-import { AGENTE_POR_ID, AGENTES_INFO, esIdAgente, type IdAgente } from "@/lib/agentes";
+import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { comandosDe } from "@/lib/comandos";
 import { partirIntervenciones } from "@/lib/grupo";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
@@ -50,21 +47,9 @@ type Mensaje = {
   /** Lo que hace el agente con una app mientras contesta ("Clara está revisando tu correo…"). */
   estado?: string | null;
 };
-/** Lo que se pinta: cada voz de una respuesta en grupo es su propia pieza. */
-type Pieza = {
-  key: string;
-  de: "tu" | IdAgente;
-  texto: string;
-  fecha: Date;
-  nuevo?: boolean;
-  enCurso?: boolean;
-  error?: string;
-  estado?: string | null;
-};
 
 const MARCA_ERROR = "\u0000ERROR:";
 const MAX_MENSAJE = 4000;
-const MAX_TEMA = 120;
 
 const mismoDia = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 const hora = (d: Date) => d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -121,7 +106,6 @@ export function Chat({
   activos,
   bloqueoInicial,
   conversacionesIniciales,
-  agenteInicial,
   conversacionInicial,
   textoInicial,
   saludo,
@@ -132,8 +116,8 @@ export function Chat({
   /** Si ya se llegó al límite de uso (sesión de 5 horas o semana): el aviso y hasta cuándo. */
   bloqueoInicial: Bloqueo | null;
   conversacionesIniciales: Conversacion[];
-  /** ?agente=: hablar solo con ese agente. Sin esto, con todo el equipo (si el plan trae grupos). */
-  agenteInicial: IdAgente | null;
+  /** Ya no se usa: le escribes a Atendel y él reparte (se queda para no romper enlaces viejos con ?agente=). */
+  agenteInicial?: IdAgente | null;
   conversacionInicial: string | null;
   /** Lo que se pidió desde una tarjeta o el buscador: llega escrito, listo para enviar. */
   textoInicial?: string;
@@ -145,11 +129,11 @@ export function Chat({
   const plan = PLAN_POR_ID[planId];
   // Rápido o Avanzado (como el selector de Claude); se recuerda en este navegador
   const selector = useModelo(plan.modelos);
-  const puedeGrupos = activos.length >= 2;
-  const [agente, setAgente] = useState<IdAgente>(agenteInicial ?? activos[0] ?? "clara");
-  const [grupo, setGrupo] = useState<IdAgente[] | null>(!agenteInicial && puedeGrupos ? activos : null);
-  const [tema, setTema] = useState<string | null>(null);
-  const [creando, setCreando] = useState(false);
+  // Chat único: le escribes a Atendel y él reparte el trabajo a todo tu equipo
+  // (las conversaciones viejas con un solo agente se siguen abriendo como estaban)
+  const equipo: IdAgente[] | null = activos.length >= 2 ? activos : null;
+  const [agente, setAgente] = useState<IdAgente>(activos[0] ?? "clara");
+  const [grupo, setGrupo] = useState<IdAgente[] | null>(equipo);
   const [conversaciones, setConversaciones] = useState(conversacionesIniciales);
   const [actual, setActual] = useState<string | null>(null);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -183,7 +167,6 @@ export function Chat({
   const todas = useRef<Conversacion[]>([]);
   todas.current = [...conversaciones, ...conversacionesIniciales];
 
-  const info = AGENTE_POR_ID[agente];
   const participantes: IdAgente[] = grupo ?? [agente];
   const disponible = participantes.every((id) => activos.includes(id));
   const sinMensajes = bloqueo !== null;
@@ -215,20 +198,18 @@ export function Chat({
   );
 
   /** Deja el chat listo para una conversación nueva (sin tocar la dirección). */
-  const reiniciar = useCallback((ids: IdAgente[] | null, id: IdAgente, temaNuevo: string | null) => {
+  const reiniciar = useCallback(() => {
     abortar.current?.abort();
-    setAgente(id);
-    setGrupo(ids);
-    setTema(temaNuevo);
-    setCreando(false);
+    setAgente(activos[0] ?? "clara");
+    setGrupo(activos.length >= 2 ? activos : null);
     setActual(null);
     setMensajes([]);
     setAviso(null);
-  }, []);
+  }, [activos]);
 
-  const nueva = (id: IdAgente) => {
-    reiniciar(null, id, null);
-    ponerUrl({ agente: id });
+  const nueva = () => {
+    reiniciar();
+    ponerUrl({});
   };
 
   // El "⋯" del menú cambió el nombre o eliminó una conversación: la cabecera se actualiza y,
@@ -237,8 +218,7 @@ export function Chat({
   alEliminarDesdeMenu.current = (id: string) => {
     setConversaciones((l) => l.filter((x) => x.id !== id));
     if (actual === id) {
-      const c = todas.current.find((x) => x.id === id);
-      reiniciar(null, c?.agente ?? agente, null);
+      reiniciar();
       ponerUrl({});
     }
   };
@@ -259,19 +239,12 @@ export function Chat({
     };
   }, []);
 
-  const nuevoGrupo = (ids: IdAgente[], temaNuevo: string | null) => {
-    reiniciar(ids, ids[0], temaNuevo);
-    ponerUrl({});
-  };
-
   const abrir = useCallback(async (c: Conversacion) => {
     abortar.current?.abort();
-    setCreando(false);
     setAviso(null);
     setActual(c.id);
     setAgente(c.agente);
     setGrupo(integrantes(c));
-    setTema(c.tema ?? null);
     setMensajes([]);
     setCargando(true);
     const { data, error } = await createClient()
@@ -303,14 +276,12 @@ export function Chat({
       return;
     }
     if (primera) return; // lo demás ya viene en el estado inicial
-    const pedido = p.get("agente");
     const pide = p.get("pide");
-    if (!actualRef.current && !pedido && !pide) return; // solo cambió el filtro
-    const id = esIdAgente(pedido) ? pedido : null;
-    if (id) reiniciar(null, id, null);
-    else if (actualRef.current) reiniciar(puedeGrupos ? activos : null, activos[0] ?? "clara", null);
+    // ?agente= ya no elige a nadie: todo va a Atendel (que reparte)
+    if (!actualRef.current && !p.get("agente") && !pide) return; // solo cambió el filtro
+    if (actualRef.current) reiniciar();
     setCaja((k) => ({ texto: pide ? pide.slice(0, 2000) : undefined, n: k.n + 1 }));
-  }, [consulta, conversacionInicial, abrir, reiniciar, puedeGrupos, activos]);
+  }, [consulta, conversacionInicial, abrir, reiniciar]);
 
   // Mantener la vista abajo mientras llega la respuesta (si la persona no subió)
   useEffect(() => {
@@ -328,7 +299,7 @@ export function Chat({
     }
     setConversaciones((l) => l.filter((x) => x.id !== c.id));
     menu?.quitar(c.id);
-    if (actual === c.id) nueva(c.agente);
+    if (actual === c.id) nueva();
   }
 
   async function enviar(contenido: string) {
@@ -359,10 +330,10 @@ export function Chat({
 
     const actualizar = (cambio: Partial<Mensaje>) => setMensajes((m) => m.map((x) => (x.id === idRespuesta ? { ...x, ...cambio } : x)));
 
-    // Un grupo nuevo manda a sus integrantes y el tema; uno ya guardado, solo su id
+    // Una conversación nueva es con Atendel (el servidor pone a todo el equipo); una guardada, su id
     // estados: true → el stream trae lo que hace el agente con las apps ("\u0001…\u0002", src/lib/estado-chat.ts)
     const cuerpo = {
-      ...(grupo && !actual ? { agentes: grupo, tema } : { agente, conversacionId: actual }),
+      ...(actual ? { conversacionId: actual } : {}),
       mensaje: limpio,
       modelo: selector.modelo,
       estados: true,
@@ -395,14 +366,14 @@ export function Chat({
           : {
               id: idConv,
               agente,
-              titulo: (tema ?? limpio).replace(/\s+/g, " ").slice(0, 80),
+              titulo: limpio.replace(/\s+/g, " ").slice(0, 80),
               actualizado_en: new Date().toISOString(),
               participantes: grupo,
-              tema,
+              tema: null,
             };
         setConversaciones((l) => [item, ...l.filter((x) => x.id !== idConv)]);
         const ids = integrantes(item) ?? [item.agente];
-        menu?.agregar({ id: item.id, titulo: item.titulo, href: `/panel?c=${encodeURIComponent(item.id)}`, agentes: ids }, ids.length > 1 && Boolean(item.tema));
+        menu?.agregar({ id: item.id, titulo: item.titulo, href: `/panel?c=${encodeURIComponent(item.id)}`, agentes: ids }, false);
       }
 
       const lector = res.body.getReader();
@@ -431,32 +402,38 @@ export function Chat({
     }
   }
 
-  /** Una respuesta puede traer varias voces (grupo); cada una con su personaje. */
+  /** Una respuesta puede traer el trabajo de varios agentes; cada parte con quién la hizo. */
   const voces = (m: Mensaje) => {
     if (esIdAgente(m.agente)) return [{ agente: m.agente, texto: m.contenido }];
     if (grupo) return partirIntervenciones(m.contenido, grupo, m.enCurso);
     return [{ agente, texto: m.contenido }];
   };
 
-  const piezas: Pieza[] = mensajes.flatMap((m): Pieza[] => {
+  // Lo que se pinta: tus mensajes y, entre uno y otro, UNA respuesta de Atendel
+  // (en la base cada parte es un mensaje de su agente: aquí se juntan)
+  type Bloque =
+    | { tipo: "tu"; key: string; texto: string; fecha: Date; nuevo?: boolean }
+    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; fecha: Date; nuevo?: boolean; enCurso?: boolean; error?: string; estado?: string | null };
+  const bloques: Bloque[] = [];
+  for (const m of mensajes) {
     const fecha = m.creado_en ? new Date(m.creado_en) : new Date();
-    if (m.rol === "user") return [{ key: m.id, de: "tu", texto: m.contenido, fecha, nuevo: m.nuevo }];
-    return voces(m).map((v, i, lista) => {
-      const ultima = i === lista.length - 1;
-      return { key: `${m.id}-${i}`, de: v.agente, texto: v.texto, fecha, nuevo: m.nuevo, enCurso: m.enCurso && ultima, error: ultima ? m.error : undefined, estado: m.enCurso && ultima ? m.estado : null };
-    });
-  });
-  const visibles = piezas.filter((p) => p.texto || p.enCurso || p.error);
+    if (m.rol === "user") {
+      bloques.push({ tipo: "tu", key: m.id, texto: m.contenido, fecha, nuevo: m.nuevo });
+      continue;
+    }
+    const ultimo = bloques[bloques.length - 1];
+    const piezasM = voces(m);
+    if (ultimo && ultimo.tipo === "atendel") {
+      ultimo.piezas.push(...piezasM);
+      ultimo.enCurso = m.enCurso;
+      ultimo.error = m.error ?? ultimo.error;
+      ultimo.estado = m.estado;
+      ultimo.nuevo = ultimo.nuevo || m.nuevo;
+    } else bloques.push({ tipo: "atendel", key: m.id, piezas: [...piezasM], fecha, nuevo: m.nuevo, enCurso: m.enCurso, error: m.error, estado: m.estado });
+  }
 
-  const fuentes: PromptBarSource[] = (grupo ?? activos).map((id) => ({
-    key: id,
-    name: AGENTE_POR_ID[id].nombre,
-    description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
-    icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
-  }));
-  const esEquipo = grupo !== null && !tema && grupo.length === activos.length && grupo.every((id) => activos.includes(id));
   const actualConv = actual ? todas.current.find((x) => x.id === actual) : undefined;
-  const tituloConv = actualConv?.titulo ?? (grupo ? (tema ?? (esEquipo ? "Todo el equipo" : nombresDe(grupo))) : info.nombre);
+  const tituloConv = actualConv?.titulo ?? "Nueva conversación";
 
   const barra = disponible ? (
     sinMensajes ? (
@@ -468,12 +445,12 @@ export function Chat({
       </p>
     ) : (
       <PromptBar
-        key={`${grupo ? grupo.join("-") : agente}-${caja.n}`}
+        key={`atendel-${caja.n}`}
         className={enInicio && cambiando ? "pc-caja pc-caja--cambia" : "pc-caja"}
         initialText={caja.texto}
-        placeholder={enInicio ? sugerencia : grupo ? "Pregúntale a tu equipo… (escribe @ para elegir agente)" : `Pídele algo a ${info.nombre}…`}
+        placeholder={enInicio ? sugerencia : "Pídele algo a Atendel…"}
         forma="fila"
-        sources={fuentes}
+        sources={[]}
         plusActions={subida.acciones}
         commands={comandosDe(participantes)}
         models={[]}
@@ -487,38 +464,17 @@ export function Chat({
       />
     )
   ) : (
+    // Una conversación vieja con alguien que ya no está en tu equipo
     <p className="pc-aviso-caja">
-      {grupo ? "Alguien de este grupo no está en tu equipo." : `${info.nombre} no está en tu equipo.`}{" "}
-      {participantes.every((id) => plan.agentes.includes(id)) ? (
-        <Enlace href="/panel/agentes" className="pc-enlace">
-          Agrégalo en Agentes
-        </Enlace>
-      ) : (
-        <Enlace href="/precios" className="pc-enlace">
-          Llega con {planMinimo(participantes.find((id) => !plan.agentes.includes(id)) ?? agente).nombre}
-        </Enlace>
-      )}
+      Esta conversación es con alguien que ya no está en tu equipo.{" "}
+      <Enlace href="/panel" className="pc-enlace">
+        Empieza una nueva con Atendel
+      </Enlace>
     </p>
-  );
-
-  const nuevoGrupoModal = (
-    <NuevoGrupo abierto={creando} disponibles={activos} maxNombre={MAX_TEMA} onCrear={(nombre, ids) => nuevoGrupo(ids, nombre || null)} onCerrar={() => setCreando(false)} />
   );
 
   /* ---------- Inicio: todavía no hay conversación ---------- */
   if (enInicio) {
-    const opciones: OpcionAgente[] = [
-      ...(puedeGrupos ? [{ id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(activos), agentes: activos }] : []),
-      ...AGENTES_INFO.map((a) => ({
-        id: a.id,
-        etiqueta: a.nombre,
-        detalle: `${a.area} · ${a.abarca}`,
-        agentes: [a.id],
-        bloqueado: activos.includes(a.id) ? undefined : plan.agentes.includes(a.id) ? "Fuera de tu equipo" : `Con ${planMinimo(a.id).nombre}`,
-      })),
-      ...(grupo && !esEquipo ? [{ id: "grupo", etiqueta: tema ?? nombresDe(grupo), detalle: "Tu grupo", agentes: grupo }] : []),
-      ...(puedeGrupos ? [{ id: "nuevo-grupo", etiqueta: "Nuevo grupo…", agentes: [], accion: true }] : []),
-    ];
     const conFiltro = area === "todo" ? "" : `&area=${area}`;
     const tarjetas = pedidosDe(area)
       .map((p) => {
@@ -547,17 +503,7 @@ export function Chat({
           saludo={saludo}
           caja={barra}
           uso={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} />}
-          selector={
-            <SelectorAgente
-              opciones={opciones}
-              activa={grupo ? (esEquipo ? "equipo" : "grupo") : agente}
-              alElegir={(id) => {
-                if (id === "equipo") nuevoGrupo(activos, null);
-                else if (id === "nuevo-grupo") setCreando(true);
-                else if (esIdAgente(id)) nueva(id);
-              }}
-            />
-          }
+          selector={<EquipoAtendel agentes={activos} />}
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
           tarjetas={tarjetas}
@@ -567,7 +513,6 @@ export function Chat({
             {aviso}
           </p>
         ) : null}
-        {nuevoGrupoModal}
         {subida.elementos}
       </ContextoNavegar.Provider>
     );
@@ -579,7 +524,7 @@ export function Chat({
       <VistaConversacion
         agentes={participantes}
         titulo={tituloConv}
-        sub={grupo ? `Grupo · ${nombresDe(grupo)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
+        sub={`Atendel · ${nombresDe(participantes)}`}
         menu={[
           { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel" },
           ...(actualConv ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, alElegir: () => setPorBorrar(actualConv), peligroso: true }] : []),
@@ -590,7 +535,7 @@ export function Chat({
           pegado.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
         }}
         caja={barra}
-        legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.`}
+        legal="Atendel puede equivocarse. Revisa lo importante antes de enviarlo a un cliente."
         modelo={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} hacia="arriba" />}
       >
         {cargando ? (
@@ -599,44 +544,30 @@ export function Chat({
           </p>
         ) : (
           <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
-            {visibles.map((p, i) => {
-              const antes = visibles[i - 1];
-              const nuevoDia = !antes || !mismoDia(antes.fecha, p.fecha);
-              const primero = nuevoDia || antes.de !== p.de;
-              let pieza;
-              if (p.de === "tu") pieza = <MensajeTuyo texto={p.texto} nuevo={p.nuevo} />;
-              else if (!p.texto && p.enCurso) pieza = <Escribiendo agente={p.de} cabeza={primero} texto={p.estado ?? undefined} />;
-              else if (!p.texto)
-                pieza = (
-                  <AvisoHilo error nuevo={p.nuevo}>
-                    {p.error}
+            {bloques.map((b, i) => {
+              const antes = bloques[i - 1];
+              const nuevoDia = !antes || !mismoDia(antes.fecha, b.fecha);
+              const pieza =
+                b.tipo === "tu" ? (
+                  <MensajeTuyo texto={b.texto} nuevo={b.nuevo} />
+                ) : !b.piezas.some((x) => x.texto) && !b.enCurso ? (
+                  <AvisoHilo error nuevo={b.nuevo}>
+                    {b.error ?? "No llegó la respuesta."}
                   </AvisoHilo>
-                );
-              else
-                pieza = (
-                  <MensajeAgente
-                    agente={p.de}
-                    texto={p.texto}
-                    cabeza={primero}
-                    nuevo={p.nuevo}
-                    enCurso={p.enCurso}
-                    hora={primero && !p.enCurso ? hora(p.fecha) : undefined}
-                    pie={
-                      p.error ? (
-                        <p role="alert" className="pc-msj__error">
-                          {p.error}
-                        </p>
-                      ) : p.enCurso && p.estado ? (
-                        <LineaEscribe texto={p.estado} agente={p.de} />
-                      ) : !p.enCurso && i === visibles.length - 1 ? (
-                        <Copiar texto={p.texto} />
-                      ) : null
-                    }
+                ) : (
+                  <RespuestaAtendel
+                    piezas={b.piezas}
+                    enCurso={b.enCurso}
+                    nuevo={b.nuevo}
+                    hora={hora(b.fecha)}
+                    estado={b.estado}
+                    error={b.error}
+                    copiar={i === bloques.length - 1}
                   />
                 );
               return (
-                <Fragment key={p.key}>
-                  {nuevoDia ? <DiaHilo>{dia(p.fecha)}</DiaHilo> : null}
+                <Fragment key={b.key}>
+                  {nuevoDia ? <DiaHilo>{dia(b.fecha)}</DiaHilo> : null}
                   {pieza}
                 </Fragment>
               );
@@ -645,7 +576,6 @@ export function Chat({
           </div>
         )}
       </VistaConversacion>
-      {nuevoGrupoModal}
       {subida.elementos}
       <Modal
         abierto={porBorrar !== null}

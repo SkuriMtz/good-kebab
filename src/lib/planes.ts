@@ -3,7 +3,8 @@ import { IDS_AGENTES, type IdAgente } from "./agentes";
 /**
  * Los planes de Atendel. One y Max traen lo mismo (los 4 agentes, los dos
  * modelos y las mismas funciones); lo único que cambia es cuánto uso traen:
- * Max, 5 veces el de One. Free es para probar, con Clara y el modelo Rápido.
+ * Max, 5 veces el de One. Free es para probar: todo el equipo, el modelo
+ * Rápido y poco uso.
  *
  * Dos modelos, como el selector de Claude: Rápido (Claude Haiku 5.5, para
  * el día a día, gasta muy poco de la barra) y Avanzado (Claude Opus 5.5,
@@ -75,11 +76,12 @@ export const PLANES: Plan[] = [
     nombre: "Atendel Free",
     nivel: "Gratis",
     precio: "Gratis",
-    resumen: "Para conocer Atendel con tu agente de correo.",
-    incluye: ["Clara, tu agente de correo", "Uso para probarlo", "Resúmenes de correo"],
+    resumen: "Para conocer Atendel con todo su equipo.",
+    incluye: ["Los 4 agentes: Atención, Correo, Clientes y Oficina", "Modelo Rápido", "Uso para probarlo"],
     limite: { sesion: 40_000, semana: 100_000 },
     uso: "Para probar",
-    agentes: ["clara"],
+    // Chat único: Free también trabaja con todo el equipo, con poco uso y solo el modelo Rápido
+    agentes: IDS_AGENTES,
     modelos: ["rapido"],
   },
   {

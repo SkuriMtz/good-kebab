@@ -126,6 +126,90 @@ export function MensajeAgente({
   );
 }
 
+/** Debajo de la caja del Inicio: quiénes trabajan contigo (ya no se elige a nadie: Atendel reparte). */
+export function EquipoAtendel({ agentes }: { agentes: readonly IdAgente[] }) {
+  return (
+    <span className="pc-equipo-atendel" title="Atendel le pasa cada cosa al agente que le toca">
+      <PilaAgentes agentes={agentes} tam={18} />
+      <span>{nombresDe(agentes)}</span>
+    </span>
+  );
+}
+
+/**
+ * La respuesta de Atendel (el chat único): una sola respuesta, aunque la
+ * hayan hecho varios agentes (cada quien su parte, en orden). Sin nombre
+ * arriba; hasta abajo, en chiquito, las cabecitas y los nombres de quienes
+ * la hicieron, la hora y "Copiar". Mientras llega: los triangulitos y lo
+ * que está haciendo ("Clara está revisando tu correo…").
+ */
+export function RespuestaAtendel({
+  piezas,
+  enCurso = false,
+  nuevo,
+  hora,
+  estado,
+  error,
+  tarjetas,
+  copiar = false,
+}: {
+  piezas: readonly { agente: IdAgente; texto: string }[];
+  enCurso?: boolean;
+  nuevo?: boolean;
+  hora?: string;
+  estado?: string | null;
+  error?: string;
+  /** Lo que dejaron listo (tarjetas de trabajo), después del texto. */
+  tarjetas?: ReactNode;
+  copiar?: boolean;
+}) {
+  const conTexto = piezas.filter((p) => p.texto.trim());
+  const texto = conTexto.map((p) => p.texto.trim()).join("\n\n");
+  const quienes = Array.from(new Set(conTexto.map((p) => p.agente)));
+  // Si llegó en vivo, se va escribiendo con calma (no de golpe)
+  const [enVivo] = useState(enCurso);
+  const visible = useRevelar(texto, enVivo);
+  const completo = !enCurso && visible.length >= texto.length;
+  useEffect(() => {
+    if (!enCurso) return;
+    const html = document.documentElement;
+    html.dataset.pcEscribe = "";
+    return () => {
+      delete html.dataset.pcEscribe;
+    };
+  }, [enCurso]);
+  return (
+    <div className={`pc-msj pc-msj--agente pc-msj--atendel${nuevo ? " pc-msj--nuevo" : ""}`} aria-busy={enCurso || visible.length < texto.length || undefined}>
+      {visible ? (
+        <div className="pc-msj__texto">
+          <Texto texto={visible} suave={enVivo} />
+        </div>
+      ) : null}
+      {enCurso && (!texto || estado) ? <LineaEscribe texto={estado ?? undefined} agente={quienes[quienes.length - 1]} etiqueta="Atendel está trabajando" /> : null}
+      {error ? (
+        <p role="alert" className="pc-msj__error">
+          {error}
+        </p>
+      ) : null}
+      {completo ? (
+        <>
+          {tarjetas}
+          {quienes.length ? (
+            <div className="pc-msj__hecho">
+              <span className="pc-msj__hecho-quien" title={`Lo hizo ${nombresDe(quienes)}`}>
+                <PilaAgentes agentes={quienes} tam={16} />
+                <span>{nombresDe(quienes)}</span>
+              </span>
+              {hora ? <span className="pc-msj__hora">{hora}</span> : null}
+              {copiar ? <Copiar texto={texto} /> : null}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 /** Corta el texto en palabras sin dejar unas **negritas** abiertas. */
 export function cortarTexto(texto: string, n: number) {
   let parte = texto.slice(0, n);

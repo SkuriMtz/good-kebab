@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
+import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
 import { cargarCuenta } from "@/lib/cuenta";
@@ -112,25 +112,21 @@ export async function POST(request: NextRequest) {
       ? data.participantes.filter(esIdAgente)
       : null;
     tema = data.tema ?? null;
-  } else if (Array.isArray(body.agentes)) {
-    const pedidos = Array.from(new Set(body.agentes.filter(esIdAgente)));
-    if (pedidos.length < 2 || pedidos.length !== body.agentes.length)
-      return error("Un grupo necesita al menos 2 agentes.", 400);
-    grupo = pedidos;
-    agente = pedidos[0];
-    tema =
-      typeof body.tema === "string" && body.tema.trim()
-        ? body.tema.trim().slice(0, 120)
-        : null;
   } else {
-    if (!esIdAgente(body.agente)) return error("Ese agente no existe.", 400);
-    agente = body.agente;
+    // Chat único: una conversación nueva es siempre con Atendel y todo tu equipo
+    // (se decide abajo, con los agentes activos de la cuenta)
+    agente = "clara";
   }
-  if (grupo && grupo.length < 2) grupo = null;
-  const participantes: IdAgente[] = grupo ?? [agente];
 
   // 3. Plan, equipo y uso (todo se decide aquí, nunca en el navegador)
   const cuenta = await cargarCuenta(supabase, user.id);
+  if (!conv) {
+    if (!cuenta.activos.length) return error("No tienes agentes en tu equipo. Agrégalos en Agentes.", 403);
+    agente = cuenta.activos[0];
+    grupo = cuenta.activos.length >= 2 ? [...cuenta.activos] : null;
+  }
+  if (grupo && grupo.length < 2) grupo = null;
+  const participantes: IdAgente[] = grupo ?? [agente];
   const fuera = participantes.find((id) => !cuenta.activos.includes(id));
   if (fuera) {
     return error(
@@ -293,11 +289,11 @@ export async function POST(request: NextRequest) {
               type: "text" as const,
               cache_control: { type: "ephemeral" as const },
               text:
+                // Con varios agentes: Atendel reparte el trabajo y contesta una sola vez
                 (grupo
-                  ? instruccionesGrupo(
+                  ? instruccionesAtendel(
                       grupo,
                       cuenta.negocio,
-                      tema,
                       correos,
                       datosNegocio,
                     )

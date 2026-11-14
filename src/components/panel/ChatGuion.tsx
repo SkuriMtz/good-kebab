@@ -2,10 +2,9 @@
 
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ACCIONES, INICIO, SALUDO, responder, type Conversacion as ConvBase, type Mensaje as MsjBase, type Turno } from "@/components/ChatDemo";
-import PromptBar, { type PromptBarSource } from "@/components/PromptBar";
+import PromptBar from "@/components/PromptBar";
 import { useSubirDesdeChat } from "./negocio/SubirDesdeChat";
-import { Personaje } from "@/components/agentes/Personaje";
-import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
+import { AGENTE_POR_ID, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { separarDatos } from "@/lib/demo-marcas";
 import { partirIntervenciones } from "@/lib/grupo";
 import type { Tarjeta } from "@/components/chat/Piezas";
@@ -13,10 +12,8 @@ import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
 import { useSugerencia } from "./sugerencias";
 import { Inicio } from "./Inicio";
-import { AvisoHilo, Copiar, DiaHilo, Escribiendo, MensajeAgente, MensajeTuyo, TarjetaTrabajo, nombresDe } from "./Mensajes";
-import { NuevoGrupo } from "./NuevoGrupo";
+import { DiaHilo, EquipoAtendel, MensajeTuyo, RespuestaAtendel, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { claseBoton } from "./Piezas";
-import { SelectorAgente, type OpcionAgente } from "./Selector";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
 import { modeloElegido, useModelo } from "./modelo";
 import { SelectorModelo } from "./SelectorModelo";
@@ -328,16 +325,9 @@ export function useGuion() {
 }
 export type Guion = ReturnType<typeof useGuion>;
 
-const fuentesDe = (ids: readonly IdAgente[]): PromptBarSource[] =>
-  ids.map((id) => ({
-    key: id,
-    name: AGENTE_POR_ID[id].nombre,
-    description: `${AGENTE_POR_ID[id].area} · ${AGENTE_POR_ID[id].abarca}`,
-    icon: <Personaje agente={id} avatar className="chat__personaje-menu" />,
-  }));
-const comandosDe = (ids: readonly IdAgente[]) => ACCIONES.filter((a) => ids.includes(a.agente)).map((a) => ({ key: a.key, name: a.name, description: a.description }));
-
 /* ---------- El Inicio de /pruebalo ---------- */
+
+const comandosDe = (ids: readonly IdAgente[]) => ACCIONES.filter((a) => ids.includes(a.agente)).map((a) => ({ key: a.key, name: a.name, description: a.description }));
 
 export function InicioDemo({
   guion,
@@ -355,23 +345,13 @@ export function InicioDemo({
   /** Ya se creó la conversación y se envió el texto: el panel abre ?con=. */
   alEmpezar: (id: string) => void;
 }) {
-  const [eleccion, setEleccion] = useState<string>(agentePedido ?? "equipo");
   const subida = useSubirDesdeChat();
   // Rápido o Avanzado, como en tu cuenta (la demostración es Max: trae los dos)
   const selector = useModelo(PLAN_DEMO.modelos);
-  const [creando, setCreando] = useState(false);
-  useEffect(() => {
-    if (agentePedido) setEleccion(agentePedido);
-  }, [agentePedido]);
-  const agentes: IdAgente[] = esIdAgente(eleccion) ? [eleccion] : [...IDS_AGENTES];
+  // Chat único: le escribes a Atendel y él reparte el trabajo a todo el equipo
+  const agentes: IdAgente[] = [...IDS_AGENTES];
   // En vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
   const { texto: sugerencia, cambiando } = useSugerencia(agentes);
-
-  const opciones: OpcionAgente[] = [
-    { id: "equipo", etiqueta: "Todo el equipo", detalle: nombresDe(IDS_AGENTES), agentes: [...IDS_AGENTES] },
-    ...AGENTES_INFO.map((a) => ({ id: a.id, etiqueta: a.nombre, detalle: `${a.area} · ${a.abarca}`, agentes: [a.id] })),
-    { id: "nuevo-grupo", etiqueta: "Nuevo grupo…", agentes: [], accion: true },
-  ];
   const conFiltro = area === "todo" ? "" : `&area=${area}`;
 
   return (
@@ -381,12 +361,12 @@ export function InicioDemo({
         uso={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} />}
         caja={
           <PromptBar
-            key={`${eleccion}-${pide ?? ""}`}
+            key={`atendel-${pide ?? ""}-${agentePedido ?? ""}`}
             className={`pc-caja${cambiando ? " pc-caja--cambia" : ""}`}
             initialText={pide}
             placeholder={sugerencia}
             forma="fila"
-            sources={fuentesDe(agentes)}
+            sources={[]}
             plusActions={subida.acciones}
             commands={comandosDe(agentes)}
             models={[]}
@@ -403,29 +383,10 @@ export function InicioDemo({
             dictarPronto
           />
         }
-        selector={
-          <SelectorAgente
-            opciones={opciones}
-            activa={eleccion}
-            alElegir={(id) => {
-              if (id === "nuevo-grupo") setCreando(true);
-              else setEleccion(id);
-            }}
-          />
-        }
+        selector={<EquipoAtendel agentes={agentes} />}
         area={area}
         hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}
         tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}
-      />
-      <NuevoGrupo
-        abierto={creando}
-        onCerrar={() => setCreando(false)}
-        nombreObligatorio
-        onCrear={(nombre, ids) => {
-          setCreando(false);
-          const c = guion.crear(ids, nombre, nombre);
-          alEmpezar(c.id);
-        }}
       />
       {subida.elementos}
     </>
@@ -436,30 +397,6 @@ export function InicioDemo({
 
 
 
-function MensajeQueLlega({ m, cabeza, ultimo, alCrecer }: { m: MsjBase & { de: IdAgente }; cabeza: boolean; ultimo: boolean; alCrecer: () => void }) {
-  const nuevo = m.id >= PRIMER_NUEVO;
-  // Solo la primera vez que llega se escribe en vivo (al volver a la conversación ya está)
-  const [enVivo] = useState(() => nuevo && !yaLlegaron.has(m.id) && !reducido());
-  useEffect(() => {
-    yaLlegaron.add(m.id);
-  }, [m.id]);
-  useLayoutEffect(() => {
-    alCrecer();
-  }, [alCrecer]);
-  return (
-    <MensajeAgente
-      agente={m.de}
-      texto={m.texto}
-      cabeza={cabeza}
-      nuevo={nuevo}
-      enCurso={enVivo}
-      hora={cabeza ? m.hora : undefined}
-      tarjeta={m.tarjeta ? <TarjetaTrabajo tarjeta={m.tarjeta} aprobable /> : null}
-      pie={ultimo ? <Copiar texto={m.texto.replace(/\*\*/g, "")} /> : null}
-    />
-  );
-}
-
 export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuion }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pegado = useRef(true);
@@ -468,8 +405,6 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   const ocupado = guion.pendiente?.conv === conv.id ? guion.pendiente : null;
   // Los puntitos solo mientras no llega texto; luego el mensaje se escribe solo
   const escribe = ocupado && ocupado.puntos !== false ? ocupado.agente : null;
-  const grupo = conv.agentes.length > 1;
-  const info = AGENTE_POR_ID[conv.agentes[0]];
 
   const bajar = useCallback(() => {
     const el = scrollRef.current;
@@ -481,12 +416,34 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   }, [conv.id, bajar]);
   useLayoutEffect(bajar, [conv.mensajes.length, escribe, bajar]);
 
-  const ms = conv.mensajes;
+  // Tus mensajes y, entre uno y otro, UNA respuesta de Atendel (cada parte la hizo su agente)
+  type Bloque =
+    | { tipo: "tu"; key: string; texto: string; dia: string; nuevo: boolean }
+    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; tarjetas: Tarjeta[]; dia: string; hora?: string; nuevo: boolean };
+  const bloques: Bloque[] = [];
+  for (const m of conv.mensajes) {
+    const dia = m.dia ?? "Hoy";
+    const nuevo = m.id >= PRIMER_NUEVO;
+    if (m.de === "tu") {
+      bloques.push({ tipo: "tu", key: String(m.id), texto: m.texto, dia, nuevo });
+      continue;
+    }
+    // Los avisos de grupo y de "le pasa el seguimiento a…" ya no van: Atendel reparte por dentro
+    if (!esIdAgente(m.de)) continue;
+    const ultimo = bloques[bloques.length - 1];
+    if (ultimo && ultimo.tipo === "atendel" && ultimo.dia === dia) {
+      ultimo.piezas.push({ agente: m.de, texto: m.texto });
+      if (m.tarjeta) ultimo.tarjetas.push(m.tarjeta);
+    } else bloques.push({ tipo: "atendel", key: String(m.id), piezas: [{ agente: m.de, texto: m.texto }], tarjetas: m.tarjeta ? [m.tarjeta] : [], dia, hora: m.hora, nuevo });
+  }
+  // Mientras Atendel trabaja y todavía no llega texto: los triangulitos
+  if (escribe && bloques[bloques.length - 1]?.tipo !== "atendel") bloques.push({ tipo: "atendel", key: "trabajando", piezas: [], tarjetas: [], dia: bloques[bloques.length - 1]?.dia ?? "Hoy", nuevo: true });
+
   return (
     <Conversacion
       agentes={conv.agentes}
       titulo={conv.titulo}
-      sub={grupo ? `Grupo · ${nombresDe(conv.agentes)}` : `${info.nombre} · ${info.area} · ${info.abarca}`}
+      sub={`Atendel · ${nombresDe(conv.agentes)}`}
       menu={[
         { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/pruebalo" },
         ...(guion.convs.length > 1 ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, href: "/pruebalo", alElegir: () => guion.borrar(conv.id), peligroso: true }] : []),
@@ -500,9 +457,9 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
         <PromptBar
           key={conv.id}
           className="pc-caja"
-          placeholder={grupo ? "Pídele algo a tu equipo… (usa @ para alguien en especial)" : `Pídele algo a ${info.nombre}…`}
+          placeholder="Pídele algo a Atendel…"
           forma="fila"
-          sources={fuentesDe(conv.agentes)}
+          sources={[]}
           plusActions={subida.acciones}
           commands={comandosDe(conv.agentes)}
           models={[]}
@@ -519,40 +476,30 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
         />
       }
       modelo={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} hacia="arriba" />}
-      legal={`${grupo ? "Pueden equivocarse" : `${info.nombre} puede equivocarse`}. Revisa lo importante antes de enviarlo a un cliente.${guion.quedan !== null && guion.quedan <= 5 ? ` Te quedan ${guion.quedan} mensajes hoy.` : ""}`}
+      legal={`Atendel puede equivocarse. Revisa lo importante antes de enviarlo a un cliente.${guion.quedan !== null && guion.quedan <= 5 ? ` Te quedan ${guion.quedan} mensajes hoy.` : ""}`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">
-        {ms.map((m, i) => {
-          const antes = ms[i - 1];
-          const diaAntes = antes ? (antes.dia ?? "Hoy") : null;
-          const diaEste = m.dia ?? "Hoy";
-          const nuevoDia = diaAntes !== diaEste;
-          const cabeza = nuevoDia || !antes || antes.de !== m.de;
-          const ultimo = i === ms.length - 1;
-          const nuevo = m.id >= PRIMER_NUEVO;
-          let pieza;
-          if (m.de === "tu") pieza = <MensajeTuyo texto={m.texto} nuevo={nuevo} />;
-          else if (m.de === "sistema")
-            pieza = (
-              <AvisoHilo icono="usuarios" nuevo={nuevo}>
-                {m.texto}
-              </AvisoHilo>
-            );
-          else if (m.de === "paso" && m.paso)
-            pieza = (
-              <AvisoHilo icono="flecha" nuevo={nuevo}>
-                <strong>{AGENTE_POR_ID[m.paso.de].nombre}</strong> {m.texto} <strong>{AGENTE_POR_ID[m.paso.a].nombre}</strong>
-              </AvisoHilo>
-            );
-          else if (esIdAgente(m.de)) pieza = <MensajeQueLlega m={m as MsjBase & { de: IdAgente }} cabeza={cabeza} ultimo={ultimo && !escribe} alCrecer={bajar} />;
+        {bloques.map((b, i) => {
+          const nuevoDia = i === 0 || bloques[i - 1].dia !== b.dia;
+          const ultimo = i === bloques.length - 1;
           return (
-            <Fragment key={m.id}>
-              {nuevoDia ? <DiaHilo>{diaEste}</DiaHilo> : null}
-              {pieza}
+            <Fragment key={b.key}>
+              {nuevoDia ? <DiaHilo>{b.dia}</DiaHilo> : null}
+              {b.tipo === "tu" ? (
+                <MensajeTuyo texto={b.texto} nuevo={b.nuevo} />
+              ) : (
+                <RespuestaAtendel
+                  piezas={b.piezas}
+                  enCurso={ultimo && ocupado !== null}
+                  nuevo={b.nuevo}
+                  hora={b.hora}
+                  tarjetas={b.tarjetas.length ? b.tarjetas.map((t, k) => <TarjetaTrabajo key={k} tarjeta={t} aprobable />) : null}
+                  copiar={ultimo}
+                />
+              )}
             </Fragment>
           );
         })}
-        {escribe ? <Escribiendo agente={escribe} cabeza={ms[ms.length - 1]?.de !== escribe} /> : null}
       </div>
       {subida.elementos}
     </Conversacion>

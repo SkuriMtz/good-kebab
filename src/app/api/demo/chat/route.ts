@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { instruccionesDe, instruccionesGrupo } from "@/lib/agentes-prompts";
+import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
 import { IDIOMAS } from "@/lib/ajustes";
 import { MAX_DIAPOSITIVAS, MAX_PUNTOS, nombreArchivo, validarPresentacion } from "@/lib/archivos/presentacion";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
@@ -63,7 +63,6 @@ export async function POST(req: NextRequest) {
   const modelo = MODELOS[esIdModelo(body.modelo) ? body.modelo : "rapido"];
   if (!mensaje) return error("Escribe un mensaje.", 400);
   const grupo = agentes.length > 1 ? agentes : null;
-  const tema = typeof body.tema === "string" ? body.tema.trim().slice(0, 120) : null;
   // El idioma de Ajustes > Apariencia (solo uno de la lista)
   const idioma = IDIOMAS.find((i) => i.id === body.idioma && i.id !== "es-MX");
 
@@ -94,7 +93,8 @@ export async function POST(req: NextRequest) {
   const datos = datosDemoParaIA();
   const correos = agentes.includes("clara") ? correosDemoParaIA() : undefined;
   const system =
-    (grupo ? instruccionesGrupo(grupo, NEGOCIO, tema, correos, datos) : instruccionesDe(agentes[0], NEGOCIO, correos, datos)) +
+    // Con varios agentes: Atendel reparte el trabajo y contesta una sola vez (el chat único)
+    (grupo ? instruccionesAtendel(grupo, NEGOCIO, correos, datos) : instruccionesDe(agentes[0], NEGOCIO, correos, datos)) +
     DEMO +
     (idioma ? `\n- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), aunque estas instrucciones estén en español.` : "");
   const hace = (a: IdAgente): IdAgente => (agentes.includes(a) ? a : agentes[0]);
