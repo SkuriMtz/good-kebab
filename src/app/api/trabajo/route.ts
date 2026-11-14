@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const llave = req.headers.get("x-atendel-llave") ?? "";
   if (llave.length < 32 || llave.length > 200) return error("No autorizado.", 401);
   const admin = clienteServicio();
-  if (!admin) return error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel.", 503);
+  if (!admin) return error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel (proyecto good-kebab, ambiente Production).", 503);
   const { data: valida } = await admin.rpc("llave_trabajo_valida", { llave });
   if (valida !== true) return error("No autorizado.", 401);
 
