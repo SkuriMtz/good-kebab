@@ -266,6 +266,23 @@ const ESTADO_FILA: Record<CitaDemo["estado"], { texto: string; tono: FilaCitaDat
   cancelada: { texto: "Cancelada", tono: "neutro" },
 };
 
+/** Los horarios que se pueden apartar en "Nueva cita": de 9:00 a 18:30, cada media hora. */
+const HORAS_CITA = Array.from({ length: 20 }, (_, i) => `${9 + Math.floor(i / 2)}:${i % 2 ? "30" : "00"}`);
+const formatoMes = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric", timeZone: "UTC" });
+const formatoSemanaDia = new Intl.DateTimeFormat("es-MX", { weekday: "short", timeZone: "UTC" });
+const formatoMesCorto = new Intl.DateTimeFormat("es-MX", { month: "short", timeZone: "UTC" });
+const mayuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+const sinPunto = (t: string) => t.replace(".", "");
+/** El lunes de la semana de ese día. */
+const lunesDe = (d: string) => sumarDias(d, -((enFecha(d).getUTCDay() + 6) % 7));
+const cuantas = (n: number) => (n === 1 ? "1 cita" : `${n} citas`);
+
+/**
+ * Citas: arriba la semana (cada día con cuántas citas tiene; se pica para
+ * verlo), abajo el día elegido con sus filtros y la lista. "Nueva cita"
+ * pide cliente, servicio, día (las próximas dos semanas) y hora (los
+ * horarios ocupados de ese día no se pueden elegir).
+ */
 export function CitasDemo({
   estado,
   de,
@@ -277,18 +294,34 @@ export function CitasDemo({
   estado: string;
   /** ?de=: las citas de esa persona (desde Estadísticas o Actividad). */
   de?: string;
-  /** ?dia=AAAA-MM-DD (desde la semana de Estadísticas). Sin esto, mañana. */
+  /** ?dia=AAAA-MM-DD (desde la semana de Estadísticas). Sin esto, mañana (o el siguiente día con citas). */
   dia?: string;
   ahora: number;
   extra: CitaDemo[];
   alAgregar: (c: CitaDemo) => void;
 }) {
-  const [abierta, setAbierta] = useState(false);
-  const [forma, setForma] = useState({ cliente: "", servicio: "", hora: "12:00" });
   const hoy = diaLocal(new Date(ahora));
   const manana = sumarDias(hoy, 1);
-  const elDia = dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : manana;
   const todas = [...citasEjemplo(ahora), ...extra];
+  const activasDe = (d: string) => todas.filter((c) => c.dia === d && c.estado !== "cancelada");
+  // Sin día pedido: mañana; si mañana no hay nada (el domingo no se abre), el siguiente día con citas
+  const elDia =
+    dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : (Array.from({ length: 7 }, (_, i) => sumarDias(manana, i)).find((d) => activasDe(d).length) ?? manana);
+  const [abierta, setAbierta] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+  /** La hora libre de ese día más cercana a las 12:00. */
+  const horaLibre = (d: string, preferida = "12:00") => {
+    const tomadas = new Set(activasDe(d).map((c) => c.hora));
+    if (!tomadas.has(preferida)) return preferida;
+    const libres = HORAS_CITA.filter((h) => !tomadas.has(h));
+    return libres.sort((a, b) => Math.abs(minutos(a) - minutos(preferida)) - Math.abs(minutos(b) - minutos(preferida)))[0] ?? preferida;
+  };
+  const formaVacia = () => {
+    const d = elDia >= hoy ? elDia : manana;
+    return { cliente: "", servicio: "", dia: d, hora: horaLibre(d) };
+  };
+  const [forma, setForma] = useState(formaVacia);
+
   const base = de ? todas.filter((c) => c.cliente === de) : todas.filter((c) => c.dia === elDia);
   const activas = base.filter((c) => c.estado !== "cancelada");
   const activa = ESTADOS_CITA.some((e) => e.id === estado) ? estado : "todas";
@@ -298,81 +331,131 @@ export function CitasDemo({
   const filas: FilaCitaDatos[] = visibles.map((c) => ({
     id: c.id,
     hora: c.hora,
-    cliente: de ? `${c.cliente}` : c.cliente,
-    servicio: de ? `${c.servicio} · ${formatoDiaCorto.format(enFecha(c.dia))}` : c.servicio,
+    cliente: c.cliente,
+    servicio: de ? `${c.servicio} · ${sinPunto(formatoDiaCorto.format(enFecha(c.dia)))}` : c.servicio,
     estado: ESTADO_FILA[c.estado].texto,
     tono: ESTADO_FILA[c.estado].tono,
-    href: "/pruebalo?con=lola",
+    href: `/pruebalo?pide=${encodeURIComponent(`Escríbele a ${c.cliente} para confirmar su cita del ${formatoDiaLargo.format(enFecha(c.dia))} a las ${c.hora}.`)}`,
   }));
-  const nombreDia = elDia === hoy ? "Hoy" : elDia === manana ? "Mañana" : formatoDiaLargo.format(enFecha(elDia));
+  const nombreDia = elDia === hoy ? "Hoy" : elDia === manana ? "Mañana" : mayuscula(formatoDiaLargo.format(enFecha(elDia)));
+  const fechaLarga = mayuscula(formatoDiaLargo.format(enFecha(elDia)));
+  const porConfirmar = activas.filter((c) => c.estado === "nueva").length;
+  const cambios = activas.filter((c) => c.estado === "reagendada").length;
+  const resumen = [cuantas(activas.length), porConfirmar ? `${porConfirmar} por confirmar` : null, cambios ? `${cambios} ${cambios === 1 ? "cambió" : "cambiaron"} de hora` : null].filter(Boolean).join(" · ");
   const conEstado = (e: string) => `/pruebalo?vista=citas${de ? `&de=${encodeURIComponent(de)}` : `&dia=${elDia}`}${e === "todas" ? "" : `&estado=${e}`}`;
   const diaHref = (d: string) => `/pruebalo?vista=citas&dia=${d}`;
+  const lunes = lunesDe(elDia);
+  const semana = Array.from({ length: 7 }, (_, i) => sumarDias(lunes, i));
+
+  // "Nueva cita": las próximas dos semanas y lo ocupado del día elegido
+  const proximos = Array.from({ length: 14 }, (_, i) => sumarDias(hoy, i));
+  const ocupadas = new Set(activasDe(forma.dia).map((c) => c.hora));
+  const elegirDia = (d: string) => setForma((f) => ({ ...f, dia: d, hora: horaLibre(d, f.hora) }));
+  const abrir = () => {
+    setForma(formaVacia());
+    setAbierta(true);
+  };
 
   return (
     <Seccion>
       <TituloSeccion
         titulo="Citas"
-        texto={de ? `Las citas de ${de}, las que agendó Lola.` : `${nombreDia}${nombreDia === "Hoy" || nombreDia === "Mañana" ? `, ${formatoDiaLargo.format(enFecha(elDia))}` : ""}. Lo que Lola agenda, confirma y recuerda por WhatsApp.`}
+        texto={de ? `Las citas de ${de}, las que agendó Lola.` : "Lo que Lola agenda, confirma y recuerda por WhatsApp."}
         acciones={
-          <button type="button" className={claseBoton("principal")} onClick={() => setAbierta(true)}>
+          <button type="button" className={claseBoton("principal")} onClick={abrir}>
             <Icono nombre="mas" tam={16} />
             Nueva cita
           </button>
         }
       />
-      <div className="pc-numeros pc-numeros--tres">
-        <Tarjeta indice={0} className="pc-numero" href={conEstado("todas")}>
-          <p className="pc-numero__etiqueta">{de ? "Citas" : "Citas del día"}</p>
-          <p className="pc-numero__valor">
-            <Odometro valor={activas.length} />
-          </p>
-        </Tarjeta>
-        <Tarjeta indice={1} className="pc-numero" href={conEstado("agendada")}>
-          <p className="pc-numero__etiqueta">Agendadas</p>
-          <p className="pc-numero__valor">
-            <Odometro valor={activas.filter((c) => c.estado === "agendada" || c.estado === "nueva").length} />
-          </p>
-        </Tarjeta>
-        <Tarjeta indice={2} className="pc-numero" href={conEstado("reagendada")}>
-          <p className="pc-numero__etiqueta">Cambios de hora</p>
-          <p className="pc-numero__valor">
-            <Odometro valor={activas.filter((c) => c.estado === "reagendada").length} />
-          </p>
-        </Tarjeta>
-      </div>
-      <div className="pc-filtros">
-        {de ? null : (
-          <span className="pc-dias" role="group" aria-label="Cambiar de día">
-            <Enlace href={diaHref(sumarDias(elDia, -1))} className="pc-icono" aria-label="Día anterior">
-              <Icono nombre="chevron-izquierda" tam={18} />
-            </Enlace>
-            <Enlace href={diaHref(sumarDias(elDia, 1))} className="pc-icono" aria-label="Día siguiente">
-              <Icono nombre="chevron-derecha" tam={18} />
-            </Enlace>
-          </span>
-        )}
+
+      {de ? null : (
+        <section className="pc-semana" aria-label="La semana">
+          <div className="pc-semana__cabeza">
+            <p className="pc-semana__mes">{mayuscula(formatoMes.format(enFecha(elDia)))}</p>
+            <span className="pc-dias" role="group" aria-label="Cambiar de semana">
+              <Enlace href={diaHref(sumarDias(lunes, -7))} className="pc-icono" aria-label="Semana anterior">
+                <Icono nombre="chevron-izquierda" tam={18} />
+              </Enlace>
+              {elDia !== hoy ? (
+                <Enlace href={diaHref(hoy)} className="pc-semana__hoy">
+                  Hoy
+                </Enlace>
+              ) : null}
+              <Enlace href={diaHref(sumarDias(lunes, 7))} className="pc-icono" aria-label="Semana siguiente">
+                <Icono nombre="chevron-derecha" tam={18} />
+              </Enlace>
+            </span>
+          </div>
+          <ol className="pc-semana__dias">
+            {semana.map((d) => {
+              const n = activasDe(d).length;
+              const fecha = formatoDiaLargo.format(enFecha(d));
+              return (
+                <li key={d}>
+                  <Enlace
+                    href={diaHref(d)}
+                    className="pc-semana__dia"
+                    aria-current={d === elDia ? "date" : undefined}
+                    aria-label={`${mayuscula(fecha)}: ${n ? cuantas(n) : "sin citas"}`}
+                    data-hoy={d === hoy ? "" : undefined}
+                    data-pasado={d < hoy ? "" : undefined}
+                  >
+                    <span className="pc-semana__nombre">{d === hoy ? "Hoy" : sinPunto(formatoSemanaDia.format(enFecha(d)))}</span>
+                    <span className="pc-semana__numero cifras">{enFecha(d).getUTCDate()}</span>
+                    <span className="pc-semana__cuenta">{n ? cuantas(n) : "—"}</span>
+                  </Enlace>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
+
+      <div className="pc-citas-dia">
+        <div className="pc-citas-dia__texto">
+          <h2 className="pc-citas-dia__titulo">{de ? `Citas de ${de}` : nombreDia}</h2>
+          <p className="pc-citas-dia__resumen">{de ? cuantas(activas.length) : `${nombreDia === fechaLarga ? "" : `${fechaLarga} · `}${resumen}`}</p>
+        </div>
         <Pildoras etiqueta="Filtrar citas" activa={activa} opciones={ESTADOS_CITA.map((e) => ({ id: e.id, etiqueta: e.etiqueta, href: conEstado(e.id) }))} />
-        {de ? (
+      </div>
+      {de ? (
+        <div className="pc-filtros">
           <Enlace href="/pruebalo?vista=citas" className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${de}`}>
             Cliente: {de}
             <Icono nombre="cerrar" tam={14} />
           </Enlace>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
+      {aviso ? (
+        <p className="pc-citas-aviso" role="status">
+          <Icono nombre="check" tam={16} trazo={2} />
+          {aviso}
+        </p>
+      ) : null}
+
       {filas.length ? (
         <ListaCitas titulo={de ? `Citas de ${de}` : nombreDia} citas={filas} />
       ) : (
         <Vacio
           agente="lola"
-          titulo={de ? `${de} no tiene citas en el ejemplo` : activa === "todas" ? `Sin citas para ${nombreDia.toLowerCase()}` : "Nada con este filtro"}
-          texto={de ? "Se le puede pedir a Lola que le aparte una." : "Prueba con otro día o con otro estado."}
+          titulo={de ? `${de} no tiene citas en el ejemplo` : activa === "todas" ? `Sin citas ${nombreDia === "Hoy" || nombreDia === "Mañana" ? `para ${nombreDia.toLowerCase()}` : "este día"}` : "Nada con este filtro"}
+          texto={de ? "Atendel le puede apartar una con Lola." : "Elige otro día de la semana o aparta una cita nueva."}
           accion={
-            <Enlace href={de ? "/pruebalo?con=lola" : "/pruebalo?vista=citas"} className={claseBoton("borde", true)}>
-              {de ? "Pedirle a Lola que la agende" : "Ver la agenda de mañana"}
-            </Enlace>
+            de ? (
+              <Enlace href={`/pruebalo?pide=${encodeURIComponent(`Apártale una cita a ${de} esta semana.`)}`} className={claseBoton("borde", true)}>
+                Pedírselo a Atendel
+              </Enlace>
+            ) : (
+              <button type="button" className={claseBoton("borde", true)} onClick={abrir}>
+                <Icono nombre="mas" tam={14} />
+                Nueva cita
+              </button>
+            )
           }
         />
       )}
+
       <Modal
         abierto={abierta}
         alCerrar={() => setAbierta(false)}
@@ -386,10 +469,10 @@ export function CitasDemo({
             <button
               type="button"
               className={claseBoton("principal")}
-              disabled={!forma.cliente.trim() || !forma.servicio.trim()}
+              disabled={!forma.cliente.trim() || !forma.servicio.trim() || ocupadas.has(forma.hora)}
               onClick={() => {
-                alAgregar({ id: `n${Date.now()}`, dia: de ? manana : elDia, cliente: forma.cliente.trim(), servicio: forma.servicio.trim(), hora: forma.hora, estado: "nueva" });
-                setForma({ cliente: "", servicio: "", hora: "12:00" });
+                alAgregar({ id: `n${Date.now()}`, dia: forma.dia, cliente: forma.cliente.trim(), servicio: forma.servicio.trim(), hora: forma.hora, estado: "nueva" });
+                setAviso(`Listo: ${forma.cliente.trim()}, ${formatoDiaLargo.format(enFecha(forma.dia))} a las ${forma.hora}.`);
                 setAbierta(false);
               }}
             >
@@ -399,24 +482,50 @@ export function CitasDemo({
         }
       >
         <div className="pc-formulario__campos">
-          <label className="pc-campo">
-            <span className="pc-campo__etiqueta">Cliente</span>
-            <input className="pc-campo__entrada" value={forma.cliente} onChange={(e) => setForma({ ...forma, cliente: e.target.value })} placeholder="Nombre y apellido" maxLength={80} />
-          </label>
-          <label className="pc-campo">
-            <span className="pc-campo__etiqueta">Servicio</span>
-            <input className="pc-campo__entrada" value={forma.servicio} onChange={(e) => setForma({ ...forma, servicio: e.target.value })} placeholder="Por ejemplo, sesión de 1 hora" maxLength={80} />
-          </label>
-          <label className="pc-campo">
-            <span className="pc-campo__etiqueta">Hora ({de ? "mañana" : nombreDia.toLowerCase()})</span>
-            <select className="pc-campo__entrada" value={forma.hora} onChange={(e) => setForma({ ...forma, hora: e.target.value })}>
-              {HORARIOS.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="pc-elige__par">
+            <label className="pc-campo">
+              <span className="pc-campo__etiqueta">Cliente</span>
+              <input className="pc-campo__entrada" value={forma.cliente} onChange={(e) => setForma({ ...forma, cliente: e.target.value })} placeholder="Nombre y apellido" maxLength={80} />
+            </label>
+            <label className="pc-campo">
+              <span className="pc-campo__etiqueta">Servicio</span>
+              <input className="pc-campo__entrada" value={forma.servicio} onChange={(e) => setForma({ ...forma, servicio: e.target.value })} placeholder="Ej.: sesión de 1 hora" maxLength={80} />
+            </label>
+          </div>
+          <fieldset className="pc-campo pc-elige">
+            <legend className="pc-campo__etiqueta pc-elige__etiqueta">
+              Día <span className="pc-elige__valor">{mayuscula(formatoDiaLargo.format(enFecha(forma.dia)))}</span>
+            </legend>
+            <div className="pc-elige__dias">
+              {proximos.map((d) => {
+                const f = enFecha(d);
+                return (
+                  <label key={d} className="pc-elige__dia">
+                    <input type="radio" name="cita-dia" value={d} checked={forma.dia === d} onChange={() => elegirDia(d)} className="pc-oculto" />
+                    <span className="pc-elige__nombre">{d === hoy ? "Hoy" : sinPunto(formatoSemanaDia.format(f))}</span>
+                    <span className="pc-elige__numero cifras">{f.getUTCDate()}</span>
+                    <span className="pc-elige__mes">{sinPunto(formatoMesCorto.format(f))}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          <fieldset className="pc-campo pc-elige">
+            <legend className="pc-campo__etiqueta pc-elige__etiqueta">
+              Hora <span className="pc-elige__valor">{forma.hora}</span>
+            </legend>
+            <div className="pc-elige__horas">
+              {HORAS_CITA.map((h) => {
+                const tomada = ocupadas.has(h);
+                return (
+                  <label key={h} className="pc-elige__hora cifras" data-tomada={tomada ? "" : undefined} title={tomada ? "Ya hay una cita a esa hora" : undefined}>
+                    <input type="radio" name="cita-hora" value={h} checked={forma.hora === h} disabled={tomada} onChange={() => setForma({ ...forma, hora: h })} className="pc-oculto" />
+                    {h}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
       </Modal>
     </Seccion>

@@ -239,7 +239,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     const periodo = periodoDe(params.get("periodo"));
     contenido = (
       <Seccion buscador={false}>
-        <VistaNegocio datos={datosNegocioEjemplo(periodo, new Date(ahora))} periodo={periodo} base="/pruebalo" insignia={<span className="pc-estado pc-estado--azul">Datos de ejemplo</span>} />
+        <VistaNegocio datos={datosNegocioEjemplo(periodo, new Date(ahora))} periodo={periodo} base="/pruebalo" insignia={<span className="pc-estado pc-estado--neutro">Datos de ejemplo</span>} />
       </Seccion>
     );
   } else if (valida === "actividad") {
@@ -328,7 +328,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         info={info}
         aviso={
           <>
-            <span className="pc-estado pc-estado--azul">Datos de ejemplo</span>
+            <span className="pc-estado pc-estado--neutro">Datos de ejemplo</span>
             <span className="pc-aviso-demo__texto">Estudio Luna · con IA de verdad</span>
             <Enlace href="/entrar" className="pc-enlace">
               Crear mi cuenta
