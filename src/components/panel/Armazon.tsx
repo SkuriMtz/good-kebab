@@ -108,6 +108,23 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, chats, organiza
       /* sin almacenamiento */
     }
   }, [apariencia.idioma]);
+  // El anillo de foco solo con teclado: al picar con el mouse no se queda el aro azul en el botón
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const raton = () => {
+      raiz.dataset.foco = "raton";
+    };
+    const teclado = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey && !e.altKey) raiz.dataset.foco = "teclado";
+    };
+    window.addEventListener("pointerdown", raton, true);
+    window.addEventListener("keydown", teclado, true);
+    return () => {
+      window.removeEventListener("pointerdown", raton, true);
+      window.removeEventListener("keydown", teclado, true);
+      delete raiz.dataset.foco;
+    };
+  }, []);
   const parametros = useSearchParams();
   const menuRef = useRef<HTMLElement>(null);
   const principalRef = useRef<HTMLDivElement>(null);

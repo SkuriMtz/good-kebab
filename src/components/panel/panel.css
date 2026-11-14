@@ -117,6 +117,13 @@
   outline: 2px solid var(--pc-foco);
   outline-offset: 2px;
 }
+/* Con el mouse no queda el aro azul en botones y enlaces (con teclado, sí) */
+:root[data-foco="raton"] .pc :is(a, button, [role="option"], [role="menuitem"], [role="menuitemradio"], [role="tab"], summary):focus-visible {
+  outline: none !important;
+}
+:root[data-foco="raton"] .pc .pc-modelo__fila:focus-visible {
+  box-shadow: none;
+}
 .pc .cifras,
 .pc .pc-cifra {
   font-variant-numeric: tabular-nums;
@@ -1053,7 +1060,7 @@ button.pc-tarjeta {
 }
 .pc-inicio__resplandor {
   position: absolute;
-  top: calc(38.4vh - 230px);
+  top: calc(42.4vh - 230px);
   left: 50%;
   display: block;
   width: min(1000px, 140%);
@@ -1075,8 +1082,8 @@ button.pc-tarjeta {
   z-index: 1;
   width: min(100%, var(--pc-caja-ancho));
   margin: 0 auto;
-  /* El centro del saludo queda al 38 % del alto (295px en 768) */
-  padding-top: calc(38.4vh - 24px);
+  /* El centro del saludo queda al 42 % del alto (326px en 768): un poco más abajo, más centrado */
+  padding-top: calc(42.4vh - 24px);
 }
 .pc-saludo {
   display: flex;
@@ -2823,7 +2830,7 @@ a.pc-correo__accion:hover {
     padding: 0 16px 48px;
   }
   .pc-inicio__centro {
-    padding-top: max(24px, calc(26vh - 52px));
+    padding-top: max(24px, calc(29vh - 52px));
   }
   .pc-conv__pie {
     padding: 0 16px 10px;
@@ -8467,7 +8474,7 @@ a.pc-correo__accion:hover {
 /* Detrás del Inicio, en lugar del resplandor azul: fragmentos flotando
    solo dentro de un círculo que se desvanece en la orilla (FragmentosInicio.tsx) */
 .pc .pc-inicio__fragmentos {
-  top: calc(38.4vh - 300px);
+  top: calc(42.4vh - 300px);
   width: min(980px, 150%);
   height: 600px;
   background: none;
@@ -8480,7 +8487,7 @@ a.pc-correo__accion:hover {
 }
 @media (max-width: 640px) {
   .pc .pc-inicio__fragmentos {
-    top: calc(38.4vh - 220px);
+    top: calc(41.4vh - 220px);
     height: 440px;
   }
 }

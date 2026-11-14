@@ -233,10 +233,7 @@ export function PanelInfo({ tab, pedido, alIr, alVer, ejemplo, cargar, preguntar
                     {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
                     <img className="pc-ctx__logo" src={LOGO_APP[id]} alt="" width={18} height={18} loading="lazy" decoding="async" />
                     <span className="pc-ctx__fila-texto">{APP_POR_ID[id]?.nombre ?? id}</span>
-                    <span className="pc-ctx__estado">
-                      <span className="pc-ctx__luz" aria-hidden="true" />
-                      Conectada
-                    </span>
+                    <span className="pc-ctx__estado">Conectada</span>
                   </div>
                 ))
               ) : (
@@ -351,10 +348,7 @@ function Tablero({
       <section className="pc-ctx__seccion">
         <div className="pc-ctx__cabeza">
           <h3 className="pc-ctx__titulo">Resumen</h3>
-          <span className="pc-ctx__estado">
-            <span className={`pc-ctx__luz${ejemplo ? " pc-ctx__luz--ejemplo" : ""}`} aria-hidden="true" />
-            {ejemplo ? "Datos de ejemplo" : "En vivo"}
-          </span>
+          <span className="pc-ctx__estado">{ejemplo ? "Datos de ejemplo" : "En vivo"}</span>
         </div>
         <Grafica datos={datos} ejemplo={ejemplo} preguntar={preguntar} />
         <div className="pc-segmentos" role="radiogroup" aria-label="Periodo">
