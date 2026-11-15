@@ -14,31 +14,31 @@
 /* ---------- 1. Tokens ---------- */
 .pc {
   /* Oscuro (por defecto, como la captura) */
-  --pc-lienzo: #000; /* negro como la página de inicio */
-  --pc-menu: #0a0a0a;
-  --pc-superficie: #1a1a1a; /* caja de chat y tu burbuja */
-  --pc-tarjeta: #0d0d0d;
-  --pc-miniatura: #050505;
-  --pc-borde: #2c2c2c;
-  --pc-borde-suave: #1e1e1e;
-  --pc-division: #1e1e1e;
-  --pc-raya: #232323; /* la raya del pie del menú */
-  --pc-boton: #262626; /* "+ Nueva conversación" */
-  --pc-boton-hover: #313131;
+  --pc-lienzo: #0f0f0f; /* casi negro, como la página de inicio pero más suave */
+  --pc-menu: #141414;
+  --pc-superficie: #232323; /* caja de chat y tu burbuja */
+  --pc-tarjeta: #171717;
+  --pc-miniatura: #0a0a0a;
+  --pc-borde: #343434;
+  --pc-borde-suave: #252525;
+  --pc-division: #252525;
+  --pc-raya: #2b2b2b; /* la raya del pie del menú */
+  --pc-boton: #2d2d2d; /* "+ Nueva conversación" */
+  --pc-boton-hover: #373737;
   /* Menús y ventanas que flotan: un escalón arriba del negro */
-  --pc-flota: #141414;
-  --pc-flota-2: #1a1a1a;
-  --pc-flota-borde: #2a2a2a;
-  --pc-flota-hover: #262626;
+  --pc-flota: #1b1b1b;
+  --pc-flota-2: #212121;
+  --pc-flota-borde: #313131;
+  --pc-flota-hover: #2c2c2c;
   --pc-hover: rgba(255, 255, 255, 0.06);
   --pc-activo: rgba(255, 255, 255, 0.09);
   --pc-texto: #e8e8e8;
   --pc-texto-2: #a3a3a3; /* 6.5:1 sobre el menú, 5.2:1 sobre la caja */
   --pc-placeholder: #9b9b9b; /* 4.7:1 sobre la caja */
   --pc-pildora: transparent;
-  --pc-pildora-borde: #2c2c2c;
+  --pc-pildora-borde: #343434;
   --pc-pildora-llena: #e8e8e8;
-  --pc-pildora-llena-texto: #000;
+  --pc-pildora-llena-texto: #0f0f0f;
   --pc-acento: var(--azul-accion); /* botón principal: blanco encima 4.7:1 */
   --pc-acento-hover: var(--azul-accion-hover);
   --pc-enlace: var(--azul-enlace-noche); /* 6.6:1 sobre el lienzo */
@@ -667,7 +667,7 @@ button.pc-tarjeta {
    4. ARMAZÓN: menú de 288px + contenido
    ===================================================================== */
 :root:has(.pc) {
-  background: #000;
+  background: #0f0f0f;
 }
 :root[data-tema="claro"]:has(.pc) {
   background: #ececee;
@@ -6750,7 +6750,7 @@ a.pc-correo__accion:hover {
    ===================================================================== */
 .pc {
   --pc-claude-sale: cubic-bezier(0.23, 1, 0.32, 1);
-  --pc-fila-activa: #232323;
+  --pc-fila-activa: #2a2a2a;
   --pc-avatar: #785ee8;
 }
 :root[data-tema="claro"] .pc {
