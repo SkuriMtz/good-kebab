@@ -180,23 +180,31 @@ export async function suscribirApp(token: string, wabaId: string): Promise<boole
 }
 
 /**
- * ¿Este token todavía tiene permiso en Meta sobre ese número? true: sí;
- * false: Meta dice que no (token vencido o sin permiso); null: no se supo
- * (Meta no respondió). Solo con un "no" seguro se le quita el número a alguien.
+ * ¿Este token todavía tiene permiso en Meta sobre ese número?
+ * - "si": Meta lo dejó leer.
+ * - "sin_permiso": el token sirve, pero Meta dice claramente que no tiene
+ *   permiso sobre ese número (error de permisos, o "no existe o falta
+ *   permiso" sobre un número que sí existe).
+ * - "token_invalido": el token ya no sirve (hay que volver a conectar).
+ * - "no_se": Meta no respondió o dijo otra cosa. Con duda no se hace nada.
  */
-export async function tieneAcceso(token: string, phoneNumberId: string): Promise<boolean | null> {
-  if (!ID_META.test(phoneNumberId) || !secreto()) return null;
+export type Acceso = "si" | "sin_permiso" | "token_invalido" | "no_se";
+
+export async function tieneAcceso(token: string, phoneNumberId: string): Promise<Acceso> {
+  if (!ID_META.test(phoneNumberId) || !secreto()) return "no_se";
   try {
     const r = await fetch(`${GRAPH}/${phoneNumberId}?fields=id&appsecret_proof=${prueba(token)}`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(10_000),
       cache: "no-store",
     });
-    if (r.ok) return true;
-    const codigo = Number(obj(obj(await r.json().catch(() => null)).error).code);
-    if (codigo === 190 || codigo === 102 || codigo === 100 || codigo === 10 || (codigo >= 200 && codigo < 300)) return false;
-    return null;
+    if (r.ok) return "si";
+    const e = obj(obj(await r.json().catch(() => null)).error);
+    const codigo = Number(e.code);
+    if (codigo === 190 || codigo === 102) return "token_invalido";
+    if ((codigo >= 200 && codigo < 300) || (codigo === 100 && Number(e.error_subcode) === 33)) return "sin_permiso";
+    return "no_se";
   } catch {
-    return null;
+    return "no_se";
   }
 }

@@ -127,8 +127,11 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   const { data: numero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
   if (!numero?.phone_number_id) return sinResponder("tu número de WhatsApp ya no está conectado en Atendel.");
   const phoneNumberId = String(numero.phone_number_id);
-  // Si esta cuenta ya no tiene permiso en Meta sobre el número, deja de recibir sus mensajes (y este no se queda aquí)
-  if ((await tieneAcceso(token, phoneNumberId)) === false) {
+  // Si Meta dice claramente que esta cuenta ya no tiene permiso sobre el número, deja de recibir sus
+  // mensajes (y este no se queda aquí). Si el token ya no sirve, solo se le pide volver a conectar.
+  const acceso = await tieneAcceso(token, phoneNumberId);
+  if (acceso === "token_invalido") return sinResponder("tu conexión con Meta ya no sirve: vuelve a conectarla en Tu negocio → Apps.");
+  if (acceso === "sin_permiso") {
     await admin.from("whatsapp_numeros").delete().eq("phone_number_id", phoneNumberId).eq("owner_id", dueno);
     await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
     await avisarEnChat(admin, dueno, {
