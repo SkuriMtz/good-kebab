@@ -22,8 +22,14 @@ export const citar = (t: unknown, max = 600) =>
 export const citarLineas = (t: unknown, max = 900) =>
   (typeof t === "string" ? t.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
 
+/** Los únicos enlaces que puede llevar un aviso; cualquier otro se queda como texto. */
+const ENLACES_AVISO = new Set(["/panel?vista=pendientes", "/panel?vista=oficina", "/panel?vista=tareas", "/panel?vista=negocio&tab=apps"]);
+
 export async function avisarEnChat(admin: SupabaseClient, dueno: string, aviso: { agente: IdAgente; texto: string }): Promise<boolean> {
-  const texto = aviso.texto.trim().slice(0, 4000);
+  const texto = aviso.texto
+    .replace(/\[([^\]\n]{1,120})\]\(([^)\s]{0,300})\)/g, (todo: string, t: string, url: string) => (ENLACES_AVISO.has(url) ? todo : t))
+    .trim()
+    .slice(0, 4000);
   if (!texto) return false;
   try {
     const { data: hay } = await admin

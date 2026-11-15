@@ -256,12 +256,12 @@ ${perfilTexto}
     } else {
       const reglas: Regla[] = [...cerebro.reglas, ...(precios ? [{ id: "perfil", tipo: "dato" as const, texto: `Del perfil del negocio, servicios y precios: ${precios}` }] : [])];
       const v = await verificarContraReglas(respuesta, reglas, gasto, { estricto: true }).catch(() => ({ ok: false, problemas: ["no se pudo revisar contra tus Reglas"] }));
-      if (!v.ok) porQue = `no cuadra con tus Reglas (${v.problemas.join("; ") || "revísalo"}).`;
+      if (!v.ok) porQue = `no cuadra con tus Reglas (${v.problemas.map((x) => citar(x, 200)).join("; ") || "revísalo"}).`;
     }
     const propuesta = citar(respuesta, 1500);
 
     if (porQue) {
-      await marcar("esperando_ok", { borrador: respuesta, motivo: `${motivo ? `${motivo}. ` : ""}Te pregunto porque ${porQue}` });
+      await marcar("esperando_ok", { borrador: respuesta, motivo: `${motivo ? `${citar(motivo, 200)}. ` : ""}Te pregunto porque ${porQue}` });
       await avisarEnChat(admin, dueno, {
         agente: "lola",
         texto: `${quien} te escribió por WhatsApp: «${escribio}»\n\nLe quiero contestar: «${propuesta}»\n\nNecesito tu OK porque ${porQue} Apruébalo o cámbialo en [Necesita tu OK](/panel?vista=pendientes).`,

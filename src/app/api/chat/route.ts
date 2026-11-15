@@ -249,7 +249,9 @@ export async function POST(request: NextRequest) {
   // Datos de fuera en este turno: `externo` = se usaron herramientas de apps (la memoria no guarda sola);
   // `contexto` = van correos o documentos en las instrucciones. Con cualquiera, una tarea pedida aquí
   // queda esperando el OK del dueño en Tareas (para que un correo o una app no pueda dejar una tarea activa).
-  const turno = { externo: false, contexto: Boolean(correos) || Boolean(documentos) };
+  // En «Avisos de Atendel» la plática ya trae mensajes de clientes y resultados de apps (datos de fuera)
+  const enAvisos = tema === TEMA_AVISOS;
+  const turno = { externo: enAvisos, contexto: enAvisos || Boolean(correos) || Boolean(documentos) };
   const deApps = herramientasDelChat({
     supabase,
     userId: user.id,
