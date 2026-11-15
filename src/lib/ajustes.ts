@@ -325,6 +325,9 @@ export function bloqueParaAgentes(a: AjustesCuenta, agentes: readonly IdAgente[]
     a.instrucciones ? `- Cómo escribirles a sus clientes (con sus palabras): «${a.instrucciones}»` : null,
     a.firma ? `- Si escribes un mensaje para que el dueño lo mande a un cliente, fírmalo como: «${a.firma}».` : null,
     `- Zona horaria del negocio: ${zona} (${a.zonaHoraria}). Las horas que menciones van en esa zona.`,
+    a.revisionDiaria === "activa"
+      ? `- Revisión diaria: prendida, todos los días a las ${a.horaRevision}. Trabajo por su cuenta en sus apps conectadas: ${a.trabajoAutonomo === "activa" ? "prendido" : "apagado (lo puede prender en Ajustes > Atendel)"}.`
+      : "- Revisión diaria: apagada (la puede prender en Ajustes > Atendel > Revisión diaria).",
     ...agentes.filter((id) => a.reglas[id]).map((id) => `- Reglas del dueño para ${AGENTE_POR_ID[id].nombre}: «${a.reglas[id]}»`),
   ].filter(Boolean);
   return `\n\nPREFERENCIAS DEL DUEÑO (las eligió en Ajustes; síguelas, salvo que pidan algo inseguro o que vaya contra tus reglas de solo lectura):\n${lineas.join("\n")}`;
