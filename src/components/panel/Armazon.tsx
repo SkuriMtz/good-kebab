@@ -431,6 +431,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
               <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={20} />
             </button>
             <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+              <Marca className="pc-logo__marca" />
               <span className="pc-logo__nombre">Atendel</span>
             </Enlace>
           </div>
