@@ -97,7 +97,7 @@ const corta = (t: unknown, max: number) =>
   typeof t === "string" ? t.replace(/\s+/g, " ").trim().slice(0, max) : "";
 
 /** El lunes a las 00:00 en la zona de la cuenta (la semana del límite, como la del chat). */
-function inicioSemana(zona: string, ahora = new Date()) {
+export function inicioSemana(zona: string, ahora = new Date()) {
   const p = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: zona,

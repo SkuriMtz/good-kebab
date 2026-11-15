@@ -5,6 +5,7 @@ import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/comp
 import { Hecho } from "@/components/panel/Hecho";
 import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
 import { partesDe } from "@/components/panel/RevisionDiaria";
+import { TareasVista } from "@/components/panel/Tareas";
 import { limpiarAjustes } from "@/lib/ajustes";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
@@ -40,6 +41,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
  * - ?vista=oficina: lo que tu equipo te dejó (archivos) para revisar, aprobar o pedir cambios.
+ * - ?vista=tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage({ searchParams }: { searchParams: Parametros }) {
@@ -56,6 +58,11 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   const texto = (v: unknown, max = 200) => (typeof v === "string" && v ? v.slice(0, max) : undefined);
 
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
+
+  if (searchParams.vista === "tareas") {
+    const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
+    return <TareasVista zona={limpiarAjustes(filaAjustes?.datos).zonaHoraria} ahora={Date.now()} base="/panel" />;
+  }
 
   if (searchParams.vista === "oficina") {
     const [{ data }, { data: rev }, { data: filaAjustes }, { data: hechos }] = await Promise.all([

@@ -23,7 +23,7 @@ import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
-export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
 export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[]; campo?: "tema" | "titulo" };
 export type ResultadoBusqueda = { id: string; grupo: string; titulo: string; detalle?: string; href: string; icono?: NombreIcono; agentes?: IdAgente[]; claves?: string };
@@ -33,7 +33,7 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; oficina: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
+  hrefs: { inicio: string; oficina: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
   /** Lo que la Oficina tiene por revisar (archivos que te dejó tu equipo). */
@@ -459,6 +459,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
                 </span>
               ) : null,
             )}
+            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
             {item(
               "pendientes",
               "Pendientes",

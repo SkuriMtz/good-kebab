@@ -6,6 +6,7 @@ import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
 import { bloqueCerebro, cargarCerebro, herramientaRecordar } from "@/lib/cerebro";
+import { INSTRUCCIONES_TAREAS, herramientaProgramar } from "@/lib/tareas";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
@@ -260,6 +261,8 @@ export async function POST(request: NextRequest) {
     }),
     // Guardar en la Memoria lo que vale la pena recordar
     herramientaRecordar(supabase, user.id, turno),
+    // Programar algo para después o que se repita (Tareas)
+    herramientaProgramar(supabase, user.id, ajustesCuenta.zonaHoraria),
   ];
   const conApps =
     instruccionesHerramientas(participantes, deApps, conexiones) +
@@ -316,6 +319,7 @@ export async function POST(request: NextRequest) {
                     )) +
                 preferencias +
                 cerebro +
+                INSTRUCCIONES_TAREAS +
                 conApps,
             },
           ],

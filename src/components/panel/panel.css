@@ -9321,3 +9321,149 @@ a.pc-correo__accion:hover {
     flex-basis: 100%;
   }
 }
+
+/* =====================================================================
+   44. Tareas: lo que Atendel hace solo, a su hora
+   ===================================================================== */
+.pc-tareas__pide {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 14px;
+  background: var(--pc-tarjeta);
+}
+.pc-tareas__pide-titulo {
+  font-size: 14px;
+  font-weight: 600;
+}
+.pc-tareas__ejemplos {
+  display: grid;
+  gap: 6px;
+}
+.pc .pc-tareas__ejemplo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+  color: var(--pc-texto);
+  font-size: 14px;
+  line-height: 1.4;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.pc .pc-tareas__ejemplo > svg {
+  flex: none;
+  color: var(--pc-texto-2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-tareas__ejemplo:hover {
+    border-color: var(--pc-borde);
+    background: var(--pc-hover);
+  }
+}
+.pc-tareas__nueva {
+  justify-self: start;
+  margin: 0 0 20px;
+}
+.pc-tareas__forma {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 14px;
+  background: var(--pc-tarjeta);
+}
+.pc-tareas__dias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pc-tareas__dias .pc-pildora {
+  min-width: 52px;
+  justify-content: center;
+  text-transform: capitalize;
+}
+.pc-tareas__previa {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--pc-hover);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.pc-tareas {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-tareas__tarea {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 12px;
+  background: var(--pc-tarjeta);
+}
+.pc-tareas__tarea[data-pausada] {
+  opacity: 0.6;
+}
+.pc-tareas__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pc-tareas__icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--pc-hover);
+  color: var(--pc-texto-2);
+}
+.pc-tareas__textos {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.pc-tareas__titulo {
+  font-size: 15px;
+  font-weight: 600;
+}
+.pc-tareas__cuando,
+.pc-tareas__detalle,
+.pc-tareas__ultima {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.pc-tareas__detalle {
+  padding-left: 48px;
+}
+.pc-tareas__ultima {
+  padding-left: 48px;
+}
+.pc .pc-tareas__ultima a {
+  color: var(--pc-texto);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .pc-tareas__cabeza {
+    flex-wrap: wrap;
+  }
+  .pc-tareas__detalle,
+  .pc-tareas__ultima {
+    padding-left: 0;
+  }
+}

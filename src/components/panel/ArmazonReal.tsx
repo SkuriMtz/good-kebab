@@ -50,7 +50,7 @@ export type DatosArmazonReal = {
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS = ["oficina", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
 function claveDe(url: URL) {
@@ -210,6 +210,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const indice: ResultadoBusqueda[] = [
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/panel" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
+    { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
     { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Qué hace cada uno y sus reglas", icono: "agentes", href: "/panel?vista=ajustes&seccion=agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
@@ -298,6 +299,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         hrefs={{
           inicio: "/panel",
           oficina: "/panel?vista=oficina",
+          tareas: "/panel?vista=tareas",
           pendientes: "/panel?vista=pendientes",
           citas: "/panel?vista=citas",
           negocio: "/panel?vista=negocio",

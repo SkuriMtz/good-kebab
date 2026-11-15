@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clienteServicio } from "@/lib/supabase/servicio";
+import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
 
 /**
@@ -29,6 +30,19 @@ export async function POST(req: NextRequest) {
   if (valida !== true) return error("No autorizado.", 401);
 
   const empezo = Date.now();
+  // Primero las tareas que ya tocan (tienen hora); se apartan antes, para no correrlas dos veces
+  const tareas: { id: string; hecho: boolean; motivo: string }[] = [];
+  for (const t of await tareasQueTocan(admin)) {
+    if (Date.now() - empezo > TIEMPO) break;
+    if (!(await apartarTarea(admin, t))) continue;
+    try {
+      tareas.push({ id: t.id, ...(await ejecutarTarea(admin, t)) });
+    } catch (e) {
+      console.error("Tarea falló:", e instanceof Error ? e.message : e);
+      tareas.push({ id: t.id, hecho: false, motivo: "error" });
+    }
+  }
+
   const { data: pendientes } = await admin
     .from("revisiones")
     .select("id, owner_id, partes")
@@ -38,7 +52,7 @@ export async function POST(req: NextRequest) {
     .limit(25);
 
   const resultados: { id: string; hecho: boolean; motivo: string }[] = [];
-  for (const r of pendientes ?? []) {
+  for (const r of Date.now() - empezo > TIEMPO ? [] : (pendientes ?? [])) {
     if (Date.now() - empezo > TIEMPO) break;
     // Se aparta primero: así nunca se trabaja dos veces la misma (lo que falte, en la siguiente vuelta)
     const { data: apartada } = await admin.from("revisiones").update({ trabajo_en: new Date().toISOString() }).eq("id", r.id).is("trabajo_en", null).select("id");
@@ -51,5 +65,5 @@ export async function POST(req: NextRequest) {
       resultados.push({ id: String(r.id), hecho: false, motivo: "error" });
     }
   }
-  return NextResponse.json({ trabajadas: resultados.length, hechas: resultados.filter((x) => x.hecho).length, resultados }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ tareas, trabajadas: resultados.length, hechas: resultados.filter((x) => x.hecho).length, resultados }, { headers: { "Cache-Control": "no-store" } });
 }

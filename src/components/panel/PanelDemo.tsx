@@ -19,6 +19,7 @@ import { Hecho } from "./Hecho";
 import { Oficina, type ItemOficina } from "./Oficina";
 import { oficinaDeEjemplo, revisionDeEjemplo } from "./oficina-demo";
 import { RevisionDiaria } from "./RevisionDiaria";
+import { TareasVista } from "./Tareas";
 import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
 import { ConversacionDemo, EVENTO_PENDIENTE_DEMO, InicioDemo, useGuion, type ConvGuion } from "./ChatGuion";
@@ -44,7 +45,7 @@ import { usoDeEjemplo } from "@/lib/uso-estado";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["agentes", "oficina", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 /** El uso de ejemplo de Estudio Luna (sesión al 18 %, semana al 43 %). */
 const USO_DEMO = usoDeEjemplo(PLAN.limite);
@@ -163,6 +164,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     () => [
       { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/pruebalo" },
       { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/pruebalo?vista=oficina" },
+      { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "automatizaciones programar cada semana mes recordatorio", href: "/pruebalo?vista=tareas" },
       { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Qué hace cada uno y sus reglas", icono: "agentes", href: "/pruebalo?vista=ajustes&seccion=agentes" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
       { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
@@ -225,6 +227,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
+  } else if (valida === "tareas") {
+    contenido = <TareasVista demo zona="America/Mexico_City" ahora={ahora} base="/pruebalo" />;
   } else if (valida === "oficina") {
     const marcar = (id: string, revision: ItemOficina["revision"]) => {
       setOficina((l) => l.map((x) => (x.id === id ? { ...x, revision } : x)));
@@ -317,6 +321,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         hrefs={{
           inicio: "/pruebalo",
           oficina: "/pruebalo?vista=oficina",
+          tareas: "/pruebalo?vista=tareas",
           pendientes: "/pruebalo?vista=pendientes",
           citas: "/pruebalo?vista=citas",
           negocio: "/pruebalo?vista=negocio",
