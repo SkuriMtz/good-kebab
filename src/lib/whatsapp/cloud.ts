@@ -182,11 +182,11 @@ export async function suscribirApp(token: string, wabaId: string): Promise<boole
 /**
  * ¿Este token todavía tiene permiso en Meta sobre ese número?
  * - "si": Meta lo dejó leer.
- * - "sin_permiso": con un token que sirve, Meta dice claramente que no tiene
- *   permiso sobre ese número (errores 200–299, o 100 con subcódigo 33).
+ * - "sin_permiso": Meta dice que no tiene permiso sobre ese número (errores
+ *   de permisos 10 y 200–299, o 100: "no existe o falta permiso").
  * - "token_invalido": el token ya no sirve (hay que volver a conectar).
- * - "no_se": Meta no respondió o dijo otra cosa.
- * Solo un "sin_permiso" claro quita o mueve un número; lo demás nunca.
+ * - "no_se": Meta no respondió o dijo otra cosa. Con duda no se contesta
+ *   nada ni se mueve nada.
  */
 export type Acceso = "si" | "sin_permiso" | "token_invalido" | "no_se";
 
@@ -202,7 +202,7 @@ export async function tieneAcceso(token: string, phoneNumberId: string): Promise
     const e = obj(obj(await r.json().catch(() => null)).error);
     const codigo = Number(e.code);
     if (codigo === 190 || codigo === 102) return "token_invalido";
-    if ((codigo >= 200 && codigo < 300) || (codigo === 100 && Number(e.error_subcode) === 33)) return "sin_permiso";
+    if (codigo === 10 || codigo === 100 || (codigo >= 200 && codigo < 300)) return "sin_permiso";
     return "no_se";
   } catch {
     return "no_se";

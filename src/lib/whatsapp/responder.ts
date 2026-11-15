@@ -116,11 +116,12 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
     return { estado: "agrupado" };
   }
 
-  // 2. La conexión con Meta, primero.
-  //    - Si Meta dice CLARAMENTE que esta cuenta ya no tiene permiso sobre el número, deja de
-  //      recibir sus mensajes y este no se queda aquí (el aviso no repite nada del cliente).
-  //    - Si la conexión solo venció o no se pudo confirmar, no se pierde nada: el mensaje se guarda
-  //      y se pide volver a conectar (sin repetir lo que escribió el cliente).
+  // 2. La conexión con Meta, primero (los avisos de este paso nunca repiten lo que escribió el cliente):
+  //    - Meta dice que esta cuenta no tiene permiso sobre el número, o se desconectó: deja de recibir
+  //      sus mensajes y este no se queda aquí.
+  //    - La conexión solo venció o ya no sirve (le pasa a todos cada ~60 días): el mensaje se guarda y
+  //      se pide volver a conectar.
+  //    - Meta no respondió: no se contesta nada (ni se usa la IA) hasta poder confirmarlo.
   async function pedirReconectar(porQue: string): Promise<ResultadoWhatsapp> {
     await marcar("sin_respuesta", { motivo: `No le contesté: ${porQue}` });
     await avisarEnChat(admin, dueno, {
@@ -129,28 +130,31 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
     });
     return { estado: "sin_respuesta", motivo: porQue };
   }
+  async function soltarNumero(numeroId: string | null, porQue: string): Promise<ResultadoWhatsapp> {
+    if (numeroId) await admin.from("whatsapp_numeros").delete().eq("phone_number_id", numeroId).eq("owner_id", dueno);
+    await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
+    await avisarEnChat(admin, dueno, {
+      agente: "lola",
+      texto: `${porQue}, así que dejé de recibir aquí los mensajes de tu número de WhatsApp. Si es un error, vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+    });
+    return { estado: "sin_acceso" };
+  }
   const { data: numero, error: errNumero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
-  if (errNumero) return sinResponder("no pude revisar tu número de WhatsApp (algo pasajero).");
-  if (!numero?.phone_number_id) return pedirReconectar("tu número de WhatsApp ya no está conectado en Atendel.");
+  if (errNumero) return pedirReconectar("no pude revisar tu número de WhatsApp (algo pasajero); intenta en un momento.");
+  if (!numero?.phone_number_id) return soltarNumero(null, "Tu número de WhatsApp ya no está conectado en esta cuenta");
   const phoneNumberId = String(numero.phone_number_id);
   let token = "";
   try {
     token = (await obtenerToken(admin, dueno, "meta")).access_token;
   } catch (e) {
+    if (e instanceof ErrorConexion && e.codigo === "sin_conexion") return soltarNumero(phoneNumberId, "Desconectaste Meta");
     const t = e instanceof ErrorConexion ? e.message : "No pude leer tu conexión con Meta.";
     return pedirReconectar(t.charAt(0).toLowerCase() + t.slice(1));
   }
   const acceso = await tieneAcceso(token, phoneNumberId);
+  if (acceso === "sin_permiso") return soltarNumero(phoneNumberId, "Meta dice que tu conexión ya no tiene permiso sobre tu número");
   if (acceso === "token_invalido") return pedirReconectar("tu conexión con Meta ya no sirve.");
-  if (acceso === "sin_permiso") {
-    await admin.from("whatsapp_numeros").delete().eq("phone_number_id", phoneNumberId).eq("owner_id", dueno);
-    await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
-    await avisarEnChat(admin, dueno, {
-      agente: "lola",
-      texto: "Meta dice que tu conexión ya no tiene permiso sobre tu número de WhatsApp, así que dejé de recibir sus mensajes aquí. Si es un error, vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
-    });
-    return { estado: "sin_acceso" };
-  }
+  if (acceso !== "si") return pedirReconectar("no pude confirmar con Meta tu permiso sobre el número (Meta no respondió).");
 
   // 3. ¿Puede trabajar?
   const [{ data: filaAjustes }, cuenta] = await Promise.all([admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle(), cargarCuenta(admin, dueno)]);

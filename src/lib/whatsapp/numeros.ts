@@ -7,23 +7,22 @@ import { clienteServicio } from "@/lib/supabase/servicio";
 import { ID_META, suscribirApp, tieneAcceso, type Acceso } from "./cloud";
 
 /**
- * ¿La cuenta que hoy tiene el número sigue con permiso? Se pregunta a Meta con SU token, solo si
- * ese token sigue vigente. Lo que se sabe de nuestro lado (vencido, con error, ilegible) nunca
- * cuenta como "sin permiso": ahí es "no_se" y el número no se mueve.
+ * ¿La cuenta que hoy tiene el número puede demostrar que sigue con permiso? Se pregunta a Meta con
+ * SU token. Sin conexión, con la conexión vencida o con error, no puede demostrarlo
+ * ("token_invalido"). Si no se pudo leer de nuestro lado o Meta no respondió: "no_se".
  */
 async function accesoDe(admin: SupabaseClient, dueno: string, telefono: string): Promise<Acceso> {
   let token: string;
   try {
     const fila = await leerFila(admin, dueno, "meta");
-    if (!fila || fila.estado !== "activa") return "no_se";
+    if (!fila || fila.estado !== "activa") return "token_invalido";
     const t = descifrarTokens(fila, dueno, "meta");
-    if (t.expira_en !== undefined && t.expira_en <= Date.now()) return "no_se";
+    if (t.expira_en !== undefined && t.expira_en <= Date.now()) return "token_invalido";
     token = t.access_token;
   } catch {
     return "no_se";
   }
-  const r = await tieneAcceso(token, telefono);
-  return r === "token_invalido" ? "no_se" : r;
+  return tieneAcceso(token, telefono);
 }
 
 /**
@@ -31,12 +30,12 @@ async function accesoDe(admin: SupabaseClient, dueno: string, telefono: string):
  * cuenta (whatsapp_numeros, solo el servidor lo escribe) y se le pide a Meta
  * que mande a Atendel los mensajes de esa cuenta de WhatsApp. Los ids salen
  * de Meta con el token recién conectado (nadie los escribe a mano).
- * - Quien conecta necesita permiso confirmado por Meta sobre el número.
- * - Si ya está en OTRA cuenta de Atendel, solo se pasa a esta si Meta dice
- *   CLARAMENTE (con el token vigente de la otra) que esa ya no tiene
- *   permiso; se le avisa. Si su conexión solo venció, si las dos tienen
- *   permiso o si hay duda, no se mueve: se avisa a las dos (para moverlo,
- *   se desconecta primero allá o se pide a soporte).
+ * - Quien conecta necesita permiso CONFIRMADO por Meta sobre el número, en
+ *   ese momento.
+ * - Si ya está en OTRA cuenta de Atendel: se pasa a esta solo si esa otra
+ *   no puede demostrar su permiso (Meta dice que no lo tiene, o su conexión
+ *   venció o ya no sirve), y se le avisa. Si las dos tienen permiso, o si
+ *   Meta no respondió, no se mueve y se avisa a las dos.
  * Mejor esfuerzo: si algo falla, la conexión igual queda.
  */
 export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promise<boolean> {
@@ -56,7 +55,8 @@ export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promis
   let { data: actual } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", telefono).maybeSingle();
   if (actual && String(actual.owner_id) !== userId) {
     const anterior = String(actual.owner_id);
-    if ((await accesoDe(admin, anterior, telefono)) === "sin_permiso") {
+    const acceso = await accesoDe(admin, anterior, telefono);
+    if (acceso === "sin_permiso" || acceso === "token_invalido") {
       // Meta confirma que la cuenta anterior ya no tiene permiso: el número pasa a esta
       await admin.from("whatsapp_numeros").delete().eq("phone_number_id", telefono).eq("owner_id", anterior);
       await avisarEnChat(admin, anterior, {
