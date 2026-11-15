@@ -47,7 +47,7 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
   },
   {
     p: "¿Necesito tarjeta para empezar?",
-    r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo.",
+    r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Atendel y todo su equipo.",
   },
   {
     p: "¿Cómo se mide el uso?",
@@ -58,8 +58,8 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
     r: "Por ahora no se cambia desde tu cuenta: One y Max abren por etapas. Anótate en la lista de espera y te escribimos cuando abramos tu lugar.",
   },
   {
-    p: "¿Puedo elegir qué agentes uso?",
-    r: "Sí, con One o Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
+    p: "¿Tengo que decirle a qué agente le toca?",
+    r: "No. Le escribes a Atendel y él decide a quién le toca: Lola, Clara, Víctor o Iris. Te contesta una sola vez y abajo ves quién lo hizo.",
   },
 ];
 
@@ -72,7 +72,7 @@ export type Tema = { id: string; nombre: string; preguntas: Pregunta[] };
 
 const buscar = (inicio: string) => PREGUNTAS.filter((q) => q.p.startsWith(inicio));
 
-const EMPEZAR = [...buscar("¿Es difícil"), ...buscar("¿Sirve para mi negocio"), ...buscar("¿Qué puedo usar")];
+const EMPEZAR = [...buscar("¿Es difícil"), ...buscar("¿Sirve para mi negocio"), ...buscar("¿Atendel trabaja"), ...buscar("¿Qué puedo usar")];
 const CLIENTES = [...buscar("¿Mis clientes"), ...buscar("¿Qué pasa si un agente")];
 const DATOS = buscar("¿Qué pasa con mis datos");
 const PLANES_BASE = buscar("¿Qué incluye cada plan");

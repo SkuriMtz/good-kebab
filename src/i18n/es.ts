@@ -42,11 +42,11 @@ export const es = {
   idioma: "es" as "es" | "en",
   meta: {
     locale: "es_MX",
-    tituloInicio: "Atendel — Agentes de IA para negocios que atienden personas",
+    tituloInicio: "Atendel — Tu socio de IA para atender tu negocio",
     descripcionInicio:
-      "Lola contesta tu WhatsApp y agenda citas, Clara ordena tu correo, Víctor trae de regreso a tus clientes e Iris lleva el trabajo de oficina. Agentes de IA para negocios que atienden personas.",
-    agentes: ["Agentes", "Lola, Clara, Víctor e Iris: qué hace cada agente de Atendel, cómo habla y en qué plan viene."],
-    precios: ["Precios", "Atendel Free es gratis y trae a Clara, tu agente de correo. One y Max traen a los cuatro agentes; Max, con 5 veces el uso de One."],
+      "Le escribes a Atendel y él reparte el trabajo a su equipo: Lola atiende tu WhatsApp y tus citas, Clara tu correo, Víctor a tus clientes e Iris la oficina. Trabaja aunque no estés y te avisa de todo.",
+    agentes: ["Agentes", "Atendel y su equipo: Lola, Clara, Víctor e Iris. Qué hace cada uno y cómo trabajan juntos."],
+    precios: ["Precios", "Atendel Free es gratis y trae a todo el equipo para probarlo. One y Max son para el día a día; Max, con 5 veces el uso de One."],
     preguntas: [
       "Posibles preguntas",
       "Cómo se empieza, qué trae cada plan, cómo trabajan los agentes con tus clientes y cómo cuidamos tus datos.",
@@ -110,21 +110,21 @@ export const es = {
     pruebalo: "Pruébalo",
     tusDatos: "Tus datos",
     miPanel: "Mi panel",
-    lema: "Lola, Clara, Víctor e Iris: cuatro agentes de IA para la recepción y la oficina de tu negocio.",
+    lema: "Atendel, tu socio de IA: con Lola, Clara, Víctor e Iris atiende tu negocio aunque no estés.",
     sello: "Entras con tu correo · sin contraseña",
     franja: "Ayuda y datos",
   },
 
   inicio: {
     portada: {
-      etiqueta: "Tu equipo de agentes de IA",
+      etiqueta: "Tu socio de IA",
       titulo: "Que ningún cliente se quede sin respuesta.",
       texto:
-        "Lola contesta tu WhatsApp y agenda citas, Clara ordena tu correo, Víctor trae de regreso a tus clientes e Iris lleva el trabajo de oficina. Lo importante no sale sin tu visto bueno.",
+        "Le escribes a Atendel como a un socio y él reparte el trabajo: Lola atiende tu WhatsApp y tus citas, Clara tu correo, Víctor a tus clientes e Iris la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
     },
     decisiones: {
-      titulo: "Atiende sin perder un mensaje",
-      texto: "Tus agentes contestan a cualquier hora, agendan y confirman citas, y te avisan cuando algo necesita a una persona.",
+      titulo: "Trabaja aunque no estés",
+      texto: "Revisa tus apps cada mañana, hace las tareas que le programas y contesta a tus clientes con tus precios y tus reglas. De todo te avisa en tu chat.",
     },
     caos: {
       aria: "Así es tu día hoy",
@@ -135,11 +135,11 @@ export const es = {
       ],
     },
     foco: {
-      titulo: "Tu equipo, listo a cualquier hora",
+      titulo: "Un solo chat, todo un equipo",
       textos: [
-        "Atendel es un equipo de cuatro agentes de inteligencia artificial que trabajan para tu negocio.",
-        "Les escribes como a una persona y ellos resuelven: contestan, agendan, ordenan tu correo y preparan documentos.",
-        "Tú decides qué hacen solos y qué te consultan primero.",
+        "Atendel es tu socio de inteligencia artificial: le escribes a él y detrás trabajan cuatro agentes para tu negocio.",
+        "Se lo pides como a una persona y él decide a quién le toca: contestar, agendar, ordenar tu correo o preparar un documento. Te contesta una sola vez.",
+        "Tú decides qué hace solo y qué te pregunta antes. Lo de dinero, siempre te lo pregunta.",
       ],
     },
     globo: {
@@ -152,16 +152,16 @@ export const es = {
     },
     equipo: {
       titulo: "Tu equipo",
-      sub: "Cuatro agentes, cada uno en lo suyo.",
+      sub: "Atendel reparte el trabajo entre cuatro agentes, cada uno en lo suyo.",
       texto: "Toca a cualquiera para ver todo lo que hace.",
     },
     apps: {
       titulo: "Se conecta con las apps que ya usas",
-      nota: (n: number) => `${n} apps, con tu propia cuenta y solo para leer.`,
+      nota: (n: number) => `${n} apps, con tu propia cuenta y solo para leer: Atendel las revisa por ti cada mañana.`,
     },
     planes: {
       titulo: "Planes",
-      texto: "Empieza gratis. One y Max abren por etapas: anótate en la lista y te avisamos.",
+      texto: "Empieza gratis con todo el equipo. One y Max abren por etapas: anótate en la lista y te avisamos.",
       cuandoTitulo: "Cuándo sale",
       cuandoTexto: "Free ya está abierto. One y Max abren por etapas: anótate en la lista y te avisamos cuando abra tu lugar.",
     },
@@ -215,7 +215,7 @@ export const es = {
         },
         {
           titulo: "Mientras, ya puedes empezar",
-          texto: "Con Atendel Free entras hoy con tu correo, sin contraseña, y trabajas con Clara en tu correo. Y en Pruébalo platicas con los cuatro.",
+          texto: "Con Atendel Free entras hoy con tu correo, sin contraseña, y trabajas con Atendel y todo su equipo. Y en Pruébalo platicas con él sin crear cuenta.",
         },
       ],
       pruebaAgentes: "Prueba los agentes",
@@ -232,12 +232,12 @@ export const es = {
     etiqueta: "Atención · Correo · Clientes · Oficina",
     titulo: "¿Qué le encargas hoy?",
     texto:
-      "Lola contesta tu WhatsApp y agenda, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
-    hablar: "Habla con los agentes",
+      "Le escribes a Atendel y él se lo pasa a quien le toca: Lola atiende tu WhatsApp y tus citas, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
+    hablar: "Habla con Atendel",
     verPrecios: "Ver precios",
     chatEtiqueta: "El chat",
     chatTitulo: "Pruébalos en el chat",
-    chatTexto: "Escríbeles lo que necesitas, como en cualquier chat, o arma un grupo con los que quieras.",
+    chatTexto: "Escríbele a Atendel lo que necesitas, como en cualquier chat: él reparte el trabajo y te contesta una sola vez.",
     irAgente: "Ir a un agente",
     verFicha: "Ver su ficha",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: ver su ficha`,
@@ -317,15 +317,15 @@ export const es = {
     etiqueta: "Precios · Free, One y Max",
     titulo: "Empieza gratis. Crece cuando tu negocio lo pida.",
     intro:
-      "Free para conocer a Clara, tu agente de correo. One y Max traen a los cuatro agentes y todo lo demás: Max, con 5 veces el uso de One.",
+      "Free para conocer a Atendel y a todo su equipo. One y Max, para el día a día: Max, con 5 veces el uso de One.",
     planes: "Planes",
     compararEtiqueta: "Comparación",
     compararTitulo: "Quién trabaja contigo en cada plan",
-    compararTexto: "Clara está en todos los planes. One y Max traen a los cuatro agentes y lo mismo; lo único que cambia es el uso: Max tiene 5 veces el de One.",
+    compararTexto: "Los tres planes traen a Atendel y a sus cuatro agentes. Cambian los modelos, el uso y cuánto trabaja por su cuenta: Max tiene 5 veces el uso de One.",
     antes: "Antes de decidir",
     preguntasTitulo: "Preguntas sobre los planes",
     cierreTitulo: "Pruébalos antes de decidir.",
-    cierreTexto: "Platica con Lola, Clara, Víctor e Iris en el chat de demostración, o anótate para saber cuándo abren One y Max.",
+    cierreTexto: "Platica con Atendel en el chat de demostración, o anótate para saber cuándo abren One y Max.",
     pruebaAgentes: "Prueba los agentes",
     listaEspera: "Lista de espera",
   },
@@ -338,7 +338,7 @@ export const es = {
     agentes: "Agentes",
     enElChat: "En el chat",
     uso: "Uso del chat",
-    funciones: ["Chats en grupo con tus agentes", "Eliges quién está en tu equipo", "Modelos Rápido y Avanzado"],
+    funciones: ["Trabaja por su cuenta: revisión diaria y tareas", "Modelos Rápido y Avanzado"],
   },
 
   preguntas: {
@@ -357,7 +357,7 @@ export const es = {
     pregunta: "pregunta",
     preguntasPalabra: "preguntas",
     grupos: {
-      empezar: { nombre: "Para empezar", preguntas: [...pregunta("¿Es difícil"), ...pregunta("¿Sirve para mi negocio"), ...pregunta("¿Qué puedo usar")] },
+      empezar: { nombre: "Para empezar", preguntas: [...pregunta("¿Es difícil"), ...pregunta("¿Sirve para mi negocio"), ...pregunta("¿Atendel trabaja"), ...pregunta("¿Qué puedo usar")] },
       planes: {
         nombre: "Planes y precios",
         preguntas: [
@@ -366,7 +366,7 @@ export const es = {
             p: "¿Cuánto cuesta?",
             r: "Atendel Free es gratis. Los precios de Atendel One y Atendel Max todavía no se publican: déjanos tu correo en la lista de espera y te avisamos cuando abran.",
           },
-          { p: "¿Necesito tarjeta para empezar?", r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Clara, tu agente de correo." },
+          { p: "¿Necesito tarjeta para empezar?", r: "No. Entras con tu correo, sin contraseña, y empiezas a trabajar con Atendel y todo su equipo." },
           {
             p: "¿Cómo se mide el uso?",
             r: "No contamos mensajes: medimos cuánto trabaja tu equipo. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más, y el modelo Avanzado gasta mucho más que el Rápido. Hay un límite por sesión de 5 horas (empieza con tu primer mensaje) y otro por semana (se reinicia el lunes). Si llegas, el chat te dice a qué hora vuelve a contestar. Max tiene 5 veces el uso de One.",
@@ -376,8 +376,8 @@ export const es = {
             r: "Por ahora no se cambia desde tu cuenta: One y Max abren por etapas. Anótate en la lista de espera y te escribimos cuando abramos tu lugar.",
           },
           {
-            p: "¿Puedo elegir qué agentes uso?",
-            r: "Sí, con One o Max: en tu panel, en Mis agentes, decides quién está en tu equipo: Lola, Clara, Víctor e Iris.",
+            p: "¿Tengo que decirle a qué agente le toca?",
+            r: "No. Le escribes a Atendel y él decide a quién le toca: Lola, Clara, Víctor o Iris. Te contesta una sola vez y abajo ves quién lo hizo.",
           },
         ],
       },
@@ -391,7 +391,7 @@ export const es = {
     etiqueta: "Para quién es",
     titulo: "Para negocios que atienden personas.",
     texto: "Si tu negocio vive de atender, agendar y que tus clientes regresen, el equipo de Atendel hace esa parte contigo.",
-    hablar: "Habla con los agentes",
+    hablar: "Habla con Atendel",
     indice: "En esta página",
     resto: "El resto del equipo",
     cierreEtiqueta: "Pruébalo",

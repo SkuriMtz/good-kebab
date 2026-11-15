@@ -17,13 +17,13 @@ export const PRUEBALO = { href: "/pruebalo", label: "Pruébalo" };
 
 export const PASOS = [
   ["Entras con tu correo", "Sin contraseña y sin instalar nada. Desde el celular, la tablet o la computadora."],
-  ["Armas tu equipo", "Eliges qué agentes trabajan contigo: atención, correo, clientes u oficina."],
-  ["Les encargas trabajo", "Les escribes como a una persona. Ellos resuelven, y lo importante no sale sin tu visto bueno."],
+  ["Conectas lo que ya usas", "Tu correo, tu agenda, tu WhatsApp y tus apps, con tu propia cuenta."],
+  ["Le encargas trabajo", "Le escribes a Atendel como a un socio. Él reparte el trabajo a su equipo, trabaja aunque no estés y lo de dinero te lo pregunta antes."],
 ];
 
 export const GARANTIAS = [
   ["Solo tu cuenta", "Tus clientes, tus citas y tus números solo los ve tu negocio. Lo controla la base de datos, no una promesa."],
-  ["Con tu permiso", "Tú decides qué hace cada agente por su cuenta y qué te consulta primero. Clara contesta desde tu correo con las reglas que tú le pones."],
+  ["Con tu permiso", "Tú decides qué hace Atendel solo y qué te pregunta antes. Lo de dinero y lo que tus Reglas no cubren, siempre te lo pregunta."],
   ["Cifrado", "Todo viaja cifrado, de tu celular o computadora hasta nuestros servidores."],
 ];
 
@@ -34,23 +34,27 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Sirve para mi negocio?",
-    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Lola, Clara, Víctor e Iris hacen esa parte del trabajo.",
+    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Atendel y su equipo (Lola, Clara, Víctor e Iris) hacen esa parte del trabajo.",
+  },
+  {
+    p: "¿Atendel trabaja aunque yo no esté?",
+    r: "Sí. Cada mañana revisa tus apps conectadas y te deja el plan del día, hace las tareas que le programas y, con tu WhatsApp Business conectado, contesta a tus clientes con tus precios y tus reglas. De todo te avisa en tu chat. Lo de dinero y lo que tus Reglas no cubren te lo pregunta antes.",
   },
   {
     p: "¿Qué incluye cada plan?",
-    r: "Con Free trabajas con Clara, tu agente de correo, con uso para probarlo. One y Max traen a los cuatro agentes: eliges quién está en tu equipo, chats en grupo y los dos modelos (Rápido para el día a día y Avanzado para lo pesado). Lo único que cambia es el uso: Max tiene 5 veces el de One.",
+    r: "Los tres traen a Atendel y a sus cuatro agentes. Free es para probarlo, con el modelo Rápido. One y Max son para el día a día: los dos modelos (Rápido para el día a día y Avanzado para lo pesado) y más trabajo por su cuenta. Max tiene 5 veces el uso de One.",
   },
   {
     p: "¿Qué puedo usar desde hoy?",
-    r: "Clara ya lee y resume tu correo, y puedes hablar por chat con todo el equipo. La conexión directa de Lola con tu WhatsApp y tu agenda llega por etapas.",
+    r: "El chat con Atendel y su equipo, tu correo, tus apps conectadas, la revisión de cada mañana y las tareas programadas. La conexión de tu WhatsApp Business, para que Lola conteste sola a tus clientes, abre por etapas.",
   },
   {
     p: "¿Mis clientes sabrán que es un agente de IA?",
-    r: "Tú decides cómo se presenta. Te recomendamos decirlo con claridad, y cuando una conversación necesita a una persona, Lola te avisa y te la pasa.",
+    r: "Si un cliente le pregunta, Lola le dice con naturalidad que es la asistente virtual de tu negocio. Y cuando una conversación necesita a una persona, te avisa y te la pasa.",
   },
   {
     p: "¿Qué pasa si un agente se equivoca?",
-    r: "Puede pasar, como con cualquier persona nueva en el equipo. Por eso lo importante no sale sin tu aprobación y todo queda guardado para que lo revises.",
+    r: "Puede pasar, como con cualquier persona nueva en el equipo. Por eso Atendel sigue tus Reglas (precios y políticas) y revisa contra ellas lo que va a mandar; lo de dinero y lo que no cubren te lo pregunta antes, y todo queda guardado para que lo revises.",
   },
   {
     p: "¿Qué pasa con mis datos y los de mis clientes?",

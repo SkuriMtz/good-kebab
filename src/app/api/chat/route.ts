@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     return error(
       !cuenta.plan.agentes.includes(fuera)
         ? `${AGENTE_POR_ID[fuera].nombre} está disponible con ${planMinimo(fuera).nombre}.`
-        : `${AGENTE_POR_ID[fuera].nombre} no está en tu equipo. Agrégalo en "Mis agentes".`,
+        : `${AGENTE_POR_ID[fuera].nombre} no está en tu plan.`,
       403,
     );
   }

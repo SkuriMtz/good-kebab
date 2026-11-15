@@ -72,11 +72,11 @@ export const en: Diccionario = {
   idioma: "en",
   meta: {
     locale: "en_US",
-    tituloInicio: "Atendel — AI agents for businesses that serve people",
+    tituloInicio: "Atendel — Your AI partner for serving your business",
     descripcionInicio:
-      "Lola answers your WhatsApp and books appointments, Clara organizes your email, Víctor brings your clients back and Iris handles the office work. AI agents for businesses that serve people.",
-    agentes: ["Agents", "Lola, Clara, Víctor and Iris: what each Atendel agent does, how they talk and which plan includes them."],
-    precios: ["Pricing", "Atendel Free is free and comes with Clara, your email agent. One and Max come with all four agents; Max, with 5 times the usage of One."],
+      "You write to Atendel and it hands the work to its team: Lola takes your WhatsApp and appointments, Clara your email, Víctor your clients and Iris the office. It works even when you're away and keeps you posted.",
+    agentes: ["Agents", "Atendel and its team: Lola, Clara, Víctor and Iris. What each one does and how they work together."],
+    precios: ["Pricing", "Atendel Free is free and comes with the whole team to try it out. One and Max are for your day to day; Max, with 5 times the usage of One."],
     preguntas: [
       "Questions you might have",
       "How to get started, what each plan includes, how the agents work with your clients and how we protect your data.",
@@ -140,21 +140,21 @@ export const en: Diccionario = {
     pruebalo: "Try it",
     tusDatos: "Your data",
     miPanel: "My dashboard",
-    lema: "Lola, Clara, Víctor and Iris: four AI agents for your business's front desk and office.",
+    lema: "Atendel, your AI partner: with Lola, Clara, Víctor and Iris it serves your business even when you're away.",
     sello: "Sign in with your email · no password",
     franja: "Help and data",
   },
 
   inicio: {
     portada: {
-      etiqueta: "Your team of AI agents",
+      etiqueta: "Your AI partner",
       titulo: "No client left without an answer.",
       texto:
-        "Lola answers your WhatsApp and books appointments, Clara organizes your email, Víctor brings your clients back and Iris handles the office work. Nothing important goes out without your OK.",
+        "You write to Atendel like you would to a partner and it hands out the work: Lola takes your WhatsApp and appointments, Clara your email, Víctor your clients and Iris the office. It works even when you're away, and nothing involving money goes out without your OK.",
     },
     decisiones: {
-      titulo: "Never miss a message",
-      texto: "Your agents reply at any hour, book and confirm appointments, and let you know when something needs a person.",
+      titulo: "It works even when you're away",
+      texto: "It checks your apps every morning, does the tasks you schedule and answers your clients with your prices and your rules. It tells you about everything in your chat.",
     },
     caos: {
       aria: "This is your day today",
@@ -165,11 +165,11 @@ export const en: Diccionario = {
       ],
     },
     foco: {
-      titulo: "Your team, ready around the clock",
+      titulo: "One chat, a whole team",
       textos: [
-        "Atendel is a team of four artificial intelligence agents that work for your business.",
-        "You write to them like you would to a person and they get it done: they reply, book appointments, organize your email and prepare documents.",
-        "You decide what they do on their own and what they check with you first.",
+        "Atendel is your artificial intelligence partner: you write to it, and behind it four agents work for your business.",
+        "You ask like you would ask a person and it decides whose job it is: replying, booking, organizing your email or preparing a document. You get one single answer.",
+        "You decide what it does on its own and what it asks you first. Anything involving money, it always asks.",
       ],
     },
     globo: {
@@ -182,16 +182,16 @@ export const en: Diccionario = {
     },
     equipo: {
       titulo: "Your team",
-      sub: "Four agents, each with their own job.",
+      sub: "Atendel splits the work among four agents, each with their own job.",
       texto: "Tap any of them to see everything they do.",
     },
     apps: {
       titulo: "Connects with the apps you already use",
-      nota: (n: number) => `${n} apps, with your own account and read-only.`,
+      nota: (n: number) => `${n} apps, with your own account and read-only: Atendel checks them for you every morning.`,
     },
     planes: {
       titulo: "Plans",
-      texto: "Start for free. One and Max open in stages: join the waitlist and we'll let you know.",
+      texto: "Start for free with the whole team. One and Max open in stages: join the waitlist and we'll let you know.",
       cuandoTitulo: "When it launches",
       cuandoTexto: "Free is open now. One and Max are opening in stages: join the waitlist and we'll let you know when your spot opens.",
     },
@@ -245,7 +245,7 @@ export const en: Diccionario = {
         },
         {
           titulo: "Meanwhile, you can already start",
-          texto: "With Atendel Free you can sign in today with your email, no password, and work with Clara on your email. And in Try it you can chat with all four.",
+          texto: "With Atendel Free you can sign in today with your email, no password, and work with Atendel and its whole team. And in Try it you can chat with it without an account.",
         },
       ],
       pruebaAgentes: "Try the agents",
@@ -410,12 +410,12 @@ export const en: Diccionario = {
     etiqueta: "Front desk · Email · Clients · Office",
     titulo: "What will you hand off today?",
     texto:
-      "Lola answers your WhatsApp and books appointments, Clara handles your email, Víctor brings your clients back and Iris does the office work. Tap any of them to see their profile.",
-    hablar: "Talk to the agents",
+      "You write to Atendel and it passes the job to the right one: Lola takes your WhatsApp and appointments, Clara handles your email, Víctor brings your clients back and Iris does the office work. Tap any of them to see their profile.",
+    hablar: "Talk to Atendel",
     verPrecios: "See pricing",
     chatEtiqueta: "The chat",
     chatTitulo: "Try them in the chat",
-    chatTexto: "Tell them what you need, like in any chat, or start a group with the ones you want.",
+    chatTexto: "Tell Atendel what you need, like in any chat: it hands out the work and answers you once.",
     irAgente: "Go to an agent",
     verFicha: "View profile",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: view profile`,
@@ -480,7 +480,7 @@ export const en: Diccionario = {
       nivel: "Free",
       precio: "$0",
       resumen: "Get to know Atendel with its whole team.",
-      incluye: ["All 4 agents: Front desk, Email, Clients and Office", "Fast model", "Usage to try it out"],
+      incluye: ["Atendel and its 4 agents: Front desk, Email, Clients and Office", "Works on its own: daily review and tasks", "Fast model", "Usage to try it out"],
       uso: "To try it out",
     },
     one: {
@@ -488,9 +488,8 @@ export const en: Diccionario = {
       precio: null,
       resumen: "The whole team, for your day to day.",
       incluye: [
-        "All 4 agents: Front desk, Email, Clients and Office",
-        "You choose who's on your team",
-        "Group chats with your agents",
+        "Atendel and its 4 agents: Front desk, Email, Clients and Office",
+        "Works on its own: daily review and tasks",
         "Fast and Advanced models",
         "Usage for your day to day",
       ],
@@ -501,9 +500,8 @@ export const en: Diccionario = {
       precio: null,
       resumen: "The whole team, for the business that never stops.",
       incluye: [
-        "All 4 agents: Front desk, Email, Clients and Office",
-        "You choose who's on your team",
-        "Group chats with your agents",
+        "Atendel and its 4 agents: Front desk, Email, Clients and Office",
+        "Works on its own: daily review and tasks",
         "Fast and Advanced models",
         "5 times the usage of One",
       ],
@@ -528,15 +526,15 @@ export const en: Diccionario = {
   paginaPrecios: {
     etiqueta: "Pricing · Free, One and Max",
     titulo: "Start for free. Grow when your business needs it.",
-    intro: "Free to get to know Clara, your email agent. One and Max come with all four agents and everything else: Max, with 5 times the usage of One.",
+    intro: "Free to get to know Atendel and its whole team. One and Max, for your day to day: Max, with 5 times the usage of One.",
     planes: "Plans",
     compararEtiqueta: "Comparison",
     compararTitulo: "Who works with you on each plan",
-    compararTexto: "Clara is on every plan. One and Max come with all four agents and the same features; the only difference is usage: Max has 5 times that of One.",
+    compararTexto: "All three plans come with Atendel and its four agents. What changes is the models, the usage and how much it works on its own: Max has 5 times the usage of One.",
     antes: "Before you decide",
     preguntasTitulo: "Questions about the plans",
     cierreTitulo: "Try them before you decide.",
-    cierreTexto: "Chat with Lola, Clara, Víctor and Iris in the demo chat, or sign up to hear when One and Max open.",
+    cierreTexto: "Chat with Atendel in the demo chat, or sign up to hear when One and Max open.",
     pruebaAgentes: "Try the agents",
     listaEspera: "Waitlist",
   },
@@ -549,7 +547,7 @@ export const en: Diccionario = {
     agentes: "Agents",
     enElChat: "In the chat",
     uso: "Chat usage",
-    funciones: ["Group chats with your agents", "You choose who's on your team", "Fast and Advanced models"],
+    funciones: ["Works on its own: daily review and tasks", "Fast and Advanced models"],
   },
 
   preguntas: {
@@ -577,11 +575,15 @@ export const en: Diccionario = {
           },
           {
             p: "Will it work for my business?",
-            r: "If you serve people over WhatsApp, email or by appointment, yes: Lola, Clara, Víctor and Iris take care of that part of the work.",
+            r: "If you serve people over WhatsApp, email or by appointment, yes: Atendel and its team (Lola, Clara, Víctor and Iris) take care of that part of the work.",
+          },
+          {
+            p: "Does Atendel work even when I'm away?",
+            r: "Yes. Every morning it checks your connected apps and leaves you the plan for the day, it does the tasks you schedule and, with your WhatsApp Business connected, it answers your clients with your prices and your rules. It tells you about everything in your chat. Anything involving money, or anything your Rules don't cover, it asks you first.",
           },
           {
             p: "What can I use today?",
-            r: "Clara already reads and summarizes your email, and you can chat with the whole team. Lola's direct connection to your WhatsApp and calendar is rolling out in stages.",
+            r: "The chat with Atendel and its team, your email, your connected apps, the morning review and scheduled tasks. Connecting your WhatsApp Business, so Lola can answer your clients on her own, is rolling out in stages.",
           },
         ],
       },
@@ -590,13 +592,13 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "What does each plan include?",
-            r: "With Free you work with Clara, your email agent, with enough usage to try it out. One and Max come with all four agents: you choose who's on your team, with group chats and both models (Fast for everyday work and Advanced for heavy tasks). The only difference is usage: Max has 5 times that of One.",
+            r: "All three come with Atendel and its four agents. Free is for trying it out, with the Fast model. One and Max are for your day to day: both models (Fast for everyday work and Advanced for heavy tasks) and more work on its own. Max has 5 times the usage of One.",
           },
           {
             p: "How much does it cost?",
             r: "Atendel Free is free. Prices for Atendel One and Atendel Max haven't been announced yet: leave your email on the waitlist and we'll let you know when they open.",
           },
-          { p: "Do I need a card to start?", r: "No. You sign in with your email, no password, and start working with Clara, your email agent." },
+          { p: "Do I need a card to start?", r: "No. You sign in with your email, no password, and start working with Atendel and its whole team." },
           {
             p: "How is usage measured?",
             r: "We don't count messages: we measure how much work your team does. A short message uses little; a long one, a long conversation, many documents or the apps it checks use more, and the Advanced model uses much more than Fast. There's a limit per 5-hour session (it starts with your first message) and another per week (it resets on Monday). If you reach it, the chat tells you when it will answer again. Max has 5 times the usage of One.",
@@ -606,8 +608,8 @@ export const en: Diccionario = {
             r: "For now you can't change it from your account: One and Max are opening in stages. Join the waitlist and we'll write to you when your spot opens.",
           },
           {
-            p: "Can I choose which agents I use?",
-            r: "Yes, with One or Max: in your dashboard, under My agents, you decide who's on your team: Lola, Clara, Víctor and Iris.",
+            p: "Do I have to tell it which agent should do it?",
+            r: "No. You write to Atendel and it decides whose job it is: Lola, Clara, Víctor or Iris. You get one answer, and below it you see who did it.",
           },
         ],
       },
@@ -616,11 +618,11 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "Will my clients know it's an AI agent?",
-            r: "You decide how it introduces itself. We recommend saying so clearly, and when a conversation needs a person, Lola lets you know and hands it over.",
+            r: "If a client asks, Lola naturally says she's your business's virtual assistant. And when a conversation needs a person, she lets you know and hands it over.",
           },
           {
             p: "What if an agent makes a mistake?",
-            r: "It can happen, like with anyone new on the team. That's why nothing important goes out without your approval, and everything is saved so you can review it.",
+            r: "It can happen, like with anyone new on the team. That's why Atendel follows your Rules (prices and policies) and checks what it's about to send against them; anything involving money, or anything they don't cover, it asks you first, and everything is saved so you can review it.",
           },
         ],
       },
@@ -641,7 +643,7 @@ export const en: Diccionario = {
       },
       {
         titulo: "With your permission",
-        texto: "You decide what each agent does on its own and what it checks with you first. Clara replies from your email following the rules you set.",
+        texto: "You decide what Atendel does on its own and what it asks you first. Anything involving money, or anything your Rules don't cover, it always asks.",
       },
       { titulo: "Encrypted", texto: "Everything travels encrypted, from your phone or computer to our servers." },
     ],
