@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
     // Guardar en la Memoria lo que vale la pena recordar
     herramientaRecordar(supabase, user.id, turno),
     // Programar algo para después o que se repita (Tareas)
-    herramientaProgramar(supabase, user.id, ajustesCuenta.zonaHoraria),
+    herramientaProgramar(supabase, user.id, ajustesCuenta.zonaHoraria, turno),
   ];
   const conApps =
     instruccionesHerramientas(participantes, deApps, conexiones) +

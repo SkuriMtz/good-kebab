@@ -30,9 +30,13 @@ export async function POST(req: NextRequest) {
   if (valida !== true) return error("No autorizado.", 401);
 
   const empezo = Date.now();
+  // La base de datos pide por separado las tareas y las revisiones (?que=tareas|revisiones): cada una con su tiempo
+  const que = req.nextUrl.searchParams.get("que");
+  const conTareas = que !== "revisiones";
+  const conRevisiones = que !== "tareas";
   // Primero las tareas que ya tocan (tienen hora); se apartan antes, para no correrlas dos veces
   const tareas: { id: string; hecho: boolean; motivo: string }[] = [];
-  for (const t of await tareasQueTocan(admin)) {
+  for (const t of conTareas ? await tareasQueTocan(admin) : []) {
     if (Date.now() - empezo > TIEMPO) break;
     if (!(await apartarTarea(admin, t))) continue;
     try {
@@ -52,7 +56,7 @@ export async function POST(req: NextRequest) {
     .limit(25);
 
   const resultados: { id: string; hecho: boolean; motivo: string }[] = [];
-  for (const r of Date.now() - empezo > TIEMPO ? [] : (pendientes ?? [])) {
+  for (const r of !conRevisiones || Date.now() - empezo > TIEMPO ? [] : (pendientes ?? [])) {
     if (Date.now() - empezo > TIEMPO) break;
     // Se aparta primero: así nunca se trabaja dos veces la misma (lo que falte, en la siguiente vuelta)
     const { data: apartada } = await admin.from("revisiones").update({ trabajo_en: new Date().toISOString() }).eq("id", r.id).is("trabajo_en", null).select("id");
