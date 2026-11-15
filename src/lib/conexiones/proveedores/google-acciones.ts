@@ -46,6 +46,15 @@ type EventoG = {
 
 type Cita = { titulo: string; inicio: Date; fin: Date; descripcion: string; lugar: string; invitados: string[]; aunqueChoque: boolean };
 
+/** ¿Con esos argumentos la cita manda invitaciones? Si no se entienden, se toma como que sí (lo más seguro). */
+function conInvitados(args: Record<string, unknown>): boolean {
+  try {
+    return argCorreos(args, "invitados").length > 0;
+  } catch {
+    return true;
+  }
+}
+
 function leerCita(args: Record<string, unknown>, zona: string): Cita {
   const titulo = argTexto(args, "titulo", { requerido: true, max: 200 }).replace(/\s+/g, " ");
   const inicio = horaLocal(argTexto(args, "inicio", { requerido: true, max: 40 }), zona);
@@ -144,8 +153,9 @@ const crearCita: Herramienta = {
   hace: {
     categoria: "citas",
     // Con invitados, la cita les manda un correo: cuenta como «Mandar correos» y su texto se revisa
-    categoriaDe: (args) => (Array.isArray(args.invitados) && args.invitados.length ? "correos" : "citas"),
-    textoQueSale: (args) => (Array.isArray(args.invitados) && args.invitados.length ? [args.titulo, args.descripcion].filter((x) => typeof x === "string").join("\n") : ""),
+    // (con el mismo lector que usa la acción; si no se entiende, cuenta como que sí lleva invitados)
+    categoriaDe: (args) => (conInvitados(args) ? "correos" : "citas"),
+    textoQueSale: (args) => (conInvitados(args) ? [args.titulo, args.descripcion, args.lugar].filter((x) => typeof x === "string").join("\n") : ""),
     resumen(args, zona) {
       const c = leerCita(args, zona);
       return `Crear «${linea(c.titulo, 80)}» el ${horas(c.inicio, c.fin, zona)} en tu Google Calendar${c.invitados.length ? ` e invitar a ${c.invitados.join(", ")}` : ""}`;
