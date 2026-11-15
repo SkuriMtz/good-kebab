@@ -47,7 +47,8 @@ export type Plan = {
   /**
    * El límite del trabajo que hacen tus agentes por su cuenta (la revisión
    * con IA de cada día), aparte del chat: no se mezclan. Por semana, en
-   * micro-dólares. Cada día cuesta ~$0.002 a $0.004 con Rápido.
+   * micro-dólares (Free $0.06, One $0.30, Max $1.50). Un día cuesta ~$0.005
+   * a $0.03 con Rápido, según cuántas apps tengas conectadas.
    */
   trabajo: { semana: number };
   /** Cómo se dice su uso en las páginas: "Para probar", "Uso estándar", "5 veces el uso de One". */
@@ -85,7 +86,7 @@ export const PLANES: Plan[] = [
     resumen: "Para conocer Atendel con todo su equipo.",
     incluye: ["Los 4 agentes: Atención, Correo, Clientes y Oficina", "Modelo Rápido", "Uso para probarlo"],
     limite: { sesion: 40_000, semana: 100_000 },
-    trabajo: { semana: 20_000 },
+    trabajo: { semana: 60_000 },
     uso: "Para probar",
     // Chat único: Free también trabaja con todo el equipo, con poco uso y solo el modelo Rápido
     agentes: IDS_AGENTES,
@@ -105,7 +106,7 @@ export const PLANES: Plan[] = [
       "Uso para el día a día",
     ],
     limite: ONE,
-    trabajo: { semana: 150_000 },
+    trabajo: { semana: 300_000 },
     uso: "Uso estándar",
     agentes: IDS_AGENTES,
     modelos: ["rapido", "avanzado"],
@@ -124,7 +125,7 @@ export const PLANES: Plan[] = [
       "5 veces el uso de One",
     ],
     limite: { sesion: ONE.sesion * VECES_MAX, semana: ONE.semana * VECES_MAX },
-    trabajo: { semana: 750_000 },
+    trabajo: { semana: 1_500_000 },
     uso: "5 veces el uso de One",
     agentes: IDS_AGENTES,
     modelos: ["rapido", "avanzado"],

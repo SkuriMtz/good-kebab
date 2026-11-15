@@ -3,8 +3,8 @@ import { clienteServicio } from "@/lib/supabase/servicio";
 import { trabajarPara } from "@/lib/trabajo";
 
 /**
- * POST /api/trabajo: la base de datos lo llama cada hora (pg_cron + pg_net,
- * migración 0016) cuando hay revisiones del día sin trabajar. Para cada una,
+ * POST /api/trabajo: la base de datos lo llama cada 10 minutos (pg_cron +
+ * pg_net, migraciones 0016 y 0017) cuando hay revisiones del día sin trabajar. Para cada una,
  * la IA trabaja por su cuenta (src/lib/trabajo.ts) y deja lo que hizo en la
  * Oficina. Nada se envía.
  *
@@ -16,7 +16,8 @@ import { trabajarPara } from "@/lib/trabajo";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const TIEMPO = 45_000;
+/** Solo se empieza otra cuenta si van menos de 15 s (cada una puede tardar ~40 s: las apps y el informe). */
+const TIEMPO = 15_000;
 const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });
 
 export async function POST(req: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
   const resultados: { id: string; hecho: boolean; motivo: string }[] = [];
   for (const r of pendientes ?? []) {
     if (Date.now() - empezo > TIEMPO) break;
-    // Se aparta primero: así nunca se trabaja dos veces la misma (lo que falte, en la siguiente hora)
+    // Se aparta primero: así nunca se trabaja dos veces la misma (lo que falte, en la siguiente vuelta)
     const { data: apartada } = await admin.from("revisiones").update({ trabajo_en: new Date().toISOString() }).eq("id", r.id).is("trabajo_en", null).select("id");
     if (!apartada?.length) continue;
     try {
