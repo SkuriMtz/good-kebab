@@ -17,7 +17,7 @@ import { BarraBuscar, Enlace, FragmentosQuietos, Odometro, Pildoras, Tarjeta, Va
    ===================================================================== */
 
 /** La columna de una sección. `buscador={false}` si la vista trae el suyo (Estadísticas). */
-export function Seccion({ children, ancha = false, buscador = true }: { children: ReactNode; ancha?: boolean; buscador?: boolean }) {
+export function Seccion({ children, ancha = false, buscador = false }: { children: ReactNode; ancha?: boolean; /** La barra de buscar arriba (ya no: el menú tiene Buscar, ⌘K). */ buscador?: boolean }) {
   return (
     <div className={`pc-seccion${ancha ? " pc-seccion--ancha" : ""}`}>
       {buscador ? <BarraBuscar /> : null}

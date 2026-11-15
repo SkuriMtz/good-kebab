@@ -8,7 +8,7 @@ import { LOGO_APP } from "@/lib/conexiones/logos";
 import type { ItemHecho } from "@/lib/hecho";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import { AvatarAgente } from "./Mensajes";
-import { Enlace, Pildoras, TituloSeccion, Vacio, retrasoEscalon } from "./Piezas";
+import { Enlace, Pildoras, TituloSeccion, Vacio, VolverOficina, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
 
 /* =====================================================================
@@ -21,9 +21,9 @@ import { Seccion } from "./Secciones";
 /** Las dos pestañas de Pendientes: lo que espera tu visto bueno y lo que ya quedó. */
 export function PestanasPendientes({ base, activa, porRevisar }: { base: string; activa: "revisar" | "hecho"; porRevisar?: number | null }) {
   return (
-    <nav className="pc-pestanas" aria-label="Pendientes">
+    <nav className="pc-pestanas" aria-label="Por aprobar y hecho">
       <Enlace href={base} className="pc-pestanas__tab" aria-current={activa === "revisar" ? "page" : undefined}>
-        Por revisar
+        Por aprobar
         {porRevisar ? <span className="pc-pestanas__cuenta">{porRevisar}</span> : null}
       </Enlace>
       <Enlace href={`${base}&tab=hecho`} className="pc-pestanas__tab" aria-current={activa === "hecho" ? "page" : undefined}>
@@ -64,8 +64,9 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
 
   return (
     <Seccion>
+      <VolverOficina href={base.replace("vista=pendientes", "vista=oficina")} />
       <TituloSeccion
-        titulo="Pendientes"
+        titulo="Hecho"
         texto={`Lo que tu equipo ya terminó: lo que le pediste y lo que entregó.${items.length ? ` ${semana.toLocaleString("es-MX")} ${semana === 1 ? "cosa" : "cosas"} en los últimos 7 días.` : ""}${demo ? " (Datos de ejemplo.)" : ""}`}
       />
       <PestanasPendientes base={base} activa="hecho" porRevisar={porRevisar} />

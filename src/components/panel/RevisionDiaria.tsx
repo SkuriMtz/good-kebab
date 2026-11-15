@@ -58,6 +58,8 @@ export function RevisionDiaria({
   hrefAjustes: string;
 }) {
   const [revisando, setRevisando] = useState(false);
+  // Compacta: primero solo lo que falta (hasta 3); "Ver toda la revisión" abre lo demás
+  const [completa, setCompleta] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const deHoy = revision?.fecha === hoy;
   const formatoHora = new Intl.DateTimeFormat("es-MX", { hour: "numeric", minute: "2-digit", hourCycle: "h23", timeZone: zona });
@@ -97,7 +99,30 @@ export function RevisionDiaria({
           {error}
         </p>
       ) : null}
-      {revision ? (
+      {revision && !completa ? (
+        <>
+          {revision.faltan ? (
+            <ul className="pc-revision__faltan pc-revision__faltan--compacta">
+              {revision.partes
+                .flatMap((p) => p.faltan.map((f) => ({ ...f, agente: p.agente })))
+                .slice(0, 3)
+                .map((f) => (
+                  <li key={f.texto}>
+                    <Enlace href={f.href} className="pc-revision__falta">
+                      <AvatarAgente agente={f.agente} tam={18} />
+                      <span className="pc-revision__falta-texto">{f.texto}</span>
+                      <Icono nombre="chevron-derecha" tam={14} />
+                    </Enlace>
+                  </li>
+                ))}
+            </ul>
+          ) : null}
+          <button type="button" className="pc-revision__ver" onClick={() => setCompleta(true)}>
+            {revision.faltan > 3 ? `Ver las ${revision.faltan} cosas, agente por agente` : "Ver la revisión de cada agente"}
+          </button>
+        </>
+      ) : null}
+      {revision && completa ? (
         <ul className="pc-revision__agentes">
           {revision.partes.map((p) => {
             const a = AGENTE_POR_ID[p.agente];

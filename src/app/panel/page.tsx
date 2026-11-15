@@ -6,6 +6,7 @@ import { Hecho } from "@/components/panel/Hecho";
 import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
 import { partesDe } from "@/components/panel/RevisionDiaria";
 import { TareasVista } from "@/components/panel/Tareas";
+import { PorAprobar } from "@/components/panel/PorAprobar";
 import { limpiarAjustes } from "@/lib/ajustes";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
@@ -75,6 +76,15 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
     ]);
     const aj = limpiarAjustes(filaAjustes?.datos);
     const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: aj.zonaHoraria }).format(new Date());
+    // "Necesita tu OK": lo de Pendientes, arriba de la Oficina (todo lo que te espera en un solo lugar)
+    const cuentaOficina = await cargarCuenta(supabase, user.id);
+    const pend = await cargarPendientes(user.id, opcionesPendientes(cuentaOficina.plan.id, conGoogle, cuentaOficina.activos), 5);
+    const quien = (d: { nombre: string }[]) => d.map((x) => x.nombre).join(", ");
+    const itemsOk = [
+      ...pend.envios.map((e) => ({ id: `e-${e.id}`, titulo: `Mensaje para ${quien(e.destinatarios) || "tu equipo"}`, detalle: e.mensaje.slice(0, 120) })),
+      ...pend.lista.map((c) => ({ id: `c-${c.id}`, titulo: `Contestar a ${c.remitente || "un correo"}${c.asunto ? `: ${c.asunto}` : ""}`.slice(0, 140), detalle: c.accion_sugerida.slice(0, 120) })),
+      ...pend.pasos.filter((p) => !p.listo).map((p) => ({ id: `p-${p.id}`, titulo: p.titulo, detalle: p.detalle })),
+    ];
     const TIPOS: TipoArchivo[] = ["pptx", "xlsx", "docx", "pdf"];
     const REVISIONES: Revision[] = ["revisar", "aprobado", "cambios"];
     const items: ItemOficina[] = (data ?? []).map((a) => ({
@@ -114,6 +124,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
         hoy={hoy}
         hora={aj.horaRevision}
         zona={aj.zonaHoraria}
+        porAprobar={<PorAprobar total={pend.total ?? itemsOk.length} items={itemsOk} href="/panel?vista=pendientes" />}
         activa={aj.revisionDiaria === "activa"}
         revision={
           rev

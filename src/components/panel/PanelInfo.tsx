@@ -276,6 +276,20 @@ function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) 
 
 function FilaAgente({ agente, href, aqui = false }: { agente: IdAgente; href: string; aqui?: boolean }) {
   const a = AGENTE_POR_ID[agente];
+  if (!href) {
+    return (
+      <div className="pc-ctx__fila pc-ctx__fila--doble">
+        <AvatarAgente agente={agente} tam={28} />
+        <span className="pc-ctx__fila-texto">
+          <span className="pc-ctx__fila-nombre">{a.nombre}</span>
+          <span className="pc-ctx__fila-sub">
+            {a.area} · {a.abarca}
+          </span>
+        </span>
+        {aqui ? <span className="pc-ctx__etiqueta">Ayudó aquí</span> : null}
+      </div>
+    );
+  }
   return (
     <Enlace href={href} className="pc-ctx__fila pc-ctx__fila--enlace pc-ctx__fila--doble">
       <AvatarAgente agente={agente} tam={28} />

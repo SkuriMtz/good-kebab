@@ -55,7 +55,9 @@ import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
 
 export const IDS_AJUSTE = ["atendel", "apariencia", "negocio", "agentes", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
 export type IdAjuste = (typeof IDS_AJUSTE)[number];
-export const esIdAjuste = (v: unknown): v is IdAjuste => typeof v === "string" && (IDS_AJUSTE as readonly string[]).includes(v);
+/** Secciones que ya no se muestran (lo suyo vive en Tu negocio o todavía no funciona): más simple. */
+const OCULTAS: readonly string[] = ["negocio", "agentes", "conexiones", "notificaciones"];
+export const esIdAjuste = (v: unknown): v is IdAjuste => typeof v === "string" && (IDS_AJUSTE as readonly string[]).includes(v) && !OCULTAS.includes(v);
 
 /** Los campos del perfil del negocio que se editan aquí (los demás, en Tu negocio). */
 export const CAMPOS_AJUSTES: { id: CampoPerfil; etiqueta: string; texto: string; ejemplo: string }[] = [
@@ -138,36 +140,11 @@ const OPCIONES: Opcion[] = [
   { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
   { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
   { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
-  { parte: "negocio", titulo: "Nombre del negocio", claves: "nombre empresa" },
-  { parte: "negocio", titulo: "A qué te dedicas", claves: "giro descripcion" },
-  { parte: "negocio", titulo: "Servicios y precios", claves: "precios lista servicios costos" },
-  { parte: "negocio", titulo: "Horario", claves: "horas dias abierto" },
-  { parte: "negocio", titulo: "Ubicación", claves: "direccion como llegar mapa" },
-  { parte: "negocio", titulo: "Formas de pago", claves: "efectivo tarjeta transferencia" },
-  { parte: "agentes", titulo: "Lola", claves: "atencion whatsapp citas activar reglas" },
-  { parte: "agentes", titulo: "Clara", claves: "correo gmail activar reglas" },
-  { parte: "agentes", titulo: "Víctor", claves: "clientes seguimiento activar reglas" },
-  { parte: "agentes", titulo: "Iris", claves: "oficina excel reportes activar reglas" },
   { parte: "atendel", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
   { parte: "atendel", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
-  { parte: "conexiones", titulo: "WhatsApp", claves: "whatsapp business mensajes" },
-  { parte: "conexiones", titulo: "Correo · Gmail", claves: "gmail google correo" },
-  { parte: "conexiones", titulo: "Correo · Outlook", claves: "outlook hotmail microsoft correo" },
-  { parte: "conexiones", titulo: "Calendario", claves: "google calendar agenda" },
-  { parte: "conexiones", titulo: "Redes · Instagram", claves: "instagram redes" },
-  { parte: "conexiones", titulo: "Redes · Messenger", claves: "facebook messenger redes" },
-  { parte: "conexiones", titulo: "Google Business", claves: "resenas reseñas google maps perfil" },
-  { parte: "conexiones", titulo: "Todas las apps", claves: "stripe drive excel apps conectar" },
   { parte: "equipo", titulo: "Invitar personas", claves: "invitar empleados acceso" },
   { parte: "equipo", titulo: "Roles", claves: "permisos" },
   { parte: "equipo", titulo: "Agenda por persona", claves: "agenda calendario empleados" },
-  { parte: "notificaciones", titulo: "Pendientes nuevos", claves: "avisos aprobar" },
-  { parte: "notificaciones", titulo: "Citas", claves: "avisos agenda" },
-  { parte: "notificaciones", titulo: "Correos urgentes", claves: "avisos correo" },
-  { parte: "notificaciones", titulo: "Resumen del día", claves: "avisos resumen diario" },
-  { parte: "notificaciones", titulo: "Por correo", claves: "avisos email" },
-  { parte: "notificaciones", titulo: "Por WhatsApp", claves: "avisos whatsapp" },
-  { parte: "notificaciones", titulo: "No molestar en la noche", claves: "silencio noche horas" },
   { parte: "uso", titulo: "Sesión actual", claves: "sesion limite 5 horas reinicia porcentaje usado uso" },
   { parte: "uso", titulo: "Esta semana", claves: "semana semanal limite reinicia lunes porcentaje usado uso" },
   { parte: "uso", titulo: "Documentos", claves: "documentos archivos limite guardados" },
@@ -197,11 +174,7 @@ const OPCIONES: Opcion[] = [
 const PARTES: Parte[] = [
   { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos socio autonomia solo pregunta permiso", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
-  { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
-  { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris reglas equipo", grupo: 1, sub: "Lo que hace cada uno y las reglas que les dejas." },
-  { id: "conexiones", etiqueta: "Conexiones", icono: "enlace", claves: "whatsapp correo gmail outlook calendario redes instagram google business apps", grupo: 1, sub: "WhatsApp, correo, calendario, redes y Google Business." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
-  { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos silencio correo noche", grupo: 2, sub: "Qué avisos llegan, por dónde y horas de silencio." },
   { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 2, sub: "Cuánto llevas de tu sesión y de la semana." },
   { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 2, sub: "Plan, pago, facturas y datos para CFDI." },
   { id: "privacidad", etiqueta: "Privacidad", icono: "escudo", claves: "aviso borrar exportar datos seguridad", grupo: 3, sub: "Aviso de privacidad, borrar o exportar tus datos y seguridad." },
@@ -741,9 +714,9 @@ export function VentanaAjustes({
         </Grupo>
         <Grupo titulo="Lo que saben de tu negocio">
           <Fila titulo="Perfil del negocio" texto="A qué te dedicas, servicios, horario y más: lo leen antes de contestar.">
-            <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("negocio")}>
+            <Enlace href={datos.hrefs.negocio} className={claseBoton("borde", true)}>
               Editar
-            </button>
+            </Enlace>
           </Fila>
           <Fila titulo="Documentos" texto="Listas de precios, políticas, menús: tus agentes los consultan.">
             <Enlace href={datos.hrefs.documentos} className={claseBoton("borde", true)}>

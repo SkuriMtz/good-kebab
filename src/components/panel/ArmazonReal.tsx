@@ -79,7 +79,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const c = params.get("c");
   const valida = vista && VISTAS.includes(vista) ? vista : null;
   // Actividad es un detalle de Estadísticas: se marca Estadísticas en el menú
-  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida === "hecho" ? "pendientes" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
+  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" ? "oficina" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
   const clave = ruta === "/panel" ? `/panel?${valida ?? "chat"}` : ruta;
 
   // La vista nueva ya se pintó: la transición puede seguir
@@ -181,7 +181,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     conectadas: datos.conectadas,
     contactos: datos.contactos,
     ajustes: datos.ajustes,
-    hrefs: { agentes: "/panel?vista=ajustes&seccion=agentes", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
+    hrefs: { agentes: "/panel?vista=negocio&tab=reglas", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
     salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
     salirDeTodo: () => salirA("global"),
     guardar: {
@@ -211,7 +211,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/panel" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
     { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
-    { id: "s-agentes", grupo: "Secciones", titulo: "Agentes", detalle: "Qué hace cada uno y sus reglas", icono: "agentes", href: "/panel?vista=ajustes&seccion=agentes" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
@@ -220,15 +219,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Clara, tu Gmail y lo que ya leyó", icono: "correo", href: "/panel?vista=correo" },
     { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó con tu equipo", icono: "rayo", href: "/panel?vista=actividad" },
     { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/panel?vista=ajustes" },
-    ...AGENTES_INFO.filter((a) => datos.activos.includes(a.id)).map((a) => ({
-      id: `a-${a.id}`,
-      grupo: "Agentes",
-      titulo: `${a.nombre} · ${a.area}`,
-      detalle: a.abarca,
-      agentes: [a.id],
-      claves: a.capacidades.join(" "),
-      href: "/panel?vista=ajustes&seccion=agentes",
-    })),
     ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
     ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
       id: `p-${p.id}`,
@@ -284,7 +274,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               negocio: "/panel?vista=negocio&tab=apps",
               documentos: "/panel?vista=negocio&tab=documentos",
             ajustes: "/panel?vista=ajustes",
-              agente: () => "/panel?vista=ajustes&seccion=agentes",
+              agente: () => "",
             }}
             alCerrar={alCerrar}
           />
@@ -307,7 +297,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           ajustes: "/panel?vista=ajustes",
         }}
         pendientes={datos.pendientes}
-        oficina={datos.oficina}
+        oficina={(datos.oficina ?? 0) + (datos.pendientes ?? 0) || null}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}

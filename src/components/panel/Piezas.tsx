@@ -455,3 +455,13 @@ export function MarcaFragmentos({ tam = 36, viva = false, className = "" }: { ta
     </svg>
   );
 }
+
+/** "← Oficina": las partes que viven dentro de la Oficina (Por aprobar, Hecho) regresan a ella. */
+export function VolverOficina({ href }: { href: string }) {
+  return (
+    <Enlace href={href} className="pc-volver">
+      <Icono nombre="chevron-izquierda" tam={16} />
+      Oficina
+    </Enlace>
+  );
+}

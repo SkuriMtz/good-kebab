@@ -6,7 +6,7 @@ import type { PasoPanel } from "@/lib/pasos";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
 import { planMinimo } from "@/lib/planes";
 import { Icono } from "@/components/base/Iconos";
-import { Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
+import { VolverOficina, Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
 import { PestanasPendientes } from "./Hecho";
 import { AccionesEnvio } from "./Envios";
@@ -102,7 +102,8 @@ export function PendientesReal({
 
   return (
     <Seccion ancha>
-      <TituloSeccion titulo="Pendientes" texto="Lo que espera tu visto bueno. Clara deja aquí los correos que piden algo; Lola y Víctor se suman cuando estén conectados." />
+      <VolverOficina href="/panel?vista=oficina" />
+      <TituloSeccion titulo="Por aprobar" texto="Lo que Atendel dejó listo y espera tu OK: mensajes para mandar, correos que piden algo y pasos por hacer." />
       <PestanasPendientes base="/panel?vista=pendientes" activa="revisar" porRevisar={(totalCorreos ?? 0) + pasos.length + envios.length} />
       <div className="pc-filtros">
         <Pildoras

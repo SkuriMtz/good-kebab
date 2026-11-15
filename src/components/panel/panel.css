@@ -9467,3 +9467,117 @@ a.pc-correo__accion:hover {
     padding-left: 0;
   }
 }
+
+/* =====================================================================
+   45. Más simple: "Necesita tu OK" arriba de la Oficina y "← Oficina"
+   ===================================================================== */
+.pc-poraprobar {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--pc-atencion) 35%, var(--pc-borde-suave));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--pc-atencion) 6%, var(--pc-tarjeta));
+}
+.pc-poraprobar--vacio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--pc-borde-suave);
+  background: var(--pc-tarjeta);
+  color: var(--pc-texto-2);
+  font-size: 14px;
+}
+.pc-poraprobar--vacio svg {
+  color: var(--pc-exito);
+}
+.pc-poraprobar__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pc-poraprobar__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.pc-poraprobar__cuenta {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pc-atencion) 22%, transparent);
+  color: var(--pc-atencion);
+  font-size: 12px;
+}
+.pc-poraprobar__lista {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-poraprobar__lista li {
+  display: grid;
+  gap: 1px;
+}
+.pc-poraprobar__item {
+  font-size: 14px;
+}
+.pc-poraprobar__detalle,
+.pc-poraprobar__mas {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc .pc-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 8px -4px;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-volver:hover {
+    color: var(--pc-texto);
+  }
+}
+.pc-negocio__sub {
+  margin: 32px 0 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--pc-division);
+  font-size: 17px;
+  font-weight: 600;
+}
+.pc-revision__faltan--compacta {
+  padding: 0;
+}
+.pc .pc-revision__falta-texto {
+  flex: 1;
+  min-width: 0;
+}
+.pc .pc-revision__ver {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-revision__ver:hover {
+    color: var(--pc-texto);
+  }
+}

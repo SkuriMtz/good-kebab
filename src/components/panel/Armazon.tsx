@@ -231,12 +231,22 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
     });
   };
 
-  // Ajustes es una ventana: los enlaces a ?vista=ajustes (y llegar con esa dirección) la abren
-  const abrirAjustes = useCallback((parte?: string | null) => {
-    setParteAjustes(esIdAjuste(parte) ? parte : "atendel");
-    setAjustesAbierto(true);
-    setCajon(false);
-  }, []);
+  // Ajustes es una ventana: los enlaces a ?vista=ajustes (y llegar con esa dirección) la abren.
+  // Lo que se movió a Tu negocio (perfil, reglas de los agentes, apps) lleva ahí.
+  const routerAjustes = useRouter();
+  const abrirAjustes = useCallback(
+    (parte?: string | null) => {
+      const movida = parte ? ({ negocio: "perfil", agentes: "reglas", conexiones: "apps" } as Record<string, string>)[parte] : undefined;
+      if (movida) {
+        routerAjustes.replace(`${hrefs.negocio}&tab=${movida}`);
+        return;
+      }
+      setParteAjustes(esIdAjuste(parte) ? parte : "atendel");
+      setAjustesAbierto(true);
+      setCajon(false);
+    },
+    [routerAjustes, hrefs.negocio],
+  );
   useEffect(() => {
     if (parametros.get("vista") === "ajustes") abrirAjustes(parametros.get("seccion"));
   }, [parametros, abrirAjustes]);
@@ -460,20 +470,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
               ) : null,
             )}
             {item("tareas", "Tareas", "reloj", hrefs.tareas)}
-            {item(
-              "pendientes",
-              "Pendientes",
-              "check-circulo",
-              hrefs.pendientes,
-              pendientes ? (
-                <span className="pc-menu__cuenta" aria-label={`${pendientes} por revisar`}>
-                  {pendientes}
-                </span>
-              ) : null,
-            )}
             {item("citas", "Citas", "calendario", hrefs.citas)}
             {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
-            {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
           </nav>
 
           <div className="pc-menu__listas">

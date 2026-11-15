@@ -10,11 +10,12 @@ import { DocumentosNegocio } from "./Documentos";
 import { useFuenteNegocio } from "./fuente";
 import { PerfilNegocioVista } from "./Perfil";
 
-export const PESTANAS_NEGOCIO = ["perfil", "reglas", "procesos", "memoria", "documentos", "apps"] as const;
+export const PESTANAS_NEGOCIO = ["perfil", "reglas", "memoria", "documentos", "apps"] as const;
 export type PestanaNegocio = (typeof PESTANAS_NEGOCIO)[number];
-export const pestanaDe = (v: string | null | undefined): PestanaNegocio => ((PESTANAS_NEGOCIO as readonly string[]).includes(v ?? "") ? (v as PestanaNegocio) : "perfil");
+// "procesos" ahora vive dentro de Reglas (enlaces viejos)
+export const pestanaDe = (v: string | null | undefined): PestanaNegocio => (v === "procesos" ? "reglas" : (PESTANAS_NEGOCIO as readonly string[]).includes(v ?? "") ? (v as PestanaNegocio) : "perfil");
 
-const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", reglas: "Reglas", procesos: "Procesos", memoria: "Memoria", documentos: "Documentos", apps: "Apps conectadas" };
+const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", reglas: "Reglas", memoria: "Memoria", documentos: "Documentos", apps: "Apps" };
 
 /**
  * Tu negocio (?vista=negocio&tab=perfil|documentos|apps): lo que tu equipo
@@ -29,7 +30,7 @@ export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNe
     <Seccion>
       <TituloSeccion
         titulo="Tu negocio"
-        texto="Lo que Atendel sabe de tu negocio: tus reglas, cómo se hacen las cosas, lo que recuerda de ti y las apps a las que puede entrar."
+        texto="Lo que Atendel sabe de tu negocio. Mientras más le cuentes, mejor trabaja."
         acciones={fuente.demo ? <span className="pc-estado">Datos de ejemplo</span> : undefined}
       />
       <div className="pc-filtros">
@@ -40,9 +41,11 @@ export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNe
         {tab === "perfil" ? (
           <PerfilNegocioVista />
         ) : tab === "reglas" ? (
-          <ReglasNegocio />
-        ) : tab === "procesos" ? (
-          <ProcesosNegocio />
+          <>
+            <ReglasNegocio />
+            <h2 className="pc-negocio__sub">Cómo se hacen las cosas</h2>
+            <ProcesosNegocio />
+          </>
         ) : tab === "memoria" ? (
           <MemoriaNegocio />
         ) : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} maxMb={MAX_MB_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}

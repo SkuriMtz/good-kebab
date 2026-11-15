@@ -218,7 +218,7 @@ export function Oficina({
 
   return (
     <Seccion>
-      <TituloSeccion titulo="Oficina" texto="Lo que tu equipo te dejó mientras no estabas: su revisión del día y los archivos que te hizo. Ábrelos, apruébalos o pide cambios." />
+      <TituloSeccion titulo="Oficina" texto="Todo lo que te espera, en un solo lugar: lo que necesita tu OK, la revisión del día y lo que Atendel te dejó." />
       {arriba}
       <h2 className="pc-oficina__titulo">Archivos</h2>
       <div className="pc-filtros" role="group" aria-label="Qué ver">
@@ -368,7 +368,10 @@ export function OficinaReal({
   hora,
   activa,
   zona,
+  porAprobar,
 }: {
+  /** "Necesita tu OK": lo que espera tu visto bueno (va arriba de todo). */
+  porAprobar?: ReactNode;
   zona: string;
   items: ItemOficina[];
   ahora: number;
@@ -398,7 +401,9 @@ export function OficinaReal({
       ahora={ahora}
       hrefChat="/panel"
       arriba={
-        <RevisionDiaria
+        <>
+          {porAprobar}
+          <RevisionDiaria
           revision={revision}
           hoy={hoy}
           hora={hora}
@@ -411,7 +416,8 @@ export function OficinaReal({
             router.refresh();
             return null;
           }}
-        />
+          />
+        </>
       }
       alAprobar={(id) => marcar(id, "aprobado")}
       alPedirCambios={async (item, texto) => {
