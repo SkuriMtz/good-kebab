@@ -9581,3 +9581,26 @@ a.pc-correo__accion:hover {
     color: var(--pc-texto);
   }
 }
+/* El botón "Resumen" (arriba a la derecha) */
+.pc .pc-barra-info__resumen {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pc-texto-2);
+  font: 500 13px/1 var(--pc-sans);
+}
+.pc .pc-barra-info__resumen[aria-pressed="true"] {
+  border-color: var(--pc-borde);
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-barra-info__resumen:hover {
+    color: var(--pc-texto);
+  }
+}

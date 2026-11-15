@@ -513,25 +513,19 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
         </div>
         {info ? (
           <div className="pc-barra-info" role="toolbar" aria-label="Información de tu negocio">
-            {TABS_INFO.map((t) => {
-              const activa = infoAbierta && tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="pc-icono pc-barra-info__boton"
-                  onClick={() => alPicarTab(t.id)}
-                  aria-pressed={activa}
-                  aria-controls="pc-info"
-                  aria-label={activa ? `Ocultar ${t.etiqueta.toLowerCase()}` : `Ver ${t.etiqueta.toLowerCase()}`}
-                  title={t.etiqueta}
-                  data-tab={t.id}
-                  data-ultima={tab === t.id ? "" : undefined}
-                >
-                  <Icono nombre={t.icono} tam={18} />
-                </button>
-              );
-            })}
+            {/* Un solo botón con nombre (antes, cuatro iconos sin nombre): abre o cierra el resumen */}
+            <button
+              type="button"
+              className="pc-barra-info__boton pc-barra-info__resumen"
+              onClick={() => alPicarTab(tab)}
+              aria-pressed={infoAbierta}
+              aria-controls="pc-info"
+              title={infoAbierta ? "Ocultar el resumen" : "Ver el resumen de tu negocio"}
+              data-ultima=""
+            >
+              <Icono nombre="barra-lateral" tam={17} />
+              Resumen
+            </button>
           </div>
         ) : null}
         <main id="pc-contenido" className="pc-contenido" tabIndex={-1}>
