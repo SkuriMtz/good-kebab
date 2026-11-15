@@ -413,8 +413,11 @@ export function Chat({
   // (en la base cada parte es un mensaje de su agente: aquí se juntan)
   type Bloque =
     | { tipo: "tu"; key: string; texto: string; fecha: Date; nuevo?: boolean }
-    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; fecha: Date; nuevo?: boolean; enCurso?: boolean; error?: string; estado?: string | null };
+    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; fecha: Date; hasta: number; nuevo?: boolean; enCurso?: boolean; error?: string; estado?: string | null };
   const bloques: Bloque[] = [];
+  // Las partes de una misma respuesta se guardan juntas (al mismo tiempo); lo que llega con más
+  // de 2 minutos de diferencia (como los Avisos de Atendel) va aparte, con su propia hora
+  const JUNTOS_MS = 2 * 60_000;
   for (const m of mensajes) {
     const fecha = m.creado_en ? new Date(m.creado_en) : new Date();
     if (m.rol === "user") {
@@ -423,13 +426,14 @@ export function Chat({
     }
     const ultimo = bloques[bloques.length - 1];
     const piezasM = voces(m);
-    if (ultimo && ultimo.tipo === "atendel") {
+    if (ultimo && ultimo.tipo === "atendel" && Math.abs(fecha.getTime() - ultimo.hasta) <= JUNTOS_MS) {
       ultimo.piezas.push(...piezasM);
+      ultimo.hasta = fecha.getTime();
       ultimo.enCurso = m.enCurso;
       ultimo.error = m.error ?? ultimo.error;
       ultimo.estado = m.estado;
       ultimo.nuevo = ultimo.nuevo || m.nuevo;
-    } else bloques.push({ tipo: "atendel", key: m.id, piezas: [...piezasM], fecha, nuevo: m.nuevo, enCurso: m.enCurso, error: m.error, estado: m.estado });
+    } else bloques.push({ tipo: "atendel", key: m.id, piezas: [...piezasM], fecha, hasta: fecha.getTime(), nuevo: m.nuevo, enCurso: m.enCurso, error: m.error, estado: m.estado });
   }
 
   const actualConv = actual ? todas.current.find((x) => x.id === actual) : undefined;

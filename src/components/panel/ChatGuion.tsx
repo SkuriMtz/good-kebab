@@ -419,8 +419,17 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   // Tus mensajes y, entre uno y otro, UNA respuesta de Atendel (cada parte la hizo su agente)
   type Bloque =
     | { tipo: "tu"; key: string; texto: string; dia: string; nuevo: boolean }
-    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; tarjetas: Tarjeta[]; dia: string; hora?: string; nuevo: boolean };
+    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; tarjetas: Tarjeta[]; dia: string; hora?: string; hasta?: string; nuevo: boolean };
   const bloques: Bloque[] = [];
+  // Una misma respuesta va junta; lo que llega con más de 2 minutos de diferencia (como los avisos), aparte
+  const minutos = (h?: string) => {
+    const x = /^(\d{1,2}):(\d{2})$/.exec(h ?? "");
+    return x ? Number(x[1]) * 60 + Number(x[2]) : NaN;
+  };
+  const juntos = (a?: string, b?: string) => {
+    const d = Math.abs(minutos(a) - minutos(b));
+    return Number.isNaN(d) || d <= 2;
+  };
   for (const m of conv.mensajes) {
     const dia = m.dia ?? "Hoy";
     const nuevo = m.id >= PRIMER_NUEVO;
@@ -431,10 +440,11 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
     // Los avisos de grupo y de "le pasa el seguimiento a…" ya no van: Atendel reparte por dentro
     if (!esIdAgente(m.de)) continue;
     const ultimo = bloques[bloques.length - 1];
-    if (ultimo && ultimo.tipo === "atendel" && ultimo.dia === dia) {
+    if (ultimo && ultimo.tipo === "atendel" && ultimo.dia === dia && juntos(ultimo.hasta ?? ultimo.hora, m.hora)) {
       ultimo.piezas.push({ agente: m.de, texto: m.texto });
       if (m.tarjeta) ultimo.tarjetas.push(m.tarjeta);
-    } else bloques.push({ tipo: "atendel", key: String(m.id), piezas: [{ agente: m.de, texto: m.texto }], tarjetas: m.tarjeta ? [m.tarjeta] : [], dia, hora: m.hora, nuevo });
+      if (m.hora) ultimo.hasta = m.hora;
+    } else bloques.push({ tipo: "atendel", key: String(m.id), piezas: [{ agente: m.de, texto: m.texto }], tarjetas: m.tarjeta ? [m.tarjeta] : [], dia, hora: m.hora, hasta: m.hora, nuevo });
   }
   // Mientras Atendel trabaja y todavía no llega texto: los triangulitos
   if (escribe && bloques[bloques.length - 1]?.tipo !== "atendel") bloques.push({ tipo: "atendel", key: "trabajando", piezas: [], tarjetas: [], dia: bloques[bloques.length - 1]?.dia ?? "Hoy", nuevo: true });
