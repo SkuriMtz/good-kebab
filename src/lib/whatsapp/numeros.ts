@@ -1,17 +1,33 @@
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Tokens } from "@/lib/nucleo-tipos";
 import { avisarEnChat } from "@/lib/avisos";
+import { descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
 import { clienteServicio } from "@/lib/supabase/servicio";
-import { ID_META, suscribirApp } from "./cloud";
+import { ID_META, suscribirApp, tieneAcceso } from "./cloud";
+
+/** ¿La cuenta que hoy tiene el número todavía tiene permiso en Meta? (con su propio token guardado) */
+async function accesoDe(admin: SupabaseClient, dueno: string, telefono: string): Promise<boolean | null> {
+  try {
+    const fila = await leerFila(admin, dueno, "meta");
+    if (!fila || fila.estado !== "activa") return false;
+    const t = descifrarTokens(fila, dueno, "meta");
+    if (t.expira_en !== undefined && t.expira_en <= Date.now()) return false;
+    return await tieneAcceso(t.access_token, telefono);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Al conectar WhatsApp Business (Meta): se apunta qué número es de esta
  * cuenta (whatsapp_numeros, solo el servidor lo escribe) y se le pide a Meta
  * que mande a Atendel los mensajes de esa cuenta de WhatsApp. Los ids salen
  * de Meta con el token recién conectado (nadie los escribe a mano).
- * - Un número que ya está en OTRA cuenta de Atendel no se mueve solo: sigue
- *   allá (se avisa a las dos cuentas). Para moverlo, primero se desconecta
- *   en la cuenta donde está.
+ * - El número sigue a quien de verdad tiene permiso en Meta: si ya está en
+ *   OTRA cuenta de Atendel y esa cuenta ya no tiene acceso (token vencido o
+ *   le quitaron el permiso), se pasa a esta y se le avisa a la anterior. Si
+ *   las dos tienen acceso, se queda donde está y se avisa a las dos.
  * Mejor esfuerzo: si algo falla, la conexión igual queda.
  */
 export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promise<boolean> {
@@ -20,7 +36,17 @@ export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promis
   if (!ID_META.test(telefono)) return false;
   const admin = clienteServicio();
   if (!admin) return false;
-  const { data: actual } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", telefono).maybeSingle();
+  let { data: actual } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", telefono).maybeSingle();
+  if (actual && String(actual.owner_id) !== userId && (await accesoDe(admin, String(actual.owner_id), telefono)) === false) {
+    // La cuenta anterior ya no tiene permiso en Meta: el número se pasa a esta (la que sí lo tiene)
+    const anterior = String(actual.owner_id);
+    await admin.from("whatsapp_numeros").delete().eq("phone_number_id", telefono).eq("owner_id", anterior);
+    await avisarEnChat(admin, anterior, {
+      agente: "lola",
+      texto: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp, y otra cuenta de Atendel que sí lo tiene lo conectó. Desde ahora los mensajes de ese número llegan allá. Si es un error, vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+    });
+    actual = null;
+  }
   if (actual && String(actual.owner_id) !== userId) {
     await avisarEnChat(admin, userId, {
       agente: "lola",

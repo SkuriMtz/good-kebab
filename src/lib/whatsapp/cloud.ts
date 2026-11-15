@@ -178,3 +178,25 @@ export async function suscribirApp(token: string, wabaId: string): Promise<boole
     return false;
   }
 }
+
+/**
+ * ¿Este token todavía tiene permiso en Meta sobre ese número? true: sí;
+ * false: Meta dice que no (token vencido o sin permiso); null: no se supo
+ * (Meta no respondió). Solo con un "no" seguro se le quita el número a alguien.
+ */
+export async function tieneAcceso(token: string, phoneNumberId: string): Promise<boolean | null> {
+  if (!ID_META.test(phoneNumberId) || !secreto()) return null;
+  try {
+    const r = await fetch(`${GRAPH}/${phoneNumberId}?fields=id&appsecret_proof=${prueba(token)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    });
+    if (r.ok) return true;
+    const codigo = Number(obj(obj(await r.json().catch(() => null)).error).code);
+    if (codigo === 190 || codigo === 102 || codigo === 100 || codigo === 10 || (codigo >= 200 && codigo < 300)) return false;
+    return null;
+  } catch {
+    return null;
+  }
+}

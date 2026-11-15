@@ -9,7 +9,7 @@ import { cargarCuenta } from "../cuenta";
 import { MODELOS } from "../planes";
 import { inicioSemana } from "../trabajo";
 import { Gasto } from "../uso";
-import { mandarTexto } from "./cloud";
+import { mandarTexto, tieneAcceso } from "./cloud";
 
 /**
  * LOLA CONTESTA TU WHATSAPP (la llama la base de datos al llegar un
@@ -116,7 +116,29 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
     return { estado: "agrupado" };
   }
 
-  // 2. ¿Puede trabajar?
+  // 2. La conexión con Meta: primero, para que una cuenta sin permiso deje de recibir mensajes
+  let token = "";
+  try {
+    token = (await obtenerToken(admin, dueno, "meta")).access_token;
+  } catch (e) {
+    const t = e instanceof ErrorConexion ? e.message : "no pude leer tu conexión con Meta.";
+    return sinResponder(t.charAt(0).toLowerCase() + t.slice(1));
+  }
+  const { data: numero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
+  if (!numero?.phone_number_id) return sinResponder("tu número de WhatsApp ya no está conectado en Atendel.");
+  const phoneNumberId = String(numero.phone_number_id);
+  // Si esta cuenta ya no tiene permiso en Meta sobre el número, deja de recibir sus mensajes (y este no se queda aquí)
+  if ((await tieneAcceso(token, phoneNumberId)) === false) {
+    await admin.from("whatsapp_numeros").delete().eq("phone_number_id", phoneNumberId).eq("owner_id", dueno);
+    await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
+    await avisarEnChat(admin, dueno, {
+      agente: "lola",
+      texto: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp, así que dejé de recibir sus mensajes aquí. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+    });
+    return { estado: "sin_acceso" };
+  }
+
+  // 3. ¿Puede trabajar?
   const [{ data: filaAjustes }, cuenta] = await Promise.all([admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle(), cargarCuenta(admin, dueno)]);
   const aj = limpiarAjustes(filaAjustes?.datos);
   if (aj.trabajoAutonomo !== "activa") return sinResponder("tienes apagado «Que trabajen por su cuenta» (Ajustes > Atendel).");
@@ -133,18 +155,7 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
     .gte("creado_en", new Date(Date.now() - 3_600_000).toISOString());
   if ((recientes ?? 0) >= TOPE_POR_HORA) return sinResponder("este número ya recibió muchas respuestas mías en la última hora.");
   if (!process.env.ANTHROPIC_API_KEY) return sinResponder("falta la llave de la IA en Vercel.");
-  let token = "";
-  try {
-    token = (await obtenerToken(admin, dueno, "meta")).access_token;
-  } catch (e) {
-    const t = e instanceof ErrorConexion ? e.message : "no pude leer tu conexión con Meta.";
-    return sinResponder(t.charAt(0).toLowerCase() + t.slice(1));
-  }
-  const { data: numero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
-  if (!numero?.phone_number_id) return sinResponder("tu número de WhatsApp ya no está conectado en Atendel.");
-  const phoneNumberId = String(numero.phone_number_id);
-
-  // 3. Lo que sabe del negocio y la plática con este cliente (la última semana)
+  // 4. Lo que sabe del negocio y la plática con este cliente (la última semana)
   const [cerebro, { data: perfil }, { data: historial }] = await Promise.all([
     cargarCerebro(admin, dueno),
     admin.from("perfil_negocio").select(CAMPOS.map(([k]) => k).join(", ")).eq("owner_id", dueno).maybeSingle(),
@@ -247,7 +258,7 @@ ${perfilTexto}
       return { estado: "descartado" };
     }
 
-    // 4. ¿La manda sola? Solo si ese tema lo hace sola, sale de tus datos y cuadra con tus Reglas
+    // 5. ¿La manda sola? Solo si ese tema lo hace sola, sale de tus datos y cuadra con tus Reglas
     let porQue: string | null = null;
     if (aj.autonomia[tema] !== "solo") {
       porQue = `es de «${AUTONOMIA.find((x) => x.id === tema)?.titulo ?? "algo nuevo"}», y eso me pediste que te lo pregunte antes (lo cambias en Ajustes > Atendel > Qué hace solo).`;
