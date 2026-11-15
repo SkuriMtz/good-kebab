@@ -143,6 +143,9 @@ const crearCita: Herramienta = {
   },
   hace: {
     categoria: "citas",
+    // Con invitados, la cita les manda un correo: cuenta como «Mandar correos» y su texto se revisa
+    categoriaDe: (args) => (Array.isArray(args.invitados) && args.invitados.length ? "correos" : "citas"),
+    textoQueSale: (args) => (Array.isArray(args.invitados) && args.invitados.length ? [args.titulo, args.descripcion].filter((x) => typeof x === "string").join("\n") : ""),
     resumen(args, zona) {
       const c = leerCita(args, zona);
       return `Crear «${linea(c.titulo, 80)}» el ${horas(c.inicio, c.fin, zona)} en tu Google Calendar${c.invitados.length ? ` e invitar a ${c.invitados.join(", ")}` : ""}`;
@@ -279,6 +282,7 @@ const gmailEnviar: Herramienta = {
   },
   hace: {
     categoria: "correos",
+    textoQueSale: (args) => [args.asunto, args.texto].filter((x) => typeof x === "string").join("\n"),
     resumen(args) {
       const para = argCorreos(args, "para", { requerido: true });
       const asunto = sinSaltos(argTexto(args, "asunto", { max: 200 }));

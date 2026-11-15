@@ -17,6 +17,7 @@ import { aparienciaDe, type Apariencia } from "@/lib/ajustes";
 import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
+import { AprobarAccion } from "./AprobarAccion";
 import { SeccionesChats, type AccionesChats } from "./MenuChats";
 import type { OrganizacionChats } from "@/lib/organizacion-chats";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
@@ -25,6 +26,9 @@ import "./panel.css";
 
 export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
+/** El id de algo que espera tu OK (?aprobar=<id>). */
+const ID_ACCION = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export type ChatMenu = {
   id: string;
   titulo: string;
@@ -269,6 +273,12 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
     const c = parametros.get("conectar");
     if (c !== null) abrirConectar(c);
   }, [parametros, abrirConectar]);
+  // "¿Lo hago?": con un enlace ?aprobar=<id> (lo pone Atendel cuando algo espera tu OK)
+  const [aprobar, setAprobar] = useState<string | null>(null);
+  useEffect(() => {
+    const a = parametros.get("aprobar");
+    if (a && ID_ACCION.test(a)) setAprobar(a);
+  }, [parametros]);
   useEffect(() => {
     const evento = (e: Event) => abrirConectar((e as CustomEvent<{ app: string | null }>).detail?.app ?? null);
     window.addEventListener(EVENTO_CONECTAR, evento);
@@ -299,10 +309,15 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a[href]");
       const href = a?.getAttribute("href");
-      if (!href || !(href.includes("vista=ajustes") || href.includes("conectar="))) return;
+      if (!href || !(href.includes("vista=ajustes") || href.includes("conectar=") || href.includes("aprobar="))) return;
       const u = new URL(href, window.location.href);
       if (u.origin !== window.location.origin) return;
-      if (u.searchParams.get("vista") === "ajustes") {
+      const porAprobar = u.searchParams.get("aprobar");
+      if (porAprobar && ID_ACCION.test(porAprobar) && !u.pathname.startsWith("/api/")) {
+        e.preventDefault();
+        e.stopPropagation();
+        setAprobar(porAprobar);
+      } else if (u.searchParams.get("vista") === "ajustes") {
         e.preventDefault();
         e.stopPropagation();
         abrirAjustes(u.searchParams.get("seccion"));
@@ -560,6 +575,16 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
       ) : null}
 
       <Buscador abierto={buscar !== null} instantaneo={buscar?.instantaneo ?? false} alCerrar={() => setBuscar(null)} indice={indice} />
+      <AprobarAccion
+        id={aprobar}
+        alCerrar={() => {
+          setAprobar(null);
+          const url = new URL(window.location.href);
+          if (!url.searchParams.has("aprobar")) return;
+          url.searchParams.delete("aprobar");
+          window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        }}
+      />
       <ConectarApps
         abierta={conectar !== null}
         enfocar={conectar?.app ?? null}

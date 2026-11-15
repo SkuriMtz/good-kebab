@@ -264,7 +264,8 @@ export async function POST(request: NextRequest) {
     acciones: {
       autonomia: ajustesCuenta.autonomia,
       origen: "chat",
-      externo: () => turno.externo,
+      // Con correos, documentos o datos de apps en la plática, nada se hace solo: queda con "Aprobar y hacer"
+      externo: () => turno.externo || turno.contexto,
       zona: ajustesCuenta.zonaHoraria,
       conversacionId: idConversacion,
       reglas: datosCerebro.reglas,

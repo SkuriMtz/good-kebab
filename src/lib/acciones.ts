@@ -35,14 +35,19 @@ const TITULO = Object.fromEntries(AUTONOMIA.map((x) => [x.id, x.titulo])) as Rec
 /** Lo más que puede esperar tu OK a la vez (para que nada llene la lista). */
 const MAX_ESPERANDO = 100;
 
+/** La categoría con esos argumentos (una cita con invitados manda correos). */
+export const categoriaDe = (h: Herramienta, args: Record<string, unknown>) => h.hace?.categoriaDe?.(args) ?? h.hace?.categoria;
+
 /** Por qué espera tu OK; null si se puede hacer al momento. */
 export async function porQueEspera(h: Herramienta, args: Record<string, unknown>, o: OpcionesAcciones): Promise<string | null> {
-  const categoria = h.hace?.categoria;
+  const categoria = categoriaDe(h, args);
   if (!categoria) return "no se sabe qué tipo de acción es";
   if (o.autonomia[categoria as IdAutonomia] !== "solo") return `es de «${TITULO[categoria] ?? "algo nuevo"}», y eso me pediste que te lo pregunte antes`;
-  if (o.externo()) return "en esta misma respuesta leí cosas de fuera (correos, mensajes o datos de tus apps), y con eso nada se hace solo";
-  if (categoria === "correos" && typeof args.texto === "string") {
-    const v = await verificarContraReglas(args.texto, o.reglas ?? [], undefined, { estricto: true }).catch(() => ({ ok: false, problemas: ["no se pudo revisar contra tus Reglas"] }));
+  if (o.externo()) return "en esta conversación hay cosas de fuera (correos, mensajes o datos de tus apps), y con eso nada se hace solo";
+  // Lo que les llega a otras personas pasa por el verificador de Reglas antes de salir solo
+  const sale = h.hace?.textoQueSale?.(args) ?? "";
+  if (sale.trim()) {
+    const v = await verificarContraReglas(sale, o.reglas ?? [], undefined, { estricto: true }).catch(() => ({ ok: false, problemas: ["no se pudo revisar contra tus Reglas"] }));
     if (!v.ok) return `no cuadra con tus Reglas (${v.problemas.map((p) => citar(p, 150)).join("; ") || "revísalo"})`;
   }
   return null;
@@ -60,7 +65,7 @@ export async function guardarPendiente(dueno: string, h: Herramienta, args: Reco
       owner_id: dueno,
       herramienta: h.nombre,
       app: h.app,
-      categoria: h.hace.categoria,
+      categoria: categoriaDe(h, args),
       args,
       resumen: resumen.slice(0, 500),
       motivo: motivo.slice(0, 300),
@@ -80,7 +85,7 @@ export async function registrarHecha(dueno: string, h: Herramienta, args: Record
     owner_id: dueno,
     herramienta: h.nombre,
     app: h.app,
-    categoria: h.hace.categoria,
+    categoria: categoriaDe(h, args),
     args,
     resumen: resumen.slice(0, 500),
     origen: o.origen,
@@ -116,10 +121,10 @@ export async function hacerOEsperar(
       if (admin)
         await avisarEnChat(admin, dueno, {
           agente,
-          texto: `Necesito tu OK para esto: ${citar(resumen, 400)}.\n\nTe pregunto porque ${espera}. Apruébalo con un clic en [Necesita tu OK](/panel?vista=pendientes).`,
+          texto: `Necesito tu OK para esto: ${citar(resumen, 400)}.\n\nTe pregunto porque ${espera}.\n\n[Aprobar y hacer](/panel?aprobar=${id})`,
         });
     }
-    return `NO SE HIZO TODAVÍA: quedó esperando el OK del dueño («${resumen}»), porque ${espera}. Dile en una frase que lo apruebe con un clic en [Necesita tu OK](/panel?vista=pendientes). No digas que ya se hizo.`;
+    return `NO SE HIZO TODAVÍA: quedó esperando el OK del dueño («${resumen}»), porque ${espera}. Dile en una frase que lo dejaste listo y pon, en una línea aparte, este botón tal cual: [Aprobar y hacer](/panel?aprobar=${id}) — con un clic se hace. No digas que ya se hizo.`;
   }
   const resultado = await hacer();
   await registrarHecha(dueno, h, args, resumen, resultado, o);

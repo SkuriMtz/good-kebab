@@ -9633,3 +9633,17 @@ a.pc-correo__accion:hover {
   border-radius: 50%;
   background: var(--pc-acento);
 }
+
+/* "¿Lo hago?": lo que espera tu OK, sin salir del chat */
+.pc-aprobar__resumen {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--pc-texto);
+}
+.pc-aprobar__texto {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--pc-texto-2);
+}

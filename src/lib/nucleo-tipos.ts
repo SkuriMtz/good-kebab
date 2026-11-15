@@ -237,7 +237,14 @@ export type Herramienta = {
    * su categoría de «Qué hace solo» y, en una frase, lo que va a hacer con esos
    * argumentos (lo ve el dueño cuando le toca dar su OK). Lanza ErrorArgs si no sirven.
    */
-  hace?: { categoria: CategoriaAccion; resumen(args: Record<string, unknown>, zona: string): string };
+  hace?: {
+    categoria: CategoriaAccion;
+    /** Si con esos argumentos cambia la categoría (por ejemplo, una cita con invitados manda correos). */
+    categoriaDe?(args: Record<string, unknown>): CategoriaAccion;
+    /** El texto que les llega a otras personas (para revisarlo contra las Reglas antes de que salga solo). */
+    textoQueSale?(args: Record<string, unknown>): string;
+    resumen(args: Record<string, unknown>, zona: string): string;
+  };
   /** Regresa texto plano (se trunca y se marca como DATOS al pasarlo al modelo). */
   ejecutar(args: Record<string, unknown>, ctx: ContextoHerramienta): Promise<string>;
 };
