@@ -1,5 +1,6 @@
 "use client";
 
+import { FragmentosEscribe } from "./FragmentosEscribe";
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Texto } from "@/components/Texto";
 import { Personaje } from "@/components/agentes/Personaje";
@@ -290,10 +291,9 @@ export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente
 }
 
 /**
- * Mientras un agente contesta: tres fragmentos (triangulitos huecos) que
- * ruedan uno tras otro; cada uno brinca y gira un tercio de vuelta (cae
- * igual que como empezó, así el ciclo no salta). Violeta, el color del
- * agente y turquesa. Sin texto: "Lola está escribiendo" solo lo oye el
+ * Mientras Atendel piensa o escribe: una nubecita de fragmentos que flotan
+ * sin ritmo fijo (FragmentosEscribe), en violeta, el color del agente y
+ * turquesa. Sin texto: "Lola está escribiendo" solo lo oye el
  * lector de pantalla (`etiqueta`). Si el agente está usando una app, sí se
  * lee lo que hace ("Clara está revisando tu correo…").
  */
@@ -301,13 +301,7 @@ export function LineaEscribe({ texto, agente, etiqueta }: { texto?: string; agen
   const colores = ["#8052ff", agente ? PERSONAJES[agente].color : "#3d7bff", "#23d9b5"];
   return (
     <p className="pc-escribe" role="status" data-solo={texto ? undefined : ""}>
-      <span className="pc-escribe__tris" aria-hidden="true">
-        {colores.map((c, i) => (
-          <svg key={i} viewBox="0 0 12 12" width="12" height="12" focusable="false">
-            <path d="M6 1.3 10.6 9.25 1.4 9.25Z" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
-        ))}
-      </span>
+      <FragmentosEscribe colores={colores} />
       {texto ? <span className="pc-escribe__texto">{texto}</span> : etiqueta ? <span className="pc-oculto">{etiqueta}</span> : null}
     </p>
   );

@@ -9154,3 +9154,9 @@ a.pc-correo__accion:hover {
     padding-left: 0;
   }
 }
+
+/* "Pensando / escribiendo": la nubecita de fragmentos (FragmentosEscribe) */
+.pc .pc-escribe__nube {
+  display: block;
+  flex: none;
+}
