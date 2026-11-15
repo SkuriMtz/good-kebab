@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { avisarEnChat } from "@/lib/avisos";
+import { avisarEnChat, citar } from "@/lib/avisos";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { firmaValida, leerAviso } from "@/lib/whatsapp/cloud";
 
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       if (fallido) {
         await avisarEnChat(admin, dueno, {
           agente: "lola",
-          texto: `No le llegó a ${fallido.nombre || `+${fallido.telefono}`} el mensaje de WhatsApp que le mandamos. WhatsApp dice: «${motivo}».`,
+          texto: `No le llegó a ${citar(fallido.nombre, 80) || `+${fallido.telefono}`} el mensaje de WhatsApp que le mandamos. WhatsApp dice: «${citar(motivo, 300)}».`,
         });
       }
     }

@@ -242,6 +242,8 @@ ${perfilTexto}
 
     if (!respuesta) {
       await marcar("descartado", { motivo: motivo || "No hacía falta contestar." });
+      // Igual te avisa: así nada se queda sin que lo sepas
+      await avisarEnChat(admin, dueno, { agente: "lola", texto: `${quien} te escribió por WhatsApp: «${escribio}». No hacía falta contestarle${motivo ? ` (${citar(motivo, 200)})` : ""}.` });
       return { estado: "descartado" };
     }
 
