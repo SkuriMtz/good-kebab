@@ -1,19 +1,37 @@
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Tokens } from "@/lib/nucleo-tipos";
 import { avisarEnChat } from "@/lib/avisos";
+import { descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
 import { clienteServicio } from "@/lib/supabase/servicio";
-import { ID_META, suscribirApp } from "./cloud";
+import { ID_META, suscribirApp, tieneAcceso, type Acceso } from "./cloud";
+
+/** ¿La cuenta que hoy tiene el número sigue con permiso confirmado por Meta? (con su propio token guardado) */
+async function accesoDe(admin: SupabaseClient, dueno: string, telefono: string): Promise<Acceso> {
+  let token: string;
+  try {
+    const fila = await leerFila(admin, dueno, "meta");
+    if (!fila || fila.estado !== "activa") return "token_invalido";
+    const t = descifrarTokens(fila, dueno, "meta");
+    if (t.expira_en !== undefined && t.expira_en <= Date.now()) return "token_invalido";
+    token = t.access_token;
+  } catch {
+    // No se pudo leer de nuestro lado: algo pasajero, no se decide nada
+    return "no_se";
+  }
+  return tieneAcceso(token, telefono);
+}
 
 /**
  * Al conectar WhatsApp Business (Meta): se apunta qué número es de esta
  * cuenta (whatsapp_numeros, solo el servidor lo escribe) y se le pide a Meta
  * que mande a Atendel los mensajes de esa cuenta de WhatsApp. Los ids salen
  * de Meta con el token recién conectado (nadie los escribe a mano).
- * - Un número que ya está en OTRA cuenta de Atendel NUNCA se mueve solo: se
- *   queda donde está y se avisa a las dos cuentas. Para moverlo, se
- *   desconecta primero en la cuenta donde está (o se pide a soporte).
- *   Y si la cuenta que lo tiene pierde el permiso en Meta, deja de recibir
- *   sus mensajes sola (lo revisa Lola antes de contestar).
+ * - Manda lo que diga Meta: esta cuenta tiene que tener permiso confirmado
+ *   sobre el número. Si ya está en OTRA cuenta de Atendel, solo se pasa a
+ *   esta si Meta confirma que la otra ya no tiene permiso (conexión vencida,
+ *   quitada o sin permiso), y se le avisa. Si las dos lo tienen, se queda
+ *   donde está y se avisa a las dos. Con duda, no se mueve.
  * Mejor esfuerzo: si algo falla, la conexión igual queda.
  */
 export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promise<boolean> {
@@ -22,7 +40,28 @@ export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promis
   if (!ID_META.test(telefono)) return false;
   const admin = clienteServicio();
   if (!admin) return false;
-  const { data: actual } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", telefono).maybeSingle();
+  // Quien conecta tiene que tener permiso confirmado por Meta
+  if ((await tieneAcceso(t.access_token, telefono)) !== "si") {
+    await avisarEnChat(admin, userId, {
+      agente: "lola",
+      texto: "No pude confirmar con Meta tu permiso sobre tu número de WhatsApp, así que todavía no recibo sus mensajes. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) en un momento.",
+    });
+    return false;
+  }
+  let { data: actual } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", telefono).maybeSingle();
+  if (actual && String(actual.owner_id) !== userId) {
+    const anterior = String(actual.owner_id);
+    const acceso = await accesoDe(admin, anterior, telefono);
+    if (acceso === "token_invalido" || acceso === "sin_permiso") {
+      // Meta confirma que la cuenta anterior ya no tiene permiso: el número pasa a esta
+      await admin.from("whatsapp_numeros").delete().eq("phone_number_id", telefono).eq("owner_id", anterior);
+      await avisarEnChat(admin, anterior, {
+        agente: "lola",
+        texto: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp y otra cuenta de Atendel que sí lo tiene lo conectó, así que sus mensajes ahora llegan allá. Si no fuiste tú, revisa quién tiene acceso a tu WhatsApp Business en Meta y vuelve a conectar en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+      });
+      actual = null;
+    }
+  }
   if (actual && String(actual.owner_id) !== userId) {
     await avisarEnChat(admin, userId, {
       agente: "lola",

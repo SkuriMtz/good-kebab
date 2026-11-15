@@ -116,30 +116,32 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
     return { estado: "agrupado" };
   }
 
-  // 2. La conexión con Meta: primero, para que una cuenta sin permiso deje de recibir mensajes
+  // 2. La conexión con Meta, primero. Manda lo que diga Meta: si esta cuenta ya no tiene permiso
+  //    confirmado sobre el número (conexión vencida, quitada o sin permiso), deja de recibir sus
+  //    mensajes y este no se queda aquí; el aviso no repite nada del cliente.
+  const { data: numero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
+  const phoneNumberId = numero?.phone_number_id ? String(numero.phone_number_id) : "";
+  async function soltarNumero(porQue: string): Promise<ResultadoWhatsapp> {
+    if (phoneNumberId) await admin.from("whatsapp_numeros").delete().eq("phone_number_id", phoneNumberId).eq("owner_id", dueno);
+    await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
+    await avisarEnChat(admin, dueno, {
+      agente: "lola",
+      texto: `${porQue}, así que dejé de recibir aquí los mensajes de tu número de WhatsApp. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) para seguir recibiéndolos.`,
+    });
+    return { estado: "sin_acceso" };
+  }
+  if (!phoneNumberId) return soltarNumero("Tu número de WhatsApp ya no está conectado en Atendel");
   let token = "";
   try {
     token = (await obtenerToken(admin, dueno, "meta")).access_token;
   } catch (e) {
+    if (e instanceof ErrorConexion && (e.codigo === "vencida" || e.codigo === "sin_conexion")) return soltarNumero("Tu conexión con Meta venció o se quitó");
     const t = e instanceof ErrorConexion ? e.message : "no pude leer tu conexión con Meta.";
     return sinResponder(t.charAt(0).toLowerCase() + t.slice(1));
   }
-  const { data: numero } = await admin.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", dueno).order("creado_en", { ascending: false }).limit(1).maybeSingle();
-  if (!numero?.phone_number_id) return sinResponder("tu número de WhatsApp ya no está conectado en Atendel.");
-  const phoneNumberId = String(numero.phone_number_id);
-  // Si Meta dice claramente que esta cuenta ya no tiene permiso sobre el número, deja de recibir sus
-  // mensajes (y este no se queda aquí). Si el token ya no sirve, solo se le pide volver a conectar.
   const acceso = await tieneAcceso(token, phoneNumberId);
-  if (acceso === "token_invalido") return sinResponder("tu conexión con Meta ya no sirve: vuelve a conectarla en Tu negocio → Apps.");
-  if (acceso === "sin_permiso") {
-    await admin.from("whatsapp_numeros").delete().eq("phone_number_id", phoneNumberId).eq("owner_id", dueno);
-    await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
-    await avisarEnChat(admin, dueno, {
-      agente: "lola",
-      texto: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp, así que dejé de recibir sus mensajes aquí. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
-    });
-    return { estado: "sin_acceso" };
-  }
+  if (acceso === "token_invalido") return soltarNumero("Tu conexión con Meta ya no sirve");
+  if (acceso === "sin_permiso") return soltarNumero("Meta dice que tu conexión ya no tiene permiso sobre tu número");
 
   // 3. ¿Puede trabajar?
   const [{ data: filaAjustes }, cuenta] = await Promise.all([admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle(), cargarCuenta(admin, dueno)]);
