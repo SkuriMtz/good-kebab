@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { bloqueCerebro } from "@/lib/cerebro";
+import { DEMO_MEMORIA, DEMO_PROCESOS, DEMO_REGLAS } from "@/lib/cerebro-demo";
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
-import { IDIOMAS } from "@/lib/ajustes";
+import { IDIOMAS, limpiarAjustes } from "@/lib/ajustes";
 import { MAX_DIAPOSITIVAS, MAX_PUNTOS, nombreArchivo, validarPresentacion } from "@/lib/archivos/presentacion";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 import { usarMensajeDemo } from "@/lib/demo-ia";
@@ -95,6 +97,8 @@ export async function POST(req: NextRequest) {
   const system =
     // Con varios agentes: Atendel reparte el trabajo y contesta una sola vez (el chat único)
     (grupo ? instruccionesAtendel(grupo, NEGOCIO, correos, datos) : instruccionesDe(agentes[0], NEGOCIO, correos, datos)) +
+    // El cerebro de ejemplo de Estudio Luna (Reglas, Procesos y Memoria), con la autonomía de inicio
+    bloqueCerebro({ reglas: DEMO_REGLAS, procesos: DEMO_PROCESOS, memoria: DEMO_MEMORIA }, { autonomia: limpiarAjustes({}).autonomia }) +
     DEMO +
     (idioma ? `\n- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), aunque estas instrucciones estén en español.` : "");
   const hace = (a: IdAgente): IdAgente => (agentes.includes(a) ? a : agentes[0]);

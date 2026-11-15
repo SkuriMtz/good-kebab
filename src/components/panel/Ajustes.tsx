@@ -19,7 +19,9 @@ import {
   USOS_CFDI,
   ZONAS_HORARIAS,
   HORAS_REVISION,
+  AUTONOMIA,
   type HoraRevision,
+  type ModoAutonomia,
   rfcValido,
   type Acento,
   type Fuente,
@@ -147,6 +149,7 @@ const OPCIONES: Opcion[] = [
   { parte: "agentes", titulo: "Víctor", claves: "clientes seguimiento activar reglas" },
   { parte: "agentes", titulo: "Iris", claves: "oficina excel reportes activar reglas" },
   { parte: "atendel", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
+  { parte: "atendel", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
   { parte: "conexiones", titulo: "WhatsApp", claves: "whatsapp business mensajes" },
   { parte: "conexiones", titulo: "Correo · Gmail", claves: "gmail google correo" },
   { parte: "conexiones", titulo: "Correo · Outlook", claves: "outlook hotmail microsoft correo" },
@@ -192,7 +195,7 @@ const OPCIONES: Opcion[] = [
   { parte: "cuenta", titulo: "Cerrar sesión en todos lados", claves: "salir sesion dispositivos" },
 ];
 const PARTES: Parte[] = [
-  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
+  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos socio autonomia solo pregunta permiso", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
   { id: "negocio", etiqueta: "Mi negocio", icono: "negocio", claves: "datos horario servicios precios ubicacion pago", grupo: 1, sub: "Datos, horario y servicios. Tus agentes lo leen antes de contestar." },
   { id: "agentes", etiqueta: "Agentes", icono: "agentes", claves: "lola clara victor iris reglas equipo", grupo: 1, sub: "Lo que hace cada uno y las reglas que les dejas." },
@@ -758,15 +761,31 @@ export function VentanaAjustes({
             </Fila>
           ) : null}
           {ajustes.revisionDiaria === "activa" ? (
-            <Fila titulo="Que trabajen por su cuenta" texto="Después de la revisión, con IA te dejan listos los borradores de los correos que esperan y el plan del día. Llega a la Oficina para que lo revises: nada se envía solo. Tiene su propio límite, aparte del chat." hija>
+            <Fila titulo="Que trabajen por su cuenta" texto="Después de la revisión, con IA revisan tus apps y te dejan en la Oficina el plan del día y los borradores de los correos que esperan, revisados contra tus Reglas. Lo que es para un cliente sigue lo que elijas en «Qué hace solo». Tiene su propio límite, aparte del chat." hija>
               <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
             </Fila>
           ) : null}
         </Grupo>
-        <Grupo titulo="Siempre">
-          <Fila titulo="Tu visto bueno antes de enviar" texto="Por ahora tus agentes solo leen y te proponen: nada sale a tus clientes sin ti.">
-            <Interruptor etiqueta="Tu visto bueno antes de enviar" activo deshabilitado />
-          </Fila>
+        <Grupo titulo="Qué hace solo" texto="Atendel es tu socio: lo de rutina lo hace solo y te avisa después. Lo que marques, te lo pregunta antes.">
+          {AUTONOMIA.map((x) => (
+            <Fila key={x.id} ancla={x.id === "preguntas" ? "Qué hace solo" : undefined} titulo={x.titulo} texto={x.texto}>
+              <Segmentos<ModoAutonomia>
+                etiqueta={x.titulo}
+                opciones={[
+                  { id: "solo", etiqueta: "Lo hace solo" },
+                  { id: "pregunta", etiqueta: "Te pregunta" },
+                ]}
+                activa={ajustes.autonomia[x.id]}
+                alElegir={(v) => cambiar("autonomia", { ...ajustes.autonomia, [x.id]: v })}
+              />
+            </Fila>
+          ))}
+        </Grupo>
+        <Grupo titulo="Mensajes a tus clientes">
+          <Fila
+            titulo="Cómo salen hoy"
+            texto="Mandar WhatsApp a tus clientes necesita la aprobación de Meta. Mientras, lo que es para un cliente queda listo para que lo mandes (Atendel nunca dice que lo envió si no salió). Cuando WhatsApp quede conectado, lo que marcaste como «Lo hace solo» saldrá solo y te avisará."
+          />
         </Grupo>
       </>
     );

@@ -5,6 +5,7 @@ import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
+import { bloqueCerebro, cargarCerebro, herramientaRecordar } from "@/lib/cerebro";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
@@ -226,10 +227,10 @@ export async function POST(request: NextRequest) {
   // En las instrucciones solo va lo que casi no cambia (para que la IA lo guarde en caché);
   // los fragmentos de documentos cambian con cada mensaje: van junto al mensaje
   const datosNegocio = perfil || "";
-  const preferencias = bloqueParaAgentes(
-    limpiarAjustes(ajustesGuardados.data?.datos),
-    participantes,
-  );
+  const ajustesCuenta = limpiarAjustes(ajustesGuardados.data?.datos);
+  const preferencias = bloqueParaAgentes(ajustesCuenta, participantes);
+  // El cerebro: Reglas (lo que nunca se equivoca), Procesos, Memoria y qué hace solo como socio
+  const cerebro = bloqueCerebro(await cargarCerebro(supabase, user.id), ajustesCuenta);
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
@@ -249,6 +250,8 @@ export async function POST(request: NextRequest) {
       conversacionId: idConversacion,
       negocio: cuenta.negocio,
     }),
+    // Guardar en la Memoria lo que vale la pena recordar
+    herramientaRecordar(supabase, user.id),
   ];
   const conApps =
     instruccionesHerramientas(participantes, deApps, conexiones) +
@@ -304,6 +307,7 @@ export async function POST(request: NextRequest) {
                       datosNegocio,
                     )) +
                 preferencias +
+                cerebro +
                 conApps,
             },
           ],

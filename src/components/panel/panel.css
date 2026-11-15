@@ -9170,3 +9170,154 @@ a.pc-correo__accion:hover {
   display: block;
   flex: none;
 }
+
+/* =====================================================================
+   43. El cerebro (Tu negocio > Reglas, Procesos y Memoria)
+   ===================================================================== */
+.pc-cerebro {
+  display: grid;
+  gap: 16px;
+}
+.pc-cerebro__intro {
+  max-width: 62ch;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.pc-cerebro__intro strong {
+  color: var(--pc-texto);
+  font-weight: 600;
+}
+.pc-cerebro__nota {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-cerebro__vacio {
+  padding: 18px;
+  border: 1px dashed var(--pc-borde);
+  border-radius: 12px;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-cerebro__forma {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 12px;
+  background: var(--pc-tarjeta);
+}
+.pc-cerebro__tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pc-cerebro__fila {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pc-cerebro__fila > .pc-campo__entrada {
+  flex: 1;
+  min-width: 0;
+}
+.pc-cerebro__fila--fin {
+  justify-content: flex-end;
+}
+.pc-cerebro__grupo {
+  display: grid;
+  gap: 6px;
+}
+.pc-cerebro__titulo {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pc-cerebro__lista,
+.pc-cerebro__procesos {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-cerebro__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 10px;
+  background: var(--pc-tarjeta);
+}
+.pc-cerebro__item > form {
+  flex: 1;
+}
+.pc-cerebro__texto {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.pc-cerebro__origen {
+  color: var(--pc-texto-2);
+  font-size: 12px;
+}
+.pc-cerebro__acciones {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+.pc-cerebro__proceso-forma {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 12px;
+  background: var(--pc-tarjeta);
+}
+.pc-cerebro__proceso {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--pc-borde-suave);
+  border-radius: 12px;
+  background: var(--pc-tarjeta);
+}
+.pc-cerebro__proceso[data-apagado] {
+  opacity: 0.6;
+}
+.pc-cerebro__proceso-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pc-cerebro__proceso-titulo {
+  font-size: 15px;
+  font-weight: 600;
+}
+.pc-cerebro__cuando {
+  color: var(--pc-texto-2);
+  font-size: 13px;
+}
+.pc-cerebro__pasos {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+@media (max-width: 640px) {
+  .pc-cerebro__fila {
+    flex-wrap: wrap;
+  }
+  .pc-cerebro__fila > .pc-campo__entrada {
+    flex-basis: 100%;
+  }
+}

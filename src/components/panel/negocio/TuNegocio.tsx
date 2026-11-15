@@ -5,15 +5,16 @@ import type { IdPlan } from "@/lib/planes";
 import { Pildoras, TituloSeccion } from "../Piezas";
 import { Seccion } from "../Secciones";
 import { AppsNegocio } from "./Apps";
+import { MemoriaNegocio, ProcesosNegocio, ReglasNegocio } from "./Cerebro";
 import { DocumentosNegocio } from "./Documentos";
 import { useFuenteNegocio } from "./fuente";
 import { PerfilNegocioVista } from "./Perfil";
 
-export const PESTANAS_NEGOCIO = ["perfil", "documentos", "apps"] as const;
+export const PESTANAS_NEGOCIO = ["perfil", "reglas", "procesos", "memoria", "documentos", "apps"] as const;
 export type PestanaNegocio = (typeof PESTANAS_NEGOCIO)[number];
 export const pestanaDe = (v: string | null | undefined): PestanaNegocio => ((PESTANAS_NEGOCIO as readonly string[]).includes(v ?? "") ? (v as PestanaNegocio) : "perfil");
 
-const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", documentos: "Documentos", apps: "Apps conectadas" };
+const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", reglas: "Reglas", procesos: "Procesos", memoria: "Memoria", documentos: "Documentos", apps: "Apps conectadas" };
 
 /**
  * Tu negocio (?vista=negocio&tab=perfil|documentos|apps): lo que tu equipo
@@ -28,15 +29,23 @@ export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNe
     <Seccion>
       <TituloSeccion
         titulo="Tu negocio"
-        texto="Lo que tu equipo sabe de tu negocio y las apps a las que puede entrar."
-        acciones={fuente.demo ? <span className="pc-estado pc-estado--azul">Datos de ejemplo</span> : undefined}
+        texto="Lo que Atendel sabe de tu negocio: tus reglas, cómo se hacen las cosas, lo que recuerda de ti y las apps a las que puede entrar."
+        acciones={fuente.demo ? <span className="pc-estado">Datos de ejemplo</span> : undefined}
       />
       <div className="pc-filtros">
         <Pildoras etiqueta="Partes de Tu negocio" activa={tab} opciones={PESTANAS_NEGOCIO.map((t) => ({ id: t, etiqueta: ETIQUETAS[t], href: href(t) }))} />
       </div>
       {/* Cada pestaña entra de nuevo (key): su entrada escalonada vuelve a correr */}
       <div key={tab} className="pc-negocio" id="pc-negocio-panel">
-        {tab === "perfil" ? <PerfilNegocioVista /> : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} maxMb={MAX_MB_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}
+        {tab === "perfil" ? (
+          <PerfilNegocioVista />
+        ) : tab === "reglas" ? (
+          <ReglasNegocio />
+        ) : tab === "procesos" ? (
+          <ProcesosNegocio />
+        ) : tab === "memoria" ? (
+          <MemoriaNegocio />
+        ) : tab === "documentos" ? <DocumentosNegocio max={MAX_DOCUMENTOS_POR_PLAN[plan]} maxMb={MAX_MB_DOCUMENTOS_POR_PLAN[plan]} /> : <AppsNegocio conectada={conectada} error={error} app={app} />}
       </div>
     </Seccion>
   );

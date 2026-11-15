@@ -60,6 +60,22 @@ export type Horas = (typeof HORAS)[number];
 /** La revisión diaria: cada día, a esa hora, tus agentes revisan solos su parte y te dejan lo que falta (lo hace la base de datos, migración 0015). */
 export const REVISIONES = ["activa", "apagada"] as const;
 export type RevisionDiaria = (typeof REVISIONES)[number];
+/**
+ * Atendel es tu socio: qué hace SOLO (y te avisa después) y qué te pregunta
+ * antes. Lo de dinero y lo que tus Reglas no cubren empieza preguntando.
+ */
+export const AUTONOMIA = [
+  { id: "preguntas", titulo: "Contestar preguntas de clientes", texto: "Con los datos de tus Reglas y tu perfil.", inicio: "solo" },
+  { id: "citas", titulo: "Confirmar, recordar y reagendar citas", texto: "Dentro de tu horario.", inicio: "solo" },
+  { id: "seguimiento", titulo: "Dar seguimiento a clientes", texto: "Después de su visita o a quien preguntó y no agendó.", inicio: "solo" },
+  { id: "precios", titulo: "Mensajes con precios o promociones", texto: "Solo si coinciden con tus Reglas.", inicio: "solo" },
+  { id: "dinero", titulo: "Cobros, descuentos, reembolsos y cancelaciones", texto: "Lo que mueve dinero o no se puede deshacer.", inicio: "pregunta" },
+  { id: "nuevo", titulo: "Lo que tus Reglas y Procesos no cubren", texto: "Algo nuevo o que no sabe cómo hacer.", inicio: "pregunta" },
+] as const;
+export type IdAutonomia = (typeof AUTONOMIA)[number]["id"];
+export const MODOS_AUTONOMIA = ["solo", "pregunta"] as const;
+export type ModoAutonomia = (typeof MODOS_AUTONOMIA)[number];
+
 export const HORAS_REVISION = ["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"] as const;
 export type HoraRevision = (typeof HORAS_REVISION)[number];
 
@@ -177,6 +193,8 @@ export type AjustesCuenta = {
   horaRevision: HoraRevision;
   /** Después de la revisión, la IA trabaja por su cuenta (borradores y plan del día, a la Oficina). */
   trabajoAutonomo: RevisionDiaria;
+  /** Qué hace solo y qué te pregunta antes (AUTONOMIA). */
+  autonomia: Record<IdAutonomia, ModoAutonomia>;
   acento: Acento;
   letra: Letra;
   fuente: Fuente;
@@ -211,6 +229,7 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   revisionDiaria: "activa",
   horaRevision: "08:00",
   trabajoAutonomo: "activa",
+  autonomia: Object.fromEntries(AUTONOMIA.map((x) => [x.id, x.inicio])) as Record<IdAutonomia, ModoAutonomia>,
   acento: "azul",
   letra: "normal",
   fuente: "geist",
@@ -263,6 +282,7 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     revisionDiaria: uno(a.revisionDiaria, REVISIONES, b.revisionDiaria),
     horaRevision: uno(a.horaRevision, HORAS_REVISION, b.horaRevision),
     trabajoAutonomo: uno(a.trabajoAutonomo, REVISIONES, b.trabajoAutonomo),
+    autonomia: Object.fromEntries(AUTONOMIA.map((x) => [x.id, uno(obj(a.autonomia)[x.id], MODOS_AUTONOMIA, b.autonomia[x.id])])) as Record<IdAutonomia, ModoAutonomia>,
     acento: uno(a.acento, ACENTOS, b.acento),
     letra: uno(a.letra, LETRAS, b.letra),
     fuente: uno(a.fuente, FUENTES, b.fuente),
