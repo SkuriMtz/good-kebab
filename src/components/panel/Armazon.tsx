@@ -25,7 +25,17 @@ import "./panel.css";
 
 export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
-export type ChatMenu = { id: string; titulo: string; href: string; agentes: IdAgente[]; campo?: "tema" | "titulo" };
+export type ChatMenu = {
+  id: string;
+  titulo: string;
+  href: string;
+  agentes: IdAgente[];
+  campo?: "tema" | "titulo";
+  /** "Avisos de Atendel": lleva un puntito cuando hay avisos que no has visto. */
+  avisos?: boolean;
+  /** Cuándo cambió por última vez (ISO), para el puntito. */
+  actualizado?: string;
+};
 export type ResultadoBusqueda = { id: string; grupo: string; titulo: string; detalle?: string; href: string; icono?: NombreIcono; agentes?: IdAgente[]; claves?: string };
 export type ElementoCuenta = { id: string; etiqueta: string; detalle?: string; href?: string; alElegir?: () => void; icono: NombreIcono; peligroso?: boolean };
 

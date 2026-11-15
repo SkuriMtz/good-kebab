@@ -756,8 +756,8 @@ export function VentanaAjustes({
         </Grupo>
         <Grupo titulo="Mensajes a tus clientes">
           <Fila
-            titulo="Cómo salen hoy"
-            texto="Mandar WhatsApp a tus clientes necesita la aprobación de Meta. Mientras, lo que es para un cliente queda listo para que lo mandes (Atendel nunca dice que lo envió si no salió). Cuando WhatsApp quede conectado, lo que marcaste como «Lo hace solo» saldrá solo y te avisará."
+            titulo="WhatsApp de tus clientes"
+            texto="Con WhatsApp Business conectado (Tu negocio → Apps), Lola contesta sola lo que marcaste como «Lo hace solo», siempre con tus Reglas. Lo demás te lo deja en «Necesita tu OK», y de todo te avisa en el chat («Avisos de Atendel»). Nunca dice que algo salió si no salió."
           />
         </Grupo>
       </>

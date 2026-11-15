@@ -127,7 +127,13 @@ const ESQUEMA_VERIFICA = {
  * políticas, lo que nunca se hace). Regresa los problemas en frases cortas.
  * Sin Reglas o sin llave de IA, no revisa (ok). Lo que gasta va al `gasto`.
  */
-export async function verificarContraReglas(texto: string, reglas: Regla[], gasto?: Gasto): Promise<{ ok: boolean; problemas: string[] }> {
+export async function verificarContraReglas(
+  texto: string,
+  reglas: Regla[],
+  gasto?: Gasto,
+  /** estricto: si no se pudo leer la revisión, NO pasa (para lo que se manda solo a un cliente). */
+  opciones: { estricto?: boolean } = {},
+): Promise<{ ok: boolean; problemas: string[] }> {
   if (!reglas.length || !texto.trim() || !process.env.ANTHROPIC_API_KEY) return { ok: true, problemas: [] };
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const r = await client.messages.create({
@@ -143,6 +149,6 @@ export async function verificarContraReglas(texto: string, reglas: Regla[], gast
     const problemas = Array.isArray(salida.problemas) ? salida.problemas.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 300)).slice(0, 6) : [];
     return { ok: salida.ok === true && !problemas.length, problemas };
   } catch {
-    return { ok: true, problemas: [] };
+    return opciones.estricto ? { ok: false, problemas: ["no se pudo revisar contra tus Reglas"] } : { ok: true, problemas: [] };
   }
 }

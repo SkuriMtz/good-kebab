@@ -14,6 +14,8 @@ import { MODELOS } from "./planes";
 import { cuandoEnPalabras, errorFrecuencia, frecuenciaEnPalabras, siguienteVez, zonaValida, type Frecuencia, type TipoTarea } from "./tareas-tiempo";
 import { inicioSemana } from "./trabajo";
 import { Gasto } from "./uso";
+import { avisarEnChat, citar, citarLineas } from "./avisos";
+import { herramientaVerAtendel } from "./herramientas/atendel";
 
 /**
  * TAREAS (migración 0020): lo que el dueño le pide a Atendel que haga solo,
@@ -115,7 +117,12 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
   const [conexiones, cerebro] = await Promise.all([conexionesVigentes(admin, dueno), cargarCerebro(admin, dueno)]);
   // Las apps (solo lectura) y las acciones de Atendel; los documentos no (dependen de la sesión)
   const deApps = herramientasDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conexiones }).filter((h) => h.nombre !== "buscar_en_documentos");
-  const herramientas = [...deApps, ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio })];
+  const herramientas = [
+    ...deApps,
+    ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio }),
+    // Lo de su cuenta de Atendel (lo que espera su OK, WhatsApp, Oficina…): para tareas como «cada mañana dime qué tengo pendiente»
+    herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria }),
+  ];
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const system = [
@@ -171,6 +178,11 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
     .update({ ultima: new Date().toISOString(), ultimo_resultado: resultado.replace(/\s+/g, " ").slice(0, 300) })
     .eq("id", t.id)
     .eq("owner_id", dueno);
+  // Y te avisa en el chat (Avisos de Atendel), no solo en la Oficina
+  await avisarEnChat(admin, dueno, {
+    agente: "iris",
+    texto: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${citar(t.titulo, 120)}».\n\n${citarLineas(resultado, 900)}\n\nCompleta en la [Oficina](/panel?vista=oficina).`,
+  });
   return { hecho: Boolean(texto.trim()), motivo: texto.trim() ? "hecha" : "sin resultado" };
 }
 

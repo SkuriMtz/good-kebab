@@ -28,8 +28,9 @@ import {
  *   (waba_id, sacada de debug_token) y su número (phone_number_id).
  * - Cada llamada lleva appsecret_proof (HMAC del token con META_APP_SECRET).
  * - La API de WhatsApp Cloud NO deja leer el historial de chats: los
- *   mensajes entrantes llegan por webhook (otra fase). Aquí solo se leen
- *   números y plantillas.
+ *   mensajes nuevos de los clientes llegan por webhook
+ *   (/api/whatsapp/webhook) y Lola los contesta (src/lib/whatsapp). Aquí
+ *   solo se leen números y plantillas.
  */
 
 const VERSION = "v27.0";
@@ -182,7 +183,7 @@ function wabaDe(t: Tokens) {
 }
 
 const SIN_HISTORIAL =
-  "La API de WhatsApp Cloud no permite leer el historial de chats: los mensajes que te mandan llegarán por webhook (en otra fase).";
+  "La API de WhatsApp Cloud no deja leer el historial viejo de chats; los mensajes nuevos de los clientes llegan solos a Atendel (se ven con ver_atendel, parte whatsapp).";
 
 export const adaptador: Adaptador = {
   proveedor: "meta",

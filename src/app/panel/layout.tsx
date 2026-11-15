@@ -9,6 +9,7 @@ import { cargarCuenta } from "@/lib/cuenta";
 import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
 import type { ChatMenu } from "@/components/panel/Armazon";
+import { TEMA_AVISOS } from "@/lib/avisos";
 
 /**
  * El armazón del panel nuevo (menú de 288px con Fijados y Recientes, y el
@@ -68,7 +69,15 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     const agentes = grupo.length >= 2 ? grupo : agente ? [agente] : [];
     if (!agentes.length) continue;
     const titulo = ((c.tema as string | null) || (c.titulo as string | null) || "Conversación").replace(/\s+/g, " ").trim();
-    chats.push({ id, titulo, href: `/panel?c=${encodeURIComponent(id)}`, agentes, campo: c.tema ? "tema" : "titulo" });
+    chats.push({
+      id,
+      titulo,
+      href: `/panel?c=${encodeURIComponent(id)}`,
+      agentes,
+      campo: c.tema ? "tema" : "titulo",
+      // Los avisos de Atendel llevan un puntito cuando hay algo que no has visto
+      ...(c.tema === TEMA_AVISOS ? { avisos: true, actualizado: String(c.actualizado_en) } : {}),
+    });
     if (grupo.length >= 2 && c.tema) conNombre.push(id);
   }
   const datosGuardados = filaAjustes?.datos && typeof filaAjustes.datos === "object" ? (filaAjustes.datos as Record<string, unknown>) : {};

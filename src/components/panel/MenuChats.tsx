@@ -276,6 +276,25 @@ function Puntos() {
 
 /* ---------- Una conversación del menú ---------- */
 
+const CLAVE_AVISOS = "atendel:avisos-visto";
+
+/** ¿Hay avisos de Atendel que no has visto? Se guarda en este navegador cuándo los viste. */
+function useAvisosNuevos(chat: ChatMenu, actual: boolean) {
+  const [nuevos, setNuevos] = useState(false);
+  useEffect(() => {
+    if (!chat.avisos || !chat.actualizado) return setNuevos(false);
+    let visto = "";
+    try {
+      visto = localStorage.getItem(CLAVE_AVISOS) ?? "";
+      if (actual) localStorage.setItem(CLAVE_AVISOS, chat.actualizado);
+    } catch {
+      /* sin almacenamiento: sin puntito */
+    }
+    setNuevos(!actual && chat.actualizado > visto);
+  }, [chat.avisos, chat.actualizado, actual]);
+  return nuevos;
+}
+
 function FilaChat({
   chat,
   actual,
@@ -296,6 +315,7 @@ function FilaChat({
   alCancelar: () => void;
 }) {
   const boton = useRef<HTMLButtonElement>(null);
+  const nuevos = useAvisosNuevos(chat, actual);
   return (
     <li className="pc-chat" data-abierto={abierto ? "" : undefined} data-actual={actual ? "" : undefined} data-dentro={dentro ? "" : undefined}>
       {renombrando ? (
@@ -303,6 +323,7 @@ function FilaChat({
       ) : (
         <Enlace href={chat.href} className="pc-menu__chat" aria-current={actual ? "page" : undefined} title={chat.titulo}>
           <span className="pc-menu__chat-texto">{chat.titulo}</span>
+          {nuevos ? <span className="pc-menu__punto" role="img" aria-label="Avisos nuevos" /> : null}
         </Enlace>
       )}
       {!renombrando ? (

@@ -34,6 +34,10 @@ export async function POST(request: NextRequest, { params }: { params: { proveed
   if (!fila) return NextResponse.json({ ok: true, revocada: false, quedan: [] });
 
   const apps = appsDeFila(fila);
+  // Sin WhatsApp Business, los mensajes de ese número dejan de llegar a Atendel
+  if (p === "meta" && (!app || app === "whatsapp_business" || apps.length <= 1)) {
+    await supabase.from("whatsapp_numeros").delete().eq("owner_id", user.id);
+  }
   if (app && apps.includes(app) && apps.length > 1) {
     const quedan = apps.filter((a) => a !== app);
     const { error } = await supabase

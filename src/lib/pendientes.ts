@@ -20,6 +20,20 @@ export type CorreoPendiente = { id: string; remitente: string | null; asunto: st
 /** Un envío que dejó un agente (proponer_envio_whatsapp) y espera tu visto bueno. */
 export type EnvioPendiente = { id: string; agente: string | null; destinatarios: { nombre: string }[]; mensaje: string; archivo: string | null; creado_en: string };
 
+/** Un mensaje de un cliente por WhatsApp que espera tu decisión (migración 0022). */
+export type WhatsappPendiente = {
+  id: string;
+  telefono: string;
+  nombre: string | null;
+  texto: string;
+  /** Lo que Lola propone contestar (puede no haber). */
+  borrador: string | null;
+  motivo: string | null;
+  creado_en: string;
+  /** Pasaron más de 24 horas: WhatsApp ya no deja contestarle libre. */
+  vencido: boolean;
+};
+
 export type Pendientes = {
   /** Correos con una acción sugerida (exacto). null si no se pudo leer. */
   correos: number | null;
@@ -29,9 +43,11 @@ export type Pendientes = {
   pasos: PasoPanel[];
   /** Los envíos por WhatsApp que esperan tu visto bueno. */
   envios: EnvioPendiente[];
+  /** Los mensajes de clientes por WhatsApp que esperan tu OK. */
+  whatsapp: WhatsappPendiente[];
   /** Todos los pasos (para el círculo de avance). */
   todosLosPasos: PasoPanel[];
-  /** correos + pasos + envíos; null si no se pudieron leer los correos. */
+  /** correos + pasos + envíos + WhatsApp; null si no se pudieron leer los correos. */
   total: number | null;
 };
 
@@ -47,7 +63,9 @@ export const cargarPendientes = cache(async function cargarPendientes(
   const ids = await negociosDe(supabase, userId);
 
   // El mismo filtro para contar y para listar: no nula, no vacía y que no empiece con "ninguna"
-  const [cuenta, correos, conversaciones, grupos, perfil, apps, envios] = await Promise.all([
+  // Lo de WhatsApp que espera tu decisión, y lo que Lola no alcanzó a terminar (más de 3 minutos)
+  const atorados = new Date(Date.now() - 3 * 60_000).toISOString();
+  const [cuenta, correos, conversaciones, grupos, perfil, apps, envios, whatsapp] = await Promise.all([
     supabase
       .from("resumenes_correo")
       .select("id", { count: "exact", head: true })
@@ -74,7 +92,28 @@ export const cargarPendientes = cache(async function cargarPendientes(
     supabase.from("conexiones").select("proveedor", { count: "exact", head: true }).eq("owner_id", userId).eq("estado", "activa"),
     // Los envíos que dejó un agente (migración 0009); si la tabla aún no existe, no hay
     supabase.from("envios").select("id, agente, destinatarios, mensaje, creado_en, archivos(nombre)").eq("owner_id", userId).eq("estado", "por_aprobar").order("creado_en", { ascending: false }).limit(20),
+    supabase
+      .from("whatsapp_mensajes")
+      .select("id, telefono, nombre, texto, borrador, motivo, creado_en", { count: "exact" })
+      .eq("owner_id", userId)
+      .eq("direccion", "entrante")
+      .or(`estado.in.(esperando_ok,sin_respuesta,error),and(estado.in.(recibido,pensando),creado_en.lt."${atorados}")`)
+      .order("creado_en", { ascending: false })
+      .limit(Math.max(filas, 20)),
   ]);
+  const listaWhatsapp: WhatsappPendiente[] = whatsapp.error
+    ? []
+    : (whatsapp.data ?? []).map((w) => ({
+        id: String(w.id),
+        telefono: String(w.telefono),
+        nombre: typeof w.nombre === "string" ? w.nombre : null,
+        texto: String(w.texto ?? ""),
+        borrador: typeof w.borrador === "string" ? w.borrador : null,
+        motivo: typeof w.motivo === "string" ? w.motivo : null,
+        creado_en: String(w.creado_en),
+        vencido: Date.now() - new Date(String(w.creado_en)).getTime() > 24 * 3_600_000,
+      }));
+  const totalWhatsapp = whatsapp.error ? 0 : (whatsapp.count ?? listaWhatsapp.length);
   const listaEnvios: EnvioPendiente[] = envios.error
     ? []
     : (envios.data ?? []).map((e) => {
@@ -109,8 +148,9 @@ export const cargarPendientes = cache(async function cargarPendientes(
     lista: correos.error ? [] : ((correos.data ?? []) as CorreoPendiente[]),
     pasos,
     envios: listaEnvios,
+    whatsapp: listaWhatsapp,
     todosLosPasos,
-    total: n === null ? null : n + pasos.length + listaEnvios.length,
+    total: n === null ? null : n + pasos.length + listaEnvios.length + totalWhatsapp,
   };
 });
 

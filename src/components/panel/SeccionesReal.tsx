@@ -1,6 +1,6 @@
 "use client";
 
-import type { CorreoPendiente, EnvioPendiente } from "@/lib/pendientes";
+import type { CorreoPendiente, EnvioPendiente, WhatsappPendiente } from "@/lib/pendientes";
 import { accionValida, normalizar } from "@/lib/estadisticas";
 import type { PasoPanel } from "@/lib/pasos";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
@@ -9,7 +9,7 @@ import { Icono } from "@/components/base/Iconos";
 import { VolverOficina, Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
 import { PestanasPendientes } from "./Hecho";
-import { AccionesEnvio } from "./Envios";
+import { AccionesEnvio, AccionesWhatsapp } from "./Envios";
 import { nombreRemitente } from "./remitente";
 
 /* =====================================================================
@@ -25,6 +25,7 @@ export function PendientesReal({
   correos,
   pasos,
   envios = [],
+  whatsapp = [],
   totalCorreos,
   tipo,
   de,
@@ -34,6 +35,8 @@ export function PendientesReal({
   pasos: PasoPanel[];
   /** Lo que un agente dejó listo para mandar por WhatsApp (solo sale con tu visto bueno). */
   envios?: EnvioPendiente[];
+  /** Mensajes de clientes por WhatsApp que esperan tu decisión. */
+  whatsapp?: WhatsappPendiente[];
   totalCorreos: number | null;
   tipo?: string;
   de?: string;
@@ -45,6 +48,18 @@ export function PendientesReal({
   const buscada = accion ? clave(accion) : "";
   const visibles = correos.filter((c) => (!de || nombreRemitente(c.remitente) === de) && (!accion || clave(c.accion_sugerida) === buscada));
   const items: ItemTablero[] = [
+    ...(filtro !== "todo" || de || accion
+      ? []
+      : whatsapp.map((w) => ({
+          id: `w-${w.id}`,
+          columna: "revisar" as const,
+          agente: "lola" as IdAgente,
+          titulo: `${w.nombre || `+${w.telefono}`} te escribió por WhatsApp`,
+          texto: w.texto,
+          nota: w.vencido ? "Pasaron más de 24 horas: WhatsApp ya no deja contestarle libre desde aquí." : (w.motivo ?? undefined),
+          hace: fecha.format(new Date(w.creado_en)),
+          acciones: <AccionesWhatsapp id={w.id} borrador={w.borrador ?? ""} vencido={w.vencido} />,
+        }))),
     ...(filtro !== "todo" || de || accion
       ? []
       : envios.map((e) => {
