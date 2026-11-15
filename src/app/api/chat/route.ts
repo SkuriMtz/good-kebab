@@ -234,12 +234,20 @@ export async function POST(request: NextRequest) {
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
+  // Si en este turno se leen datos de fuera (apps, documentos), la memoria no guarda nada sola
+  const turno = { externo: false };
   const deApps = herramientasDelChat({
     supabase,
     userId: user.id,
     participantes,
     conexiones,
-  });
+  }).map((h) => ({
+    ...h,
+    ejecutar: (args: Record<string, unknown>, senal: AbortSignal) => {
+      turno.externo = true;
+      return h.ejecutar(args, senal);
+    },
+  }));
   // 6c. Acciones de Atendel: armar presentaciones y dejar envíos en Pendientes (nunca manda solo)
   const herramientas = [
     ...deApps,
@@ -251,7 +259,7 @@ export async function POST(request: NextRequest) {
       negocio: cuenta.negocio,
     }),
     // Guardar en la Memoria lo que vale la pena recordar
-    herramientaRecordar(supabase, user.id),
+    herramientaRecordar(supabase, user.id, turno),
   ];
   const conApps =
     instruccionesHerramientas(participantes, deApps, conexiones) +
