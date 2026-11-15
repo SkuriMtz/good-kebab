@@ -34,6 +34,9 @@ export type WhatsappPendiente = {
   vencido: boolean;
 };
 
+/** Algo que Atendel dejó listo para hacer en una app y espera tu OK (migración 0023). */
+export type AccionPendiente = { id: string; app: string; resumen: string; motivo: string | null; creado_en: string };
+
 export type Pendientes = {
   /** Correos con una acción sugerida (exacto). null si no se pudo leer. */
   correos: number | null;
@@ -45,9 +48,11 @@ export type Pendientes = {
   envios: EnvioPendiente[];
   /** Los mensajes de clientes por WhatsApp que esperan tu OK. */
   whatsapp: WhatsappPendiente[];
+  /** Lo que Atendel dejó listo para hacer en tus apps (citas, correos, tareas…). */
+  acciones: AccionPendiente[];
   /** Todos los pasos (para el círculo de avance). */
   todosLosPasos: PasoPanel[];
-  /** correos + pasos + envíos + WhatsApp; null si no se pudieron leer los correos. */
+  /** correos + pasos + envíos + WhatsApp + acciones; null si no se pudieron leer los correos. */
   total: number | null;
 };
 
@@ -65,7 +70,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
   // El mismo filtro para contar y para listar: no nula, no vacía y que no empiece con "ninguna"
   // Lo de WhatsApp que espera tu decisión, y lo que Lola no alcanzó a terminar (más de 3 minutos)
   const atorados = new Date(Date.now() - 3 * 60_000).toISOString();
-  const [cuenta, correos, conversaciones, grupos, perfil, apps, envios, whatsapp] = await Promise.all([
+  const [cuenta, correos, conversaciones, grupos, perfil, apps, envios, whatsapp, acciones] = await Promise.all([
     supabase
       .from("resumenes_correo")
       .select("id", { count: "exact", head: true })
@@ -100,7 +105,18 @@ export const cargarPendientes = cache(async function cargarPendientes(
       .or(`estado.in.(esperando_ok,sin_respuesta,error),and(estado.in.(recibido,pensando),creado_en.lt."${atorados}")`)
       .order("creado_en", { ascending: false })
       .limit(Math.max(filas, 20)),
+    supabase
+      .from("acciones")
+      .select("id, app, resumen, motivo, creado_en", { count: "exact" })
+      .eq("owner_id", userId)
+      .eq("estado", "esperando")
+      .order("creado_en", { ascending: false })
+      .limit(Math.max(filas, 20)),
   ]);
+  const listaAcciones: AccionPendiente[] = acciones.error
+    ? []
+    : (acciones.data ?? []).map((a) => ({ id: String(a.id), app: String(a.app), resumen: String(a.resumen), motivo: typeof a.motivo === "string" ? a.motivo : null, creado_en: String(a.creado_en) }));
+  const totalAcciones = acciones.error ? 0 : (acciones.count ?? listaAcciones.length);
   const listaWhatsapp: WhatsappPendiente[] = whatsapp.error
     ? []
     : (whatsapp.data ?? []).map((w) => ({
@@ -149,8 +165,9 @@ export const cargarPendientes = cache(async function cargarPendientes(
     pasos,
     envios: listaEnvios,
     whatsapp: listaWhatsapp,
+    acciones: listaAcciones,
     todosLosPasos,
-    total: n === null ? null : n + pasos.length + listaEnvios.length + totalWhatsapp,
+    total: n === null ? null : n + pasos.length + listaEnvios.length + totalWhatsapp + totalAcciones,
   };
 });
 

@@ -2,12 +2,14 @@ import type { Adaptador, Herramienta, IdApp, Tokens } from "@/lib/nucleo-tipos";
 import { argNumero, argTexto, ErrorArgs, fechaMx, linea, pedirBytes, pedirJson, rangoFechas, recortar } from "../http";
 import { ErrorOAuth, postarTokens, scopesDeTexto, venceEn } from "../oauth";
 import { textoDeBytes } from "../extraer";
+import { ACCIONES_MICROSOFT } from "./microsoft-acciones";
 
 /**
  * MICROSOFT (Graph, tenant "common": cuentas personales y de trabajo).
  * Outlook (Mail.Read), Calendario (Calendars.Read), OneDrive y Excel
- * (Files.Read) y Contactos (Contacts.Read), siempre con offline_access y
- * User.Read. Todo de solo lectura.
+ * (Files.Read), Contactos (Contacts.Read) y To Do (Tasks.ReadWrite), siempre
+ * con offline_access y User.Read. Para HACER cosas (microsoft-acciones.ts)
+ * se piden además Mail.Send y Calendars.ReadWrite.
  * Microsoft cambia el refresh token en cada renovación: se guarda el nuevo.
  * No tiene un endpoint para revocar el permiso de una app: al desconectar se
  * borra la fila y la guía explica cómo quitar el permiso en la cuenta.
@@ -20,6 +22,7 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 export const SCOPE_MICROSOFT: Partial<Record<IdApp, string>> = {
   outlook: "Mail.Read",
   outlook_calendar: "Calendars.Read",
+  microsoft_todo: "Tasks.ReadWrite",
   onedrive: "Files.Read",
   excel: "Files.Read",
   outlook_contacts: "Contacts.Read",
@@ -41,8 +44,11 @@ export function appsDeScopes(scopes: string[]): IdApp[] {
   return (Object.keys(SCOPE_MICROSOFT) as IdApp[]).filter((a) => dados.has(normal(SCOPE_MICROSOFT[a] as string)));
 }
 
+/** Los de HACER cosas (mandar correos; crear, mover y cancelar citas): no cuentan para saber si la app se concedió. */
+const SCOPES_EXTRA_MICROSOFT: Partial<Record<IdApp, string[]>> = { outlook: ["Mail.Send"], outlook_calendar: ["Calendars.ReadWrite"] };
+
 const scopesDeApps = (apps: IdApp[]) =>
-  Array.from(new Set([...SIEMPRE, ...apps.map((a) => SCOPE_MICROSOFT[a]).filter((x): x is string => Boolean(x))]));
+  Array.from(new Set([...SIEMPRE, ...apps.flatMap((a) => [SCOPE_MICROSOFT[a], ...(SCOPES_EXTRA_MICROSOFT[a] ?? [])]).filter((x): x is string => Boolean(x))]));
 
 function aTokens(d: Record<string, unknown>, previo?: Tokens): Tokens {
   if (typeof d.access_token !== "string") throw new ErrorOAuth("rechazo", "Microsoft no mandó el token.");
@@ -333,5 +339,5 @@ export const microsoft: Adaptador = {
     }
     return "Cuenta de Microsoft";
   },
-  herramientas: [outlookBuscar, outlookLeer, outlookAgenda, onedriveBuscar, onedriveLeer, excelLeer, contactosBuscar],
+  herramientas: [outlookBuscar, outlookLeer, outlookAgenda, onedriveBuscar, onedriveLeer, excelLeer, contactosBuscar, ...ACCIONES_MICROSOFT],
 };

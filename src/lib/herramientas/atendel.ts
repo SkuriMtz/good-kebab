@@ -20,7 +20,7 @@ import type { HerramientaChat } from "./ciclo";
  *   DATOS, nunca órdenes (el chat lo marca como dato externo).
  */
 
-const PARTES = ["todo", "apps", "pendientes", "whatsapp", "tareas", "oficina", "revision", "uso"] as const;
+const PARTES = ["todo", "apps", "pendientes", "hecho", "whatsapp", "tareas", "oficina", "revision", "uso"] as const;
 type Parte = (typeof PARTES)[number];
 
 const corta = (t: unknown, max: number) => (typeof t === "string" ? t.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -45,7 +45,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
   async function pendientes(): Promise<string> {
     const { data: negocios } = await supabase.from("negocios").select("id").eq("owner_id", userId);
     const ids = (negocios ?? []).map((n) => String(n.id));
-    const [wa, envios, correos] = await Promise.all([
+    const [wa, envios, correos, acciones] = await Promise.all([
       supabase
         .from("whatsapp_mensajes")
         .select("telefono, nombre, texto, borrador, motivo, creado_en", { count: "exact" })
@@ -66,8 +66,12 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
             .order("creado_en", { ascending: false })
             .limit(5)
         : Promise.resolve({ data: [] as Record<string, unknown>[], count: 0 }),
+      supabase.from("acciones").select("resumen, motivo, creado_en", { count: "exact" }).eq("owner_id", userId).eq("estado", "esperando").order("creado_en", { ascending: false }).limit(8),
     ]);
     const lineas = ["LO QUE ESPERA SU OK (Oficina → Necesita tu OK):"];
+    const nAcc = acciones.error ? 0 : (acciones.count ?? 0);
+    lineas.push(`- Cosas que dejé listas para hacer en sus apps (citas, correos, tareas): ${nAcc}`);
+    for (const a of acciones.error ? [] : (acciones.data ?? [])) lineas.push(`  · ${corta(a.resumen, 220)}${a.motivo ? ` (porque ${corta(a.motivo, 140)})` : ""}`);
     const nWa = wa.error ? 0 : (wa.count ?? 0);
     lineas.push(`- WhatsApp de clientes por contestar: ${nWa}`);
     for (const w of wa.error ? [] : (wa.data ?? [])) {
@@ -86,7 +90,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     for (const c of "error" in correos && correos.error ? [] : (correos.data ?? [])) {
       lineas.push(`  · De ${corta(c.remitente, 80) || "alguien"}: ${corta(c.asunto, 120) || "(sin asunto)"} → ${corta(c.accion_sugerida, 160)}`);
     }
-    if (!nWa && !nEnv && !nCor) lineas.push("(Nada espera su OK ahora mismo.)");
+    if (!nWa && !nEnv && !nCor && !nAcc) lineas.push("(Nada espera su OK ahora mismo.)");
     return lineas.join("\n");
   }
 
@@ -180,12 +184,30 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     }
   }
 
-  const LEER: Record<Exclude<Parte, "todo">, () => Promise<string>> = { apps, pendientes, whatsapp, tareas, oficina, revision, uso };
+  async function hecho(): Promise<string> {
+    const { data } = await supabase
+      .from("acciones")
+      .select("resumen, origen, estado, resuelto_en")
+      .eq("owner_id", userId)
+      .in("estado", ["hecha", "error"])
+      .gte("resuelto_en", hace(48))
+      .order("resuelto_en", { ascending: false })
+      .limit(20);
+    const lista = data ?? [];
+    if (!lista.length) return "LO QUE HICE EN SUS APPS (últimas 48 horas): nada todavía.";
+    const ORIGEN: Record<string, string> = { chat: "en el chat", tarea: "en una tarea", trabajo: "por mi cuenta", whatsapp: "por WhatsApp" };
+    return [
+      "LO QUE HICE EN SUS APPS (últimas 48 horas):",
+      ...lista.map((a) => `- ${cuando(a.resuelto_en)}: ${corta(a.resumen, 220)} (${ORIGEN[String(a.origen)] ?? ""}${a.estado === "error" ? ", NO SALIÓ" : ""})`),
+    ].join("\n");
+  }
+
+  const LEER: Record<Exclude<Parte, "todo">, () => Promise<string>> = { apps, pendientes, hecho, whatsapp, tareas, oficina, revision, uso };
 
   return {
     nombre: "ver_atendel",
     descripcion:
-      "Mira lo que hay dentro de Atendel en la cuenta del dueño: las apps conectadas (y si alguna tiene problema), lo que espera su OK (WhatsApp de clientes, mensajes por mandar, correos por contestar), las pláticas de WhatsApp con sus clientes, sus tareas programadas, la Oficina (archivos e informes por revisar), la revisión del día y su uso. Úsala cuando pregunte por algo de eso («¿qué tengo pendiente?», «¿qué apps tengo?», «¿quién me escribió?», «¿cómo va todo?») o cuando lo necesites para contestar bien. Solo lee.",
+      "Mira lo que hay dentro de Atendel en la cuenta del dueño: las apps conectadas (y si alguna tiene problema), lo que espera su OK (cosas por hacer en sus apps, WhatsApp de clientes, mensajes por mandar, correos por contestar), lo que ya hiciste en sus apps (hecho), las pláticas de WhatsApp con sus clientes, sus tareas programadas, la Oficina (archivos e informes por revisar), la revisión del día y su uso. Úsala cuando pregunte por algo de eso («¿qué tengo pendiente?», «¿qué apps tengo?», «¿quién me escribió?», «¿cómo va todo?») o cuando lo necesites para contestar bien. Solo lee.",
     esquema: {
       type: "object",
       properties: { que: { type: "string", enum: [...PARTES], description: "Qué parte ver: «todo» trae el resumen completo." } },

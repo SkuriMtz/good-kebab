@@ -2,6 +2,7 @@ import type { Adaptador, Herramienta, IdApp, Tokens } from "@/lib/nucleo-tipos";
 import { argNumero, argTexto, ErrorArgs, fechaMx, linea, pedirBytes, pedirJson, pedirTexto, rangoFechas, recortar, sinHtml } from "../http";
 import { ErrorOAuth, postarTokens, scopesDeTexto, venceEn } from "../oauth";
 import { textoDeBytes } from "../extraer";
+import { ACCIONES_GOOGLE } from "./google-acciones";
 
 /**
  * GOOGLE: un solo cliente OAuth para Gmail, Calendar, Drive, Sheets,
@@ -16,14 +17,23 @@ const G = "https://www.googleapis.com/auth/";
 export const SCOPE_GOOGLE: Partial<Record<IdApp, string>> = {
   gmail: `${G}gmail.readonly`,
   google_calendar: `${G}calendar.readonly`,
+  google_tasks: `${G}tasks`,
   google_drive: `${G}drive.file`,
   google_sheets: `${G}spreadsheets.readonly`,
   google_contacts: `${G}contacts.readonly`,
   google_business: `${G}business.manage`,
   google_forms: `${G}forms.responses.readonly`,
 };
-/** Scopes que además pide una app (no cuentan para saber si se concedió). Forms: los títulos de las preguntas. */
-const SCOPES_EXTRA_GOOGLE: Partial<Record<IdApp, string[]>> = { google_forms: [`${G}forms.body.readonly`] };
+/**
+ * Scopes que además pide una app (no cuentan para saber si se concedió). Forms: los títulos de las
+ * preguntas. Gmail y Calendar: los de HACER cosas (mandar correos; crear, mover y cancelar citas);
+ * quien conectó antes solo con lectura los da al volver a conectar.
+ */
+const SCOPES_EXTRA_GOOGLE: Partial<Record<IdApp, string[]>> = {
+  google_forms: [`${G}forms.body.readonly`],
+  gmail: [`${G}gmail.send`],
+  google_calendar: [`${G}calendar.events`],
+};
 export const SCOPE_DRIVE_FILE = `${G}drive.file`;
 const IDENTIDAD = ["openid", "email"];
 
@@ -529,5 +539,5 @@ export const google: Adaptador = {
     const u = r?.ok ? ((await r.json().catch(() => ({}))) as { email?: unknown }) : {};
     return typeof u.email === "string" ? u.email : "Cuenta de Google";
   },
-  herramientas: [gmailBuscar, gmailLeer, verAgenda, driveBuscar, driveLeer, leerHoja, contactosBuscar, resenas, formsRespuestas],
+  herramientas: [gmailBuscar, gmailLeer, verAgenda, driveBuscar, driveLeer, leerHoja, contactosBuscar, resenas, formsRespuestas, ...ACCIONES_GOOGLE],
 };

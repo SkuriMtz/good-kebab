@@ -70,6 +70,8 @@ export const AUTONOMIA = [
   { id: "seguimiento", titulo: "Dar seguimiento a clientes", texto: "Después de su visita o a quien preguntó y no agendó.", inicio: "solo" },
   { id: "precios", titulo: "Mensajes con precios o promociones", texto: "Solo si coinciden con tus Reglas.", inicio: "solo" },
   { id: "dinero", titulo: "Cobros, descuentos, reembolsos y cancelaciones", texto: "Lo que mueve dinero o no se puede deshacer.", inicio: "pregunta" },
+  { id: "correos", titulo: "Mandar correos por ti", texto: "Respuestas y avisos desde tu Gmail u Outlook.", inicio: "pregunta" },
+  { id: "apps", titulo: "Crear y cambiar cosas en tus apps", texto: "Tareas, notas, tarjetas y registros.", inicio: "solo" },
   { id: "nuevo", titulo: "Lo que tus Reglas y Procesos no cubren", texto: "Algo nuevo o que no sabe cómo hacer.", inicio: "pregunta" },
 ] as const;
 export type IdAutonomia = (typeof AUTONOMIA)[number]["id"];

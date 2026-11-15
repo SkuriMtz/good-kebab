@@ -116,12 +116,30 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
 
   const [conexiones, cerebro] = await Promise.all([conexionesVigentes(admin, dueno), cargarCerebro(admin, dueno)]);
   // Las apps (solo lectura) y las acciones de Atendel; los documentos no (dependen de la sesión)
-  const deApps = herramientasDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conexiones }).filter((h) => h.nombre !== "buscar_en_documentos");
+  // Lo que lee marca la corrida como "con datos de fuera": desde ahí, lo que HACE algo espera tu OK
+  const corrida = { externo: false };
+  const leer = <T extends { ejecutar: (a: Record<string, unknown>, s: AbortSignal) => Promise<string> }>(h: T): T => ({
+    ...h,
+    ejecutar: (args: Record<string, unknown>, senal: AbortSignal) => {
+      corrida.externo = true;
+      return h.ejecutar(args, senal);
+    },
+  });
+  const deApps = herramientasDelChat({
+    supabase: admin,
+    userId: dueno,
+    participantes: IDS_AGENTES,
+    conexiones,
+    zona: aj.zonaHoraria,
+    acciones: { autonomia: aj.autonomia, origen: "tarea", externo: () => corrida.externo, zona: aj.zonaHoraria, reglas: cerebro.reglas },
+  })
+    .filter((h) => h.nombre !== "buscar_en_documentos")
+    .map((h) => (h.hace ? h : leer(h)));
   const herramientas = [
     ...deApps,
     ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio }),
     // Lo de su cuenta de Atendel (lo que espera su OK, WhatsApp, Oficina…): para tareas como «cada mañana dime qué tengo pendiente»
-    herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria }),
+    leer(herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria })),
   ];
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

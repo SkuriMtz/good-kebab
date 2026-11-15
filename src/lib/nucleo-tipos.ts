@@ -130,6 +130,7 @@ export type IdApp =
   // Google (un cliente OAuth)
   | "gmail"
   | "google_calendar"
+  | "google_tasks"
   | "google_drive"
   | "google_sheets"
   | "google_contacts"
@@ -137,6 +138,7 @@ export type IdApp =
   // Microsoft (Graph)
   | "outlook"
   | "outlook_calendar"
+  | "microsoft_todo"
   | "onedrive"
   | "excel"
   | "outlook_contacts"
@@ -209,6 +211,19 @@ export type Tokens = {
 };
 
 /** Una herramienta de SOLO LECTURA que un agente puede usar en el chat. */
+/**
+ * De qué tipo es algo que Atendel HACE (para «Qué hace solo» en Ajustes): las mismas
+ * categorías de AUTONOMIA (src/lib/ajustes.ts).
+ */
+export type CategoriaAccion = "preguntas" | "citas" | "seguimiento" | "precios" | "dinero" | "nuevo" | "correos" | "apps";
+
+export type ContextoHerramienta = {
+  token: () => Promise<Tokens>;
+  senal: AbortSignal;
+  /** La zona horaria de la cuenta (por omisión, la de la Ciudad de México). */
+  zona?: string;
+};
+
 export type Herramienta = {
   /** snake_case, única en todo el registro (p. ej. "stripe_pagos_recientes"). */
   nombre: string;
@@ -217,8 +232,14 @@ export type Herramienta = {
   agentes: IdAgente[];
   /** JSON Schema de los argumentos. */
   esquema: Record<string, unknown>;
+  /**
+   * Solo en las que HACEN algo (crear, cambiar, mandar o borrar) en vez de solo leer:
+   * su categoría de «Qué hace solo» y, en una frase, lo que va a hacer con esos
+   * argumentos (lo ve el dueño cuando le toca dar su OK). Lanza ErrorArgs si no sirven.
+   */
+  hace?: { categoria: CategoriaAccion; resumen(args: Record<string, unknown>, zona: string): string };
   /** Regresa texto plano (se trunca y se marca como DATOS al pasarlo al modelo). */
-  ejecutar(args: Record<string, unknown>, ctx: { token: () => Promise<Tokens>; senal: AbortSignal }): Promise<string>;
+  ejecutar(args: Record<string, unknown>, ctx: ContextoHerramienta): Promise<string>;
 };
 
 /**

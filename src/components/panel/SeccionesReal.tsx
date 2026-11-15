@@ -1,6 +1,8 @@
 "use client";
 
-import type { CorreoPendiente, EnvioPendiente, WhatsappPendiente } from "@/lib/pendientes";
+import type { AccionPendiente, CorreoPendiente, EnvioPendiente, WhatsappPendiente } from "@/lib/pendientes";
+import { APP_POR_ID } from "@/lib/conexiones/catalogo";
+import type { IdApp } from "@/lib/nucleo-tipos";
 import { accionValida, normalizar } from "@/lib/estadisticas";
 import type { PasoPanel } from "@/lib/pasos";
 import { esIdAgente, type IdAgente } from "@/lib/agentes";
@@ -9,7 +11,7 @@ import { Icono } from "@/components/base/Iconos";
 import { VolverOficina, Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
 import { PestanasPendientes } from "./Hecho";
-import { AccionesEnvio, AccionesWhatsapp } from "./Envios";
+import { AccionesAccion, AccionesEnvio, AccionesWhatsapp } from "./Envios";
 import { nombreRemitente } from "./remitente";
 
 /* =====================================================================
@@ -26,6 +28,7 @@ export function PendientesReal({
   pasos,
   envios = [],
   whatsapp = [],
+  acciones = [],
   totalCorreos,
   tipo,
   de,
@@ -37,6 +40,8 @@ export function PendientesReal({
   envios?: EnvioPendiente[];
   /** Mensajes de clientes por WhatsApp que esperan tu decisión. */
   whatsapp?: WhatsappPendiente[];
+  /** Lo que Atendel dejó listo para hacer en tus apps y espera tu OK. */
+  acciones?: AccionPendiente[];
   totalCorreos: number | null;
   tipo?: string;
   de?: string;
@@ -48,6 +53,17 @@ export function PendientesReal({
   const buscada = accion ? clave(accion) : "";
   const visibles = correos.filter((c) => (!de || nombreRemitente(c.remitente) === de) && (!accion || clave(c.accion_sugerida) === buscada));
   const items: ItemTablero[] = [
+    ...(filtro !== "todo" || de || accion
+      ? []
+      : acciones.map((a) => ({
+          id: `a-${a.id}`,
+          columna: "revisar" as const,
+          titulo: a.resumen,
+          para: `En ${APP_POR_ID[a.app as IdApp]?.nombre ?? "tu app"}`,
+          nota: a.motivo ? `Te pregunto porque ${a.motivo}.` : undefined,
+          hace: fecha.format(new Date(a.creado_en)),
+          acciones: <AccionesAccion id={a.id} />,
+        }))),
     ...(filtro !== "todo" || de || accion
       ? []
       : whatsapp.map((w) => ({

@@ -81,6 +81,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
     const pend = await cargarPendientes(user.id, opcionesPendientes(cuentaOficina.plan.id, conGoogle, cuentaOficina.activos), 5);
     const quien = (d: { nombre: string }[]) => d.map((x) => x.nombre).join(", ");
     const itemsOk = [
+      ...pend.acciones.map((a) => ({ id: `a-${a.id}`, titulo: a.resumen.slice(0, 140), detalle: a.motivo ? `Te pregunto porque ${a.motivo}.`.slice(0, 160) : undefined })),
       ...pend.whatsapp.map((w) => ({ id: `w-${w.id}`, titulo: `Contestarle a ${w.nombre || `+${w.telefono}`} por WhatsApp`, detalle: w.texto.slice(0, 120) })),
       ...pend.envios.map((e) => ({ id: `e-${e.id}`, titulo: `Mensaje para ${quien(e.destinatarios) || "tu equipo"}`, detalle: e.mensaje.slice(0, 120) })),
       ...pend.lista.map((c) => ({ id: `c-${c.id}`, titulo: `Contestar a ${c.remitente || "un correo"}${c.asunto ? `: ${c.asunto}` : ""}`.slice(0, 140), detalle: c.accion_sugerida.slice(0, 120) })),
@@ -208,6 +209,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
         pasos={pendientes.pasos}
         envios={pendientes.envios}
         whatsapp={pendientes.whatsapp}
+        acciones={pendientes.acciones}
         totalCorreos={pendientes.correos}
         tipo={texto(searchParams.tipo)}
         de={texto(searchParams.de)}

@@ -89,3 +89,40 @@ export function AccionesWhatsapp({ id, borrador, vencido }: { id: string; borrad
     </>
   );
 }
+
+/** Lo que decides sobre algo que Atendel dejó listo para hacer en una app (una cita, un correo, una tarea…). */
+export function AccionesAccion({ id }: { id: string }) {
+  const router = useRouter();
+  const [ocupado, setOcupado] = useState<"aprobar" | "descartar" | null>(null);
+  const [aviso, setAviso] = useState<{ texto: string; error?: boolean } | null>(null);
+
+  async function resolver(accion: "aprobar" | "descartar") {
+    setOcupado(accion);
+    setAviso(null);
+    try {
+      const r = await fetch(`/api/acciones/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion }) });
+      const j = (await r.json().catch(() => null)) as { mensaje?: string; error?: string } | null;
+      setAviso(r.ok ? { texto: j?.mensaje ?? "Listo." } : { texto: j?.error ?? "No se pudo. Intenta de nuevo.", error: true });
+      if (r.ok) window.setTimeout(() => router.refresh(), 1600);
+    } catch {
+      setAviso({ texto: "Sin conexión: no se hizo nada.", error: true });
+    }
+    setOcupado(null);
+  }
+
+  return (
+    <>
+      <button type="button" className={claseBoton("principal", true)} disabled={ocupado !== null} onClick={() => resolver("aprobar")}>
+        {ocupado === "aprobar" ? "Haciéndolo…" : "Aprobar y hacer"}
+      </button>
+      <button type="button" className={claseBoton("fantasma", true)} disabled={ocupado !== null} onClick={() => resolver("descartar")}>
+        Descartar
+      </button>
+      {aviso ? (
+        <span className={`pc-envio__aviso${aviso.error ? " pc-envio__aviso--error" : ""}`} role="status">
+          {aviso.texto}
+        </span>
+      ) : null}
+    </>
+  );
+}

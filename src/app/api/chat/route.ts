@@ -242,7 +242,8 @@ export async function POST(request: NextRequest) {
   const ajustesCuenta = limpiarAjustes(ajustesGuardados.data?.datos);
   const preferencias = bloqueParaAgentes(ajustesCuenta, participantes);
   // El cerebro: Reglas (lo que nunca se equivoca), Procesos, Memoria y qué hace solo como socio
-  const cerebro = bloqueCerebro(await cargarCerebro(supabase, user.id), ajustesCuenta);
+  const datosCerebro = await cargarCerebro(supabase, user.id);
+  const cerebro = bloqueCerebro(datosCerebro, ajustesCuenta);
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
@@ -252,18 +253,33 @@ export async function POST(request: NextRequest) {
   // En «Avisos de Atendel» la plática ya trae mensajes de clientes y resultados de apps (datos de fuera)
   const enAvisos = tema === TEMA_AVISOS;
   const turno = { externo: enAvisos, contexto: enAvisos || Boolean(correos) || Boolean(documentos) };
+  // Las que leen marcan el turno como "con datos de fuera"; las que HACEN algo (crear, mover,
+  // mandar…) ya traen la regla de «Qué hace solo» y no regresan datos de fuera
   const deApps = herramientasDelChat({
     supabase,
     userId: user.id,
     participantes,
     conexiones,
-  }).map((h) => ({
-    ...h,
-    ejecutar: (args: Record<string, unknown>, senal: AbortSignal) => {
-      turno.externo = true;
-      return h.ejecutar(args, senal);
+    zona: ajustesCuenta.zonaHoraria,
+    acciones: {
+      autonomia: ajustesCuenta.autonomia,
+      origen: "chat",
+      externo: () => turno.externo,
+      zona: ajustesCuenta.zonaHoraria,
+      conversacionId: idConversacion,
+      reglas: datosCerebro.reglas,
     },
-  }));
+  }).map((h) =>
+    h.hace
+      ? h
+      : {
+          ...h,
+          ejecutar: (args: Record<string, unknown>, senal: AbortSignal) => {
+            turno.externo = true;
+            return h.ejecutar(args, senal);
+          },
+        },
+  );
   // 6c. Ver todo lo de su cuenta (apps, lo que espera su OK, WhatsApp, tareas, Oficina…). Trae
   //     mensajes de clientes y correos: datos de fuera, igual que las apps
   const verAtendel = herramientaVerAtendel(supabase, user.id, { zona: ajustesCuenta.zonaHoraria, plan: cuenta.plan });

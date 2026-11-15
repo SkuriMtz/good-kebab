@@ -33,6 +33,8 @@ export type HerramientaChat = {
   fuente: string;
   /** La línea de estado mientras corre. */
   estado: string;
+  /** true: HACE algo (crear, mover, mandar…) y ya trae la regla de «Qué hace solo»; lo que regresa no son datos de fuera. */
+  hace?: boolean;
   ejecutar(args: Record<string, unknown>, senal: AbortSignal): Promise<string>;
 };
 

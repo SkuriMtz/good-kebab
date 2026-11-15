@@ -10,8 +10,9 @@ import type { IdAgente } from "@/lib/agentes";
  * - Fase 2: "clip", en camino (no tiene API pública para leer cobros);
  *   la tarjeta ofrece "Avísame" (tabla apps_interes).
  *
- * `puede` dice, en una línea y sin exagerar, qué hace la IA con la app. En
- * esta fase todo es SOLO LECTURA: ningún agente escribe, manda ni borra.
+ * `puede` dice, en una línea y sin exagerar, qué hace la IA con la app. Casi
+ * todo es de solo lectura; las que también HACEN algo (calendario, correo y
+ * tareas) lo hacen según «Qué hace solo» (Ajustes): lo demás espera tu OK.
  * `requiereAprobacion`: el proveedor pide revisar o aprobar la app antes de
  * que funcione con cualquier cuenta.
  *
@@ -39,8 +40,9 @@ function app(
 
 export const CATALOGO: readonly AppConectable[] = [
   // Google (un cliente OAuth)
-  app("gmail", "Gmail", "correo", "google", "oauth", ["clara"], "Buscar y leer tus correos para resumirlos y proponerte respuestas. Solo lectura."),
-  app("google_calendar", "Google Calendar", "agenda", "google", "oauth", ["lola"], "Ver tu agenda para decirte qué citas tienes y qué horas quedan libres. Solo lectura."),
+  app("gmail", "Gmail", "correo", "google", "oauth", ["clara"], "Leer y resumir tus correos, y mandar o contestar correos por ti (con tu OK, salvo que elijas que lo haga solo)."),
+  app("google_calendar", "Google Calendar", "agenda", "google", "oauth", ["lola"], "Ver tu agenda, y crear, mover o cancelar citas por ti (revisa antes que no choquen)."),
+  app("google_tasks", "Tareas de Google", "agenda", "google", "oauth", ["iris"], "Ver tus pendientes, y crear o completar tareas por ti."),
   app("google_drive", "Google Drive", "documentos", "google", "oauth", ["iris"], "Leer solo los archivos que tú elijas de tu Drive (Docs, Hojas, PDF y texto). Solo lectura."),
   app("google_sheets", "Google Sheets", "documentos", "google", "oauth", ["iris"], "Leer las hojas de cálculo que le indiques para resumirlas o sacar cuentas. Solo lectura."),
   app("google_contacts", "Contactos de Google", "clientes", "google", "oauth", ["victor", "lola"], "Buscar los datos de tus clientes en tus contactos. Solo lectura."),
@@ -48,8 +50,9 @@ export const CATALOGO: readonly AppConectable[] = [
     requiereAprobacion: PERFIL_GOOGLE,
   }),
   // Microsoft (Graph)
-  app("outlook", "Outlook", "correo", "microsoft", "oauth", ["clara"], "Buscar y leer tus correos de Outlook o Hotmail para resumirlos. Solo lectura."),
-  app("outlook_calendar", "Calendario de Outlook", "agenda", "microsoft", "oauth", ["lola"], "Ver tu calendario de Outlook para decirte qué citas tienes. Solo lectura."),
+  app("outlook", "Outlook", "correo", "microsoft", "oauth", ["clara"], "Leer y resumir tus correos de Outlook o Hotmail, y mandar o contestar correos por ti (con tu OK, salvo que elijas que lo haga solo)."),
+  app("outlook_calendar", "Calendario de Outlook", "agenda", "microsoft", "oauth", ["lola"], "Ver tu calendario de Outlook, y crear, mover o cancelar citas por ti (revisa antes que no choquen)."),
+  app("microsoft_todo", "Microsoft To Do", "agenda", "microsoft", "oauth", ["iris"], "Ver tus listas de pendientes, y crear o completar tareas por ti."),
   app("onedrive", "OneDrive", "documentos", "microsoft", "oauth", ["iris"], "Buscar y leer tus archivos de OneDrive (Word, PDF y texto). Solo lectura."),
   app("excel", "Excel", "documentos", "microsoft", "oauth", ["iris"], "Leer tus hojas de Excel guardadas en OneDrive. Solo lectura."),
   app("outlook_contacts", "Contactos de Outlook", "clientes", "microsoft", "oauth", ["victor", "lola"], "Buscar los datos de tus clientes en tus contactos de Outlook. Solo lectura."),

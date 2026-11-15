@@ -17,7 +17,7 @@ type Pedido = {
   token: string;
   senal: AbortSignal;
   proveedor: Proveedor;
-  metodo?: "GET" | "POST";
+  metodo?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   cuerpo?: unknown;
   headers?: Record<string, string>;
   /** Esquema de autorización (Bearer por omisión). */
@@ -54,7 +54,65 @@ async function pedir(url: string, p: Pedido): Promise<Response> {
 
 export async function pedirJson<T = Record<string, unknown>>(url: string, p: Pedido): Promise<T> {
   const res = await pedir(url, p);
-  return (await res.json()) as T;
+  // Borrar o mandar a veces regresa 202/204 sin cuerpo
+  const texto = await res.text();
+  if (!texto.trim()) return {} as T;
+  try {
+    return JSON.parse(texto) as T;
+  } catch {
+    throw new ErrorApi(502, p.proveedor, "El API respondió algo que no se entendió.");
+  }
+}
+
+/* ---------------- Fecha y hora local (para HACER cosas en calendarios) ---------------- */
+
+const FECHA_HORA = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/** Cuánto le falta a una zona para UTC en ese momento (ms). */
+function desfaseDe(zona: string, momento: Date): number {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: zona, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" })
+      .formatToParts(momento)
+      .map((x) => [x.type, x.value]),
+  );
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - momento.getTime();
+}
+
+/** "AAAA-MM-DDTHH:MM" en la hora de la zona → el instante real. Lanza ErrorArgs si no se entiende. */
+export function horaLocal(texto: string, zona: string): Date {
+  const m = FECHA_HORA.exec(texto.trim());
+  if (!m) throw new ErrorArgs(`No entendí la fecha y hora "${linea(texto, 40)}". Usa AAAA-MM-DDTHH:MM (por ejemplo 2026-11-20T10:00).`);
+  const [a, mes, d, h, min] = m.slice(1).map(Number);
+  if (mes < 1 || mes > 12 || d < 1 || d > 31 || h > 23 || min > 59) throw new ErrorArgs(`La fecha "${texto}" no existe.`);
+  const comoUtc = Date.UTC(a, mes - 1, d, h, min);
+  // Dos pasadas por si cambia el horario ese día
+  let t = comoUtc - desfaseDe(zona, new Date(comoUtc));
+  t = comoUtc - desfaseDe(zona, new Date(t));
+  return new Date(t);
+}
+
+/** Un instante en palabras, en la zona de la cuenta ("vie 20 nov, 10:00"). */
+export function enZona(d: Date, zona: string, conDia = true): string {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: zona,
+    ...(conDia ? { weekday: "short", day: "numeric", month: "short" } : {}),
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(d);
+}
+
+/** Lo que se puede validar sin la red: correos (hasta 10). */
+export function argCorreos(args: Record<string, unknown>, nombre: string, o: { requerido?: boolean } = {}): string[] {
+  const crudo = args[nombre];
+  const lista = (Array.isArray(crudo) ? crudo : typeof crudo === "string" ? crudo.split(/[,;\s]+/) : []).map((x) => String(x).trim()).filter(Boolean);
+  if (!lista.length) {
+    if (o.requerido) throw new ErrorArgs(`Falta "${nombre}": a quién (uno o más correos).`);
+    return [];
+  }
+  if (lista.length > 10) throw new ErrorArgs("Son demasiados destinatarios: máximo 10.");
+  for (const c of lista) if (!/^[^\s@<>()",;:]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,24}$/.test(c)) throw new ErrorArgs(`"${linea(c, 80)}" no parece un correo válido.`);
+  return lista;
 }
 
 export async function pedirTexto(url: string, p: Pedido, maxBytes = MAX_BYTES_DESCARGA): Promise<string> {

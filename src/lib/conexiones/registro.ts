@@ -137,6 +137,12 @@ export function configuradoApp(id: IdApp, env: Entorno = process.env): { ok: boo
  * Las herramientas de solo lectura que tocan a estos agentes, de las apps que
  * la persona tiene conectadas (y activas). En un grupo, las de sus miembros.
  */
+/** Una herramienta de cualquier app por su nombre (para hacer lo que el dueño aprobó). */
+export function herramientaPorNombre(nombre: string): Herramienta | null {
+  for (const a of Object.values(ADAPTADORES)) for (const h of a.herramientas) if (h.nombre === nombre) return h;
+  return null;
+}
+
 export function herramientasPara(agentes: readonly IdAgente[], conexiones: readonly ConexionPublica[]): Herramienta[] {
   const vistas = new Set<string>();
   const lista: Herramienta[] = [];
