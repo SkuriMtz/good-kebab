@@ -235,8 +235,10 @@ export async function POST(request: NextRequest) {
 
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
-  // Si en este turno se leen datos de fuera (apps, documentos), la memoria no guarda nada sola
-  const turno = { externo: false };
+  // Datos de fuera en este turno: `externo` = se usaron herramientas de apps (la memoria no guarda sola);
+  // `contexto` = van correos o documentos en las instrucciones. Con cualquiera, una tarea pedida aquí
+  // queda esperando el OK del dueño en Tareas (para que un correo o una app no pueda dejar una tarea activa).
+  const turno = { externo: false, contexto: Boolean(correos) || Boolean(documentos) };
   const deApps = herramientasDelChat({
     supabase,
     userId: user.id,

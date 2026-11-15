@@ -29,10 +29,11 @@ const TIPOS: TipoTarea[] = ["una_vez", "diaria", "semanal", "mensual"];
 
 /**
  * La herramienta del chat para programar una tarea (con la sesión: RLS solo deja lo suyo).
- * `turno.externo`: si en este turno se leyeron datos de fuera (apps, documentos), no se programa
- * nada solo, para que un correo o una app no pueda dejar una tarea que corra sola.
+ * Si en este turno hay datos de fuera (`turno.externo`: se usaron apps; `turno.contexto`: van correos
+ * o documentos), la tarea se guarda PAUSADA, esperando que el dueño la active en Tareas: así un correo
+ * o una app nunca puede dejar una tarea que corra sola.
  */
-export function herramientaProgramar(supabase: SupabaseClient, userId: string, zona: string, turno: { externo: boolean }): HerramientaChat {
+export function herramientaProgramar(supabase: SupabaseClient, userId: string, zona: string, turno: { externo: boolean; contexto?: boolean }): HerramientaChat {
   return {
     nombre: "programar_tarea",
     descripcion:
@@ -54,7 +55,6 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
     fuente: "Atendel",
     estado: "Atendel está programando la tarea…",
     async ejecutar(args) {
-      if (turno.externo) return "No la programé sola: en esta respuesta leí datos de tus apps o documentos, y las tareas solo se programan cuando el dueño las pide en su mensaje. Si la quiere, que te la pida directamente (o que la cree en Tareas).";
       const titulo = argTexto(args, "titulo", { requerido: true, max: 120 }).trim();
       const instruccion = argTexto(args, "instruccion", { requerido: true, max: 2000 }).trim();
       const tipo = TIPOS.find((t) => t === args.tipo);
@@ -67,6 +67,7 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
         hora: typeof args.hora === "string" ? args.hora.trim().padStart(5, "0") : "",
         zona: zonaValida(zona),
       };
+      const esperaOk = turno.externo || Boolean(turno.contexto);
       const mal = errorFrecuencia(f);
       if (mal) return `No se programó: ${mal}`;
       const proxima = siguienteVez(f);
@@ -82,8 +83,12 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
         hora: f.hora,
         zona: f.zona,
         proxima,
+        activa: !esperaOk,
       });
       if (error) return error.code === "23514" ? "No se programó: ya tiene el máximo de 30 tareas. Que borre alguna en Tareas." : "No se pudo programar ahora. Que lo intente de nuevo en un momento.";
+      if (esperaOk) {
+        return `Tarea lista, ESPERANDO SU OK: «${titulo}». ${frecuenciaEnPalabras(f)}. Por seguridad, como en esta conversación hay correos o datos de sus apps, no la activé sola: que la active con un toque en [Tareas](/panel?vista=tareas) («Activar»). Díselo así de simple.`;
+      }
       return `Tarea programada: «${titulo}». ${frecuenciaEnPalabras(f)}. La primera vez: ${cuandoEnPalabras(proxima, f.zona)}. La puede ver, pausar o borrar en [Tareas](/panel?vista=tareas). Cuando toque, la haces solo y el resultado llega a la Oficina.`;
     },
   };

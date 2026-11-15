@@ -4,23 +4,27 @@
 -- 1. Desde el navegador nadie puede poner sus tareas a correr sin parar:
 --    - "ultima" y "ultimo_resultado" solo los escribe el servidor;
 --    - "proxima" no puede quedar en el pasado ni a menos de 30 minutos de
---      la última vez que corrió (se recorre sola, no da error).
+--      la última vez que corrió una tarea de esa cuenta (se recorre sola).
 --    El servidor (rol de servicio) no pasa por estas reglas.
 -- 2. La base de datos pide por separado las tareas y las revisiones
 --    (?que=tareas y ?que=revisiones): cada una con su propio tiempo, así
 --    unas no frenan a las otras.
 -- ============================================================
 
+-- SECURITY INVOKER (sin "security definer"): así current_user es quien escribe de verdad
+-- (authenticated desde el navegador; service_role desde el servidor; postgres desde pg_cron).
+-- Solo se protegen las escrituras del navegador. La espera de 30 minutos es POR CUENTA
+-- (la última vez que corrió cualquiera de sus tareas), para que borrar y volver a crear no la salte.
 create or replace function public.tareas_protege()
 returns trigger
 language plpgsql
-security definer
 set search_path = ''
 as $$
 declare
   minimo timestamptz;
+  ultima_cuenta timestamptz;
 begin
-  if coalesce((select auth.role()), '') = 'service_role' or current_user in ('postgres', 'supabase_admin') then
+  if current_user not in ('authenticated', 'anon') then
     return new;
   end if;
   if tg_op = 'UPDATE' then
@@ -32,7 +36,9 @@ begin
     new.ultimo_resultado := null;
   end if;
   if new.proxima is not null then
-    minimo := greatest(now() + interval '1 minute', coalesce(new.ultima + interval '30 minutes', now()));
+    -- RLS: solo ve las tareas de su propia cuenta
+    select max(t.ultima) into ultima_cuenta from public.tareas t where t.owner_id = new.owner_id;
+    minimo := greatest(now() + interval '1 minute', coalesce(ultima_cuenta + interval '30 minutes', now()));
     if new.proxima < minimo then
       new.proxima := minimo;
     end if;
@@ -40,7 +46,7 @@ begin
   return new;
 end;
 $$;
-revoke execute on function public.tareas_protege() from public, anon, authenticated;
+revoke execute on function public.tareas_protege() from public, anon;
 
 drop trigger if exists tareas_protege on public.tareas;
 create trigger tareas_protege before insert or update on public.tareas for each row execute function public.tareas_protege();

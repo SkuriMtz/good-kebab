@@ -271,7 +271,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
                 </div>
                 <span className="pc-cerebro__acciones">
                   <button type="button" className={claseBoton("borde", true)} onClick={() => void pausar(t)}>
-                    {t.activa ? "Pausar" : "Reanudar"}
+                    {t.activa ? "Pausar" : t.ultima ? "Reanudar" : "Activar"}
                   </button>
                   <button type="button" className="pc-icono" aria-label="Borrar tarea" title="Borrar" onClick={() => void borrar(t)}>
                     <Icono nombre="basura" tam={15} />
@@ -279,7 +279,13 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
                 </span>
               </div>
               <p className="pc-tareas__detalle">
-                {t.activa ? (t.proxima ? `Próxima vez: ${cuandoEnPalabras(t.proxima, t.zona)}` : "Ya se hizo.") : "En pausa: no se hará hasta que la reanudes."}
+                {t.activa
+                  ? t.proxima
+                    ? `Próxima vez: ${cuandoEnPalabras(t.proxima, t.zona)}`
+                    : "Ya se hizo."
+                  : t.ultima
+                    ? "En pausa: no se hará hasta que la reanudes."
+                    : "Esperando tu OK: tócale «Activar» para que empiece."}
               </p>
               {t.ultima ? (
                 <p className="pc-tareas__ultima">
