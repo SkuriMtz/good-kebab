@@ -190,7 +190,12 @@ export async function suscribirApp(token: string, wabaId: string): Promise<boole
  */
 export type Acceso = "si" | "sin_permiso" | "token_invalido" | "no_se";
 
-export async function tieneAcceso(token: string, phoneNumberId: string): Promise<Acceso> {
+export async function tieneAcceso(
+  token: string,
+  phoneNumberId: string,
+  /** estricto (para mover un número entre cuentas): el error 100 solo cuenta con el subcódigo 33 ("falta permiso"). */
+  opciones: { estricto?: boolean } = {},
+): Promise<Acceso> {
   if (!ID_META.test(phoneNumberId) || !secreto()) return "no_se";
   try {
     const r = await fetch(`${GRAPH}/${phoneNumberId}?fields=id&appsecret_proof=${prueba(token)}`, {
@@ -202,7 +207,8 @@ export async function tieneAcceso(token: string, phoneNumberId: string): Promise
     const e = obj(obj(await r.json().catch(() => null)).error);
     const codigo = Number(e.code);
     if (codigo === 190 || codigo === 102) return "token_invalido";
-    if (codigo === 10 || codigo === 100 || (codigo >= 200 && codigo < 300)) return "sin_permiso";
+    const permiso100 = codigo === 100 && (!opciones.estricto || Number(e.error_subcode) === 33);
+    if (codigo === 10 || permiso100 || (codigo >= 200 && codigo < 300)) return "sin_permiso";
     return "no_se";
   } catch {
     return "no_se";

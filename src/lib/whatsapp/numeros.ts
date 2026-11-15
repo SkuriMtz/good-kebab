@@ -22,7 +22,8 @@ async function accesoDe(admin: SupabaseClient, dueno: string, telefono: string):
   } catch {
     return "no_se";
   }
-  return tieneAcceso(token, telefono);
+  // Para mover un número entre cuentas, solo cuentan los errores de permiso claros de Meta
+  return tieneAcceso(token, telefono, { estricto: true });
 }
 
 /**
