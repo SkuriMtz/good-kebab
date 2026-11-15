@@ -195,6 +195,39 @@ const paso = (de: IdAgente, a: IdAgente, hora: string, texto: string, dia?: stri
 
 export const INICIO: Conversacion[] = [
   {
+    // Lo que Atendel hizo por su cuenta y lo que necesita de ti: te lo avisa en el chat
+    id: "avisos",
+    nombre: "Avisos de Atendel",
+    agentes: ["lola", "clara", "victor", "iris"],
+    sinLeer: 2,
+    orden: 9.5,
+    mensajes: [
+      m(
+        "iris",
+        "08:00",
+        "Buenos días. Ya revisé todo por mi cuenta y te dejé esto en la Oficina:\n- **Plan del día**: 6 citas hoy, 2 todavía sin confirmar.\n- **Borradores para 2 correos** que esperan respuesta.",
+      ),
+      m(
+        "lola",
+        "09:12",
+        "Le contesté a Mariana por WhatsApp.\n\nEscribió: «¿Cuánto cuesta la primera visita?»\nLe dije: «¡Hola, Mariana! La primera visita cuesta $650 MXN. ¿Te aparto un lugar esta semana?»",
+      ),
+      m(
+        "lola",
+        "09:40",
+        "Andrés te escribió por WhatsApp: «Cancelé mi sesión de hoy, ¿me devuelven lo que pagué?»\n\nNecesito tu OK porque es de dinero (reembolsos y cancelaciones). Le quiero contestar:",
+        {
+          tarjeta: {
+            tipo: "programado",
+            sello: "WhatsApp · Andrés",
+            estado: "Necesita tu OK",
+            cita: "Hola, Andrés. Como cancelaste con menos de 24 horas, se cobra el 50 % de la sesión y te regresamos el resto. ¿Te parece si lo dejamos así?",
+          },
+        },
+      ),
+    ],
+  },
+  {
     id: "recepcion",
     nombre: "Recepción",
     agentes: ["lola", "victor"],
