@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
+import { vigilarCorreos } from "@/lib/vigilar-correos";
 
 /**
  * POST /api/trabajo: la base de datos lo llama cada 10 minutos (pg_cron +
@@ -30,10 +31,27 @@ export async function POST(req: NextRequest) {
   if (valida !== true) return error("No autorizado.", 401);
 
   const empezo = Date.now();
-  // La base de datos pide por separado las tareas y las revisiones (?que=tareas|revisiones): cada una con su tiempo
+  // La base de datos pide por separado las tareas, las revisiones y los correos (?que=…): cada una con su tiempo
   const que = req.nextUrl.searchParams.get("que");
-  const conTareas = que !== "revisiones";
-  const conRevisiones = que !== "tareas";
+  const conTareas = !que || que === "tareas";
+  const conRevisiones = !que || que === "revisiones";
+
+  // Los correos nuevos (cada 10 minutos, migración 0024): de las cuentas con Gmail u Outlook conectado
+  if (que === "correos") {
+    const { data: cons } = await admin.from("conexiones").select("owner_id").eq("estado", "activa").overlaps("apps", ["gmail", "outlook"]).limit(500);
+    // En desorden, para que con muchas cuentas a todas les toque
+    const duenos = Array.from(new Set((cons ?? []).map((c) => String(c.owner_id)))).sort(() => Math.random() - 0.5);
+    const correos: { avisos: number; nuevos: number; motivo?: string }[] = [];
+    for (const d of duenos) {
+      if (Date.now() - empezo > 40_000) break;
+      try {
+        correos.push(await vigilarCorreos(admin, d));
+      } catch (e) {
+        console.error("Vigilar correos falló:", e instanceof Error ? e.message : e);
+      }
+    }
+    return NextResponse.json({ cuentas: correos.length, avisos: correos.reduce((n, c) => n + c.avisos, 0) }, { headers: { "Cache-Control": "no-store" } });
+  }
   // Primero las tareas que ya tocan (tienen hora); se apartan antes, para no correrlas dos veces
   const tareas: { id: string; hecho: boolean; motivo: string }[] = [];
   for (const t of conTareas ? await tareasQueTocan(admin) : []) {

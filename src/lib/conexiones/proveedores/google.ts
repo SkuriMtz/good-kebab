@@ -108,14 +108,14 @@ const ID_GMAIL = /^[A-Za-z0-9_-]{6,64}$/;
 const ID_DRIVE = /^[A-Za-z0-9_-]{10,200}$/;
 
 type Cabecera = { name?: string; value?: string };
-type Parte = { mimeType?: string; body?: { data?: string }; parts?: Parte[]; headers?: Cabecera[] };
-type MensajeGmail = { id: string; snippet?: string; internalDate?: string; payload?: Parte };
+export type Parte = { mimeType?: string; body?: { data?: string }; parts?: Parte[]; headers?: Cabecera[] };
+export type MensajeGmail = { id: string; snippet?: string; internalDate?: string; payload?: Parte };
 
-const cabecera = (p: Parte | undefined, nombre: string) => p?.headers?.find((h) => h.name?.toLowerCase() === nombre.toLowerCase())?.value ?? "";
+export const cabecera = (p: Parte | undefined, nombre: string) => p?.headers?.find((h) => h.name?.toLowerCase() === nombre.toLowerCase())?.value ?? "";
 const b64 = (data?: string) => (data ? Buffer.from(data, "base64url").toString("utf8") : "");
 
 /** El texto de un correo: la parte text/plain; si no hay, la HTML sin etiquetas. */
-function cuerpoGmail(p: Parte | undefined): string {
+export function cuerpoGmail(p: Parte | undefined): string {
   if (!p) return "";
   const buscar = (x: Parte, tipo: string): string | null => {
     if (x.mimeType === tipo && x.body?.data) return b64(x.body.data);

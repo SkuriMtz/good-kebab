@@ -733,11 +733,12 @@ export function VentanaAjustes({
               <Selector etiqueta="Hora de la revisión diaria" valor={ajustes.horaRevision} alCambiar={(v) => cambiar("horaRevision", v as HoraRevision)} opciones={HORAS_REVISION.map((h) => ({ id: h, nombre: h }))} />
             </Fila>
           ) : null}
-          {ajustes.revisionDiaria === "activa" ? (
-            <Fila titulo="Que trabajen por su cuenta" texto="Después de la revisión, con IA revisan tus apps y te dejan en la Oficina el plan del día y los borradores de los correos que esperan, revisados contra tus Reglas. Lo que es para un cliente sigue lo que elijas en «Qué hace solo». Tiene su propio límite, aparte del chat." hija>
-              <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
-            </Fila>
-          ) : null}
+          <Fila
+            titulo="Que trabajen por su cuenta"
+            texto="Trabajan aunque no estés: contestan tu WhatsApp, revisan tu correo cada 10 minutos y te avisan en el chat de lo importante (con la respuesta lista para un clic) y, después de la revisión diaria, te dejan el plan del día. Lo que es para un cliente sigue lo que elijas en «Qué hace solo». Tiene su propio límite, aparte del chat."
+          >
+            <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
+          </Fila>
         </Grupo>
         <Grupo titulo="Qué hace solo" texto="Atendel es tu socio: lo de rutina lo hace solo y te avisa después. Lo que marques, te lo pregunta antes.">
           {AUTONOMIA.map((x) => (
