@@ -15,7 +15,10 @@ import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
 import { MODELOS, esIdModelo, planMinimo, type IdModelo } from "@/lib/planes";
 import { Gasto, leerUso, registrarUso } from "@/lib/uso";
-import { bloqueoConHora } from "@/lib/uso-estado";
+import { bloqueoConHora, pctDe } from "@/lib/uso-estado";
+import { aparatoDe } from "@/lib/aparato";
+import { notificar, yaAvisado } from "@/lib/notificar";
+import { clienteServicio } from "@/lib/supabase/servicio";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import {
   responderConHerramientas,
@@ -153,12 +156,28 @@ export async function POST(request: NextRequest) {
   }
   const modelo = MODELOS[idModelo];
   // El límite de uso del plan (como Claude: sesión de 5 horas y semana)
-  const limite = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
+  const uso = await leerUso(supabase, user.id, cuenta.plan);
+  const limite = bloqueoConHora(uso);
   if (limite)
     return NextResponse.json(
       { error: limite.texto, hasta: limite.hasta },
       { status: 429 },
     );
+  // Al 80 % de la semana, te avisa una vez (en el chat de Avisos y en tus otros aparatos)
+  if (pctDe(uso.semana) >= 80) {
+    const admin = clienteServicio();
+    const clave = `uso80_chat:${(uso.semana.reinicia ?? new Date().toISOString()).slice(0, 10)}`;
+    if (admin && !(await yaAvisado(admin, user.id, clave)))
+      await notificar(admin, user.id, {
+        tipo: "uso_80",
+        agente: "iris",
+        chat: "Ya usaste el 80 % de tu límite de esta semana en el chat. Se reinicia el lunes; lo ves en [Ajustes → Uso](/panel?vista=ajustes&seccion=uso).",
+        corto: "Ya usaste el 80 % de tu límite de la semana en el chat.",
+        enlace: "/panel?vista=ajustes&seccion=uso",
+        clave,
+        excepto: aparatoDe(request),
+      });
+  }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return error(

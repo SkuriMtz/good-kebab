@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { soltarAvisos } from "@/lib/notificar";
+import { citar } from "@/lib/avisos";
+import { mandarInformes } from "@/lib/informe";
+import { limpiarCorto, notificar, soltarAvisos } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
@@ -37,10 +39,12 @@ export async function POST(req: NextRequest) {
   const conTareas = !que || que === "tareas";
   const conRevisiones = !que || que === "revisiones";
 
-  // Los avisos que esperaban su hora (horas de silencio, o lo informativo que se junta; migración 0025)
+  // Los avisos que esperaban su hora (horas de silencio, lo informativo que se junta, recordatorios; 0025)
+  // y los informes que tocan (el de la semana y el resumen del día; 0026)
   if (que === "avisos") {
-    const r = await soltarAvisos(admin, 40_000);
-    return NextResponse.json(r, { headers: { "Cache-Control": "no-store" } });
+    const r = await soltarAvisos(admin, 25_000);
+    const informes = await mandarInformes(admin, Math.max(5_000, 45_000 - (Date.now() - empezo)));
+    return NextResponse.json({ ...r, informes }, { headers: { "Cache-Control": "no-store" } });
   }
   // Los correos nuevos (cada 10 minutos, migración 0024): de las cuentas con Gmail u Outlook conectado
   if (que === "correos") {
@@ -68,6 +72,14 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error("Tarea falló:", e instanceof Error ? e.message : e);
       tareas.push({ id: t.id, hecho: false, motivo: "error" });
+      // Que no se quede sin que lo sepas
+      await notificar(admin, t.owner_id, {
+        tipo: "tarea_fallo",
+        agente: "iris",
+        chat: `No pude hacer tu tarea «${citar(t.titulo, 120)}»: algo falló de mi lado. La intento otra vez la próxima vez que toque; si quieres, pídemela aquí.`,
+        corto: `No pude hacer tu tarea «${limpiarCorto(t.titulo, 80)}»; la intento la próxima vez.`,
+        enlace: "/panel?vista=tareas",
+      });
     }
   }
 

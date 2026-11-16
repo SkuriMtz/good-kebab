@@ -195,8 +195,25 @@ export type Avisos = {
   urgentePasa: boolean;
   /** En la pantalla bloqueada solo dice «Tienes un aviso de Atendel». */
   discretos: boolean;
+  /** Resumen del día (src/lib/informe.ts), a esa hora. */
   resumen: boolean;
+  horaResumen: string;
+  /** Informe de la semana: qué día (1 = lunes … 7 = domingo) y a qué hora. */
+  informe: boolean;
+  diaInforme: number;
+  horaInforme: string;
 };
+
+/** Los días para el informe de la semana (1 = lunes … 7 = domingo, como la base). */
+export const DIAS_INFORME = [
+  { id: "1", nombre: "Lunes" },
+  { id: "2", nombre: "Martes" },
+  { id: "3", nombre: "Miércoles" },
+  { id: "4", nombre: "Jueves" },
+  { id: "5", nombre: "Viernes" },
+  { id: "6", nombre: "Sábado" },
+  { id: "7", nombre: "Domingo" },
+] as const;
 
 export type DatosCfdi = { rfc: string; razonSocial: string; regimen: string; codigoPostal: string; uso: string; correo: string };
 
@@ -259,7 +276,21 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   contraste: "normal",
   enlaces: "normal",
   horas: "mostrar",
-  avisos: { app: "todo", whatsapp: "importante", correo: false, silencio: true, desde: "22:00", hasta: "08:00", urgentePasa: false, discretos: false, resumen: false },
+  avisos: {
+    app: "todo",
+    whatsapp: "importante",
+    correo: false,
+    silencio: true,
+    desde: "22:00",
+    hasta: "08:00",
+    urgentePasa: false,
+    discretos: false,
+    resumen: false,
+    horaResumen: "19:00",
+    informe: true,
+    diaInforme: 1,
+    horaInforme: "09:00",
+  },
   cfdi: { rfc: "", razonSocial: "", regimen: "", codigoPostal: "", uso: "G03", correo: "" },
 };
 
@@ -327,6 +358,10 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
       urgentePasa: si(av.urgentePasa, b.avisos.urgentePasa),
       discretos: si(av.discretos, b.avisos.discretos),
       resumen: si(av.resumen, b.avisos.resumen),
+      horaResumen: hora(av.horaResumen, b.avisos.horaResumen),
+      informe: si(av.informe, b.avisos.informe),
+      diaInforme: typeof av.diaInforme === "number" && Number.isInteger(av.diaInforme) && av.diaInforme >= 1 && av.diaInforme <= 7 ? av.diaInforme : b.avisos.diaInforme,
+      horaInforme: hora(av.horaInforme, b.avisos.horaInforme),
     },
     cfdi: {
       rfc: texto(cf.rfc, 13)

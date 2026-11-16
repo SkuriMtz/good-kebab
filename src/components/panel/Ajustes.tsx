@@ -33,6 +33,7 @@ import {
   type DatosCfdi,
   MODOS_AVISO,
   NOMBRE_MODO_AVISO,
+  DIAS_INFORME,
   type ModoAviso,
 } from "@/lib/ajustes";
 import { activarAvisos, alCambiarInstalacion, apagarAvisos, esIOS, estaInstalada, estadoAparato, instalar, puedeInstalar, type EstadoAparato } from "@/lib/avisos-aparato";
@@ -150,6 +151,8 @@ const OPCIONES: Opcion[] = [
   { parte: "notificaciones", titulo: "Instalar Atendel", claves: "app pantalla de inicio icono instalar" },
   { parte: "notificaciones", titulo: "En la app", claves: "que tanto todo importante urgente nada" },
   { parte: "notificaciones", titulo: "Horas de silencio", claves: "noche no molestar dormir horario" },
+  { parte: "notificaciones", titulo: "Informe de la semana", claves: "informe semanal reporte lunes resumen" },
+  { parte: "notificaciones", titulo: "Resumen del día", claves: "resumen diario reporte hoy" },
   { parte: "equipo", titulo: "Invitar personas", claves: "invitar empleados acceso" },
   { parte: "equipo", titulo: "Roles", claves: "permisos" },
   { parte: "equipo", titulo: "Agenda por persona", claves: "agenda calendario empleados" },
@@ -1278,6 +1281,23 @@ export function VentanaAjustes({
           </Fila>
           <Fila titulo="Lo urgente sí me puede avisar" texto="Un cliente que espera respuesta o algo que espera tu OK." hija>
             <Interruptor etiqueta="Lo urgente sí me puede avisar" activo={av.urgentePasa} alCambiar={(v) => cambiarAviso("urgentePasa", v)} deshabilitado={!av.silencio} />
+          </Fila>
+        </Grupo>
+        <Grupo titulo="Informes">
+          <Fila titulo="Informe de la semana" texto="Lo que pasó en la semana (clientes, correos, lo que hice y lo que espera tu OK) y lo que te recomiendo.">
+            <Interruptor etiqueta="Informe de la semana" activo={av.informe} alCambiar={(v) => cambiarAviso("informe", v)} />
+          </Fila>
+          <Fila titulo="Cuándo" texto="En la zona horaria de tu cuenta." hija>
+            <span className="pc-aj-horas">
+              <Desplegable valor={String(av.diaInforme)} alCambiar={(v) => cambiarAviso("diaInforme", Number(v))} etiqueta="Día del informe de la semana" opciones={DIAS_INFORME} />
+              <Campo tipo="time" etiqueta="Hora del informe de la semana" valor={av.horaInforme} alCambiar={(v) => cambiarAviso("horaInforme", v)} ancho="chico" deshabilitado={!av.informe} />
+            </span>
+          </Fila>
+          <Fila titulo="Resumen del día" texto="Lo que pasó hoy, en un solo aviso. Si no pasó nada, no te lo mando.">
+            <Interruptor etiqueta="Resumen del día" activo={av.resumen} alCambiar={(v) => cambiarAviso("resumen", v)} />
+          </Fila>
+          <Fila titulo="A qué hora" texto="En la zona horaria de tu cuenta." hija>
+            <Campo tipo="time" etiqueta="Hora del resumen del día" valor={av.horaResumen} alCambiar={(v) => cambiarAviso("horaResumen", v)} ancho="chico" deshabilitado={!av.resumen} />
           </Fila>
         </Grupo>
       </>
