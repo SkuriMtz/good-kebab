@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
  * Se conserva lo que traiga (?c=, ?agente=, ?pide=) para que los enlaces
  * viejos sigan abriendo lo mismo.
  */
-export default function ChatPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+export default async function ChatPage(
+  props: { searchParams: Promise<Record<string, string | string[] | undefined>> }
+) {
+  const searchParams = await props.searchParams;
   const q = new URLSearchParams();
   for (const clave of ["c", "agente", "pide"]) {
     const v = searchParams[clave];

@@ -29,7 +29,8 @@ export const maxDuration = 30;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!UUID.test(params.id)) return error("No existe eso.", 404);
   const supabase = await createClient();
   const {

@@ -20,7 +20,8 @@ import { appsDeFila, descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { proveedor: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ proveedor: string }> }) {
+  const params = await props.params;
   const r = await preparar(params);
   if ("fallo" in r) return r.fallo;
   const { proveedor: p, supabase, user } = r;

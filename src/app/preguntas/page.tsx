@@ -10,8 +10,8 @@ import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.preguntas);
 }
 
@@ -26,8 +26,8 @@ const ICONOS_GARANTIA: NombreIcono[] = ["candado", "mano", "escudo"];
  * (fondo de partículas). Al integrar, el Grupo 4 puede poner aquí su
  * componente <Seguridad variante="preguntas" /> conservando id="seguridad".
  */
-export default function PreguntasFrecuentes() {
-  const idioma = idiomaServidor();
+export default async function PreguntasFrecuentes() {
+  const idioma = await idiomaServidor();
   const P = t(idioma).preguntas;
   const temas = temasDe(idioma);
   const entradas = [

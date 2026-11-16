@@ -15,8 +15,8 @@ const ENLACES = [
  * arriba, el aviso a la izquierda, los enlaces en mayúsculas al centro y,
  * en lugar de redes sociales, el botón del tema a la derecha.
  */
-export function PieDelgado() {
-  const d = textosServidor();
+export async function PieDelgado() {
+  const d = await textosServidor();
   return (
     <footer className="pie-delgado">
       <p className="pie-delgado__aviso">© Atendel</p>

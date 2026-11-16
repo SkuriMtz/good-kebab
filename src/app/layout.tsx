@@ -53,9 +53,9 @@ const geistMono = localFont({
 });
 
 /** Título y descripción del sitio en el idioma de la persona (cookie atendel-idioma). */
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
   return {
-    ...metadatosInicio(idiomaActual()),
+    ...metadatosInicio(await idiomaActual()),
     applicationName: "Atendel",
     appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
   };
@@ -66,8 +66,8 @@ export function generateMetadata(): Metadata {
  * El panel y /pruebalo siguen en español: el middleware los marca con
  * x-idioma-fijo.
  */
-function idiomaActual(): Idioma {
-  return headers().get("x-idioma-fijo") === "es" ? "es" : idiomaServidor();
+async function idiomaActual(): Promise<Idioma> {
+  return (await headers()).get("x-idioma-fijo") === "es" ? "es" : await idiomaServidor();
 }
 
 export const viewport: Viewport = {
@@ -85,10 +85,10 @@ export const viewport: Viewport = {
  */
 const FUENTES = `${geist.variable} ${geistMono.variable}`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const idioma = idiomaActual();
+  const idioma = await idiomaActual();
   return (
     <html lang={idioma} className={FUENTES} suppressHydrationWarning>
       <head>

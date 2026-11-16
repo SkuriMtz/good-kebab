@@ -13,8 +13,8 @@ import { agenteDe, t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.paraQuien);
 }
 
@@ -32,8 +32,8 @@ const color = (id: IdAgente) =>
  * grande y su tarea como frase, y el resto del equipo en una lista con
  * divisiones de 1px. El personaje grande cambia de lado en cada bloque.
  */
-export default function ParaQuienEs() {
-  const idioma = idiomaServidor();
+export default async function ParaQuienEs() {
+  const idioma = await idiomaServidor();
   const P = t(idioma).paraQuien;
   const SEGMENTOS = P.segmentos;
   return (

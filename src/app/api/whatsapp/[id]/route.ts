@@ -28,7 +28,8 @@ const ATORADOS = ["recibido", "pensando"];
 const TRES_MIN = 3 * 60_000;
 const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!UUID.test(params.id)) return error("No existe ese mensaje.", 404);
   const supabase = await createClient();
   const {

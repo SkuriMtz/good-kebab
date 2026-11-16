@@ -11,8 +11,8 @@ import { agentesDe, t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.agentes);
 }
 
@@ -23,8 +23,8 @@ export function generateMetadata(): Metadata {
  * (#lola, #clara, #victor, #iris) y el acceso al chat al final.
  * "?ficha=lola" abre la ficha (lo resuelve FichasAgentes, en Sitio).
  */
-export default function Agentes() {
-  const idioma = idiomaServidor();
+export default async function Agentes() {
+  const idioma = await idiomaServidor();
   const P = t(idioma).paginaAgentes;
   const agentes = agentesDe(idioma);
   return (

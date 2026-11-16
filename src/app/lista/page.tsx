@@ -13,8 +13,8 @@ import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.lista);
 }
 
@@ -24,8 +24,8 @@ export function generateMetadata(): Metadata {
  * angosta, qué pasa después de anotarte (tres pasos con número en Mono y una
  * línea de 1px que los une).
  */
-export default function Lista() {
-  const P = t(idiomaServidor()).listaEspera.pagina;
+export default async function Lista() {
+  const P = t(await idiomaServidor()).listaEspera.pagina;
   return (
     <Sitio>
       <section className="pagina-sobria con-halo" aria-labelledby="lista-pagina-titulo">

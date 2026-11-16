@@ -10,8 +10,8 @@ import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.contacto);
 }
 
@@ -20,8 +20,8 @@ export function generateMetadata(): Metadata {
  * formulario (nombre, correo, negocio, mensaje) y, debajo, tres atajos por
  * si la respuesta ya está en el sitio.
  */
-export default function Contacto() {
-  const P = t(idiomaServidor()).contacto;
+export default async function Contacto() {
+  const P = t(await idiomaServidor()).contacto;
   return (
     <Sitio>
       <section className="pagina-sobria con-halo" aria-labelledby="contacto-titulo">
