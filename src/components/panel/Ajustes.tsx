@@ -31,7 +31,11 @@ import {
   type Apariencia,
   type Avisos,
   type DatosCfdi,
+  MODOS_AVISO,
+  NOMBRE_MODO_AVISO,
+  type ModoAviso,
 } from "@/lib/ajustes";
+import { activarAvisos, alCambiarInstalacion, apagarAvisos, esIOS, estaInstalada, estadoAparato, instalar, puedeInstalar, type EstadoAparato } from "@/lib/avisos-aparato";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
 import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil } from "@/lib/nucleo-tipos";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
@@ -56,7 +60,7 @@ import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
 export const IDS_AJUSTE = ["atendel", "apariencia", "negocio", "agentes", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
 export type IdAjuste = (typeof IDS_AJUSTE)[number];
 /** Secciones que ya no se muestran (lo suyo vive en Tu negocio o todavía no funciona): más simple. */
-const OCULTAS: readonly string[] = ["negocio", "agentes", "conexiones", "notificaciones"];
+const OCULTAS: readonly string[] = ["negocio", "agentes", "conexiones"];
 export const esIdAjuste = (v: unknown): v is IdAjuste => typeof v === "string" && (IDS_AJUSTE as readonly string[]).includes(v) && !OCULTAS.includes(v);
 
 /** Los campos del perfil del negocio que se editan aquí (los demás, en Tu negocio). */
@@ -142,6 +146,10 @@ const OPCIONES: Opcion[] = [
   { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
   { parte: "atendel", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
   { parte: "atendel", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
+  { parte: "notificaciones", titulo: "Avisos en este aparato", claves: "activar notificaciones celular push prueba" },
+  { parte: "notificaciones", titulo: "Instalar Atendel", claves: "app pantalla de inicio icono instalar" },
+  { parte: "notificaciones", titulo: "En la app", claves: "que tanto todo importante urgente nada" },
+  { parte: "notificaciones", titulo: "Horas de silencio", claves: "noche no molestar dormir horario" },
   { parte: "equipo", titulo: "Invitar personas", claves: "invitar empleados acceso" },
   { parte: "equipo", titulo: "Roles", claves: "permisos" },
   { parte: "equipo", titulo: "Agenda por persona", claves: "agenda calendario empleados" },
@@ -174,6 +182,7 @@ const OPCIONES: Opcion[] = [
 const PARTES: Parte[] = [
   { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos socio autonomia solo pregunta permiso", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
   { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
+  { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos notificaciones celular telefono app instalar aparato whatsapp silencio noche prueba", grupo: 1, sub: "Avisos en tu celular o tu compu, aunque no tengas Atendel abierto." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
   { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 2, sub: "Cuánto llevas de tu sesión y de la semana." },
   { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 2, sub: "Plan, pago, facturas y datos para CFDI." },
@@ -383,6 +392,164 @@ function BarraLimite({ titulo, detalle, usados, total, aviso }: { titulo: string
  * (60 %), naranja (80 %) y rojo (90 %); al llenarse brilla y avisa qué pasa.
  * En tu cuenta, "Actualizar" vuelve a leer lo usado sin recargar la página.
  */
+/* ---------- Notificaciones: avisos en este aparato ---------- */
+
+const TEXTO_MODO: Record<ModoAviso, string> = {
+  todo: "Lo urgente y lo importante, al momento; lo demás, junto (máximo una notificación cada 3 horas).",
+  importante: "Lo urgente y lo importante, al momento.",
+  urgente: "Solo lo que no puede esperar: clientes y cosas que esperan tu OK.",
+  nada: "Ninguna notificación: todo queda en el chat «Avisos de Atendel».",
+};
+
+const TEXTO_APARATO: Record<EstadoAparato, string> = {
+  cargando: "Revisando…",
+  activo: "Activas en este aparato.",
+  apagado: "Actívalas para que te avise aunque no tengas Atendel abierto.",
+  bloqueado: "Las bloqueaste en este navegador. Permite las notificaciones de este sitio en la configuración del navegador y vuelve a abrir esta parte.",
+  "instalar-ios": "En iPhone y iPad primero hay que instalar Atendel (abajo te digo cómo) y abrirlo desde su ícono.",
+  "sin-soporte": "Este navegador no puede mostrar notificaciones. Prueba con Chrome, Edge, Firefox o Safari.",
+};
+
+type AparatoAvisos = { id: string; aparato: string; endpoint: string; creado_en: string; usado_en: string | null };
+const fechaCorta = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+
+function AvisosEsteAparato({ demo }: { demo: boolean }) {
+  const [estado, setEstado] = useState<EstadoAparato>("cargando");
+  const [endpoint, setEndpoint] = useState<string | null>(null);
+  const [aparatos, setAparatos] = useState<AparatoAvisos[]>([]);
+  const [mensaje, setMensaje] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [instalable, setInstalable] = useState(false);
+  const [instalada, setInstalada] = useState(true);
+  const [ios, setIos] = useState(false);
+
+  const leer = useCallback(async () => {
+    const e = await estadoAparato();
+    setEstado(e.estado);
+    setEndpoint(e.endpoint);
+    if (demo) return;
+    try {
+      const r = await fetch("/api/avisos/push", { cache: "no-store" });
+      const j = r.ok ? ((await r.json()) as { aparatos?: AparatoAvisos[] }) : null;
+      setAparatos(Array.isArray(j?.aparatos) ? j.aparatos : []);
+    } catch {
+      setAparatos([]);
+    }
+  }, [demo]);
+
+  useEffect(() => {
+    void leer();
+  }, [leer]);
+  useEffect(() => {
+    const f = () => {
+      setInstalable(puedeInstalar());
+      setInstalada(estaInstalada());
+      setIos(esIOS());
+    };
+    f();
+    return alCambiarInstalacion(f);
+  }, []);
+
+  async function hacer(paso: () => Promise<{ tono: "ok" | "error"; texto: string } | null>) {
+    if (demo) return setMensaje({ tono: "error", texto: "En la demostración no se activan avisos." });
+    setOcupado(true);
+    setMensaje(null);
+    try {
+      setMensaje(await paso());
+    } finally {
+      setOcupado(false);
+      await leer();
+    }
+  }
+  const activar = () => hacer(async () => {
+    const e = await activarAvisos();
+    return e ? { tono: "error", texto: e } : { tono: "ok", texto: "Listo: los avisos quedaron activos en este aparato. Te mandé uno para que veas cómo llegan." };
+  });
+  const apagar = () => hacer(async () => {
+    const e = await apagarAvisos();
+    return e ? { tono: "error", texto: e } : { tono: "ok", texto: "Apagaste los avisos en este aparato." };
+  });
+  const probar = () => hacer(async () => {
+    const r = await fetch("/api/avisos/prueba", { method: "POST" });
+    const j = (await r.json().catch(() => null)) as { resultado?: string; error?: string } | null;
+    if (!r.ok) return { tono: "error", texto: j?.error ?? "No se pudo mandar la prueba." };
+    if (j?.resultado === "enviado") return { tono: "ok", texto: "Te mandé un aviso de prueba: debe llegarte en unos segundos." };
+    if (j?.resultado === "omitido") return { tono: "error", texto: "No hay aparatos con los avisos activos." };
+    return { tono: "error", texto: "No se pudo entregar la prueba. Revisa que las notificaciones de este sitio estén permitidas." };
+  });
+  const quitar = (a: AparatoAvisos) => hacer(async () => {
+    // Si es este aparato, también se apaga aquí
+    if (a.endpoint === endpoint) {
+      const e = await apagarAvisos();
+      return e ? { tono: "error", texto: e } : { tono: "ok", texto: `Quitaste ${a.aparato}.` };
+    }
+    const r = await fetch("/api/avisos/push", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: a.id }) });
+    return r.ok ? { tono: "ok", texto: `Quitaste ${a.aparato}: ya no le llegan avisos.` } : { tono: "error", texto: "No pudimos quitar ese aparato. Intenta de nuevo." };
+  });
+  async function alInstalar() {
+    if (await instalar()) setMensaje({ tono: "ok", texto: "Listo: Atendel quedó instalada. Ábrela desde su ícono." });
+  }
+
+  const textoInstalar = instalable
+    ? "Tenla como app: con su ícono y a pantalla completa."
+    : ios
+      ? "En Safari, toca Compartir (el cuadro con la flecha) y luego «Agregar a inicio». Después ábrela desde su ícono."
+      : "Desde el menú del navegador: «Instalar app» o «Agregar a la pantalla de inicio».";
+
+  return (
+    <>
+      <Grupo titulo="En este aparato">
+        <Fila titulo="Avisos en este aparato" texto={TEXTO_APARATO[estado]}>
+          {estado === "activo" ? (
+            <>
+              <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={probar}>
+                Mandar prueba
+              </button>
+              <button type="button" className={claseBoton("fantasma", true)} disabled={ocupado} onClick={apagar}>
+                Apagar
+              </button>
+            </>
+          ) : estado === "apagado" ? (
+            <button type="button" className={claseBoton("principal", true)} disabled={ocupado} onClick={activar}>
+              Activar avisos
+            </button>
+          ) : null}
+        </Fila>
+        {!instalada ? (
+          <Fila titulo="Instalar Atendel" texto={textoInstalar}>
+            {instalable ? (
+              <button type="button" className={claseBoton("borde", true)} onClick={alInstalar}>
+                Instalar
+              </button>
+            ) : null}
+          </Fila>
+        ) : null}
+        {mensaje ? (
+          <p className={`pc-aj-nota${mensaje.tono === "error" ? " pc-aj-nota--error" : ""}`} role={mensaje.tono === "error" ? "alert" : "status"}>
+            {mensaje.texto}
+          </p>
+        ) : null}
+      </Grupo>
+      {aparatos.length ? (
+        <Grupo titulo="Tus aparatos" texto="Donde activaste los avisos. Si ves uno que no conoces, quítalo.">
+          {aparatos.map((a) => (
+            <Fila
+              key={a.id}
+              titulo={a.endpoint === endpoint ? `${a.aparato} (este)` : a.aparato}
+              ancla={a.aparato}
+              texto={`Activado el ${fechaCorta(a.creado_en)}${a.usado_en ? ` · último aviso el ${fechaCorta(a.usado_en)}` : ""}`}
+            >
+              <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={() => quitar(a)}>
+                Quitar
+              </button>
+            </Fila>
+          ))}
+        </Grupo>
+      ) : null}
+    </>
+  );
+}
+
 function LimitesUso({ datos }: { datos: DatosAjustes }) {
   const fuente = useFuenteNegocio();
   const router = useRouter();
@@ -1082,36 +1249,24 @@ export function VentanaAjustes({
     const av = ajustes.avisos;
     contenido = (
       <>
-        <p className="pc-aj-nota">Hoy los avisos salen en el panel (el número junto a Pendientes). Por correo llegan pronto: lo que elijas aquí ya queda guardado.</p>
-        <Grupo titulo="Qué te avisamos">
-          <Fila titulo="Pendientes nuevos" texto="Cuando algo espera tu visto bueno.">
-            <Interruptor etiqueta="Pendientes nuevos" activo={av.pendientes} alCambiar={(v) => cambiarAviso("pendientes", v)} />
+        <p className="pc-aj-nota">El chat «Avisos de Atendel» siempre tiene todo. Aquí eliges qué más te llega como notificación a tu celular o tu compu.</p>
+        <AvisosEsteAparato demo={!guardar} />
+        <Grupo titulo="Qué tanto te aviso">
+          <Fila titulo="En la app" texto={TEXTO_MODO[av.app]}>
+            <Desplegable valor={av.app} alCambiar={(v) => cambiarAviso("app", v)} etiqueta="Qué tanto te aviso en la app" opciones={MODOS_AVISO.map((id) => ({ id, nombre: NOMBRE_MODO_AVISO[id] }))} />
           </Fila>
-          <Fila titulo="Citas" texto="Citas nuevas, cambios y cancelaciones.">
-            <Interruptor etiqueta="Citas" activo={av.citas} alCambiar={(v) => cambiarAviso("citas", v)} />
-          </Fila>
-          <Fila titulo="Correos urgentes" texto="Cuando Clara marca algo como urgente.">
-            <Interruptor etiqueta="Correos urgentes" activo={av.urgentes} alCambiar={(v) => cambiarAviso("urgentes", v)} />
-          </Fila>
-          <Fila titulo="Resumen del día" texto="Lo importante del día, en un solo aviso.">
-            <Interruptor etiqueta="Resumen del día" activo={av.resumen} alCambiar={(v) => cambiarAviso("resumen", v)} />
-          </Fila>
-        </Grupo>
-        <Grupo titulo="Por dónde">
-          <Fila titulo="En el panel" texto="Siempre activo.">
-            <Interruptor etiqueta="En el panel" activo deshabilitado />
+          <Fila titulo="Por WhatsApp" texto="A tu número, con lo importante.">
+            <Pronto />
           </Fila>
           <Fila titulo="Por correo" texto={datos.correo ? `A ${datos.correo}.` : "A tu correo."}>
             <Pronto />
-            <Interruptor etiqueta="Por correo" activo={av.correo} alCambiar={(v) => cambiarAviso("correo", v)} />
           </Fila>
-          <Fila titulo="Por WhatsApp" texto="A tu número.">
-            <Pronto />
-            <Interruptor etiqueta="Por WhatsApp" activo={false} deshabilitado />
+          <Fila titulo="Avisos discretos" texto="En la pantalla bloqueada solo dice «Tienes un aviso nuevo», sin detalles.">
+            <Interruptor etiqueta="Avisos discretos" activo={av.discretos} alCambiar={(v) => cambiarAviso("discretos", v)} />
           </Fila>
         </Grupo>
         <Grupo titulo="Horas de silencio">
-          <Fila titulo="No molestar en la noche" texto="Los avisos esperan a la mañana (lo urgente también).">
+          <Fila titulo="No molestar en la noche" texto="Lo que llegue en ese rato te lo mando junto cuando terminen.">
             <Interruptor etiqueta="No molestar en la noche" activo={av.silencio} alCambiar={(v) => cambiarAviso("silencio", v)} />
           </Fila>
           <Fila titulo="Horario" texto="En la zona horaria de tu cuenta." hija>
@@ -1120,6 +1275,9 @@ export function VentanaAjustes({
               <span>a</span>
               <Campo tipo="time" etiqueta="Hasta" valor={av.hasta} alCambiar={(v) => cambiarAviso("hasta", v)} ancho="chico" deshabilitado={!av.silencio} />
             </span>
+          </Fila>
+          <Fila titulo="Lo urgente sí me puede avisar" texto="Un cliente que espera respuesta o algo que espera tu OK." hija>
+            <Interruptor etiqueta="Lo urgente sí me puede avisar" activo={av.urgentePasa} alCambiar={(v) => cambiarAviso("urgentePasa", v)} deshabilitado={!av.silencio} />
           </Fila>
         </Grupo>
       </>

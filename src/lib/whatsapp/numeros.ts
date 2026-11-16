@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Tokens } from "@/lib/nucleo-tipos";
-import { avisarEnChat } from "@/lib/avisos";
+import { notificar } from "@/lib/notificar";
 import { descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { ID_META, suscribirApp, tieneAcceso, type Acceso } from "./cloud";
@@ -47,9 +47,12 @@ export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promis
   if (!admin) return false;
   // Quien conecta tiene que tener permiso confirmado por Meta
   if ((await tieneAcceso(t.access_token, telefono)) !== "si") {
-    await avisarEnChat(admin, userId, {
+    await notificar(admin, userId, {
+      tipo: "whatsapp_reconectar",
       agente: "lola",
-      texto: "No pude confirmar con Meta tu permiso sobre tu número de WhatsApp, así que todavía no recibo sus mensajes. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) en un momento.",
+      chat: "No pude confirmar con Meta tu permiso sobre tu número de WhatsApp, así que todavía no recibo sus mensajes. Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) en un momento.",
+      corto: "No pude confirmar con Meta tu permiso sobre tu número de WhatsApp. Vuelve a conectar Meta en un momento.",
+      enlace: "/panel?vista=negocio&tab=apps",
     });
     return false;
   }
@@ -60,21 +63,29 @@ export async function registrarNumeroWhatsapp(userId: string, t: Tokens): Promis
     if (acceso === "sin_permiso" || acceso === "token_invalido") {
       // Meta confirma que la cuenta anterior ya no tiene permiso: el número pasa a esta
       await admin.from("whatsapp_numeros").delete().eq("phone_number_id", telefono).eq("owner_id", anterior);
-      await avisarEnChat(admin, anterior, {
+      await notificar(admin, anterior, {
+        tipo: "whatsapp_sin_mensajes",
         agente: "lola",
-        texto: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp y otra cuenta de Atendel que sí lo tiene lo conectó, así que sus mensajes ahora llegan allá. Si no fuiste tú, revisa quién tiene acceso a tu WhatsApp Business en Meta y vuelve a conectar en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+        chat: "Tu conexión con Meta ya no tiene permiso sobre tu número de WhatsApp y otra cuenta de Atendel que sí lo tiene lo conectó, así que sus mensajes ahora llegan allá. Si no fuiste tú, revisa quién tiene acceso a tu WhatsApp Business en Meta y vuelve a conectar en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+        corto: "Los mensajes de tu número de WhatsApp ahora llegan a otra cuenta de Atendel. Si no fuiste tú, revisa quién tiene acceso en Meta.",
+        enlace: "/panel?vista=negocio&tab=apps",
       });
       actual = null;
     }
   }
   if (actual && String(actual.owner_id) !== userId) {
-    await avisarEnChat(admin, userId, {
+    await notificar(admin, userId, {
+      tipo: "whatsapp_sin_mensajes",
       agente: "lola",
-      texto: "Tu número de WhatsApp ya está conectado en otra cuenta de Atendel, así que los mensajes de tus clientes siguen llegando allá. Para que lleguen aquí, primero desconéctalo en esa cuenta y luego vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+      chat: "Tu número de WhatsApp ya está conectado en otra cuenta de Atendel, así que los mensajes de tus clientes siguen llegando allá. Para que lleguen aquí, primero desconéctalo en esa cuenta y luego vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).",
+      corto: "Tu número de WhatsApp está conectado en otra cuenta de Atendel; sus mensajes siguen llegando allá.",
+      enlace: "/panel?vista=negocio&tab=apps",
     });
-    await avisarEnChat(admin, String(actual.owner_id), {
+    await notificar(admin, String(actual.owner_id), {
+      tipo: "whatsapp_intento",
       agente: "lola",
-      texto: "Alguien intentó conectar tu número de WhatsApp en otra cuenta de Atendel. No cambió nada: los mensajes de tus clientes siguen llegando aquí. Si no fuiste tú, revisa quién tiene acceso a tu WhatsApp Business en Meta.",
+      chat: "Alguien intentó conectar tu número de WhatsApp en otra cuenta de Atendel. No cambió nada: los mensajes de tus clientes siguen llegando aquí. Si no fuiste tú, revisa quién tiene acceso a tu WhatsApp Business en Meta.",
+      corto: "Alguien intentó conectar tu número de WhatsApp en otra cuenta de Atendel. No cambió nada.",
     });
     return false;
   }

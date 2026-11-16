@@ -16,6 +16,7 @@ import { ContextoChats } from "./contexto";
 import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO, useOrganizacionChats, type AccionesChats } from "./MenuChats";
 import { organizar, type OrganizacionChats } from "@/lib/organizacion-chats";
 import { nombresDe } from "./Mensajes";
+import { OfertaAvisos } from "./OfertaAvisos";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
 import type { EstadoUso } from "@/lib/uso-estado";
@@ -310,6 +311,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
       >
         {children}
       </Armazon>
+      <OfertaAvisos />
     </ContextoChats.Provider>
   );
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import { AUTONOMIA, type IdAutonomia, type ModoAutonomia } from "./ajustes";
-import { avisarEnChat, citar } from "./avisos";
+import { citar } from "./avisos";
+import { limpiarCorto, notificar } from "./notificar";
 import { verificarContraReglas, type Regla } from "./cerebro";
 import type { Herramienta } from "./nucleo-tipos";
 import { clienteServicio } from "./supabase/servicio";
@@ -119,9 +120,12 @@ export async function hacerOEsperar(
     if (o.origen !== "chat") {
       const admin = clienteServicio();
       if (admin)
-        await avisarEnChat(admin, dueno, {
+        await notificar(admin, dueno, {
+          tipo: "accion_espera_ok",
           agente,
-          texto: `Necesito tu OK para esto: ${citar(resumen, 400)}.\n\nTe pregunto porque ${espera}.\n\n[Aprobar y hacer](/panel?aprobar=${id})`,
+          chat: `Necesito tu OK para esto: ${citar(resumen, 400)}.\n\nTe pregunto porque ${espera}.\n\n[Aprobar y hacer](/panel?aprobar=${id})`,
+          corto: `Necesito tu OK para: ${limpiarCorto(resumen, 200)}.`,
+          enlace: `/panel?aprobar=${id}`,
         });
     }
     return `NO SE HIZO TODAVÍA: quedó esperando el OK del dueño («${resumen}»), porque ${espera}. Dile en una frase que lo dejaste listo y pon, en una línea aparte, este botón tal cual: [Aprobar y hacer](/panel?aprobar=${id}) — con un clic se hace. No digas que ya se hizo.`;
@@ -130,7 +134,13 @@ export async function hacerOEsperar(
   await registrarHecha(dueno, h, args, resumen, resultado, o);
   if (o.origen !== "chat") {
     const admin = clienteServicio();
-    if (admin) await avisarEnChat(admin, dueno, { agente, texto: `Hice esto por mi cuenta: ${citar(resumen, 400)}.\n\n${citar(resultado, 500)}` });
+    if (admin)
+      await notificar(admin, dueno, {
+        tipo: "hizo_solo",
+        agente,
+        chat: `Hice esto por mi cuenta: ${citar(resumen, 400)}.\n\n${citar(resultado, 500)}`,
+        corto: `Hice esto por mi cuenta: ${limpiarCorto(resumen, 200)}.`,
+      });
   }
   return `HECHO: ${resultado}`;
 }

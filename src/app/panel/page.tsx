@@ -8,6 +8,7 @@ import { partesDe } from "@/components/panel/RevisionDiaria";
 import { TareasVista } from "@/components/panel/Tareas";
 import { PorAprobar } from "@/components/panel/PorAprobar";
 import { limpiarAjustes } from "@/lib/ajustes";
+import { TEMA_AVISOS } from "@/lib/avisos";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
@@ -26,7 +27,7 @@ import { Panel } from "./Panel";
 
 export const metadata: Metadata = { title: "Panel" };
 
-type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string; tab?: string; conectada?: string; error?: string; app?: string };
+type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string; tab?: string; conectada?: string; error?: string; app?: string; avisos?: string };
 
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
@@ -230,6 +231,8 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
   const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
   const nombre = completo ? completo.split(" ")[0] : undefined;
   const agente = esIdAgente(searchParams.agente) ? searchParams.agente : null;
+  // ?avisos=1 (el atajo «Avisos» de la app instalada): abre el chat de Avisos de Atendel
+  const conversacionInicial = texto(searchParams.c, 100) ?? (searchParams.avisos === "1" ? (conversaciones.find((c) => c.tema === TEMA_AVISOS)?.id ?? null) : null);
 
   return (
     <Chat
@@ -238,7 +241,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Parame
       bloqueoInicial={bloqueo}
       conversacionesIniciales={conversaciones}
       agenteInicial={agente}
-      conversacionInicial={texto(searchParams.c, 100) ?? null}
+      conversacionInicial={conversacionInicial}
       textoInicial={texto(searchParams.pide, 2000)}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       conGoogle={conGoogle}

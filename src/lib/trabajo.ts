@@ -17,7 +17,8 @@ import {
 import { MODELOS } from "./planes";
 import { Gasto } from "./uso";
 import { bloqueCerebro, cargarCerebro, verificarContraReglas } from "./cerebro";
-import { avisarEnChat, citar } from "./avisos";
+import { citar } from "./avisos";
+import { notificar } from "./notificar";
 
 /**
  * TRABAJO POR SU CUENTA: después de la revisión diaria (migración 0015),
@@ -496,9 +497,12 @@ ${aj.instrucciones ? `- Cómo quiere el dueño que le escriban a sus clientes: $
     const { error } = await admin.from("trabajos").insert(filas);
     if (error) return { hecho: false, motivo: `no se guardó: ${error.code}` };
     // Y te avisa en el chat (Avisos de Atendel), no solo en la Oficina
-    await avisarEnChat(admin, dueno, {
+    await notificar(admin, dueno, {
+      tipo: "revision_dia",
       agente: "iris",
-      texto: `Ya revisé todo por mi cuenta y te dejé ${filas.length === 1 ? "esto" : `estas ${filas.length} cosas`} en la Oficina:\n${filas
+      corto: `Revisé todo por mi cuenta y te dejé ${filas.length === 1 ? "una cosa" : `${filas.length} cosas`} en la Oficina.`,
+      enlace: "/panel?vista=oficina",
+      chat: `Ya revisé todo por mi cuenta y te dejé ${filas.length === 1 ? "esto" : `estas ${filas.length} cosas`} en la Oficina:\n${filas
         .map((f) => `- **${citar(f.titulo, 120)}**${f.detalle ? `: ${citar(f.detalle, 220)}` : ""}`)
         .join("\n")}\n\nRevísalo en la [Oficina](/panel?vista=oficina).`,
     });

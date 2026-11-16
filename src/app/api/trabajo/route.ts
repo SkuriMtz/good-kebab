@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { soltarAvisos } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
@@ -36,6 +37,11 @@ export async function POST(req: NextRequest) {
   const conTareas = !que || que === "tareas";
   const conRevisiones = !que || que === "revisiones";
 
+  // Los avisos que esperaban su hora (horas de silencio, o lo informativo que se junta; migración 0025)
+  if (que === "avisos") {
+    const r = await soltarAvisos(admin, 40_000);
+    return NextResponse.json(r, { headers: { "Cache-Control": "no-store" } });
+  }
   // Los correos nuevos (cada 10 minutos, migración 0024): de las cuentas con Gmail u Outlook conectado
   if (que === "correos") {
     const { data: cons } = await admin.from("conexiones").select("owner_id").eq("estado", "activa").overlaps("apps", ["gmail", "outlook"]).limit(500);

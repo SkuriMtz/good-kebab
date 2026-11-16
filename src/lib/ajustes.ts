@@ -172,15 +172,30 @@ export const USOS_CFDI = [
   { id: "S01", nombre: "S01 · Sin efectos fiscales" },
 ] as const;
 
+/**
+ * Cuánto te avisa Atendel fuera del panel (src/lib/notificar.ts), en cada
+ * lugar: todo, lo importante (urgente e importante), solo lo urgente o nada.
+ * El chat «Avisos de Atendel» siempre lo tiene todo.
+ */
+export const MODOS_AVISO = ["todo", "importante", "urgente", "nada"] as const;
+export type ModoAviso = (typeof MODOS_AVISO)[number];
+export const NOMBRE_MODO_AVISO: Record<ModoAviso, string> = { todo: "Todo", importante: "Lo importante", urgente: "Solo lo urgente", nada: "Nada" };
+
 export type Avisos = {
-  pendientes: boolean;
-  citas: boolean;
-  urgentes: boolean;
-  resumen: boolean;
+  /** Notificaciones de la app (en los aparatos donde las activaste). */
+  app: ModoAviso;
+  /** WhatsApp a tu número (cuando lo conectes). */
+  whatsapp: ModoAviso;
   correo: boolean;
+  /** Horas de silencio: lo que llegue espera a que terminen. */
   silencio: boolean;
   desde: string;
   hasta: string;
+  /** Lo urgente sí puede avisar en las horas de silencio. */
+  urgentePasa: boolean;
+  /** En la pantalla bloqueada solo dice «Tienes un aviso de Atendel». */
+  discretos: boolean;
+  resumen: boolean;
 };
 
 export type DatosCfdi = { rfc: string; razonSocial: string; regimen: string; codigoPostal: string; uso: string; correo: string };
@@ -244,7 +259,7 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   contraste: "normal",
   enlaces: "normal",
   horas: "mostrar",
-  avisos: { pendientes: true, citas: true, urgentes: true, resumen: false, correo: false, silencio: false, desde: "21:00", hasta: "08:00" },
+  avisos: { app: "todo", whatsapp: "importante", correo: false, silencio: true, desde: "22:00", hasta: "08:00", urgentePasa: false, discretos: false, resumen: false },
   cfdi: { rfc: "", razonSocial: "", regimen: "", codigoPostal: "", uso: "G03", correo: "" },
 };
 
@@ -303,14 +318,15 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
       b.idioma,
     ),
     avisos: {
-      pendientes: si(av.pendientes, b.avisos.pendientes),
-      citas: si(av.citas, b.avisos.citas),
-      urgentes: si(av.urgentes, b.avisos.urgentes),
-      resumen: si(av.resumen, b.avisos.resumen),
+      app: uno(av.app, MODOS_AVISO, b.avisos.app),
+      whatsapp: uno(av.whatsapp, MODOS_AVISO, b.avisos.whatsapp),
       correo: si(av.correo, b.avisos.correo),
       silencio: si(av.silencio, b.avisos.silencio),
       desde: hora(av.desde, b.avisos.desde),
       hasta: hora(av.hasta, b.avisos.hasta),
+      urgentePasa: si(av.urgentePasa, b.avisos.urgentePasa),
+      discretos: si(av.discretos, b.avisos.discretos),
+      resumen: si(av.resumen, b.avisos.resumen),
     },
     cfdi: {
       rfc: texto(cf.rfc, 13)

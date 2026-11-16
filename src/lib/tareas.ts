@@ -14,7 +14,8 @@ import { MODELOS } from "./planes";
 import { cuandoEnPalabras, errorFrecuencia, frecuenciaEnPalabras, siguienteVez, zonaValida, type Frecuencia, type TipoTarea } from "./tareas-tiempo";
 import { inicioSemana } from "./trabajo";
 import { Gasto } from "./uso";
-import { avisarEnChat, citar, citarLineas } from "./avisos";
+import { citar, citarLineas } from "./avisos";
+import { limpiarCorto, notificar } from "./notificar";
 import { herramientaVerAtendel } from "./herramientas/atendel";
 
 /**
@@ -197,9 +198,12 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
     .eq("id", t.id)
     .eq("owner_id", dueno);
   // Y te avisa en el chat (Avisos de Atendel), no solo en la Oficina
-  await avisarEnChat(admin, dueno, {
+  await notificar(admin, dueno, {
+    tipo: "tarea_termino",
     agente: "iris",
-    texto: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${citar(t.titulo, 120)}».\n\n${citarLineas(resultado, 900)}\n\nCompleta en la [Oficina](/panel?vista=oficina).`,
+    chat: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${citar(t.titulo, 120)}».\n\n${citarLineas(resultado, 900)}\n\nCompleta en la [Oficina](/panel?vista=oficina).`,
+    corto: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${limpiarCorto(t.titulo, 80)}». Está en la Oficina.`,
+    enlace: "/panel?vista=oficina",
   });
   return { hecho: Boolean(texto.trim()), motivo: texto.trim() ? "hecha" : "sin resultado" };
 }

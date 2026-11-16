@@ -2,10 +2,11 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AUTONOMIA, limpiarAjustes, type IdAutonomia } from "../ajustes";
-import { avisarEnChat, citar } from "../avisos";
+import { citar } from "../avisos";
 import { bloqueCerebro, cargarCerebro, verificarContraReglas, type Regla } from "../cerebro";
 import { ErrorConexion, obtenerToken } from "../conexiones/tokens";
 import { cargarCuenta } from "../cuenta";
+import { nombreSeguro, notificar } from "../notificar";
 import { MODELOS } from "../planes";
 import { inicioSemana } from "../trabajo";
 import { Gasto } from "../uso";
@@ -78,6 +79,8 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   const dueno = String(m.owner_id);
   const quien = citar(m.nombre, 80) || `+${m.telefono}`;
   const escribio = citar(m.texto, 400);
+  // Para la notificación: solo el nombre, limpio (nunca lo que escribió ni su número)
+  const cliente = nombreSeguro(m.nombre, "");
 
   async function marcar(estado: string, extra: { motivo?: string; borrador?: string } = {}) {
     await admin
@@ -92,9 +95,12 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   }
   async function sinResponder(motivo: string): Promise<ResultadoWhatsapp> {
     await marcar("sin_respuesta", { motivo: `No le contesté: ${motivo}` });
-    await avisarEnChat(admin, dueno, {
+    await notificar(admin, dueno, {
+      tipo: "cliente_te_toca",
       agente: "lola",
-      texto: `${quien} te escribió por WhatsApp: «${escribio}»\n\nNo le contesté: ${motivo} Contéstale desde [Necesita tu OK](/panel?vista=pendientes).`,
+      chat: `${quien} te escribió por WhatsApp: «${escribio}»\n\nNo le contesté: ${motivo} Contéstale desde [Necesita tu OK](/panel?vista=pendientes).`,
+      corto: `${cliente || "Un cliente"} te escribió por WhatsApp y te toca contestarle.`,
+      enlace: "/panel?vista=pendientes",
     });
     return { estado: "sin_respuesta", motivo };
   }
@@ -124,18 +130,27 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   //    - Meta no respondió: no se contesta nada (ni se usa la IA) hasta poder confirmarlo.
   async function pedirReconectar(porQue: string): Promise<ResultadoWhatsapp> {
     await marcar("sin_respuesta", { motivo: `No le contesté: ${porQue}` });
-    await avisarEnChat(admin, dueno, {
+    await notificar(admin, dueno, {
+      tipo: "whatsapp_reconectar",
       agente: "lola",
-      texto: `Un cliente te escribió por WhatsApp y no le pude contestar: ${porQue} Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) y luego contéstale desde [Necesita tu OK](/panel?vista=pendientes).`,
+      chat: `Un cliente te escribió por WhatsApp y no le pude contestar: ${porQue} Vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps) y luego contéstale desde [Necesita tu OK](/panel?vista=pendientes).`,
+      corto: "Un cliente te escribió por WhatsApp y no pude contestarle: vuelve a conectar Meta en Tu negocio → Apps.",
+      enlace: "/panel?vista=negocio&tab=apps",
+      // Una notificación cada 6 horas como mucho; en el chat, cada mensaje
+      clave: `whatsapp_reconectar:${Math.floor(Date.now() / (6 * 3_600_000))}`,
+      chatSiempre: true,
     });
     return { estado: "sin_respuesta", motivo: porQue };
   }
   async function soltarNumero(numeroId: string | null, porQue: string): Promise<ResultadoWhatsapp> {
     if (numeroId) await admin.from("whatsapp_numeros").delete().eq("phone_number_id", numeroId).eq("owner_id", dueno);
     await admin.from("whatsapp_mensajes").delete().eq("id", m.id).eq("owner_id", dueno);
-    await avisarEnChat(admin, dueno, {
+    await notificar(admin, dueno, {
+      tipo: "whatsapp_sin_mensajes",
       agente: "lola",
-      texto: `${porQue}, así que dejé de recibir aquí los mensajes de tu número de WhatsApp. Si es un error, vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+      chat: `${porQue}, así que dejé de recibir aquí los mensajes de tu número de WhatsApp. Si es un error, vuelve a conectar Meta en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+      corto: "Dejé de recibir los mensajes de tu número de WhatsApp. Si es un error, vuelve a conectar Meta.",
+      enlace: "/panel?vista=negocio&tab=apps",
     });
     return { estado: "sin_acceso" };
   }
@@ -272,7 +287,12 @@ ${perfilTexto}
     if (!respuesta) {
       await marcar("descartado", { motivo: motivo || "No hacía falta contestar." });
       // Igual te avisa: así nada se queda sin que lo sepas
-      await avisarEnChat(admin, dueno, { agente: "lola", texto: `${quien} te escribió por WhatsApp: «${escribio}». No hacía falta contestarle${motivo ? ` (${citar(motivo, 200)})` : ""}.` });
+      await notificar(admin, dueno, {
+        tipo: "lola_contesto",
+        agente: "lola",
+        chat: `${quien} te escribió por WhatsApp: «${escribio}». No hacía falta contestarle${motivo ? ` (${citar(motivo, 200)})` : ""}.`,
+        corto: `${cliente || "Un cliente"} te escribió por WhatsApp; no hacía falta contestarle.`,
+      });
       return { estado: "descartado" };
     }
 
@@ -291,9 +311,12 @@ ${perfilTexto}
 
     if (porQue) {
       await marcar("esperando_ok", { borrador: respuesta, motivo: `${motivo ? `${citar(motivo, 200)}. ` : ""}Te pregunto porque ${porQue}` });
-      await avisarEnChat(admin, dueno, {
+      await notificar(admin, dueno, {
+        tipo: "cliente_espera_ok",
         agente: "lola",
-        texto: `${quien} te escribió por WhatsApp: «${escribio}»\n\nLe quiero contestar: «${propuesta}»\n\nNecesito tu OK porque ${porQue} Apruébalo o cámbialo en [Necesita tu OK](/panel?vista=pendientes).`,
+        chat: `${quien} te escribió por WhatsApp: «${escribio}»\n\nLe quiero contestar: «${propuesta}»\n\nNecesito tu OK porque ${porQue} Apruébalo o cámbialo en [Necesita tu OK](/panel?vista=pendientes).`,
+        corto: `La respuesta para ${cliente || "un cliente"} está lista y espera tu OK.`,
+        enlace: "/panel?vista=pendientes",
       });
       return { estado: "esperando_ok" };
     }
@@ -301,17 +324,22 @@ ${perfilTexto}
     const envio = await mandarTexto({ token, phoneNumberId, a: m.telefono, texto: respuesta });
     if (!envio.ok) {
       await marcar("error", { borrador: respuesta, motivo: `No salió: ${envio.error}` });
-      await avisarEnChat(admin, dueno, {
+      await notificar(admin, dueno, {
+        tipo: "mensaje_no_llego",
         agente: "lola",
-        texto: `Le quise contestar a ${quien} por WhatsApp, pero no salió: ${envio.error}\n\nEscribió: «${escribio}»\nLe iba a decir: «${propuesta}»\n\nLo dejé en [Necesita tu OK](/panel?vista=pendientes) para que lo intentes de nuevo.`,
+        chat: `Le quise contestar a ${quien} por WhatsApp, pero no salió: ${envio.error}\n\nEscribió: «${escribio}»\nLe iba a decir: «${propuesta}»\n\nLo dejé en [Necesita tu OK](/panel?vista=pendientes) para que lo intentes de nuevo.`,
+        corto: `No salió la respuesta para ${cliente || "un cliente"} por WhatsApp; quedó en «Necesita tu OK».`,
+        enlace: "/panel?vista=pendientes",
       });
       return { estado: "error", motivo: envio.error };
     }
     await admin.from("whatsapp_mensajes").insert({ owner_id: dueno, telefono: m.telefono, nombre: m.nombre, direccion: "saliente", texto: respuesta, wa_id: envio.waId, estado: "enviado", autor: "lola" });
     await marcar("respondido", { motivo: motivo || "Contestado." });
-    await avisarEnChat(admin, dueno, {
+    await notificar(admin, dueno, {
+      tipo: "lola_contesto",
       agente: "lola",
-      texto: `Le contesté a ${quien} por WhatsApp.\n\nEscribió: «${escribio}»\nLe dije: «${propuesta}»`,
+      chat: `Le contesté a ${quien} por WhatsApp.\n\nEscribió: «${escribio}»\nLe dije: «${propuesta}»`,
+      corto: `Lola le contestó a ${cliente || "un cliente"} por WhatsApp.`,
     });
     return { estado: "respondido" };
   }
