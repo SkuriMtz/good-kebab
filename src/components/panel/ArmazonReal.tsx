@@ -16,6 +16,7 @@ import { ContextoChats } from "./contexto";
 import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO, useOrganizacionChats, type AccionesChats } from "./MenuChats";
 import { organizar, type OrganizacionChats } from "@/lib/organizacion-chats";
 import { nombresDe } from "./Mensajes";
+import { apagarAvisos, quitarAvisosDeTodos } from "@/lib/avisos-aparato";
 import { OfertaAvisos } from "./OfertaAvisos";
 import { PanelInfo, type TabInfo } from "./PanelInfo";
 import { PEDIDOS } from "./pedidos";
@@ -150,6 +151,8 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
       icono: "cerrar-sesion",
       peligroso: true,
       alElegir: async () => {
+        // Con la sesión todavía abierta: este aparato deja de recibir tus avisos
+        await apagarAvisos();
         await createClient().auth.signOut();
         router.replace("/");
         router.refresh();
@@ -158,6 +161,8 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   ];
 
   const salirA = async (alcance: "local" | "global") => {
+    // Antes de cerrar: este aparato (o, si es en todos lados, todos tus aparatos) deja de recibir tus avisos
+    await (alcance === "global" ? quitarAvisosDeTodos() : apagarAvisos());
     await createClient().auth.signOut({ scope: alcance });
     router.replace("/");
     router.refresh();

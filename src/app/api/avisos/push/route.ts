@@ -11,6 +11,7 @@ import { clienteServicio } from "@/lib/supabase/servicio";
  *   de push reales y llaves con la forma correcta; el nombre del aparato sale
  *   del navegador. Si es nuevo, te avisa en todos tus aparatos y en el chat.
  * - DELETE { id } o { endpoint } → quita un aparato (con RLS: solo los tuyos).
+ *   DELETE { todos: true } → quita todos (al cerrar la sesión en todos lados).
  */
 
 export const dynamic = "force-dynamic";
@@ -108,10 +109,11 @@ export async function DELETE(req: NextRequest) {
   const cuerpo = await leerCuerpo(req);
   const id = typeof cuerpo?.id === "string" && ID.test(cuerpo.id) ? cuerpo.id : null;
   const endpoint = endpointValido(cuerpo?.endpoint) ? cuerpo.endpoint : null;
-  if (!id && !endpoint) return error("Falta cuál aparato quitar.", 400);
+  const todos = cuerpo?.todos === true;
+  if (!id && !endpoint && !todos) return error("Falta cuál aparato quitar.", 400);
   // Con la sesión: RLS solo deja borrar los tuyos
   const q = supabase.from("suscripciones_push").delete();
-  const { error: e } = await (id ? q.eq("id", id) : q.eq("endpoint", endpoint as string));
+  const { error: e } = await (todos ? q.eq("owner_id", user.id) : id ? q.eq("id", id) : q.eq("endpoint", endpoint as string));
   if (e) return error("No pudimos quitar ese aparato. Intenta de nuevo.", 500);
   return NextResponse.json({ ok: true }, { headers: SIN_CACHE });
 }

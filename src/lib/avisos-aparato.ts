@@ -99,6 +99,17 @@ export async function apagarAvisos(): Promise<string | null> {
   }
 }
 
+/** Al cerrar la sesión en todos lados: ningún aparato vuelve a recibir tus avisos (y este se apaga aquí). */
+export async function quitarAvisosDeTodos(): Promise<void> {
+  try {
+    const s = await suscripcionActual().catch(() => null);
+    await s?.unsubscribe().catch(() => false);
+    await fetch("/api/avisos/push", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ todos: true }) });
+  } catch {
+    /* igual se cierra la sesión */
+  }
+}
+
 /* ---------- Instalar Atendel como app ---------- */
 
 type EventoInstalar = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
