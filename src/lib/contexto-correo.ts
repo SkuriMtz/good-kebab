@@ -34,7 +34,7 @@ const limpio = (texto: string | null | undefined, tope: number) => limpiarDato(t
 
 /** "Laura Méndez <laura@x.mx>" → "Laura Méndez"; sin nombre, el correo. */
 function quien(remitente: string | null) {
-  const t = (remitente ?? "").trim();
+  const t = (remitente ?? "").trim().slice(0, 500); // tope: el remitente viene de fuera
   const m = t.match(/^(.*?)\s*<([^>]+)>\s*$/);
   return limpio(m ? m[1].replace(/^["']|["']$/g, "") || m[2] : t, 120) || "Sin remitente";
 }

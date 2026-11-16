@@ -343,27 +343,135 @@ export function decodificarEntidades(texto: string): string {
   });
 }
 
-/** El HTML de una página → su título y su texto (sin script, style, nav ni etiquetas). */
-export function htmlATexto(html: string): { titulo: string; texto: string } {
-  const tituloCrudo = /<title[^>]*>([\s\S]*?)<\/title\s*>/i.exec(html)?.[1] ?? "";
-  const titulo = normalizarTexto(decodificarEntidades(tituloCrudo.replace(/<[^>]*>/g, ""))).replace(/\s+/g, " ").trim();
-  let t = html
-    .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, " ");
-  for (const etiqueta of ["script", "style", "nav", "noscript", "template", "svg", "iframe", "object", "canvas"]) {
-    t = t.replace(new RegExp(`<${etiqueta}\\b[\\s\\S]*?<\\/${etiqueta}\\s*>`, "gi"), " ");
-    t = t.replace(new RegExp(`<${etiqueta}\\b[^>]*\\/?>`, "gi"), " "); // sin cierre
+/** Lo más que se lee de una página: lo de más es basura o un intento de trabar el proceso. */
+const MAX_HTML = 600_000;
+/** Etiquetas que se quitan con todo y su contenido (si tienen cierre). */
+const BLOQUES_OCULTOS = new Set(["head", "script", "style", "nav", "noscript", "template", "svg", "iframe", "object", "canvas"]);
+const APERTURA_LISTA = "li";
+/** Cierres → lo que dejan en su lugar. */
+const CIERRES: Record<string, string> = {
+  li: " ", dd: "\n", dt: "\n", tr: "\n",
+  p: "\n\n", div: "\n\n", section: "\n\n", article: "\n\n", header: "\n\n", footer: "\n\n", main: "\n\n", aside: "\n\n",
+  h1: "\n\n", h2: "\n\n", h3: "\n\n", h4: "\n\n", h5: "\n\n", h6: "\n\n",
+  ul: "\n\n", ol: "\n\n", table: "\n\n", blockquote: "\n\n", pre: "\n\n", figure: "\n\n", figcaption: "\n\n", address: "\n\n",
+  td: " · ", th: " · ",
+};
+/** Aperturas → lo que dejan en su lugar (la de <li> va aparte). */
+const APERTURAS = new Set(["p", "div", "section", "article", "h1", "h2", "h3", "h4", "h5", "h6", "tr", "table", "blockquote", "pre", "address"]);
+const ESPACIO_Y_MAYOR = /\s*>/y;
+const BR = /<br\s*\/?>/y;
+
+const esPalabra = (c: number) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || c === 95 || (c >= 97 && c <= 122);
+
+/** Dónde empieza (`ini`) y termina (`fin`) el primer `</nombre\s*>` desde `desde` (en minúsculas); null si no hay. Recorre una sola vez. */
+function buscarCierre(bajo: string, nombre: string, desde: number): { ini: number; fin: number } | null {
+  const marca = `</${nombre}`;
+  let p = bajo.indexOf(marca, desde);
+  while (p >= 0) {
+    ESPACIO_Y_MAYOR.lastIndex = p + marca.length;
+    if (ESPACIO_Y_MAYOR.test(bajo)) return { ini: p, fin: ESPACIO_Y_MAYOR.lastIndex };
+    p = bajo.indexOf(marca, p + 1);
   }
-  t = t
-    .replace(/<li\b[^>]*>/gi, "\n- ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/li\s*>/gi, " ")
-    .replace(/<\/(dd|dt|tr)\s*>/gi, "\n")
-    .replace(/<\/(p|div|section|article|header|footer|main|aside|h[1-6]|ul|ol|table|blockquote|pre|figure|figcaption|address)\s*>/gi, "\n\n")
-    .replace(/<(p|div|section|article|h[1-6]|tr|table|blockquote|pre|address)\b[^>]*>/gi, "\n")
-    .replace(/<\/(td|th)\s*>/gi, " · ")
-    .replace(/<[^>]*>/g, " ");
-  return { titulo, texto: normalizarTexto(decodificarEntidades(t)) };
+  return null;
+}
+
+/** Título de la página (el texto del primer <title>…</title>), sin recorridos con retroceso. */
+function tituloCrudo(s: string, bajo: string): string {
+  const ini = bajo.indexOf("<title");
+  if (ini < 0) return "";
+  const finApertura = s.indexOf(">", ini + 6);
+  if (finApertura < 0) return "";
+  const cierre = buscarCierre(bajo, "title", finApertura + 1);
+  if (!cierre) return "";
+  return s.slice(finApertura + 1, cierre.ini).slice(0, 2000);
+}
+
+/**
+ * El HTML de una página → su título y su texto (sin script, style, nav ni etiquetas).
+ * Un solo recorrido con cursor que siempre avanza (sin regex con retroceso sobre el
+ * texto completo): una página maliciosa no puede trabar el proceso.
+ */
+export function htmlATexto(html: string): { titulo: string; texto: string } {
+  const s = String(html ?? "").slice(0, MAX_HTML);
+  const bajo = s.replace(/[A-Z]+/g, (m) => m.toLowerCase()); // misma longitud que `s`
+  const n = s.length;
+  const titulo = normalizarTexto(decodificarEntidades(tituloCrudo(s, bajo).replace(/<[^>]*>/g, " "))).replace(/\s+/g, " ").trim();
+
+  const sinCierre = new Set<string>(); // si un cierre no está una vez, no está más adelante
+  let sinComentarioCierre = false;
+  let sinMayor = false; // si ya no hay ">" desde aquí, ningún "<" posterior es etiqueta
+  let salida = "";
+  let i = 0;
+  while (i < n) {
+    const lt = s.indexOf("<", i);
+    if (lt < 0) {
+      salida += s.slice(i);
+      break;
+    }
+    salida += s.slice(i, lt);
+    i = lt;
+
+    // <!-- comentario -->
+    if (bajo.startsWith("<!--", lt) && !sinComentarioCierre) {
+      const fin = s.indexOf("-->", lt + 4);
+      if (fin < 0) sinComentarioCierre = true;
+      else {
+        salida += " ";
+        i = fin + 3;
+        continue;
+      }
+    }
+
+    // Nombre de la etiqueta (letras, números y _), con o sin "/"
+    const cierra = bajo.charCodeAt(lt + 1) === 47; // "/"
+    let k = lt + (cierra ? 2 : 1);
+    const iniNombre = k;
+    while (k < n && esPalabra(bajo.charCodeAt(k))) k++;
+    const nombre = bajo.slice(iniNombre, k);
+
+    if (!cierra && BLOQUES_OCULTOS.has(nombre) && !sinCierre.has(nombre)) {
+      const cierre = buscarCierre(bajo, nombre, k);
+      if (!cierre) sinCierre.add(nombre);
+      else {
+        salida += " ";
+        i = cierre.fin;
+        continue;
+      }
+    }
+
+    if (!cierra && nombre === "br") {
+      BR.lastIndex = lt;
+      if (BR.test(bajo)) {
+        salida += "\n";
+        i = BR.lastIndex;
+        continue;
+      }
+    }
+
+    if (cierra && nombre in CIERRES) {
+      ESPACIO_Y_MAYOR.lastIndex = k;
+      if (ESPACIO_Y_MAYOR.test(bajo)) {
+        salida += CIERRES[nombre];
+        i = ESPACIO_Y_MAYOR.lastIndex;
+        continue;
+      }
+    }
+
+    // Cualquier etiqueta: de "<" al primer ">" (con al menos un carácter dentro)
+    const mayor = sinMayor ? -1 : s.indexOf(">", lt + 1);
+    if (mayor < 0) {
+      sinMayor = true;
+      salida += "<";
+      i = lt + 1;
+    } else if (mayor === lt + 1) {
+      salida += "<"; // "<>" se queda como texto
+      i = lt + 1;
+    } else {
+      salida += !cierra && nombre === APERTURA_LISTA ? "\n- " : !cierra && APERTURAS.has(nombre) ? "\n" : " ";
+      i = mayor + 1;
+    }
+  }
+  return { titulo, texto: normalizarTexto(decodificarEntidades(salida)) };
 }
 
 /** Bytes de una página o texto → string, con el charset que dijo el servidor o la página. */

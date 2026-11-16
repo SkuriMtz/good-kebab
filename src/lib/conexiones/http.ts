@@ -193,19 +193,80 @@ export function linea(texto: unknown, max = 200): string {
   return t.length > max ? `${t.slice(0, max - 1)}…` : t;
 }
 
-/** HTML → texto legible (para correos sin parte de texto plano). */
+/** Lo más que se lee de un HTML: lo de más es basura o un intento de trabar el proceso. */
+const MAX_HTML = 300_000;
+const BLOQUES_OCULTOS = ["script", "style", "head"] as const;
+const CIERRE_BR = /<br\s*\/?>/y;
+const CIERRE_BLOQUE = /<\/(?:p|div|tr|li|h[1-6])>/y;
+const ENTIDADES_HTML: Record<string, string> = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" };
+
+/**
+ * HTML → texto legible (para correos sin parte de texto plano).
+ * Un solo recorrido con cursor que siempre avanza (sin regex con retroceso sobre
+ * el texto completo): un correo malicioso no puede trabar el proceso.
+ */
 export function sinHtml(html: string): string {
-  return html
-    .replace(/<(script|style|head)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|tr|li|h[1-6])>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+  const s = String(html ?? "").slice(0, MAX_HTML);
+  const bajo = s.replace(/[A-Z]+/g, (m) => m.toLowerCase()); // misma longitud que `s`
+  const n = s.length;
+  const sinCierre = new Set<string>(); // si un cierre no está una vez, no está más adelante
+  let sinMayor = false; // si ya no hay ">" desde aquí, ningún "<" posterior es etiqueta
+  let salida = "";
+  let i = 0;
+  while (i < n) {
+    const lt = s.indexOf("<", i);
+    if (lt < 0) {
+      salida += s.slice(i);
+      break;
+    }
+    salida += s.slice(i, lt);
+    i = lt;
+
+    // <script>…</script>, <style>…</style>, <head>…</head>: se quitan con todo y contenido
+    let quitado = false;
+    for (const nombre of BLOQUES_OCULTOS) {
+      if (sinCierre.has(nombre) || !bajo.startsWith(nombre, lt + 1)) continue;
+      const cierre = `</${nombre}>`;
+      const fin = bajo.indexOf(cierre, lt + 1 + nombre.length);
+      if (fin < 0) sinCierre.add(nombre);
+      else {
+        salida += " ";
+        i = fin + cierre.length;
+        quitado = true;
+      }
+      break;
+    }
+    if (quitado) continue;
+
+    CIERRE_BR.lastIndex = lt;
+    if (CIERRE_BR.test(bajo)) {
+      salida += "\n";
+      i = CIERRE_BR.lastIndex;
+      continue;
+    }
+    CIERRE_BLOQUE.lastIndex = lt;
+    if (CIERRE_BLOQUE.test(bajo)) {
+      salida += "\n";
+      i = CIERRE_BLOQUE.lastIndex;
+      continue;
+    }
+
+    // Cualquier otra etiqueta: de "<" al primer ">" (con al menos un carácter dentro)
+    const mayor = sinMayor ? -1 : s.indexOf(">", lt + 1);
+    if (mayor < 0) {
+      sinMayor = true;
+      salida += "<";
+      i = lt + 1;
+    } else if (mayor === lt + 1) {
+      salida += "<"; // "<>" se queda como texto
+      i = lt + 1;
+    } else {
+      salida += " ";
+      i = mayor + 1;
+    }
+  }
+  return salida
+    .replace(/&(nbsp|amp|lt|gt|quot|#39);/gi, (_t, e: string) => ENTIDADES_HTML[e.toLowerCase()])
     .replace(/[ \t]+/g, " ")
     .replace(/\n\s*\n\s*/g, "\n\n")
     .trim();

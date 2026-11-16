@@ -280,7 +280,7 @@ export function accionValida(texto: string | null | undefined): string | null {
 
 /** "Laura Méndez <laura@x.mx>" → nombre y correo; "laura@x.mx" → los dos iguales. */
 export function partirRemitente(remitente: string | null | undefined): { clave: string; nombre: string; correo: string | null } | null {
-  const texto = (remitente ?? "").trim();
+  const texto = (remitente ?? "").trim().slice(0, 500); // tope: el remitente viene de fuera
   if (!texto) return null;
   const conAngulos = texto.match(/^(.*?)\s*<([^>]+)>\s*$/);
   const correo = (conAngulos ? conAngulos[2] : /^[^\s@]+@[^\s@]+$/.test(texto) ? texto : "").trim().toLowerCase() || null;
