@@ -35,6 +35,8 @@ export async function POST() {
     corto: "Así te van a llegar los avisos de Atendel.",
     enlace: "/panel?vista=ajustes&seccion=notificaciones",
     forzar: true,
+    // La prueba es de los aparatos; el WhatsApp ya te confirmó al conectarlo
+    soloApp: true,
   });
   return NextResponse.json({ resultado }, { headers: { "Cache-Control": "private, no-store" } });
 }

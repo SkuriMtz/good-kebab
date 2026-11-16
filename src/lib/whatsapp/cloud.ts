@@ -35,7 +35,8 @@ export function firmaValida(cuerpo: Buffer, firma: string | null): boolean {
 }
 
 export type Entrante = { waId: string; de: string; nombre: string | null; texto: string; en: number };
-export type EstadoSalida = { waId: string; estado: string; error: string | null };
+/** Cómo le fue a algo que se mandó: a quién (para), y si falló, por qué (error y su código de Meta). */
+export type EstadoSalida = { waId: string; estado: string; error: string | null; para: string | null; codigo: number | null };
 export type AvisoMeta = { phoneNumberId: string; mensajes: Entrante[]; estados: EstadoSalida[] };
 
 /** Lo que mandó el cliente, en texto (lo que no es texto se describe). Vacío: no es un mensaje nuevo. */
@@ -120,7 +121,9 @@ export function leerAviso(payload: unknown): AvisoMeta[] {
         if (!waId || !estado) continue;
         const err = obj(lista(x.errors)[0]);
         const detalle = txt(obj(err.error_data).details, 200) || txt(err.title, 200) || txt(err.message, 200);
-        estados.push({ waId, estado, error: detalle || null });
+        const para = txt(x.recipient_id, 30);
+        const codigo = Number(err.code);
+        estados.push({ waId, estado, error: detalle || null, para: NUMERO.test(para) ? para : null, codigo: Number.isFinite(codigo) && codigo > 0 ? codigo : null });
       }
       if (mensajes.length || estados.length) avisos.push({ phoneNumberId, mensajes, estados });
     }

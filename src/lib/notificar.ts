@@ -4,6 +4,7 @@ import type { IdAgente } from "./agentes";
 import { limpiarAjustes, type Avisos, type ModoAviso } from "./ajustes";
 import { avisarEnChat, chatDeAvisos } from "./avisos";
 import { ENLACE_PANEL, mandarPush, type MensajePush, type NivelPush } from "./push";
+import { destinoWhatsapp, mandarAvisoWhatsapp } from "./whatsapp/aviso-plantilla";
 
 /**
  * UN SOLO LUGAR PARA AVISAR. Cada aviso:
@@ -55,6 +56,8 @@ export const AVISOS = {
   // Tu cuenta y seguridad
   entrada_nueva: { nivel: "urgente", titulo: "Entraron a tu cuenta desde un aparato nuevo", siempre: true }, // 41
   aparato_nuevo: { nivel: "urgente", titulo: "Avisos en un aparato nuevo", siempre: true }, // 42
+  whatsapp_avisos_conectado: { nivel: "urgente", titulo: "Se conectó un WhatsApp para avisos", siempre: true }, // 42
+  whatsapp_avisos_problema: { nivel: "importante", titulo: "No te llegan los avisos por WhatsApp" },
   cuenta_cambio: { nivel: "importante", titulo: "Cambió algo de tu cuenta" }, // 43
   // Uso, plan e informes
   uso_80: { nivel: "importante", titulo: "Vas en el 80 % de tu semana", grupo: "uso" }, // 46
@@ -224,6 +227,64 @@ async function mensajeDe(admin: SupabaseClient, dueno: string, av: Avisos, filas
   };
 }
 
+/* ---------- Por WhatsApp ---------- */
+
+/** Lo más que se manda por WhatsApp en 24 horas (cada mensaje de plantilla lo cobra Meta). */
+const TOPE_WHATSAPP = 20;
+const DISCRETO_WA = "Tienes un aviso nuevo de Atendel.";
+
+/** Cuándo salió el último aviso informativo por ese lugar (para juntarlos: máximo uno cada 3 horas). */
+async function ultimoInfoDe(admin: SupabaseClient, dueno: string, canal: "app" | "whatsapp"): Promise<Date | null> {
+  const columna = canal === "app" ? "enviado_en" : "wa_enviado_en";
+  const { data } = await admin
+    .from("avisos_salida")
+    .select(columna)
+    .eq("owner_id", dueno)
+    .eq("nivel", "info")
+    .eq(canal, "enviado")
+    .not(columna, "is", null)
+    .order(columna, { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const v = (data as Record<string, unknown> | null)?.[columna];
+  return v ? new Date(String(v)) : null;
+}
+
+/** Cuántos WhatsApp de avisos salieron en las últimas 24 horas. */
+async function enviadosWaHoy(admin: SupabaseClient, dueno: string): Promise<number> {
+  const { count } = await admin
+    .from("avisos_salida")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", dueno)
+    .eq("whatsapp", "enviado")
+    .gte("wa_enviado_en", new Date(Date.now() - 86_400_000).toISOString());
+  return count ?? 0;
+}
+
+/**
+ * Manda por WhatsApp (ya apartado). Si no sale, esos avisos quedan en
+ * «fallo»; si el número ya no puede recibir, se pausa y te avisa en el chat
+ * y en la app.
+ */
+async function mandarPorWhatsapp(admin: SupabaseClient, dueno: string, numero: string, texto: string, enlace: string, ids: string[]): Promise<boolean> {
+  const r = await mandarAvisoWhatsapp({ a: numero, texto, enlace });
+  if (r.ok) return true;
+  await admin.from("avisos_salida").update({ whatsapp: "fallo" }).eq("owner_id", dueno).in("id", ids);
+  if (r.permanente) {
+    await admin.from("avisos_whatsapp").update({ pausado: true, motivo: "WhatsApp no pudo entregar los avisos a este número.", actualizado_en: new Date().toISOString() }).eq("owner_id", dueno);
+    await notificar(admin, dueno, {
+      tipo: "whatsapp_avisos_problema",
+      agente: "iris",
+      chat: "No te pudieron llegar los avisos por WhatsApp a tu número, así que los pausé. Revisa tu número y vuelve a conectarlo en [Ajustes → Notificaciones](/panel?vista=ajustes&seccion=notificaciones).",
+      corto: "No te pudieron llegar los avisos por WhatsApp; los pausé. Revisa tu número en Ajustes.",
+      enlace: "/panel?vista=ajustes&seccion=notificaciones",
+      clave: `wa_problema:${new Date().toISOString().slice(0, 10)}`,
+      soloApp: true,
+    });
+  }
+  return false;
+}
+
 /* ---------- Avisar ---------- */
 
 export type ResultadoAviso = "enviado" | "pendiente" | "omitido" | "fallo" | "repetido";
@@ -252,6 +313,8 @@ export async function notificar(
     revisar?: string;
     /** El aparato que hizo el cambio (el hash de su cookie): a ese no se le avisa. */
     excepto?: string | null;
+    /** Solo a la app, no a WhatsApp (la prueba de los aparatos y los avisos sobre el propio WhatsApp). */
+    soloApp?: boolean;
   },
 ): Promise<ResultadoAviso> {
   const def: DefAviso = AVISOS[a.tipo];
@@ -264,29 +327,26 @@ export async function notificar(
   };
   try {
     const ahora = new Date();
-    const [{ data: filaAjustes }, { count: aparatos }] = await Promise.all([
+    const [{ data: filaAjustes }, { count: aparatos }, wa] = await Promise.all([
       admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle(),
       admin.from("suscripciones_push").select("id", { count: "exact", head: true }).eq("owner_id", dueno),
+      a.soloApp ? Promise.resolve(null) : destinoWhatsapp(admin, dueno),
     ]);
     const aj = limpiarAjustes(filaAjustes?.datos);
-    let ultimoInfo: Date | null = null;
-    if (aparatos && def.nivel === "info" && aj.avisos.app === "todo" && !a.forzar) {
-      const { data: u } = await admin
-        .from("avisos_salida")
-        .select("enviado_en")
-        .eq("owner_id", dueno)
-        .eq("nivel", "info")
-        .eq("app", "enviado")
-        .not("enviado_en", "is", null)
-        .order("enviado_en", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      ultimoInfo = u?.enviado_en ? new Date(String(u.enviado_en)) : null;
-    }
+    const ultimoInfo = aparatos && def.nivel === "info" && aj.avisos.app === "todo" && !a.forzar ? await ultimoInfoDe(admin, dueno, "app") : null;
     // Un recordatorio se decide como si fuera la hora en que le toca salir
     const base = a.despues && a.despues.getTime() > ahora.getTime() ? a.despues : ahora;
     let cuando = !aparatos ? "nunca" : a.forzar ? "ahora" : decidirApp({ nivel: def.nivel, siempre: def.siempre, av: aj.avisos, ahora: base, zona: aj.zonaHoraria, ultimoInfo });
     if (cuando === "ahora" && base !== ahora) cuando = base;
+    // WhatsApp: su propio nivel (por omisión, lo importante), las mismas horas de silencio y un tope por día
+    let cuandoWa: "ahora" | "nunca" | Date = "nunca";
+    if (wa) {
+      const avWa = { ...aj.avisos, app: aj.avisos.whatsapp };
+      const ultimoWa = def.nivel === "info" && avWa.app === "todo" && !a.forzar ? await ultimoInfoDe(admin, dueno, "whatsapp") : null;
+      cuandoWa = a.forzar ? "ahora" : decidirApp({ nivel: def.nivel, siempre: def.siempre, av: avWa, ahora: base, zona: aj.zonaHoraria, ultimoInfo: ultimoWa });
+      if (cuandoWa === "ahora" && base !== ahora) cuandoWa = base;
+      if (cuandoWa === "ahora" && !a.forzar && (await enviadosWaHoy(admin, dueno)) >= TOPE_WHATSAPP) cuandoWa = finDelSilencio(aj.avisos, ahora, aj.zonaHoraria);
+    }
     const revisar = a.revisar && REVISAR.test(a.revisar) ? a.revisar : null;
 
     const enlaceValido = a.enlace && ENLACE_PANEL.test(a.enlace) ? a.enlace : null;
@@ -307,6 +367,8 @@ export async function notificar(
         siempre: Boolean(def.siempre || a.forzar),
         app: cuando === "nunca" ? "omitido" : "pendiente",
         enviar_desde: (cuando instanceof Date ? cuando : ahora).toISOString(),
+        whatsapp: cuandoWa === "nunca" ? "omitido" : "pendiente",
+        wa_desde: (cuandoWa instanceof Date ? cuandoWa : ahora).toISOString(),
         revisar,
         agente: a.agente,
       })
@@ -320,23 +382,31 @@ export async function notificar(
       return repetido ? "repetido" : "fallo";
     }
     await escribirChat();
-    if (cuando === "nunca") return "omitido";
-    if (cuando !== "ahora") return "pendiente";
+    const id = String(fila.id);
 
-    // Se aparta antes de mandar: si /api/trabajo?que=avisos pasa al mismo tiempo, no sale dos veces
-    const { data: apartada } = await admin
-      .from("avisos_salida")
-      .update({ app: "enviado", enviado_en: ahora.toISOString() })
-      .eq("id", fila.id)
-      .eq("app", "pendiente")
-      .select("id");
-    if (!apartada?.length) return "enviado";
-    const m = await mensajeDe(admin, dueno, aj.avisos, [
-      { id: String(fila.id), tipo: a.tipo, nivel: def.nivel, titulo: def.titulo, texto, enlace, grupo: def.grupo ?? null, siempre: Boolean(def.siempre) },
-    ]);
-    const r = await mandarPush(admin, dueno, m, a.excepto);
-    if (!r.enviados) await admin.from("avisos_salida").update({ app: r.aparatos ? "fallo" : "omitido" }).eq("id", fila.id);
-    return r.enviados ? "enviado" : r.aparatos ? "fallo" : "omitido";
+    // La notificación de la app
+    let enApp: ResultadoAviso = cuando === "nunca" ? "omitido" : "pendiente";
+    if (cuando === "ahora") {
+      // Se aparta antes de mandar: si /api/trabajo?que=avisos pasa al mismo tiempo, no sale dos veces
+      const { data: apartada } = await admin.from("avisos_salida").update({ app: "enviado", enviado_en: ahora.toISOString() }).eq("id", id).eq("app", "pendiente").select("id");
+      enApp = "enviado";
+      if (apartada?.length) {
+        const m = await mensajeDe(admin, dueno, aj.avisos, [{ id, tipo: a.tipo, nivel: def.nivel, titulo: def.titulo, texto, enlace, grupo: def.grupo ?? null, siempre: Boolean(def.siempre) }]);
+        const r = await mandarPush(admin, dueno, m, a.excepto);
+        if (!r.enviados) await admin.from("avisos_salida").update({ app: r.aparatos ? "fallo" : "omitido" }).eq("id", id);
+        enApp = r.enviados ? "enviado" : r.aparatos ? "fallo" : "omitido";
+      }
+    }
+    // El WhatsApp
+    let enWa: ResultadoAviso = cuandoWa === "nunca" ? "omitido" : "pendiente";
+    if (cuandoWa === "ahora" && wa) {
+      const { data: apartado } = await admin.from("avisos_salida").update({ whatsapp: "enviado", wa_enviado_en: ahora.toISOString() }).eq("id", id).eq("whatsapp", "pendiente").select("id");
+      enWa = "enviado";
+      if (apartado?.length) enWa = (await mandarPorWhatsapp(admin, dueno, wa, aj.avisos.discretos ? DISCRETO_WA : texto, enlace, [id])) ? "enviado" : "fallo";
+    }
+    if (enApp === "enviado" || enWa === "enviado") return "enviado";
+    if (enApp === "pendiente" || enWa === "pendiente") return "pendiente";
+    return enApp === "fallo" || enWa === "fallo" ? "fallo" : "omitido";
   } catch (e) {
     console.error("Aviso falló:", e instanceof Error ? e.message : e);
     // Mejor un aviso en el chat que ninguno
@@ -467,17 +537,121 @@ async function soltarDe(admin: SupabaseClient, dueno: string): Promise<boolean> 
   return r.enviados > 0;
 }
 
+/** Lo de WhatsApp que ya toca de una cuenta: sale junto, en un solo mensaje. */
+async function soltarWhatsappDe(admin: SupabaseClient, dueno: string): Promise<boolean> {
+  const ahora = new Date();
+  const { data } = await admin
+    .from("avisos_salida")
+    .select("id, tipo, nivel, titulo, texto, enlace, grupo, siempre, revisar")
+    .eq("owner_id", dueno)
+    .eq("whatsapp", "pendiente")
+    .lte("wa_desde", ahora.toISOString())
+    .order("creado_en", { ascending: true })
+    .limit(50);
+  const todas = ((data ?? []) as FilaAviso[]).map((f) => ({ ...f, id: String(f.id) }));
+  if (!todas.length) return false;
+  const omitir = async (filas: FilaAviso[]) => {
+    if (filas.length)
+      await admin
+        .from("avisos_salida")
+        .update({ whatsapp: "omitido" })
+        .eq("owner_id", dueno)
+        .in(
+          "id",
+          filas.map((f) => f.id),
+        );
+  };
+  // Si ya no hay a dónde (se quitó, se pausó o falta configurarlo), no sale
+  const numero = await destinoWhatsapp(admin, dueno);
+  if (!numero) {
+    await omitir(todas);
+    return false;
+  }
+  const { data: filaAjustes } = await admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle();
+  const aj = limpiarAjustes(filaAjustes?.datos);
+  const avWa = { ...aj.avisos, app: aj.avisos.whatsapp };
+
+  // Recordatorios ya resueltos y lo que ya no toca (cambió el nivel): no salen
+  const fuera: FilaAviso[] = [];
+  for (const f of todas) {
+    if (!f.siempre && !pasaElNivel(avWa.app, f.nivel)) fuera.push(f);
+    else if (f.revisar && !(await sigueVigente(admin, dueno, f.revisar))) fuera.push(f);
+  }
+  await omitir(fuera);
+  const tocan = todas.filter((f) => !fuera.includes(f));
+  // Horas de silencio y tope del día: esperan
+  const callado = enSilencio(aj.avisos, ahora, aj.zonaHoraria);
+  const lleno = (await enviadosWaHoy(admin, dueno)) >= TOPE_WHATSAPP;
+  const esperan = lleno ? tocan : callado ? tocan.filter((f) => !f.siempre && !(f.nivel === "urgente" && aj.avisos.urgentePasa)) : [];
+  if (esperan.length)
+    await admin
+      .from("avisos_salida")
+      .update({ wa_desde: finDelSilencio(aj.avisos, ahora, aj.zonaHoraria).toISOString() })
+      .eq("owner_id", dueno)
+      .in(
+        "id",
+        esperan.map((f) => f.id),
+      );
+  const salen = tocan.filter((f) => !esperan.includes(f));
+  if (!salen.length) return false;
+
+  // Se apartan (si otra vuelta llega al mismo tiempo, no salen dos veces)
+  const { data: apartadas } = await admin
+    .from("avisos_salida")
+    .update({ whatsapp: "junto", wa_enviado_en: ahora.toISOString() })
+    .eq("owner_id", dueno)
+    .eq("whatsapp", "pendiente")
+    .in(
+      "id",
+      salen.map((f) => f.id),
+    )
+    .select("id");
+  const ids = new Set((apartadas ?? []).map((f) => String(f.id)));
+  const van = salen.filter((f) => ids.has(f.id));
+  if (!van.length) return false;
+  const ultimo = van[van.length - 1];
+  const deOk = van.every((f) => f.grupo === "pendientes");
+  const enlace = van.length === 1 ? ultimo.enlace : deOk ? "/panel?vista=pendientes" : (van.find((f) => f.enlace.startsWith("/panel?c="))?.enlace ?? "/panel");
+  const texto = aj.avisos.discretos
+    ? DISCRETO_WA
+    : van.length === 1
+      ? ultimo.texto
+      : `Tienes ${van.length} avisos nuevos: ${van
+          .slice(-3)
+          .reverse()
+          .map((f) => f.texto)
+          .join(" · ")}`.slice(0, 600);
+  const ok = await mandarPorWhatsapp(
+    admin,
+    dueno,
+    numero,
+    texto,
+    enlace,
+    van.map((f) => f.id),
+  );
+  if (ok) await admin.from("avisos_salida").update({ whatsapp: "enviado" }).eq("id", ultimo.id).eq("owner_id", dueno);
+  return ok;
+}
+
 export async function soltarAvisos(admin: SupabaseClient, tiempo = 40_000): Promise<{ cuentas: number; enviadas: number }> {
   const empezo = Date.now();
-  const { data } = await admin.from("avisos_salida").select("owner_id").eq("app", "pendiente").lte("enviar_desde", new Date().toISOString()).order("enviar_desde", { ascending: true }).limit(500);
-  const duenos = Array.from(new Set((data ?? []).map((f) => String(f.owner_id))));
+  const ya = new Date().toISOString();
+  const [{ data: deApp }, { data: deWa }] = await Promise.all([
+    admin.from("avisos_salida").select("owner_id").eq("app", "pendiente").lte("enviar_desde", ya).order("enviar_desde", { ascending: true }).limit(500),
+    admin.from("avisos_salida").select("owner_id").eq("whatsapp", "pendiente").lte("wa_desde", ya).order("wa_desde", { ascending: true }).limit(500),
+  ]);
+  const app = new Set((deApp ?? []).map((f) => String(f.owner_id)));
+  const wa = new Set((deWa ?? []).map((f) => String(f.owner_id)));
+  const duenos = Array.from(new Set([...Array.from(app), ...Array.from(wa)]));
   let cuentas = 0;
   let enviadas = 0;
   for (const d of duenos) {
     if (Date.now() - empezo > tiempo) break;
     try {
       cuentas++;
-      if (await soltarDe(admin, d)) enviadas++;
+      const enApp = app.has(d) ? await soltarDe(admin, d) : false;
+      const enWa = wa.has(d) ? await soltarWhatsappDe(admin, d) : false;
+      if (enApp || enWa) enviadas++;
     } catch (e) {
       console.error("Soltar avisos falló:", e instanceof Error ? e.message : e);
     }

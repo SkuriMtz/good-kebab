@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { citar } from "@/lib/avisos";
 import { nombreSeguro, notificar } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
+import { idNumeroAtendel } from "@/lib/whatsapp/aviso-plantilla";
+import { falloDelNumeroDeAtendel, mensajeAlNumeroDeAtendel } from "@/lib/whatsapp/avisos-dueno";
 import { firmaValida, leerAviso } from "@/lib/whatsapp/cloud";
 
 /**
@@ -16,6 +18,8 @@ import { firmaValida, leerAviso } from "@/lib/whatsapp/cloud";
  *   datos le pide al servidor que Lola conteste (migración 0022). Aquí no se
  *   espera a la IA: Meta necesita la respuesta rápido.
  * - Si algo no se pudo guardar, contesta 500 para que Meta lo vuelva a mandar.
+ * - Lo que llega al número de Atendel (WHATSAPP_ENVIO_TELEFONO_ID) no es de un
+ *   cliente: son dueños conectando o pausando sus avisos (avisos-dueno.ts).
  */
 
 export const dynamic = "force-dynamic";
@@ -61,7 +65,14 @@ export async function POST(req: NextRequest) {
 
   const duenos = new Map<string, string | null>();
   let fallo = false;
+  const deAtendel = idNumeroAtendel();
   for (const a of avisos) {
+    // Lo que llega al número de Atendel (no al de un negocio): los dueños conectando o pausando sus avisos
+    if (deAtendel && a.phoneNumberId === deAtendel) {
+      for (const m of a.mensajes) await mensajeAlNumeroDeAtendel(admin, m).catch((e) => console.error("WhatsApp de Atendel:", e instanceof Error ? e.message : e));
+      for (const s of a.estados) await falloDelNumeroDeAtendel(admin, s).catch((e) => console.error("WhatsApp de Atendel (estado):", e instanceof Error ? e.message : e));
+      continue;
+    }
     if (!duenos.has(a.phoneNumberId)) {
       const { data, error } = await admin.from("whatsapp_numeros").select("owner_id").eq("phone_number_id", a.phoneNumberId).maybeSingle();
       if (error) fallo = true;
