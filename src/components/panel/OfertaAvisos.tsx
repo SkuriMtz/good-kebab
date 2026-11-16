@@ -11,7 +11,8 @@ const VISTO = "atendel:avisos-oferta";
  * Una sola vez en el panel: «¿Te aviso en este aparato?». Si dices que no,
  * no vuelve a salir (se activa cuando quieras en Ajustes → Notificaciones).
  * En iPhone sin instalar, explica cómo instalar Atendel primero.
- * También registra el trabajador de las notificaciones (public/sw.js).
+ * También registra el trabajador de las notificaciones (public/sw.js) y
+ * anota este aparato (/api/avisos/entrada: aviso si entras desde uno nuevo).
  */
 export function OfertaAvisos() {
   const [modo, setModo] = useState<"activar" | "instalar-ios" | null>(null);
@@ -20,6 +21,15 @@ export function OfertaAvisos() {
 
   useEffect(() => {
     void registrarTrabajador();
+    // Una vez por visita: anota este aparato (si entraste desde uno nuevo, te avisa en los demás)
+    try {
+      if (!sessionStorage.getItem("atendel:entrada")) {
+        sessionStorage.setItem("atendel:entrada", "1");
+        void fetch("/api/avisos/entrada", { method: "POST" }).catch(() => undefined);
+      }
+    } catch {
+      void fetch("/api/avisos/entrada", { method: "POST" }).catch(() => undefined);
+    }
     let visto = true;
     try {
       visto = localStorage.getItem(VISTO) === "1";

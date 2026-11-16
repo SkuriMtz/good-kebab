@@ -6,7 +6,7 @@ import { citar } from "../avisos";
 import { bloqueCerebro, cargarCerebro, verificarContraReglas, type Regla } from "../cerebro";
 import { ErrorConexion, obtenerToken } from "../conexiones/tokens";
 import { cargarCuenta } from "../cuenta";
-import { nombreSeguro, notificar } from "../notificar";
+import { nombreSeguro, notificar, recordar } from "../notificar";
 import { MODELOS } from "../planes";
 import { inicioSemana } from "../trabajo";
 import { Gasto } from "../uso";
@@ -81,6 +81,17 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   const escribio = citar(m.texto, 400);
   // Para la notificación: solo el nombre, limpio (nunca lo que escribió ni su número)
   const cliente = nombreSeguro(m.nombre, "");
+  // 15 minutos después, si nadie le contestó, te lo recuerda (si ya le contestaste, no sale)
+  const recordarCliente = () =>
+    recordar(admin, dueno, {
+      tipo: "cliente_sin_respuesta",
+      agente: "lola",
+      corto: `${cliente || "Un cliente"} sigue esperando respuesta por WhatsApp.`,
+      enlace: "/panel?vista=pendientes",
+      minutos: 15,
+      revisar: `whatsapp:${m.id}`,
+      clave: `sin_respuesta:${m.id}`,
+    });
 
   async function marcar(estado: string, extra: { motivo?: string; borrador?: string } = {}) {
     await admin
@@ -102,6 +113,7 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
       corto: `${cliente || "Un cliente"} te escribió por WhatsApp y te toca contestarle.`,
       enlace: "/panel?vista=pendientes",
     });
+    await recordarCliente();
     return { estado: "sin_respuesta", motivo };
   }
 
@@ -318,6 +330,7 @@ ${perfilTexto}
         corto: `La respuesta para ${cliente || "un cliente"} está lista y espera tu OK.`,
         enlace: "/panel?vista=pendientes",
       });
+      await recordarCliente();
       return { estado: "esperando_ok" };
     }
 
@@ -331,6 +344,7 @@ ${perfilTexto}
         corto: `No salió la respuesta para ${cliente || "un cliente"} por WhatsApp; quedó en «Necesita tu OK».`,
         enlace: "/panel?vista=pendientes",
       });
+      await recordarCliente();
       return { estado: "error", motivo: envio.error };
     }
     await admin.from("whatsapp_mensajes").insert({ owner_id: dueno, telefono: m.telefono, nombre: m.nombre, direccion: "saliente", texto: respuesta, wa_id: envio.waId, estado: "enviado", autor: "lola" });

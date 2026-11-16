@@ -22,11 +22,21 @@ export const citar = (t: unknown, max = 600) =>
 export const citarLineas = (t: unknown, max = 900) =>
   (typeof t === "string" ? t.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
 
-/** El botón "Aprobar y hacer" de algo que espera tu OK. */
-const APROBAR = /^\/panel\?aprobar=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** El botón "Aprobar y hacer" de algo que espera tu OK, y el de "Volver a conectar" una app. */
+const APROBAR = /^\/panel\?(aprobar=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|conectar=[a-z_]{2,40})$/;
 
 /** Los únicos enlaces que puede llevar un aviso; cualquier otro se queda como texto. */
-const ENLACES_AVISO = new Set(["/panel?vista=pendientes", "/panel?vista=oficina", "/panel?vista=tareas", "/panel?vista=negocio&tab=apps", "/panel?vista=ajustes&seccion=notificaciones"]);
+const ENLACES_AVISO = new Set([
+  "/panel?vista=pendientes",
+  "/panel?vista=oficina",
+  "/panel?vista=tareas",
+  "/panel?vista=negocio&tab=apps",
+  "/panel?vista=ajustes&seccion=notificaciones",
+  "/panel?vista=ajustes&seccion=uso",
+  "/panel?vista=ajustes&seccion=plan",
+  "/panel?vista=ajustes&seccion=cuenta",
+  "/panel?vista=ajustes&seccion=atendel",
+]);
 
 /** La conversación «Avisos de Atendel» del dueño (la crea si no hay). */
 export async function chatDeAvisos(admin: SupabaseClient, dueno: string, agente: IdAgente): Promise<string | null> {

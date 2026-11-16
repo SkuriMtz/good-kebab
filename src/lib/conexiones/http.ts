@@ -142,6 +142,18 @@ export class ErrorArgs extends Error {
   }
 }
 
+/** La app no dio permiso para hacer eso (hay que volver a conectarla): con qué app y para qué. */
+export class ErrorPermiso extends ErrorArgs {
+  constructor(
+    mensaje: string,
+    readonly app: string,
+    readonly que: string,
+  ) {
+    super(mensaje);
+    this.name = "ErrorPermiso";
+  }
+}
+
 export function argTexto(args: Record<string, unknown>, nombre: string, o: { max?: number; requerido?: boolean; patron?: RegExp } = {}): string {
   const v = args[nombre];
   if (v === undefined || v === null || v === "") {

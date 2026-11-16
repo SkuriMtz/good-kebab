@@ -1,5 +1,5 @@
 import type { ContextoHerramienta, Herramienta } from "@/lib/nucleo-tipos";
-import { argCorreos, argNumero, argTexto, enZona, ErrorArgs, horaLocal, linea, pedirJson } from "../http";
+import { argCorreos, argNumero, argTexto, enZona, ErrorArgs, ErrorPermiso, horaLocal, linea, pedirJson } from "../http";
 import { ErrorApi } from "../oauth";
 
 /**
@@ -28,7 +28,7 @@ const pedido = async (ctx: ContextoHerramienta) => ({ token: (await ctx.token())
 /** Si Google dice que falta el permiso de escribir: se pide volver a conectar esa app. */
 function sinPermiso(e: unknown, app: "google_calendar" | "gmail" | "google_tasks", que: string): never {
   if (e instanceof ErrorApi && (e.status === 403 || e.status === 401))
-    throw new ErrorArgs(`Google no dio permiso para ${que}. Vuelve a conectar la app para darle ese permiso: [Volver a conectar](/panel?conectar=${app})`);
+    throw new ErrorPermiso(`Google no dio permiso para ${que}. Vuelve a conectar la app para darle ese permiso: [Volver a conectar](/panel?conectar=${app})`, app, que);
   throw e;
 }
 

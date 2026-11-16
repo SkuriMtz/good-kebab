@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { aparatoDe } from "@/lib/aparato";
 import { notificar } from "@/lib/notificar";
 import { endpointValido, llavesAparatoValidas, nombreAparato } from "@/lib/push";
 import { createClient } from "@/lib/supabase/server";
@@ -59,7 +60,8 @@ export async function POST(req: NextRequest) {
   const admin = clienteServicio();
   if (!admin) return error("Los avisos todavía no están listos en el servidor.", 503);
   const aparato = nombreAparato(req.headers.get("user-agent"));
-  const llaves = { p256dh: String(p256dh), auth: String(auth) };
+  // De qué aparato es (la cookie del aparato), para no avisarle al que hizo un cambio
+  const llaves = { p256dh: String(p256dh), auth: String(auth), aparato_id: aparatoDe(req) };
 
   const { data: hay } = await admin.from("suscripciones_push").select("id, owner_id, p256dh, auth").eq("endpoint", endpoint).maybeSingle();
   // Ya era tuyo: solo se actualiza

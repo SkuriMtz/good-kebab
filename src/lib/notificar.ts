@@ -40,11 +40,28 @@ export const AVISOS = {
   whatsapp_reconectar: { nivel: "urgente", titulo: "Vuelve a conectar tu WhatsApp", grupo: "whatsapp" }, // 31
   whatsapp_sin_mensajes: { nivel: "urgente", titulo: "Tu WhatsApp ya no llega aquí", grupo: "whatsapp" }, // 32
   whatsapp_intento: { nivel: "importante", titulo: "Intentaron conectar tu WhatsApp" }, // 32
+  app_desconectada: { nivel: "urgente", titulo: "Se desconectó una app", grupo: "apps" }, // 33
+  app_permisos: { nivel: "importante", titulo: "Una app necesita permisos nuevos", grupo: "apps" }, // 35
+  app_conectada: { nivel: "info", titulo: "Cambio en tus apps", grupo: "apps" }, // 45
+  // Recordatorios (solo salen si sigue pendiente)
+  cliente_sin_respuesta: { nivel: "urgente", titulo: "Un cliente sigue esperando", grupo: "pendientes" }, // 3
+  accion_sigue_esperando: { nivel: "importante", titulo: "Algo sigue esperando tu OK", grupo: "pendientes" }, // 24
+  oficina_espera: { nivel: "importante", titulo: "La Oficina espera tu revisión", grupo: "oficina" }, // 38
+  accion_fallo: { nivel: "importante", titulo: "Algo que aprobaste no se pudo hacer" }, // 23
   // Tareas, Oficina y envíos
   tarea_termino: { nivel: "info", titulo: "Tarea terminada", grupo: "tareas" }, // 36
+  tarea_fallo: { nivel: "importante", titulo: "Una tarea no se pudo hacer", grupo: "tareas" }, // 37
   mensaje_no_llego: { nivel: "importante", titulo: "Un mensaje no llegó" }, // 40
   // Tu cuenta y seguridad
+  entrada_nueva: { nivel: "urgente", titulo: "Entraron a tu cuenta desde un aparato nuevo", siempre: true }, // 41
   aparato_nuevo: { nivel: "urgente", titulo: "Avisos en un aparato nuevo", siempre: true }, // 42
+  cuenta_cambio: { nivel: "importante", titulo: "Cambió algo de tu cuenta" }, // 43
+  // Uso, plan e informes
+  uso_80: { nivel: "importante", titulo: "Vas en el 80 % de tu semana", grupo: "uso" }, // 46
+  limite_trabajo: { nivel: "urgente", titulo: "Se pausó el trabajo por su cuenta", grupo: "uso" }, // 47
+  plan_cambio: { nivel: "importante", titulo: "Cambió tu plan" }, // 48 (lo pone la base: migración 0026)
+  resumen_dia: { nivel: "info", titulo: "Tu resumen del día", grupo: "informe" }, // 49
+  informe_semana: { nivel: "importante", titulo: "Tu informe de la semana", grupo: "informe" }, // 50
   prueba: { nivel: "urgente", titulo: "Aviso de prueba", siempre: true },
 } satisfies Record<string, DefAviso>;
 export type TipoAviso = keyof typeof AVISOS;
@@ -153,7 +170,22 @@ async function cuantosPendientes(admin: SupabaseClient, dueno: string): Promise<
   return (a.count ?? 0) + (w.count ?? 0) + (e.count ?? 0);
 }
 
-type FilaAviso = { id: string; tipo: string; nivel: NivelAviso; titulo: string; texto: string; enlace: string; grupo: string | null; siempre: boolean };
+type FilaAviso = {
+  id: string;
+  tipo: string;
+  nivel: NivelAviso;
+  titulo: string;
+  texto: string;
+  enlace: string;
+  grupo: string | null;
+  siempre: boolean;
+  revisar?: string | null;
+  chat?: string | null;
+  agente?: string | null;
+};
+
+/** Lo que revisa un recordatorio antes de salir. */
+const REVISAR = /^(whatsapp|accion|oficina):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const discreto = (n: number, enlace: string, nivel: NivelAviso, etiqueta: string | null): MensajePush => ({
   titulo: "Atendel",
@@ -214,6 +246,12 @@ export async function notificar(
     chatSiempre?: boolean;
     /** Sale ya, sin importar el nivel ni las horas de silencio (el aviso de prueba). */
     forzar?: boolean;
+    /** No sale antes de esta hora (los recordatorios). */
+    despues?: Date;
+    /** Justo antes de salir se revisa que siga pendiente: whatsapp:<id>, accion:<id> u oficina:<id>. */
+    revisar?: string;
+    /** El aparato que hizo el cambio (el hash de su cookie): a ese no se le avisa. */
+    excepto?: string | null;
   },
 ): Promise<ResultadoAviso> {
   const def: DefAviso = AVISOS[a.tipo];
@@ -245,7 +283,11 @@ export async function notificar(
         .maybeSingle();
       ultimoInfo = u?.enviado_en ? new Date(String(u.enviado_en)) : null;
     }
-    const cuando = !aparatos ? "nunca" : a.forzar ? "ahora" : decidirApp({ nivel: def.nivel, siempre: def.siempre, av: aj.avisos, ahora, zona: aj.zonaHoraria, ultimoInfo });
+    // Un recordatorio se decide como si fuera la hora en que le toca salir
+    const base = a.despues && a.despues.getTime() > ahora.getTime() ? a.despues : ahora;
+    let cuando = !aparatos ? "nunca" : a.forzar ? "ahora" : decidirApp({ nivel: def.nivel, siempre: def.siempre, av: aj.avisos, ahora: base, zona: aj.zonaHoraria, ultimoInfo });
+    if (cuando === "ahora" && base !== ahora) cuando = base;
+    const revisar = a.revisar && REVISAR.test(a.revisar) ? a.revisar : null;
 
     const enlaceValido = a.enlace && ENLACE_PANEL.test(a.enlace) ? a.enlace : null;
     if (a.chat || !enlaceValido) idChat = await chatDeAvisos(admin, dueno, a.agente).catch(() => null);
@@ -265,6 +307,8 @@ export async function notificar(
         siempre: Boolean(def.siempre || a.forzar),
         app: cuando === "nunca" ? "omitido" : "pendiente",
         enviar_desde: (cuando instanceof Date ? cuando : ahora).toISOString(),
+        revisar,
+        agente: a.agente,
       })
       .select("id")
       .single();
@@ -290,7 +334,7 @@ export async function notificar(
     const m = await mensajeDe(admin, dueno, aj.avisos, [
       { id: String(fila.id), tipo: a.tipo, nivel: def.nivel, titulo: def.titulo, texto, enlace, grupo: def.grupo ?? null, siempre: Boolean(def.siempre) },
     ]);
-    const r = await mandarPush(admin, dueno, m);
+    const r = await mandarPush(admin, dueno, m, a.excepto);
     if (!r.enviados) await admin.from("avisos_salida").update({ app: r.aparatos ? "fallo" : "omitido" }).eq("id", fila.id);
     return r.enviados ? "enviado" : r.aparatos ? "fallo" : "omitido";
   } catch (e) {
@@ -303,6 +347,26 @@ export async function notificar(
 
 /* ---------- Lo que esperaba su hora (/api/trabajo?que=avisos) ---------- */
 
+/** Si lo que recuerda un recordatorio sigue pendiente (si ya lo resolviste, no sale). */
+async function sigueVigente(admin: SupabaseClient, dueno: string, revisar: string): Promise<boolean> {
+  const [que, id] = revisar.split(":");
+  if (que === "whatsapp") {
+    const { data } = await admin.from("whatsapp_mensajes").select("estado").eq("id", id).eq("owner_id", dueno).maybeSingle();
+    return Boolean(data && ["esperando_ok", "sin_respuesta", "error", "recibido", "pensando"].includes(String(data.estado)));
+  }
+  if (que === "accion") {
+    const { data } = await admin.from("acciones").select("estado").eq("id", id).eq("owner_id", dueno).maybeSingle();
+    return data?.estado === "esperando";
+  }
+  if (que === "oficina") {
+    const { data } = await admin.from("trabajos").select("revision").eq("id", id).eq("owner_id", dueno).maybeSingle();
+    return data?.revision === "revisar";
+  }
+  return false;
+}
+
+const AGENTES_AVISO = ["lola", "clara", "victor", "iris"] as const;
+
 /** Manda, junto, lo que ya toca de cada cuenta. */
 async function soltarDe(admin: SupabaseClient, dueno: string): Promise<boolean> {
   const ahora = new Date();
@@ -310,13 +374,35 @@ async function soltarDe(admin: SupabaseClient, dueno: string): Promise<boolean> 
   const aj = limpiarAjustes(filaAjustes?.datos);
   const { data } = await admin
     .from("avisos_salida")
-    .select("id, tipo, nivel, titulo, texto, enlace, grupo, siempre")
+    .select("id, tipo, nivel, titulo, texto, enlace, grupo, siempre, revisar, chat, agente")
     .eq("owner_id", dueno)
     .eq("app", "pendiente")
     .lte("enviar_desde", ahora.toISOString())
     .order("creado_en", { ascending: true })
     .limit(50);
-  const filas = ((data ?? []) as FilaAviso[]).map((f) => ({ ...f, id: String(f.id) }));
+  const todas = ((data ?? []) as FilaAviso[]).map((f) => ({ ...f, id: String(f.id) }));
+  if (!todas.length) return false;
+
+  // Los que nacieron en la base (como un cambio de plan) traen su texto para el chat: se escribe una sola vez
+  for (const f of todas) {
+    if (!f.chat) continue;
+    const { data: tomado } = await admin.from("avisos_salida").update({ chat: null }).eq("id", f.id).eq("owner_id", dueno).not("chat", "is", null).select("id");
+    const agente = (AGENTES_AVISO as readonly string[]).includes(String(f.agente)) ? (f.agente as IdAgente) : "iris";
+    if (tomado?.length) await avisarEnChat(admin, dueno, { agente, texto: f.chat });
+  }
+  // Los recordatorios de algo que ya resolviste no salen
+  const resueltos: FilaAviso[] = [];
+  for (const f of todas) if (f.revisar && !(await sigueVigente(admin, dueno, f.revisar))) resueltos.push(f);
+  if (resueltos.length)
+    await admin
+      .from("avisos_salida")
+      .update({ app: "omitido" })
+      .eq("owner_id", dueno)
+      .in(
+        "id",
+        resueltos.map((f) => f.id),
+      );
+  const filas = todas.filter((f) => !resueltos.includes(f));
   if (!filas.length) return false;
 
   // Lo que ya no toca (cambió a un nivel más alto o a «Nada») no sale
@@ -397,4 +483,54 @@ export async function soltarAvisos(admin: SupabaseClient, tiempo = 40_000): Prom
     }
   }
   return { cuentas, enviadas };
+}
+
+/* ---------- Ayudas ---------- */
+
+/**
+ * Un recordatorio: sale en `minutos`, solo si lo de `revisar` sigue pendiente
+ * (si ya lo resolviste, no sale). No va al chat: el aviso original ya está ahí.
+ */
+export function recordar(
+  admin: SupabaseClient,
+  dueno: string,
+  r: { tipo: TipoAviso; agente: IdAgente; corto: string; enlace?: string; minutos: number; revisar: string; clave: string },
+): Promise<ResultadoAviso> {
+  return notificar(admin, dueno, { tipo: r.tipo, agente: r.agente, corto: r.corto, enlace: r.enlace, clave: r.clave, revisar: r.revisar, despues: new Date(Date.now() + r.minutos * 60_000) });
+}
+
+/** Si ya se avisó esto (por su clave): para no repetir trabajo en lo que corre a cada rato. */
+export async function yaAvisado(admin: SupabaseClient, dueno: string, clave: string): Promise<boolean> {
+  const { data } = await admin.from("avisos_salida").select("id").eq("owner_id", dueno).eq("clave", clave).limit(1).maybeSingle();
+  return Boolean(data);
+}
+
+/** El trabajo por su cuenta: aviso al 80 % y al llegar al límite (una vez por semana cada uno). */
+export async function avisarUsoTrabajo(admin: SupabaseClient, dueno: string, o: { gastado: number; limite: number; semana: string; lleno: boolean }): Promise<void> {
+  if (o.limite <= 0) return;
+  const semana = o.semana.slice(0, 10);
+  if (o.lleno) {
+    const clave = `limite_trabajo:${semana}`;
+    if (await yaAvisado(admin, dueno, clave)) return;
+    await notificar(admin, dueno, {
+      tipo: "limite_trabajo",
+      agente: "iris",
+      chat: "Llegué al límite de esta semana para trabajar por mi cuenta (la revisión del día, tus tareas y tus correos), así que eso queda en pausa hasta el lunes. El chat sigue funcionando. Lo ves en [Ajustes → Uso](/panel?vista=ajustes&seccion=uso).",
+      corto: "Llegué al límite de la semana para trabajar por mi cuenta: vuelvo el lunes. El chat sigue funcionando.",
+      enlace: "/panel?vista=ajustes&seccion=uso",
+      clave,
+    });
+    return;
+  }
+  if (o.gastado < 0.8 * o.limite) return;
+  const clave = `uso80_trabajo:${semana}`;
+  if (await yaAvisado(admin, dueno, clave)) return;
+  await notificar(admin, dueno, {
+    tipo: "uso_80",
+    agente: "iris",
+    chat: "Ya usé el 80 % de lo que tengo esta semana para trabajar por mi cuenta. Cuando llegue al límite, eso se pausa hasta el lunes (el chat sigue). Lo ves en [Ajustes → Uso](/panel?vista=ajustes&seccion=uso).",
+    corto: "Ya usé el 80 % de mi semana para trabajar por mi cuenta.",
+    enlace: "/panel?vista=ajustes&seccion=uso",
+    clave,
+  });
 }

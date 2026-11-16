@@ -1,8 +1,10 @@
 import "server-only";
 import { AUTONOMIA, type IdAutonomia, type ModoAutonomia } from "./ajustes";
 import { citar } from "./avisos";
-import { limpiarCorto, notificar } from "./notificar";
+import { limpiarCorto, notificar, recordar } from "./notificar";
 import { verificarContraReglas, type Regla } from "./cerebro";
+import { ErrorPermiso } from "./conexiones/http";
+import { APP_POR_ID } from "./conexiones/catalogo";
 import type { Herramienta } from "./nucleo-tipos";
 import { clienteServicio } from "./supabase/servicio";
 
@@ -75,7 +77,19 @@ export async function guardarPendiente(dueno: string, h: Herramienta, args: Reco
     })
     .select("id")
     .single();
-  return error || !data ? null : String(data.id);
+  if (error || !data) return null;
+  const id = String(data.id);
+  // Si en 24 horas sigue esperando, te lo recuerda (si ya lo resolviste, no sale)
+  await recordar(admin, dueno, {
+    tipo: "accion_sigue_esperando",
+    agente: "iris",
+    corto: `Sigue esperando tu OK: ${limpiarCorto(resumen, 200)}.`,
+    enlace: `/panel?aprobar=${id}`,
+    minutos: 24 * 60,
+    revisar: `accion:${id}`,
+    clave: `espera24:${id}`,
+  });
+  return id;
 }
 
 /** Lo que se hizo al momento (para el historial). */
@@ -94,6 +108,23 @@ export async function registrarHecha(dueno: string, h: Herramienta, args: Record
     resultado: resultado.slice(0, 2000),
     resuelto_en: new Date().toISOString(),
     conversacion_id: o.conversacionId ?? null,
+  });
+}
+
+/** Una app pide un permiso nuevo para hacer algo: te avisa una vez al día por app, con el botón para volver a conectarla. */
+async function avisarPermisos(dueno: string, e: ErrorPermiso, agente: "lola" | "clara" | "victor" | "iris") {
+  const admin = clienteServicio();
+  if (!admin) return;
+  const app = /^[a-z_]{2,40}$/.test(e.app) ? e.app : "";
+  const nombre = (APP_POR_ID as Record<string, { nombre: string } | undefined>)[app]?.nombre ?? "Una de tus apps";
+  const conectar = app ? `/panel?conectar=${app}` : "/panel?vista=negocio&tab=apps";
+  await notificar(admin, dueno, {
+    tipo: "app_permisos",
+    agente,
+    chat: `${nombre} no me dio permiso para ${citar(e.que, 80)}. Vuelve a conectarla para darle ese permiso: [Volver a conectar](${conectar})`,
+    corto: `${nombre} necesita un permiso nuevo (${limpiarCorto(e.que, 60)}). Vuelve a conectarla.`,
+    enlace: conectar,
+    clave: `permisos:${app || "app"}:${new Date().toISOString().slice(0, 10)}`,
   });
 }
 
@@ -130,7 +161,14 @@ export async function hacerOEsperar(
     }
     return `NO SE HIZO TODAVÍA: quedó esperando el OK del dueño («${resumen}»), porque ${espera}. Dile en una frase que lo dejaste listo y pon, en una línea aparte, este botón tal cual: [Aprobar y hacer](/panel?aprobar=${id}) — con un clic se hace. No digas que ya se hizo.`;
   }
-  const resultado = await hacer();
+  let resultado: string;
+  try {
+    resultado = await hacer();
+  } catch (e) {
+    // Fuera del chat nadie lo ve: si la app pide permisos nuevos, te avisa (una vez al día por app)
+    if (e instanceof ErrorPermiso && o.origen !== "chat") await avisarPermisos(dueno, e, agente);
+    throw e;
+  }
   await registrarHecha(dueno, h, args, resumen, resultado, o);
   if (o.origen !== "chat") {
     const admin = clienteServicio();

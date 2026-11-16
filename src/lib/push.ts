@@ -133,10 +133,14 @@ export function opcionesPush(llaves: Llaves, m: Pick<MensajePush, "nivel" | "eti
   };
 }
 
-/** Manda la notificación a todos los aparatos del dueño. Los aparatos que ya no existen se borran solos. */
-export async function mandarPush(admin: SupabaseClient, dueno: string, m: MensajePush): Promise<{ aparatos: number; enviados: number }> {
-  const { data: subs } = await admin.from("suscripciones_push").select("id, endpoint, p256dh, auth").eq("owner_id", dueno).limit(10);
-  if (!subs?.length) return { aparatos: 0, enviados: 0 };
+/**
+ * Manda la notificación a todos los aparatos del dueño (menos `excepto`: el
+ * aparato que hizo el cambio). Los aparatos que ya no existen se borran solos.
+ */
+export async function mandarPush(admin: SupabaseClient, dueno: string, m: MensajePush, excepto?: string | null): Promise<{ aparatos: number; enviados: number }> {
+  const { data: todas } = await admin.from("suscripciones_push").select("id, endpoint, p256dh, auth, aparato_id").eq("owner_id", dueno).limit(10);
+  const subs = (todas ?? []).filter((s) => !excepto || s.aparato_id !== excepto);
+  if (!subs.length) return { aparatos: 0, enviados: 0 };
   const llaves = await llavesPush(admin);
   if (!llaves) return { aparatos: subs.length, enviados: 0 };
   const cuerpo = cuerpoPush(m);
