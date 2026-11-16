@@ -16,6 +16,7 @@ import { clienteServicio } from "@/lib/supabase/servicio";
 export const dynamic = "force-dynamic";
 
 const RECIENTE = 15 * 60_000;
+const MAX_ENTRADAS = 50;
 const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });
 
 export async function POST(req: NextRequest) {
@@ -40,6 +41,17 @@ export async function POST(req: NextRequest) {
       await admin.from("entradas").update({ visto_en: new Date().toISOString(), nombre }).eq("owner_id", user.id).eq("aparato", aparato);
   } else {
     const { count: antes } = await admin.from("entradas").select("aparato", { count: "exact", head: true }).eq("owner_id", user.id);
+    // Tope de aparatos por cuenta: si se llena, sale el que hace más que no se ve
+    if ((antes ?? 0) >= MAX_ENTRADAS) {
+      const { data: viejos } = await admin
+        .from("entradas")
+        .select("aparato")
+        .eq("owner_id", user.id)
+        .order("visto_en", { ascending: true })
+        .limit((antes ?? 0) - MAX_ENTRADAS + 1);
+      const quitar = (viejos ?? []).map((v) => String(v.aparato));
+      if (quitar.length) await admin.from("entradas").delete().eq("owner_id", user.id).in("aparato", quitar);
+    }
     const { error: e } = await admin.from("entradas").insert({ owner_id: user.id, aparato, nombre });
     const sesionNueva = Boolean(user.last_sign_in_at) && Date.now() - new Date(String(user.last_sign_in_at)).getTime() < RECIENTE;
     // Su primer aparato no se avisa; tampoco si se guardó en otra vuelta al mismo tiempo
