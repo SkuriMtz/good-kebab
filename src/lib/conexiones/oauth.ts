@@ -31,6 +31,7 @@ export const NOMBRE_PROVEEDOR: Record<Proveedor, string> = {
   tiendanube: "Tiendanube",
   facturapi: "Facturapi",
   acuity: "Acuity Scheduling",
+  todoist: "Todoist",
   simplybook: "SimplyBook.me",
   setmore: "Setmore",
   agendapro: "AgendaPro",

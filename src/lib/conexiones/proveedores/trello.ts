@@ -79,6 +79,60 @@ export const adaptador: Adaptador = {
 
   herramientas: [
     herramienta({
+      nombre: "trello_crear_tarjeta",
+      descripcion:
+        "CREA una tarjeta en un tablero de Trello del dueño (en la lista que digas o en la primera del tablero), con descripción y fecha opcionales. El tablero y la lista se buscan por su nombre.",
+      app: "trello",
+      agentes: ["iris"],
+      proveedor: NOMBRE,
+      esquema: esquema(
+        {
+          tablero: { type: "string", description: "Nombre del tablero (o una parte)." },
+          lista: { type: "string", description: "Nombre de la lista (opcional; por omisión, la primera del tablero)." },
+          titulo: { type: "string", description: "Título de la tarjeta." },
+          descripcion: { type: "string" },
+          fecha: { type: "string", description: "Para cuándo, AAAA-MM-DD (opcional)." },
+        },
+        ["tablero", "titulo"],
+      ),
+      hace: {
+        categoria: "apps",
+        resumen(args) {
+          const titulo = argTexto(args, "titulo", 200);
+          const tablero = argTexto(args, "tablero", 100);
+          if (!titulo || !tablero) throw new ErrorProveedor("Falta el tablero o el título de la tarjeta.");
+          const lista = argTexto(args, "lista", 100);
+          return `Crear la tarjeta «${linea(titulo, 100)}» en Trello (tablero «${linea(tablero, 60)}»${lista ? `, lista «${linea(lista, 60)}»` : ""})`;
+        },
+      },
+      async ejecutar(args, ctx) {
+        const titulo = argTexto(args, "titulo", 200);
+        const tablero = normalizar(argTexto(args, "tablero", 100));
+        const lista = normalizar(argTexto(args, "lista", 100));
+        const fechaTxt = argTexto(args, "fecha", 10);
+        if (!titulo || !tablero) throw new ErrorProveedor("Falta el tablero o el título de la tarjeta.");
+        if (fechaTxt && !/^\d{4}-\d{2}-\d{2}$/.test(fechaTxt)) throw new ErrorProveedor("La fecha va como AAAA-MM-DD.");
+        const t = await ctx.token();
+        const tableros = await api<{ id: string; name?: string }[]>(t, "/members/me/boards", { fields: "name", filter: "open" }, ctx.senal);
+        const coinciden = tableros.filter((b) => normalizar(b.name ?? "").includes(tablero));
+        const b = coinciden.find((x) => normalizar(x.name ?? "") === tablero) ?? (coinciden.length === 1 ? coinciden[0] : null);
+        if (!b) throw new ErrorProveedor(coinciden.length ? `Hay ${coinciden.length} tableros con ese nombre; dime el nombre completo.` : "No encontré ese tablero en Trello.");
+        const listas = await api<Lista[]>(t, `/boards/${b.id}/lists`, { fields: "name", filter: "open" }, ctx.senal);
+        const l = lista ? (listas.find((x) => normalizar(x.name ?? "") === lista) ?? listas.find((x) => normalizar(x.name ?? "").includes(lista))) : listas[0];
+        if (!l) throw new ErrorProveedor(lista ? `No encontré esa lista en «${linea(b.name, 60)}».` : "Ese tablero no tiene listas.");
+        const key = t.extra?.api_key;
+        if (!key) throw new ErrorProveedor("Falta la API key de Trello. Vuelve a pegar tu llave.");
+        await pedirJson(NOMBRE, `${API}/cards${consulta({ idList: l.id, name: titulo, desc: argTexto(args, "descripcion", 5000) || undefined, due: fechaTxt ? `${fechaTxt}T18:00:00.000Z` : undefined, pos: "top" })}`, {
+          metodo: "POST",
+          encabezados: { Authorization: autorizacion(key, t.access_token), Accept: "application/json" },
+          senal: ctx.senal,
+          interpretar: (estado) =>
+            estado === 401 || estado === 403 ? "Trello no dio permiso para crear tarjetas: genera tu token con permiso de escribir (read,write) y vuelve a pegar tu llave." : undefined,
+        });
+        return `Listo: creé la tarjeta «${linea(titulo, 120)}» en «${linea(b.name, 60)}» → «${linea(l.name, 60)}».`;
+      },
+    }),
+    herramienta({
       nombre: "trello_tableros",
       descripcion: "Lista los tableros abiertos de Trello de la persona (nombre, id y última actividad). Solo lectura.",
       app: "trello",

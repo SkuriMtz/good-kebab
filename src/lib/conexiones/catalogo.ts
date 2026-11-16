@@ -70,8 +70,9 @@ export const CATALOGO: readonly AppConectable[] = [
   // Documentos, datos y trabajo
   app("notion", "Notion", "documentos", "notion", "oauth", ["iris"], "Buscar y leer las páginas de Notion que compartas con Atendel. Solo lectura."),
   app("dropbox", "Dropbox", "documentos", "dropbox", "oauth", ["iris"], "Buscar y leer tus archivos de Dropbox. Solo lectura."),
-  app("airtable", "Airtable", "documentos", "airtable", "llave", ["iris"], "Leer tus bases de Airtable para resumirlas o sacar cuentas. Solo lectura."),
-  app("trello", "Trello", "documentos", "trello", "llave", ["iris"], "Ver tus tableros y tarjetas de Trello. Solo lectura."),
+  app("airtable", "Airtable", "documentos", "airtable", "llave", ["iris"], "Leer tus bases y tablas de Airtable, y agregar registros por ti."),
+  app("trello", "Trello", "documentos", "trello", "llave", ["iris"], "Ver tus tableros y tarjetas de Trello, y crear tarjetas por ti."),
+  app("todoist", "Todoist", "agenda", "todoist", "llave", ["iris"], "Ver tus pendientes de Todoist, y crear o completar tareas por ti."),
   // Clientes (CRM)
   app("hubspot", "HubSpot", "clientes", "hubspot", "oauth", ["victor"], "Ver tus contactos y negocios en HubSpot. Solo lectura."),
   // v3 · Ventas, CRM, formularios y reseñas (E)
@@ -158,6 +159,8 @@ export const PROVEEDORES: readonly Proveedor[] = [
   "alegra",
   "holded",
   "quickbooks",
+  // Tareas
+  "todoist",
 ];
 
 export const esProveedor = (v: unknown): v is Proveedor => typeof v === "string" && (PROVEEDORES as readonly string[]).includes(v);

@@ -21,6 +21,7 @@ import { tiendanube } from "./proveedores/tiendanube";
 import { trello } from "./proveedores/trello";
 import { zoom } from "./proveedores/zoom";
 import { acuity } from "./proveedores/acuity";
+import { todoist } from "./proveedores/todoist";
 import { kommo } from "./proveedores/kommo";
 import { mailchimp } from "./proveedores/mailchimp";
 import { pipedrive } from "./proveedores/pipedrive";
@@ -88,6 +89,7 @@ export const ADAPTADORES: Record<Proveedor, Adaptador> = {
   tiendanube,
   facturapi,
   acuity,
+  todoist,
   simplybook,
   setmore,
   agendapro,

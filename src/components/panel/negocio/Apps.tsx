@@ -30,6 +30,7 @@ const NOMBRE_PROVEEDOR: Record<Proveedor, string> = {
   tiendanube: "Tiendanube",
   facturapi: "Facturapi",
   acuity: "Acuity Scheduling",
+  todoist: "Todoist",
   simplybook: "SimplyBook.me",
   setmore: "Setmore",
   agendapro: "AgendaPro",
@@ -77,8 +78,12 @@ const PASOS_CONFIGURAR_OTRO = (p: Proveedor) => [`En el portal para desarrollado
 const PASOS_LLAVE: Partial<Record<Proveedor, string[]>> = {
   telegram: ["En Telegram, abre @BotFather y escribe /newbot (o /mybots si ya tienes el bot de tu negocio).", "Copia el token que te da y pégalo aquí."],
   stripe: ["En Stripe, entra a Desarrolladores → Claves de API.", "Crea una clave restringida con permisos de solo lectura, cópiala y pégala aquí."],
-  airtable: ["En Airtable, entra a Developer hub → Personal access tokens.", "Crea un token con permisos de solo lectura, elige tus bases, cópialo y pégalo aquí."],
-  trello: ["En Trello, entra a la administración de Power-Ups y genera tu llave de API y tu token.", "Copia lo que te pida la guía y pégalo aquí."],
+  airtable: [
+    "En Airtable, entra a Developer hub → Personal access tokens.",
+    "Crea un token con data.records:read y schema.bases:read (y data.records:write si quieres que Atendel agregue registros), elige tus bases, cópialo y pégalo aquí.",
+  ],
+  trello: ["En Trello, entra a la administración de Power-Ups y genera tu llave de API y tu token (con permiso de leer y escribir).", "Pégalos aquí juntos, separados por dos puntos: APIkey:token."],
+  todoist: ["En Todoist, entra a Configuración → Integraciones → Desarrollador.", "Copia tu «Token de la API» y pégalo aquí."],
   facturapi: ["En Facturapi, entra a tu panel → Llaves de API.", "Copia tu llave secreta y pégala aquí."],
   acuity: ["En Acuity, entra a Integraciones → API y copia tu User ID y tu API key.", "Pégalos aquí juntos, separados por dos puntos: UserID:APIkey."],
   simplybook: ["En SimplyBook.me, entra a Plugins → API y activa la API; crea una clave de API de usuario.", "Pégala aquí así: empresa:usuario:clave (nunca tu contraseña)."],

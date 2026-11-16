@@ -16,7 +16,7 @@ recomiendan Atendel ni son clientes.
 | Íconos oficiales de producto que publica Google (gstatic.com/images/branding/product) | Marca de Google | Hojas de cálculo, Formularios, Tareas, Contactos y Perfil de Negocio de Google |
 | Íconos oficiales de producto de Microsoft (Fluent, res-1.cdn.office.net) | Marca de Microsoft | Outlook (correo, calendario y contactos), Excel y OneDrive |
 | Wikimedia Commons, «Microsoft To-Do icon.svg», pasado a PNG de 128 px | Marca de Microsoft | Microsoft To Do |
-| gilbarbara/logos (`@iconify-json/logos`, CC0 1.0), versión a color | CC0 1.0 | Zoho (Books y CRM) |
+| gilbarbara/logos (`@iconify-json/logos`, CC0 1.0), versión a color | CC0 1.0 | Zoho (Books y CRM), Todoist |
 
 Notas:
 - Desde noviembre de 2026 cada producto de Google y de Microsoft lleva su propio ícono oficial (antes iban la

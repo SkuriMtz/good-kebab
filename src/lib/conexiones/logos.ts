@@ -57,6 +57,7 @@ export const LOGO_APP: Record<IdApp, string> = {
   square: "/apps/square.svg",
   stripe: "/apps/stripe.svg",
   telegram: "/apps/telegram.svg",
+  todoist: "/apps/todoist.svg",
   tienda_nube: "/apps/tiendanube.png",
   trello: "/apps/trello.svg",
   typeform: "/apps/typeform.svg",

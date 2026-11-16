@@ -124,7 +124,8 @@ export type Proveedor =
   | "pipedrive"
   | "kommo"
   | "typeform"
-  | "mailchimp";
+  | "mailchimp"
+  | "todoist";
 
 export type IdApp =
   // Google (un cliente OAuth)
@@ -139,6 +140,7 @@ export type IdApp =
   | "outlook"
   | "outlook_calendar"
   | "microsoft_todo"
+  | "todoist"
   | "onedrive"
   | "excel"
   | "outlook_contacts"

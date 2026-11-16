@@ -5,7 +5,8 @@ import { ErrorProveedor, argEntero, argTexto, consulta, esquema, herramienta, li
  * AIRTABLE (por llave: Personal Access Token; airtable.com/developers, nov 2026):
  * - La persona crea el token en airtable.com/create/tokens con los scopes
  *   data.records:read y schema.bases:read (y user.email:read para mostrar
- *   su correo) y le da acceso a las bases que quiera.
+ *   su correo) y le da acceso a las bases que quiera. Para que Atendel
+ *   agregue registros, además data.records:write.
  * - Lee: /v0/meta/whoami, /v0/meta/bases, /v0/meta/bases/{base}/tables y
  *   /v0/{base}/{tabla} (registros).
  * - Airtable no deja revocar un token por API: se borra en su página.
@@ -48,6 +49,24 @@ function valor(v: unknown): string {
 
 type Registro = { id: string; fields?: Record<string, unknown> };
 
+/** Los campos de un registro nuevo: hasta 30 columnas, con texto, número o sí/no. */
+function camposDe(args: Record<string, unknown>): Record<string, string | number | boolean> {
+  const c = args.campos;
+  if (!c || typeof c !== "object" || Array.isArray(c)) throw new ErrorProveedor("Faltan los campos del registro (columna → valor).");
+  const lista = Object.entries(c as Record<string, unknown>);
+  if (!lista.length || lista.length > 30) throw new ErrorProveedor("El registro debe tener de 1 a 30 campos.");
+  const fuera: Record<string, string | number | boolean> = {};
+  for (const [k, v] of lista) {
+    const nombre = k.trim().slice(0, 100);
+    if (!nombre) continue;
+    if (typeof v === "string") fuera[nombre] = v.slice(0, 5000);
+    else if (typeof v === "number" && Number.isFinite(v)) fuera[nombre] = v;
+    else if (typeof v === "boolean") fuera[nombre] = v;
+    else throw new ErrorProveedor(`El campo «${linea(nombre, 40)}» tiene que ser texto, número o sí/no.`);
+  }
+  return fuera;
+}
+
 export const adaptador: Adaptador = {
   proveedor: "airtable",
   autenticacion: "llave",
@@ -71,6 +90,53 @@ export const adaptador: Adaptador = {
   },
 
   herramientas: [
+    herramienta({
+      nombre: "airtable_crear_registro",
+      descripcion:
+        "AGREGA un registro (una fila) a una tabla de Airtable del dueño. «campos»: el nombre de cada columna con su valor (texto, número o sí/no). Usa airtable_bases para ver la base y sus tablas.",
+      app: "airtable",
+      agentes: ["iris"],
+      proveedor: NOMBRE,
+      esquema: esquema(
+        {
+          base_id: { type: "string", description: 'Id de la base (empieza con "app").' },
+          tabla: { type: "string", description: "Nombre o id de la tabla." },
+          campos: { type: "object", additionalProperties: { type: ["string", "number", "boolean"] }, description: "Columna → valor." },
+        },
+        ["base_id", "tabla", "campos"],
+      ),
+      hace: {
+        categoria: "apps",
+        resumen(args) {
+          const campos = camposDe(args);
+          return `Agregar un registro en Airtable (tabla «${linea(argTexto(args, "tabla", 100), 60)}»): ${Object.entries(campos)
+            .slice(0, 4)
+            .map(([k, v]) => `${linea(k, 30)}: ${linea(v, 40)}`)
+            .join(", ")}`;
+        },
+      },
+      async ejecutar(args, ctx) {
+        const base = baseDe(args);
+        const tabla = argTexto(args, "tabla", 100);
+        if (!tabla) throw new ErrorProveedor("Falta la tabla.");
+        const campos = camposDe(args);
+        const t = await ctx.token();
+        await pedirJson(NOMBRE, `${API}/${base}/${encodeURIComponent(tabla)}`, {
+          metodo: "POST",
+          encabezados: { Authorization: `Bearer ${t.access_token}`, "Content-Type": "application/json" },
+          cuerpo: JSON.stringify({ records: [{ fields: campos }], typecast: true }),
+          senal: ctx.senal,
+          interpretar: (estado) => {
+            if (estado === 401) return "Airtable no reconoció el token. Revisa que lo copiaste completo.";
+            if (estado === 403) return "Tu token de Airtable no tiene permiso para agregar registros: créalo con data.records:write en airtable.com/create/tokens.";
+            if (estado === 404) return "No encontré esa base o tabla en Airtable.";
+            if (estado === 422) return "Airtable no aceptó esos campos: revisa que los nombres de las columnas existan.";
+            return undefined;
+          },
+        });
+        return `Listo: agregué el registro en la tabla «${linea(tabla, 60)}» de Airtable.`;
+      },
+    }),
     herramienta({
       nombre: "airtable_bases",
       descripcion:

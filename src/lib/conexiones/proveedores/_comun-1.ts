@@ -176,8 +176,11 @@ export async function pedir(nombre: string, url: string, p: Pedido = {}): Promis
 /** Como `pedir`, pero regresa el JSON. */
 export async function pedirJson<T>(nombre: string, url: string, p: Pedido = {}): Promise<T> {
   const r = await pedir(nombre, url, p);
+  // Hacer algo (cerrar, borrar…) a veces responde 204 sin cuerpo: eso es que sí salió
+  const texto = await r.text().catch(() => "");
+  if (!texto.trim()) return {} as T;
   try {
-    return (await r.json()) as T;
+    return JSON.parse(texto) as T;
   } catch {
     throw new ErrorProveedor(`${nombre} respondió algo que no entendí. Intenta de nuevo en un momento.`);
   }
@@ -258,7 +261,9 @@ type DefHerramienta = {
   esquema: Record<string, unknown>;
   /** Nombre del proveedor para los mensajes ("Dropbox", "Slack"…). */
   proveedor: string;
-  ejecutar(args: Record<string, unknown>, ctx: { token: () => Promise<Tokens>; senal: AbortSignal }): Promise<string>;
+  /** Solo en las que HACEN algo: su categoría de «Qué hace solo» y la frase de lo que van a hacer. */
+  hace?: Herramienta["hace"];
+  ejecutar(args: Record<string, unknown>, ctx: { token: () => Promise<Tokens>; senal: AbortSignal; zona?: string }): Promise<string>;
 };
 
 /**
@@ -273,6 +278,7 @@ export function herramienta(d: DefHerramienta): Herramienta {
     app: d.app,
     agentes: d.agentes,
     esquema: d.esquema,
+    ...(d.hace ? { hace: d.hace } : {}),
     async ejecutar(args, ctx) {
       const delMarco = new WeakSet<object>();
       const token = () =>
@@ -281,12 +287,12 @@ export function herramienta(d: DefHerramienta): Herramienta {
           throw e;
         });
       try {
-        const texto = await d.ejecutar(args && typeof args === "object" ? args : {}, { token, senal: ctx.senal });
+        const texto = await d.ejecutar(args && typeof args === "object" ? args : {}, { token, senal: ctx.senal, zona: ctx.zona });
         return recortar(texto || "Sin resultados.");
       } catch (e) {
         if (e instanceof ErrorProveedor) throw e;
         if (e && typeof e === "object" && delMarco.has(e)) throw e;
-        throw new ErrorProveedor(`No pude consultar ${d.proveedor} en este momento. Intenta de nuevo en un rato.`);
+        throw new ErrorProveedor(`No pude ${d.hace ? "hacerlo en" : "consultar"} ${d.proveedor} en este momento. Intenta de nuevo en un rato.`);
       }
     },
   };
