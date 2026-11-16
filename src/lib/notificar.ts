@@ -28,15 +28,33 @@ export const AVISOS = {
   // Clientes por WhatsApp (Lola)
   cliente_espera_ok: { nivel: "urgente", titulo: "Un cliente espera respuesta", grupo: "pendientes" }, // 1
   cliente_te_toca: { nivel: "urgente", titulo: "Un cliente te escribió", grupo: "pendientes" }, // 2
+  cliente_molesto: { nivel: "urgente", titulo: "Un cliente necesita que lo atiendas tú" }, // 4
   lola_contesto: { nivel: "info", titulo: "Lola atendió por WhatsApp", grupo: "lola" }, // 5
+  // Citas y agenda (vigilar-agenda.ts)
+  cita_nueva: { nivel: "importante", titulo: "Cita nueva en tu agenda", grupo: "agenda" }, // 6
+  cita_cambio: { nivel: "importante", titulo: "Cambió una cita de tu agenda", grupo: "agenda" }, // 7
+  citas_chocan: { nivel: "urgente", titulo: "Dos citas chocan", grupo: "agenda_choque" }, // 8
+  cita_pronto: { nivel: "importante", titulo: "Tu próxima cita es pronto", grupo: "agenda_pronto" }, // 9
+  agenda_manana: { nivel: "info", titulo: "Tu agenda de mañana", grupo: "agenda_manana" }, // 10
   // Correo
   correo_importante: { nivel: "importante", titulo: "Correo que necesita algo de ti", grupo: "correo" }, // 11
   correo_respuesta_lista: { nivel: "urgente", titulo: "Respuesta lista para tu OK", grupo: "pendientes" }, // 12
+  correo_sin_respuesta: { nivel: "importante", titulo: "Un correo sigue sin respuesta", grupo: "correo" }, // 14
+  correo_rebote: { nivel: "importante", titulo: "Un correo no llegó", grupo: "correo" }, // 15
+  // Dinero y ventas (de la revisión del día)
+  pago_entro: { nivel: "info", titulo: "Entró un pago", grupo: "dinero" }, // 16
+  pago_fallido: { nivel: "urgente", titulo: "Un pago falló" }, // 17
+  disputa_reembolso: { nivel: "urgente", titulo: "Disputa o reembolso" }, // 18
+  factura_vencida: { nivel: "importante", titulo: "Una factura vence o ya venció" }, // 19
+  pedido_pendiente: { nivel: "importante", titulo: "Un pedido espera" }, // 20
   // Lo que Atendel hizo o quiere hacer
-  accion_espera_ok: { nivel: "urgente", titulo: "Algo espera tu OK", grupo: "pendientes" }, // 20 y 21
+  accion_espera_ok: { nivel: "urgente", titulo: "Algo espera tu OK", grupo: "pendientes" }, // 21
   hizo_solo: { nivel: "info", titulo: "Lo hice por mi cuenta", grupo: "hecho" }, // 13 y 22
   // Lo que revisó por ti
   revision_dia: { nivel: "importante", titulo: "Revisé todo por ti", grupo: "revision" }, // 26
+  error_encontrado: { nivel: "urgente", titulo: "Encontré un problema que no puedo arreglar solo" }, // 28
+  resena_mala: { nivel: "importante", titulo: "Te dejaron una reseña mala" }, // 29
+  tareas_atrasadas: { nivel: "info", titulo: "Tienes tareas atrasadas", grupo: "revision" }, // 30
   // Apps conectadas
   whatsapp_reconectar: { nivel: "urgente", titulo: "Vuelve a conectar tu WhatsApp", grupo: "whatsapp" }, // 31
   whatsapp_sin_mensajes: { nivel: "urgente", titulo: "Tu WhatsApp ya no llega aquí", grupo: "whatsapp" }, // 32
@@ -44,6 +62,7 @@ export const AVISOS = {
   app_desconectada: { nivel: "urgente", titulo: "Se desconectó una app", grupo: "apps" }, // 33
   app_permisos: { nivel: "importante", titulo: "Una app necesita permisos nuevos", grupo: "apps" }, // 35
   app_conectada: { nivel: "info", titulo: "Cambio en tus apps", grupo: "apps" }, // 45
+  app_falla: { nivel: "importante", titulo: "Una app está fallando", grupo: "apps" }, // 34
   // Recordatorios (solo salen si sigue pendiente)
   cliente_sin_respuesta: { nivel: "urgente", titulo: "Un cliente sigue esperando", grupo: "pendientes" }, // 3
   accion_sigue_esperando: { nivel: "importante", titulo: "Algo sigue esperando tu OK", grupo: "pendientes" }, // 24
@@ -59,6 +78,7 @@ export const AVISOS = {
   whatsapp_avisos_conectado: { nivel: "urgente", titulo: "Se conectó un WhatsApp para avisos", siempre: true }, // 42
   whatsapp_avisos_problema: { nivel: "importante", titulo: "No te llegan los avisos por WhatsApp" },
   cuenta_cambio: { nivel: "importante", titulo: "Cambió algo de tu cuenta" }, // 43
+  mensaje_ordenes: { nivel: "importante", titulo: "Frené un mensaje que intentaba darme órdenes" }, // 44
   // Uso, plan e informes
   uso_80: { nivel: "importante", titulo: "Vas en el 80 % de tu semana", grupo: "uso" }, // 46
   limite_trabajo: { nivel: "urgente", titulo: "Se pausó el trabajo por su cuenta", grupo: "uso" }, // 47

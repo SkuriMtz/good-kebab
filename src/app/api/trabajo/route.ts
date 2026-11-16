@@ -5,6 +5,7 @@ import { limpiarCorto, notificar, soltarAvisos } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
+import { vigilarAgenda } from "@/lib/vigilar-agenda";
 import { vigilarCorreos } from "@/lib/vigilar-correos";
 
 /**
@@ -61,6 +62,23 @@ export async function POST(req: NextRequest) {
       }
     }
     return NextResponse.json({ cuentas: correos.length, avisos: correos.reduce((n, c) => n + c.avisos, 0) }, { headers: { "Cache-Control": "no-store" } });
+  }
+  // Tu agenda (cada 10 minutos, migración 0029): de las cuentas con Google Calendar o el calendario de Outlook
+  if (que === "agenda") {
+    const { data: cons } = await admin.from("conexiones").select("owner_id").eq("estado", "activa").overlaps("apps", ["google_calendar", "outlook_calendar"]).limit(500);
+    const duenos = Array.from(new Set((cons ?? []).map((c) => String(c.owner_id)))).sort(() => Math.random() - 0.5);
+    let cuentas = 0;
+    let avisos = 0;
+    for (const d of duenos) {
+      if (Date.now() - empezo > 40_000) break;
+      try {
+        avisos += (await vigilarAgenda(admin, d)).avisos;
+        cuentas++;
+      } catch (e) {
+        console.error("Vigilar agenda falló:", e instanceof Error ? e.message : e);
+      }
+    }
+    return NextResponse.json({ cuentas, avisos }, { headers: { "Cache-Control": "no-store" } });
   }
   // Primero las tareas que ya tocan (tienen hora); se apartan antes, para no correrlas dos veces
   const tareas: { id: string; hecho: boolean; motivo: string }[] = [];

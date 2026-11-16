@@ -52,9 +52,45 @@ const PARTES = {
   },
 } as const;
 
+/** Lo que la revisión de la mañana encontró en tus apps y se avisa aparte (avisos 16 a 20 y 28 a 30). */
+const ALERTAS = {
+  pago_entro: { titulo: "Entró un pago", corto: "Entró un pago en tus apps." },
+  pago_fallido: { titulo: "Un pago falló", corto: "Un pago falló o lo rechazaron. Revisa los detalles." },
+  disputa_reembolso: { titulo: "Disputa o reembolso", corto: "Te abrieron una disputa o te pidieron un reembolso." },
+  factura_vencida: { titulo: "Factura vencida", corto: "Tienes una factura vencida o que vence esta semana." },
+  pedido_pendiente: { titulo: "Pedido pendiente", corto: "Hay un pedido pendiente sin atender." },
+  error_encontrado: { titulo: "Un problema que no puedo arreglar solo", corto: "Encontré un problema en tus apps que necesita que lo veas tú." },
+  resena_mala: { titulo: "Reseña mala", corto: "Te dejaron una reseña mala." },
+  tareas_atrasadas: { titulo: "Tareas atrasadas", corto: "Tienes tareas atrasadas en tus apps de pendientes." },
+} as const;
+type TipoAlerta = keyof typeof ALERTAS;
+const TIPOS_ALERTA = Object.keys(ALERTAS) as TipoAlerta[];
+
+/** Las alertas que regresó la IA: solo tipos conocidos, una por tipo, con su texto corto. */
+export function leerAlertas(x: unknown): { tipo: TipoAlerta; texto: string }[] {
+  const vistas = new Set<string>();
+  return (Array.isArray(x) ? x : []).flatMap((a) => {
+    const y = a as { tipo?: unknown; texto?: unknown };
+    const tipo = TIPOS_ALERTA.find((t) => t === y?.tipo);
+    const texto = typeof y?.texto === "string" ? y.texto.replace(/\s+/g, " ").trim().slice(0, 400) : "";
+    if (!tipo || !texto || vistas.has(tipo)) return [];
+    vistas.add(tipo);
+    return [{ tipo, texto }];
+  });
+}
+
 const ESQUEMA = {
   type: "object",
   properties: {
+    alertas: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { tipo: { type: "string", enum: TIPOS_ALERTA }, texto: { type: "string" } },
+        required: ["tipo", "texto"],
+        additionalProperties: false,
+      },
+    },
     apps: {
       type: "object",
       properties: { resumen: { type: "string" }, partes: PARTES },
@@ -91,7 +127,7 @@ const ESQUEMA = {
       },
     },
   },
-  required: ["apps", "plan", "borradores"],
+  required: ["apps", "plan", "borradores", "alertas"],
   additionalProperties: false,
 } as const;
 
@@ -382,10 +418,11 @@ export async function trabajarPara(
       },
       system: `Eres Atendel, el asistente de ${negocio}, con tus agentes Lola (atención y citas), Clara (correo), Víctor (clientes) e Iris (oficina). Es tu revisión de la mañana: trabajas por tu cuenta mientras el dueño no está, para que al llegar encuentre todo listo para revisar.
 
-Haz tres cosas, en español de México, claro y corto:
+Haz cuatro cosas, en español de México, claro y corto:
 0. "apps": la revisión de sus apps con lo que viene en "lo_que_encontre_en_las_apps". "resumen" en una frase (cuántas necesitan atención). "partes": una por app revisada; "titulo" = el nombre de la app; "texto" = qué necesita atención (con datos concretos) o "En orden". Si no hay hallazgos, resumen vacío y partes vacía.
 1. "plan": el plan del día con lo que hay de verdad en los datos. "resumen" en una frase. "partes": de 2 a 4, por ejemplo "Lo primero", "Después", "Para que tu equipo trabaje mejor". Cosas concretas y accionables, sin relleno ni frases de motivación.
 2. "borradores": para cada correo de "correos_por_contestar", un borrador de respuesta listo para revisar (usa su número en "correo"). Si no hay correos, deja la lista vacía.
+3. "alertas": SOLO lo que "lo_que_encontre_en_las_apps" muestra claramente y es de las últimas 24 horas o sigue pendiente; nunca supongas. Una por tipo como mucho, y "texto" en una frase con el dato concreto (cuánto, de quién, desde cuándo). Tipos: pago_entro (entró un pago), pago_fallido (un pago falló o lo rechazaron), disputa_reembolso (abrieron una disputa o pidieron un reembolso), factura_vencida (una factura venció o vence esta semana), pedido_pendiente (un pedido sin atender), error_encontrado (algo que no funciona y el dueño debe arreglar: un cobro, una página, una configuración), resena_mala (una reseña nueva de 1 o 2 estrellas), tareas_atrasadas (tareas vencidas en sus apps de pendientes). Si no hay nada, lista vacía.
 
 Reglas:
 - Nada inventado: ni precios, ni fechas, ni datos que no estén. Si falta algo, dilo con [corchetes] para que el dueño lo complete.
@@ -400,6 +437,7 @@ ${aj.instrucciones ? `- Cómo quiere el dueño que le escriban a sus clientes: $
       .flatMap((b) => (b.type === "text" ? [b.text] : []))
       .join("");
     let r: {
+      alertas?: unknown;
       apps?: { resumen?: unknown; partes?: unknown };
       plan?: { resumen?: unknown; partes?: unknown };
       borradores?: unknown;
@@ -493,6 +531,18 @@ ${aj.instrucciones ? `- Cómo quiere el dueño que le escriban a sus clientes: $
           corta(r.plan?.resumen, 300) ||
           "Lo que conviene hacer hoy, con lo que hay.",
         partes: partesPlan.slice(0, 6),
+      });
+    }
+    // Lo urgente de tus apps (pagos, disputas, facturas, pedidos, problemas, reseñas, tareas): un aviso por tipo al día
+    const dia = new Intl.DateTimeFormat("en-CA", { timeZone: aj.zonaHoraria }).format(new Date());
+    for (const a of leerAlertas(r.alertas)) {
+      const def = ALERTAS[a.tipo];
+      await notificar(admin, dueno, {
+        tipo: a.tipo,
+        agente: "iris",
+        chat: `**${def.titulo}**: ${citar(a.texto, 400)}\n\nLo encontré en la revisión de la mañana de tus apps.`,
+        corto: def.corto,
+        clave: `alerta:${a.tipo}:${dia}`,
       });
     }
     if (!filas.length) return { hecho: false, motivo: "sin resultado" };

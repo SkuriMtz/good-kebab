@@ -7,6 +7,7 @@ import type { ConexionPublica } from "@/lib/conexiones/estado";
 import { argNumero, argTexto, linea } from "@/lib/conexiones/http";
 import { configuradoApp, esPendiente, herramientasPara, proveedorDe } from "@/lib/conexiones/registro";
 import { ErrorConexion, marcarError, obtenerToken } from "@/lib/conexiones/tokens";
+import { contarFallaApp, esFallaDeLaApp } from "@/lib/fallos-apps";
 import { hacerOEsperar, type OpcionesAcciones } from "@/lib/acciones";
 import { buscarFragmentos } from "@/lib/documentos/buscar";
 import type { HerramientaChat } from "./ciclo";
@@ -64,16 +65,26 @@ export function corredor(supabase: SupabaseClient, userId: string, zona?: string
   };
   return async function correr(h: Herramienta, args: Record<string, unknown>, senal: AbortSignal): Promise<string> {
     const p = proveedorDe(h) as Proveedor;
+    // Si la app falla de su lado (5xx o sin red), se cuenta: a la tercera del día, te aviso (aviso 34)
+    const contar = async (e: unknown) => {
+      if (esFallaDeLaApp(e, senal)) await contarFallaApp(userId, h.app);
+    };
     try {
       return await h.ejecutar(args, { token: () => token(p), senal, zona });
     } catch (e) {
-      if (status(e) !== 401) throw e;
+      if (status(e) !== 401) {
+        await contar(e);
+        throw e;
+      }
       // El token ya no sirve: se renueva y se intenta una vez más
       await token(p, true);
       try {
         return await h.ejecutar(args, { token: () => token(p), senal, zona });
       } catch (e2) {
-        if (status(e2) !== 401) throw e2;
+        if (status(e2) !== 401) {
+          await contar(e2);
+          throw e2;
+        }
         await marcarError(supabase, userId, p);
         throw new ErrorConexion("vencida", p);
       }
