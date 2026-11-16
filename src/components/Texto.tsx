@@ -7,14 +7,28 @@ function palabras(texto: string, suave: boolean): ReactNode {
 }
 
 /**
+ * ¿Es una ruta de Atendel? Solo letras, números y los signos de una ruta normal,
+ * y nada que el navegador lea como otro sitio: «//sitio» o «/\\sitio» (el navegador
+ * toma la diagonal invertida como «/» y saldría de Atendel).
+ */
+export function rutaInterna(ruta: string): boolean {
+  if (!/^\/[A-Za-z0-9_\-./?=&%:#]*$/.test(ruta) || ruta.startsWith("//")) return false;
+  try {
+    return new URL(ruta, "https://atendel.invalid").origin === "https://atendel.invalid";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Enlaces [texto](/ruta) dentro de una línea: solo a rutas de Atendel (que
  * empiezan con "/", como /api/archivos/… o /panel?vista=pendientes). Un enlace
  * a otro sitio se queda como texto: así nadie mete enlaces raros en una respuesta.
  */
 function conEnlaces(texto: string, suave: boolean): ReactNode[] {
-  return texto.split(/(\[[^\]\n]{1,120}\]\(\/(?!\/)[^)\s]{0,300}\))/g).map((parte, i) => {
+  return texto.split(/(\[[^\]\n]{1,120}\]\(\/[^)\s]{0,300}\))/g).map((parte, i) => {
     const m = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(parte);
-    if (!m) return <Fragment key={i}>{enNegritas(parte, suave)}</Fragment>;
+    if (!m || !rutaInterna(m[2])) return <Fragment key={i}>{enNegritas(parte, suave)}</Fragment>;
     const descarga = m[2].startsWith("/api/archivos/");
     // ?conectar=<app>: el panel abre "Conectar una app" ahí mismo; se ve como botón
     const conectar = !descarga && /[?&]conectar=[a-z_]{2,40}(&|$)/.test(m[2]);

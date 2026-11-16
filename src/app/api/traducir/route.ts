@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { IDIOMAS } from "@/lib/ajustes";
+import { hashIp, ipDe, pasarLimite, registrarEvento } from "@/lib/seguridad";
 import { MODELOS } from "@/lib/planes";
 
 /**
@@ -27,20 +28,13 @@ const error = (mensaje: string, status: number) => NextResponse.json({ error: me
 // Lo ya traducido en este servidor (se llena con el uso; se vacía al reiniciar)
 const memoria = new Map<string, string>();
 const MAX_MEMORIA = 20_000;
-// Peticiones por visitante en el último minuto
-const visitas = new Map<string, { n: number; desde: number }>();
+// Tope para todos juntos por día (cada petición puede gastar IA)
+const POR_DIA_TODOS = 5_000;
 
-function permitido(req: NextRequest) {
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || req.headers.get("x-real-ip") || "sin-ip";
-  const ahora = Date.now();
-  const v = visitas.get(ip);
-  if (!v || ahora - v.desde > 60_000) {
-    visitas.set(ip, { n: 1, desde: ahora });
-    if (visitas.size > 5000) visitas.clear();
-    return true;
-  }
-  v.n += 1;
-  return v.n <= POR_MINUTO;
+/** Límite compartido en la base (migración 0030): por visitante cada minuto y entre todos cada día. */
+async function permitido(req: NextRequest) {
+  if (!(await pasarLimite(`traducir:${hashIp(ipDe(req))}`, POR_MINUTO, 60, false))) return false;
+  return pasarLimite(`traducir:todos:${new Date().toISOString().slice(0, 10)}`, POR_DIA_TODOS, 86_400, false);
 }
 
 const ESQUEMA = {
@@ -53,8 +47,17 @@ const ESQUEMA = {
 export async function POST(req: NextRequest) {
   // Solo desde las páginas de Atendel
   const origen = req.headers.get("origin");
-  if (origen && new URL(origen).host !== req.headers.get("host")) return error("Origen no permitido.", 403);
-  if (!permitido(req)) return error("Demasiadas peticiones. Espera un momento.", 429);
+  let host = "";
+  try {
+    host = origen ? new URL(origen).host : "";
+  } catch {
+    host = "";
+  }
+  if (origen && host !== req.headers.get("host")) return error("Origen no permitido.", 403);
+  if (!(await permitido(req))) {
+    await registrarEvento("limite_traducir", req);
+    return error("Demasiadas peticiones. Espera un momento.", 429);
+  }
 
   let body: { idioma?: unknown; textos?: unknown };
   try {

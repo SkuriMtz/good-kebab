@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hashIp, ipDe, pasarLimite, registrarEvento } from "@/lib/seguridad";
 import { createClient } from "@/lib/supabase/server";
 import { LIMITES, normalizarCorreo, revisarSolicitud, type RespuestaLista, type Solicitud } from "@/lib/lista";
 
@@ -37,6 +38,12 @@ export async function POST(request: NextRequest) {
     cuerpo = datos as Record<string, unknown>;
   } catch {
     return responder({ ok: false, error: "No pudimos leer el formulario. Intenta de nuevo." }, 400);
+  }
+
+  // Como mucho 5 envíos por hora desde la misma conexión (límite compartido, migración 0030)
+  if (!(await pasarLimite(`lista:${hashIp(ipDe(request))}`, 5, 3600, true))) {
+    await registrarEvento("limite_lista", request);
+    return responder({ ok: false, error: "Ya recibimos varios envíos desde aquí. Intenta más tarde." }, 429);
   }
 
   // 2. Campo trampa: las personas no lo ven; si viene lleno, es un bot. Se le

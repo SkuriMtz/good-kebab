@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { responderWhatsapp } from "@/lib/whatsapp/responder";
+import { registrarEvento } from "@/lib/seguridad";
 
 /**
  * POST /api/whatsapp/responder {id}: la base de datos lo llama al llegar un
@@ -20,11 +21,20 @@ const error = (mensaje: string, status: number) => NextResponse.json({ error: me
 
 export async function POST(req: NextRequest) {
   const llave = req.headers.get("x-atendel-llave") ?? "";
-  if (llave.length < 32 || llave.length > 200) return error("No autorizado.", 401);
+  if (llave.length < 32 || llave.length > 200) {
+    await registrarEvento("llave_invalida", req);
+    return error("No autorizado.", 401);
+  }
   const admin = clienteServicio();
-  if (!admin) return error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel (proyecto good-kebab, ambiente Production).", 503);
+  if (!admin) {
+    console.error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel (proyecto good-kebab, ambiente Production).");
+    return error("Este servicio no está disponible ahora.", 503);
+  }
   const { data: valida } = await admin.rpc("llave_trabajo_valida", { llave });
-  if (valida !== true) return error("No autorizado.", 401);
+  if (valida !== true) {
+    await registrarEvento("llave_invalida", req);
+    return error("No autorizado.", 401);
+  }
 
   let id: unknown;
   try {

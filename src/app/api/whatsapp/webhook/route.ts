@@ -6,6 +6,7 @@ import { clienteServicio } from "@/lib/supabase/servicio";
 import { idNumeroAtendel } from "@/lib/whatsapp/aviso-plantilla";
 import { falloDelNumeroDeAtendel, mensajeAlNumeroDeAtendel } from "@/lib/whatsapp/avisos-dueno";
 import { firmaValida, leerAviso } from "@/lib/whatsapp/cloud";
+import { registrarEvento } from "@/lib/seguridad";
 
 /**
  * /api/whatsapp/webhook: a donde Meta manda los mensajes de tus clientes.
@@ -48,7 +49,10 @@ export async function POST(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? 0) > MAX_CUERPO) return NextResponse.json({ error: "Muy grande." }, { status: 413 });
   const crudo = Buffer.from(await req.arrayBuffer());
   if (crudo.length > MAX_CUERPO) return NextResponse.json({ error: "Muy grande." }, { status: 413 });
-  if (!firmaValida(crudo, req.headers.get("x-hub-signature-256"))) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  if (!firmaValida(crudo, req.headers.get("x-hub-signature-256"))) {
+    await registrarEvento("firma_invalida", req);
+    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  }
 
   let datos: unknown;
   try {
@@ -61,7 +65,10 @@ export async function POST(req: NextRequest) {
   if (!avisos.length) return NextResponse.json({ ok: true });
   const admin = clienteServicio();
   // Sin la llave de servicio no se puede guardar: Meta lo vuelve a intentar después
-  if (!admin) return NextResponse.json({ error: "Falta SUPABASE_SERVICE_ROLE_KEY en Vercel." }, { status: 503 });
+  if (!admin) {
+    console.error("WhatsApp: falta SUPABASE_SERVICE_ROLE_KEY en Vercel.");
+    return NextResponse.json({ error: "No disponible." }, { status: 503 });
+  }
 
   const duenos = new Map<string, string | null>();
   let fallo = false;

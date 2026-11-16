@@ -7,6 +7,7 @@ import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
 import { trabajarPara } from "@/lib/trabajo";
 import { vigilarAgenda } from "@/lib/vigilar-agenda";
 import { vigilarCorreos } from "@/lib/vigilar-correos";
+import { registrarEvento } from "@/lib/seguridad";
 
 /**
  * POST /api/trabajo: la base de datos lo llama cada 10 minutos (pg_cron +
@@ -28,11 +29,20 @@ const error = (mensaje: string, status: number) => NextResponse.json({ error: me
 
 export async function POST(req: NextRequest) {
   const llave = req.headers.get("x-atendel-llave") ?? "";
-  if (llave.length < 32 || llave.length > 200) return error("No autorizado.", 401);
+  if (llave.length < 32 || llave.length > 200) {
+    await registrarEvento("llave_invalida", req);
+    return error("No autorizado.", 401);
+  }
   const admin = clienteServicio();
-  if (!admin) return error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel (proyecto good-kebab, ambiente Production).", 503);
+  if (!admin) {
+    console.error("Falta SUPABASE_SERVICE_ROLE_KEY en Vercel (proyecto good-kebab, ambiente Production).");
+    return error("Este servicio no está disponible ahora.", 503);
+  }
   const { data: valida } = await admin.rpc("llave_trabajo_valida", { llave });
-  if (valida !== true) return error("No autorizado.", 401);
+  if (valida !== true) {
+    await registrarEvento("llave_invalida", req);
+    return error("No autorizado.", 401);
+  }
 
   const empezo = Date.now();
   // La base de datos pide por separado las tareas, las revisiones y los correos (?que=…): cada una con su tiempo
