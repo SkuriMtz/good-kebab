@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!UUID.test(params.id)) return NextResponse.json({ error: "No existe ese archivo." }, { status: 404 });
   const supabase = await createClient();
   const {

@@ -19,7 +19,8 @@ import { registrarNumeroWhatsapp } from "@/lib/whatsapp/numeros";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest, { params }: { params: { proveedor: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ proveedor: string }> }) {
+  const params = await props.params;
   const r = await preparar(params);
   if ("fallo" in r) return r.fallo;
   const { proveedor: p, supabase, user } = r;

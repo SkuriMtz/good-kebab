@@ -18,7 +18,8 @@ export function generateStaticParams() {
 }
 
 /** Una opción de portada a pantalla completa, con una barra abajo para cambiar entre las tres. */
-export default function Opcion({ params }: { params: { letra: string } }) {
+export default async function Opcion(props: { params: Promise<{ letra: string }> }) {
+  const params = await props.params;
   if (!(params.letra in OPCIONES)) notFound();
   const actual = params.letra as Letra;
   const { Portada } = OPCIONES[actual];

@@ -10,8 +10,8 @@ import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.precios);
 }
 
@@ -21,8 +21,8 @@ export function generateMetadata(): Metadata {
  * por agente y las preguntas sobre planes. Ningún botón cambia el plan de
  * una cuenta: Free se empieza entrando; One y Max llevan a la lista de espera.
  */
-export default function Precios() {
-  const idioma = idiomaServidor();
+export default async function Precios() {
+  const idioma = await idiomaServidor();
   const d = t(idioma);
   const P = d.paginaPrecios;
   return (

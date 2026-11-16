@@ -8,8 +8,8 @@ import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const idioma = idiomaServidor();
+export async function generateMetadata(): Promise<Metadata> {
+  const idioma = await idiomaServidor();
   return metadatosDe(idioma, t(idioma).meta.noEncontrada);
 }
 
@@ -19,8 +19,8 @@ export function generateMetadata(): Metadata {
  * Etiqueta en Mono, título grande, una línea de qué pasó, el único botón
  * principal (al inicio) y una lista de atajos con divisiones de 1px.
  */
-export default function NoEncontrada() {
-  const P = t(idiomaServidor()).noEncontrada;
+export default async function NoEncontrada() {
+  const P = t(await idiomaServidor()).noEncontrada;
   return (
     <Sitio>
       <section className="encabezado-escena contenedor pagina-404" data-escena="burbujaDerecha" aria-labelledby="no-encontrada-titulo">

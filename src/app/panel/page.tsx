@@ -46,7 +46,8 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
-export default async function PanelPage({ searchParams }: { searchParams: Parametros }) {
+export default async function PanelPage(props: { searchParams: Promise<Parametros> }) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient();
   const {
     data: { user },

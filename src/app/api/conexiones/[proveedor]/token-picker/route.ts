@@ -16,7 +16,8 @@ import { appsDeFila, descifrarTokens, leerFila, marcarError, mensajeConexion } f
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_request: Request, { params }: { params: { proveedor: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ proveedor: string }> }) {
+  const params = await props.params;
   if (params.proveedor !== "google") return errorJson("No existe.", 404);
   const r = await preparar(params);
   if ("fallo" in r) return r.fallo;

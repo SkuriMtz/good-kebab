@@ -47,8 +47,8 @@ function columnas(d: Diccionario) {
  * columnas de enlaces; abajo, una franja con el logo, el año, los enlaces de
  * ayuda y el selector de tema.
  */
-export function Footer() {
-  const d = textosServidor();
+export async function Footer() {
+  const d = await textosServidor();
   const FRANJA = [
     { href: "/preguntas#seguridad", label: d.pie.tusDatos },
     { href: "/contacto", label: d.pie.contacto },

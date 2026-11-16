@@ -29,8 +29,8 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function Inicio() {
-  const idioma = idiomaServidor();
+export default async function Inicio() {
+  const idioma = await idiomaServidor();
   const d = t(idioma).inicio;
   return (
     <Sitio fondo="inicio">

@@ -16,7 +16,10 @@ export const metadata: Metadata = {
  * verdad (/api/demo/chat, datos de ejemplo, 20 mensajes al día por visita);
  * si no hay IA, con el guion local de ChatDemo.
  */
-export default function Pruebalo({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+export default async function Pruebalo(
+  props: { searchParams: Promise<Record<string, string | string[] | undefined>> }
+) {
+  const searchParams = await props.searchParams;
   // La página depende de la dirección: se pinta en cada visita con la vista pedida
   void searchParams;
   const ahora = Date.now();

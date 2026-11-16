@@ -63,7 +63,7 @@ export function Popover({
   /** Nombre del panel para lectores de pantalla. */
   etiqueta: string;
   disparador: (props: {
-    ref: React.RefObject<HTMLButtonElement>;
+    ref: React.RefObject<HTMLButtonElement | null>;
     "aria-expanded": boolean;
     "aria-controls": string;
     "aria-haspopup": "dialog";

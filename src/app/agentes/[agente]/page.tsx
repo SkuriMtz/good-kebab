@@ -24,9 +24,10 @@ export function generateStaticParams() {
   return IDS_AGENTES.map((agente) => ({ agente }));
 }
 
-export function generateMetadata({ params }: { params: { agente: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ agente: string }> }): Promise<Metadata> {
+  const params = await props.params;
   if (!esIdAgente(params.agente)) return {};
-  const idioma = idiomaServidor();
+  const idioma = await idiomaServidor();
   const a = agenteDe(idioma, params.agente);
   return metadatosDe(idioma, t(idioma).meta.agente(a.nombre, a.area, a.lema));
 }
@@ -39,10 +40,11 @@ export function generateMetadata({ params }: { params: { agente: string } }): Me
  * de ejemplo completa en la ventana del producto, todo lo que hace, ideas
  * para pedirle algo, los planes y el resto del equipo.
  */
-export default function PaginaAgente({ params }: { params: { agente: string } }) {
+export default async function PaginaAgente(props: { params: Promise<{ agente: string }> }) {
+  const params = await props.params;
   if (!esIdAgente(params.agente)) notFound();
   const id = params.agente;
-  const idioma = idiomaServidor();
+  const idioma = await idiomaServidor();
   const d = t(idioma);
   const P = d.paginaAgente;
   const a = agenteDe(idioma, id);

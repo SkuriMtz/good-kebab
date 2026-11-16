@@ -47,7 +47,7 @@ export function Conversacion({
   modelo?: ReactNode;
   /** Arriba de la caja (límite del plan, un error). */
   aviso?: ReactNode;
-  scrollRef?: RefObject<HTMLDivElement>;
+  scrollRef?: RefObject<HTMLDivElement | null>;
   alDesplazar?: (e: UIEvent<HTMLDivElement>) => void;
 }) {
   // Mientras la respuesta se va escribiendo, la vista la sigue (si estabas abajo)

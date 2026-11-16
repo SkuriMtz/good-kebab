@@ -23,7 +23,8 @@ export const maxDuration = 60;
 const MAX_ARCHIVOS = 10;
 const ID = /^[A-Za-z0-9_-]{10,200}$/;
 
-export async function POST(request: NextRequest, { params }: { params: { proveedor: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ proveedor: string }> }) {
+  const params = await props.params;
   if (params.proveedor !== "google") return errorJson("No existe.", 404);
   const r = await preparar(params);
   if ("fallo" in r) return r.fallo;
