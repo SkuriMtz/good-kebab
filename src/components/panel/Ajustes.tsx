@@ -553,6 +553,125 @@ function AvisosEsteAparato({ demo }: { demo: boolean }) {
   );
 }
 
+/* ---------- Notificaciones: tu WhatsApp para avisos ---------- */
+
+type EstadoWhatsapp = { disponible: boolean; estado: "sin_conectar" | "esperando" | "conectado" | "pausado"; numero: string | null; motivo: string | null };
+
+function AvisosWhatsapp({ demo, modo, alCambiarModo }: { demo: boolean; modo: ModoAviso; alCambiarModo: (m: ModoAviso) => void }) {
+  const [info, setInfo] = useState<EstadoWhatsapp | null>(null);
+  const [enlace, setEnlace] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  const leer = useCallback(async () => {
+    if (demo) return setInfo({ disponible: false, estado: "sin_conectar", numero: null, motivo: null });
+    try {
+      const r = await fetch("/api/avisos/whatsapp", { cache: "no-store" });
+      setInfo(r.ok ? ((await r.json()) as EstadoWhatsapp) : null);
+    } catch {
+      setInfo(null);
+    }
+  }, [demo]);
+  useEffect(() => {
+    void leer();
+  }, [leer]);
+  // Mientras espera tu mensaje, revisa cada 4 segundos (hasta 15 minutos)
+  useEffect(() => {
+    if (!enlace || info?.estado === "conectado") return;
+    const fin = Date.now() + 15 * 60_000;
+    const t = window.setInterval(() => {
+      if (Date.now() > fin) {
+        window.clearInterval(t);
+        setEnlace(null);
+        setMensaje({ tono: "error", texto: "No llegó tu mensaje y el código ya venció. Vuelve a intentarlo." });
+        return;
+      }
+      void leer();
+    }, 4000);
+    return () => window.clearInterval(t);
+  }, [enlace, info?.estado, leer]);
+  useEffect(() => {
+    if (enlace && info?.estado === "conectado") {
+      setEnlace(null);
+      setMensaje({ tono: "ok", texto: "Listo: tu WhatsApp quedó conectado. Ahí te llegará lo importante." });
+    }
+  }, [enlace, info?.estado]);
+
+  async function pedir(accion: "conectar" | "pausar" | "activar" | "quitar") {
+    setOcupado(true);
+    setMensaje(null);
+    try {
+      const r = await fetch("/api/avisos/whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion }) });
+      const j = (await r.json().catch(() => null)) as { enlace?: string; error?: string } | null;
+      if (!r.ok) return setMensaje({ tono: "error", texto: j?.error ?? "No se pudo. Intenta de nuevo." });
+      if (accion === "conectar" && j?.enlace && /^https:\/\/wa\.me\/\d+\?text=/.test(j.enlace)) setEnlace(j.enlace);
+      if (accion === "quitar") setMensaje({ tono: "ok", texto: "Quitaste tu WhatsApp: ya no te llegan avisos por ahí." });
+      await leer();
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  let fila: ReactNode;
+  if (!info) fila = <Fila titulo="Avisos por WhatsApp" texto="Revisando…" />;
+  else if (!info.disponible)
+    fila = (
+      <Fila titulo="Avisos por WhatsApp" texto="Muy pronto: cuando el número de WhatsApp de Atendel esté listo, aquí conectas el tuyo.">
+        <Pronto />
+      </Fila>
+    );
+  else if (info.estado === "conectado" || info.estado === "pausado")
+    fila = (
+      <>
+        <Fila titulo="Avisos por WhatsApp" texto={info.estado === "conectado" ? `Conectado: ${info.numero ?? ""}.` : `En pausa${info.motivo ? `: ${info.motivo}` : "."}`}>
+          {info.estado === "conectado" ? (
+            <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={() => pedir("pausar")}>
+              Pausar
+            </button>
+          ) : (
+            <button type="button" className={claseBoton("principal", true)} disabled={ocupado} onClick={() => pedir("activar")}>
+              Volver a activar
+            </button>
+          )}
+          <button type="button" className={claseBoton("fantasma", true)} disabled={ocupado} onClick={() => pedir("quitar")}>
+            Quitar
+          </button>
+        </Fila>
+        <Fila titulo="¿Qué tanto por WhatsApp?" texto={`${TEXTO_MODO[modo]} Máximo 20 al día: lo demás te llega junto.`} hija>
+          <Desplegable valor={modo} alCambiar={alCambiarModo} etiqueta="Qué tanto te aviso por WhatsApp" opciones={MODOS_AVISO.map((id) => ({ id, nombre: NOMBRE_MODO_AVISO[id] }))} />
+        </Fila>
+      </>
+    );
+  else
+    fila = (
+      <Fila
+        titulo="Avisos por WhatsApp"
+        texto={enlace ? "Se abre WhatsApp con un mensaje listo para el número de Atendel: solo mándalo tal cual. El código vence en 15 minutos." : "A tu número, desde el número de Atendel. Se conecta con un mensaje listo: no tienes que escribir tu número."}
+      >
+        {enlace ? (
+          <a className={claseBoton("principal", true)} href={enlace} target="_blank" rel="noopener noreferrer">
+            Abrir WhatsApp
+          </a>
+        ) : (
+          <button type="button" className={claseBoton("principal", true)} disabled={ocupado} onClick={() => pedir("conectar")}>
+            Conectar mi WhatsApp
+          </button>
+        )}
+      </Fila>
+    );
+
+  return (
+    <Grupo titulo="Tu WhatsApp">
+      {fila}
+      {mensaje ? (
+        <p className={`pc-aj-nota${mensaje.tono === "error" ? " pc-aj-nota--error" : ""}`} role={mensaje.tono === "error" ? "alert" : "status"}>
+          {mensaje.texto}
+        </p>
+      ) : null}
+    </Grupo>
+  );
+}
+
 function LimitesUso({ datos }: { datos: DatosAjustes }) {
   const fuente = useFuenteNegocio();
   const router = useRouter();
@@ -1254,12 +1373,10 @@ export function VentanaAjustes({
       <>
         <p className="pc-aj-nota">El chat «Avisos de Atendel» siempre tiene todo. Aquí eliges qué más te llega como notificación a tu celular o tu compu.</p>
         <AvisosEsteAparato demo={!guardar} />
+        <AvisosWhatsapp demo={!guardar} modo={av.whatsapp} alCambiarModo={(v) => cambiarAviso("whatsapp", v)} />
         <Grupo titulo="Qué tanto te aviso">
           <Fila titulo="En la app" texto={TEXTO_MODO[av.app]}>
             <Desplegable valor={av.app} alCambiar={(v) => cambiarAviso("app", v)} etiqueta="Qué tanto te aviso en la app" opciones={MODOS_AVISO.map((id) => ({ id, nombre: NOMBRE_MODO_AVISO[id] }))} />
-          </Fila>
-          <Fila titulo="Por WhatsApp" texto="A tu número, con lo importante.">
-            <Pronto />
           </Fila>
           <Fila titulo="Por correo" texto={datos.correo ? `A ${datos.correo}.` : "A tu correo."}>
             <Pronto />
