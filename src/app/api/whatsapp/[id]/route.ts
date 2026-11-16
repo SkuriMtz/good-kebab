@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { aparatoDe } from "@/lib/aparato";
+import { citar } from "@/lib/avisos";
 import { ErrorConexion, obtenerToken } from "@/lib/conexiones/tokens";
+import { nombreSeguro, notificar } from "@/lib/notificar";
 import { createClient } from "@/lib/supabase/server";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { mandarTexto } from "@/lib/whatsapp/cloud";
@@ -94,6 +97,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const envio = await mandarTexto({ token, phoneNumberId: String(numero.phone_number_id), a: String(msj.telefono), texto });
   if (!envio.ok) {
     await admin.from("whatsapp_mensajes").update({ estado: "error", borrador: texto, motivo: `No salió: ${envio.error}`.slice(0, 300) }).eq("id", msj.id).eq("owner_id", user.id);
+    // En el chat de Avisos; la notificación, solo a tus otros aparatos (en este ya lo estás viendo)
+    const cliente = nombreSeguro(msj.nombre, "un cliente");
+    await notificar(admin, user.id, {
+      tipo: "accion_fallo",
+      agente: "lola",
+      chat: `No salió la respuesta que le mandaste a ${citar(msj.nombre, 80) || "un cliente"} por WhatsApp: ${citar(envio.error, 300)}. Quedó en [Necesita tu OK](/panel?vista=pendientes) para que lo intentes de nuevo.`,
+      corto: `No salió la respuesta que le mandaste a ${cliente} por WhatsApp.`,
+      enlace: "/panel?vista=pendientes",
+      excepto: aparatoDe(req),
+    });
     return error(`No salió: ${envio.error}`, 502);
   }
   await admin.from("whatsapp_mensajes").insert({ owner_id: user.id, telefono: msj.telefono, nombre: msj.nombre, direccion: "saliente", texto, wa_id: envio.waId, estado: "enviado", autor: "dueno" });

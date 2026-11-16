@@ -1,7 +1,10 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdApp, Proveedor, Tokens } from "@/lib/nucleo-tipos";
+import { citar } from "@/lib/avisos";
 import { cifrarJson, descifrarJson } from "@/lib/cifrado";
+import { notificar } from "@/lib/notificar";
+import { clienteServicio } from "@/lib/supabase/servicio";
 import { esIdApp } from "./catalogo";
 import { leerConexionesPublicas, type ConexionPublica } from "./estado";
 import { NOMBRE_PROVEEDOR, ErrorOAuth } from "./oauth";
@@ -14,7 +17,9 @@ import { adaptador, configurado, esPendiente } from "./registro";
  * - `obtenerToken` descifra, renueva con el refresh token si está por vencer
  *   y vuelve a guardar; si el proveedor dice invalid_grant (permiso revocado
  *   o vencido), marca la conexión con estado 'error'.
- * - Todo con el cliente con sesión de la persona (RLS); nunca service role.
+ * - Todo con el cliente con sesión de la persona (RLS); nunca service role
+ *   para los tokens (los avisos de "se desconectó" sí van a la cola de avisos
+ *   con el cliente de servicio, sin tocar tokens).
  * - Nunca se registran tokens ni se mandan al navegador.
  */
 
@@ -99,6 +104,19 @@ export async function guardarConexion(
     },
     { onConflict: "owner_id,proveedor" },
   );
+  if (!error) {
+    // Queda en el chat de Avisos (y, si eliges «Todo», en una notificación): por si no fuiste tú
+    const admin = clienteServicio();
+    const nombre = NOMBRE_PROVEEDOR[p] ?? p;
+    if (admin)
+      await notificar(admin, userId, {
+        tipo: "app_conectada",
+        agente: "iris",
+        chat: `Se conectó ${nombre}${datos.cuenta ? ` (${citar(datos.cuenta, 80)})` : ""}. Si no fuiste tú, quítala en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+        corto: `Se conectó ${nombre}.`,
+        enlace: "/panel?vista=negocio&tab=apps",
+      }).catch(() => undefined);
+  }
   return !error;
 }
 
@@ -108,6 +126,26 @@ export async function marcarError(supabase: SupabaseClient, userId: string, p: P
     .update({ estado: "error", error: mensaje.slice(0, 500), actualizado_en: new Date().toISOString() })
     .eq("owner_id", userId)
     .eq("proveedor", p);
+  await avisarDesconexion(userId, p, mensaje);
+}
+
+/**
+ * Te avisa que una app dejó de servir (una vez al día por app). El aviso usa
+ * el cliente de servicio solo para la cola de avisos; los tokens siguen
+ * siempre con tu sesión.
+ */
+async function avisarDesconexion(userId: string, p: Proveedor, mensaje: string) {
+  const admin = clienteServicio();
+  if (!admin) return;
+  const nombre = NOMBRE_PROVEEDOR[p] ?? p;
+  await notificar(admin, userId, {
+    tipo: "app_desconectada",
+    agente: "iris",
+    chat: `Se desconectó ${nombre}: ${citar(mensaje, 300)} Mientras no la vuelvas a conectar, no la puedo usar. Hazlo en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+    corto: `Se desconectó ${nombre}. Vuelve a conectarla en Tu negocio → Apps.`,
+    enlace: "/panel?vista=negocio&tab=apps",
+    clave: `conexion:${p}:${new Date().toISOString().slice(0, 10)}`,
+  }).catch(() => undefined);
 }
 
 export function descifrarTokens(f: Pick<Fila, "token_cifrado">, userId: string, p: Proveedor): Tokens {

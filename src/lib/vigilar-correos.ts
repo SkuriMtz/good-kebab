@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { guardarPendiente, type OpcionesAcciones } from "./acciones";
 import { limpiarAjustes } from "./ajustes";
 import { citar } from "./avisos";
-import { nombreSeguro, notificar } from "./notificar";
+import { avisarUsoTrabajo, nombreSeguro, notificar } from "./notificar";
 import { bloqueCerebro, cargarCerebro } from "./cerebro";
 import { argCorreos } from "./conexiones/http";
 import { cabecera, cuerpoGmail, type MensajeGmail } from "./conexiones/proveedores/google";
@@ -121,7 +121,10 @@ export async function vigilarCorreos(admin: SupabaseClient, dueno: string): Prom
   const cuenta = await cargarCuenta(admin, dueno);
   const { data: gastos } = await admin.from("trabajo_uso").select("costo").eq("owner_id", dueno).gte("creado_en", inicioSemana(aj.zonaHoraria));
   const gastado = (gastos ?? []).reduce((n, g) => n + (Number(g.costo) || 0), 0);
-  if (gastado + MINIMO > cuenta.plan.trabajo.semana) return { nuevos: 0, avisos: 0, motivo: "límite" };
+  // Al 80 % y al llegar al límite, te avisa (una vez por semana cada uno)
+  const lleno = gastado + MINIMO > cuenta.plan.trabajo.semana;
+  await avisarUsoTrabajo(admin, dueno, { gastado, limite: cuenta.plan.trabajo.semana, semana: inicioSemana(aj.zonaHoraria), lleno });
+  if (lleno) return { nuevos: 0, avisos: 0, motivo: "límite" };
 
   // 1. Lo nuevo de la última media hora, en las apps de correo conectadas
   const conexiones = await conexionesVigentes(admin, dueno);

@@ -18,7 +18,7 @@ import { MODELOS } from "./planes";
 import { Gasto } from "./uso";
 import { bloqueCerebro, cargarCerebro, verificarContraReglas } from "./cerebro";
 import { citar } from "./avisos";
-import { notificar } from "./notificar";
+import { avisarUsoTrabajo, notificar, recordar } from "./notificar";
 
 /**
  * TRABAJO POR SU CUENTA: después de la revisión diaria (migración 0015),
@@ -254,8 +254,10 @@ export async function trabajarPara(
     (n, g) => n + (Number(g.costo) || 0),
     0,
   );
-  if (gastado + MINIMO > cuenta.plan.trabajo.semana)
-    return { hecho: false, motivo: "límite" };
+  // Al 80 % y al llegar al límite, te avisa (una vez por semana cada uno)
+  const lleno = gastado + MINIMO > cuenta.plan.trabajo.semana;
+  await avisarUsoTrabajo(admin, dueno, { gastado, limite: cuenta.plan.trabajo.semana, semana: inicioSemana(aj.zonaHoraria), lleno });
+  if (lleno) return { hecho: false, motivo: "límite" };
 
   // Lo que hay de verdad (siempre de esta cuenta)
   const hace = (h: number) =>
@@ -494,8 +496,20 @@ ${aj.instrucciones ? `- Cómo quiere el dueño que le escriban a sus clientes: $
       });
     }
     if (!filas.length) return { hecho: false, motivo: "sin resultado" };
-    const { error } = await admin.from("trabajos").insert(filas);
+    const { data: guardados, error } = await admin.from("trabajos").insert(filas).select("id");
     if (error) return { hecho: false, motivo: `no se guardó: ${error.code}` };
+    // Si en 2 días no lo revisas en la Oficina, te lo recuerda (si ya lo revisaste, no sale)
+    const primero = guardados?.[0]?.id ? String(guardados[0].id) : null;
+    if (primero)
+      await recordar(admin, dueno, {
+        tipo: "oficina_espera",
+        agente: "iris",
+        corto: `Lo que te dejé en la Oficina sigue esperando tu revisión.`,
+        enlace: "/panel?vista=oficina",
+        minutos: 2 * 24 * 60,
+        revisar: `oficina:${primero}`,
+        clave: `oficina2d:${primero}`,
+      });
     // Y te avisa en el chat (Avisos de Atendel), no solo en la Oficina
     await notificar(admin, dueno, {
       tipo: "revision_dia",

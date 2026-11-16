@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { esIdApp } from "@/lib/conexiones/catalogo";
+import { aparatoDe } from "@/lib/aparato";
+import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { NOMBRE_PROVEEDOR } from "@/lib/conexiones/oauth";
 import { adaptador } from "@/lib/conexiones/registro";
+import { notificar } from "@/lib/notificar";
+import { clienteServicio } from "@/lib/supabase/servicio";
 import { cuerpoJson, errorJson, preparar } from "@/lib/conexiones/rutas";
 import { appsDeFila, descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
 
@@ -46,6 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { proveed
       .eq("owner_id", user.id)
       .eq("proveedor", p);
     if (error) return errorJson("No se pudo desconectar. Intenta de nuevo.", 500);
+    await avisarQuitada(user.id, APP_POR_ID[app]?.nombre ?? NOMBRE_PROVEEDOR[p] ?? p, aparatoDe(request));
     return NextResponse.json({ ok: true, revocada: false, quedan });
   }
 
@@ -61,5 +66,20 @@ export async function POST(request: NextRequest, { params }: { params: { proveed
   }
   const { error } = await supabase.from("conexiones").delete().eq("owner_id", user.id).eq("proveedor", p);
   if (error) return errorJson("No se pudo desconectar. Intenta de nuevo.", 500);
+  await avisarQuitada(user.id, NOMBRE_PROVEEDOR[p] ?? p, aparatoDe(request));
   return NextResponse.json({ ok: true, revocada, quedan: [] });
+}
+
+/** Queda en el chat de Avisos; la notificación, solo a tus otros aparatos (por si no fuiste tú). */
+async function avisarQuitada(userId: string, nombre: string, excepto: string | null) {
+  const admin = clienteServicio();
+  if (!admin) return;
+  await notificar(admin, userId, {
+    tipo: "app_conectada",
+    agente: "iris",
+    chat: `Se quitó ${nombre} de tus apps. Si no fuiste tú, vuelve a conectarla en [Tu negocio → Apps](/panel?vista=negocio&tab=apps).`,
+    corto: `Se quitó ${nombre} de tus apps.`,
+    enlace: "/panel?vista=negocio&tab=apps",
+    excepto,
+  }).catch(() => undefined);
 }

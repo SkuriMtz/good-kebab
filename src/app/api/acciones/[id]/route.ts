@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { limpiarAjustes } from "@/lib/ajustes";
+import { aparatoDe } from "@/lib/aparato";
+import { citar } from "@/lib/avisos";
 import { APP_POR_ID } from "@/lib/conexiones/catalogo";
+import { limpiarCorto, notificar } from "@/lib/notificar";
 import { herramientaPorNombre } from "@/lib/conexiones/registro";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import { mensajeError } from "@/lib/herramientas/ciclo";
@@ -65,6 +68,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const fallo = async (mensaje: string, status: number) => {
     await admin.from("acciones").update({ estado: "error", resultado: mensaje.slice(0, 2000), resuelto_en: ahora() }).eq("id", fila.id).eq("owner_id", user.id);
+    // Queda en el chat de Avisos; la notificación, solo a tus otros aparatos (en este ya lo estás viendo)
+    await notificar(admin, user.id, {
+      tipo: "accion_fallo",
+      agente: "iris",
+      chat: `No se pudo hacer lo que aprobaste: ${citar(fila.resumen, 300)}.\n\n${citar(mensaje, 400)}`,
+      corto: `No se pudo hacer lo que aprobaste: ${limpiarCorto(fila.resumen, 160)}.`,
+      excepto: aparatoDe(req),
+    });
     return error(mensaje, status);
   };
   const h = herramientaPorNombre(String(fila.herramienta));

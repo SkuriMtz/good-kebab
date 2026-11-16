@@ -15,7 +15,7 @@ import { cuandoEnPalabras, errorFrecuencia, frecuenciaEnPalabras, siguienteVez, 
 import { inicioSemana } from "./trabajo";
 import { Gasto } from "./uso";
 import { citar, citarLineas } from "./avisos";
-import { limpiarCorto, notificar } from "./notificar";
+import { avisarUsoTrabajo, limpiarCorto, notificar, recordar } from "./notificar";
 import { herramientaVerAtendel } from "./herramientas/atendel";
 
 /**
@@ -113,7 +113,10 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
   const cuenta = await cargarCuenta(admin, dueno);
   const { data: gastos } = await admin.from("trabajo_uso").select("costo").eq("owner_id", dueno).gte("creado_en", inicioSemana(aj.zonaHoraria));
   const gastado = (gastos ?? []).reduce((n, g) => n + (Number(g.costo) || 0), 0);
-  if (gastado + 5_000 > cuenta.plan.trabajo.semana) return { hecho: false, motivo: "límite de la semana" };
+  // Al 80 % y al llegar al límite, te avisa (una vez por semana cada uno)
+  const lleno = gastado + 5_000 > cuenta.plan.trabajo.semana;
+  await avisarUsoTrabajo(admin, dueno, { gastado, limite: cuenta.plan.trabajo.semana, semana: inicioSemana(aj.zonaHoraria), lleno });
+  if (lleno) return { hecho: false, motivo: "límite de la semana" };
 
   const [conexiones, cerebro] = await Promise.all([conexionesVigentes(admin, dueno), cargarCerebro(admin, dueno)]);
   // Las apps (solo lectura) y las acciones de Atendel; los documentos no (dependen de la sesión)
@@ -185,13 +188,17 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
   }
 
   const resultado = texto.trim().slice(0, 4000) || "No alcancé a terminarla esta vez; la vuelvo a intentar la próxima.";
-  await admin.from("trabajos").insert({
-    owner_id: dueno,
-    agente: "iris",
-    titulo: `Tarea: ${t.titulo}`.slice(0, 160),
-    detalle: frecuenciaEnPalabras({ tipo: t.tipo, dias: t.dias ?? [], dia_mes: t.dia_mes, fecha: t.fecha, hora: t.hora }).slice(0, 300),
-    partes: [{ titulo: "Lo que hice", texto: resultado }],
-  });
+  const { data: enOficina } = await admin
+    .from("trabajos")
+    .insert({
+      owner_id: dueno,
+      agente: "iris",
+      titulo: `Tarea: ${t.titulo}`.slice(0, 160),
+      detalle: frecuenciaEnPalabras({ tipo: t.tipo, dias: t.dias ?? [], dia_mes: t.dia_mes, fecha: t.fecha, hora: t.hora }).slice(0, 300),
+      partes: [{ titulo: "Lo que hice", texto: resultado }],
+    })
+    .select("id")
+    .single();
   await admin
     .from("tareas")
     .update({ ultima: new Date().toISOString(), ultimo_resultado: resultado.replace(/\s+/g, " ").slice(0, 300) })
@@ -199,12 +206,23 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
     .eq("owner_id", dueno);
   // Y te avisa en el chat (Avisos de Atendel), no solo en la Oficina
   await notificar(admin, dueno, {
-    tipo: "tarea_termino",
+    tipo: texto.trim() ? "tarea_termino" : "tarea_fallo",
     agente: "iris",
     chat: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${citar(t.titulo, 120)}».\n\n${citarLineas(resultado, 900)}\n\nCompleta en la [Oficina](/panel?vista=oficina).`,
-    corto: `${texto.trim() ? "Hice" : "Intenté hacer"} tu tarea «${limpiarCorto(t.titulo, 80)}». Está en la Oficina.`,
+    corto: texto.trim() ? `Hice tu tarea «${limpiarCorto(t.titulo, 80)}». Está en la Oficina.` : `No alcancé a hacer tu tarea «${limpiarCorto(t.titulo, 80)}»; la intento la próxima vez.`,
     enlace: "/panel?vista=oficina",
   });
+  // Si en 2 días no la revisas en la Oficina, te lo recuerda
+  if (enOficina?.id && texto.trim())
+    await recordar(admin, dueno, {
+      tipo: "oficina_espera",
+      agente: "iris",
+      corto: `Tu tarea «${limpiarCorto(t.titulo, 80)}» sigue esperando tu revisión en la Oficina.`,
+      enlace: "/panel?vista=oficina",
+      minutos: 2 * 24 * 60,
+      revisar: `oficina:${enOficina.id}`,
+      clave: `oficina2d:${enOficina.id}`,
+    });
   return { hecho: Boolean(texto.trim()), motivo: texto.trim() ? "hecha" : "sin resultado" };
 }
 
