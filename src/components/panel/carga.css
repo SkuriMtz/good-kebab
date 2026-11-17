@@ -1,0 +1,36 @@
+/* Pantalla de «cargando» del panel (src/app/panel/loading.tsx): unos renglones
+   grises que respiran mientras llega la sección, para que no haya saltos. */
+.pc-carga {
+  display: grid;
+  gap: 14px;
+  padding-top: 8px;
+}
+.pc-carga__renglon {
+  height: 14px;
+  border-radius: 6px;
+  background: var(--pc-hover);
+  animation: pc-carga-respira 1.4s ease-in-out infinite;
+}
+.pc-carga__renglon--titulo {
+  width: 40%;
+  height: 28px;
+  margin-bottom: 10px;
+}
+.pc-carga__renglon--fila {
+  height: 52px;
+  border-radius: 10px;
+}
+@keyframes pc-carga-respira {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-carga__renglon {
+    animation: none;
+  }
+}

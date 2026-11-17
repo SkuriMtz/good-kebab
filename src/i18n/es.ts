@@ -486,6 +486,14 @@ export const es = {
       { href: "/pruebalo", titulo: "Pruébalo", texto: "Platica con los agentes en un chat de ejemplo" },
     ],
   },
+
+  errorPagina: {
+    etiqueta: "Algo falló",
+    titulo: "Algo no salió bien",
+    texto: "Fue de nuestro lado, no tuyo. Intenta de nuevo; si sigue, vuelve en unos minutos.",
+    reintentar: "Intentar de nuevo",
+    volver: "Volver al inicio",
+  },
 };
 
 /** La forma de los textos: el inglés tiene que traer exactamente lo mismo. */

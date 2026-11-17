@@ -740,4 +740,12 @@ export const en: Diccionario = {
       { href: "/pruebalo", titulo: "Try it", texto: "Chat with the agents in a sample chat" },
     ],
   },
+
+  errorPagina: {
+    etiqueta: "Something failed",
+    titulo: "Something went wrong",
+    texto: "It was on our side, not yours. Try again; if it keeps happening, come back in a few minutes.",
+    reintentar: "Try again",
+    volver: "Back to home",
+  },
 };

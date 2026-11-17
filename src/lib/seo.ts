@@ -5,8 +5,8 @@ import { t, type Idioma } from "@/i18n";
  * Título, descripción y Open Graph básico de cada página pública, en un solo
  * lugar. Next junta los metadatos por llave de primer nivel: si una página
  * solo pone `title`, al compartirla se vería el título del inicio. Por eso
- * cada página pasa los suyos por aquí. Sin imagen para compartir: no hay una
- * aprobada y no se inventa.
+ * cada página pasa los suyos por aquí. La imagen para compartir es la del
+ * sitio (src/app/opengraph-image.tsx: logo, nombre y la frase de la portada).
  */
 
 export const NOMBRE_SITIO = "Atendel";
@@ -19,7 +19,7 @@ export function metadatos(titulo: string, descripcion: string, extra: Metadata =
     title: titulo,
     description: descripcion,
     openGraph: { ...BASE_OG, locale, title: `${titulo} · ${NOMBRE_SITIO}`, description: descripcion },
-    twitter: { card: "summary", title: `${titulo} · ${NOMBRE_SITIO}`, description: descripcion },
+    twitter: { card: "summary_large_image", title: `${titulo} · ${NOMBRE_SITIO}`, description: descripcion },
     ...extra,
   };
 }
@@ -36,7 +36,7 @@ export function metadatosInicio(idioma: Idioma): Metadata {
     title: { default: m.tituloInicio, template: `%s · ${NOMBRE_SITIO}` },
     description: m.descripcionInicio,
     openGraph: { ...BASE_OG, locale: m.locale, title: m.tituloInicio, description: m.descripcionInicio },
-    twitter: { card: "summary", title: m.tituloInicio, description: m.descripcionInicio },
+    twitter: { card: "summary_large_image", title: m.tituloInicio, description: m.descripcionInicio },
   };
 }
 
