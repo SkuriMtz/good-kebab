@@ -6,12 +6,13 @@ import { COLORES } from "@/components/Logo";
 /* =====================================================================
    Fondo de las páginas de acceso (entrar, crear cuenta, 404 y 500).
    Cuatro listones grandes y curvos que cruzan la pantalla, hechos de
-   fragmentos que nadan como una escuela de peces: cada fragmento es un
-   triángulo irregular que apunta hacia donde va, avanza a lo largo de su
-   liston (≈1000 en total), mueve la cola y toda la escuela ondula.
-   - Tonos azul marino e índigo muy oscuros; unos pocos fragmentos llevan
-     los colores de los agentes (COLORES de Logo) con opacidad muy baja.
-     Brillo bajo, sin bloom: el texto de la tarjeta siempre se lee.
+   fragmentos que nadan juntos como una escuela de peces (≈1000 en total).
+   Cada fragmento es como los del inicio (src/components/escena/figuras/
+   motor.ts): un tetraedro de alambre que gira despacio en 3D; de frente se
+   ve como un triángulo hueco, con las aristas de adentro tenues y un halo
+   suave (mezcla aditiva). Colores de esa misma paleta (violeta, lila, azul,
+   blanco) y unos pocos con los de los agentes (COLORES de Logo).
+   - Algunos van "fuera de foco": más grandes y más tenues.
    - Con el cursor, los peces a menos de 130 px se apartan un poco
      (máximo 16 px), giran y regresan a la escuela con un resorte suave.
      En celular (sin cursor) solo nadan.
@@ -41,7 +42,7 @@ const LISTONES: Liston[] = [
     p: [[-0.2, 0.98], [0.3, 0.5], [0.62, 0.98], [1.2, 0.34]],
     ancho: 0.15,
     tono: 232,
-    peces: 340,
+    peces: 300,
     vel: 0.011,
     deriva: [
       { fase: 0.3, vel: 0.05, amp: 0.02 },
@@ -54,7 +55,7 @@ const LISTONES: Liston[] = [
     p: [[-0.12, 0.12], [0.3, -0.12], [0.5, 0.52], [1.14, 0.72]],
     ancho: 0.12,
     tono: 246,
-    peces: 280,
+    peces: 250,
     vel: -0.012,
     deriva: [
       { fase: 1.1, vel: 0.045, amp: 0.02 },
@@ -67,7 +68,7 @@ const LISTONES: Liston[] = [
     p: [[-0.12, 1.12], [0.36, 0.8], [0.7, 1.22], [1.12, 0.9]],
     ancho: 0.1,
     tono: 222,
-    peces: 220,
+    peces: 190,
     vel: 0.013,
     deriva: [
       { fase: 2.2, vel: 0.05, amp: 0.015 },
@@ -80,7 +81,7 @@ const LISTONES: Liston[] = [
     p: [[0.34, -0.16], [0.66, 0.26], [0.86, -0.02], [1.12, 0.22]],
     ancho: 0.075,
     tono: 256,
-    peces: 160,
+    peces: 140,
     vel: -0.016,
     deriva: [
       { fase: 4.4, vel: 0.05, amp: 0.02 },
@@ -89,6 +90,14 @@ const LISTONES: Liston[] = [
       { fase: 3.0, vel: 0.045, amp: 0.02 },
     ],
   },
+];
+
+/** Colores de cada escuela: los de los fragmentos del inicio (PALETA de escena/figuras/formas.ts). */
+const PALETA_LISTON = [
+  ["#5f7dff", "#8b5cff", "#c9a8ff", "#5f7dff"],
+  ["#8b5cff", "#c9a8ff", "#ecebf2", "#8b5cff"],
+  ["#5f7dff", "#ecebf2", "#8b5cff"],
+  ["#c9a8ff", "#c95ce6", "#8b5cff"],
 ];
 
 /** Puntos de la curva que se calculan por cuadro; cada pez interpola entre dos. */
@@ -107,11 +116,6 @@ function azar(semilla: number) {
   };
 }
 
-const hexARgba = (hex: string, a: number) => {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-};
-
 type Pez = {
   l: number;
   /** Lugar a lo largo del liston (0 a 1) y su rapidez (fracción por segundo). */
@@ -120,16 +124,13 @@ type Pez = {
   /** Lugar a lo ancho del liston (-1 a 1). */
   s: number;
   fase: number;
-  largo: number;
-  ancho: number;
-  /** Irregularidad de la punta y de cada lado de la cola: así se leen como fragmentos. */
-  punta: number;
-  ladoA: number;
-  ladoB: number;
-  relleno: string;
-  trazo: string;
-  /** Capa de color de agente (muy tenue) encima del relleno, o "". */
-  tinte: string;
+  /** Radio del tetraedro en px y su giro: ángulos iniciales y rapidez (rad/s) en x, y, z. */
+  tam: number;
+  giro: [number, number, number, number, number, number];
+  color: string;
+  alfa: number;
+  /** Fuera de foco: más grande, más tenue y con línea más gruesa. */
+  borroso: boolean;
 };
 
 export function FondoListones() {
@@ -149,26 +150,20 @@ export function FondoListones() {
       Array.from({ length: liston.peces }, (): Pez => {
         // Más peces hacia el centro del liston que en las orillas
         const s = Math.max(-1, Math.min(1, (r() + r() + r()) / 1.5 - 1));
-        const largo = 8 + r() * 11;
-        const tinta = r() < 0.09;
-        const color = COLORES[Math.floor(r() * COLORES.length)];
-        const L = 14 + 12 * r() + 6 * (1 - Math.abs(s));
-        const H = liston.tono + (r() - 0.5) * 18;
-        const S = 52 + r() * 18;
+        const borroso = r() < 0.14;
+        const agente = r() < 0.08;
+        const tonos = PALETA_LISTON[li];
         return {
           l: li,
           t: r(),
           vel: liston.vel * (0.9 + r() * 0.2),
           s,
           fase: r() * 6.28,
-          largo,
-          ancho: largo * (0.32 + r() * 0.28),
-          punta: 0.8 + r() * 0.4,
-          ladoA: 0.6 + r() * 0.6,
-          ladoB: 0.6 + r() * 0.6,
-          relleno: `hsla(${H.toFixed(0)},${S.toFixed(0)}%,${L.toFixed(1)}%,0.92)`,
-          trazo: tinta ? hexARgba(color, 0.22) : `rgba(150,170,255,${(0.06 + r() * 0.08).toFixed(3)})`,
-          tinte: tinta ? hexARgba(color, 0.1 + r() * 0.08) : "",
+          tam: (4 + r() * 4.5) * (borroso ? 1.6 : 1),
+          giro: [r() * 6.28, r() * 6.28, r() * 6.28, (r() - 0.5) * 0.9, (r() - 0.5) * 0.9, (r() - 0.5) * 0.5],
+          color: agente ? COLORES[Math.floor(r() * COLORES.length)] : tonos[Math.floor(r() * tonos.length)],
+          alfa: (0.5 + 0.35 * r() + 0.15 * (1 - Math.abs(s))) * (borroso ? 0.45 : 1),
+          borroso,
         };
       }),
     );
@@ -265,8 +260,10 @@ export function FondoListones() {
     const dibujar = (dt: number, tiempo: number, conCursor: boolean, nadando: boolean) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      ctx.lineWidth = 1;
       ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      // Mezcla aditiva, como el halo del inicio: donde se juntan, brillan un poco más
+      ctx.globalCompositeOperation = "lighter";
       for (let f = 0; f < cuantos; f++) {
         const p = peces[f];
         if (nadando) {
@@ -334,28 +331,56 @@ export function FondoListones() {
         antY[f] = y;
 
         if (x < -40 || x > w + 40 || y < -40 || y > h + 40) continue;
-        const L = p.largo * escala;
-        const W = p.ancho * escala;
-        const nx = -dirY;
-        const ny = dirX;
-        // La cola se mueve de lado a lado al nadar
-        const cola = nadando ? Math.sin(tiempo * 5 + p.fase) * W * 0.28 : 0;
-        const cx = x - dirX * L * 0.45;
-        const cy = y - dirY * L * 0.45;
+        // Tetraedro de alambre que gira en 3D (las mismas cuentas que el shader del inicio)
+        const g = p.giro;
+        const ax = g[0] + g[3] * tiempo;
+        const ay = g[1] + g[4] * tiempo;
+        const az = g[2] + g[5] * tiempo + Math.atan2(dirY, dirX);
+        const cx = Math.cos(ax), sx = Math.sin(ax);
+        const cy = Math.cos(ay), sy = Math.sin(ay);
+        const cz = Math.cos(az), sz = Math.sin(az);
+        // Columnas de la matriz de giro
+        const c0x = cz * cy, c0y = sz * cy, c0z = -sy;
+        const c1x = cz * sy * sx - sz * cx, c1y = sz * sy * sx + cz * cx, c1z = cy * sx;
+        const c2x = cz * sy * cx + sz * sx, c2y = sz * sy * cx - cz * sx, c2z = cy * cx;
+        const k = p.tam * escala;
+        const p0x = x + c2x * k, p0y = y - c2y * k;
+        const v1x = 0.943 * c1x - 0.333 * c2x, v1y = 0.943 * c1y - 0.333 * c2y, v1z = 0.943 * c1z - 0.333 * c2z;
+        const v2x = -0.816 * c0x - 0.471 * c1x - 0.333 * c2x, v2y = -0.816 * c0y - 0.471 * c1y - 0.333 * c2y, v2z = -0.816 * c0z - 0.471 * c1z - 0.333 * c2z;
+        const v3x = 0.816 * c0x - 0.471 * c1x - 0.333 * c2x, v3y = 0.816 * c0y - 0.471 * c1y - 0.333 * c2y, v3z = 0.816 * c0z - 0.471 * c1z - 0.333 * c2z;
+        const p1x = x + v1x * k, p1y = y - v1y * k;
+        const p2x = x + v2x * k, p2y = y - v2y * k;
+        const p3x = x + v3x * k, p3y = y - v3y * k;
+        // Cerca del pie (textos chicos) se atenúan para que siempre se lean
+        const alfa = p.alfa * (y > h - 110 ? 0.35 : 1);
+        // El triángulo de afuera brilla más cuando queda de frente
+        const luz = 0.45 + 0.55 * Math.min(1, Math.max(0, (v1z + v2z + v3z) * 0.17 + 0.5));
+        ctx.strokeStyle = p.color;
         ctx.beginPath();
-        ctx.moveTo(x + dirX * L * 0.55 * p.punta, y + dirY * L * 0.55 * p.punta);
-        ctx.lineTo(cx + nx * (W * 0.5 * p.ladoA + cola), cy + ny * (W * 0.5 * p.ladoA + cola));
-        ctx.lineTo(cx - nx * (W * 0.5 * p.ladoB - cola), cy - ny * (W * 0.5 * p.ladoB - cola));
+        ctx.moveTo(p1x, p1y);
+        ctx.lineTo(p2x, p2y);
+        ctx.lineTo(p3x, p3y);
         ctx.closePath();
-        ctx.fillStyle = p.relleno;
-        ctx.fill();
-        if (p.tinte) {
-          ctx.fillStyle = p.tinte;
-          ctx.fill();
-        }
-        ctx.strokeStyle = p.trazo;
+        // Halo suave: la misma línea, ancha y muy tenue
+        ctx.globalAlpha = alfa * 0.16;
+        ctx.lineWidth = p.borroso ? 5 : 3.2;
+        ctx.stroke();
+        ctx.globalAlpha = alfa * luz;
+        ctx.lineWidth = p.borroso ? 1.8 : 1;
+        ctx.stroke();
+        // Aristas hacia la punta: tenues
+        ctx.globalAlpha = alfa * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(p0x, p0y);
+        ctx.lineTo(p1x, p1y);
+        ctx.moveTo(p0x, p0y);
+        ctx.lineTo(p2x, p2y);
+        ctx.moveTo(p0x, p0y);
+        ctx.lineTo(p3x, p3y);
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
       conRumbo = nadando;
     };
 
