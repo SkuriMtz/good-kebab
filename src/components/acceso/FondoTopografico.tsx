@@ -28,6 +28,8 @@ const RADIO = 120;
 /** Lo más que el cursor aparta un fragmento (px). */
 const EMPUJE = 5;
 /** Lo que se mece cada fragmento en su lugar (px). */
+/** Por ahora quieto (lo pidió el dueño): ni onda ni cursor. Con true vuelve el movimiento de serpiente. */
+const MOVER = false;
 /** Cuánto se ondula cada curva de lado a lado, como serpiente (px). */
 const SERPIENTE = 5;
 /** La onda: dirección en que avanza (diagonal), largo (~360 px) y rapidez (rad/s): lenta y larga = suave. */
@@ -301,7 +303,7 @@ export function FondoTopografico() {
       ctx.globalCompositeOperation = "source-over";
     };
 
-    const quieto = () => reducir.matches;
+    const quieto = () => !MOVER || reducir.matches;
 
     const paso = (t: number) => {
       raf = 0;
