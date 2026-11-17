@@ -6,8 +6,8 @@
    locales y viven aquí.
    ===================================================================== */
 .acc[data-tema] {
-  --acc-fondo: #070b17;
-  --acc-tarjeta: #0e1424;
+  --acc-fondo: #000;
+  --acc-tarjeta: #0f0f13;
   --acc-borde: rgb(255 255 255 / 0.1);
   --acc-texto-2: #aab4ca;
   --acc-tenue: #94a0ba;
@@ -23,7 +23,8 @@
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(165deg, #060a15 0%, #0a1225 52%, #070b18 100%);
+  /* Base negra, como pidió el dueño */
+  background: #000;
   color: var(--c-texto);
   overflow-x: clip;
 }
@@ -48,8 +49,9 @@
 }
 .acc__tarjeta {
   width: 100%;
-  max-width: 380px;
-  padding: 30px 30px 28px;
+  max-width: 340px;
+  padding: 26px 26px 22px;
+  text-align: center;
   border: 1px solid var(--acc-borde);
   border-radius: 20px;
   background: var(--acc-tarjeta);
@@ -69,8 +71,26 @@
   transform: scale(0.97);
 }
 .acc__marca-svg {
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
+}
+/* Como en la referencia: el logo y el nombre juntos, centrados arriba */
+.acc__tarjeta > .acc__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.acc__marca-nombre {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+/* Los campos, errores y casillas se leen mejor alineados a la izquierda */
+.acc__tarjeta .acc__formulario,
+.acc__tarjeta .acc__aviso {
+  text-align: left;
 }
 .acc__etiqueta {
   margin-top: 24px;
@@ -82,8 +102,8 @@
   color: var(--c-accion-texto);
 }
 .acc__titulo {
-  margin-top: 16px;
-  font-size: 24px;
+  margin-top: 14px;
+  font-size: 22px;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -132,8 +152,8 @@
 .acc__formulario {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 24px;
+  gap: 14px;
+  margin-top: 20px;
 }
 .acc__tarjeta > .acc__aviso + .acc__formulario {
   margin-top: 16px;
@@ -153,9 +173,7 @@
   background: var(--acc-borde);
 }
 .acc__pie-tarjeta {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--acc-borde);
+  margin-top: 20px;
   font-size: 14px;
   line-height: 1.5;
   color: var(--acc-texto-2);
@@ -255,6 +273,11 @@
 }
 .acc__mas[open] .acc__mas-flecha {
   transform: rotate(180deg);
+}
+.acc__campos-alta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .acc__mas-campos {
   display: flex;
@@ -457,6 +480,6 @@
     border-radius: 18px;
   }
   .acc__titulo {
-    font-size: 22px;
+    font-size: 21px;
   }
 }

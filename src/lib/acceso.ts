@@ -20,7 +20,8 @@ import { esTipoNegocio } from "./tipos-negocio";
 export type ModoAcceso = "entrar" | "crear";
 
 /** Datos opcionales del alta. nacimiento: "AAAA-MM-DD"; tipo: un id de TIPOS_NEGOCIO. */
-export type DatosAlta = { nombre?: string; nacimiento?: string; negocio?: string; tipo?: string; telefono?: string };
+/** Datos del alta. Al crear cuenta todos son obligatorios menos `resumen` (unas líneas sobre el negocio). */
+export type DatosAlta = { nombre?: string; nacimiento?: string; negocio?: string; tipo?: string; telefono?: string; resumen?: string };
 
 /** POST /api/acceso/codigo (cuerpo ≤ 4 KB). */
 export type PeticionCodigo = {
@@ -59,6 +60,7 @@ export const RUTAS_ACCESO = {
 export const LIMITES_ACCESO = {
   nombre: 120,
   negocio: 120,
+  resumen: 500,
   /** Largo total del teléfono escrito (con espacios y signos). */
   telefono: 30,
   telefonoDigitosMin: 8,
@@ -69,7 +71,7 @@ export const LIMITES_ACCESO = {
   turnstile: 2048,
   cuerpoCodigo: 4096,
   cuerpoVerificar: 1024,
-  cuerpoAcepto: 1024,
+  cuerpoAcepto: 4096,
 } as const;
 
 export const MENSAJES_ACCESO = {
@@ -86,6 +88,8 @@ export const MENSAJES_ACCESO = {
   nacimientoFutura: "Tu fecha de nacimiento no puede ser en el futuro.",
   menor: "Para crear una cuenta necesitas ser mayor de 18 años.",
   tipo: "Elige el tipo de negocio de la lista.",
+  falta: "Completa este dato para crear tu cuenta.",
+  resumen: `El resumen puede tener hasta ${LIMITES_ACCESO.resumen} caracteres.`,
   turnstile: "No pudimos comprobar que eres una persona. Intenta de nuevo.",
   codigoFormato: "El código son 6 números.",
   codigoInvalido: "El código no es correcto o ya venció.",
@@ -171,8 +175,8 @@ export function esTrampa(valor: unknown): boolean {
  * Los datos opcionales del alta. Vacíos → se omiten. Devuelve solo los
  * campos conocidos, ya limpios. `hoy` es "AAAA-MM-DD" (hora de México).
  */
-export function validarAlta(datos: unknown, hoy: string): { ok: true; valor: DatosAlta } | Fallo {
-  if (datos === undefined || datos === null) return { ok: true, valor: {} };
+export function validarAlta(datos: unknown, hoy: string, obligatorio = false): { ok: true; valor: DatosAlta } | Fallo {
+  if (datos === undefined || datos === null) return obligatorio ? fallo("nombre", MENSAJES_ACCESO.falta) : { ok: true, valor: {} };
   if (typeof datos !== "object" || Array.isArray(datos)) return fallo("datos", MENSAJES_ACCESO.datos);
   const d = datos as Record<string, unknown>;
   const valor: DatosAlta = {};
@@ -184,7 +188,7 @@ export function validarAlta(datos: unknown, hoy: string): { ok: true; valor: Dat
     return limpiarTexto(v) || undefined;
   };
 
-  for (const campo of ["nombre", "negocio"] as const) {
+  for (const campo of ["nombre", "negocio", "resumen"] as const) {
     const t = texto(campo);
     if (typeof t === "object") return t;
     if (t === undefined) continue;
@@ -212,6 +216,13 @@ export function validarAlta(datos: unknown, hoy: string): { ok: true; valor: Dat
   if (tipo !== undefined) {
     if (!esTipoNegocio(tipo)) return fallo("tipo", MENSAJES_ACCESO.tipo);
     valor.tipo = tipo;
+  }
+
+  // Al crear cuenta: todo menos el resumen es obligatorio (en el orden del formulario)
+  if (obligatorio) {
+    for (const campo of ["nombre", "nacimiento", "negocio", "tipo", "telefono"] as const) {
+      if (!valor[campo]) return fallo(campo, MENSAJES_ACCESO.falta);
+    }
   }
 
   return { ok: true, valor };
@@ -242,7 +253,7 @@ export function validarPeticionCodigo(
   let datos: DatosAlta = {};
   if (modo === "crear") {
     if (cuerpo.acepta !== true) return error(fallo("acepta", MENSAJES_ACCESO.acepta));
-    const alta = validarAlta(cuerpo.datos, hoy);
+    const alta = validarAlta(cuerpo.datos, hoy, true);
     if (!alta.ok) return error(alta);
     datos = alta.valor;
   }

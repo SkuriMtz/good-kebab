@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase/config";
 import { clienteServicio } from "./supabase/servicio";
 import { DATOS_LEGALES } from "./legal";
+import { cifrarJson, descifrarJson, hayLlaveCifrado } from "./cifrado";
 import { normalizarCorreo } from "./lista";
 import { esCuentaNueva, hoyEnMexico, validarAlta, versionValida, type DatosAlta, type UsuarioAcceso } from "./acceso";
 
@@ -258,6 +259,31 @@ async function leerAltaPendiente(admin: SupabaseClient, correoHash: string, cook
   };
 }
 
+/**
+ * Valor de la cookie atendel_acepta (alta con Google): versión de los textos,
+ * cuándo se aceptaron y los datos del alta, cifrados con la llave del
+ * servidor (nadie los lee ni los cambia en el navegador). Sin llave, solo la
+ * versión (como antes).
+ */
+export function valorAceptaGoogle(datos: DatosAlta, ahora = Date.now()): string {
+  if (!hayLlaveCifrado()) return DATOS_LEGALES.actualizado;
+  return cifrarJson({ v: DATOS_LEGALES.actualizado, t: ahora, d: datos }, "acepta-google");
+}
+
+/** Lee la cookie del "acepto" con Google: si vale y no ha vencido, la versión, la fecha y los datos (revisados otra vez). */
+export function leerAceptaGoogle(cookie: string, ahora = Date.now()): { version: string; aceptadoEn: string; datos: DatosAlta } | null {
+  if (!cookie || cookie.length > 4000 || cookie === DATOS_LEGALES.actualizado) return null;
+  try {
+    const v = descifrarJson<{ v?: unknown; t?: unknown; d?: unknown }>(cookie, "acepta-google");
+    if (typeof v.v !== "string" || !versionValida(v.v) || typeof v.t !== "number") return null;
+    if (ahora - v.t > SEGUNDOS_ACEPTA * 1000 || v.t > ahora + 60_000) return null;
+    const datos = validarAlta(v.d, hoyEnMexico(new Date(ahora)));
+    return { version: v.v, aceptadoEn: new Date(v.t).toISOString(), datos: datos.ok ? datos.valor : {} };
+  } catch {
+    return null;
+  }
+}
+
 /** Términos y Aviso de privacidad, en esa versión. Si ya estaban, no se duplican. */
 async function registrarConsentimientos(admin: SupabaseClient, ownerId: string, version: string, aceptadoEn: string, ipHash: string | null): Promise<boolean> {
   const filas = (["terminos", "privacidad"] as const).map((documento) => ({ owner_id: ownerId, documento, version, aceptado_en: aceptadoEn, ip_hash: ipHash }));
@@ -310,8 +336,13 @@ export async function prepararCuenta(p: {
     await asegurarNegocio(sesion, usuario.id, alta?.datos.negocio);
     if (!admin || !nueva) return;
 
-    if (alta && correoHash) {
-      const { nombre, nacimiento, telefono, tipo } = alta.datos;
+    // Alta con Google: los datos vienen cifrados en la cookie del "acepto"
+    const google = !alta && p.cookieAcepta ? leerAceptaGoogle(p.cookieAcepta, ahora) : null;
+    const datos = alta?.datos ?? google?.datos;
+    if (datos?.negocio && !alta) await asegurarNegocio(sesion, usuario.id, datos.negocio);
+
+    if (datos) {
+      const { nombre, nacimiento, telefono, tipo, resumen } = datos;
       if (nombre || nacimiento || telefono) {
         const { error } = await admin
           .from("perfil_dueno")
@@ -321,10 +352,17 @@ export async function prepararCuenta(p: {
           );
         if (error) log("guardar perfil del dueño", error);
       }
-      if (tipo) {
-        const { error } = await sesion.from("perfil_negocio").upsert({ owner_id: usuario.id, tipo }, { onConflict: "owner_id" });
-        if (error) log("guardar tipo de negocio", error);
+      if (tipo || resumen) {
+        const fila: Record<string, string> = { owner_id: usuario.id };
+        if (tipo) fila.tipo = tipo;
+        // El resumen es el comienzo de "A qué se dedica" en Tu negocio
+        if (resumen) fila.a_que_se_dedica = resumen;
+        const { error } = await sesion.from("perfil_negocio").upsert(fila, { onConflict: "owner_id" });
+        if (error) log("guardar tipo y resumen del negocio", error);
       }
+    }
+
+    if (alta && correoHash) {
       const registrado = await registrarConsentimientos(admin, usuario.id, alta.version, alta.aceptadoEn, alta.ipHash ?? p.ipHash);
       // Si el consentimiento no quedó, la fila se queda (vence sola en 24 h) para revisarlo
       if (registrado) {
@@ -334,8 +372,8 @@ export async function prepararCuenta(p: {
       return;
     }
 
-    if (p.cookieAcepta && p.cookieAcepta === DATOS_LEGALES.actualizado) {
-      await registrarConsentimientos(admin, usuario.id, DATOS_LEGALES.actualizado, new Date(ahora).toISOString(), p.ipHash);
+    if (google || (p.cookieAcepta && p.cookieAcepta === DATOS_LEGALES.actualizado)) {
+      await registrarConsentimientos(admin, usuario.id, google?.version ?? DATOS_LEGALES.actualizado, google?.aceptadoEn ?? new Date(ahora).toISOString(), p.ipHash);
     }
   } catch (e) {
     log("preparar cuenta", { message: e instanceof Error ? e.message : "error" });

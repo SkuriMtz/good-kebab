@@ -36,7 +36,7 @@ async function enviarJson(ruta: string, cuerpo: unknown): Promise<Respuesta> {
 
 /**
  * Entrar y crear cuenta: el mismo diseño y la misma mecánica.
- * Paso 1: correo (y, al crear, los datos opcionales y la casilla de los
+ * Paso 1: correo (y, al crear, los datos del negocio —obligatorios menos el resumen— y la casilla de los
  * Términos). Paso 2: el código de 6 dígitos que llegó al correo.
  * Con Google, directo. Los errores salen junto al campo o arriba, siempre
  * en español sencillo (nunca el texto técnico del servidor).
@@ -57,21 +57,24 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
   const [negocio, setNegocio] = useState("");
   const [tipo, setTipo] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [resumen, setResumen] = useState("");
   const [acepta, setAcepta] = useState(false);
   const [trampa, setTrampa] = useState("");
   const [token, setToken] = useState<string | null>(null);
-  const [abierto, setAbierto] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [codigo, setCodigo] = useState("");
   const [verificando, setVerificando] = useState(false);
   const [espera, setEspera] = useState(0);
-  const [errores, setErrores] = useState<Partial<Record<"correo" | "nacimiento" | "telefono" | "acepta" | "codigo", string>>>({});
+  const [errores, setErrores] = useState<Partial<Record<"correo" | "nombre" | "nacimiento" | "negocio" | "tipo" | "telefono" | "resumen" | "acepta" | "codigo", string>>>({});
   const [aviso, setAviso] = useState<string | null>(errorInicial ? A.noInicio : null);
   const [info, setInfo] = useState<string | null>(null);
 
   const correoRef = useRef<HTMLInputElement>(null);
+  const nombreRef = useRef<HTMLInputElement>(null);
   const nacRef = useRef<HTMLInputElement>(null);
+  const negocioRef = useRef<HTMLInputElement>(null);
+  const tipoRef = useRef<HTMLSelectElement>(null);
   const telRef = useRef<HTMLInputElement>(null);
   const aceptaRef = useRef<HTMLInputElement>(null);
   const codigoRef = useRef<HTMLInputElement>(null);
@@ -107,6 +110,28 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
     return E.noSeEnvio;
   }
 
+  /** Los datos del alta: todos obligatorios menos el resumen. También los revisa el servidor. */
+  function revisarAlta(marcar: (campo: keyof typeof errores, texto: string, el: HTMLElement | null) => void) {
+    if (!nombre.trim()) marcar("nombre", E.falta, nombreRef.current);
+    if (!nacimiento) marcar("nacimiento", E.falta, nacRef.current);
+    else {
+      const edad = edadDe(nacimiento);
+      if (!leerFecha(nacimiento) || edad === null) marcar("nacimiento", E.fechaInvalida, nacRef.current);
+      else if (edad < 18) marcar("nacimiento", E.menor, nacRef.current);
+    }
+    if (!negocio.trim()) marcar("negocio", E.falta, negocioRef.current);
+    if (!tipo) marcar("tipo", E.falta, tipoRef.current);
+    if (!telefono.trim()) marcar("telefono", E.falta, telRef.current);
+    else if (telefono.replace(/\D/g, "").length < 8) marcar("telefono", E.telefono, telRef.current);
+    if (!acepta) marcar("acepta", E.aceptar, aceptaRef.current);
+  }
+
+  /** Los datos del alta tal como van al servidor (sin los vacíos). */
+  const datosAlta = () =>
+    Object.fromEntries(
+      Object.entries({ nombre: nombre.trim(), nacimiento, negocio: negocio.trim(), tipo, telefono: telefono.trim(), resumen: resumen.trim() }).filter(([, v]) => v),
+    );
+
   /** Pide el código. `reenvio` no revisa de nuevo el formulario (ya se revisó). */
   async function pedirCodigo(reenvio: boolean) {
     if (enviando) return;
@@ -121,26 +146,9 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
       };
       if (!correo.trim()) marcar("correo", E.escribeCorreo, correoRef.current);
       else if (!correoValido(correo)) marcar("correo", E.revisaCorreo, correoRef.current);
-      if (crear) {
-        if (nacimiento) {
-          const edad = edadDe(nacimiento);
-          if (!leerFecha(nacimiento) || edad === null) {
-            setAbierto(true);
-            marcar("nacimiento", E.fechaInvalida, nacRef.current);
-          } else if (edad < 18) {
-            setAbierto(true);
-            marcar("nacimiento", E.menor, nacRef.current);
-          }
-        }
-        if (telefono && telefono.replace(/\D/g, "").length < 8) {
-          setAbierto(true);
-          marcar("telefono", E.telefono, telRef.current);
-        }
-        if (!acepta) marcar("acepta", E.aceptar, aceptaRef.current);
-      }
+      if (crear) revisarAlta(marcar);
       if (Object.keys(e).length) {
         setErrores(e);
-        // Los campos del bloque desplegable necesitan un cuadro para existir antes de enfocarlos
         window.setTimeout(() => (primero as HTMLElement | null)?.focus(), 0);
         return;
       }
@@ -151,17 +159,7 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
       return;
     }
     setEnviando(true);
-    const datos = crear
-      ? Object.fromEntries(
-          Object.entries({
-            nombre: nombre.trim(),
-            nacimiento,
-            negocio: negocio.trim(),
-            tipo,
-            telefono: telefono.trim(),
-          }).filter(([, v]) => v),
-        )
-      : undefined;
+    const datos = crear ? datosAlta() : undefined;
     const r = await enviarJson("/api/acceso/codigo", {
       correo: correo.trim(),
       modo,
@@ -187,16 +185,9 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
         setErrores({ correo: E.revisaCorreo });
         return;
       }
-      if (campo === "nacimiento") {
-        setAbierto(true);
+      if (campo === "nombre" || campo === "nacimiento" || campo === "negocio" || campo === "tipo" || campo === "telefono" || campo === "resumen") {
         setPaso(1);
-        setErrores({ nacimiento: E.menor });
-        return;
-      }
-      if (campo === "telefono") {
-        setAbierto(true);
-        setPaso(1);
-        setErrores({ telefono: E.telefono });
+        setErrores({ [campo]: campo === "nacimiento" ? E.fechaInvalida : campo === "telefono" ? E.telefono : E.falta });
         return;
       }
       if (campo === "acepta") {
@@ -235,14 +226,21 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
   async function conGoogle() {
     setAviso(null);
     if (crear) {
-      if (!acepta) {
-        setErrores({ acepta: E.aceptar });
-        aceptaRef.current?.focus();
+      // Con Google también se piden los datos del alta (van cifrados en una cookie hasta volver)
+      const e: typeof errores = {};
+      let primero: HTMLElement | null = null;
+      revisarAlta((campo, texto, el) => {
+        e[campo] = texto;
+        primero ??= el;
+      });
+      if (Object.keys(e).length) {
+        setErrores(e);
+        (primero as HTMLElement | null)?.focus();
         return;
       }
-      const r = await enviarJson("/api/acceso/acepto", { acepta: true });
+      const r = await enviarJson("/api/acceso/acepto", { acepta: true, datos: datosAlta() });
       if (r.estado !== 200) {
-        setAviso(mensajeDeEstado(r));
+        setAviso(r.estado === 400 ? E.noSeEnvio : mensajeDeEstado(r));
         return;
       }
     }
@@ -303,72 +301,119 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
             />
 
             {crear ? (
-              <details className="acc__mas" open={abierto} onToggle={(e) => setAbierto(e.currentTarget.open)}>
-                <summary>
-                  <span>{A.opcionales}</span>
-                  <Icono nombre="chevron" tam={16} className="acc__mas-flecha" />
-                </summary>
-                <div className="acc__mas-campos">
-                  <Campo etiqueta={A.nombre} name="nombre" value={nombre} alCambiar={setNombre} autoComplete="name" maxLength={120} />
-                  <Campo
-                    ref={nacRef}
-                    etiqueta={A.nacimiento}
-                    name="nacimiento"
-                    type="date"
-                    placeholder=" "
-                    value={nacimiento}
-                    alCambiar={(v) => {
-                      setNacimiento(v);
-                      limpiar("nacimiento");
-                    }}
-                    max={new Date().toISOString().slice(0, 10)}
-                    autoComplete="bday"
-                    error={errores.nacimiento}
-                  />
-                  <Campo etiqueta={A.negocio} name="negocio" value={negocio} alCambiar={setNegocio} autoComplete="organization" maxLength={160} />
-                  <div className="entrada entrada--flota">
-                    <div className="entrada__caja">
-                      <select
-                        id="acceso-tipo"
-                        name="tipo"
-                        className="entrada__control acc__select"
-                        value={tipo}
-                        onChange={(e) => setTipo(e.target.value)}
-                      >
-                        <option value="">{A.tipoVacio}</option>
-                        {TIPOS_NEGOCIO.map((g) => (
-                          <optgroup key={g.grupo} label={g.grupo}>
-                            {g.tipos.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.nombre}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                      <label htmlFor="acceso-tipo" className="entrada__etiqueta">
-                        {A.tipo}
-                      </label>
-                      <Icono nombre="chevron" tam={16} className="acc__select-flecha" />
-                    </div>
+              <div className="acc__campos-alta">
+                <Campo
+                  ref={nombreRef}
+                  etiqueta={A.nombre}
+                  name="nombre"
+                  value={nombre}
+                  alCambiar={(v) => {
+                    setNombre(v);
+                    limpiar("nombre");
+                  }}
+                  autoComplete="name"
+                  maxLength={120}
+                  required
+                  error={errores.nombre}
+                />
+                <Campo
+                  ref={nacRef}
+                  etiqueta={A.nacimiento}
+                  name="nacimiento"
+                  type="date"
+                  placeholder=" "
+                  value={nacimiento}
+                  alCambiar={(v) => {
+                    setNacimiento(v);
+                    limpiar("nacimiento");
+                  }}
+                  max={new Date().toISOString().slice(0, 10)}
+                  autoComplete="bday"
+                  required
+                  error={errores.nacimiento}
+                />
+                <Campo
+                  ref={negocioRef}
+                  etiqueta={A.negocio}
+                  name="negocio"
+                  value={negocio}
+                  alCambiar={(v) => {
+                    setNegocio(v);
+                    limpiar("negocio");
+                  }}
+                  autoComplete="organization"
+                  maxLength={120}
+                  required
+                  error={errores.negocio}
+                />
+                <div className="entrada entrada--flota" data-error={errores.tipo ? "true" : undefined}>
+                  <div className="entrada__caja">
+                    <select
+                      ref={tipoRef}
+                      id="acceso-tipo"
+                      name="tipo"
+                      className="entrada__control acc__select"
+                      value={tipo}
+                      required
+                      aria-invalid={errores.tipo ? true : undefined}
+                      aria-describedby={errores.tipo ? "acceso-tipo-error" : undefined}
+                      onChange={(e) => {
+                        setTipo(e.target.value);
+                        limpiar("tipo");
+                      }}
+                    >
+                      <option value="">{A.tipoVacio}</option>
+                      {TIPOS_NEGOCIO.map((g) => (
+                        <optgroup key={g.grupo} label={g.grupo}>
+                          {g.tipos.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.nombre}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <label htmlFor="acceso-tipo" className="entrada__etiqueta">
+                      {A.tipo}
+                    </label>
+                    <Icono nombre="chevron" tam={16} className="acc__select-flecha" />
                   </div>
-                  <Campo
-                    ref={telRef}
-                    etiqueta={A.telefono}
-                    name="telefono"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    value={telefono}
-                    alCambiar={(v) => {
-                      setTelefono(v);
-                      limpiar("telefono");
-                    }}
-                    maxLength={30}
-                    error={errores.telefono}
-                  />
+                  {errores.tipo ? (
+                    <div id="acceso-tipo-error" className="entrada__nota entrada__nota--error">
+                      {errores.tipo}
+                    </div>
+                  ) : null}
                 </div>
-              </details>
+                <Campo
+                  ref={telRef}
+                  etiqueta={A.telefono}
+                  name="telefono"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={telefono}
+                  alCambiar={(v) => {
+                    setTelefono(v);
+                    limpiar("telefono");
+                  }}
+                  maxLength={30}
+                  required
+                  error={errores.telefono}
+                />
+                <Campo
+                  multilinea
+                  etiqueta={A.resumen}
+                  name="resumen"
+                  value={resumen}
+                  alCambiar={(v) => {
+                    setResumen(v);
+                    limpiar("resumen");
+                  }}
+                  rows={3}
+                  maxLength={500}
+                  error={errores.resumen}
+                />
+              </div>
             ) : null}
 
             {crear ? (

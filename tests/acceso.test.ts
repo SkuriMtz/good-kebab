@@ -15,7 +15,7 @@ import {
   type AuthParaPedir,
   type AuthParaVerificar,
 } from "@/lib/acceso";
-import { hashCorreo, idPaseCodigo, leerCuerpoJson, nuevoPaseCodigo, nuevoSecretoAlta, secretoCoincide } from "@/lib/acceso-servidor";
+import { hashCorreo, idPaseCodigo, leerAceptaGoogle, leerCuerpoJson, nuevoPaseCodigo, nuevoSecretoAlta, secretoCoincide, valorAceptaGoogle } from "@/lib/acceso-servidor";
 
 const HOY = "2026-11-17";
 
@@ -120,7 +120,8 @@ describe("validarAlta", () => {
 });
 
 describe("validarPeticionCodigo", () => {
-  const crear = { correo: "Ana@Ejemplo.MX ", modo: "crear", acepta: true };
+  const DATOS = { nombre: "Ana", nacimiento: "1990-05-01", negocio: "Clínica Ana", tipo: "dentista", telefono: "81 1234 5678" };
+  const crear = { correo: "Ana@Ejemplo.MX ", modo: "crear", acepta: true, datos: DATOS };
 
   it("entrar: correo normalizado, sin datos", () => {
     expect(validarPeticionCodigo({ correo: " ANA@ejemplo.mx", modo: "entrar", datos: { tipo: "casino" } }, HOY)).toEqual({
@@ -133,14 +134,22 @@ describe("validarPeticionCodigo", () => {
     expect(validarPeticionCodigo({ ...crear, acepta: "true" }, HOY)).toMatchObject({ tipo: "error", campo: "acepta" });
     expect(validarPeticionCodigo({ ...crear, acepta: false }, HOY)).toMatchObject({ tipo: "error", campo: "acepta" });
   });
-  it("crear con datos válidos", () => {
-    expect(validarPeticionCodigo({ ...crear, datos: { nombre: "Ana", tipo: "dentista" } }, HOY)).toEqual({
-      tipo: "ok",
-      valor: { correo: "ana@ejemplo.mx", modo: "crear", datos: { nombre: "Ana", tipo: "dentista" }, turnstile: null },
-    });
+  it("crear con datos válidos (el resumen es opcional)", () => {
+    expect(validarPeticionCodigo(crear, HOY)).toEqual({ tipo: "ok", valor: { correo: "ana@ejemplo.mx", modo: "crear", datos: DATOS, turnstile: null } });
+    const conResumen = validarPeticionCodigo({ ...crear, datos: { ...DATOS, resumen: "  Consultorio dental en Monterrey. " } }, HOY);
+    expect(conResumen).toMatchObject({ tipo: "ok", valor: { datos: { resumen: "Consultorio dental en Monterrey." } } });
+  });
+  it("crear: cada dato del alta es obligatorio menos el resumen", () => {
+    for (const campo of ["nombre", "nacimiento", "negocio", "tipo", "telefono"] as const) {
+      const datos: Record<string, string> = { ...DATOS };
+      delete datos[campo];
+      expect(validarPeticionCodigo({ ...crear, datos }, HOY)).toEqual({ tipo: "error", campo, error: MENSAJES_ACCESO.falta });
+    }
+    expect(validarPeticionCodigo({ ...crear, datos: undefined }, HOY)).toMatchObject({ tipo: "error", error: MENSAJES_ACCESO.falta });
+    expect(validarPeticionCodigo({ ...crear, datos: { ...DATOS, resumen: "x".repeat(501) } }, HOY)).toEqual({ tipo: "error", campo: "resumen", error: MENSAJES_ACCESO.resumen });
   });
   it("crear con menor de edad: error en nacimiento", () => {
-    expect(validarPeticionCodigo({ ...crear, datos: { nacimiento: "2015-01-01" } }, HOY)).toEqual({ tipo: "error", campo: "nacimiento", error: MENSAJES_ACCESO.menor });
+    expect(validarPeticionCodigo({ ...crear, datos: { ...DATOS, nacimiento: "2015-01-01" } }, HOY)).toEqual({ tipo: "error", campo: "nacimiento", error: MENSAJES_ACCESO.menor });
   });
   it("campo trampa lleno: trampa, aunque lo demás esté mal", () => {
     expect(validarPeticionCodigo({ correo: "no-es-correo", modo: "otro", sitio_web: "https://spam.example" }, HOY)).toEqual({ tipo: "trampa" });
@@ -336,6 +345,26 @@ describe("pase del código (intentos por navegador)", () => {
       expect(idPaseCodigo("1.2.3", "ana@ejemplo.com", ahora)).toBeNull();
     } finally {
       if (antes !== undefined) process.env.ATENDEL_LLAVE_CIFRADO = antes;
+    }
+  });
+});
+
+describe("cookie del alta con Google (datos cifrados)", () => {
+  it("se lee igual, y no sirve si la cambian o ya venció", () => {
+    const antes = process.env.ATENDEL_LLAVE_CIFRADO;
+    process.env.ATENDEL_LLAVE_CIFRADO = Buffer.alloc(32, 3).toString("base64");
+    try {
+      const ahora = Date.parse("2026-11-17T18:00:00Z");
+      const datos = { nombre: "Ana", nacimiento: "1990-05-01", negocio: "Clínica Ana", tipo: "dentista", telefono: "81 1234 5678", resumen: "Consultorio dental." };
+      const cookie = valorAceptaGoogle(datos, ahora);
+      expect(cookie).not.toContain("Ana");
+      expect(leerAceptaGoogle(cookie, ahora + 60_000)).toMatchObject({ datos, aceptadoEn: new Date(ahora).toISOString() });
+      expect(leerAceptaGoogle(cookie.slice(0, -4) + "AAAA", ahora)).toBeNull();
+      expect(leerAceptaGoogle(cookie, ahora + 31 * 60_000)).toBeNull();
+      expect(leerAceptaGoogle("x".repeat(5000), ahora)).toBeNull();
+    } finally {
+      if (antes === undefined) delete process.env.ATENDEL_LLAVE_CIFRADO;
+      else process.env.ATENDEL_LLAVE_CIFRADO = antes;
     }
   });
 });

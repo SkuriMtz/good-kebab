@@ -42,6 +42,9 @@ export function MarcoAcceso({
         <section className="acc__tarjeta">
           <Link href="/" className="acc__marca" aria-label={A.inicio}>
             <Marca className="acc__marca-svg" />
+            <span className="acc__marca-nombre" aria-hidden="true">
+              Atendel
+            </span>
           </Link>
           {etiqueta ? <p className="acc__etiqueta">{etiqueta}</p> : null}
           <h1 id={tituloId} className="acc__titulo" tabIndex={-1}>
