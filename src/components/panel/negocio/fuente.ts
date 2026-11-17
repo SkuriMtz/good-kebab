@@ -13,6 +13,7 @@ import {
   type Proveedor,
 } from "@/lib/nucleo-tipos";
 import { createClient } from "@/lib/supabase/client";
+import { esTipoNegocio } from "@/lib/tipos-negocio";
 
 /* =====================================================================
    De dónde salen los datos de "Tu negocio". La vista y el "+" de la caja
@@ -22,7 +23,8 @@ import { createClient } from "@/lib/supabase/client";
      en la pestaña (sessionStorage) y no llama a ninguna API.
    ===================================================================== */
 
-export type CambiosPerfil = Partial<Record<CampoPerfil, string>>;
+/** tipo: id de TIPOS_NEGOCIO, o "" para quitarlo. */
+export type CambiosPerfil = Partial<Record<CampoPerfil, string>> & { tipo?: string };
 
 export type FuenteNegocio = {
   /** /pruebalo: datos de ejemplo, sin red. */
@@ -154,7 +156,8 @@ const lista = <T>(datos: unknown, clave: string): T[] => {
 /** El perfil completo (los campos que falten, vacíos). */
 export const perfilCompleto = (p: Partial<PerfilNegocio> | null | undefined): PerfilNegocio => {
   const base = Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, typeof p?.[c] === "string" ? (p[c] as string) : ""])) as Record<CampoPerfil, string>;
-  return { ...base, actualizado_en: p?.actualizado_en ?? null };
+  const tipo = p?.tipo;
+  return { ...base, tipo: esTipoNegocio(tipo) ? tipo : "", actualizado_en: p?.actualizado_en ?? null };
 };
 
 const JSON_H = { "Content-Type": "application/json" };

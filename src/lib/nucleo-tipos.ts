@@ -35,7 +35,8 @@ export const CAMPOS_PERFIL = [
   "algo_mas",
 ] as const;
 export type CampoPerfil = (typeof CAMPOS_PERFIL)[number];
-export type PerfilNegocio = Record<CampoPerfil, string> & { actualizado_en: string | null };
+/** tipo: id de TIPOS_NEGOCIO (src/lib/tipos-negocio.ts) o "" si no ha elegido. */
+export type PerfilNegocio = Record<CampoPerfil, string> & { tipo: string; actualizado_en: string | null };
 /** Largo máximo por campo (también como CHECK en la tabla). */
 export const MAX_CAMPO_PERFIL = 2000;
 
