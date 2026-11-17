@@ -57,6 +57,8 @@ export const es = {
     ],
     lista: ["Lista de espera", "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel."],
     contacto: ["Contacto", "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo."],
+    privacidad: ["Aviso de privacidad", "Qué datos guarda Atendel, para qué los usa, con quién los comparte y cómo puedes verlos, corregirlos o borrarlos."],
+    terminos: ["Términos de uso", "Las reglas para usar Atendel: qué hace, qué te toca a ti y qué nos toca a nosotros."],
     entrar: ["Entrar", "Entra a Atendel con tu correo, sin contraseña. Si es tu primera vez, tu cuenta se crea al entrar con el plan Free."],
     noEncontrada: [
       "Página no encontrada",
@@ -113,6 +115,8 @@ export const es = {
     lema: "Atendel, tu socio de IA: con Lola, Clara, Víctor e Iris atiende tu negocio aunque no estés.",
     sello: "Entras con tu correo · sin contraseña",
     franja: "Ayuda y datos",
+    privacidad: "Privacidad",
+    terminos: "Términos",
   },
 
   inicio: {

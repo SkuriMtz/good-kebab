@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { IDS_AGENTES } from "@/lib/agentes";
+import { legalesCompletos } from "@/lib/legal";
 import { SITIO } from "@/lib/sitio";
 
 /** /sitemap.xml: solo las páginas públicas del sitio (sin el panel ni las de trabajo). */
@@ -14,6 +15,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: "/pruebalo", prioridad: 0.6, frecuencia: "monthly" },
     { ruta: "/lista", prioridad: 0.5, frecuencia: "monthly" },
     { ruta: "/contacto", prioridad: 0.5, frecuencia: "monthly" },
+    ...(legalesCompletos()
+      ? [
+          { ruta: "/privacidad", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/terminos", prioridad: 0.3, frecuencia: "monthly" as const },
+        ]
+      : []),
   ];
   return paginas.map((p) => ({ url: `${SITIO}${p.ruta}`, changeFrequency: p.frecuencia, priority: p.prioridad }));
 }

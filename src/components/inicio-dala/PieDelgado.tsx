@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BotonTema } from "@/components/BotonTema";
 import { textosServidor } from "@/i18n/servidor";
+import { legalesCompletos } from "@/lib/legal";
 
 const ENLACES = [
   { href: "/agentes", id: "agentes" },
@@ -10,6 +11,11 @@ const ENLACES = [
   { href: "/entrar", id: "entrar" },
 ] as const;
 
+const ENLACES_LEGALES = [
+  { href: "/privacidad", id: "privacidad" },
+  { href: "/terminos", id: "terminos" },
+] as const;
+
 /**
  * El pie delgado del inicio, como el del video: una línea casi invisible
  * arriba, el aviso a la izquierda, los enlaces en mayúsculas al centro y,
@@ -17,12 +23,13 @@ const ENLACES = [
  */
 export async function PieDelgado() {
   const d = await textosServidor();
+  const enlaces = legalesCompletos() ? [...ENLACES, ...ENLACES_LEGALES] : ENLACES;
   return (
     <footer className="pie-delgado">
       <p className="pie-delgado__aviso">© Atendel</p>
       <nav aria-label={d.pie.aria} className="pie-delgado__nav">
         <ul className="pie-delgado__lista">
-          {ENLACES.map((e) => (
+          {enlaces.map((e) => (
             <li key={e.href}>
               <Link href={e.href} className="pie-delgado__enlace">
                 {d.pie[e.id]}

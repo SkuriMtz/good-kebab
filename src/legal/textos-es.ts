@@ -8,7 +8,7 @@ import type { DatosLegales } from "@/lib/legal";
  */
 
 export type Seccion = { titulo: string; parrafos?: string[]; lista?: string[]; despues?: string[] };
-export type Documento = { titulo: string; resumen: string; secciones: Seccion[] };
+export type Documento = { titulo: string; resumen: string; secciones: Seccion[]; /** Aviso al inicio (solo la traducción al inglés). */ nota?: string };
 
 export function privacidadEs(d: DatosLegales): Documento {
   return {
