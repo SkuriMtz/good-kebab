@@ -25,9 +25,9 @@ const NIVELES = 13;
 const ESCALA = 430;
 const RADIO = 120;
 /** Lo más que el cursor aparta un fragmento (px). */
-const EMPUJE = 3.5;
+const EMPUJE = 5;
 /** Lo que se mece cada fragmento en su lugar (px). */
-const MECE = 1.1;
+const MECE = 2.6;
 
 // ---- Ruido de valor con interpolación suave (repetible: el mismo terreno cada visita) ----
 const PERM = (() => {
@@ -225,10 +225,10 @@ export function FondoTopografico() {
       for (let lv = 0; lv < NIVELES; lv++) {
         ctx.beginPath();
         for (const f of porNivel[lv]) {
-          // Se mece apenas en su lugar (un píxel y poco) y casi no gira
-          let x = f.x + MECE * Math.sin(tiempo * 0.5 + f.fase);
-          let y = f.y + MECE * Math.cos(tiempo * 0.41 + f.fase * 1.3);
-          const ang = f.ang + 0.1 * Math.sin(tiempo * 0.3 + f.fase);
+          // Se mece apenas en su lugar (un par de píxeles) y gira un poco
+          let x = f.x + MECE * Math.sin(tiempo * 0.7 + f.fase);
+          let y = f.y + MECE * Math.cos(tiempo * 0.57 + f.fase * 1.3);
+          const ang = f.ang + 0.28 * Math.sin(tiempo * 0.45 + f.fase);
           if (conCursor) {
             const dx = x - c.sx;
             const dy = y - c.sy;
