@@ -45,7 +45,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
  * - ?vista=oficina: lo que Atendel te dejó (archivos e informes) para revisar, aprobar o pedir cambios.
- * - ?vista=tareas: el Piloto automático: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
+ * - ?vista=tareas: Tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage(props: { searchParams: Promise<Parametros> }) {

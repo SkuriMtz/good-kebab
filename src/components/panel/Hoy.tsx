@@ -9,7 +9,7 @@ import { Enlace, retrasoEscalon } from "./Piezas";
  * «Hoy»: lo que hay debajo del saludo y la caja de Atendel. Tres secciones
  * en una sola columna, con filas y líneas finas (como Citas):
  * - Te necesita: todo lo que espera tu OK o tu revisión (máximo 5 filas).
- * - Lo que viene: las próximas corridas del Piloto automático y tus citas.
+ * - Lo que viene: las próximas corridas de Tareas y tus citas.
  * - Lo que ya hice: lo último que se terminó, con quién lo hizo.
  * Los agentes trabajan «en la cocina»: aquí solo se ven como la firma chica
  * de quién preparó o hizo cada cosa. Sin datos que inventar: lo mismo sirve
@@ -104,7 +104,7 @@ export function Hoy({
             Lo que viene
           </h2>
           <Enlace href={hrefPiloto} className="pc-hoy__ver">
-            Ver piloto automático
+            Ver tareas
           </Enlace>
         </header>
         <ul className="pc-hoy__filas">

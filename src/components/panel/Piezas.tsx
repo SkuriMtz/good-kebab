@@ -456,12 +456,12 @@ export function MarcaFragmentos({ tam = 36, viva = false, className = "" }: { ta
   );
 }
 
-/** "← Hoy": Por aprobar y Hecho cuelgan de «Hoy» y regresan a él. */
+/** "← Oficina": Por aprobar y Hecho cuelgan de la Oficina (el inicio) y regresan a ella. */
 export function VolverOficina({ href }: { href: string }) {
   return (
     <Enlace href={href} className="pc-volver">
       <Icono nombre="chevron-izquierda" tam={16} />
-      Hoy
+      Oficina
     </Enlace>
   );
 }

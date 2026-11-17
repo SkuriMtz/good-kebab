@@ -83,7 +83,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
       .order("creado_en", { ascending: true })
       .then(({ data, error: e }) => {
         if (!vivo) return;
-        if (e) setError("No se pudo leer tu piloto automático. Recarga la página.");
+        if (e) setError("No se pudo leer tus tareas. Recarga la página.");
         setLista((data ?? []) as Tarea[]);
       });
     return () => {
@@ -153,7 +153,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
 
   return (
     <Seccion>
-      <TituloSeccion titulo="Piloto automático" texto="Lo que Atendel hace solo, a su hora. Cuando toca, lo hace y te deja el resultado." />
+      <TituloSeccion titulo="Tareas" texto="Lo que Atendel hace solo, a su hora. Cuando toca, lo hace y te deja el resultado." />
 
       <section className="pc-tareas__pide" aria-label="Pídeselas a Atendel">
         <p className="pc-tareas__pide-titulo">Lo más fácil: pídeselas a Atendel con tus palabras</p>

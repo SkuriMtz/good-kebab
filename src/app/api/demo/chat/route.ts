@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     // El cerebro de ejemplo de Estudio Luna (Reglas, Procesos y Memoria), con la autonomía de inicio
     bloqueCerebro({ reglas: DEMO_REGLAS, procesos: DEMO_PROCESOS, memoria: DEMO_MEMORIA }, { autonomia: limpiarAjustes({}).autonomia }) +
     DEMO +
-    "\n- Piloto automático: si te piden algo para después o que se repita (\"cada martes…\"), di cuándo lo harías la primera vez y que en su cuenta quedaría en el Piloto automático, donde lo puede pausar o borrar; en esta demostración no se guarda." +
+    "\n- Tareas: si te piden algo para después o que se repita (\"cada martes…\"), di cuándo lo harías la primera vez y que en su cuenta quedaría en Tareas, donde lo puede pausar o borrar; en esta demostración no se guarda." +
     (idioma ? `\n- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), aunque estas instrucciones estén en español.` : "");
   const hace = (a: IdAgente): IdAgente => (agentes.includes(a) ? a : agentes[0]);
 

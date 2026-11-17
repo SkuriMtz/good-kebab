@@ -494,8 +494,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
           <nav className="pc-menu__nav" aria-label="Secciones">
             {item(
               "inicio",
-              "Hoy",
-              "sol",
+              "Oficina",
+              "documento",
               hrefs.inicio,
               teNecesita ? (
                 <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
@@ -511,7 +511,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
               </kbd>
             </button>
             {item("citas", "Citas", "calendario", hrefs.citas)}
-            {item("tareas", "Piloto automático", "reloj", hrefs.tareas)}
+            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
             {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 

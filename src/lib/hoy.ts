@@ -12,7 +12,7 @@ import { nombreRemitente } from "@/components/panel/remitente";
  * Lo que lleva «Hoy» en /panel (solo lee; RLS deja ver a cada quien lo suyo):
  * - Te necesita: lo que espera tu OK (src/lib/pendientes.ts) y lo que Atendel
  *   dejó por revisar (archivos, informes y la revisión del día).
- * - Lo que viene: las próximas corridas del Piloto automático.
+ * - Lo que viene: las próximas corridas de Tareas.
  * - Lo que ya hice: lo último que se terminó (el mismo armado que Hecho).
  * El total de «Te necesita» se cuenta igual que el número del menú.
  */

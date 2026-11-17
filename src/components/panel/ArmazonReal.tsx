@@ -214,9 +214,9 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   };
 
   const indice: ResultadoBusqueda[] = [
-    { id: "s-inicio", grupo: "Secciones", titulo: "Hoy", detalle: "Lo que te necesita y lo que ya hice", icono: "sol", claves: "inicio nueva conversacion pedir escribir", href: "/panel" },
+    { id: "s-inicio", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que te necesita y lo que ya hice", icono: "documento", claves: "inicio nueva conversacion pedir escribir", href: "/panel" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
-    { id: "s-tareas", grupo: "Secciones", titulo: "Piloto automático", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
+    { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
     { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que Atendel ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
     { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "Tu agenda de citas", icono: "calendario", href: "/panel?vista=citas" },

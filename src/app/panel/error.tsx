@@ -23,7 +23,7 @@ export default function ErrorDelPanel({ error, reset }: { error: Error & { diges
           <div className="flex flex-wrap items-center gap-[var(--spacing-8)]">
             <Boton onClick={() => reset()}>Intentar de nuevo</Boton>
             <Boton href="/panel" variante="sutil">
-              Ir a Hoy
+              Ir a la Oficina
             </Boton>
           </div>
         }
