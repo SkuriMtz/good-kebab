@@ -167,7 +167,8 @@
   display: none;
 }
 
-/* La píldora violeta (barra, portada y cierre): 124×30 a 1212, texto de 11 px */
+/* La píldora de «Únete a la lista» (barra, portada y cierre): 124×30 a 1212, texto de 11 px.
+   Azul de acción, como todo botón principal (el violeta queda solo para el logo y los personajes). */
 .boton-lista {
   display: inline-flex;
   align-items: center;
@@ -175,7 +176,7 @@
   height: clamp(30px, 2.48vw, 40px);
   padding-inline: clamp(13px, 1.16vw, 18px);
   border-radius: 999px;
-  background: var(--ini-violeta);
+  background: var(--c-accion);
   color: #fff;
   font-size: clamp(11px, 0.91vw, 14px);
   font-weight: 600;
@@ -188,7 +189,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .boton-lista:hover {
-    background: #8f66ff;
+    background: var(--c-accion-hover);
   }
 }
 .boton-lista:active {
@@ -201,7 +202,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .boton-lista--contorno:hover {
-    border-color: var(--ini-violeta);
+    border-color: var(--c-accion);
     background: transparent;
   }
 }
@@ -579,7 +580,7 @@
   width: clamp(32px, 2.97vw, 40px);
   height: clamp(32px, 2.97vw, 40px);
   border-radius: 50%;
-  background: var(--ini-violeta);
+  background: var(--c-accion);
   color: #fff;
   transition: transform 160ms ease-out;
 }
