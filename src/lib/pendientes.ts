@@ -174,7 +174,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
 /** Los negocios de la persona (resumenes_correo se filtra por negocio_id, como en Estadísticas). */
 export async function negociosDe(supabase: SupabaseClient, userId: string): Promise<string[]> {
   const { data, error } = await supabase.from("negocios").select("id").eq("owner_id", userId);
-  if (error) console.error("pendientes: no se pudieron leer los negocios", error);
+  if (error) console.error("pendientes: no se pudieron leer los negocios", error.code, error.message);
   const ids = (data ?? []).map((n) => String(n.id));
   // Sin negocios no hay resúmenes: un id que no existe evita un in() vacío
   return ids.length ? ids : [SIN_NEGOCIO];

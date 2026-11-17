@@ -70,7 +70,20 @@ function cors(request: NextRequest) {
     return NextResponse.json({ error: "Origen no permitido" }, { status: 403 });
   }
 
+  // SEGURIDAD — CSRF: un navegador siempre dice de dónde viene la petición
+  // (Sec-Fetch-Site). Lo que cambia datos solo se acepta desde la propia app;
+  // si viene de otro sitio, se rechaza aunque traiga la cookie de sesión.
+  // Meta, la base de datos (pg_net) y otros servidores no mandan esta
+  // cabecera, así que a ellos no les afecta (se protegen con firma o llave).
+  const sitio = request.headers.get("sec-fetch-site");
+  const cambia = !["GET", "HEAD", "OPTIONS"].includes(request.method);
+  if (cambia && sitio && sitio !== "same-origin" && sitio !== "none" && !(origin && ALLOWED_ORIGINS.includes(origin))) {
+    return NextResponse.json({ error: "Origen no permitido" }, { status: 403 });
+  }
+
   const response = NextResponse.next();
+  // La respuesta depende del origen: que ninguna caché la comparta entre sitios
+  response.headers.set("Vary", "Origin");
   if (origin) {
     response.headers.set("Access-Control-Allow-Origin", origin);
   }
@@ -95,7 +108,8 @@ async function sesion(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         cabeceras.set("cookie", request.headers.get("cookie") ?? "");
         response = NextResponse.next({ request: { headers: cabeceras } });
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        // En producción, la cookie de sesión solo viaja por HTTPS
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, conSeguridad(options)));
       },
     },
   });
@@ -118,6 +132,11 @@ async function sesion(request: NextRequest) {
   if (pathname === "/entrar" && user) return redirigir("/panel/chat");
 
   return response;
+}
+
+/** Opciones de cookie de sesión: en producción siempre `secure` y `sameSite: lax`. */
+function conSeguridad(options: CookieOptions): CookieOptions {
+  return process.env.NODE_ENV === "production" ? { ...options, secure: true, sameSite: options.sameSite ?? "lax" } : options;
 }
 
 export const config = {

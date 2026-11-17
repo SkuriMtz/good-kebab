@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       ...base,
       model: MODELOS.rapido.api,
       output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA } },
-    });
+    }, { timeout: 30_000, maxRetries: 1 });
     // Lo que costó cuenta para el límite, aunque la respuesta no sirva
     const gasto = new Gasto();
     gasto.sumar(respuesta, MODELOS.rapido.api);

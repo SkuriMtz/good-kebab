@@ -85,7 +85,7 @@ export const organizar = {
 };
 
 /** Un id nuevo para un grupo ("g-" y letras al azar). */
-export const idGrupo = () => `g-${Math.random().toString(36).slice(2, 10)}`;
+export const idGrupo = () => `g-${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 
 /** Reparte las conversaciones (ya en orden de más nueva a más vieja) en las secciones del menú. */
 export function repartir<T extends { id: string }>(chats: readonly T[], o: OrganizacionChats) {

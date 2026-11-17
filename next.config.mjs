@@ -18,6 +18,15 @@
  */
 const isDev = process.env.NODE_ENV !== "production";
 
+// El único proyecto de Supabase al que el navegador habla (no cualquier *.supabase.co)
+const SUPABASE_ORIGEN = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hatuwlxervgzajazwjvz.supabase.co").origin;
+  } catch {
+    return "https://hatuwlxervgzajazwjvz.supabase.co";
+  }
+})();
+
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
@@ -30,9 +39,13 @@ const securityHeaders = [
       // El Picker se abre en un iframe de docs.google.com
       "frame-src 'self' https://docs.google.com https://apis.google.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
+      // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
+      "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
       "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co https://api.anthropic.com https://www.googleapis.com",
+      `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com`,
+      // Sin plugins (Flash, Java…) y todo por HTTPS
+      "object-src 'none'",
+      "upgrade-insecure-requests",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -54,12 +67,19 @@ const securityHeaders = [
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // No decir qué tecnología usa el servidor (cabecera X-Powered-By)
+  poweredByHeader: false,
   async headers() {
     return [
       {
         // Aplica a todas las rutas de la app
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        // Las respuestas de la API son de cada quien: ninguna caché las guarda
+        source: "/api/:path*",
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
       {
         // El trabajador de las notificaciones: el navegador siempre revisa si hay uno nuevo

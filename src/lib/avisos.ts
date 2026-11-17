@@ -14,13 +14,16 @@ import { cargarCuenta } from "./cuenta";
 
 export const TEMA_AVISOS = "Avisos de Atendel";
 
+/** Caracteres invisibles o que voltean el texto (un nombre podría disfrazarse con ellos). */
+const INVISIBLES = /[\u0000-\u0008\u000b-\u001f\u007f\u200b-\u200f\u2028-\u202e\u2066-\u2069\ufeff]/g;
+
 /** Lo que escribió un cliente o salió de una app va citado en el aviso: sin enlaces que alguien pueda meter. */
 export const citar = (t: unknown, max = 600) =>
-  (typeof t === "string" ? t.replace(/\s+/g, " ").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
+  (typeof t === "string" ? t.replace(INVISIBLES, "").replace(/\s+/g, " ").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
 
 /** Igual que `citar`, pero conserva los renglones (para resultados largos, como una tarea). */
 export const citarLineas = (t: unknown, max = 900) =>
-  (typeof t === "string" ? t.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
+  (typeof t === "string" ? t.replace(INVISIBLES, "").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, max) : "").replace(/[[\]]/g, (c) => (c === "[" ? "(" : ")"));
 
 /** El botón "Aprobar y hacer" de algo que espera tu OK, y el de "Volver a conectar" una app. */
 const APROBAR = /^\/panel\?(aprobar=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|conectar=[a-z_]{2,40})$/;

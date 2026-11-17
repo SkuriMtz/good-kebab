@@ -55,7 +55,8 @@ function camposDe(args: Record<string, unknown>): Record<string, string | number
   if (!c || typeof c !== "object" || Array.isArray(c)) throw new ErrorProveedor("Faltan los campos del registro (columna → valor).");
   const lista = Object.entries(c as Record<string, unknown>);
   if (!lista.length || lista.length > 30) throw new ErrorProveedor("El registro debe tener de 1 a 30 campos.");
-  const fuera: Record<string, string | number | boolean> = {};
+  // Sin prototipo: un nombre de campo como "__proto__" no puede tocar nada más
+  const fuera: Record<string, string | number | boolean> = Object.create(null);
   for (const [k, v] of lista) {
     const nombre = k.trim().slice(0, 100);
     if (!nombre) continue;

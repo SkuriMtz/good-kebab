@@ -1,0 +1,85 @@
+# Strix: prueba de seguridad con agentes de IA (pentest), en los servidores de GitHub.
+# Solo corre cuando alguien lo lanza a mano (Actions → "Prueba de seguridad (Strix)" → Run workflow).
+# Necesita dos secretos en GitHub (Settings → Secrets and variables → Actions):
+#   STRIX_LLM    → el modelo, por ejemplo: openai/gpt-5.5  (o anthropic/claude-sonnet-5-5 con el
+#                  programa de verificación de ciberseguridad de Anthropic; sin él, Claude se niega)
+#   LLM_API_KEY  → la clave de ese proveedor. Usa una clave SOLO para esto, con tope de gasto.
+# Nunca apuntes esto a la app real con clientes: usa el código (por defecto) o una copia de prueba.
+name: Prueba de seguridad (Strix)
+
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "Qué tan a fondo: quick (minutos), standard (~1 h) o deep (1–4 h)"
+        required: true
+        default: quick
+        type: choice
+        options: [quick, standard, deep]
+      objetivo:
+        description: "Vacío = revisa el código. O la dirección de una COPIA DE PRUEBA (https://…)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strix
+  cancel-in-progress: false
+
+jobs:
+  strix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Strix (versión fija)
+        run: pipx install strix-agent==1.7.0
+
+      - name: Revisar que el objetivo sea seguro
+        env:
+          OBJETIVO: ${{ inputs.objetivo }}
+        run: |
+          if [ -n "$OBJETIVO" ]; then
+            if ! printf '%s' "$OBJETIVO" | grep -Eq '^https://[A-Za-z0-9.-]+(/[A-Za-z0-9._~/-]*)?$'; then
+              echo "El objetivo debe ser una dirección https:// sencilla." >&2; exit 1
+            fi
+            case "$OBJETIVO" in
+              https://good-kebab.vercel.app|https://good-kebab.vercel.app/*)
+                echo "Esa es la app real: usa una copia de prueba." >&2; exit 1;;
+            esac
+          fi
+
+      - name: Correr Strix
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          OBJETIVO: ${{ inputs.objetivo }}
+          MODO: ${{ inputs.modo }}
+        run: |
+          if [ -z "$STRIX_LLM" ] || [ -z "$LLM_API_KEY" ]; then
+            echo "Faltan los secretos STRIX_LLM y LLM_API_KEY en GitHub." >&2; exit 1
+          fi
+          if [ -n "$OBJETIVO" ]; then
+            strix -n -t ./ -t "$OBJETIVO" --scan-mode "$MODO" --instruction-file .github/strix/instrucciones.md
+          else
+            strix -n -t ./ --scan-mode "$MODO" --instruction-file .github/strix/instrucciones.md
+          fi
+
+      - name: Guardar el informe
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-strix
+          path: strix_runs/
+          retention-days: 14
+          if-no-files-found: warn

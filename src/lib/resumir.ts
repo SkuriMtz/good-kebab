@@ -14,7 +14,8 @@ export async function resumirCorreo({
   remitente: string;
   contenido: string;
 }) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  // Con tiempo máximo: si la IA tarda, no se queda colgado
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, timeout: 20_000, maxRetries: 1 });
 
   const respuestaIA = await anthropic.messages.create({
     model: "claude-sonnet-4-5",

@@ -611,7 +611,7 @@ async function leerPaginas<T>(pedir: (desde: number, hasta: number) => Pagina<T>
   for (let p = 0; p < PAGINAS; p++) {
     const { data, error } = await pedir(p * POR_PAGINA, (p + 1) * POR_PAGINA - 1);
     if (error) {
-      console.error("estadísticas: no se pudo leer una página", error);
+      console.error("estadísticas: no se pudo leer una página", (error as { code?: string }).code, (error as { message?: string }).message);
       return { filas, recortado: false };
     }
     filas.push(...(data ?? []));
@@ -666,7 +666,7 @@ export async function cargarEstadisticas(
   // resumenes_correo no tiene owner_id: se filtra por los negocios de la persona
   const leerResumenes = (async () => {
     const { data: negocios, error } = await supabase.from("negocios").select("id").eq("owner_id", userId);
-    if (error) console.error("estadísticas: no se pudieron leer los negocios", error);
+    if (error) console.error("estadísticas: no se pudieron leer los negocios", error.code, error.message);
     const ids = (negocios ?? []).map((n) => n.id as string);
     if (!ids.length) return { filas: [] as FilaResumen[], recortado: false };
     return leerPaginas<FilaResumen>((a, b) =>
