@@ -3,8 +3,7 @@
  * Estas cabeceras se aplican a TODAS las respuestas de la app.
  * Cada una bloquea una familia distinta de ataques comunes:
  *
- * - Content-Security-Policy: evita que se ejecute código/script de un origen
- *   que no sea el tuyo (protege contra inyección de scripts, XSS).
+ * - Content-Security-Policy: la pone src/middleware.ts (con nonce por petición).
  * - X-Frame-Options: evita que tu sitio se pueda incrustar en un <iframe> de
  *   otro sitio (protege contra "clickjacking").
  * - X-Content-Type-Options: evita que el navegador intente "adivinar" el tipo
@@ -16,41 +15,10 @@
  * - Strict-Transport-Security (HSTS): obliga al navegador a usar siempre
  *   HTTPS con este dominio, nunca HTTP sin cifrar.
  */
-const isDev = process.env.NODE_ENV !== "production";
-
-// El único proyecto de Supabase al que el navegador habla (no cualquier *.supabase.co)
-const SUPABASE_ORIGEN = (() => {
-  try {
-    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hatuwlxervgzajazwjvz.supabase.co").origin;
-  } catch {
-    return "https://hatuwlxervgzajazwjvz.supabase.co";
-  }
-})();
+// La Content-Security-Policy ya NO está aquí: la arma src/middleware.ts en cada
+// petición, con un nonce nuevo (así no hace falta 'unsafe-inline' en scripts).
 
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      // En desarrollo, Next.js necesita 'unsafe-eval' para recargar en caliente.
-      // En producción NO se incluye.
-      // apis.google.com: el Google Picker (elegir archivos de Drive) se carga de ahí
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://apis.google.com`,
-      // El Picker se abre en un iframe de docs.google.com
-      "frame-src 'self' https://docs.google.com https://apis.google.com",
-      "style-src 'self' 'unsafe-inline'",
-      // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
-      "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
-      "font-src 'self'",
-      `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com`,
-      // Sin plugins (Flash, Java…) y todo por HTTPS
-      "object-src 'none'",
-      "upgrade-insecure-requests",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; "),
-  },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

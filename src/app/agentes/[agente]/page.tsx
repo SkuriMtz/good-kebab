@@ -13,16 +13,13 @@ import { BotonFicha } from "@/components/agentes/BotonFicha";
 import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
 import { Personaje } from "@/components/agentes/Personaje";
 import { PlanesDelAgente } from "@/components/agentes/piezas";
-import { IDS_AGENTES, esIdAgente } from "@/lib/agentes";
+import { esIdAgente } from "@/lib/agentes";
 import { agenteDe, agentesDe, planesDe, planMinimoDe, t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
 
-/** Las cuatro páginas se generan al construir el sitio; otra dirección da 404. */
-export const dynamicParams = false;
-export function generateStaticParams() {
-  return IDS_AGENTES.map((agente) => ({ agente }));
-}
+/** Se arma en cada petición (los scripts llevan el nonce de la CSP); otra dirección da 404. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(props: { params: Promise<{ agente: string }> }): Promise<Metadata> {
   const params = await props.params;

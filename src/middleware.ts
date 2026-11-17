@@ -16,29 +16,98 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
 
-export async function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
+/**
+ * SEGURIDAD — Content-Security-Policy con nonce (uno nuevo en cada petición).
+ *
+ * El nonce es un valor al azar que solo conoce esta respuesta. Los scripts de
+ * la página llevan ese valor y el navegador solo ejecuta los que lo traen:
+ * así ya no hace falta permitir 'unsafe-inline' en script-src.
+ * 'strict-dynamic' deja que un script con nonce cargue otros (Next.js y el
+ * Google Picker).
+ */
+const SUPABASE_ORIGEN = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hatuwlxervgzajazwjvz.supabase.co").origin;
+  } catch {
+    return "https://hatuwlxervgzajazwjvz.supabase.co";
+  }
+})();
 
+function armarCsp(nonce: string): string {
+  const esDesarrollo = process.env.NODE_ENV === "development";
+  return [
+    "default-src 'self'",
+    // 'unsafe-eval' solo en desarrollo (recarga en caliente); en producción NO.
+    // apis.google.com: el Google Picker (elegir archivos de Drive) se carga de ahí
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${esDesarrollo ? " 'unsafe-eval'" : ""} https://apis.google.com`,
+    // El Picker se abre en un iframe de docs.google.com
+    "frame-src 'self' https://docs.google.com https://apis.google.com",
+    "style-src 'self' 'unsafe-inline'",
+    // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
+    "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
+    "font-src 'self'",
+    `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com`,
+    // Sin plugins (Flash, Java…) y todo por HTTPS
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+}
+
+/** Nonce al azar: 16 bytes en base64. */
+function nuevoNonce(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let texto = "";
+  bytes.forEach((b) => (texto += String.fromCharCode(b)));
+  return btoa(texto);
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // La API solo lleva CORS (sus cabeceras de seguridad vienen de next.config.mjs)
   if (pathname.startsWith("/api/")) return cors(request);
+
+  // Páginas: nonce + CSP en la petición (Next la lee y pone el nonce a sus scripts)
+  // y en la respuesta (la lee el navegador).
+  const nonce = nuevoNonce();
+  const csp = armarCsp(nonce);
+  const cabeceras = new Headers(request.headers);
+  cabeceras.set("x-nonce", nonce);
+  cabeceras.set("Content-Security-Policy", csp);
+
+  const respuesta = await paginas(request, cabeceras);
+  respuesta.headers.set("Content-Security-Policy", csp);
+  return respuesta;
+}
+
+async function paginas(request: NextRequest, cabeceras: Headers) {
+  const { pathname, searchParams } = request.nextUrl;
 
   // Si Supabase manda el código de inicio de sesión a la página principal
   // (pasa cuando la URL de retorno no está en su lista), lo pasamos al callback.
   if (pathname === "/") {
-    if (!searchParams.has("code")) return NextResponse.next();
+    if (!searchParams.has("code")) return NextResponse.next({ request: { headers: cabeceras } });
     const url = request.nextUrl.clone();
     url.pathname = "/auth/callback";
     return NextResponse.redirect(url);
   }
 
   // /pruebalo sigue en español (lo lee el layout para <html lang>)
-  if (pathname.startsWith("/pruebalo")) return NextResponse.next({ request: { headers: idiomaFijo(request) } });
+  if (pathname.startsWith("/pruebalo")) return NextResponse.next({ request: { headers: idiomaFijo(cabeceras) } });
 
-  return sesion(request);
+  // Solo el panel y /entrar usan la sesión de Supabase
+  if (pathname.startsWith("/panel") || pathname === "/entrar") return sesion(request, cabeceras);
+
+  // Las demás páginas: solo la CSP, sin llamar a Supabase
+  return NextResponse.next({ request: { headers: cabeceras } });
 }
 
 /** El panel y /pruebalo siguen en español aunque el sitio público esté en inglés. */
-function idiomaFijo(request: NextRequest) {
-  const cabeceras = new Headers(request.headers);
+function idiomaFijo(base: Headers) {
+  const cabeceras = new Headers(base);
   cabeceras.set("x-idioma-fijo", "es");
   return cabeceras;
 }
@@ -94,9 +163,9 @@ function cors(request: NextRequest) {
  * SESIÓN — Renueva la sesión de Supabase (que caduca cada hora) y la guarda
  * en cookies, y protege las páginas: sin sesión no se entra al panel.
  */
-async function sesion(request: NextRequest) {
+async function sesion(request: NextRequest, base: Headers) {
   // El panel sigue en español (el layout lo lee para <html lang>)
-  const cabeceras = request.nextUrl.pathname.startsWith("/panel") ? idiomaFijo(request) : new Headers(request.headers);
+  const cabeceras = request.nextUrl.pathname.startsWith("/panel") ? idiomaFijo(base) : new Headers(base);
   let response = NextResponse.next({ request: { headers: cabeceras } });
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -140,5 +209,9 @@ function conSeguridad(options: CookieOptions): CookieOptions {
 }
 
 export const config = {
-  matcher: ["/", "/api/:path*", "/panel/:path*", "/entrar", "/pruebalo"],
+  // Todas las páginas y la API; fuera: archivos estáticos, iconos, manifest, sw.js,
+  // robots, sitemap, opengraph-image y cualquier archivo con extensión.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon|icon|apple-icon|manifest|sw\\.js|robots\\.txt|sitemap\\.xml|opengraph-image|iconos/|.*\\..*).*)",
+  ],
 };

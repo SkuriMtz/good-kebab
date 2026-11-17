@@ -92,13 +92,15 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const idioma = await idiomaActual();
+  // El nonce lo crea el middleware en cada petición; los scripts en línea lo llevan
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang={idioma} className={FUENTES} suppressHydrationWarning>
       <head>
         {/* Pone el modo claro u oscuro antes de pintar (sin parpadeo) */}
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_ENTRADA }} />
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_INSTALAR }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SCRIPT_ENTRADA }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SCRIPT_INSTALAR }} />
       </head>
       <body className={`${FUENTES} font-sans`}>
         <IdiomaProvider idioma={idioma}>
