@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p .",
+    "humo": "node scripts/humo.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -39,7 +42,8 @@
     "eslint-config-next": "15.5.28",
     "postcss": "8.5.31",
     "tailwindcss": "^3.4.13",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "4.1.12"
   },
   "overrides": {
     "postcss": "$postcss",
