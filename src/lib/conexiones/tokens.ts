@@ -17,9 +17,12 @@ import { adaptador, configurado, esPendiente } from "./registro";
  * - `obtenerToken` descifra, renueva con el refresh token si está por vencer
  *   y vuelve a guardar; si el proveedor dice invalid_grant (permiso revocado
  *   o vencido), marca la conexión con estado 'error'.
- * - Todo con el cliente con sesión de la persona (RLS); nunca service role
- *   para los tokens (los avisos de "se desconectó" sí van a la cola de avisos
- *   con el cliente de servicio, sin tocar tokens).
+ * - Desde la migración 0033 la persona (rol authenticated) ya no puede
+ *   escribir en `conexiones` ni leer `token_cifrado`: TODA escritura y toda
+ *   lectura de tokens va con el cliente de servicio (`serv()`), filtrando
+ *   siempre por owner_id. Las funciones siguen recibiendo el cliente con
+ *   sesión (para no cambiar quién las llama), pero por dentro no lo usan para
+ *   esto; el dueño sigue pudiendo borrar su fila (desconectar) con su sesión.
  * - Nunca se registran tokens ni se mandan al navegador.
  */
 
@@ -28,7 +31,7 @@ export const contextoCifrado = (userId: string, p: Proveedor) => `conexion:${use
 /** Renovar si al token le quedan menos de 2 minutos. */
 const MARGEN_MS = 120_000;
 
-export type CodigoConexion = "sin_conexion" | "vencida" | "sin_configurar" | "temporal";
+export type CodigoConexion = "sin_conexion" | "vencida" | "sin_configurar" | "temporal" | "sin_servicio";
 
 export class ErrorConexion extends Error {
   constructor(
@@ -50,6 +53,8 @@ export function mensajeConexion(codigo: CodigoConexion, p: Proveedor): string {
       return `Tu conexión con ${n} venció: vuelve a conectarla en Tu negocio → Apps.`;
     case "sin_configurar":
       return `La conexión con ${n} todavía no está configurada en Atendel.`;
+    case "sin_servicio":
+      return `Atendel no puede usar tu conexión con ${n} ahora: falta configurar el servidor. Avisa a soporte.`;
     default:
       return `${n} no respondió. Intenta de nuevo en un momento.`;
   }
@@ -57,8 +62,16 @@ export function mensajeConexion(codigo: CodigoConexion, p: Proveedor): string {
 
 type Fila = { apps: string[] | null; cuenta: string | null; estado: string; token_cifrado: string };
 
-export async function leerFila(supabase: SupabaseClient, userId: string, p: Proveedor): Promise<Fila | null> {
-  const { data, error } = await supabase
+/** El cliente de servicio para tocar tokens. Sin la llave, falla claro (nunca en silencio). */
+function serv(p: Proveedor): SupabaseClient {
+  const admin = clienteServicio();
+  if (!admin) throw new ErrorConexion("sin_servicio", p);
+  return admin;
+}
+
+// `supabase` (el cliente con sesión) se queda en las firmas para no cambiar a quien las llama
+export async function leerFila(_supabase: SupabaseClient, userId: string, p: Proveedor): Promise<Fila | null> {
+  const { data, error } = await serv(p)
     .from("conexiones")
     .select("apps, cuenta, estado, token_cifrado")
     .eq("owner_id", userId)
@@ -84,13 +97,13 @@ export function appsFinales(pedidas: IdApp[], tokens: Tokens): IdApp[] {
 }
 
 export async function guardarConexion(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   userId: string,
   p: Proveedor,
   datos: { tokens: Tokens; cuenta: string; apps: IdApp[] },
 ): Promise<boolean> {
   const scopes = (datos.tokens.extra?.scopes ?? "").split(/\s+/).filter(Boolean).slice(0, 50);
-  const { error } = await supabase.from("conexiones").upsert(
+  const { error } = await serv(p).from("conexiones").upsert(
     {
       owner_id: userId,
       proveedor: p,
@@ -120,8 +133,8 @@ export async function guardarConexion(
   return !error;
 }
 
-export async function marcarError(supabase: SupabaseClient, userId: string, p: Proveedor, mensaje = mensajeConexion("vencida", p)) {
-  await supabase
+export async function marcarError(_supabase: SupabaseClient, userId: string, p: Proveedor, mensaje = mensajeConexion("vencida", p)) {
+  await serv(p)
     .from("conexiones")
     .update({ estado: "error", error: mensaje.slice(0, 500), actualizado_en: new Date().toISOString() })
     .eq("owner_id", userId)
@@ -129,10 +142,19 @@ export async function marcarError(supabase: SupabaseClient, userId: string, p: P
   await avisarDesconexion(userId, p, mensaje);
 }
 
+/** Deja solo estas apps en la conexión (al quitar una sola app). Con el cliente de servicio, por owner_id. */
+export async function guardarApps(_supabase: SupabaseClient, userId: string, p: Proveedor, apps: IdApp[]): Promise<boolean> {
+  const { error } = await serv(p)
+    .from("conexiones")
+    .update({ apps: Array.from(new Set(apps)), actualizado_en: new Date().toISOString() })
+    .eq("owner_id", userId)
+    .eq("proveedor", p);
+  return !error;
+}
+
 /**
  * Te avisa que una app dejó de servir (una vez al día por app). El aviso usa
- * el cliente de servicio solo para la cola de avisos; los tokens siguen
- * siempre con tu sesión.
+ * el cliente de servicio para la cola de avisos.
  */
 async function avisarDesconexion(userId: string, p: Proveedor, mensaje: string) {
   const admin = clienteServicio();
@@ -196,7 +218,7 @@ export async function obtenerToken(supabase: SupabaseClient, userId: string, p: 
     throw new ErrorConexion("temporal", p);
   }
   const guardados: Tokens = { ...nuevos, refresh_token: nuevos.refresh_token ?? tokens.refresh_token, extra: { ...(tokens.extra ?? {}), ...(nuevos.extra ?? {}) } };
-  const { error } = await supabase
+  const { error } = await serv(p)
     .from("conexiones")
     .update({ token_cifrado: cifrarJson(guardados, contextoCifrado(userId, p)), estado: "activa", error: null, actualizado_en: new Date().toISOString() })
     .eq("owner_id", userId)
@@ -238,8 +260,10 @@ export async function conexionesVigentes(supabase: SupabaseClient, userId: strin
       if (!fila) continue;
       const t = descifrarTokens(fila, userId, c.proveedor);
       if (t.expira_en === undefined || t.expira_en > ahora) continue;
-    } catch {
-      // Si no se puede leer el token, tampoco sirve: hay que volver a conectar
+    } catch (e) {
+      // No se pudo leer por un fallo del servidor (no del token): no se marca nada
+      if (e instanceof ErrorConexion) continue;
+      // Si el token no se puede descifrar, tampoco sirve: hay que volver a conectar
     }
     const mensaje = mensajeConexion("vencida", c.proveedor);
     await marcarError(supabase, userId, c.proveedor, mensaje);

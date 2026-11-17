@@ -6,7 +6,7 @@ import { adaptador } from "@/lib/conexiones/registro";
 import { notificar } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { cuerpoJson, errorJson, preparar } from "@/lib/conexiones/rutas";
-import { appsDeFila, descifrarTokens, leerFila } from "@/lib/conexiones/tokens";
+import { appsDeFila, descifrarTokens, guardarApps, leerFila } from "@/lib/conexiones/tokens";
 
 /**
  * POST /api/conexiones/[proveedor]/desconectar  {app?: IdApp}
@@ -45,12 +45,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ prov
   }
   if (app && apps.includes(app) && apps.length > 1) {
     const quedan = apps.filter((a) => a !== app);
-    const { error } = await supabase
-      .from("conexiones")
-      .update({ apps: quedan, actualizado_en: new Date().toISOString() })
-      .eq("owner_id", user.id)
-      .eq("proveedor", p);
-    if (error) return errorJson("No se pudo desconectar. Intenta de nuevo.", 500);
+    const ok = await guardarApps(supabase, user.id, p, quedan).catch(() => false);
+    if (!ok) return errorJson("No se pudo desconectar. Intenta de nuevo.", 500);
     await avisarQuitada(user.id, APP_POR_ID[app]?.nombre ?? NOMBRE_PROVEEDOR[p] ?? p, aparatoDe(request));
     return NextResponse.json({ ok: true, revocada: false, quedan });
   }

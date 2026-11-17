@@ -108,6 +108,7 @@ export function Chat({
   conversacionesIniciales,
   conversacionInicial,
   textoInicial,
+  textoDeFuera,
   saludo,
   conGoogle,
   hoy,
@@ -122,6 +123,8 @@ export function Chat({
   conversacionInicial: string | null;
   /** Lo que se pidió desde una tarjeta o el buscador: llega escrito, listo para enviar. */
   textoInicial?: string;
+  /** El texto de arriba viene de un correo o archivo de fuera (?fuera=1): el primer mensaje va marcado como datos de fuera. */
+  textoDeFuera?: boolean;
   /** "Buenas noches, Ana" (con la hora de la Ciudad de México, igual en el servidor y aquí). */
   saludo: string;
   /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
@@ -156,6 +159,7 @@ export function Chat({
   const [caja, setCaja] = useState<{ texto?: string; n: number }>({ texto: textoInicial, n: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortar = useRef<AbortController | null>(null);
+  const deFuera = useRef(Boolean(textoInicial && textoDeFuera)); // el próximo mensaje trae datos de fuera
   const pegado = useRef(true); // ¿la vista está hasta abajo?
   const menu = useContext(ContextoChats);
   /** El "+" de la caja: subir un documento a Tu negocio o ir a conectar una app. */
@@ -283,6 +287,7 @@ export function Chat({
     // ?agente= ya no elige a nadie: todo va a Atendel (que reparte)
     if (!actualRef.current && !p.get("agente") && !pide) return; // solo cambió el filtro
     if (actualRef.current) reiniciar();
+    deFuera.current = Boolean(pide && p.get("fuera") === "1");
     setCaja((k) => ({ texto: pide ? pide.slice(0, 2000) : undefined, n: k.n + 1 }));
   }, [consulta, conversacionInicial, abrir, reiniciar]);
 
@@ -340,7 +345,10 @@ export function Chat({
       mensaje: limpio,
       modelo: selector.modelo,
       estados: true,
+      // Solo hace más estricto el turno: el servidor lo trata como con datos de fuera
+      ...(deFuera.current ? { datosDeFuera: true } : {}),
     };
+    deFuera.current = false;
 
     try {
       const res = await fetch("/api/chat", {

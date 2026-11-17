@@ -29,7 +29,7 @@ import { Panel } from "./Panel";
 
 export const metadata: Metadata = { title: "Panel" };
 
-type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; area?: string; hora?: string; dia?: string; tab?: string; conectada?: string; error?: string; app?: string; avisos?: string };
+type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string; periodo?: string; c?: string; agente?: string; pide?: string; fuera?: string; area?: string; hora?: string; dia?: string; tab?: string; conectada?: string; error?: string; app?: string; avisos?: string };
 
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
@@ -248,6 +248,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       agenteInicial={agente}
       conversacionInicial={conversacionInicial}
       textoInicial={texto(searchParams.pide, 2000)}
+      textoDeFuera={searchParams.fuera === "1"}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       conGoogle={conGoogle}
       hoy={

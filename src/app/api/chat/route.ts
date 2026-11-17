@@ -34,7 +34,7 @@ import {
 } from "@/lib/herramientas/acciones";
 import { marcoEstado } from "@/lib/estado-chat";
 import { mensajeErrorIa } from "@/lib/herramientas/ciclo";
-import { marcarAlTerminar, turnoDelChat } from "@/lib/datos-fuera";
+import { datosDeFueraDelCuerpo, marcarAlTerminar, turnoDelChat } from "@/lib/datos-fuera";
 
 /**
  * CHAT CON LOS AGENTES
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
   // esperando el OK del dueño en Tareas (para que un correo o una app no pueda dejar una tarea activa).
   // En «Avisos de Atendel» la plática ya trae mensajes de clientes y resultados de apps (datos de fuera)
   const enAvisos = tema === TEMA_AVISOS;
-  const turno = turnoDelChat({ marcada, enAvisos, conCorreos: Boolean(correos), conDocumentos: Boolean(documentos) });
+  const turno = turnoDelChat({ marcada, enAvisos, conCorreos: Boolean(correos), conDocumentos: Boolean(documentos), datosDeFuera: datosDeFueraDelCuerpo(body) });
   // Las que leen marcan el turno como "con datos de fuera"; las que HACEN algo (crear, mover,
   // mandar…) ya traen la regla de «Qué hace solo» y no regresan datos de fuera
   const deApps = herramientasDelChat({
