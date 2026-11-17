@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Marca } from "@/components/Logo";
 import { useIdioma } from "@/i18n/Idioma";
-import { FondoListones } from "./FondoListones";
+import { FondoTopografico } from "./FondoTopografico";
 
 /**
  * El marco de las páginas de acceso (entrar, crear cuenta, 404 y 500):
@@ -37,7 +37,7 @@ export function MarcoAcceso({
   const A = d.acceso;
   return (
     <div className="acc" data-tema="oscuro">
-      <FondoListones />
+      <FondoTopografico />
       <main id="contenido" tabIndex={-1} className="acc__centro" aria-labelledby={tituloId}>
         <section className="acc__tarjeta">
           <Link href="/" className="acc__marca" aria-label={A.inicio}>

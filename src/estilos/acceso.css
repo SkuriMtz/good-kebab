@@ -1,7 +1,7 @@
 /* =====================================================================
    Páginas de acceso: /entrar, /crear-cuenta, 404 y 500.
-   Siempre oscuras (el marco lleva data-tema="oscuro"): fondo de listones de
-   fragmentos (FondoListones) y una tarjeta oscura al centro. Solo se usan
+   Siempre oscuras (el marco lleva data-tema="oscuro"): fondo topográfico de
+   fragmentos (FondoTopografico) y una tarjeta oscura al centro. Solo se usan
    los tokens de la base; los tonos propios de esta página (azul marino) son
    locales y viven aquí.
    ===================================================================== */
