@@ -8,8 +8,9 @@ import { useEffect, useRef } from "react";
    terreno de ruido fractal van fragmentos sueltos (triángulos huecos como
    los del inicio, con un relleno muy tenue).
    - El mapa no cambia: los fragmentos se arman una vez y nunca aparecen
-     ni desaparecen. Una onda recorre las curvas y las ondula de lado, como
-     serpientes (unos 5 px). Es el único movimiento, lento y continuo.
+     ni desaparecen. Único movimiento: cada curva se desliza a lo largo de
+     sí misma, ida y vuelta (unos 6 px, ~9 s), y las curvas vecinas van al
+     revés. El cursor no mueve nada.
    - Color por altura: lo bajo en el violeta de Atendel, lo alto en arena.
    - Con el cursor, los fragmentos cercanos se hacen a un lado unos pocos
      píxeles (entra y sale suave). En celular solo se mecen.
@@ -28,15 +29,18 @@ const RADIO = 120;
 /** Lo más que el cursor aparta un fragmento (px). */
 const EMPUJE = 5;
 /** Lo que se mece cada fragmento en su lugar (px). */
-/** Por ahora quieto (lo pidió el dueño): ni onda ni cursor. Con true vuelve el movimiento de serpiente. */
-const MOVER = false;
-/** Cuánto se ondula cada curva de lado a lado, como serpiente (px). */
-const SERPIENTE = 5;
-/** La onda: dirección en que avanza (diagonal), largo (~360 px) y rapidez (rad/s): lenta y larga = suave. */
+/** Con false todo queda quieto. */
+const MOVER = true;
+/** El cursor no mueve nada (lo pidió el dueño): solo el deslizamiento. */
+const CURSOR = false;
+/** Cuánto se desliza cada curva hacia un lado y hacia el otro (px; los fragmentos están a ~15 px). */
+const DESLIZA = 6;
+/** Rapidez del ida y vuelta (rad/s): una vuelta completa cada ~9 s. */
+const DESLIZA_VEL = (2 * Math.PI) / 9;
+/** Desfase muy suave a lo ancho de la pantalla (en diagonal), para que no se vea mecánico. */
 const ONDA_X = 0.8;
 const ONDA_Y = 0.6;
-const ONDA_K = (2 * Math.PI) / 360;
-const ONDA_VEL = 0.8;
+const ONDA_K = (2 * Math.PI) / 1400;
 
 // ---- Ruido de valor con interpolación suave (repetible: el mismo terreno cada visita) ----
 const PERM = (() => {
@@ -116,7 +120,7 @@ function normalSuave(x: number, y: number, gx0: number, gy0: number, altura: (x:
 }
 
 /** Un fragmento: su lugar, su forma, su fase y hacia dónde se ondula (cuesta arriba del terreno, igual para toda su curva). */
-type Frag = { x: number; y: number; ang: number; r0: number; r1: number; r2: number; a1: number; a2: number; nx: number; ny: number; onda: number };
+type Frag = { x: number; y: number; ang: number; r0: number; r1: number; r2: number; a1: number; a2: number; nx: number; ny: number; onda: number; sentido: 1 | -1 };
 
 export function FondoTopografico() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -185,7 +189,9 @@ export function FondoTopografico() {
             a2: 4.189 + (((s >> 18) & 7) - 3.5) * 0.08,
             ...normalSuave((ax + bx) / 2, (ay + by) / 2, gnx, gny, altura),
             // La onda recorre la pantalla en diagonal; cada curva la toma un poco desfasada
-            onda: (((ax + bx) / 2) * ONDA_X + ((ay + by) / 2) * ONDA_Y) * ONDA_K + lv * 0.9,
+            onda: (((ax + bx) / 2) * ONDA_X + ((ay + by) / 2) * ONDA_Y) * ONDA_K,
+            // Curvas vecinas (niveles seguidos) se deslizan al revés: una a la izquierda, otra a la derecha
+            sentido: lv % 2 === 0 ? 1 : -1,
           });
         };
         for (let j = 0; j < filas; j++) {
@@ -265,10 +271,10 @@ export function FondoTopografico() {
       for (let lv = 0; lv < NIVELES; lv++) {
         ctx.beginPath();
         for (const f of porNivel[lv]) {
-          // Un solo movimiento: una onda suave recorre las curvas y las ondula de lado, como serpiente
-          const lado = SERPIENTE * Math.sin(f.onda - tiempo * ONDA_VEL);
-          let x = f.x + f.nx * lado;
-          let y = f.y + f.ny * lado;
+          // Un solo movimiento: cada curva se desliza a lo largo de sí misma (hacia su vecino), ida y vuelta, lento
+          const corre = DESLIZA * Math.sin(tiempo * DESLIZA_VEL - f.onda) * f.sentido;
+          let x = f.x - f.ny * corre;
+          let y = f.y + f.nx * corre;
           const ang = f.ang;
           if (conCursor) {
             const dx = x - c.sx;
@@ -358,7 +364,7 @@ export function FondoTopografico() {
     io.observe(canvas);
     const alVisibilidad = () => (document.hidden ? parar() : seguir());
     const alMover = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse" || !fino.matches || quieto()) return;
+      if (!CURSOR || e.pointerType !== "mouse" || !fino.matches || quieto()) return;
       cursor.x = e.clientX;
       cursor.y = e.clientY;
       cursor.dentro = true;
