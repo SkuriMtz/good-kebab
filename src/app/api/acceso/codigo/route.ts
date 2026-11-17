@@ -6,10 +6,13 @@ import { hoyEnMexico, LIMITES_ACCESO, MENSAJES_ACCESO, pedirCodigo, validarPetic
 import {
   clienteDeRuta,
   COOKIE_ALTA,
+  COOKIE_CODIGO,
   esperarMinimo,
   guardarAltaPendiente,
   hashCorreo,
   leerCuerpoJson,
+  nuevoPaseCodigo,
+  SEGUNDOS_CODIGO,
   nuevoSecretoAlta,
   opcionesCookie,
   SEGUNDOS_ALTA,
@@ -113,5 +116,8 @@ export async function POST(request: NextRequest) {
   await esperarMinimo(inicio, MINIMO_MS);
   const res = ponerCookies(responder(resultado.cuerpo));
   if (secretoAlta) res.cookies.set(COOKIE_ALTA, secretoAlta, opcionesCookie(SEGUNDOS_ALTA));
+  // El pase de este navegador para meter el código (sus propios intentos)
+  const pase = nuevoPaseCodigo(correo);
+  if (pase) res.cookies.set(COOKIE_CODIGO, pase, opcionesCookie(SEGUNDOS_CODIGO));
   return res;
 }

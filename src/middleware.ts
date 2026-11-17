@@ -49,7 +49,7 @@ function armarCsp(nonce: string): string {
     // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
     "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
     "font-src 'self'",
-    `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com`,
+    `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com${TURNSTILE}`,
     // Sin plugins (Flash, Java…) y todo por HTTPS
     "object-src 'none'",
     "upgrade-insecure-requests",

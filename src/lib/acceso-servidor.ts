@@ -52,6 +52,46 @@ export function hashCorreo(correo: string): string {
   return (llave ? createHmac("sha256", llave).update(`correo|${c}`) : createHash("sha256").update(`atendel-correo|${c}`)).digest("hex");
 }
 
+export const COOKIE_CODIGO = "atendel_codigo";
+/** Lo que vive el pase del código: el tiempo que el código sirve, con margen. */
+export const SEGUNDOS_CODIGO = 15 * 60;
+
+const firmaPase = (correoHash: string, t: string, azar: string) => {
+  const llave = process.env.ATENDEL_LLAVE_CIFRADO;
+  return llave ? createHmac("sha256", llave).update(`pase|${correoHash}|${t}|${azar}`).digest("base64url") : null;
+};
+
+/**
+ * Pase de "este navegador pidió el código" (cookie atendel_codigo, firmada).
+ * Cada pase tiene sus propios intentos: así nadie bloquea la entrada de otra
+ * persona metiendo códigos malos a su nombre, y para conseguir más pases hay
+ * que pedir más códigos (que tienen su propio tope). Sin la llave del
+ * servidor no hay pase y todos comparten el tope por correo.
+ */
+export function nuevoPaseCodigo(correo: string, ahora = Date.now()): string | null {
+  const t = String(Math.floor(ahora / 1000));
+  const azar = randomBytes(16).toString("base64url");
+  const firma = firmaPase(hashCorreo(correo), t, azar);
+  return firma ? `${t}.${azar}.${firma}` : null;
+}
+
+/** El id del pase si está bien firmado, es de ese correo y tiene menos de 15 min; si no, null. */
+export function idPaseCodigo(cookie: string | null | undefined, correo: string, ahora = Date.now()): string | null {
+  if (!cookie || cookie.length > 200) return null;
+  const partes = cookie.split(".");
+  if (partes.length !== 3) return null;
+  const [t, azar, firma] = partes;
+  if (!/^\d{1,12}$/.test(t) || !azar || !firma) return null;
+  const edad = ahora / 1000 - Number(t);
+  if (edad < -60 || edad > SEGUNDOS_CODIGO) return null;
+  const esperada = firmaPase(hashCorreo(correo), t, azar);
+  if (!esperada) return null;
+  const a = Buffer.from(firma);
+  const b = Buffer.from(esperada);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  return createHash("sha256").update(cookie).digest("hex").slice(0, 32);
+}
+
 /** Un secreto al azar para la cookie del alta (y su hash, que es lo que se guarda). */
 export function nuevoSecretoAlta(): { secreto: string; hash: string } {
   const secreto = randomBytes(32).toString("base64url");

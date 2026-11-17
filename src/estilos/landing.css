@@ -570,29 +570,6 @@
   font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
 }
 
-/* Entrar: en oscuro, sin caja (el campo flota sobre el negro); en claro, anillo fino */
-.sitio .acceso__titulo {
-  font-size: var(--t-seccion);
-  font-weight: var(--peso-seccion);
-  letter-spacing: var(--tracking-seccion);
-  line-height: 1.08;
-}
-:root:not([data-tema="claro"]) .sitio .acceso__tarjeta,
-:root:not([data-tema="claro"]) .sitio .acceso__nota {
-  padding-inline: 0;
-  border-color: transparent;
-  background: transparent;
-}
-:root[data-tema="claro"] .sitio .acceso__tarjeta,
-:root[data-tema="claro"] .sitio .acceso__nota {
-  border-color: transparent;
-  border-radius: 6px;
-  background: #fff;
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.08),
-    0 0 0 2px #fafafa;
-}
-
 /* La ficha de un agente flota sobre la página: superficie sólida con un filo fino */
 .sitio .ficha__caja.vidrio {
   border-color: var(--c-borde);
@@ -813,11 +790,4 @@ html:has(.sitio .nav-agentes) {
   .sitio .ruta__enlace::after {
     inset: -13px -8px;
   }
-}
-
-/* 404: los atajos alineados con el título, debajo del botón */
-.sitio .pagina-404__atajos {
-  width: 100%;
-  max-width: 560px;
-  margin: var(--spacing-64) 0 0;
 }

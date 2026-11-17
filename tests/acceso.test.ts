@@ -15,7 +15,7 @@ import {
   type AuthParaPedir,
   type AuthParaVerificar,
 } from "@/lib/acceso";
-import { hashCorreo, leerCuerpoJson, nuevoSecretoAlta, secretoCoincide } from "@/lib/acceso-servidor";
+import { hashCorreo, idPaseCodigo, leerCuerpoJson, nuevoPaseCodigo, nuevoSecretoAlta, secretoCoincide } from "@/lib/acceso-servidor";
 
 const HOY = "2026-11-17";
 
@@ -299,5 +299,43 @@ describe("piezas de servidor", () => {
     expect(secretoCoincide(null, hash)).toBe(false);
     expect(secretoCoincide(secreto, "no-es-hash")).toBe(false);
     expect(secretoCoincide("x".repeat(500), hash)).toBe(false);
+  });
+});
+
+describe("pase del código (intentos por navegador)", () => {
+  const LLAVE = Buffer.alloc(32, 7).toString("base64");
+  const ahora = Date.parse("2026-11-17T18:00:00Z");
+
+  it("sirve solo para su correo, sin cambios y por 15 minutos", () => {
+    const antes = process.env.ATENDEL_LLAVE_CIFRADO;
+    process.env.ATENDEL_LLAVE_CIFRADO = LLAVE;
+    try {
+      const pase = nuevoPaseCodigo("Ana@Ejemplo.com", ahora)!;
+      expect(pase).toBeTruthy();
+      const id = idPaseCodigo(pase, "ana@ejemplo.com", ahora + 60_000);
+      expect(id).toMatch(/^[0-9a-f]{32}$/);
+      expect(idPaseCodigo(nuevoPaseCodigo("ana@ejemplo.com", ahora)!, "ana@ejemplo.com", ahora)).not.toBe(id);
+      expect(idPaseCodigo(pase, "otra@ejemplo.com", ahora)).toBeNull();
+      expect(idPaseCodigo(pase, "ana@ejemplo.com", ahora + 16 * 60_000)).toBeNull();
+      const [t, azar, firma] = pase.split(".");
+      expect(idPaseCodigo(`${Number(t) + 600}.${azar}.${firma}`, "ana@ejemplo.com", ahora)).toBeNull();
+      expect(idPaseCodigo(`${t}.${azar}x.${firma}`, "ana@ejemplo.com", ahora)).toBeNull();
+      expect(idPaseCodigo(null, "ana@ejemplo.com", ahora)).toBeNull();
+      expect(idPaseCodigo("x".repeat(500), "ana@ejemplo.com", ahora)).toBeNull();
+    } finally {
+      if (antes === undefined) delete process.env.ATENDEL_LLAVE_CIFRADO;
+      else process.env.ATENDEL_LLAVE_CIFRADO = antes;
+    }
+  });
+
+  it("sin la llave del servidor no hay pase (todos comparten el tope)", () => {
+    const antes = process.env.ATENDEL_LLAVE_CIFRADO;
+    delete process.env.ATENDEL_LLAVE_CIFRADO;
+    try {
+      expect(nuevoPaseCodigo("ana@ejemplo.com", ahora)).toBeNull();
+      expect(idPaseCodigo("1.2.3", "ana@ejemplo.com", ahora)).toBeNull();
+    } finally {
+      if (antes !== undefined) process.env.ATENDEL_LLAVE_CIFRADO = antes;
+    }
   });
 });

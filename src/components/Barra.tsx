@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { BotonTema } from "./BotonTema";
 import { Marca } from "./Logo";
 import { Icono } from "./base/Iconos";
-import { BotonLista } from "./inicio-dala/BotonLista";
 import { PRUEBALO } from "@/lib/contenido";
 import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
 
@@ -14,8 +13,8 @@ import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
  * La barra del sitio público, como la del video de referencia (MEDIDAS.md §3):
  * - Izquierda: la marca de los cuatro agentes y "Atendel".
  * - Derecha: Agentes, Precios, Cuándo sale y Preguntas en mayúsculas chicas
- *   (gris; blanco el encendido), el cambio de idioma EN / ES y la píldora
- *   violeta "Únete a la lista". Los textos salen de src/i18n.
+ *   (gris; blanco el encendido), el cambio de idioma EN / ES y el enlace
+ *   "Entrar" y la píldora azul "Crea tu cuenta". Los textos salen de src/i18n.
  * - Al empezar a bajar, la barra sube 11 px, el nombre se desvanece y
  *   aparece una franja oscura con desenfoque (57 px a 1212×750).
  * - En el inicio los enlaces bajan a su escena y se encienden según la
@@ -133,7 +132,12 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
             </ul>
           </nav>
           <BotonIdioma className="barra__idioma" />
-          <BotonLista className="barra__pildora">{b.unete}</BotonLista>
+          <Link href="/entrar" className="barra__enlace barra__entrar">
+            {b.entrar}
+          </Link>
+          <Link href="/crear-cuenta" className="boton-lista barra__pildora">
+            <span className="boton-lista__texto">{b.crear}</span>
+          </Link>
           <button
             ref={hamburguesa}
             type="button"

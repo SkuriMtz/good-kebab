@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hashIp, ipDe, pasarLimite, registrarEvento } from "@/lib/seguridad";
 import { LIMITES_ACCESO, MENSAJES_ACCESO, respuestaVerificar, validarPeticionVerificar, verificarCodigo, type RespuestaVerificar } from "@/lib/acceso";
-import { borrarCookie, clienteDeRuta, COOKIE_ALTA, hashCorreo, leerCuerpoJson, prepararCuenta } from "@/lib/acceso-servidor";
+import { borrarCookie, clienteDeRuta, COOKIE_ALTA, COOKIE_CODIGO, hashCorreo, idPaseCodigo, leerCuerpoJson, prepararCuenta } from "@/lib/acceso-servidor";
 
 /**
  * POST /api/acceso/verificar — revisa el código de 6 dígitos y abre la sesión.
@@ -33,15 +33,18 @@ export async function POST(request: NextRequest) {
   const { correo, codigo } = revision.valor;
 
   const ipHash = hashIp(ipDe(request));
-  // El tope estricto va por correo + conexión: así nadie bloquea la entrada de otra
-  // persona metiendo códigos malos a su nombre. El tope global por correo es más alto
-  // y solo frena a quien prueba desde muchas conexiones (el código vence a los 10 min).
+  // Cada navegador que pidió el código trae su pase (cookie firmada) con 5 intentos
+  // propios: nadie bloquea la entrada de otra persona metiendo códigos malos a su
+  // nombre. Más pases = pedir más códigos, que tienen su propio tope (5 por hora).
+  // Sin pase, todos comparten un tope de 5. El total por correo es una red de
+  // seguridad que con los otros topes no se alcanza.
   const correoHash = hashCorreo(correo);
+  const pase = idPaseCodigo(request.cookies.get(COOKIE_CODIGO)?.value, correo);
   const porIp = await pasarLimite(`codigo:ip:${ipHash}`, 20, 3600, false);
-  const porCorreoIp = porIp && (await pasarLimite(`codigo:correo_ip:${correoHash}:${ipHash}`, 5, 900, false));
-  const porCorreo = porCorreoIp && (await pasarLimite(`codigo:correo:${correoHash}`, 30, 3600, false));
-  if (!porIp || !porCorreoIp || !porCorreo) {
-    await registrarEvento("limite_codigo", request, !porIp ? "por conexión" : !porCorreoIp ? "por correo y conexión" : "por correo");
+  const porIntento = porIp && (await pasarLimite(pase ? `codigo:pase:${pase}` : `codigo:correo:${correoHash}`, 5, 900, false));
+  const porCorreo = porIntento && (await pasarLimite(`codigo:total:${correoHash}`, 60, 3600, false));
+  if (!porIp || !porIntento || !porCorreo) {
+    await registrarEvento("limite_codigo", request, !porIp ? "por conexión" : !porIntento ? (pase ? "por pase" : "por correo") : "total por correo");
     return responder({ error: MENSAJES_ACCESO.limiteIntentos }, 429);
   }
 
@@ -60,5 +63,6 @@ export async function POST(request: NextRequest) {
   const { status, cuerpo } = respuestaVerificar(resultado);
   const res = ponerCookies(responder(cuerpo, status));
   if (request.cookies.has(COOKIE_ALTA)) borrarCookie(res, COOKIE_ALTA);
+  if (request.cookies.has(COOKIE_CODIGO)) borrarCookie(res, COOKIE_CODIGO);
   return res;
 }
