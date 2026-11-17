@@ -4,8 +4,9 @@
 -- /auth/callback (src/lib/acceso-servidor.ts).
 --
 -- 1. altas_pendientes: los datos del alta mientras llega el código al correo.
---    Clave = hash del correo (nunca el correo). Solo el servidor. Vence a las 24 h.
---    secreto_hash amarra la fila al navegador que la mandó (cookie atendel_alta).
+--    Clave = hash del correo (nunca el correo) + hash del secreto de la cookie
+--    atendel_alta: cada navegador tiene su propia fila y nadie pisa la de otro.
+--    Solo el servidor. Vence a las 24 h.
 -- 2. consentimientos: qué versión de los Términos y del Aviso de privacidad
 --    aceptó cada quien y cuándo. El dueño lee los suyos; solo el servidor escribe.
 -- 3. perfil_dueno: nombre, fecha de nacimiento y teléfono de quien abre la
@@ -19,12 +20,13 @@
 
 -- 1. Altas pendientes (solo servidor) ---------------------------
 create table if not exists public.altas_pendientes (
-  correo_hash text primary key check (correo_hash ~ '^[0-9a-f]{64}$'),
+  correo_hash text not null check (correo_hash ~ '^[0-9a-f]{64}$'),
   datos jsonb not null default '{}'::jsonb check (jsonb_typeof(datos) = 'object' and pg_column_size(datos) <= 4096),
   acepta_version text not null check (acepta_version ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'),
   secreto_hash text not null check (secreto_hash ~ '^[0-9a-f]{64}$'),
   ip_hash text check (ip_hash is null or ip_hash ~ '^[0-9a-f]{16,64}$'),
-  creado_en timestamptz not null default now()
+  creado_en timestamptz not null default now(),
+  primary key (correo_hash, secreto_hash)
 );
 create index if not exists altas_pendientes_fecha on public.altas_pendientes (creado_en);
 alter table public.altas_pendientes enable row level security;

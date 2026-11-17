@@ -168,7 +168,7 @@ export async function esperarMinimo(inicio: number, minimo: number, azar = 300):
 const log = (donde: string, e: { code?: string; message?: string } | null | undefined) =>
   console.error(`[acceso] ${donde}`, { code: e?.code ?? null, message: e?.message?.slice(0, 200) ?? null });
 
-/** Guarda (o reemplaza) los datos del alta mientras llega el código. */
+/** Guarda los datos del alta mientras llega el código (una fila por navegador: nadie pisa la de otro). */
 export async function guardarAltaPendiente(p: { correo: string; datos: DatosAlta; ipHash: string; secretoHash: string }): Promise<boolean> {
   const admin = clienteServicio();
   if (!admin) return false;
@@ -181,7 +181,7 @@ export async function guardarAltaPendiente(p: { correo: string; datos: DatosAlta
       ip_hash: p.ipHash,
       creado_en: new Date().toISOString(),
     },
-    { onConflict: "correo_hash" },
+    { onConflict: "correo_hash,secreto_hash" },
   );
   if (error) log("guardar alta pendiente", error);
   return !error;
@@ -191,10 +191,13 @@ type AltaPendiente = { datos: DatosAlta; version: string; aceptadoEn: string; ip
 
 /** La fila pendiente de ese correo, si es de este navegador (cookie) y no ha vencido. */
 async function leerAltaPendiente(admin: SupabaseClient, correoHash: string, cookie: string, ahora: number): Promise<AltaPendiente | null> {
+  if (!cookie || cookie.length > 100) return null;
+  // Cada navegador tiene su propia fila: se busca por correo Y por el secreto de su cookie
   const { data, error } = await admin
     .from("altas_pendientes")
     .select("datos, acepta_version, secreto_hash, ip_hash, creado_en")
     .eq("correo_hash", correoHash)
+    .eq("secreto_hash", hashSecreto(cookie))
     .maybeSingle();
   if (error) {
     log("leer alta pendiente", error);

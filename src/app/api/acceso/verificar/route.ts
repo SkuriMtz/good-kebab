@@ -33,10 +33,15 @@ export async function POST(request: NextRequest) {
   const { correo, codigo } = revision.valor;
 
   const ipHash = hashIp(ipDe(request));
+  // El tope estricto va por correo + conexión: así nadie bloquea la entrada de otra
+  // persona metiendo códigos malos a su nombre. El tope global por correo es más alto
+  // y solo frena a quien prueba desde muchas conexiones (el código vence a los 10 min).
+  const correoHash = hashCorreo(correo);
   const porIp = await pasarLimite(`codigo:ip:${ipHash}`, 20, 3600, false);
-  const porCorreo = porIp && (await pasarLimite(`codigo:correo:${hashCorreo(correo)}`, 5, 900, false));
-  if (!porIp || !porCorreo) {
-    await registrarEvento("limite_codigo", request, porIp ? "por correo" : "por conexión");
+  const porCorreoIp = porIp && (await pasarLimite(`codigo:correo_ip:${correoHash}:${ipHash}`, 5, 900, false));
+  const porCorreo = porCorreoIp && (await pasarLimite(`codigo:correo:${correoHash}`, 30, 3600, false));
+  if (!porIp || !porCorreoIp || !porCorreo) {
+    await registrarEvento("limite_codigo", request, !porIp ? "por conexión" : !porCorreoIp ? "por correo y conexión" : "por correo");
     return responder({ error: MENSAJES_ACCESO.limiteIntentos }, 429);
   }
 
