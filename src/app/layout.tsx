@@ -24,6 +24,7 @@ import { SCRIPT_TEMA } from "@/lib/tema";
 import { TransicionPaginas } from "@/components/TransicionPaginas";
 import { IdiomaProvider } from "@/i18n/Idioma";
 import { idiomaServidor } from "@/i18n/servidor";
+import { SITIO } from "@/lib/sitio";
 import type { Idioma } from "@/i18n";
 
 /*
@@ -56,6 +57,8 @@ const geistMono = localFont({
 export async function generateMetadata(): Promise<Metadata> {
   return {
     ...metadatosInicio(await idiomaActual()),
+    // La dirección base para enlaces e imágenes al compartir (cambia sola con tu dominio)
+    metadataBase: new URL(SITIO),
     applicationName: "Atendel",
     appleWebApp: { capable: true, title: "Atendel", statusBarStyle: "black-translucent" },
   };
