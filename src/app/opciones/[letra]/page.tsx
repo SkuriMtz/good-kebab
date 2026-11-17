@@ -13,9 +13,8 @@ const OPCIONES = {
 } as const;
 type Letra = keyof typeof OPCIONES;
 
-export function generateStaticParams() {
-  return Object.keys(OPCIONES).map((letra) => ({ letra }));
-}
+// Se arma en cada petición (no HTML fijo): los scripts llevan el nonce de la CSP.
+export const dynamic = "force-dynamic";
 
 /** Una opción de portada a pantalla completa, con una barra abajo para cambiar entre las tres. */
 export default async function Opcion(props: { params: Promise<{ letra: string }> }) {
