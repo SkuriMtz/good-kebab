@@ -60,6 +60,8 @@ export function PendientesReal({
           columna: "revisar" as const,
           titulo: a.resumen,
           para: `En ${APP_POR_ID[a.app as IdApp]?.nombre ?? "tu app"}`,
+          // Lo que sale completo (el resumen lo corta): lo ves todo antes de aprobar
+          texto: a.texto || undefined,
           nota: a.motivo ? `Te pregunto porque ${a.motivo}.` : undefined,
           hace: fecha.format(new Date(a.creado_en)),
           acciones: <AccionesAccion id={a.id} />,

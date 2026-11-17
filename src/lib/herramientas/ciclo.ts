@@ -79,6 +79,35 @@ export function mensajeError(e: unknown, fuente: string): string {
   return `No se pudo consultar ${quien} en este momento.`;
 }
 
+/**
+ * Lo que ve la persona cuando la IA falla: saturada, tardó demasiado, falla del
+ * servicio o una petición que no pudo procesar. Nunca habla de llaves ni de
+ * saldo (eso es de Atendel, no de la persona: el detalle va al registro del
+ * servidor). Un error a media respuesta llega sin código, solo con su tipo.
+ */
+export function mensajeErrorIa(e: unknown): string {
+  const NO_DISPONIBLE = "La IA no está disponible ahora; intenta en unos minutos.";
+  const SATURADA = "La IA está saturada en este momento. Espera unos segundos e intenta de nuevo.";
+  const TARDO = "La IA tardó demasiado en contestar. Intenta de nuevo en un momento.";
+  if (e instanceof Anthropic.APIConnectionTimeoutError) return TARDO;
+  if (e instanceof Anthropic.APIUserAbortError) return "Se detuvo la respuesta.";
+  if (e instanceof Anthropic.APIConnectionError) return "No pude comunicarme con la IA. Intenta de nuevo en un momento.";
+  if (e instanceof Anthropic.APIError) {
+    const s = e.status ?? 0;
+    if (e.type === "overloaded_error" || s === 529 || e.type === "rate_limit_error" || s === 429) return SATURADA;
+    if (e.type === "timeout_error" || s === 408 || s === 504) return TARDO;
+    if (e.type === "billing_error" || e.type === "authentication_error" || e.type === "permission_error" || [401, 402, 403, 404].includes(s)) return NO_DISPONIBLE;
+    if (s === 413) return "Esta conversación ya es muy larga para la IA. Empieza una conversación nueva.";
+    if (s === 400 || e.type === "invalid_request_error") {
+      // El saldo de la cuenta de IA a veces llega como 400: tampoco es algo que la persona pueda arreglar
+      if (/credit balance|billing/i.test(e.message)) return NO_DISPONIBLE;
+      return "La IA no pudo procesar este mensaje. Intenta de nuevo; si sigue pasando, empieza una conversación nueva.";
+    }
+    if (s >= 500 || e.type === "api_error") return "El servicio de la IA tuvo una falla. Intenta de nuevo en unos minutos.";
+  }
+  return "No se pudo obtener la respuesta. Intenta de nuevo.";
+}
+
 /** Corre una herramienta con su tope de tiempo (y se corta si la persona detiene la respuesta). */
 async function correr(h: HerramientaChat, args: Record<string, unknown>, senal: AbortSignal): Promise<string> {
   const control = new AbortController();

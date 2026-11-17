@@ -33,6 +33,8 @@ import {
   instruccionesAcciones,
 } from "@/lib/herramientas/acciones";
 import { marcoEstado } from "@/lib/estado-chat";
+import { mensajeErrorIa } from "@/lib/herramientas/ciclo";
+import { marcarAlTerminar, turnoDelChat } from "@/lib/datos-fuera";
 
 /**
  * CHAT CON LOS AGENTES
@@ -105,18 +107,29 @@ export async function POST(request: NextRequest) {
   let agente: IdAgente;
   let grupo: IdAgente[] | null = null;
   let tema: string | null = null;
-  let conv: {
+  type Conv = {
     id: string;
     agente: string;
     participantes: string[] | null;
     tema: string | null;
-  } | null = null;
+  };
+  let conv: Conv | null = null;
+  // ¿Ya entraron datos de fuera a esta conversación? (migración 0031) Siguen en el historial que se
+  // le manda a la IA, así que cuentan en cada mensaje. Si no se puede saber, se toma como que sí.
+  let marcada = false;
   if (conversacionId) {
-    const { data } = await supabase
+    const campos = "id, agente, participantes, tema";
+    const leida = await supabase
       .from("conversaciones")
-      .select("id, agente, participantes, tema")
+      .select(`${campos}, externo_en`)
       .eq("id", conversacionId)
       .maybeSingle();
+    let data: Conv | null = leida.data;
+    if (leida.error) {
+      // Sin la columna todavía (falta aplicar 0031): se lee sin ella
+      marcada = true;
+      data = (await supabase.from("conversaciones").select(campos).eq("id", conversacionId).maybeSingle()).data;
+    } else marcada = Boolean(leida.data?.externo_en);
     if (!data || !esIdAgente(data.agente))
       return error("No se encontró la conversación.", 404);
     conv = data;
@@ -267,11 +280,12 @@ export async function POST(request: NextRequest) {
   // 6b. Las apps conectadas: herramientas de solo lectura de estos agentes (sin tokens aquí)
   const conexiones = await conexionesVigentes(supabase, user.id);
   // Datos de fuera en este turno: `externo` = se usaron herramientas de apps (la memoria no guarda sola);
-  // `contexto` = van correos o documentos en las instrucciones. Con cualquiera, una tarea pedida aquí
-  // queda esperando el OK del dueño en Tareas (para que un correo o una app no pueda dejar una tarea activa).
+  // `contexto` = van correos o documentos en las instrucciones, o la conversación ya tuvo datos de fuera
+  // (siguen en el historial que se le manda a la IA). Con cualquiera, una tarea pedida aquí queda
+  // esperando el OK del dueño en Tareas (para que un correo o una app no pueda dejar una tarea activa).
   // En «Avisos de Atendel» la plática ya trae mensajes de clientes y resultados de apps (datos de fuera)
   const enAvisos = tema === TEMA_AVISOS;
-  const turno = { externo: enAvisos, contexto: enAvisos || Boolean(correos) || Boolean(documentos) };
+  const turno = turnoDelChat({ marcada, enAvisos, conCorreos: Boolean(correos), conDocumentos: Boolean(documentos) });
   // Las que leen marcan el turno como "con datos de fuera"; las que HACEN algo (crear, mover,
   // mandar…) ya traen la regla de «Qué hace solo» y no regresan datos de fuera
   const deApps = herramientasDelChat({
@@ -283,7 +297,8 @@ export async function POST(request: NextRequest) {
     acciones: {
       autonomia: ajustesCuenta.autonomia,
       origen: "chat",
-      // Con correos, documentos o datos de apps en la plática, nada se hace solo: queda con "Aprobar y hacer"
+      // Con correos, documentos o datos de apps en la plática (en este mensaje o en los anteriores), nada se
+      // hace solo: queda con "Aprobar y hacer"
       externo: () => turno.externo || turno.contexto,
       zona: ajustesCuenta.zonaHoraria,
       conversacionId: idConversacion,
@@ -329,8 +344,9 @@ export async function POST(request: NextRequest) {
     instruccionesHerramientas(participantes, deApps, conexiones) +
     instruccionesAcciones(participantes);
 
-  // 7. Responder en vivo
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  // 7. Responder en vivo. La ruta vive 60 s: cada petición a la IA espera como mucho 45 s y se
+  //    reintenta una vez (sin esto, el SDK espera hasta 10 minutos y reintenta dos)
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 45_000, maxRetries: 1 });
   const codificar = new TextEncoder();
   const idFinal = idConversacion;
 
@@ -444,16 +460,23 @@ export async function POST(request: NextRequest) {
           enviar(respuesta);
         }
       } catch (e) {
-        let texto = "No se pudo obtener la respuesta. Intenta de nuevo.";
-        if (e instanceof Anthropic.AuthenticationError)
-          texto = "La llave de Anthropic no es válida.";
-        else if (e instanceof Anthropic.RateLimitError)
-          texto = "La IA está saturada. Espera unos segundos.";
-        else if (e instanceof Anthropic.BadRequestError)
-          texto = "La IA rechazó la petición. Revisa el saldo de Anthropic.";
-        enviar(MARCA_ERROR + texto);
+        // El detalle técnico (llave, saldo, código) va al registro del servidor; a la persona, un texto claro
+        if (!corte.signal.aborted) {
+          const x = e instanceof Anthropic.APIError ? ` (${e.status ?? "sin código"}, ${e.type ?? "sin tipo"}, ${e.requestID ?? "sin id"})` : "";
+          console.error(`Chat: la IA falló${x}:`, e instanceof Error ? e.message : e);
+        }
+        enviar(MARCA_ERROR + mensajeErrorIa(e));
       } finally {
         await registrarUso(supabase, gasto, "chat");
+        // Si en este turno entraron datos de fuera, la conversación lo recuerda (antes de guardar la
+        // respuesta, que puede llevarlos): desde ahora nada se hace solo en ella
+        if (marcarAlTerminar(marcada, turno)) {
+          const { error: errMarca } = await supabase
+            .from("conversaciones")
+            .update({ externo_en: new Date().toISOString() })
+            .eq("id", idFinal);
+          if (errMarca) console.error("Chat: no se pudo marcar la conversación con datos de fuera:", errMarca.message);
+        }
         if (respuesta.trim()) {
           // En grupo, cada intervención se guarda como mensaje de su agente
           const piezas = grupo
