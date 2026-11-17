@@ -6126,6 +6126,23 @@ a.pc-correo__accion:hover {
 .pc-aj-nota--error {
   color: var(--pc-error);
 }
+/* «Borrar tu cuenta»: botón sutil con texto de error y su confirmación */
+.pc .pc-aj-peligro {
+  color: var(--pc-error);
+}
+.pc-aj-borrar {
+  display: grid;
+  gap: 12px;
+}
+.pc-aj-borrar p {
+  margin: 0;
+}
+.pc-aj-borrar__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
 .pc-aj-grupo {
   margin-top: 18px;
 }

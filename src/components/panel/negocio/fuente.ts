@@ -121,6 +121,14 @@ async function respuesta<T>(res: Response): Promise<T> {
 const MAX_BYTES_DIRECTO = 4 * 1024 * 1024;
 const BUCKET_DOCUMENTOS = "documentos";
 
+/** Tipo exacto por extensión (el del navegador puede venir vacío o con "; charset"): el bucket solo acepta estos. */
+const MIME_POR_EXTENSION: Record<string, string> = {
+  pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  txt: "text/plain",
+  md: "text/markdown",
+};
+
 /** Sube el archivo al bucket privado en "{tu id}/{uuid}.{ext}" (RLS: solo tu carpeta) y regresa la ruta. */
 async function subirAStorage(archivo: File): Promise<string> {
   const supabase = createClient();
@@ -131,7 +139,7 @@ async function subirAStorage(archivo: File): Promise<string> {
   const ext = extensionDe(archivo.name);
   if (!ext) throw new ErrorNegocio(`«${archivo.name}» no se puede leer: sube un PDF, DOCX, TXT o MD.`);
   const ruta = `${user.id}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET_DOCUMENTOS).upload(ruta, archivo, { contentType: archivo.type || undefined, upsert: false });
+  const { error } = await supabase.storage.from(BUCKET_DOCUMENTOS).upload(ruta, archivo, { contentType: MIME_POR_EXTENSION[ext], upsert: false });
   if (error) throw new ErrorNegocio("No se pudo subir el archivo. Revisa tu conexión e intenta de nuevo.");
   return ruta;
 }

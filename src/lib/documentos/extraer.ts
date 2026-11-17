@@ -30,11 +30,12 @@ export const TIPO_POR_EXTENSION: Record<string, TipoArchivo> = {
   markdown: "md",
 };
 
+/** Tipo exacto y sin parámetros (sin "; charset"): es lo que acepta el bucket "documentos" (migración 0032). */
 export const MIME_POR_TIPO: Record<TipoArchivo, string> = {
   pdf: "application/pdf",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  txt: "text/plain; charset=utf-8",
-  md: "text/markdown; charset=utf-8",
+  txt: "text/plain",
+  md: "text/markdown",
 };
 
 const NO_SOPORTADO = "Ese tipo de archivo no se puede leer. Sube un PDF, un Word (.docx), un TXT o un MD.";

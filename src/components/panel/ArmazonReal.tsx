@@ -167,6 +167,24 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     router.replace("/");
     router.refresh();
   };
+  /** Borra la cuenta y todo lo suyo; devuelve el error o null (y entonces cierra la sesión y va a «/»). */
+  const borrarCuenta = async (): Promise<string | null> => {
+    try {
+      const r = await fetch("/api/cuenta/borrar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirmacion: "BORRAR" }) });
+      if (!r.ok) {
+        const j = (await r.json().catch(() => null)) as { error?: string } | null;
+        return j?.error ?? "No se pudo borrar tu cuenta. Intenta de nuevo.";
+      }
+    } catch {
+      return "Sin conexión: no se borró nada. Intenta de nuevo.";
+    }
+    // Los demás aparatos ya no reciben avisos (se fueron con la cuenta); este también se apaga
+    await apagarAvisos().catch(() => null);
+    await createClient().auth.signOut({ scope: "local" }).catch(() => null);
+    router.replace("/");
+    router.refresh();
+    return null;
+  };
   /** Un PUT a la API; devuelve el error que diga o null. */
   const poner = async (url: string, cuerpo: unknown) => {
     try {
@@ -190,6 +208,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     hrefs: { agentes: "/panel?vista=negocio&tab=reglas", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },
     salir: { etiqueta: "Cerrar sesión", texto: "En este dispositivo.", alSalir: () => salirA("local") },
     salirDeTodo: () => salirA("global"),
+    borrarCuenta,
     guardar: {
       ajustes: (a) => poner("/api/ajustes", { ajustes: a }),
       perfil: (cambios) => poner("/api/negocio/perfil", cambios),

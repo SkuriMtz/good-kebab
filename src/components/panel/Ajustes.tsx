@@ -93,6 +93,8 @@ export type DatosAjustes = {
   salir: { etiqueta: string; texto: string; href?: string; alSalir?: () => void | Promise<void> };
   /** Solo en la cuenta real: cerrar la sesión en todos los dispositivos. */
   salirDeTodo?: () => Promise<void>;
+  /** Solo en la cuenta real: borra la cuenta y todo lo suyo. Devuelve un error, o null si se borró (el armazón cierra la sesión y va a «/»). */
+  borrarCuenta?: () => Promise<string | null>;
   /** Solo en la cuenta real: cómo se guarda cada cosa (devuelven un error o null). Sin esto, nada se guarda. */
   guardar?: {
     ajustes: (a: AjustesCuenta) => Promise<string | null>;
@@ -861,6 +863,9 @@ export function VentanaAjustes({
   /** El renglón que se eligió en el buscador: se busca, se centra y se marca un momento. */
   const [resaltar, setResaltar] = useState<{ titulo: string; n: number } | null>(null);
   const [saliendo, setSaliendo] = useState(false);
+  const [borrando, setBorrando] = useState<"cerrado" | "abierto" | "borrando">("cerrado");
+  const [palabraBorrar, setPalabraBorrar] = useState("");
+  const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoGuardado>("listo");
   const [ajustes, setAjustes] = useState<AjustesCuenta>(datos.ajustes);
   const [nombre, setNombre] = useState(datos.nombre);
@@ -1501,11 +1506,63 @@ export function VentanaAjustes({
               </a>
             )}
           </Fila>
-          <Fila titulo="Borrar tu cuenta" texto="Escríbenos y la borramos con todo lo que tiene.">
-            <Enlace href="/contacto" className={claseBoton("borde", true)}>
-              Escríbenos
-            </Enlace>
+          <Fila titulo="Borrar tu cuenta" texto="Borramos tu cuenta con todo lo que tiene.">
+            <button
+              type="button"
+              className={`${claseBoton("borde", true)} pc-aj-peligro`}
+              aria-expanded={borrando !== "cerrado"}
+              disabled={borrando === "borrando"}
+              onClick={() => {
+                setBorrando("abierto");
+                setPalabraBorrar("");
+                setErrorBorrar(null);
+              }}
+            >
+              Borrar mi cuenta
+            </button>
           </Fila>
+          {borrando !== "cerrado" ? (
+            <div className="pc-aj-nota pc-aj-borrar" role="group" aria-label="Confirmar que borras tu cuenta">
+              <p>
+                Se borran tus conversaciones, tus documentos, tus apps conectadas y todo lo demás que tiene tu cuenta.
+                <br />
+                No se puede deshacer.
+              </p>
+              {datos.demo ? (
+                <p className="pc-aj-nota--error">Son datos de ejemplo: aquí no se borra nada. En tu cuenta real sí se borra.</p>
+              ) : (
+                <>
+                  <Campo etiqueta="Escribe BORRAR para confirmar" valor={palabraBorrar} alCambiar={setPalabraBorrar} max={20} ejemplo="Escribe BORRAR" deshabilitado={borrando === "borrando"} />
+                  {errorBorrar ? (
+                    <p className="pc-aj-nota--error" role="alert">
+                      {errorBorrar}
+                    </p>
+                  ) : null}
+                  <div className="pc-aj-borrar__botones">
+                    <button type="button" className={claseBoton("fantasma", true)} disabled={borrando === "borrando"} onClick={() => setBorrando("cerrado")}>
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      className={`${claseBoton("principal", true)} pc-boton--peligro`}
+                      disabled={palabraBorrar !== "BORRAR" || borrando === "borrando" || !datos.borrarCuenta}
+                      onClick={async () => {
+                        setBorrando("borrando");
+                        setErrorBorrar(null);
+                        const e = (await datos.borrarCuenta?.()) ?? "No se pudo borrar tu cuenta. Intenta de nuevo.";
+                        if (e) {
+                          setErrorBorrar(e);
+                          setBorrando("abierto");
+                        }
+                      }}
+                    >
+                      {borrando === "borrando" ? "Borrando…" : "Borrar mi cuenta y mis datos"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
         </Grupo>
         <Grupo titulo="Seguridad">
           <Fila titulo="Solo lectura" texto="Por ahora tu equipo solo lee lo que conectas: no envía, no borra ni paga nada por su cuenta.">
