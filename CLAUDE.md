@@ -96,6 +96,8 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 
 ## Equipos (subagentes)
 
+**Cuidar el límite del dueño (17 nov, palabras del dueño: "intenta no gastarme tanto mi límite de 5 horas"):** por omisión trabaja directo, sin subagentes; nada de equipos en paralelo ni subagentes con Opus salvo que el dueño lo pida; pocas capturas y sin repetir verificaciones; mensajes cortos.
+
 Definidos en `.claude/agents/`. Se reparten así para cuidar el límite:
 - **Portero (Haiku):** buscar, inventariar e investigar dudas.
 - **Obra (Sonnet):** escribir el código.
