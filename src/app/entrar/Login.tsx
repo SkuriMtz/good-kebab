@@ -95,8 +95,8 @@ export function Login({ errorInicial }: { errorInicial: boolean }) {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // Solo lectura de Gmail: nunca se pide permiso de enviar o borrar
-        scopes: "https://www.googleapis.com/auth/gmail.readonly",
+        // Al entrar solo se pide lo básico (correo y nombre). El permiso de Gmail (solo lectura)
+        // se pide aparte, cuando el dueño conecta Gmail.
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });

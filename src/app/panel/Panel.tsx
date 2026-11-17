@@ -75,6 +75,8 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
   const [nuevos, setNuevos] = useState<Set<string>>(() => new Set());
   const [gmailCargando, setGmailCargando] = useState(false);
   const [gmailMensaje, setGmailMensaje] = useState<string | null>(null);
+  // El servidor dijo que falta el permiso de Gmail: en vez de fallar, se muestra el botón de conectar
+  const [faltaGmail, setFaltaGmail] = useState(false);
   /** "Probar con un ejemplo" está cerrado: lo primero es tu bandeja. */
   const [probarAbierto, setProbarAbierto] = useState(false);
   const resultadoRef = useRef<HTMLDivElement>(null);
@@ -154,6 +156,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
     try {
       const res = await fetch("/api/agente-correo", { method: "POST" });
       const datos = await res.json().catch(() => ({}));
+      if (!res.ok && datos.codigo === "conectar_gmail") setFaltaGmail(true);
       if (!res.ok) throw new Error(datos.error ?? "No se pudo revisar tu correo.");
       const n: number = datos.procesados ?? 0;
       setGmailMensaje(
@@ -184,7 +187,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
 
   /** El botón de Gmail: revisar lo nuevo (conectado), conectar, o "Pronto" si no hay acceso con Google. */
   const botonGmail = (chico = false) =>
-    conGoogle ? (
+    conGoogle && !faltaGmail ? (
       <button type="button" className={claseBoton("principal", chico)} disabled={gmailCargando} onClick={revisarGmail}>
         {gmailCargando ? <Giro /> : <Icono nombre="repetir" tam={16} />}
         {gmailCargando ? "Revisando tu Gmail" : "Revisar Gmail ahora"}
@@ -205,7 +208,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
         texto="Clara lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Solo lectura: nunca envía ni borra nada."
         acciones={
           <span id="gmail" className="pc-correo__acciones">
-            {conGoogle ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
+            {conGoogle && !faltaGmail ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
             {botonGmail()}
           </span>
         }

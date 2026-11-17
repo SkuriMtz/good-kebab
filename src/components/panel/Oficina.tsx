@@ -6,6 +6,7 @@ import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { createClient } from "@/lib/supabase/client";
 import { AvatarAgente } from "./Mensajes";
+import { enlacePide } from "@/lib/datos-fuera";
 import { Enlace, Modal, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
 import { RevisionDiaria, type DatosRevision } from "./RevisionDiaria";
@@ -423,7 +424,7 @@ export function OficinaReal({
       alPedirCambios={async (item, texto) => {
         const e = await marcar(item.id, "cambios");
         if (e) return e;
-        router.push(`/panel?pide=${encodeURIComponent(`Corrige «${item.nombre}» que me dejaste: ${texto}`)}`);
+        router.push(enlacePide(`Corrige «${item.nombre}» que me dejaste: ${texto}`, true));
         return null;
       }}
     />

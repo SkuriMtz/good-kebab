@@ -74,8 +74,21 @@ export function textoCompletoDeAccion(args: unknown): string {
  *   de mensajes anteriores (`marcada`: siguen en el historial que se le manda).
  * Con cualquiera de los dos, ninguna acción ni tarea se hace sola.
  */
-export function turnoDelChat(o: { marcada: boolean; enAvisos: boolean; conCorreos: boolean; conDocumentos: boolean }) {
-  return { externo: o.enAvisos, contexto: o.marcada || o.enAvisos || o.conCorreos || o.conDocumentos };
+export function turnoDelChat(o: { marcada: boolean; enAvisos: boolean; conCorreos: boolean; conDocumentos: boolean; datosDeFuera?: boolean }) {
+  // `datosDeFuera`: lo dice el navegador cuando el mensaje trae texto de un correo o archivo de fuera
+  // (el enlace «Pedírselo a Atendel»). Solo puede hacer el turno MÁS estricto: sin él, todo sigue igual.
+  const fuera = o.datosDeFuera === true;
+  return { externo: o.enAvisos || fuera, contexto: o.marcada || o.enAvisos || o.conCorreos || o.conDocumentos || fuera };
+}
+
+/** Del cuerpo de POST /api/chat: ¿el navegador dice que el mensaje trae datos de fuera? Solo `true` exacto cuenta. */
+export function datosDeFueraDelCuerpo(body: unknown): boolean {
+  return !!body && typeof body === "object" && (body as Record<string, unknown>).datosDeFuera === true;
+}
+
+/** Enlace a /panel?pide=… Si el texto viene de fuera (correo, archivo), agrega &fuera=1. */
+export function enlacePide(texto: string, deFuera: boolean, base = "/panel"): string {
+  return `${base}?pide=${encodeURIComponent(texto)}${deFuera ? "&fuera=1" : ""}`;
 }
 
 /** ¿Hay que marcar la conversación al terminar el turno? Solo si aún no lo estaba y en este turno entraron datos de fuera. */

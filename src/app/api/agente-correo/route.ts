@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { createClient } from "@/lib/supabase/server";
 import { resumirCorreo } from "@/lib/resumir";
+import { appsDeFila, leerFila, obtenerToken } from "@/lib/conexiones/tokens";
 
 /**
  * AGENTE DE CORREO — MVP
@@ -29,15 +30,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  // Obtener el token de Google guardado al iniciar sesión con "Sign in with Google"
-  const { data: sessionData } = await supabase.auth.getSession();
-  const providerToken = sessionData.session?.provider_token;
+  // El token de Gmail: el de la conexión guardada (Tu negocio → Apps) o, si el dueño acaba de
+  // conectar Gmail desde Correo, el de su sesión. Entrar con Google ya no pide permiso de Gmail.
+  let providerToken: string | undefined;
+  const fila = await leerFila(supabase, user.id, "google").catch(() => null);
+  if (fila && fila.estado === "activa" && appsDeFila(fila).includes("gmail")) {
+    providerToken = (await obtenerToken(supabase, user.id, "google").catch(() => null))?.access_token;
+  }
+  if (!providerToken) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    providerToken = sessionData.session?.provider_token ?? undefined;
+  }
 
   if (!providerToken) {
     return NextResponse.json(
       {
-        error:
-          "No hay una conexión activa con Gmail. Vuelve a iniciar sesión con Google.",
+        error: "Todavía no conectas Gmail. Toca «Conectar Gmail» para darle permiso de solo lectura.",
+        codigo: "conectar_gmail",
       },
       { status: 400 },
     );
@@ -85,7 +94,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Tu conexión con Gmail venció. Cierra sesión y vuelve a entrar con Google.",
+          "Tu conexión con Gmail venció. Toca «Conectar Gmail» para volver a darle permiso.",
+        codigo: "conectar_gmail",
       },
       { status: 401 },
     );

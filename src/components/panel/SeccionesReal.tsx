@@ -10,6 +10,7 @@ import { planMinimo } from "@/lib/planes";
 import { Icono } from "@/components/base/Iconos";
 import { VolverOficina, Enlace, Pildoras, TituloSeccion, Vacio, claseBoton } from "./Piezas";
 import { Seccion, Tablero, type ItemTablero } from "./Secciones";
+import { enlacePide } from "@/lib/datos-fuera";
 import { PestanasPendientes } from "./Hecho";
 import { AccionesAccion, AccionesEnvio, AccionesWhatsapp } from "./Envios";
 import { nombreRemitente } from "./remitente";
@@ -110,7 +111,7 @@ export function PendientesReal({
                 <Enlace href={`/panel?vista=correo&de=${encodeURIComponent(quien)}#historial`} className={claseBoton("borde", true)}>
                   Ver en Correo
                 </Enlace>
-                <Enlace href={`/panel?pide=${encodeURIComponent(`Ayúdame con el correo de ${quien} («${c.asunto ?? "sin asunto"}»): ${c.accion_sugerida}`)}`} className={claseBoton("fantasma", true)}>
+                <Enlace href={enlacePide(`Ayúdame con el correo de ${quien} («${c.asunto ?? "sin asunto"}»): ${c.accion_sugerida}`, true)} className={claseBoton("fantasma", true)}>
                   Pedírselo a Atendel
                 </Enlace>
               </>
