@@ -90,6 +90,8 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 - Regex sobre texto de fuera: nada de `[\s\S]*?` ni `\S+…\S+` encadenados; recorta la entrada antes. Llamadas a la IA siempre con `timeout` y `maxRetries`.
 - Errores al navegador: mensajes en español para personas; el detalle técnico solo en `console.error` (con `code` y `message`, nunca objetos completos ni datos de clientes).
 - Dependencias con versión exacta; `npm audit` sin críticos ni altos propios antes de subir.
+- Política de scripts (CSP) la arma `src/middleware.ts` con un nonce por petición: todo `<script>` en línea lleva `nonce` (léelo con `(await headers()).get("x-nonce")`); nunca `'unsafe-inline'` en `script-src`. Toda página debe renderizarse por petición (nada de HTML estático con scripts).
+- Conexiones de apps: solo el servidor las escribe y lee `token_cifrado` (cliente de servicio en `src/lib/conexiones/tokens.ts`, migración 0033). Subidas a Storage con tipo exacto (lista permitida en los buckets, migración 0032).
 - Strix (prueba de seguridad con IA) corre a mano en GitHub Actions (`.github/workflows/strix.yml`), nunca contra la app real.
 
 ## Equipos (subagentes)
