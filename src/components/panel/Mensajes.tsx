@@ -9,6 +9,7 @@ import type { Tarjeta } from "@/components/chat/Piezas";
 import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
+import { Marca } from "@/components/Logo";
 
 /*
  * Las piezas de la conversación del panel nuevo, como un chat de IA de hoy:
@@ -127,22 +128,13 @@ export function MensajeAgente({
   );
 }
 
-/** Debajo de la caja del Inicio: quiénes trabajan contigo (ya no se elige a nadie: Atendel reparte). */
-export function EquipoAtendel({ agentes }: { agentes: readonly IdAgente[] }) {
-  return (
-    <span className="pc-equipo-atendel" title="Atendel le pasa cada cosa al agente que le toca">
-      <PilaAgentes agentes={agentes} tam={18} />
-      <span>{nombresDe(agentes)}</span>
-    </span>
-  );
-}
-
 /**
  * La respuesta de Atendel (el chat único): una sola respuesta, aunque la
- * hayan hecho varios agentes (cada quien su parte, en orden). Sin nombre
- * arriba; hasta abajo, en chiquito, las cabecitas y los nombres de quienes
- * la hicieron, la hora y "Copiar". Mientras llega: los triangulitos y lo
- * que está haciendo ("Clara está revisando tu correo…").
+ * hayan hecho varios agentes por dentro (trabajan "en la cocina": el dueño
+ * solo le habla a Atendel). Va firmada «Atendel», con el logo de cuatro
+ * puntos; abajo, la hora y "Copiar". Mientras llega: los triangulitos y lo
+ * que está haciendo ("Clara está revisando tu correo…"), que es la forma de
+ * asomarse a la cocina.
  */
 export function RespuestaAtendel({
   piezas,
@@ -181,6 +173,10 @@ export function RespuestaAtendel({
   }, [enCurso]);
   return (
     <div className={`pc-msj pc-msj--agente pc-msj--atendel${nuevo ? " pc-msj--nuevo" : ""}`} aria-busy={enCurso || visible.length < texto.length || undefined}>
+      <p className="pc-msj__quien pc-msj__quien--atendel">
+        <Marca className="pc-msj__marca" />
+        <span className="pc-msj__nombre">Atendel</span>
+      </p>
       {visible ? (
         <div className="pc-msj__texto">
           <Texto texto={visible} suave={enVivo} />
@@ -195,12 +191,8 @@ export function RespuestaAtendel({
       {completo ? (
         <>
           {tarjetas}
-          {quienes.length ? (
+          {hora || copiar ? (
             <div className="pc-msj__hecho">
-              <span className="pc-msj__hecho-quien" title={`Lo hizo ${nombresDe(quienes)}`}>
-                <PilaAgentes agentes={quienes} tam={16} />
-                <span>{nombresDe(quienes)}</span>
-              </span>
               {hora ? <span className="pc-msj__hora">{hora}</span> : null}
               {copiar ? <Copiar texto={texto} /> : null}
             </div>

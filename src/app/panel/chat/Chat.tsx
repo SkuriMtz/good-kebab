@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import PromptBar from "@/components/PromptBar";
 import { Giro } from "@/components/base/Iconos";
@@ -10,7 +10,7 @@ import { EVENTO_CHAT_ELIMINADO, EVENTO_CHAT_RENOMBRADO } from "@/components/pane
 import { Conversacion as VistaConversacion } from "@/components/panel/Conversacion";
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
-import { AvisoHilo, DiaHilo, MensajeTuyo, RespuestaAtendel, nombresDe } from "@/components/panel/Mensajes";
+import { AvisoHilo, DiaHilo, MensajeTuyo, RespuestaAtendel } from "@/components/panel/Mensajes";
 import { separarEstado } from "@/lib/estado-chat";
 import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
@@ -110,6 +110,7 @@ export function Chat({
   textoInicial,
   saludo,
   conGoogle,
+  hoy,
 }: {
   planId: IdPlan;
   activos: IdAgente[];
@@ -125,6 +126,8 @@ export function Chat({
   saludo: string;
   /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
   conGoogle: boolean;
+  /** «Hoy»: lo que va debajo de la caja en el Inicio (Te necesita, Lo que viene, Lo que ya hice). */
+  hoy?: ReactNode;
 }) {
   const plan = PLAN_POR_ID[planId];
   // Rápido o Avanzado (como el selector de Claude); se recuerda en este navegador
@@ -511,7 +514,9 @@ export function Chat({
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
           tarjetas={tarjetas}
-        />
+        >
+          {hoy}
+        </Inicio>
         {aviso ? (
           <p role="alert" className="pc-aviso-flota">
             {aviso}
@@ -528,7 +533,7 @@ export function Chat({
       <VistaConversacion
         agentes={participantes}
         titulo={tituloConv}
-        sub={`Atendel · ${nombresDe(participantes)}`}
+        sub="Conversación con Atendel"
         menu={[
           { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel" },
           ...(actualConv ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, alElegir: () => setPorBorrar(actualConv), peligroso: true }] : []),

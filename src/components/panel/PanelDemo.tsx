@@ -19,7 +19,9 @@ import { Hecho } from "./Hecho";
 import { Oficina, type ItemOficina } from "./Oficina";
 import { oficinaDeEjemplo, revisionDeEjemplo } from "./oficina-demo";
 import { RevisionDiaria } from "./RevisionDiaria";
-import { TareasVista } from "./Tareas";
+import { TareasVista, tareasDeEjemplo } from "./Tareas";
+import { Hoy, haceTexto } from "./Hoy";
+import { cuandoEnPalabras } from "@/lib/tareas-tiempo";
 import { PorAprobar } from "./PorAprobar";
 import { hechoDeEjemplo } from "@/lib/hecho";
 import { Armazon, type ChatMenu, type ElementoCuenta, type IdSeccion, type ResultadoBusqueda } from "./Armazon";
@@ -152,8 +154,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     },
   };
 
-  // Pendientes y Hecho son parte de la Oficina (ya no están en el menú)
-  const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" ? "oficina" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
+  // Pendientes, Hecho y Oficina cuelgan de «Hoy» (ya no están en el menú)
+  const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" || valida === "oficina" ? "inicio" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
     { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=uso" },
@@ -164,15 +166,15 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   const indice: ResultadoBusqueda[] = useMemo(
     () => [
-      { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/pruebalo" },
-      { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/pruebalo?vista=oficina" },
-      { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "automatizaciones programar cada semana mes recordatorio", href: "/pruebalo?vista=tareas" },
+      { id: "s-inicio", grupo: "Secciones", titulo: "Hoy", detalle: "Lo que te necesita y lo que ya hice", icono: "sol", claves: "inicio nueva conversacion pedir escribir", href: "/pruebalo" },
+      { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/pruebalo?vista=oficina" },
+      { id: "s-tareas", grupo: "Secciones", titulo: "Piloto automático", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/pruebalo?vista=tareas" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
-      { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/pruebalo?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
+      { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que Atendel ya terminó", icono: "check-doble", href: "/pruebalo?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
       { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda de mañana", icono: "calendario", href: "/pruebalo?vista=citas" },
       { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps de Estudio Luna", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/pruebalo?vista=negocio" },
       { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va Estudio Luna", icono: "grafica", href: "/pruebalo?vista=estadisticas" },
-      { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Lo que Clara leyó hoy", icono: "correo", href: "/pruebalo?vista=correo" },
+      { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Lo que se leyó hoy", icono: "correo", href: "/pruebalo?vista=correo" },
       { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó", icono: "rayo", href: "/pruebalo?vista=actividad" },
       { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/pruebalo?vista=ajustes" },
       ...PEDIDOS.map((p) => ({ id: `p-${p.id}`, grupo: "Pídele a Atendel", titulo: p.titulo, detalle: p.detalle, agentes: [p.agente], href: `/pruebalo?pide=${encodeURIComponent(p.texto)}` })),
@@ -308,7 +310,21 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         agentePedido={esIdAgente(agente) ? agente : null}
         pide={texto("pide", 2000)}
         alEmpezar={(id) => navegar(`/pruebalo?con=${id}`)}
-      />
+      >
+        <Hoy
+          teNecesita={[
+            ...tablero.filter((i) => i.columna === "revisar").map((i) => ({ id: i.id, titulo: i.titulo, detalle: i.para, agente: i.agente, href: "/pruebalo?vista=pendientes" })),
+            ...oficina.filter((i) => i.revision === "revisar").map((i) => ({ id: `o-${i.id}`, titulo: i.nombre, detalle: i.detalle, agente: i.agente ?? undefined, href: "/pruebalo?vista=oficina" })),
+          ]}
+          total={porRevisar + porRevisarOficina}
+          hrefTeNecesita="/pruebalo?vista=pendientes"
+          viene={tareasDeEjemplo(ahora, "America/Mexico_City").flatMap((t) => (t.proxima ? [{ id: t.id, titulo: t.titulo, cuando: cuandoEnPalabras(t.proxima, t.zona).replace(/^./, (c) => c.toUpperCase()) }] : []))}
+          hrefPiloto="/pruebalo?vista=tareas"
+          hrefCitas="/pruebalo?vista=citas"
+          hecho={hechoDeEjemplo(ahora).slice(0, 5).map((h) => ({ id: h.id, titulo: h.titulo, agente: h.agente, hace: haceTexto(h.en, ahora), href: "/pruebalo?vista=hecho" }))}
+          hrefHecho="/pruebalo?vista=hecho"
+        />
+      </InicioDemo>
     );
     if (con)
       contenido = (
@@ -329,7 +345,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         chatActual={conv?.id ?? null}
         hrefs={{
           inicio: "/pruebalo",
-          oficina: "/pruebalo?vista=oficina",
           tareas: "/pruebalo?vista=tareas",
           pendientes: "/pruebalo?vista=pendientes",
           citas: "/pruebalo?vista=citas",
@@ -338,7 +353,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
           ajustes: "/pruebalo?vista=ajustes",
         }}
         pendientes={porRevisar}
-        oficina={porRevisarOficina + (porRevisar ?? 0)}
+        teNecesita={porRevisarOficina + (porRevisar ?? 0)}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}

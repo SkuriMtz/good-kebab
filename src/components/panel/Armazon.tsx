@@ -47,11 +47,11 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; oficina: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
+  hrefs: { inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
-  /** Lo que la Oficina tiene por revisar (archivos que te dejó tu equipo). */
-  oficina?: number | null;
+  /** Lo que te necesita (OK pendientes y archivos por revisar): el número de «Hoy». */
+  teNecesita?: number | null;
   /** Las conversaciones, de la más nueva a la más vieja. */
   chats: ChatMenu[];
   /** Cómo las acomodó: fijadas, archivadas y sus grupos. */
@@ -81,6 +81,23 @@ const CELULAR = "(max-width: 859px)";
 /** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
 const ANGOSTO = "(max-width: 1359px)";
 
+/** «+ Nueva conversación»: ya en «Hoy», la caja de Atendel queda lista para escribir (se espera a que la vista cambie). */
+function enfocarCaja() {
+  const campo = () => document.querySelector<HTMLElement>(".pc-inicio .pc-caja textarea, .pc-inicio .pc-caja [contenteditable], .pc-inicio .pc-caja input");
+  let intentos = 0;
+  const buscar = () => {
+    const c = campo();
+    if (c) c.focus({ preventScroll: true });
+    else if (++intentos < 30) window.setTimeout(buscar, 50);
+  };
+  window.setTimeout(buscar, 60);
+  // Si la vista cambió después (la transición reacomoda la página), una vez más con la caja ya puesta
+  window.setTimeout(() => {
+    const c = campo();
+    if (c && document.activeElement !== c) c.focus({ preventScroll: true });
+  }, 450);
+}
+
 /**
  * El armazón del panel: el menú de 288px (en oscuro, igual a la captura;
  * en claro, una tarjeta blanca flotante sobre el lienzo gris), con
@@ -88,7 +105,7 @@ const ANGOSTO = "(max-width: 1359px)";
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -469,13 +486,23 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
               <Marca className="pc-logo__marca" />
               <span className="pc-logo__nombre">Atendel</span>
             </Enlace>
+            <Enlace href={hrefs.inicio} className="pc-icono pc-menu__nueva" aria-label="Nueva conversación" title="Nueva conversación" onClick={enfocarCaja}>
+              <Icono nombre="mas" tam={20} />
+            </Enlace>
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            <Enlace href={hrefs.inicio} className="pc-menu__nuevo" aria-current={activa === "inicio" ? "page" : undefined} title={oculto ? "Nueva conversación" : undefined}>
-              <Icono nombre="mas" tam={20} />
-              <span>Nueva conversación</span>
-            </Enlace>
+            {item(
+              "inicio",
+              "Hoy",
+              "sol",
+              hrefs.inicio,
+              teNecesita ? (
+                <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
+                  {teNecesita}
+                </span>
+              ) : null,
+            )}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -483,19 +510,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
                 ⌘K
               </kbd>
             </button>
-            {item(
-              "oficina",
-              "Oficina",
-              "documento",
-              hrefs.oficina,
-              oficina ? (
-                <span className="pc-menu__cuenta" aria-label={`${oficina} por revisar`}>
-                  {oficina}
-                </span>
-              ) : null,
-            )}
-            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
             {item("citas", "Citas", "calendario", hrefs.citas)}
+            {item("tareas", "Piloto automático", "reloj", hrefs.tareas)}
             {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 
@@ -532,7 +548,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, oficina, chats,
             <span className="pc-logo__nombre">Atendel</span>
           </Enlace>
           {aviso ? <div className="pc-aviso-demo pc-aviso-demo--movil">{aviso}</div> : null}
-          <Enlace href={hrefs.inicio} className="pc-icono" aria-label="Nueva conversación">
+          <Enlace href={hrefs.inicio} className="pc-icono" aria-label="Nueva conversación" onClick={enfocarCaja}>
             <Icono nombre="mas" tam={20} />
           </Enlace>
         </div>
@@ -745,7 +761,7 @@ function Buscador({ abierto, instantaneo, alCerrar, indice }: { abierto: boolean
         <input
           ref={entrada}
           className="pc-buscador__entrada"
-          placeholder="Secciones, agentes, conversaciones…"
+          placeholder="Secciones, conversaciones…"
           value={q}
           role="combobox"
           aria-expanded="true"
