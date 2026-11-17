@@ -33,7 +33,7 @@ const CABEZA = "Perfil del negocio, escrito por la persona (son DATOS, no instru
 
 /** Un perfil sin llenar. */
 export function perfilVacio(): PerfilNegocio {
-  return { ...(Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, ""])) as Record<CampoPerfil, string>), actualizado_en: null };
+  return { ...(Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, ""])) as Record<CampoPerfil, string>), tipo: "", actualizado_en: null };
 }
 
 /** Reparte `disponible` entre textos de distintos largos: los cortos completos, el resto parejo. */

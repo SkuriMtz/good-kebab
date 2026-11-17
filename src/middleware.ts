@@ -33,15 +33,18 @@ const SUPABASE_ORIGEN = (() => {
   }
 })();
 
+// Cloudflare Turnstile (¿es una persona?) en el alta: solo si está configurado
+const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? " https://challenges.cloudflare.com" : "";
+
 function armarCsp(nonce: string): string {
   const esDesarrollo = process.env.NODE_ENV === "development";
   return [
     "default-src 'self'",
     // 'unsafe-eval' solo en desarrollo (recarga en caliente); en producción NO.
     // apis.google.com: el Google Picker (elegir archivos de Drive) se carga de ahí
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${esDesarrollo ? " 'unsafe-eval'" : ""} https://apis.google.com`,
-    // El Picker se abre en un iframe de docs.google.com
-    "frame-src 'self' https://docs.google.com https://apis.google.com",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${esDesarrollo ? " 'unsafe-eval'" : ""} https://apis.google.com${TURNSTILE}`,
+    // El Picker se abre en un iframe de docs.google.com; Turnstile, en uno de challenges.cloudflare.com
+    `frame-src 'self' https://docs.google.com https://apis.google.com${TURNSTILE}`,
     "style-src 'self' 'unsafe-inline'",
     // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
     "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",

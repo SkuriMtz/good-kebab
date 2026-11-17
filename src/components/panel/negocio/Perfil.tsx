@@ -3,14 +3,21 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type TextareaHTMLAttributes } from "react";
 import { Giro, Icono } from "@/components/base/Iconos";
 import { CAMPOS_PERFIL, MAX_CAMPO_PERFIL, type CampoPerfil, type PerfilNegocio } from "@/lib/nucleo-tipos";
+import { TIPOS_NEGOCIO, esTipoNegocio } from "@/lib/tipos-negocio";
 import { Modal, Odometro, Tarjeta, Vacio, claseBoton, retrasoEscalon } from "../Piezas";
 import { mensajeDe, perfilCompleto, useFuenteNegocio, type CambiosPerfil } from "./fuente";
 import { INFO_CAMPO, camposLlenos, porcentajePerfil } from "./textos";
 
-type Valores = Record<CampoPerfil, string>;
+/** Los textos del perfil y el tipo de negocio ("" = sin elegir). */
+type Valores = Record<CampoPerfil, string> & { tipo: string };
+type CampoForm = CampoPerfil | "tipo";
 
-const valoresDe = (p: PerfilNegocio): Valores => Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, p[c] ?? ""])) as Valores;
-const cambiosDe = (antes: Valores, ahora: Valores): CambiosPerfil => Object.fromEntries(CAMPOS_PERFIL.filter((c) => antes[c] !== ahora[c]).map((c) => [c, ahora[c]]));
+const valoresDe = (p: PerfilNegocio): Valores => ({ ...(Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, p[c] ?? ""])) as Record<CampoPerfil, string>), tipo: p.tipo ?? "" });
+const cambiosDe = (antes: Valores, ahora: Valores): CambiosPerfil => ({
+  ...Object.fromEntries(CAMPOS_PERFIL.filter((c) => antes[c] !== ahora[c]).map((c) => [c, ahora[c]])),
+  ...(antes.tipo !== ahora.tipo ? { tipo: ahora.tipo } : {}),
+});
+const iguales = (a: Valores, b: Valores) => a.tipo === b.tipo && CAMPOS_PERFIL.every((c) => a[c] === b[c]);
 const formatoMx = new Intl.NumberFormat("es-MX");
 const fechaGuardado = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -21,7 +28,10 @@ function leerBorrador(base: string): Valores | null {
     const t = window.sessionStorage.getItem(claveBorrador(base));
     if (!t) return null;
     const d = JSON.parse(t) as Partial<Valores>;
-    return Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, typeof d[c] === "string" ? d[c]!.slice(0, MAX_CAMPO_PERFIL) : ""])) as Valores;
+    return {
+      ...(Object.fromEntries(CAMPOS_PERFIL.map((c) => [c, typeof d[c] === "string" ? d[c]!.slice(0, MAX_CAMPO_PERFIL) : ""])) as Record<CampoPerfil, string>),
+      tipo: esTipoNegocio(d.tipo) ? d.tipo : "",
+    };
   } catch {
     return null;
   }
@@ -114,7 +124,7 @@ export function PerfilNegocioVista() {
   const [guardando, setGuardando] = useState(false);
   const [guardadoN, setGuardadoN] = useState(0);
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
-  const [errores, setErrores] = useState<Partial<Record<CampoPerfil, string>>>({});
+  const [errores, setErrores] = useState<Partial<Record<CampoForm, string>>>({});
   const [recuperado, setRecuperado] = useState(false);
   const [intento, setIntento] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
@@ -130,7 +140,7 @@ export function PerfilNegocioVista() {
         const base = perfilCompleto(p);
         const borrador = leerBorrador(fuente.base);
         const delServidor = valoresDe(base);
-        const distinto = borrador && CAMPOS_PERFIL.some((c) => borrador[c] !== delServidor[c]);
+        const distinto = borrador && !iguales(borrador, delServidor);
         setGuardadoBase(base);
         setValores(distinto ? borrador : delServidor);
         setRecuperado(Boolean(distinto));
@@ -143,7 +153,7 @@ export function PerfilNegocioVista() {
   }, [fuente, intento]);
 
   const delServidor = guardadoBase ? valoresDe(guardadoBase) : null;
-  const sucio = Boolean(valores && delServidor && CAMPOS_PERFIL.some((c) => valores[c] !== delServidor[c]));
+  const sucio = Boolean(valores && delServidor && !iguales(valores, delServidor));
   const salida = useConfirmarSalida(sucio);
 
   // El "Guardado" se va solo
@@ -153,10 +163,10 @@ export function PerfilNegocioVista() {
     return () => window.clearTimeout(t);
   }, [guardadoN]);
 
-  const cambiar = (c: CampoPerfil, v: string) => {
+  const cambiar = (c: CampoForm, v: string) => {
     setValores((antes) => {
       if (!antes) return antes;
-      const nuevos = { ...antes, [c]: v.slice(0, MAX_CAMPO_PERFIL) };
+      const nuevos = { ...antes, [c]: c === "tipo" ? (esTipoNegocio(v) ? v : "") : v.slice(0, MAX_CAMPO_PERFIL) };
       escribirBorrador(fuente.base, nuevos);
       return nuevos;
     });
@@ -187,9 +197,9 @@ export function PerfilNegocioVista() {
       return true;
     } catch (e) {
       const campo = (e as { campo?: string }).campo;
-      if (campo && (CAMPOS_PERFIL as readonly string[]).includes(campo)) {
+      if (campo && (campo === "tipo" || (CAMPOS_PERFIL as readonly string[]).includes(campo))) {
         setErrores({ [campo]: mensajeDe(e) });
-        formRef.current?.querySelector<HTMLTextAreaElement>(`#${CSS.escape(`${id}-${campo}`)}`)?.focus();
+        formRef.current?.querySelector<HTMLTextAreaElement | HTMLSelectElement>(`#${CSS.escape(`${id}-${campo}`)}`)?.focus();
       } else setErrorGuardar(mensajeDe(e, "No se pudo guardar. Intenta de nuevo."));
       return false;
     } finally {
@@ -282,6 +292,47 @@ export function PerfilNegocioVista() {
           void guardar();
         }}
       >
+        <div className="pc-perfil__campo pc-entra" style={{ "--d": `${retrasoEscalon(1)}ms` } as CSSProperties}>
+          <div className="pc-perfil__textos">
+            <label htmlFor={`${id}-tipo`} className="pc-perfil__etiqueta">
+              Tipo de negocio
+            </label>
+            <p id={`${id}-tipo-ayuda`} className="pc-perfil__ayuda">
+              El giro de tu negocio, para que tu equipo hable como en tu ramo.
+            </p>
+          </div>
+          <div className="pc-perfil__entrada">
+            <select
+              id={`${id}-tipo`}
+              name="tipo"
+              className="pc-campo__entrada"
+              value={valores.tipo}
+              aria-invalid={errores.tipo ? true : undefined}
+              aria-describedby={`${id}-tipo-ayuda${errores.tipo ? ` ${id}-tipo-error` : ""}`}
+              onChange={(e) => cambiar("tipo", e.target.value)}
+            >
+              <option value="">Sin elegir</option>
+              {TIPOS_NEGOCIO.map((g) => (
+                <optgroup key={g.grupo} label={g.grupo}>
+                  {g.tipos.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.nombre}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {errores.tipo ? (
+              <div className="pc-perfil__pie">
+                <p id={`${id}-tipo-error`} className="pc-error pc-perfil__error" role="alert">
+                  <Icono nombre="alerta" tam={14} />
+                  {errores.tipo}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
         {CAMPOS_PERFIL.map((c, i) => {
           const info = INFO_CAMPO[c];
           const v = valores[c];
@@ -289,7 +340,7 @@ export function PerfilNegocioVista() {
           const error = errores[c];
           const campoId = `${id}-${c}`;
           return (
-            <div key={c} className="pc-perfil__campo pc-entra" style={{ "--d": `${retrasoEscalon(i + 1)}ms` } as CSSProperties}>
+            <div key={c} className="pc-perfil__campo pc-entra" style={{ "--d": `${retrasoEscalon(i + 2)}ms` } as CSSProperties}>
               <div className="pc-perfil__textos">
                 <label htmlFor={campoId} className="pc-perfil__etiqueta">
                   {info.etiqueta}
