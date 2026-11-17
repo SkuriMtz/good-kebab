@@ -9,13 +9,13 @@ import { useEffect, useRef } from "react";
    los del inicio, con un relleno muy tenue).
    - El mapa no cambia: los fragmentos se arman una vez y nunca aparecen
      ni desaparecen. Una onda recorre las curvas y las ondula de lado, como
-     serpientes (unos 6 px); cada fragmento gira con la ondulación.
+     serpientes (unos 5 px). Es el único movimiento, lento y continuo.
    - Color por altura: lo bajo en el violeta de Atendel, lo alto en arena.
    - Con el cursor, los fragmentos cercanos se hacen a un lado unos pocos
      píxeles (entra y sale suave). En celular solo se mecen.
    - Abajo se desvanece para que el pie se lea siempre.
    - "Reducir movimiento": se pinta una vez, quieto. Pausa con la pestaña
-     oculta o fuera de la vista; DPR máximo de 2; ~30 cuadros por segundo.
+     oculta o fuera de la vista; DPR máximo de 2.
    ===================================================================== */
 
 /** Tamaño de la celda de la rejilla (px): más chica = curvas más finas, más trabajo. */
@@ -28,14 +28,13 @@ const RADIO = 120;
 /** Lo más que el cursor aparta un fragmento (px). */
 const EMPUJE = 5;
 /** Lo que se mece cada fragmento en su lugar (px). */
-const MECE = 1;
 /** Cuánto se ondula cada curva de lado a lado, como serpiente (px). */
-const SERPIENTE = 6;
-/** La onda: dirección en que avanza (diagonal), largo (~240 px) y rapidez (rad/s). */
+const SERPIENTE = 5;
+/** La onda: dirección en que avanza (diagonal), largo (~360 px) y rapidez (rad/s): lenta y larga = suave. */
 const ONDA_X = 0.8;
 const ONDA_Y = 0.6;
-const ONDA_K = (2 * Math.PI) / 240;
-const ONDA_VEL = 1.3;
+const ONDA_K = (2 * Math.PI) / 360;
+const ONDA_VEL = 0.8;
 
 // ---- Ruido de valor con interpolación suave (repetible: el mismo terreno cada visita) ----
 const PERM = (() => {
@@ -101,8 +100,21 @@ const colorNivel = (k: number, alfa: number) => {
 const COLORES_NIVEL = Array.from({ length: NIVELES }, (_, k) => colorNivel(k, 0.38 + 0.5 * (k / (NIVELES - 1))));
 const RELLENOS_NIVEL = Array.from({ length: NIVELES }, (_, k) => colorNivel(k, 0.06 + 0.1 * (k / (NIVELES - 1))));
 
+/**
+ * Hacia dónde sube el terreno justo en ese punto, medido con el terreno de
+ * verdad en un radio amplio (no por celda): así fragmentos vecinos se
+ * ondulan casi igual y el movimiento es suave. Si sale plano, usa el de la celda.
+ */
+function normalSuave(x: number, y: number, gx0: number, gy0: number, altura: (x: number, y: number) => number) {
+  const e = 10;
+  const gx = altura(x + e, y) - altura(x - e, y);
+  const gy = altura(x, y + e) - altura(x, y - e);
+  const l = Math.hypot(gx, gy);
+  return l > 1e-6 ? { nx: gx / l, ny: gy / l } : { nx: gx0, ny: gy0 };
+}
+
 /** Un fragmento: su lugar, su forma, su fase y hacia dónde se ondula (cuesta arriba del terreno, igual para toda su curva). */
-type Frag = { x: number; y: number; ang: number; r0: number; r1: number; r2: number; a1: number; a2: number; fase: number; nx: number; ny: number; onda: number };
+type Frag = { x: number; y: number; ang: number; r0: number; r1: number; r2: number; a1: number; a2: number; nx: number; ny: number; onda: number };
 
 export function FondoTopografico() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -141,6 +153,13 @@ export function FondoTopografico() {
           alt[j * fila + i] = (v - 0.5) * 1.9 + 0.5;
         }
       }
+      /** Altura del terreno en cualquier punto (la misma cuenta que la rejilla). */
+      const altura = (x: number, y: number) => {
+        const nx = x / ESCALA;
+        const ny = y / ESCALA;
+        const v = fractal(nx, ny, 5) * 0.72 + fractal(nx * 1.6 + 5.2, ny * 1.6 + 9.1, 3) * 0.28;
+        return (v - 0.5) * 1.9 + 0.5;
+      };
       porNivel = Array.from({ length: NIVELES }, () => []);
       for (let lv = 0; lv < NIVELES; lv++) {
         const L = (lv + 0.5) / NIVELES;
@@ -162,9 +181,7 @@ export function FondoTopografico() {
             r2: r * (0.8 + ((s >> 23) & 3) * 0.1),
             a1: 2.094 + (((s >> 15) & 7) - 3.5) * 0.08,
             a2: 4.189 + (((s >> 18) & 7) - 3.5) * 0.08,
-            fase: ((s >> 5) & 255) * 0.0246,
-            nx: gnx,
-            ny: gny,
+            ...normalSuave((ax + bx) / 2, (ay + by) / 2, gnx, gny, altura),
             // La onda recorre la pantalla en diagonal; cada curva la toma un poco desfasada
             onda: (((ax + bx) / 2) * ONDA_X + ((ay + by) / 2) * ONDA_Y) * ONDA_K + lv * 0.9,
           });
@@ -246,12 +263,11 @@ export function FondoTopografico() {
       for (let lv = 0; lv < NIVELES; lv++) {
         ctx.beginPath();
         for (const f of porNivel[lv]) {
-          // Como serpiente: una onda recorre cada curva y la ondula de lado; el fragmento gira con la ondulación
-          const ola = f.onda - tiempo * ONDA_VEL;
-          const lado = SERPIENTE * Math.sin(ola);
-          let x = f.x + f.nx * lado + MECE * Math.sin(tiempo * 0.7 + f.fase);
-          let y = f.y + f.ny * lado + MECE * Math.cos(tiempo * 0.57 + f.fase * 1.3);
-          const ang = f.ang + 0.35 * Math.cos(ola) + 0.1 * Math.sin(tiempo * 0.45 + f.fase);
+          // Un solo movimiento: una onda suave recorre las curvas y las ondula de lado, como serpiente
+          const lado = SERPIENTE * Math.sin(f.onda - tiempo * ONDA_VEL);
+          let x = f.x + f.nx * lado;
+          let y = f.y + f.ny * lado;
+          const ang = f.ang;
           if (conCursor) {
             const dx = x - c.sx;
             const dy = y - c.sy;
@@ -290,11 +306,7 @@ export function FondoTopografico() {
     const paso = (t: number) => {
       raf = 0;
       if (!visible || document.hidden || quieto()) return;
-      if (ultimo && t - ultimo < 32) {
-        raf = requestAnimationFrame(paso);
-        return;
-      }
-      const dt = ultimo ? Math.min(0.06, (t - ultimo) / 1000) : 0.033;
+      const dt = ultimo ? Math.min(0.05, (t - ultimo) / 1000) : 0.016;
       ultimo = t;
       reloj += dt;
       const c = cursor;
