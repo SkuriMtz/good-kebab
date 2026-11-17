@@ -88,17 +88,25 @@ function correos(texto: string): ReactNode[] {
   );
 }
 
-export function DocumentoMd({ texto, nota }: { texto: string; nota?: string }) {
-  const bloques = leerMd(texto);
+/** Las secciones (### …) con su id, para un índice de fuera. */
+export const seccionesMd = (texto: string) =>
+  leerMd(texto)
+    .filter((b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2")
+    .map((b) => ({ id: b.id, titulo: b.texto }));
+
+export function DocumentoMd({ texto, nota, soloCuerpo = false }: { texto: string; nota?: string; soloCuerpo?: boolean }) {
+  const todos = leerMd(texto);
+  // soloCuerpo: sin título, fecha ni índice (los pone la página); empieza en la primera sección
+  const bloques = soloCuerpo ? todos.slice(Math.max(0, todos.findIndex((b) => b.tipo === "h2"))) : todos;
   const secciones = bloques.filter((b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2");
   // Lo de antes de la primera sección es la cabecera; el índice va justo después
   const primera = bloques.findIndex((b) => b.tipo === "h2");
 
   return (
-    <article className="doc-legal" aria-labelledby="doc-legal-titulo">
+    <article className="doc-legal" aria-labelledby={soloCuerpo ? undefined : "doc-legal-titulo"}>
       {bloques.map((b, i) => (
         <Fragment key={i}>
-          {i === primera && secciones.length > 1 ? (
+          {!soloCuerpo && i === primera && secciones.length > 1 ? (
             <nav className="doc-legal__indice" aria-label="Índice">
               <p>Contenido</p>
               <ol>

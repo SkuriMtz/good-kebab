@@ -12,7 +12,7 @@ export const AVISO_PRIVACIDAD = `# AVISO DE PRIVACIDAD INTEGRAL
 
 El presente Aviso de Privacidad establece los términos bajo los cuales se recaban, utilizan, almacenan, protegen y, en su caso, comparten los datos personales tratados a través de **Atendel**, plataforma tecnológica de asistencia empresarial basada en inteligencia artificial.
 
-El responsable del tratamiento de los datos personales es **Santiago Kuri**, quien opera bajo el nombre comercial de Atendel, con domicilio en Monterrey, Nuevo León, México.
+El responsable del tratamiento de los datos personales es **Santiago Kuri Martinez**, quien opera bajo el nombre comercial de Atendel, con domicilio en Monterrey, Nuevo León, México.
 
 Para cualquier asunto relacionado con la protección de datos personales, el responsable pone a disposición el siguiente medio de contacto:
 
@@ -400,7 +400,7 @@ La versión vigente estará disponible permanentemente en el sitio oficial de At
 
 Para cualquier duda, aclaración, solicitud o asunto relacionado con el tratamiento de datos personales, los titulares podrán comunicarse directamente con el responsable mediante los siguientes datos:
 
-**Responsable:** Santiago Kuri
+**Responsable:** Santiago Kuri Martinez
 
 **Nombre comercial:** Atendel
 
@@ -408,7 +408,7 @@ Para cualquier duda, aclaración, solicitud o asunto relacionado con el tratamie
 
 **Correo electrónico:** infoatendel@gmail.com
 
-**Sitio web oficial:** Pendiente de asignación.
+**Sitio web oficial:** good-kebab.vercel.app
 
 ---
 
