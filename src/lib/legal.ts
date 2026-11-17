@@ -1,3 +1,5 @@
+import { CORREO_INFO } from "./sitio";
+
 /**
  * Los datos del responsable que piden el aviso de privacidad y los términos.
  * Los pone el dueño de Atendel (nunca se inventan). Mientras falte alguno,
@@ -8,7 +10,7 @@ export const DATOS_LEGALES = {
   /** Nombre completo de la persona o razón social de la empresa responsable. */
   responsable: "Santiago Kuri Martinez",
   /** Correo para temas de privacidad y de los términos. */
-  correo: "",
+  correo: CORREO_INFO,
   /** Domicilio (al menos ciudad y estado) del responsable. */
   domicilio: "Monterrey, Nuevo León, México",
   /** Ciudad cuyos tribunales resuelven cualquier desacuerdo (normalmente la del domicilio). */

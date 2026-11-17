@@ -9,6 +9,7 @@ import { FormularioContacto } from "./FormularioContacto";
 import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { metadatosDe } from "@/lib/seo";
+import { CORREO_CONTACTO } from "@/lib/sitio";
 
 export async function generateMetadata(): Promise<Metadata> {
   const idioma = await idiomaServidor();
@@ -32,6 +33,12 @@ export default async function Contacto() {
             {P.titulo}
           </h1>
           <p className="t-intro">{P.texto}</p>
+          <p className="t-cuerpo">
+            {P.escribenos}{" "}
+            <a href={`mailto:${CORREO_CONTACTO}`} className="enlace">
+              {CORREO_CONTACTO}
+            </a>
+          </p>
         </div>
         <TarjetaVidrio relleno="amplio" className="contacto-tarjeta">
           <FormularioContacto />

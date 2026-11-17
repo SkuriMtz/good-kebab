@@ -672,6 +672,7 @@ export const en: Diccionario = {
     etiqueta: "Contact",
     titulo: "Write to us",
     texto: "Questions about the plans, your kind of business or how we protect your data. We'll reply to your email.",
+    escribenos: "Or email us directly at",
     atajosAria: "Your answer may already be here",
     atajosEtiqueta: "Maybe it's already here",
     atajos: [

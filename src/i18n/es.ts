@@ -418,6 +418,7 @@ export const es = {
     etiqueta: "Contacto",
     titulo: "Escríbenos",
     texto: "Dudas sobre los planes, sobre tu tipo de negocio o sobre cómo cuidamos tus datos. Te contestamos a tu correo.",
+    escribenos: "O escríbenos directo a",
     atajosAria: "Quizá tu respuesta ya está aquí",
     atajosEtiqueta: "Quizá ya está aquí",
     atajos: [
