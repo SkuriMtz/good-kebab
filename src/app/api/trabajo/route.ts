@@ -4,10 +4,10 @@ import { mandarInformes } from "@/lib/informe";
 import { limpiarCorto, notificar, soltarAvisos } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
-import { trabajarPara } from "@/lib/trabajo";
+import { FALLA_DE_IA, reintentable, trabajarPara } from "@/lib/trabajo";
 import { vigilarAgenda } from "@/lib/vigilar-agenda";
 import { vigilarCorreos } from "@/lib/vigilar-correos";
-import { registrarEvento } from "@/lib/seguridad";
+import { pasarLimite, registrarEvento } from "@/lib/seguridad";
 
 /**
  * POST /api/trabajo: la base de datos lo llama cada 10 minutos (pg_cron +
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
 
   const { data: pendientes } = await admin
     .from("revisiones")
-    .select("id, owner_id, partes")
+    .select("id, owner_id, partes, creado_en")
     .is("trabajo_en", null)
     .gte("creado_en", new Date(Date.now() - 36 * 3_600_000).toISOString())
     .order("creado_en", { ascending: true })
@@ -125,12 +125,20 @@ export async function POST(req: NextRequest) {
     // Se aparta primero: así nunca se trabaja dos veces la misma (lo que falte, en la siguiente vuelta)
     const { data: apartada } = await admin.from("revisiones").update({ trabajo_en: new Date().toISOString() }).eq("id", r.id).is("trabajo_en", null).select("id");
     if (!apartada?.length) continue;
+    // Si falla la IA (o algo truena), se suelta para que la siguiente vuelta la reintente: una sola vez
+    // más y solo si es de las últimas 30 horas (así nunca se queda en un ciclo gastando)
+    const soltar = async () => {
+      if (!reintentable(r.creado_en) || !(await pasarLimite(`reintento_revision:${r.id}`, 1, 2 * 86_400, false))) return;
+      await admin.from("revisiones").update({ trabajo_en: null }).eq("id", r.id);
+    };
     try {
       const x = await trabajarPara(admin, { id: String(r.id), owner_id: String(r.owner_id), partes: r.partes });
       resultados.push({ id: String(r.id), ...x });
+      if (!x.hecho && x.motivo === FALLA_DE_IA) await soltar();
     } catch (e) {
       console.error("Trabajo por su cuenta falló:", e instanceof Error ? e.message : e);
       resultados.push({ id: String(r.id), hecho: false, motivo: "error" });
+      await soltar();
     }
   }
   return NextResponse.json({ tareas, trabajadas: resultados.length, hechas: resultados.filter((x) => x.hecho).length, resultados }, { headers: { "Cache-Control": "no-store" } });

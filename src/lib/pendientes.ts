@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdAgente } from "./agentes";
+import { textoCompletoDeAccion } from "./datos-fuera";
 import { CAMPOS_PERFIL } from "./nucleo-tipos";
 import { pasosPanel, type PasoPanel } from "./pasos";
 import { createClient } from "./supabase/server";
@@ -34,8 +35,11 @@ export type WhatsappPendiente = {
   vencido: boolean;
 };
 
-/** Algo que Atendel dejó listo para hacer en una app y espera tu OK (migración 0023). */
-export type AccionPendiente = { id: string; app: string; resumen: string; motivo: string | null; creado_en: string };
+/**
+ * Algo que Atendel dejó listo para hacer en una app y espera tu OK (migración 0023). `texto`: lo que
+ * sale completo (el texto de un correo, las notas de una cita…), porque el resumen lo corta.
+ */
+export type AccionPendiente = { id: string; app: string; resumen: string; motivo: string | null; texto: string; creado_en: string };
 
 export type Pendientes = {
   /** Correos con una acción sugerida (exacto). null si no se pudo leer. */
@@ -107,7 +111,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
       .limit(Math.max(filas, 20)),
     supabase
       .from("acciones")
-      .select("id, app, resumen, motivo, creado_en", { count: "exact" })
+      .select("id, app, resumen, motivo, args, creado_en", { count: "exact" })
       .eq("owner_id", userId)
       .eq("estado", "esperando")
       .order("creado_en", { ascending: false })
@@ -115,7 +119,14 @@ export const cargarPendientes = cache(async function cargarPendientes(
   ]);
   const listaAcciones: AccionPendiente[] = acciones.error
     ? []
-    : (acciones.data ?? []).map((a) => ({ id: String(a.id), app: String(a.app), resumen: String(a.resumen), motivo: typeof a.motivo === "string" ? a.motivo : null, creado_en: String(a.creado_en) }));
+    : (acciones.data ?? []).map((a) => ({
+        id: String(a.id),
+        app: String(a.app),
+        resumen: String(a.resumen),
+        motivo: typeof a.motivo === "string" ? a.motivo : null,
+        texto: textoCompletoDeAccion(a.args),
+        creado_en: String(a.creado_en),
+      }));
   const totalAcciones = acciones.error ? 0 : (acciones.count ?? listaAcciones.length);
   const listaWhatsapp: WhatsappPendiente[] = whatsapp.error
     ? []

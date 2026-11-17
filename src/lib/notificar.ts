@@ -41,6 +41,7 @@ export const AVISOS = {
   correo_respuesta_lista: { nivel: "urgente", titulo: "Respuesta lista para tu OK", grupo: "pendientes" }, // 12
   correo_sin_respuesta: { nivel: "importante", titulo: "Un correo sigue sin respuesta", grupo: "correo" }, // 14
   correo_rebote: { nivel: "importante", titulo: "Un correo no llegó", grupo: "correo" }, // 15
+  correo_sin_revisar: { nivel: "importante", titulo: "No pude revisar unos correos", grupo: "correo" },
   // Dinero y ventas (de la revisión del día)
   pago_entro: { nivel: "info", titulo: "Entró un pago", grupo: "dinero" }, // 16
   pago_fallido: { nivel: "urgente", titulo: "Un pago falló" }, // 17

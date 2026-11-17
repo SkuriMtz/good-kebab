@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { APP_POR_ID } from "@/lib/conexiones/catalogo";
+import { textoCompletoDeAccion } from "@/lib/datos-fuera";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import { createClient } from "@/lib/supabase/client";
 import { Modal, claseBoton } from "./Piezas";
@@ -10,11 +11,12 @@ import { Modal, claseBoton } from "./Piezas";
 /**
  * "¿Lo hago?": cuando Atendel deja algo esperando tu OK (crear o mover una
  * cita, mandar un correo, crear una tarea…), en el chat pone un enlace
- * ?aprobar=<id>. Esta ventana muestra qué es y lo haces o lo descartas con un
- * clic, sin salir del chat. Lee con tu sesión (RLS: solo lo tuyo).
+ * ?aprobar=<id>. Esta ventana muestra qué es (con el texto completo de lo que
+ * sale, no solo el resumen) y lo haces o lo descartas con un clic, sin salir
+ * del chat. Lee con tu sesión (RLS: solo lo tuyo).
  */
 
-type Datos = { resumen: string; motivo: string | null; estado: string; app: string };
+type Datos = { resumen: string; motivo: string | null; estado: string; app: string; texto: string };
 const ESTADO: Record<string, string> = { hecha: "ya se hizo", descartada: "lo descartaste", haciendo: "se está haciendo", error: "no salió" };
 
 export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: () => void }) {
@@ -30,11 +32,16 @@ export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: (
     let vivo = true;
     createClient()
       .from("acciones")
-      .select("resumen, motivo, estado, app")
+      .select("resumen, motivo, estado, app, args")
       .eq("id", id)
       .maybeSingle()
       .then(({ data }) => {
-        if (vivo) setDatos(data ? { resumen: String(data.resumen), motivo: data.motivo ? String(data.motivo) : null, estado: String(data.estado), app: String(data.app) } : "nada");
+        if (vivo)
+          setDatos(
+            data
+              ? { resumen: String(data.resumen), motivo: data.motivo ? String(data.motivo) : null, estado: String(data.estado), app: String(data.app), texto: textoCompletoDeAccion(data.args) }
+              : "nada",
+          );
       });
     return () => {
       vivo = false;
@@ -88,6 +95,8 @@ export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: (
       {datos && datos !== "nada" ? (
         <>
           <p className="pc-aprobar__resumen">{datos.resumen}</p>
+          {/* Lo que sale completo (el resumen lo corta): lo ves todo antes de aprobar */}
+          {datos.texto ? <blockquote className="pc-pendiente__texto pc-aprobar__texto">{datos.texto}</blockquote> : null}
           {datos.motivo && esperando ? <p className="pc-aprobar__texto">Te pregunto porque {datos.motivo}.</p> : null}
           {!esperando && !aviso ? <p className="pc-aprobar__texto">Esto ya se resolvió: {ESTADO[datos.estado] ?? datos.estado}.</p> : null}
         </>

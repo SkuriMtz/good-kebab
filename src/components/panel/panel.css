@@ -2089,6 +2089,9 @@ button.pc-tarjeta {
   border-left: 2px solid var(--pc-borde);
   font-size: 13px;
   line-height: 1.5;
+  /* El texto completo, con sus renglones (un correo, un mensaje) */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 .pc-pendiente__acciones {
   display: flex;
