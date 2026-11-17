@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { VistaNegocio } from "@/components/dashboard/estadisticas-negocio/VistaNegocio";
 import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/components/panel/Actividad";
 import { Hecho } from "@/components/panel/Hecho";
+import { Hoy } from "@/components/panel/Hoy";
 import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
 import { partesDe } from "@/components/panel/RevisionDiaria";
 import { TareasVista } from "@/components/panel/Tareas";
@@ -16,6 +17,7 @@ import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
+import { cargarHoy } from "@/lib/hoy";
 import { leerUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
 import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
@@ -32,7 +34,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
  * deja ver a cada quien solo lo suyo); no cambia datos ni la API.
- * - /panel (&agente=lola, &pide=texto, &area=citas): el Inicio, que ES un chat nuevo.
+ * - /panel (&pide=texto, &area=citas): «Hoy», que ES un chat nuevo con lo que te necesita debajo.
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
  * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Lola (vacía hasta conectar WhatsApp).
@@ -42,8 +44,8 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  *   equipo ya terminó (pedidos con respuesta y correos resumidos).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
- * - ?vista=oficina: lo que tu equipo te dejó (archivos) para revisar, aprobar o pedir cambios.
- * - ?vista=tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
+ * - ?vista=oficina: lo que Atendel te dejó (archivos e informes) para revisar, aprobar o pedir cambios.
+ * - ?vista=tareas: el Piloto automático: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage(props: { searchParams: Promise<Parametros> }) {
@@ -220,7 +222,9 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
     );
   }
 
-  // El Inicio y las conversaciones: el chat
+  // «Hoy» y las conversaciones: el chat
+  const ahora = Date.now();
+  const hoy = await cargarHoy(supabase, user.id, cuenta, conGoogle, ahora);
   const { data: convs } = await supabase
     .from("conversaciones")
     .select("id, agente, titulo, actualizado_en, participantes, tema")
@@ -246,6 +250,18 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       textoInicial={texto(searchParams.pide, 2000)}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       conGoogle={conGoogle}
+      hoy={
+        <Hoy
+          teNecesita={hoy.teNecesita}
+          total={hoy.total}
+          hrefTeNecesita="/panel?vista=pendientes"
+          viene={hoy.viene}
+          hrefPiloto="/panel?vista=tareas"
+          hrefCitas="/panel?vista=citas"
+          hecho={hoy.hecho}
+          hrefHecho="/panel?vista=hecho"
+        />
+      }
     />
   );
 }

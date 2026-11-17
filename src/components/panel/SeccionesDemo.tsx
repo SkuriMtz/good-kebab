@@ -135,7 +135,7 @@ export function PendientesDemo({
   const cuenta = (a: IdArea) => items.filter((i) => i.columna === "revisar" && (a === "todo" || (i.agente && AREA_DE_AGENTE[i.agente] === a))).length;
   return (
     <Seccion ancha>
-      <VolverOficina href="/pruebalo?vista=oficina" />
+      <VolverOficina href="/pruebalo" />
       <TituloSeccion titulo="Por aprobar" texto="Lo que Atendel dejó listo y espera tu OK. Apruébalo con el botón o arrástralo a Aprobado." />
       <PestanasPendientes base="/pruebalo?vista=pendientes" activa="revisar" porRevisar={items.filter((i) => i.columna === "revisar").length} />
       <div className="pc-filtros">
@@ -554,7 +554,7 @@ export function CorreoDemo({ prioridad, de }: { prioridad: string; de?: string }
       asunto: c.asunto,
       resumen: c.resumen,
       accion: c.accion,
-      hrefAccion: c.accion ? `/pruebalo?con=clara` : undefined,
+      hrefAccion: c.accion ? `/pruebalo` : undefined,
       fecha: haceTexto(c.haceMin),
       prioridad: p && "texto" in p ? { texto: p.texto, tono: p.tono } : undefined,
     };
@@ -563,10 +563,10 @@ export function CorreoDemo({ prioridad, de }: { prioridad: string; de?: string }
     <Seccion>
       <TituloSeccion
         titulo="Correo"
-        texto="Lo que Clara leyó hoy, con lo urgente primero. En tu panel lee tu Gmail (solo lectura)."
+        texto="Lo que se leyó hoy, con lo urgente primero. En tu panel lee tu Gmail (solo lectura)."
         acciones={
-          <Enlace href="/pruebalo?con=clara" className={claseBoton("borde")}>
-            Hablar con Clara
+          <Enlace href="/pruebalo" className={claseBoton("borde")}>
+            Escribirle a Atendel
           </Enlace>
         }
       />

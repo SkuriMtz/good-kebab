@@ -9716,3 +9716,177 @@ a.pc-correo__accion:hover {
     }
   }
 }
+
+/* =====================================================================
+   46. «Hoy»: lo que va debajo de la caja de Atendel (Hoy.tsx). Una sola
+   columna con el ancho de lectura del inicio; filas con líneas finas, como
+   Citas; la firma chica de quién lo preparó o hizo (los agentes trabajan
+   «en la cocina»: el dueño solo le habla a Atendel).
+   ===================================================================== */
+/* Con «Hoy» abajo, el saludo sube para que se vea todo sin bajar mucho */
+.pc-inicio--hoy .pc-inicio__centro {
+  padding-top: clamp(32px, 11vh, 120px);
+}
+.pc .pc-inicio--hoy .pc-inicio__fragmentos {
+  top: calc(clamp(32px, 11vh, 120px) - 240px);
+  height: 520px;
+}
+.pc-hoy {
+  display: grid;
+  gap: 48px;
+  margin-top: 56px;
+}
+.pc-hoy__cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--pc-division);
+}
+.pc-hoy__titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--pc-serif);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.pc-hoy__cuenta {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--pc-activo);
+  color: var(--pc-texto);
+  font: 600 12px/1 var(--pc-sans);
+}
+.pc .pc-hoy__ver {
+  flex: none;
+  color: var(--pc-enlace);
+  font-size: 13.5px;
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-hoy__ver:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+.pc-hoy__filas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-hoy__filas > li + li {
+  border-top: 1px solid var(--pc-division);
+}
+.pc .pc-hoy__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  min-height: 56px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc .pc-hoy__fila:not(.pc-hoy__fila--quieta):hover {
+    background: var(--pc-hover);
+  }
+}
+.pc-hoy__textos {
+  display: grid;
+  flex: 1 1 260px;
+  gap: 2px;
+  min-width: 0;
+}
+.pc-hoy__que {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-hoy__detalle {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-hoy__firma {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--pc-texto-2);
+  font-size: 12.5px;
+}
+.pc-hoy__marca {
+  width: 16px;
+  height: 16px;
+}
+.pc-hoy__vacio,
+.pc-hoy__nota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 8px 0;
+  color: var(--pc-texto-2);
+  font-size: 14px;
+}
+.pc-hoy__vacio svg {
+  color: var(--pc-exito);
+}
+@media (max-width: 480px) {
+  .pc-hoy {
+    gap: 40px;
+    margin-top: 40px;
+  }
+  .pc-hoy__titulo {
+    font-size: 20px;
+  }
+}
+
+/* «Nueva conversación»: el «+» junto al botón del menú, arriba */
+.pc .pc-menu__cabeza .pc-menu__logo {
+  margin-right: auto;
+}
+.pc .pc-menu__nueva {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--pc-texto);
+}
+@media (pointer: coarse) {
+  .pc .pc-menu__nueva {
+    width: 40px;
+    height: 40px;
+  }
+}
+@media (max-width: 859px) {
+  .pc .pc-menu__nueva {
+    display: none;
+  }
+}
+
+/* Respuesta de Atendel: firmada con su logo (los agentes trabajan en la cocina) */
+.pc .pc-msj__quien--atendel {
+  gap: 8px;
+}
+.pc .pc-msj__marca {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}

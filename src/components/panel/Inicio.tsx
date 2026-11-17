@@ -18,7 +18,7 @@ export type TarjetaPedido = {
 };
 
 /**
- * El Inicio del panel ES un chat nuevo, con la distribución de la captura
+ * El Inicio del panel («Hoy») ES un chat nuevo, con la distribución de la captura
  * del dueño: el saludo en serif (su centro al ~38 % del alto) con la marca
  * de fragmentos, la caja de 672px, la fila de abajo (con quién hablas a la
  * izquierda; plan y uso a la derecha), la franja de pendientes y la
@@ -34,6 +34,7 @@ export function Inicio({
   area,
   hrefArea,
   tarjetas,
+  children,
 }: {
   saludo: string;
   caja: ReactNode;
@@ -45,9 +46,11 @@ export function Inicio({
   area: IdArea;
   hrefArea: (a: IdArea) => string;
   tarjetas: TarjetaPedido[];
+  /** «Hoy»: lo que va debajo de la caja (Te necesita, Lo que viene, Lo que ya hice). */
+  children?: ReactNode;
 }) {
   return (
-    <div className="pc-inicio">
+    <div className={`pc-inicio${children ? " pc-inicio--hoy" : ""}`}>
       <FragmentosInicio />
       <div className="pc-inicio__centro">
         <h1 className="pc-saludo">
@@ -60,6 +63,7 @@ export function Inicio({
           {uso ? <div className="pc-inicio__der">{uso}</div> : null}
         </div>
         {franja ? <div className="pc-inicio__franja">{franja}</div> : null}
+        {children}
       </div>
 
     </div>

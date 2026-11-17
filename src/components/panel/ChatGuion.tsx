@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ACCIONES, INICIO, SALUDO, responder, type Conversacion as ConvBase, type Mensaje as MsjBase, type Turno } from "@/components/ChatDemo";
 import PromptBar from "@/components/PromptBar";
 import { useSubirDesdeChat } from "./negocio/SubirDesdeChat";
@@ -336,6 +336,7 @@ export function InicioDemo({
   agentePedido,
   pide,
   alEmpezar,
+  children,
 }: {
   guion: Guion;
   saludo: string;
@@ -344,6 +345,8 @@ export function InicioDemo({
   pide?: string;
   /** Ya se creó la conversación y se envió el texto: el panel abre ?con=. */
   alEmpezar: (id: string) => void;
+  /** «Hoy»: lo que va debajo de la caja (Te necesita, Lo que viene, Lo que ya hice). */
+  children?: ReactNode;
 }) {
   const subida = useSubirDesdeChat();
   // Rápido o Avanzado, como en tu cuenta (la demostración es Max: trae los dos)
@@ -386,8 +389,10 @@ export function InicioDemo({
         selector={null}
         area={area}
         hrefArea={(a) => (a === "todo" ? "/pruebalo" : `/pruebalo?area=${a}`)}
-        tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?agente=${p.agente}&pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}
-      />
+        tarjetas={pedidosDe(area).map((p) => ({ pedido: p, href: `/pruebalo?pide=${encodeURIComponent(p.texto)}${conFiltro}` }))}
+      >
+        {children}
+      </Inicio>
       {subida.elementos}
     </>
   );
@@ -453,7 +458,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
     <Conversacion
       agentes={conv.agentes}
       titulo={conv.titulo}
-      sub={`Atendel · ${nombresDe(conv.agentes)}`}
+      sub="Conversación con Atendel"
       menu={[
         { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/pruebalo" },
         ...(guion.convs.length > 1 ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, href: "/pruebalo", alElegir: () => guion.borrar(conv.id), peligroso: true }] : []),

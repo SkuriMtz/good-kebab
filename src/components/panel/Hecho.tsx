@@ -64,7 +64,7 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
 
   return (
     <Seccion>
-      <VolverOficina href={base.replace("vista=pendientes", "vista=oficina")} />
+      <VolverOficina href={base.split("?")[0]} />
       <TituloSeccion
         titulo="Hecho"
         texto={`Lo que tu equipo ya terminó: lo que le pediste y lo que entregó.${items.length ? ` ${semana.toLocaleString("es-MX")} ${semana === 1 ? "cosa" : "cosas"} en los últimos 7 días.` : ""}${demo ? " (Datos de ejemplo.)" : ""}`}

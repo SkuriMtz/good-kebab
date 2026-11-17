@@ -8,7 +8,7 @@ import { Enlace, TituloSeccion, claseBoton, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
 
 /* =====================================================================
-   TAREAS: lo que Atendel hace solo, a la hora que le dijiste (0020).
+   PILOTO AUTOMÁTICO (antes «Tareas»): lo que Atendel hace solo, a la hora que le dijiste (0020).
    Lo más fácil: pedírselas en el chat con tus palabras (los ejemplos de
    arriba llevan al chat). También se pueden crear aquí con solo dos cosas:
    qué hacer y cuándo. Se pausan o se borran. En /pruebalo, de ejemplo.
@@ -46,7 +46,7 @@ const CUANDO: { id: TipoTarea; nombre: string }[] = [
 const DIAS = [1, 2, 3, 4, 5, 6, 0];
 const HORAS = Array.from({ length: 33 }, (_, i) => `${String(6 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
 
-function tareasDeEjemplo(ahora: number, zona: string): Tarea[] {
+export function tareasDeEjemplo(ahora: number, zona: string): Tarea[] {
   const base = [
     { id: "t1", titulo: "Preguntarle a Chuchito por el pedido", instruccion: "Pregúntale a Chuchito (proveedor) si ya llegó el pedido de la semana.", tipo: "semanal" as const, dias: [2], dia_mes: null, fecha: null, hora: "15:00" },
     { id: "t2", titulo: "Reporte de ventas del mes", instruccion: "Revisa las ventas del mes y arma un reporte corto con lo más importante.", tipo: "mensual" as const, dias: [], dia_mes: -1, fecha: null, hora: "09:00" },
@@ -83,7 +83,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
       .order("creado_en", { ascending: true })
       .then(({ data, error: e }) => {
         if (!vivo) return;
-        if (e) setError("No se pudieron leer tus tareas. Recarga la página.");
+        if (e) setError("No se pudo leer tu piloto automático. Recarga la página.");
         setLista((data ?? []) as Tarea[]);
       });
     return () => {
@@ -153,7 +153,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
 
   return (
     <Seccion>
-      <TituloSeccion titulo="Tareas" texto="Lo que Atendel hace solo, a la hora que le digas. Cuando toca, la hace y te deja el resultado en la Oficina." />
+      <TituloSeccion titulo="Piloto automático" texto="Lo que Atendel hace solo, a su hora. Cuando toca, lo hace y te deja el resultado." />
 
       <section className="pc-tareas__pide" aria-label="Pídeselas a Atendel">
         <p className="pc-tareas__pide-titulo">Lo más fácil: pídeselas a Atendel con tus palabras</p>
@@ -256,7 +256,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
       {lista === null ? (
         <p className="pc-cerebro__nota">Cargando…</p>
       ) : !lista.length ? (
-        <p className="pc-cerebro__vacio">Todavía no tienes tareas. Pídele a Atendel algo que se repita y lo hará solo.</p>
+        <p className="pc-cerebro__vacio">Todavía no hay nada programado. Pídele a Atendel algo que se repita y lo hará solo.</p>
       ) : (
         <ul className="pc-tareas">
           {lista.map((t, i) => (

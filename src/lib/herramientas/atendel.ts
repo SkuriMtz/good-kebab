@@ -136,7 +136,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
   async function tareas(): Promise<string> {
     const { data } = await supabase.from("tareas").select("titulo, tipo, dias, dia_mes, fecha, hora, proxima, ultima, ultimo_resultado, activa").eq("owner_id", userId).order("creado_en").limit(30);
     const lista = data ?? [];
-    if (!lista.length) return "TAREAS PROGRAMADAS: ninguna. Se crean pidiéndoselas a Atendel en el chat («cada lunes a las 9 mándame…») o en Tareas.";
+    if (!lista.length) return "TAREAS PROGRAMADAS: ninguna. Se crean pidiéndoselas a Atendel en el chat («cada lunes a las 9 mándame…») o en el Piloto automático.";
     return [
       `TAREAS PROGRAMADAS (${lista.length}):`,
       ...lista.map((t) => {

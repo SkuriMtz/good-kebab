@@ -21,7 +21,7 @@ import { herramientaVerAtendel } from "./herramientas/atendel";
 /**
  * TAREAS (migración 0020): lo que el dueño le pide a Atendel que haga solo,
  * a cierta hora ("cada martes a las 3 pm pregúntale a Chuchito si llegó el
- * pedido"). Se piden en el chat (herramienta programar_tarea) o en Tareas.
+ * pedido"). Se piden en el chat (herramienta programar_tarea) o en el Piloto automático.
  * A su hora, /api/trabajo las corre (ejecutarTarea): con las apps
  * conectadas (solo lectura), sus acciones (presentaciones; envíos al equipo
  * que quedan en Pendientes), y el cerebro (Reglas, Procesos, Memoria). El
@@ -33,7 +33,7 @@ const TIPOS: TipoTarea[] = ["una_vez", "diaria", "semanal", "mensual"];
 /**
  * La herramienta del chat para programar una tarea (con la sesión: RLS solo deja lo suyo).
  * Si en este turno hay datos de fuera (`turno.externo`: se usaron apps; `turno.contexto`: van correos
- * o documentos), la tarea se guarda PAUSADA, esperando que el dueño la active en Tareas: así un correo
+ * o documentos), la tarea se guarda PAUSADA, esperando que el dueño la active en el Piloto automático: así un correo
  * o una app nunca puede dejar una tarea que corra sola.
  */
 export function herramientaProgramar(supabase: SupabaseClient, userId: string, zona: string, turno: { externo: boolean; contexto?: boolean }): HerramientaChat {
@@ -88,11 +88,11 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
         proxima,
         activa: !esperaOk,
       });
-      if (error) return error.code === "23514" ? "No se programó: ya tiene el máximo de 30 tareas. Que borre alguna en Tareas." : "No se pudo programar ahora. Que lo intente de nuevo en un momento.";
+      if (error) return error.code === "23514" ? "No se programó: ya tiene el máximo de 30 tareas. Que borre alguna en el Piloto automático." : "No se pudo programar ahora. Que lo intente de nuevo en un momento.";
       if (esperaOk) {
-        return `Tarea lista, ESPERANDO SU OK: «${titulo}». ${frecuenciaEnPalabras(f)}. Por seguridad, como en esta conversación hay correos o datos de sus apps, no la activé sola: que la active con un toque en [Tareas](/panel?vista=tareas) («Activar»). Díselo así de simple.`;
+        return `Tarea lista, ESPERANDO SU OK: «${titulo}». ${frecuenciaEnPalabras(f)}. Por seguridad, como en esta conversación hay correos o datos de sus apps, no la activé sola: que la active con un toque en [Piloto automático](/panel?vista=tareas) («Activar»). Díselo así de simple.`;
       }
-      return `Tarea programada: «${titulo}». ${frecuenciaEnPalabras(f)}. La primera vez: ${cuandoEnPalabras(proxima, f.zona)}. La puede ver, pausar o borrar en [Tareas](/panel?vista=tareas). Cuando toque, la haces solo y el resultado llega a la Oficina.`;
+      return `Tarea programada: «${titulo}». ${frecuenciaEnPalabras(f)}. La primera vez: ${cuandoEnPalabras(proxima, f.zona)}. La puede ver, pausar o borrar en [Piloto automático](/panel?vista=tareas). Cuando toque, la haces solo y el resultado llega a la Oficina.`;
     },
   };
 }

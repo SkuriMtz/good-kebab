@@ -44,7 +44,7 @@ export type DatosArmazonReal = {
   gmail: boolean;
   activos: IdAgente[];
   pendientes: number | null;
-  /** Los archivos que la Oficina tiene por revisar. */
+  /** Lo que Atendel te dejó por revisar (archivos, informes, la revisión del día). */
   oficina: number | null;
   /** Las conversaciones (de la más nueva a la más vieja) y cómo las acomodó (fijadas, archivadas, grupos). */
   chats: ChatMenu[];
@@ -81,7 +81,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const c = params.get("c");
   const valida = vista && VISTAS.includes(vista) ? vista : null;
   // Actividad es un detalle de Estadísticas: se marca Estadísticas en el menú
-  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" ? "oficina" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
+  const activa: IdSeccion = ruta.startsWith("/panel/agentes") ? "agentes" : valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" || valida === "oficina" ? "inicio" : valida ? (valida as IdSeccion) : c ? "chat" : "inicio";
   const clave = ruta === "/panel" ? `/panel?${valida ?? "chat"}` : ruta;
 
   // La vista nueva ya se pintó: la transición puede seguir
@@ -214,16 +214,16 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   };
 
   const indice: ResultadoBusqueda[] = [
-    { id: "s-inicio", grupo: "Secciones", titulo: "Nueva conversación", detalle: "Pídele algo a Atendel", icono: "mas", href: "/panel" },
-    { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que tu equipo te dejó para revisar", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
-    { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
+    { id: "s-inicio", grupo: "Secciones", titulo: "Hoy", detalle: "Lo que te necesita y lo que ya hice", icono: "sol", claves: "inicio nueva conversacion pedir escribir", href: "/panel" },
+    { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
+    { id: "s-tareas", grupo: "Secciones", titulo: "Piloto automático", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
-    { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Pendientes: lo que tu equipo ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
-    { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "La agenda que lleva Lola", icono: "calendario", href: "/panel?vista=citas" },
+    { id: "s-hecho", grupo: "Secciones", titulo: "Hecho", detalle: "Lo que Atendel ya terminó", icono: "check-doble", href: "/panel?vista=pendientes&tab=hecho", claves: "terminado listo historial tareas trabajos excel" },
+    { id: "s-citas", grupo: "Secciones", titulo: "Citas", detalle: "Tu agenda de citas", icono: "calendario", href: "/panel?vista=citas" },
     { id: "s-negocio", grupo: "Secciones", titulo: "Tu negocio", detalle: "Perfil, documentos y apps conectadas", icono: "negocio", claves: "perfil documentos apps gmail calendar drive conectar subir", href: "/panel?vista=negocio" },
     { id: "s-estadisticas", grupo: "Secciones", titulo: "Estadísticas", detalle: "Cómo va tu negocio", icono: "grafica", href: "/panel?vista=estadisticas" },
-    { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Clara, tu Gmail y lo que ya leyó", icono: "correo", href: "/panel?vista=correo" },
-    { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó con tu equipo", icono: "rayo", href: "/panel?vista=actividad" },
+    { id: "s-correo", grupo: "Secciones", titulo: "Correo", detalle: "Tu Gmail y lo que ya se leyó", icono: "correo", href: "/panel?vista=correo" },
+    { id: "s-actividad", grupo: "Secciones", titulo: "Actividad", detalle: "Lo último que pasó", icono: "rayo", href: "/panel?vista=actividad" },
     { id: "s-ajustes", grupo: "Secciones", titulo: "Ajustes", detalle: "Plan, apariencia y cuenta", icono: "ajustes", href: "/panel?vista=ajustes" },
     ...chats.map((r) => ({ id: `r-${r.id}`, grupo: "Conversaciones", titulo: r.titulo, detalle: r.agentes.length > 1 ? nombresDe(r.agentes) : undefined, agentes: r.agentes, href: r.href })),
     ...PEDIDOS.filter((p) => datos.activos.includes(p.agente)).map((p) => ({
@@ -294,7 +294,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         chatActual={c}
         hrefs={{
           inicio: "/panel",
-          oficina: "/panel?vista=oficina",
           tareas: "/panel?vista=tareas",
           pendientes: "/panel?vista=pendientes",
           citas: "/panel?vista=citas",
@@ -303,7 +302,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
           ajustes: "/panel?vista=ajustes",
         }}
         pendientes={datos.pendientes}
-        oficina={(datos.oficina ?? 0) + (datos.pendientes ?? 0) || null}
+        teNecesita={(datos.oficina ?? 0) + (datos.pendientes ?? 0) || null}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}
