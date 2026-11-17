@@ -1,23 +1,10 @@
 import { Fragment, type ReactNode } from "react";
+import { rutaInterna } from "@/lib/enlaces";
 
 /** Con `suave`, cada palabra en su span (entra con un fundido la primera vez que aparece). */
 function palabras(texto: string, suave: boolean): ReactNode {
   if (!suave) return texto;
   return texto.split(/(\s+)/).map((p, k) => (p && !/^\s+$/.test(p) ? <span key={k} className="t-palabra">{p}</span> : p));
-}
-
-/**
- * ¿Es una ruta de Atendel? Solo letras, números y los signos de una ruta normal,
- * y nada que el navegador lea como otro sitio: «//sitio» o «/\\sitio» (el navegador
- * toma la diagonal invertida como «/» y saldría de Atendel).
- */
-export function rutaInterna(ruta: string): boolean {
-  if (!/^\/[A-Za-z0-9_\-./?=&%:#]*$/.test(ruta) || ruta.startsWith("//")) return false;
-  try {
-    return new URL(ruta, "https://atendel.invalid").origin === "https://atendel.invalid";
-  } catch {
-    return false;
-  }
 }
 
 /**

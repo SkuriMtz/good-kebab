@@ -1,0 +1,19 @@
+# Reglas de gitleaks (busca llaves y secretos en todo el historial; lo corre el CI).
+# Extiende las reglas por omisión y deja pasar UNA sola cosa: la llave pública
+# (anon key) de Supabase que va a propósito en src/lib/supabase/config.ts.
+# Esa llave es pública por diseño (viaja en el navegador; los datos los protege RLS).
+# Cualquier otro secreto, en ese archivo o en otro, sigue marcándose.
+
+title = "Atendel"
+
+[extend]
+useDefault = true
+
+# Se redefine solo la regla "jwt" para agregarle su permiso: lo demás de la regla
+# (patrón, entropía, palabras clave) se hereda de la regla por omisión.
+[[rules]]
+id = "jwt"
+
+[[rules.allowlists]]
+description = "Llave pública (anon) de Supabase, solo en su archivo de configuración"
+paths = ['''^src/lib/supabase/config\.ts$''']
