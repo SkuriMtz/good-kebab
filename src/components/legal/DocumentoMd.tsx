@@ -96,8 +96,8 @@ export const seccionesMd = (texto: string) =>
 
 export function DocumentoMd({ texto, nota, soloCuerpo = false }: { texto: string; nota?: string; soloCuerpo?: boolean }) {
   const todos = leerMd(texto);
-  // soloCuerpo: sin título, fecha ni índice (los pone la página); empieza en la primera sección
-  const bloques = soloCuerpo ? todos.slice(Math.max(0, todos.findIndex((b) => b.tipo === "h2"))) : todos;
+  // soloCuerpo: sin título, marca, fecha ni índice (los pone la página); la introducción sí se queda
+  const bloques = soloCuerpo ? todos.filter((b) => b.tipo !== "h1" && b.tipo !== "sub" && !(b.tipo === "h3" && b.texto.startsWith("Última actualización"))) : todos;
   const secciones = bloques.filter((b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2");
   // Lo de antes de la primera sección es la cabecera; el índice va justo después
   const primera = bloques.findIndex((b) => b.tipo === "h2");
