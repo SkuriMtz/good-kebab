@@ -48,8 +48,8 @@
 }
 .acc__tarjeta {
   width: 100%;
-  max-width: 440px;
-  padding: 40px;
+  max-width: 380px;
+  padding: 30px 30px 28px;
   border: 1px solid var(--acc-borde);
   border-radius: 20px;
   background: var(--acc-tarjeta);
@@ -82,8 +82,8 @@
   color: var(--c-accion-texto);
 }
 .acc__titulo {
-  margin-top: 20px;
-  font-size: 28px;
+  margin-top: 16px;
+  font-size: 24px;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -457,6 +457,6 @@
     border-radius: 18px;
   }
   .acc__titulo {
-    font-size: 25px;
+    font-size: 22px;
   }
 }
