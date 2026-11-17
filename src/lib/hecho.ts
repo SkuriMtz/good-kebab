@@ -32,6 +32,7 @@ type Envio = { id: string; agente: string | null; destinatarios: unknown; estado
 /** Una línea legible: sin marcas de formato, sin saltos y recortada. */
 function linea(texto: string, max: number) {
   const limpio = texto
+    .slice(0, 10_000) // tope antes de las regex: el texto viene de fuera
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .split("\n")

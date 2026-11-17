@@ -93,7 +93,8 @@ export type TipoAviso = keyof typeof AVISOS;
 
 /** Un nombre de fuera (cliente, remitente): solo letras y espacios, sin enlaces ni números. */
 export function nombreSeguro(n: unknown, siNo = "Un cliente"): string {
-  const t = typeof n === "string" ? n.replace(/<[^>]*>/g, " ").replace(/\S+@\S+/g, " ") : "";
+  // Se recorta primero: las regex de abajo no deben correr sobre texto de tamaño arbitrario.
+  const t = typeof n === "string" ? n.slice(0, 500).replace(/<[^>]*>/g, " ").replace(/\S+@\S+/g, " ") : "";
   const limpio = t
     .normalize("NFC")
     .replace(/[^\p{L}\p{M}' -]/gu, " ")
@@ -107,9 +108,11 @@ export function nombreSeguro(n: unknown, siNo = "Un cliente"): string {
 /** El texto corto de una notificación: sin enlaces, correos, dominios, formato ni saltos de línea. */
 export function limpiarCorto(t: unknown, max = 300): string {
   if (typeof t !== "string") return "";
+  // Se recorta primero y se usan clases sin traslape ([^\s@]): `\S+@\S+\.\S+` era cúbica con textos como "a@a@a@…".
   return t
+    .slice(0, 2000)
     .replace(/https?:\/\/\S+|www\.\S+/gi, "…")
-    .replace(/\S+@\S+\.\S+/g, "…")
+    .replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, "…")
     .replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,24}\b/gi, "…")
     .replace(/[[\]()*_`#<>|~]/g, "")
     .replace(/[\u0000-\u001f\u007f\u200b-\u200f\u2028-\u202e\u2066-\u2069]/g, " ")
