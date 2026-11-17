@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { legalesCompletos } from "@/lib/legal";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
@@ -1490,11 +1491,19 @@ export function VentanaAjustes({
     contenido = (
       <>
         <Grupo titulo="Tus datos">
-          <Fila titulo="Aviso de privacidad" texto="Cómo cuidamos y usamos tus datos. Lo publicamos pronto; si tienes dudas, escríbenos.">
-            <Enlace href="/contacto" className={claseBoton("borde", true)}>
-              Escríbenos
-            </Enlace>
-          </Fila>
+          {legalesCompletos() ? (
+            <Fila titulo="Aviso de privacidad" texto="Cómo cuidamos y usamos tus datos.">
+              <a href="/privacidad" target="_blank" rel="noopener" className={claseBoton("borde", true)}>
+                Ver aviso
+              </a>
+            </Fila>
+          ) : (
+            <Fila titulo="Aviso de privacidad" texto="Cómo cuidamos y usamos tus datos. Lo publicamos pronto; si tienes dudas, escríbenos.">
+              <Enlace href="/contacto" className={claseBoton("borde", true)}>
+                Escríbenos
+              </Enlace>
+            </Fila>
+          )}
           <Fila titulo="Exportar tus datos" texto="Un archivo con tu perfil, ajustes, conversaciones y documentos.">
             {datos.demo ? (
               <button type="button" className={claseBoton("borde", true)} disabled>

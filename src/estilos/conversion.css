@@ -893,3 +893,79 @@
     transform: translateX(calc(var(--spacing-4) / 2));
   }
 }
+
+/* =====================================================================
+   /privacidad y /terminos: documento legal, columna de lectura (~70 caracteres)
+   ===================================================================== */
+.pagina-legal__columna {
+  max-width: 70ch;
+  margin-inline: auto;
+}
+.pagina-legal__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+.pagina-legal__fecha {
+  color: var(--c-texto-2);
+}
+.pagina-legal__nota {
+  padding-left: var(--spacing-16);
+  border-left: 2px solid var(--c-borde);
+  color: var(--c-texto-2);
+  font-style: italic;
+}
+.pagina-legal__indice {
+  margin-top: var(--spacing-48);
+  padding-top: var(--spacing-24);
+  border-top: 1px solid var(--c-borde);
+}
+.pagina-legal__indice ol {
+  margin-top: var(--spacing-12);
+  padding-left: 1.6em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  list-style: decimal;
+  color: var(--c-texto-2);
+}
+.pagina-legal__indice a {
+  display: inline-block;
+  padding-block: 2px;
+  color: var(--c-enlace);
+}
+.pagina-legal__indice a:hover {
+  text-decoration: underline;
+}
+.pagina-legal__seccion {
+  margin-top: var(--spacing-64);
+  scroll-margin-top: calc(var(--barra-h) + var(--spacing-24));
+}
+.pagina-legal__seccion h2 {
+  font-size: var(--t-intro);
+  font-weight: var(--peso-medio);
+  line-height: 1.3;
+  letter-spacing: var(--tracking-grande);
+  color: var(--c-texto);
+}
+.pagina-legal__seccion .d-parrafos {
+  margin-top: var(--spacing-16);
+}
+.pagina-legal__lista {
+  margin: var(--spacing-16) 0 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  list-style: disc;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  color: var(--c-texto-2);
+}
+.pagina-legal__lista li::marker {
+  color: var(--c-texto-2);
+}
+.pagina-legal__seccion .d-parrafos + .pagina-legal__lista,
+.pagina-legal__lista + .d-parrafos {
+  margin-top: var(--spacing-16);
+}

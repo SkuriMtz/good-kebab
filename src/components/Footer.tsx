@@ -4,6 +4,7 @@ import { Marca } from "./Logo";
 import { PRUEBALO } from "@/lib/contenido";
 import type { Diccionario } from "@/i18n";
 import { textosServidor } from "@/i18n/servidor";
+import { legalesCompletos } from "@/lib/legal";
 
 /** Las cuatro columnas del pie, como el pie del sitio de GitHub (solo el estilo). */
 function columnas(d: Diccionario) {
@@ -52,6 +53,12 @@ export async function Footer() {
   const FRANJA = [
     { href: "/preguntas#seguridad", label: d.pie.tusDatos },
     { href: "/contacto", label: d.pie.contacto },
+    ...(legalesCompletos()
+      ? [
+          { href: "/privacidad", label: d.pie.privacidad },
+          { href: "/terminos", label: d.pie.terminos },
+        ]
+      : []),
   ];
   return (
     <footer className="pie-sitio">

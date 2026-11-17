@@ -87,6 +87,8 @@ export const en: Diccionario = {
     ],
     lista: ["Waitlist", "Leave your email and we'll let you know when your spot in Atendel opens."],
     contacto: ["Contact", "Send us your questions about Atendel, the plans or how we protect your data. We'll reply to your email."],
+    privacidad: ["Privacy notice", "What data Atendel stores, what it uses it for, who it is shared with, and how you can view, correct or delete yours."],
+    terminos: ["Terms of use", "The rules for using Atendel: what it does, what is up to you and what is up to us."],
     entrar: ["Sign in", "Sign in to Atendel with your email, no password. If it's your first time, your account is created when you sign in, on the Free plan."],
     noEncontrada: [
       "Page not found",
@@ -143,6 +145,8 @@ export const en: Diccionario = {
     lema: "Atendel, your AI partner: with Lola, Clara, Víctor and Iris it serves your business even when you're away.",
     sello: "Sign in with your email · no password",
     franja: "Help and data",
+    privacidad: "Privacy",
+    terminos: "Terms",
   },
 
   inicio: {
