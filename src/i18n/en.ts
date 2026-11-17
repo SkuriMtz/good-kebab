@@ -729,6 +729,8 @@ export const en: Diccionario = {
     enviando: "Sending…",
     o: "or",
     google: "Continue with Google",
+    atras: "Back",
+    pasoDe: (n: number, total: number) => `Step ${n} of ${total}`,
     noInicio: "We couldn't sign you in. Request a new code, or open the link from the email in this same browser.",
     resumen: "About your business (optional)",
     nombre: "Full name",

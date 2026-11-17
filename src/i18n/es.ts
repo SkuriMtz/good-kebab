@@ -475,6 +475,8 @@ export const es = {
     enviando: "Enviando…",
     o: "o",
     google: "Continuar con Google",
+    atras: "Atrás",
+    pasoDe: (n: number, total: number) => `Paso ${n} de ${total}`,
     noInicio: "No se pudo iniciar sesión. Pide un código nuevo, o abre el enlace del correo en este mismo navegador.",
     resumen: "Sobre tu negocio (opcional)",
     nombre: "Nombre completo",

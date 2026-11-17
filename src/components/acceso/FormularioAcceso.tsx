@@ -8,7 +8,12 @@ import { Icono } from "@/components/base/Iconos";
 import { useGoogleDisponible } from "@/components/useGoogleDisponible";
 import { correoValido } from "@/lib/lista";
 import { createClient } from "@/lib/supabase/client";
-import { destinoSeguro, edadDe, leerFecha, soloDigitos } from "@/lib/acceso-formulario";
+import {
+  destinoSeguro,
+  edadDe,
+  leerFecha,
+  soloDigitos,
+} from "@/lib/acceso-formulario";
 import { TIPOS_NEGOCIO } from "@/lib/tipos-negocio";
 import { useIdioma } from "@/i18n/Idioma";
 import { MarcoAcceso } from "./MarcoAcceso";
@@ -41,7 +46,27 @@ async function enviarJson(ruta: string, cuerpo: unknown): Promise<Respuesta> {
  * Con Google, directo. Los errores salen junto al campo o arriba, siempre
  * en español sencillo (nunca el texto técnico del servidor).
  */
-export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; errorInicial?: boolean }) {
+/** Crear cuenta, un dato por pantalla: en qué pantalla va cada campo. */
+const ETAPA_DE = {
+  correo: 0,
+  nombre: 1,
+  nacimiento: 2,
+  negocio: 3,
+  tipo: 4,
+  telefono: 5,
+  resumen: 6,
+  acepta: 6,
+} as const;
+/** La última pantalla de datos (resumen, casilla y enviar). */
+const ULTIMA = 6;
+
+export function FormularioAcceso({
+  modo,
+  errorInicial = false,
+}: {
+  modo: Modo;
+  errorInicial?: boolean;
+}) {
   const { d } = useIdioma();
   const A = d.acceso;
   const M = A[modo];
@@ -61,13 +86,33 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
   const [acepta, setAcepta] = useState(false);
   const [trampa, setTrampa] = useState("");
   const [token, setToken] = useState<string | null>(null);
+  // Crear cuenta va paso por paso: un dato por pantalla (ETAPAS); con Google no se pide el correo
+  const [etapa, setEtapa] = useState(0);
+  const [conG, setConG] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [codigo, setCodigo] = useState("");
   const [verificando, setVerificando] = useState(false);
   const [espera, setEspera] = useState(0);
-  const [errores, setErrores] = useState<Partial<Record<"correo" | "nombre" | "nacimiento" | "negocio" | "tipo" | "telefono" | "resumen" | "acepta" | "codigo", string>>>({});
-  const [aviso, setAviso] = useState<string | null>(errorInicial ? A.noInicio : null);
+  const [errores, setErrores] = useState<
+    Partial<
+      Record<
+        | "correo"
+        | "nombre"
+        | "nacimiento"
+        | "negocio"
+        | "tipo"
+        | "telefono"
+        | "resumen"
+        | "acepta"
+        | "codigo",
+        string
+      >
+    >
+  >({});
+  const [aviso, setAviso] = useState<string | null>(
+    errorInicial ? A.noInicio : null,
+  );
   const [info, setInfo] = useState<string | null>(null);
 
   const correoRef = useRef<HTMLInputElement>(null);
@@ -80,6 +125,25 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
   const codigoRef = useRef<HTMLInputElement>(null);
   const turnstile = useRef<ManijaTurnstile>(null);
   const vieneDelPaso2 = useRef(false);
+
+  // Al cambiar de dato (crear cuenta), el foco va a su campo
+  const etapaMontada = useRef(false);
+  useEffect(() => {
+    if (!etapaMontada.current) {
+      etapaMontada.current = true;
+      return;
+    }
+    const campo = [
+      correoRef,
+      nombreRef,
+      nacRef,
+      negocioRef,
+      tipoRef,
+      telRef,
+      aceptaRef,
+    ][etapa]?.current;
+    window.setTimeout(() => campo?.focus(), 0);
+  }, [etapa]);
 
   // Al cambiar de paso, el foco va al campo que toca
   useEffect(() => {
@@ -111,25 +175,102 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
   }
 
   /** Los datos del alta: todos obligatorios menos el resumen. También los revisa el servidor. */
-  function revisarAlta(marcar: (campo: keyof typeof errores, texto: string, el: HTMLElement | null) => void) {
+  function revisarAlta(
+    marcar: (
+      campo: keyof typeof errores,
+      texto: string,
+      el: HTMLElement | null,
+    ) => void,
+  ) {
     if (!nombre.trim()) marcar("nombre", E.falta, nombreRef.current);
     if (!nacimiento) marcar("nacimiento", E.falta, nacRef.current);
     else {
       const edad = edadDe(nacimiento);
-      if (!leerFecha(nacimiento) || edad === null) marcar("nacimiento", E.fechaInvalida, nacRef.current);
+      if (!leerFecha(nacimiento) || edad === null)
+        marcar("nacimiento", E.fechaInvalida, nacRef.current);
       else if (edad < 18) marcar("nacimiento", E.menor, nacRef.current);
     }
     if (!negocio.trim()) marcar("negocio", E.falta, negocioRef.current);
     if (!tipo) marcar("tipo", E.falta, tipoRef.current);
     if (!telefono.trim()) marcar("telefono", E.falta, telRef.current);
-    else if (telefono.replace(/\D/g, "").length < 8) marcar("telefono", E.telefono, telRef.current);
+    else if (telefono.replace(/\D/g, "").length < 8)
+      marcar("telefono", E.telefono, telRef.current);
     if (!acepta) marcar("acepta", E.aceptar, aceptaRef.current);
+  }
+
+  /** Todos los errores del alta (y del correo si no es con Google), con el primer campo que falla. */
+  function erroresAlta() {
+    const e: typeof errores = {};
+    let primero: HTMLElement | null = null;
+    const marcar = (
+      campo: keyof typeof errores,
+      texto: string,
+      el: HTMLElement | null,
+    ) => {
+      e[campo] = texto;
+      primero ??= el;
+    };
+    if (!conG) {
+      if (!correo.trim()) marcar("correo", E.escribeCorreo, correoRef.current);
+      else if (!correoValido(correo))
+        marcar("correo", E.revisaCorreo, correoRef.current);
+    }
+    revisarAlta(marcar);
+    return { e, primero: primero as HTMLElement | null };
+  }
+
+  /** Revisa solo el dato de esta pantalla; si está bien, pasa a la siguiente. */
+  function avanzar() {
+    setAviso(null);
+    const { e } = erroresAlta();
+    const aqui = Object.fromEntries(
+      Object.entries(e).filter(
+        ([campo]) => ETAPA_DE[campo as keyof typeof ETAPA_DE] === etapa,
+      ),
+    );
+    if (Object.keys(aqui).length) {
+      setErrores(aqui);
+      window.setTimeout(
+        () =>
+          [
+            correoRef,
+            nombreRef,
+            nacRef,
+            negocioRef,
+            tipoRef,
+            telRef,
+            aceptaRef,
+          ][etapa]?.current?.focus(),
+        0,
+      );
+      return;
+    }
+    setErrores({});
+    setEtapa(etapa + 1);
+  }
+
+  /** Si algo falla al final, regresa a la pantalla de ese dato. */
+  function irAlError(e: typeof errores) {
+    const primera = Math.min(
+      ...Object.keys(e).map(
+        (c) => ETAPA_DE[c as keyof typeof ETAPA_DE] ?? ULTIMA,
+      ),
+    );
+    setErrores(e);
+    setEtapa(primera);
   }
 
   /** Los datos del alta tal como van al servidor (sin los vacíos). */
   const datosAlta = () =>
     Object.fromEntries(
-      Object.entries({ nombre: nombre.trim(), nacimiento, negocio: negocio.trim(), tipo, telefono: telefono.trim(), resumen: resumen.trim() }).filter(([, v]) => v),
+      Object.entries({
+        nombre: nombre.trim(),
+        nacimiento,
+        negocio: negocio.trim(),
+        tipo,
+        telefono: telefono.trim(),
+        resumen: resumen.trim(),
+      }).filter(([, v]) => v),
     );
 
   /** Pide el código. `reenvio` no revisa de nuevo el formulario (ya se revisó). */
@@ -140,13 +281,24 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
     if (!reenvio) {
       const e: typeof errores = {};
       let primero: HTMLElement | null = null;
-      const marcar = (campo: keyof typeof errores, texto: string, el: HTMLElement | null) => {
+      const marcar = (
+        campo: keyof typeof errores,
+        texto: string,
+        el: HTMLElement | null,
+      ) => {
         e[campo] = texto;
         primero ??= el;
       };
-      if (!correo.trim()) marcar("correo", E.escribeCorreo, correoRef.current);
-      else if (!correoValido(correo)) marcar("correo", E.revisaCorreo, correoRef.current);
-      if (crear) revisarAlta(marcar);
+      if (crear) {
+        const todo = erroresAlta();
+        if (Object.keys(todo.e).length) {
+          irAlError(todo.e);
+          return;
+        }
+      } else if (!correo.trim())
+        marcar("correo", E.escribeCorreo, correoRef.current);
+      else if (!correoValido(correo))
+        marcar("correo", E.revisaCorreo, correoRef.current);
       if (Object.keys(e).length) {
         setErrores(e);
         window.setTimeout(() => (primero as HTMLElement | null)?.focus(), 0);
@@ -182,17 +334,32 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
       const campo = r.datos.campo;
       if (campo === "correo") {
         setPaso(1);
-        setErrores({ correo: E.revisaCorreo });
+        if (crear) irAlError({ correo: E.revisaCorreo });
+        else setErrores({ correo: E.revisaCorreo });
         return;
       }
-      if (campo === "nombre" || campo === "nacimiento" || campo === "negocio" || campo === "tipo" || campo === "telefono" || campo === "resumen") {
+      if (
+        campo === "nombre" ||
+        campo === "nacimiento" ||
+        campo === "negocio" ||
+        campo === "tipo" ||
+        campo === "telefono" ||
+        campo === "resumen"
+      ) {
         setPaso(1);
-        setErrores({ [campo]: campo === "nacimiento" ? E.fechaInvalida : campo === "telefono" ? E.telefono : E.falta });
+        irAlError({
+          [campo]:
+            campo === "nacimiento"
+              ? E.fechaInvalida
+              : campo === "telefono"
+                ? E.telefono
+                : E.falta,
+        });
         return;
       }
       if (campo === "acepta") {
         setPaso(1);
-        setErrores({ acepta: E.aceptar });
+        irAlError({ acepta: E.aceptar });
         return;
       }
       setAviso(E.noSeEnvio);
@@ -210,7 +377,10 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
     setVerificando(true);
     setAviso(null);
     setErrores({});
-    const r = await enviarJson("/api/acceso/verificar", { correo: correo.trim(), codigo: valor });
+    const r = await enviarJson("/api/acceso/verificar", {
+      correo: correo.trim(),
+      codigo: valor,
+    });
     if (r.estado === 200 && r.datos.ok === true) {
       // Navegación completa: así el servidor lee las cookies nuevas
       window.location.assign(destinoSeguro(r.datos.destino));
@@ -219,26 +389,36 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
     setVerificando(false);
     setCodigo("");
     if (r.estado === 400) setErrores({ codigo: E.codigoMal });
-    else setAviso(r.estado === 429 ? E.muchos : r.estado === 0 ? E.sinConexion : E.servicio);
+    else
+      setAviso(
+        r.estado === 429
+          ? E.muchos
+          : r.estado === 0
+            ? E.sinConexion
+            : E.servicio,
+      );
     codigoRef.current?.focus();
   }
 
   async function conGoogle() {
     setAviso(null);
     if (crear) {
-      // Con Google también se piden los datos del alta (van cifrados en una cookie hasta volver)
-      const e: typeof errores = {};
-      let primero: HTMLElement | null = null;
-      revisarAlta((campo, texto, el) => {
-        e[campo] = texto;
-        primero ??= el;
-      });
-      if (Object.keys(e).length) {
-        setErrores(e);
-        (primero as HTMLElement | null)?.focus();
+      // Con Google también se piden los datos, paso por paso (van cifrados en una cookie hasta volver)
+      if (etapa < ULTIMA) {
+        setConG(true);
+        setErrores({});
+        setEtapa(1);
         return;
       }
-      const r = await enviarJson("/api/acceso/acepto", { acepta: true, datos: datosAlta() });
+      const { e } = erroresAlta();
+      if (Object.keys(e).length) {
+        irAlError(e);
+        return;
+      }
+      const r = await enviarJson("/api/acceso/acepto", {
+        acepta: true,
+        datos: datosAlta(),
+      });
       if (r.estado !== 200) {
         setAviso(r.estado === 400 ? E.noSeEnvio : mensajeDeEstado(r));
         return;
@@ -246,18 +426,27 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
     }
     // Al entrar solo se pide lo básico (correo y nombre); Gmail se pide aparte al conectarlo.
     const { error } = await supabase.auth
-      .signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } })
+      .signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      })
       .catch(() => ({ error: new Error("red") }));
     if (error) setAviso(E.google);
   }
 
   function alEnviar(ev: FormEvent) {
     ev.preventDefault();
-    if (paso === 1) void pedirCodigo(false);
+    if (paso === 1 && crear && etapa < ULTIMA) avanzar();
+    else if (paso === 1 && crear && conG) void conGoogle();
+    else if (paso === 1) void pedirCodigo(false);
     else void verificar(codigo);
   }
 
   const idAviso = "acceso-aviso";
+  // Con correo: 7 datos + el código; con Google: 6 datos (sin correo ni código)
+  const total = conG ? ULTIMA : ULTIMA + 2;
+  const numero = paso === 2 ? total : conG ? etapa : etapa + 1;
+  const ve = (k: number) => !crear || etapa === k;
   return (
     <MarcoAcceso
       titulo={paso === 1 ? M.titulo : A.paso2.titulo}
@@ -281,142 +470,185 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
         </div>
       ) : null}
 
-      <form noValidate onSubmit={alEnviar} className="acc__formulario" aria-label={paso === 1 ? M.formulario : A.paso2.titulo}>
+      {crear ? (
+        <div className="acc__progreso">
+          <p aria-live="polite">{A.pasoDe(numero, total)}</p>
+          <div className="acc__barra" aria-hidden="true">
+            <span style={{ width: `${(numero / total) * 100}%` }} />
+          </div>
+        </div>
+      ) : null}
+
+      <form
+        noValidate
+        onSubmit={alEnviar}
+        className="acc__formulario"
+        aria-label={paso === 1 ? M.formulario : A.paso2.titulo}
+      >
         {paso === 1 ? (
           <>
-            <CampoCorreo
-              ref={correoRef}
-              etiqueta={A.correo}
-              name="email"
-              value={correo}
-              alCambiar={(v) => {
-                setCorreo(v);
-                limpiar("correo");
-              }}
-              error={errores.correo}
-              readOnly={enviando}
-              required
-              autoFocus={false}
-              enterKeyHint="next"
-            />
-
-            {crear ? (
-              <div className="acc__campos-alta">
-                <Campo
-                  ref={nombreRef}
-                  etiqueta={A.nombre}
-                  name="nombre"
-                  value={nombre}
-                  alCambiar={(v) => {
-                    setNombre(v);
-                    limpiar("nombre");
-                  }}
-                  autoComplete="name"
-                  maxLength={120}
-                  required
-                  error={errores.nombre}
-                />
-                <Campo
-                  ref={nacRef}
-                  etiqueta={A.nacimiento}
-                  name="nacimiento"
-                  type="date"
-                  placeholder=" "
-                  value={nacimiento}
-                  alCambiar={(v) => {
-                    setNacimiento(v);
-                    limpiar("nacimiento");
-                  }}
-                  max={new Date().toISOString().slice(0, 10)}
-                  autoComplete="bday"
-                  required
-                  error={errores.nacimiento}
-                />
-                <Campo
-                  ref={negocioRef}
-                  etiqueta={A.negocio}
-                  name="negocio"
-                  value={negocio}
-                  alCambiar={(v) => {
-                    setNegocio(v);
-                    limpiar("negocio");
-                  }}
-                  autoComplete="organization"
-                  maxLength={120}
-                  required
-                  error={errores.negocio}
-                />
-                <div className="entrada entrada--flota" data-error={errores.tipo ? "true" : undefined}>
-                  <div className="entrada__caja">
-                    <select
-                      ref={tipoRef}
-                      id="acceso-tipo"
-                      name="tipo"
-                      className="entrada__control acc__select"
-                      value={tipo}
-                      required
-                      aria-invalid={errores.tipo ? true : undefined}
-                      aria-describedby={errores.tipo ? "acceso-tipo-error" : undefined}
-                      onChange={(e) => {
-                        setTipo(e.target.value);
-                        limpiar("tipo");
-                      }}
-                    >
-                      <option value="">{A.tipoVacio}</option>
-                      {TIPOS_NEGOCIO.map((g) => (
-                        <optgroup key={g.grupo} label={g.grupo}>
-                          {g.tipos.map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.nombre}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                    <label htmlFor="acceso-tipo" className="entrada__etiqueta">
-                      {A.tipo}
-                    </label>
-                    <Icono nombre="chevron" tam={16} className="acc__select-flecha" />
-                  </div>
-                  {errores.tipo ? (
-                    <div id="acceso-tipo-error" className="entrada__nota entrada__nota--error">
-                      {errores.tipo}
-                    </div>
-                  ) : null}
-                </div>
-                <Campo
-                  ref={telRef}
-                  etiqueta={A.telefono}
-                  name="telefono"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  value={telefono}
-                  alCambiar={(v) => {
-                    setTelefono(v);
-                    limpiar("telefono");
-                  }}
-                  maxLength={30}
-                  required
-                  error={errores.telefono}
-                />
-                <Campo
-                  multilinea
-                  etiqueta={A.resumen}
-                  name="resumen"
-                  value={resumen}
-                  alCambiar={(v) => {
-                    setResumen(v);
-                    limpiar("resumen");
-                  }}
-                  rows={3}
-                  maxLength={500}
-                  error={errores.resumen}
-                />
-              </div>
+            {ve(0) ? (
+              <CampoCorreo
+                ref={correoRef}
+                etiqueta={A.correo}
+                name="email"
+                value={correo}
+                alCambiar={(v) => {
+                  setCorreo(v);
+                  limpiar("correo");
+                }}
+                error={errores.correo}
+                readOnly={enviando}
+                required
+                autoFocus={false}
+                enterKeyHint="next"
+              />
             ) : null}
 
             {crear ? (
+              <div className="acc__campos-alta">
+                {etapa === 1 ? (
+                  <Campo
+                    ref={nombreRef}
+                    etiqueta={A.nombre}
+                    name="nombre"
+                    value={nombre}
+                    alCambiar={(v) => {
+                      setNombre(v);
+                      limpiar("nombre");
+                    }}
+                    autoComplete="name"
+                    maxLength={120}
+                    required
+                    error={errores.nombre}
+                  />
+                ) : null}
+                {etapa === 2 ? (
+                  <Campo
+                    ref={nacRef}
+                    etiqueta={A.nacimiento}
+                    name="nacimiento"
+                    type="date"
+                    placeholder=" "
+                    value={nacimiento}
+                    alCambiar={(v) => {
+                      setNacimiento(v);
+                      limpiar("nacimiento");
+                    }}
+                    max={new Date().toISOString().slice(0, 10)}
+                    autoComplete="bday"
+                    required
+                    error={errores.nacimiento}
+                  />
+                ) : null}
+                {etapa === 3 ? (
+                  <Campo
+                    ref={negocioRef}
+                    etiqueta={A.negocio}
+                    name="negocio"
+                    value={negocio}
+                    alCambiar={(v) => {
+                      setNegocio(v);
+                      limpiar("negocio");
+                    }}
+                    autoComplete="organization"
+                    maxLength={120}
+                    required
+                    error={errores.negocio}
+                  />
+                ) : null}
+                {etapa === 4 ? (
+                  <div
+                    className="entrada entrada--flota"
+                    data-error={errores.tipo ? "true" : undefined}
+                  >
+                    <div className="entrada__caja">
+                      <select
+                        ref={tipoRef}
+                        id="acceso-tipo"
+                        name="tipo"
+                        className="entrada__control acc__select"
+                        value={tipo}
+                        required
+                        aria-invalid={errores.tipo ? true : undefined}
+                        aria-describedby={
+                          errores.tipo ? "acceso-tipo-error" : undefined
+                        }
+                        onChange={(e) => {
+                          setTipo(e.target.value);
+                          limpiar("tipo");
+                        }}
+                      >
+                        <option value="">{A.tipoVacio}</option>
+                        {TIPOS_NEGOCIO.map((g) => (
+                          <optgroup key={g.grupo} label={g.grupo}>
+                            {g.tipos.map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.nombre}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      <label
+                        htmlFor="acceso-tipo"
+                        className="entrada__etiqueta"
+                      >
+                        {A.tipo}
+                      </label>
+                      <Icono
+                        nombre="chevron"
+                        tam={16}
+                        className="acc__select-flecha"
+                      />
+                    </div>
+                    {errores.tipo ? (
+                      <div
+                        id="acceso-tipo-error"
+                        className="entrada__nota entrada__nota--error"
+                      >
+                        {errores.tipo}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {etapa === 5 ? (
+                  <Campo
+                    ref={telRef}
+                    etiqueta={A.telefono}
+                    name="telefono"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={telefono}
+                    alCambiar={(v) => {
+                      setTelefono(v);
+                      limpiar("telefono");
+                    }}
+                    maxLength={30}
+                    required
+                    error={errores.telefono}
+                  />
+                ) : null}
+                {etapa === 6 ? (
+                  <Campo
+                    multilinea
+                    etiqueta={A.resumen}
+                    name="resumen"
+                    value={resumen}
+                    alCambiar={(v) => {
+                      setResumen(v);
+                      limpiar("resumen");
+                    }}
+                    rows={3}
+                    maxLength={500}
+                    error={errores.resumen}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+
+            {crear && etapa === ULTIMA ? (
               <div className="acc__casilla-grupo">
                 <label className="acc__casilla">
                   <input
@@ -426,7 +658,9 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
                     checked={acepta}
                     required
                     aria-invalid={errores.acepta ? true : undefined}
-                    aria-describedby={errores.acepta ? "acceso-acepta-error" : undefined}
+                    aria-describedby={
+                      errores.acepta ? "acceso-acepta-error" : undefined
+                    }
                     onChange={(e) => {
                       setAcepta(e.target.checked);
                       limpiar("acepta");
@@ -437,11 +671,19 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
                   </span>
                   <span>
                     {A.aceptoAntes}
-                    <Link href="/terminos" className="acc__enlace" target="_blank">
+                    <Link
+                      href="/terminos"
+                      className="acc__enlace"
+                      target="_blank"
+                    >
                       {A.terminos}
                     </Link>
                     {A.aceptoY}
-                    <Link href="/privacidad" className="acc__enlace" target="_blank">
+                    <Link
+                      href="/privacidad"
+                      className="acc__enlace"
+                      target="_blank"
+                    >
                       {A.privacidad}
                     </Link>
                   </span>
@@ -457,20 +699,63 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
 
             {/* Campo trampa: las personas y los lectores de pantalla no lo ven; un robot lo llena */}
             <div className="acc__trampa" aria-hidden="true">
-              <input type="text" name="sitio_web" tabIndex={-1} autoComplete="off" value={trampa} onChange={(e) => setTrampa(e.target.value)} />
+              <input
+                type="text"
+                name="sitio_web"
+                tabIndex={-1}
+                autoComplete="off"
+                value={trampa}
+                onChange={(e) => setTrampa(e.target.value)}
+              />
             </div>
 
-            <Turnstile ref={turnstile} alToken={setToken} etiqueta={A.seguridad} />
+            {ve(ULTIMA) ? (
+              <Turnstile
+                ref={turnstile}
+                alToken={setToken}
+                etiqueta={A.seguridad}
+              />
+            ) : null}
 
-            <Boton type="submit" variante="principal" tam="grande" bloque cargando={enviando}>
-              {enviando ? A.enviando : A.siguiente}
+            <Boton
+              type="submit"
+              variante="principal"
+              tam="grande"
+              bloque
+              cargando={enviando}
+            >
+              {enviando
+                ? A.enviando
+                : crear && conG && etapa === ULTIMA
+                  ? A.google
+                  : A.siguiente}
             </Boton>
-            {google ? (
+            {crear && etapa > 0 ? (
+              <Boton
+                variante="fantasma"
+                tam="grande"
+                bloque
+                onClick={() => {
+                  setErrores({});
+                  setAviso(null);
+                  if (conG && etapa === 1) setConG(false);
+                  setEtapa(conG && etapa === 1 ? 0 : etapa - 1);
+                }}
+              >
+                {A.atras}
+              </Boton>
+            ) : null}
+            {google && ve(0) ? (
               <>
                 <p className="acc__o">
                   <span>{A.o}</span>
                 </p>
-                <Boton variante="fantasma" tam="grande" bloque onClick={conGoogle}>
+                <Boton
+                  variante="fantasma"
+                  tam="grande"
+                  bloque
+                  onClick={conGoogle}
+                >
                   {A.google}
                 </Boton>
               </>
@@ -508,10 +793,20 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
                 {info}
               </p>
             ) : null}
-            <Boton type="submit" variante="principal" tam="grande" bloque cargando={verificando}>
+            <Boton
+              type="submit"
+              variante="principal"
+              tam="grande"
+              bloque
+              cargando={verificando}
+            >
               {verificando ? A.paso2.verificando : A.siguiente}
             </Boton>
-            <Turnstile ref={turnstile} alToken={setToken} etiqueta={A.seguridad} />
+            <Turnstile
+              ref={turnstile}
+              alToken={setToken}
+              etiqueta={A.seguridad}
+            />
             <div className="acc__acciones">
               <button
                 type="button"
@@ -526,6 +821,7 @@ export function FormularioAcceso({ modo, errorInicial = false }: { modo: Modo; e
                 className="acc__enlace-boton"
                 onClick={() => {
                   setPaso(1);
+                  setEtapa(0);
                   setCodigo("");
                   setErrores({});
                   setAviso(null);

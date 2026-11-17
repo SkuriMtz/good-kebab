@@ -274,6 +274,34 @@
 .acc__mas[open] .acc__mas-flecha {
   transform: rotate(180deg);
 }
+.acc__progreso {
+  margin-top: 16px;
+  text-align: left;
+}
+.acc__progreso p {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--acc-tenue);
+}
+.acc__barra {
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--acc-borde);
+  overflow: hidden;
+}
+.acc__barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #0a74e8;
+  transition: width 240ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .acc__barra span {
+    transition: none;
+  }
+}
 .acc__campos-alta {
   display: flex;
   flex-direction: column;
