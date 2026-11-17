@@ -10,10 +10,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
-    "@fontsource-variable/caveat": "^5.3.0",
-    "@fontsource-variable/fraunces": "^5.3.0",
-    "@fontsource-variable/space-grotesk": "^5.3.0",
-    "@fontsource/bebas-neue": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.3.5",
     "@hugeicons/react": "^1.1.10",
     "@supabase/ssr": "^0.5.2",
@@ -41,8 +37,15 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.5.28",
-    "postcss": "^8.4.47",
+    "postcss": "8.5.31",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.5.3"
+  },
+  "overrides": {
+    "postcss": "$postcss",
+    "source-map-js": "1.2.2",
+    "image-size": "2.0.4",
+    "qs": "6.16.2",
+    "uuid": "11.1.1"
   }
 }
