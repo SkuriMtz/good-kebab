@@ -252,7 +252,10 @@
 .barra__idioma {
   margin-left: clamp(16px, 2.23vw, 34px);
 }
-.barra__idioma + .barra__pildora {
+.barra__idioma + .barra__entrar {
+  margin-left: clamp(10px, 1.1vw, 16px);
+}
+.barra__entrar + .barra__pildora {
   margin-left: clamp(10px, 1.1vw, 16px);
 }
 
@@ -854,11 +857,13 @@
     --b-alto: 56px;
   }
   .barra__nav,
-  .barra__idioma {
+  .barra__idioma,
+  .barra__entrar {
     display: none;
   }
   .barra__pildora,
-  .barra__idioma + .barra__pildora {
+  .barra__idioma + .barra__pildora,
+  .barra__entrar + .barra__pildora {
     margin-left: auto;
   }
   .barra__hamburguesa {

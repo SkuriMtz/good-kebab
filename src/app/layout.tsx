@@ -16,6 +16,7 @@ import "../estilos/tema-claro.css";
 import "../estilos/landing.css";
 import "../estilos/inicio.css";
 import "../estilos/transiciones.css";
+import "../estilos/acceso.css";
 import { headers } from "next/headers";
 import { metadatosInicio } from "@/lib/seo";
 import { SCRIPT_INSTALAR } from "@/lib/avisos-aparato";

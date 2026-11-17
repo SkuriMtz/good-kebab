@@ -41,12 +41,12 @@ function armarCsp(nonce: string): string {
     // apis.google.com: el Google Picker (elegir archivos de Drive) se carga de ahí
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${esDesarrollo ? " 'unsafe-eval'" : ""} https://apis.google.com`,
     // El Picker se abre en un iframe de docs.google.com
-    "frame-src 'self' https://docs.google.com https://apis.google.com",
+    "frame-src 'self' https://docs.google.com https://apis.google.com https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
     "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
     "font-src 'self'",
-    `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com`,
+    `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com https://challenges.cloudflare.com`,
     // Sin plugins (Flash, Java…) y todo por HTTPS
     "object-src 'none'",
     "upgrade-insecure-requests",
