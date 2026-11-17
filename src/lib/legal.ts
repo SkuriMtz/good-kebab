@@ -6,13 +6,13 @@
  */
 export const DATOS_LEGALES = {
   /** Nombre completo de la persona o razón social de la empresa responsable. */
-  responsable: "",
+  responsable: "Santiago Kuri Martinez",
   /** Correo para temas de privacidad y de los términos. */
   correo: "",
   /** Domicilio (al menos ciudad y estado) del responsable. */
-  domicilio: "",
+  domicilio: "Monterrey, Nuevo León, México",
   /** Ciudad cuyos tribunales resuelven cualquier desacuerdo (normalmente la del domicilio). */
-  jurisdiccion: "",
+  jurisdiccion: "Monterrey, Nuevo León, México",
   /** Fecha de la última actualización de los textos (AAAA-MM-DD). */
   actualizado: "2026-11-17",
 };
