@@ -14,6 +14,7 @@ const ENLACES = [
 const ENLACES_LEGALES = [
   { href: "/privacidad", id: "privacidad" },
   { href: "/terminos", id: "terminos" },
+  { href: "/cookies", id: "cookies" },
 ] as const;
 
 /**

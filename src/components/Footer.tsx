@@ -57,6 +57,7 @@ export async function Footer() {
       ? [
           { href: "/privacidad", label: d.pie.privacidad },
           { href: "/terminos", label: d.pie.terminos },
+          { href: "/cookies", label: d.pie.cookies },
         ]
       : []),
   ];

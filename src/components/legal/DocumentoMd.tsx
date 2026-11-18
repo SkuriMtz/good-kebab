@@ -34,22 +34,37 @@ export function leerMd(texto: string): Bloque[] {
   for (let i = 0; i < lineas.length; i++) {
     const l = lineas[i].trimEnd();
     if (!l.trim()) continue;
-    if (l.startsWith("### ")) bloques.push({ tipo: "h2", texto: l.slice(4), id: `seccion-${++seccion}` });
-    else if (l.startsWith("## ")) bloques.push({ tipo: "sub", texto: l.slice(3) });
-    else if (l.startsWith("# ")) bloques.push({ tipo: "h1", texto: l.slice(2) });
+    if (l.startsWith("### "))
+      bloques.push({
+        tipo: "h2",
+        texto: l.slice(4),
+        id: `seccion-${++seccion}`,
+      });
+    else if (l.startsWith("## "))
+      bloques.push({ tipo: "sub", texto: l.slice(3) });
+    else if (l.startsWith("# "))
+      bloques.push({ tipo: "h1", texto: l.slice(2) });
     else if (/^-{3,}$/.test(l.trim())) bloques.push({ tipo: "hr" });
     else if (l.startsWith("|")) {
       const filas: string[][] = [];
       while (i < lineas.length && lineas[i].trim().startsWith("|")) {
-        if (!/^\|?\s*:?-{3,}/.test(lineas[i].trim())) filas.push(celdas(lineas[i]));
+        if (!/^\|?\s*:?-{3,}/.test(lineas[i].trim()))
+          filas.push(celdas(lineas[i]));
         i++;
       }
       i--;
-      bloques.push({ tipo: "tabla", cabeza: filas[0] ?? [], filas: filas.slice(1) });
+      bloques.push({
+        tipo: "tabla",
+        cabeza: filas[0] ?? [],
+        filas: filas.slice(1),
+      });
     } else if (/^- /.test(l) || /^\d+\. /.test(l)) {
       const ordenada = /^\d+\. /.test(l);
       const items: string[] = [];
-      while (i < lineas.length && (ordenada ? /^\d+\. /.test(lineas[i]) : /^- /.test(lineas[i]))) {
+      while (
+        i < lineas.length &&
+        (ordenada ? /^\d+\. /.test(lineas[i]) : /^- /.test(lineas[i]))
+      ) {
         items.push(lineas[i].replace(ordenada ? /^\d+\. / : /^- /, "").trim());
         i++;
       }
@@ -58,7 +73,8 @@ export function leerMd(texto: string): Bloque[] {
     } else {
       // Un párrafo que es todo negritas y corto es un subtítulo (ej. "2.1. Datos de…")
       const solo = /^\*\*([^*]+)\*\*$/.exec(l.trim());
-      if (solo && solo[1].length < 90) bloques.push({ tipo: "h3", texto: solo[1] });
+      if (solo && solo[1].length < 90)
+        bloques.push({ tipo: "h3", texto: solo[1] });
       else bloques.push({ tipo: "p", texto: l.trim() });
     }
   }
@@ -70,8 +86,10 @@ const CORREO = /([\w.+-]+@[\w-]+\.[\w.]+[a-z])/i;
 /** **negritas**, *cursivas* y correos (como enlace). */
 function enLinea(texto: string): ReactNode[] {
   return texto.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((parte, i) => {
-    if (parte.startsWith("**") && parte.endsWith("**")) return <strong key={i}>{correos(parte.slice(2, -2))}</strong>;
-    if (parte.startsWith("*") && parte.endsWith("*") && parte.length > 2) return <em key={i}>{correos(parte.slice(1, -1))}</em>;
+    if (parte.startsWith("**") && parte.endsWith("**"))
+      return <strong key={i}>{correos(parte.slice(2, -2))}</strong>;
+    if (parte.startsWith("*") && parte.endsWith("*") && parte.length > 2)
+      return <em key={i}>{correos(parte.slice(1, -1))}</em>;
     return <Fragment key={i}>{correos(parte)}</Fragment>;
   });
 }
@@ -94,16 +112,36 @@ export const seccionesMd = (texto: string) =>
     .filter((b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2")
     .map((b) => ({ id: b.id, titulo: b.texto }));
 
-export function DocumentoMd({ texto, nota, soloCuerpo = false }: { texto: string; nota?: string; soloCuerpo?: boolean }) {
+export function DocumentoMd({
+  texto,
+  nota,
+  soloCuerpo = false,
+}: {
+  texto: string;
+  nota?: string;
+  soloCuerpo?: boolean;
+}) {
   const todos = leerMd(texto);
   // soloCuerpo: sin título, marca, fecha ni índice (los pone la página); la introducción sí se queda
-  const bloques = soloCuerpo ? todos.filter((b) => b.tipo !== "h1" && b.tipo !== "sub" && !(b.tipo === "h3" && b.texto.startsWith("Última actualización"))) : todos;
-  const secciones = bloques.filter((b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2");
+  const bloques = soloCuerpo
+    ? todos.filter(
+        (b) =>
+          b.tipo !== "h1" &&
+          b.tipo !== "sub" &&
+          !(b.tipo === "h3" && b.texto.startsWith("Última actualización")),
+      )
+    : todos;
+  const secciones = bloques.filter(
+    (b): b is Extract<Bloque, { tipo: "h2" }> => b.tipo === "h2",
+  );
   // Lo de antes de la primera sección es la cabecera; el índice va justo después
   const primera = bloques.findIndex((b) => b.tipo === "h2");
 
   return (
-    <article className="doc-legal" aria-labelledby={soloCuerpo ? undefined : "doc-legal-titulo"}>
+    <article
+      className="doc-legal"
+      aria-labelledby={soloCuerpo ? undefined : "doc-legal-titulo"}
+    >
       {bloques.map((b, i) => (
         <Fragment key={i}>
           {!soloCuerpo && i === primera && secciones.length > 1 ? (

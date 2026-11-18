@@ -17,11 +17,11 @@ export default async function Pagina() {
   if (!legalesCompletos()) notFound();
   return (
     <PaginaDocumento
+      actual="privacidad"
       etiqueta="Legal · Privacidad"
       titulo="Aviso de Privacidad"
       tipo="Aviso integral"
       texto={AVISO_PRIVACIDAD}
-      otro={{ href: "/terminos", texto: "Términos" }}
       entrada="Atendel es una plataforma de asistencia para negocios basada en inteligencia artificial. Este Aviso de Privacidad explica qué datos personales tratamos, para qué, con quién los compartimos y cómo puedes ejercer tus derechos."
     />
   );

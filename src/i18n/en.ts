@@ -89,6 +89,7 @@ export const en: Diccionario = {
     contacto: ["Contact", "Send us your questions about Atendel, the plans or how we protect your data. We'll reply to your email."],
     privacidad: ["Privacy notice", "What data Atendel stores, what it uses it for, who it is shared with, and how you can view, correct or delete yours."],
     terminos: ["Terms of use", "The rules for using Atendel: what it does, what is up to you and what is up to us."],
+    cookies: ["Cookie policy", "Which cookies and similar technologies Atendel uses, what for and how you can delete them."],
     entrar: ["Sign in", "Sign in to Atendel with your email and a 6-digit code. No password."],
     crear: ["Create account", "Create your Atendel account with your email. You start on the Free plan."],
     noEncontrada: [
@@ -149,6 +150,7 @@ export const en: Diccionario = {
     franja: "Help and data",
     privacidad: "Privacy",
     terminos: "Terms",
+    cookies: "Cookies",
   },
 
   inicio: {

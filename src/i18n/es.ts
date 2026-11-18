@@ -59,6 +59,7 @@ export const es = {
     contacto: ["Contacto", "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo."],
     privacidad: ["Aviso de privacidad", "Qué datos guarda Atendel, para qué los usa, con quién los comparte y cómo puedes verlos, corregirlos o borrarlos."],
     terminos: ["Términos de uso", "Las reglas para usar Atendel: qué hace, qué te toca a ti y qué nos toca a nosotros."],
+    cookies: ["Política de cookies", "Qué cookies y tecnologías parecidas usa Atendel, para qué y cómo puedes borrarlas."],
     entrar: ["Entrar", "Entra a Atendel con tu correo y un código de 6 dígitos. Sin contraseña."],
     crear: ["Crea tu cuenta", "Crea tu cuenta de Atendel con tu correo. Empiezas con el plan Free."],
     noEncontrada: [
@@ -119,6 +120,7 @@ export const es = {
     franja: "Ayuda y datos",
     privacidad: "Privacidad",
     terminos: "Términos",
+    cookies: "Cookies",
   },
 
   inicio: {

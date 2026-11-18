@@ -15,5 +15,13 @@ export async function generateMetadata(): Promise<Metadata> {
 /** /terminos: los Términos y Condiciones de Uso (src/legal/terminos.ts). 404 mientras falten los datos del responsable. */
 export default async function Pagina() {
   if (!legalesCompletos()) notFound();
-  return <PaginaDocumento etiqueta="Legal · Términos" titulo="Términos y Condiciones de Uso" tipo="Condiciones generales" texto={TERMINOS} otro={{ href: "/privacidad", texto: "Privacidad" }} />;
+  return (
+    <PaginaDocumento
+      actual="terminos"
+      etiqueta="Legal · Términos"
+      titulo="Términos y Condiciones de Uso"
+      tipo="Condiciones generales"
+      texto={TERMINOS}
+    />
+  );
 }
