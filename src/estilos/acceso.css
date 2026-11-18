@@ -242,12 +242,82 @@
   margin-top: -4px;
 }
 
-/* Código de 6 dígitos */
-.acc__codigo .entrada__control {
+/* Código de 6 dígitos: 6 cuadritos y, encima, un solo campo invisible */
+.acc__codigo6 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.acc__codigo6-etiqueta {
+  color: var(--acc-texto-2, rgb(255 255 255 / 0.7));
+  font-size: 13px;
+  font-weight: 500;
+}
+.acc__casillas {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.acc__digito {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.03);
+  color: #fff;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 22px;
-  letter-spacing: 0.38em;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.acc__digito[data-llena] {
+  border-color: rgb(255 255 255 / 0.32);
+}
+.acc__digito[data-activa] {
+  border-color: var(--c-accion, #0a74e8);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accion, #0a74e8) 30%, transparent);
+}
+/* El cursor que parpadea en el cuadrito que sigue (si está vacío) */
+.acc__digito[data-activa]:empty::after {
+  content: "";
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: #fff;
+  animation: acc-cursor 1s steps(1) infinite;
+}
+@keyframes acc-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+.acc__codigo6[data-error] .acc__digito {
+  border-color: var(--c-error, #f87171);
+}
+/* El campo de verdad: encima de los cuadritos, invisible (16 px: el iPhone no hace zoom) */
+.acc__casillas-campo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  opacity: 0;
+  cursor: text;
+}
+@media (prefers-reduced-motion: reduce) {
+  .acc__digito[data-activa]:empty::after {
+    animation: none;
+  }
 }
 
 /* Bloque desplegable de los datos opcionales */
