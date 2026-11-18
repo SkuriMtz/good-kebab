@@ -311,7 +311,16 @@
   outline-offset: 3px;
   border-radius: 8px;
 }
+/* Los fragmentos esparcidos: quietos respecto a la pantalla, detrás de todo */
+.menu-sitio__fondo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 .menu-sitio__cuerpo {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(32px, 4vw, 72px);
@@ -330,16 +339,13 @@
 }
 .menu-sitio__tarjeta {
   display: block;
-  width: min(100%, 400px);
+  width: min(100%, 440px);
 }
+/* La marca de fragmentos: sin cuadro, flota sobre el fondo del menú */
 .menu-sitio__figura {
   display: block;
   aspect-ratio: 1;
-  overflow: hidden;
-  border: 1px solid var(--c-borde);
-  border-radius: 6px;
-  background: radial-gradient(120% 95% at 50% 42%, #15162a 0%, #0d0d17 58%, #09090d 100%);
-  transition: border-color 250ms ease;
+  transition: transform 500ms var(--ini-salida);
 }
 .menu-sitio__figura canvas {
   display: block;
@@ -358,7 +364,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .menu-sitio__tarjeta:hover .menu-sitio__figura {
-    border-color: var(--c-borde-fuerte);
+    transform: scale(1.03);
   }
 }
 .menu-sitio__nav {

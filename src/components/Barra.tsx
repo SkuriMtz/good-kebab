@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { BotonTema } from "./BotonTema";
-import { ConstelacionMenu } from "./ConstelacionMenu";
+import { FondoFragmentos, MarcaFragmentos } from "./FragmentosMenu";
 import { COLORES, Marca } from "./Logo";
 import { Icono } from "./base/Iconos";
 import { POLITICAS } from "@/legal/politicas";
@@ -19,8 +19,9 @@ import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
  * se desvanece y aparece una franja oscura con desenfoque.
  *
  * El menú cubre toda la pantalla (siempre oscuro):
- * - Izquierda (computadora): la tarjeta del equipo con la constelación de
- *   fragmentos (Aura, Altair, Rigel y Mira), que lleva a Agentes.
+ * - De fondo, fragmentos esparcidos que suben y giran lento.
+ * - Izquierda (computadora): la marca de Atendel hecha de fragmentos (la del
+ *   cierre del inicio), sin cuadro, que lleva a Agentes.
  * - Derecha: los lugares en letra grande (Agentes se abre y muestra a los
  *   cuatro; tocar uno abre su ficha), filas que se abren (Ayuda y contacto,
  *   Términos y políticas) y, hasta abajo, Crea tu cuenta, Entrar, el idioma y
@@ -171,6 +172,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
         inert={!menu}
         data-lenis-prevent
       >
+        <FondoFragmentos activo={menu} />
         <div className="menu-sitio__arriba">
           <Link href="/" className="menu-sitio__logo" aria-label={b.inicio} onClick={cerrar}>
             <Marca className="barra__marca" />
@@ -186,7 +188,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
             <p className="menu-sitio__etiqueta">{b.equipo}</p>
             <Enlace href={agentesHref} className="menu-sitio__tarjeta" actual={pathname === "/agentes"} onClick={cerrar}>
               <span className="menu-sitio__figura">
-                <ConstelacionMenu activo={menu} />
+                <MarcaFragmentos activo={menu} />
               </span>
               <span className="menu-sitio__tarjeta-titulo">{b.conoce}</span>
             </Enlace>
