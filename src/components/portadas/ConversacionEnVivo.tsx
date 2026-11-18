@@ -8,7 +8,7 @@ import { PERSONAJES } from "@/lib/personajes";
 const MENSAJES = DETALLE.lola.conversacion;
 
 /**
- * La conversación de ejemplo de Lola en WhatsApp, que se escribe sola:
+ * La conversación de ejemplo de Aura en WhatsApp, que se escribe sola:
  * cada mensaje aparece después de los tres puntos de "escribiendo…".
  * Al terminar espera unos segundos y vuelve a empezar.
  * Con "reducir movimiento" se muestra completa desde el inicio.
@@ -56,7 +56,7 @@ export function ConversacionEnVivo() {
         </span>
         <span>
           <span className="t-rol block">Atención · WhatsApp</span>
-          <span className="t-sub block">Lola</span>
+          <span className="t-sub block">Aura</span>
         </span>
         <span className="t-caption ml-auto">Nombres de ejemplo</span>
       </div>
@@ -74,14 +74,14 @@ export function ConversacionEnVivo() {
               }`}
             >
               <span className="t-caption mb-1 block">
-                {m.de === "otro" ? m.quien : "Lola"} · {m.hora}
+                {m.de === "otro" ? m.quien : "Aura"} · {m.hora}
               </span>
               {m.texto}
             </li>
           ),
         )}
         {escribe ? (
-          <li className="chat-app__puntos self-end rounded-[18px] rounded-br-[6px] bg-[var(--c-velo)]" aria-label="Lola está escribiendo">
+          <li className="chat-app__puntos self-end rounded-[18px] rounded-br-[6px] bg-[var(--c-velo)]" aria-label="Aura está escribiendo">
             <i />
             <i />
             <i />

@@ -10,7 +10,7 @@ import { PERSONAJES } from "@/lib/personajes";
 /**
  * "Un día en la recepción": lo que el equipo resolvió, en orden de hora.
  * Sale tal cual de las conversaciones de ejemplo de cada agente
- * (src/components/agentes/detalle.ts). La de Iris no tiene hora en el
+ * (src/components/agentes/detalle.ts). La de Mira no tiene hora en el
  * ejemplo, así que no se le inventa una: va al final, sin hora.
  */
 const DIA: { hora: string | null; agente: IdAgente; canal: string; texto: string }[] = [

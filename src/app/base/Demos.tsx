@@ -131,16 +131,16 @@ const NAV: ElementoNav[] = [
 ];
 
 const AGENTES_DEMO: { id: IdAgente; nombre: string; tono: TonoEstado; estado: string; pulso?: boolean }[] = [
-  { id: "lola", nombre: "Lola", tono: "azul", estado: "Contestando un WhatsApp", pulso: true },
-  { id: "clara", nombre: "Clara", tono: "exito", estado: "Activa" },
-  { id: "victor", nombre: "Víctor", tono: "atencion", estado: "Espera tu visto bueno" },
-  { id: "iris", nombre: "Iris", tono: "neutro", estado: "En pausa" },
+  { id: "lola", nombre: "Aura", tono: "azul", estado: "Contestando un WhatsApp", pulso: true },
+  { id: "clara", nombre: "Altair", tono: "exito", estado: "Activa" },
+  { id: "victor", nombre: "Rigel", tono: "atencion", estado: "Espera tu visto bueno" },
+  { id: "iris", nombre: "Mira", tono: "neutro", estado: "En pausa" },
 ];
 
 const ACTIVIDAD: { agente: IdAgente; quien: string; texto: string; hora: string; insignia?: { tono: "exito" | "atencion" | "azul"; texto: string } }[] = [
-  { agente: "lola", quien: "Lola", texto: "agendó a Mariana Ruiz: limpieza facial, jueves 16:30", hora: "10:44", insignia: { tono: "exito", texto: "Cita confirmada" } },
-  { agente: "clara", quien: "Clara", texto: "resumió 6 correos de proveedores", hora: "09:12" },
-  { agente: "victor", quien: "Víctor", texto: "preparó un mensaje para 4 clientes que no vuelven desde abril", hora: "08:30", insignia: { tono: "atencion", texto: "Espera tu visto bueno" } },
+  { agente: "lola", quien: "Aura", texto: "agendó a Mariana Ruiz: limpieza facial, jueves 16:30", hora: "10:44", insignia: { tono: "exito", texto: "Cita confirmada" } },
+  { agente: "clara", quien: "Altair", texto: "resumió 6 correos de proveedores", hora: "09:12" },
+  { agente: "victor", quien: "Rigel", texto: "preparó un mensaje para 4 clientes que no vuelven desde abril", hora: "08:30", insignia: { tono: "atencion", texto: "Espera tu visto bueno" } },
 ];
 
 function LogoApp({ seccion }: { seccion: string }) {
@@ -245,7 +245,7 @@ export function DemoDashboard({ tema }: { tema: "oscuro" | "claro" }) {
               Buenos días, Ana
             </h3>
             <p className="mt-[var(--spacing-8)] max-w-[60ch] text-grafito">
-              Desde ayer, Lola agendó 3 citas y Clara resumió 6 correos. Víctor tiene un mensaje listo que espera tu visto bueno.
+              Desde ayer, Aura agendó 3 citas y Altair resumió 6 correos. Rigel tiene un mensaje listo que espera tu visto bueno.
             </p>
             <div className="mt-[var(--spacing-20)] flex flex-col gap-[var(--spacing-8)] sm:flex-row">
               <Boton tam="compacto" icono={<Icono nombre="mensaje" />}>
@@ -297,7 +297,7 @@ export function DemoDashboard({ tema }: { tema: "oscuro" | "claro" }) {
                 <span className="marca-agente marca-agente--mini" style={{ ["--agente" as string]: "var(--agente-lola)" }}>
                   <Personaje agente="lola" avatar />
                 </span>
-                <Escribiendo quien="Lola" conTexto />
+                <Escribiendo quien="Aura" conTexto />
               </li>
             </ul>
           </section>

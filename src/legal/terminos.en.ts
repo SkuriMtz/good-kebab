@@ -47,7 +47,7 @@ To make these Terms easier to interpret, the following expressions have the mean
 
 **Artificial Intelligence or AI:** computer systems capable of processing information, interpreting instructions, generating content and carrying out certain tasks automatically.
 
-**Specialists:** functional components of Atendel identified as Lola, Clara, Víctor and Iris, which take part in different internal assistance activities and processes.
+**Specialists:** functional components of Atendel identified as Aura, Altair, Rigel and Mira, which take part in different internal assistance activities and processes.
 
 **Connected apps:** external services the user authorizes so that Atendel can consult information or carry out actions, including Gmail, Outlook, Google Calendar, WhatsApp, Shopify and other compatible services.
 
@@ -79,7 +79,7 @@ Its main capabilities include:
 - Generating notifications about relevant events.
 - Interacting with external apps authorized by the user.
 
-Atendel includes four functional specialists: Lola, Clara, Víctor and Iris, each focused on certain activities within the platform.
+Atendel includes four functional specialists: Aura, Altair, Rigel and Mira, each focused on certain activities within the platform.
 
 However, all these components are part of a single integrated service. The user interacts with them through Atendel, which does not mean there are separate contracts with each specialist.
 
@@ -515,7 +515,7 @@ Unless expressly authorized, access to Atendel does not give the user ownership 
 
 **15.2. Brand and identifying elements**
 
-The Atendel name, its graphic elements and its specialists identified as Lola, Clara, Víctor and Iris are part of the platform's identity, to the extent that the corresponding rights belong to the Provider or their legitimate owners.
+The Atendel name, its graphic elements and its specialists identified as Aura, Altair, Rigel and Mira are part of the platform's identity, to the extent that the corresponding rights belong to the Provider or their legitimate owners.
 
 The user may not use those elements to create an unauthorized commercial association, sell their own products as if they were official or lead third parties to believe they have a representation relationship with Atendel.
 

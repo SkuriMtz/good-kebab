@@ -1053,7 +1053,7 @@ export function VentanaAjustes({
         <Grupo titulo="Mensajes a tus clientes">
           <Fila
             titulo="WhatsApp de tus clientes"
-            texto="Con WhatsApp Business conectado (Tu negocio → Apps), Lola contesta sola lo que marcaste como «Lo hace solo», siempre con tus Reglas. Lo demás te lo deja en «Necesita tu OK», y de todo te avisa en el chat («Avisos de Atendel»). Nunca dice que algo salió si no salió."
+            texto="Con WhatsApp Business conectado (Tu negocio → Apps), Aura contesta sola lo que marcaste como «Lo hace solo», siempre con tus Reglas. Lo demás te lo deja en «Necesita tu OK», y de todo te avisa en el chat («Avisos de Atendel»). Nunca dice que algo salió si no salió."
           />
         </Grupo>
       </>
@@ -1272,13 +1272,13 @@ export function VentanaAjustes({
     );
   } else if (seccion === "conexiones") {
     const apps: { app: string; titulo: string; texto: string }[] = [
-      { app: "whatsapp_business", titulo: "WhatsApp", texto: "Lola lee tus mensajes y te propone respuestas." },
-      { app: "gmail", titulo: "Correo · Gmail", texto: "Clara lo lee. Solo lectura: nunca envía ni borra nada." },
+      { app: "whatsapp_business", titulo: "WhatsApp", texto: "Aura lee tus mensajes y te propone respuestas." },
+      { app: "gmail", titulo: "Correo · Gmail", texto: "Altair lo lee. Solo lectura: nunca envía ni borra nada." },
       { app: "outlook", titulo: "Correo · Outlook", texto: "Lo mismo, si usas Outlook." },
-      { app: "google_calendar", titulo: "Calendario", texto: "Lola ve tu agenda: qué citas tienes y qué horas quedan libres." },
+      { app: "google_calendar", titulo: "Calendario", texto: "Aura ve tu agenda: qué citas tienes y qué horas quedan libres." },
       { app: "instagram", titulo: "Redes · Instagram", texto: "Los mensajes directos de tu cuenta de negocio." },
       { app: "messenger", titulo: "Redes · Messenger", texto: "Los mensajes de tu página de Facebook." },
-      { app: "google_business", titulo: "Google Business", texto: "Víctor lee tus reseñas de Google y te propone respuestas." },
+      { app: "google_business", titulo: "Google Business", texto: "Rigel lee tus reseñas de Google y te propone respuestas." },
     ];
     contenido = (
       <>
@@ -1367,7 +1367,7 @@ export function VentanaAjustes({
           <Fila titulo="Roles" texto="Dar permisos distintos a cada persona (por ejemplo, que vea citas pero no números).">
             <Pronto />
           </Fila>
-          <Fila titulo="Agenda por persona" texto="Que Lola sepa la agenda de cada quien al dar citas.">
+          <Fila titulo="Agenda por persona" texto="Que Aura sepa la agenda de cada quien al dar citas.">
             <Pronto />
           </Fila>
         </Grupo>

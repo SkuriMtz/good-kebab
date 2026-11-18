@@ -74,8 +74,8 @@ export const en: Diccionario = {
     locale: "en_US",
     tituloInicio: "Atendel — Your AI partner for serving your business",
     descripcionInicio:
-      "You write to Atendel and it hands the work to its team: Lola takes your WhatsApp and appointments, Clara your email, Víctor your clients and Iris the office. It works even when you're away and keeps you posted.",
-    agentes: ["Agents", "Atendel and its team: Lola, Clara, Víctor and Iris. What each one does and how they work together."],
+      "You write to Atendel and it hands the work to its team: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away and keeps you posted.",
+    agentes: ["Agents", "Atendel and its team: Aura, Altair, Rigel and Mira. What each one does and how they work together."],
     precios: ["Pricing", "Atendel Free is free and comes with the whole team to try it out. One and Max are for your day to day; Max, with 5 times the usage of One."],
     preguntas: [
       "Questions you might have",
@@ -83,7 +83,7 @@ export const en: Diccionario = {
     ],
     paraQuien: [
       "Who it's for",
-      "If you work by appointment, get messages at all hours, rely on clients coming back or lose time to paperwork: here's what Lola, Clara, Víctor and Iris do for you.",
+      "If you work by appointment, get messages at all hours, rely on clients coming back or lose time to paperwork: here's what Aura, Altair, Rigel and Mira do for you.",
     ],
     lista: ["Waitlist", "Leave your email and we'll let you know when your spot in Atendel opens."],
     contacto: ["Contact", "Send us your questions about Atendel, the plans or how we protect your data. We'll reply to your email."],
@@ -145,7 +145,7 @@ export const en: Diccionario = {
     pruebalo: "Try it",
     tusDatos: "Your data",
     miPanel: "My dashboard",
-    lema: "Atendel, your AI partner: with Lola, Clara, Víctor and Iris it serves your business even when you're away.",
+    lema: "Atendel, your AI partner: with Aura, Altair, Rigel and Mira it serves your business even when you're away.",
     sello: "Sign in with your email · no password",
     franja: "Help and data",
     privacidad: "Privacy",
@@ -158,7 +158,7 @@ export const en: Diccionario = {
       etiqueta: "Your AI partner",
       titulo: "No client left without an answer.",
       texto:
-        "You write to Atendel like you would to a partner and it hands out the work: Lola takes your WhatsApp and appointments, Clara your email, Víctor your clients and Iris the office. It works even when you're away, and nothing involving money goes out without your OK.",
+        "You write to Atendel like you would to a partner and it hands out the work: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
     },
     decisiones: {
       titulo: "It works even when you're away",
@@ -240,7 +240,7 @@ export const en: Diccionario = {
       conexion: "No connection. Check your internet and try again.",
     },
     pagina: {
-      equipo: "Lola, Clara, Víctor and Iris",
+      equipo: "Aura, Altair, Rigel and Mira",
       etiqueta: "Waitlist",
       titulo: "Sign up and we'll let you know when your spot opens",
       texto: "For businesses that serve people. All we need is your email.",
@@ -249,7 +249,7 @@ export const en: Diccionario = {
         { titulo: "Your email goes on the list", texto: "That's all we ask for: no phone number, no password, no business details." },
         {
           titulo: "We'll write when your spot opens",
-          texto: "Atendel opens in stages: Lola's connection to your WhatsApp and calendar is rolling out little by little. We'll let you know at that email.",
+          texto: "Atendel opens in stages: Aura's connection to your WhatsApp and calendar is rolling out little by little. We'll let you know at that email.",
         },
         {
           titulo: "Meanwhile, you can already start",
@@ -328,7 +328,7 @@ export const en: Diccionario = {
   detalle: {
     lola: {
       descripcion:
-        "Lola is your WhatsApp receptionist. She answers your clients right away and at any hour, handles the usual questions and manages your appointments from start to finish. When a conversation needs a person, she lets you know and hands it over.",
+        "Aura is your WhatsApp receptionist. She answers your clients right away and at any hour, handles the usual questions and manages your appointments from start to finish. When a conversation needs a person, she lets you know and hands it over.",
       funciones: [
         { titulo: "Replies right away", detalle: "Answers WhatsApp messages at any hour, in your business's tone." },
         { titulo: "Answers common questions", detalle: "Prices, hours, location, payment options and how to prepare for each service." },
@@ -347,7 +347,7 @@ export const en: Diccionario = {
     },
     clara: {
       descripcion:
-        "Clara takes care of your business email. She receives and reads what comes in, tells you what's urgent and what can wait, replies from your account and makes sure no invoice or payment slips through.",
+        "Altair takes care of your business email. She receives and reads what comes in, tells you what's urgent and what can wait, replies from your account and makes sure no invoice or payment slips through.",
       funciones: [
         { titulo: "Summarizes your inbox", detalle: "Each email in one line: who's writing and what they need." },
         { titulo: "Sorts by urgency", detalle: "Urgent first, then today's, and promotions last." },
@@ -371,7 +371,7 @@ export const en: Diccionario = {
     },
     victor: {
       descripcion:
-        "Víctor makes sure clients come in and come back. He follows up with people who asked and didn't book, wins back people who stopped coming, reschedules no-shows and asks for a review when someone leaves happy.",
+        "Rigel makes sure clients come in and come back. He follows up with people who asked and didn't book, wins back people who stopped coming, reschedules no-shows and asks for a review when someone leaves happy.",
       funciones: [
         { titulo: "Follows up with people who didn't book", detalle: "Writes by name to anyone who asked and was left hanging." },
         { titulo: "Wins back inactive clients", detalle: "Finds people who stopped coming and invites them back." },
@@ -393,7 +393,7 @@ export const en: Diccionario = {
     },
     iris: {
       descripcion:
-        "Iris does the office work you never have time for. She researches whatever you ask and gives it to you in Excel, summarizes long PDFs, builds the monthly report on appointments and clients, and prepares documents like forms and contracts.",
+        "Mira does the office work you never have time for. She researches whatever you ask and gives it to you in Excel, summarizes long PDFs, builds the monthly report on appointments and clients, and prepares documents like forms and contracts.",
       funciones: [
         { titulo: "Researches and puts it in Excel", detalle: "Compares prices, suppliers or options and hands you the table." },
         { titulo: "Summarizes PDFs", detalle: "Contracts and long documents, down to the points that matter." },
@@ -401,7 +401,7 @@ export const en: Diccionario = {
         { titulo: "Prepares documents", detalle: "Forms, contracts and letters in your own templates." },
         { titulo: "Tells you how to double-check", detalle: "When something can change —prices, procedures— she tells you where to confirm it." },
       ],
-      canal: "Chat with Iris",
+      canal: "Chat with Mira",
       conversacion: [
         { de: "otro", quien: "You", texto: "How much do other businesses around here charge for a one-hour session?" },
         {
@@ -418,7 +418,7 @@ export const en: Diccionario = {
     etiqueta: "Front desk · Email · Clients · Office",
     titulo: "What will you hand off today?",
     texto:
-      "You write to Atendel and it passes the job to the right one: Lola takes your WhatsApp and appointments, Clara handles your email, Víctor brings your clients back and Iris does the office work. Tap any of them to see their profile.",
+      "You write to Atendel and it passes the job to the right one: Aura takes your WhatsApp and appointments, Altair handles your email, Rigel brings your clients back and Mira does the office work. Tap any of them to see their profile.",
     hablar: "Talk to Atendel",
     verPrecios: "See pricing",
     chatEtiqueta: "The chat",
@@ -440,7 +440,7 @@ export const en: Diccionario = {
     enQuePlan: "Which plans include them",
     incluido: "Included",
     noIncluido: "Not included",
-    llegaCon: (nombre: string, plan: string) => `${nombre} comes with ${plan}. Meanwhile, you can start for free with Clara.`,
+    llegaCon: (nombre: string, plan: string) => `${nombre} comes with ${plan}. Meanwhile, you can start for free with Altair.`,
     probarGratis: (nombre: string) => `Try ${nombre} for free`,
     empezarGratis: "Start for free",
     pruebaloCon: (nombre: string) => `Try it with ${nombre}`,
@@ -461,10 +461,10 @@ export const en: Diccionario = {
     verFicha: "View profile",
     conversacionEtiqueta: (canal: string) => `Sample conversation · ${canal}`,
     tituloConversacion: {
-      lola: "How Lola answers a WhatsApp message",
-      clara: "How Clara answers an email",
-      victor: "How Víctor follows up with someone who didn't book",
-      iris: "How you hand work to Iris",
+      lola: "How Aura answers a WhatsApp message",
+      clara: "How Altair answers an email",
+      victor: "How Rigel follows up with someone who didn't book",
+      iris: "How you hand work to Mira",
     },
     queHace: "What they do",
     todoLoQueHace: (nombre: string) => `Everything ${nombre} does`,
@@ -474,7 +474,7 @@ export const en: Diccionario = {
     planes: "Plans",
     enQuePlan: (nombre: string) => `Which plans include ${nombre}`,
     enLosTres: (nombre: string) => `${nombre} comes with all three plans, including the free one: you can start today.`,
-    llegaCon: (nombre: string, plan: string) => `${nombre} comes with ${plan}. Meanwhile, you can start for free with Clara.`,
+    llegaCon: (nombre: string, plan: string) => `${nombre} comes with ${plan}. Meanwhile, you can start for free with Altair.`,
     desdeAqui: "Starts here",
     incluye: (nombre: string) => `Includes ${nombre}`,
     noViene: "Not in this plan",
@@ -583,7 +583,7 @@ export const en: Diccionario = {
           },
           {
             p: "Will it work for my business?",
-            r: "If you serve people over WhatsApp, email or by appointment, yes: Atendel and its team (Lola, Clara, Víctor and Iris) take care of that part of the work.",
+            r: "If you serve people over WhatsApp, email or by appointment, yes: Atendel and its team (Aura, Altair, Rigel and Mira) take care of that part of the work.",
           },
           {
             p: "Does Atendel work even when I'm away?",
@@ -591,7 +591,7 @@ export const en: Diccionario = {
           },
           {
             p: "What can I use today?",
-            r: "The chat with Atendel and its team, your email, your connected apps, the morning review and scheduled tasks. Connecting your WhatsApp Business, so Lola can answer your clients on her own, is rolling out in stages.",
+            r: "The chat with Atendel and its team, your email, your connected apps, the morning review and scheduled tasks. Connecting your WhatsApp Business, so Aura can answer your clients on her own, is rolling out in stages.",
           },
         ],
       },
@@ -617,7 +617,7 @@ export const en: Diccionario = {
           },
           {
             p: "Do I have to tell it which agent should do it?",
-            r: "No. You write to Atendel and it decides whose job it is: Lola, Clara, Víctor or Iris. You get one answer, and below it you see who did it.",
+            r: "No. You write to Atendel and it decides whose job it is: Aura, Altair, Rigel or Mira. You get one answer, and below it you see who did it.",
           },
         ],
       },
@@ -626,7 +626,7 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "Will my clients know it's an AI agent?",
-            r: "If a client asks, Lola naturally says she's your business's virtual assistant. And when a conversation needs a person, she lets you know and hands it over.",
+            r: "If a client asks, Aura naturally says she's your business's virtual assistant. And when a conversation needs a person, she lets you know and hands it over.",
           },
           {
             p: "What if an agent makes a mistake?",
@@ -791,7 +791,7 @@ export const en: Diccionario = {
     volver: "Back to home",
     sigue: "Or try one of these",
     atajos: [
-      { href: "/agentes", titulo: "Agents", texto: "Lola, Clara, Víctor and Iris: what each one does" },
+      { href: "/agentes", titulo: "Agents", texto: "Aura, Altair, Rigel and Mira: what each one does" },
       { href: "/precios", titulo: "Pricing", texto: "What Free, One and Max include" },
       { href: "/preguntas", titulo: "Questions you might have", texto: "How to get started and how we protect your data" },
       { href: "/pruebalo", titulo: "Try it", texto: "Chat with the agents in a sample chat" },

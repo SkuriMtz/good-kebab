@@ -18,7 +18,7 @@ export type DetalleAgente = {
 export const DETALLE: Record<IdAgente, DetalleAgente> = {
   lola: {
     descripcion:
-      "Lola es tu recepcionista en WhatsApp. Contesta a tus clientes al momento y a cualquier hora, resuelve las dudas de siempre y lleva tus citas de principio a fin. Cuando una conversación necesita a una persona, te avisa y te la pasa.",
+      "Aura es tu recepcionista en WhatsApp. Contesta a tus clientes al momento y a cualquier hora, resuelve las dudas de siempre y lleva tus citas de principio a fin. Cuando una conversación necesita a una persona, te avisa y te la pasa.",
     funciones: [
       { titulo: "Contesta al momento", detalle: "Responde los mensajes de WhatsApp a cualquier hora, con el tono de tu negocio." },
       { titulo: "Resuelve preguntas frecuentes", detalle: "Precios, horarios, ubicación, formas de pago y cómo prepararse para cada servicio." },
@@ -41,7 +41,7 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
   },
   clara: {
     descripcion:
-      "Clara se encarga del correo de tu negocio. Recibe y lee lo que llega, te dice qué es urgente y qué puede esperar, contesta desde tu cuenta y cuida que no se te pase ninguna factura ni ningún pago.",
+      "Altair se encarga del correo de tu negocio. Recibe y lee lo que llega, te dice qué es urgente y qué puede esperar, contesta desde tu cuenta y cuida que no se te pase ninguna factura ni ningún pago.",
     funciones: [
       { titulo: "Resume tu bandeja", detalle: "Cada correo en una línea: quién escribe y qué necesita." },
       { titulo: "Ordena por urgencia", detalle: "Lo urgente primero, luego lo de hoy y al final las promociones." },
@@ -65,7 +65,7 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
   },
   victor: {
     descripcion:
-      "Víctor se encarga de que los clientes lleguen y regresen. Da seguimiento a quien preguntó y no agendó, reactiva a quien dejó de venir, rescata a quien faltó a su cita y pide una reseña cuando alguien sale contento.",
+      "Rigel se encarga de que los clientes lleguen y regresen. Da seguimiento a quien preguntó y no agendó, reactiva a quien dejó de venir, rescata a quien faltó a su cita y pide una reseña cuando alguien sale contento.",
     funciones: [
       { titulo: "Sigue a quien no agendó", detalle: "Escribe por su nombre a quien preguntó y se quedó en el aire." },
       { titulo: "Reactiva clientes inactivos", detalle: "Encuentra a quien dejó de venir y le propone volver." },
@@ -87,7 +87,7 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
   },
   iris: {
     descripcion:
-      "Iris hace el trabajo de oficina que nunca te da tiempo de hacer. Investiga lo que le pidas y te lo entrega en Excel, resume PDFs largos, arma el reporte mensual de citas y clientes, y prepara documentos como consentimientos y contratos.",
+      "Mira hace el trabajo de oficina que nunca te da tiempo de hacer. Investiga lo que le pidas y te lo entrega en Excel, resume PDFs largos, arma el reporte mensual de citas y clientes, y prepara documentos como consentimientos y contratos.",
     funciones: [
       { titulo: "Investiga y lo pasa a Excel", detalle: "Compara precios, proveedores u opciones y te entrega la tabla." },
       { titulo: "Resume PDFs", detalle: "Contratos y documentos largos, en los puntos que importan." },
@@ -95,7 +95,7 @@ export const DETALLE: Record<IdAgente, DetalleAgente> = {
       { titulo: "Prepara documentos", detalle: "Consentimientos, contratos y cartas con tus formatos." },
       { titulo: "Te dice cómo verificar", detalle: "Cuando un dato puede cambiar —precios, trámites— te dice dónde confirmarlo." },
     ],
-    canal: "Chat con Iris",
+    canal: "Chat con Mira",
     conversacion: [
       { de: "otro", quien: "Tú", texto: "¿Cuánto cobran otros negocios de la zona por una sesión de 1 hora?" },
       {

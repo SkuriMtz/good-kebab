@@ -10,7 +10,7 @@ import { createClient } from "./supabase/server";
 /**
  * Lo que espera algo de ti en el panel, contado igual en todas partes (el
  * número del menú, el Inicio y la vista Pendientes):
- * - los correos que Clara resumió con una acción sugerida: no nula, no
+ * - los correos que Altair resumió con una acción sugerida: no nula, no
  *   vacía y que no empiece con "ninguna" (conteo exacto en la base), y
  * - los primeros pasos que faltan.
  * Solo lee; RLS deja ver a cada quien solo lo suyo. Con `cache`, el layout
@@ -27,7 +27,7 @@ export type WhatsappPendiente = {
   telefono: string;
   nombre: string | null;
   texto: string;
-  /** Lo que Lola propone contestar (puede no haber). */
+  /** Lo que Aura propone contestar (puede no haber). */
   borrador: string | null;
   motivo: string | null;
   creado_en: string;
@@ -72,7 +72,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
   const ids = await negociosDe(supabase, userId);
 
   // El mismo filtro para contar y para listar: no nula, no vacía y que no empiece con "ninguna"
-  // Lo de WhatsApp que espera tu decisión, y lo que Lola no alcanzó a terminar (más de 3 minutos)
+  // Lo de WhatsApp que espera tu decisión, y lo que Aura no alcanzó a terminar (más de 3 minutos)
   const atorados = new Date(Date.now() - 3 * 60_000).toISOString();
   const [cuenta, correos, conversaciones, grupos, perfil, apps, envios, whatsapp, acciones] = await Promise.all([
     supabase

@@ -40,7 +40,7 @@ export type DatosArmazonReal = {
   plan: string;
   /** El uso del plan: sesión de 5 horas y semana (como Claude). */
   uso: EstadoUso;
-  /** ¿Entró con Google? (entonces Clara lee su Gmail) */
+  /** ¿Entró con Google? (entonces Altair lee su Gmail) */
   gmail: boolean;
   activos: IdAgente[];
   pendientes: number | null;

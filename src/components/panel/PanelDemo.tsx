@@ -60,7 +60,7 @@ function claveDe(url: URL) {
 }
 
 /** ¿Es un grupo con nombre? (empieza con "Creaste el grupo…"): va en Fijados. */
-/** Cómo empieza acomodado el ejemplo: los dos grupos fijados y un grupo "Proveedores" con lo de Iris. */
+/** Cómo empieza acomodado el ejemplo: los dos grupos fijados y un grupo "Proveedores" con lo de Mira. */
 const ORGANIZACION_DEMO: OrganizacionChats = { fijadas: ["recepcion", "cierre"], archivadas: [], grupos: [{ id: "g-proveedores", nombre: "Proveedores", chats: ["iris"] }] };
 const CLAVE_ORGANIZACION = "atendel-pruebalo-organizacion";
 

@@ -1,7 +1,7 @@
 /**
  * LÍNEAS DE ESTADO EN EL STREAM DEL CHAT (POST /api/chat)
  *
- * Mientras un agente usa una app (p. ej. "Clara está revisando tu correo…"),
+ * Mientras un agente usa una app (p. ej. "Altair está revisando tu correo…"),
  * el servidor mete en el texto del stream un marco:
  *
  *   "\u0001" + texto del estado + "\u0002"

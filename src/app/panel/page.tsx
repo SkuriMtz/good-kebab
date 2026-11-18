@@ -37,13 +37,13 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - /panel (&pide=texto, &area=citas): «Hoy», que ES un chat nuevo con lo que te necesita debajo.
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
- * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Lola (vacía hasta conectar WhatsApp).
+ * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Aura (vacía hasta conectar WhatsApp).
  * - ?vista=negocio (&tab=perfil|documentos|apps; al regresar del permiso &conectada=app o &error=código&app=app): Tu negocio.
  * - ?vista=estadisticas (&periodo=7d|30d|mes): cómo va el negocio (VistaNegocio, del trabajador B).
  * - ?vista=pendientes&tab=hecho (o ?vista=hecho): la pestaña Hecho de Pendientes, lo que el
  *   equipo ya terminó (pedidos con respuesta y correos resumidos).
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
- * - ?vista=correo (&de=remitente): Correo con Clara (modo de prueba, Gmail e historial).
+ * - ?vista=correo (&de=remitente): Correo con Altair (modo de prueba, Gmail e historial).
  * - ?vista=oficina: lo que Atendel te dejó (archivos e informes) para revisar, aprobar o pedir cambios.
  * - ?vista=tareas: Tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
@@ -153,7 +153,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
   }
 
   if (searchParams.vista === "hecho" || (searchParams.vista === "pendientes" && searchParams.tab === "hecho")) {
-    // Lo que el equipo ya terminó: cada pedido con respuesta y los correos que Clara resumió
+    // Lo que el equipo ya terminó: cada pedido con respuesta y los correos que Altair resumió
     const ids = await negociosDe(supabase, user.id);
     const [{ data: msjs }, { data: convs }, { data: res }, { data: archivos }, { data: envios }] = await Promise.all([
       supabase.from("mensajes").select("conversacion_id, rol, contenido, agente, creado_en").eq("owner_id", user.id).order("creado_en", { ascending: false }).limit(400),

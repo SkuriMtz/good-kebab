@@ -362,7 +362,7 @@ export function ElegirTema() {
   );
 }
 
-/* ---------- Correo (la lista de lo que Clara leyó) ---------- */
+/* ---------- Correo (la lista de lo que Altair leyó) ---------- */
 
 export type FilaCorreoDatos = { id: string; remitente: string; asunto: string; resumen: string; accion?: string; hrefAccion?: string; fecha: string; prioridad?: { texto: string; tono: "error" | "atencion" | "neutro" | "azul" }; nuevo?: boolean };
 

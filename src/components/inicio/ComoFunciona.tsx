@@ -12,7 +12,7 @@ import { DETALLE } from "@/components/agentes/detalle";
 import { PASOS } from "@/lib/contenido";
 import { PERSONAJES } from "@/lib/personajes";
 
-/** La conversación de ejemplo de Lola (detalle.ts): Mariana pregunta y Lola deja lista la respuesta. */
+/** La conversación de ejemplo de Aura (detalle.ts): Mariana pregunta y Aura deja lista la respuesta. */
 const PREGUNTA = DETALLE.lola.conversacion.find((m) => m.de === "otro");
 const RESPUESTA = DETALLE.lola.conversacion.find((m) => m.de === "agente");
 
@@ -59,7 +59,7 @@ export function ComoFunciona() {
 }
 
 /**
- * Muestra del panel: la respuesta que Lola dejó lista para Mariana y que no
+ * Muestra del panel: la respuesta que Aura dejó lista para Mariana y que no
  * sale sin tu visto bueno. Es una muestra local (no envía nada): al darle el
  * visto bueno cambia a "Enviado"; "Ver de nuevo" la regresa al principio.
  */
@@ -91,7 +91,7 @@ function MuestraVistoBueno() {
           <Personaje agente="lola" avatar />
         </span>
         <p className="visto__quien">
-          <span className="visto__nombre">Lola</span>
+          <span className="visto__nombre">Aura</span>
           <span className="visto__para">para {PREGUNTA?.quien} · WhatsApp</span>
         </p>
         <span className="visto__estado" aria-live="polite">
@@ -113,7 +113,7 @@ function MuestraVistoBueno() {
           <span className="visto__hora cifras">{PREGUNTA?.hora}</span>
         </div>
         <div className={`visto__burbuja visto__burbuja--agente${enviado ? " visto__burbuja--enviada" : ""}`}>
-          <span className="visto__borrador">{enviado ? "Respuesta de Lola" : "Borrador de Lola"}</span>
+          <span className="visto__borrador">{enviado ? "Respuesta de Aura" : "Borrador de Aura"}</span>
           <p>{RESPUESTA?.texto}</p>
           {enviado ? (
             <span className="visto__hora cifras">

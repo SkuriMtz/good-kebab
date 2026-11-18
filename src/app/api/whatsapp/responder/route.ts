@@ -5,7 +5,7 @@ import { registrarEvento } from "@/lib/seguridad";
 
 /**
  * POST /api/whatsapp/responder {id}: la base de datos lo llama al llegar un
- * mensaje de un cliente (migración 0022, pg_net). Lola contesta sola o deja
+ * mensaje de un cliente (migración 0022, pg_net). Aura contesta sola o deja
  * la respuesta esperando tu OK (src/lib/whatsapp/responder.ts).
  *
  * Seguridad: solo con la llave que la base de datos guarda en su Vault

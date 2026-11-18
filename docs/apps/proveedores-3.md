@@ -11,14 +11,14 @@ Estas secciones se suman a `docs/configurar-apps.md`. En todas:
 
 | App | Cómo se conecta | Qué pega la persona / qué va en Vercel | Lo usan |
 | --- | --- | --- | --- |
-| PayPal | Llave | `clientId:secret` de su app REST | Iris |
-| Conekta | Llave | su llave privada `key_…` | Iris |
-| Openpay | Llave | `merchantId:llavePrivada` | Iris (clientes también Víctor) |
-| Square | OAuth | `SQUARE_CLIENT_ID`, `SQUARE_CLIENT_SECRET` | Iris, Víctor (clientes) y Lola (citas) |
-| Facturama | Llave | `usuario:contraseña` de su cuenta | Iris y Víctor |
-| Alegra | Llave | `correo:token` | Iris y Víctor |
-| Holded | Llave | su clave de la API | Iris y Víctor |
-| QuickBooks | OAuth | `QUICKBOOKS_CLIENT_ID`, `QUICKBOOKS_CLIENT_SECRET` | Iris y Víctor |
+| PayPal | Llave | `clientId:secret` de su app REST | Mira |
+| Conekta | Llave | su llave privada `key_…` | Mira |
+| Openpay | Llave | `merchantId:llavePrivada` | Mira (clientes también Rigel) |
+| Square | OAuth | `SQUARE_CLIENT_ID`, `SQUARE_CLIENT_SECRET` | Mira, Rigel (clientes) y Aura (citas) |
+| Facturama | Llave | `usuario:contraseña` de su cuenta | Mira y Rigel |
+| Alegra | Llave | `correo:token` | Mira y Rigel |
+| Holded | Llave | su clave de la API | Mira y Rigel |
+| QuickBooks | OAuth | `QUICKBOOKS_CLIENT_ID`, `QUICKBOOKS_CLIENT_SECRET` | Mira y Rigel |
 
 Las apps **por llave** no necesitan nada en Vercel (solo `ATENDEL_LLAVE_CIFRADO`): cada negocio pega **su** llave en la tarjeta de la app (Tu negocio → Apps) y se guarda cifrada. La llave nunca se muestra de vuelta ni se escribe en los registros. Las llaves de dos partes se pegan **juntas, separadas por dos puntos y sin espacios**, por ejemplo `AbC123…:XyZ789…`.
 
@@ -30,7 +30,7 @@ Para desconectar, el botón **Desconectar** borra la llave de Atendel. Si ademá
 
 ### PayPal (por llave)
 
-**Qué hace la IA:** Iris ve tus movimientos de los últimos 31 días (cobros, reembolsos y comisiones, con quién pagó y el concepto) y el saldo de tu cuenta. PayPal tarda hasta 3 horas en mostrar un movimiento nuevo.
+**Qué hace la IA:** Mira ve tus movimientos de los últimos 31 días (cobros, reembolsos y comisiones, con quién pagó y el concepto) y el saldo de tu cuenta. PayPal tarda hasta 3 horas en mostrar un movimiento nuevo.
 
 **Cómo sacar la llave:**
 
@@ -46,7 +46,7 @@ Atendel cambia esa llave por un permiso que dura unas 9 horas y lo renueva solo.
 
 ### Conekta (por llave)
 
-**Qué hace la IA:** Iris ve tus órdenes y tus cargos recientes (tarjeta, efectivo en OXXO y SPEI), con monto, estado, cliente y productos. Puede buscar por correo o referencia.
+**Qué hace la IA:** Mira ve tus órdenes y tus cargos recientes (tarjeta, efectivo en OXXO y SPEI), con monto, estado, cliente y productos. Puede buscar por correo o referencia.
 
 **Cómo sacar la llave:**
 
@@ -58,7 +58,7 @@ Atendel cambia esa llave por un permiso que dura unas 9 horas y lo renueva solo.
 
 ### Openpay (por llave)
 
-**Qué hace la IA:** Iris ve tus cargos recientes (tarjeta, efectivo en tienda o SPEI), con monto, estado y el motivo si falló. Iris y Víctor pueden buscar a tus clientes guardados en Openpay.
+**Qué hace la IA:** Mira ve tus cargos recientes (tarjeta, efectivo en tienda o SPEI), con monto, estado y el motivo si falló. Mira y Rigel pueden buscar a tus clientes guardados en Openpay.
 
 **Cómo sacar la llave:**
 
@@ -71,7 +71,7 @@ Si la llave es del ambiente de pruebas (Sandbox), Atendel lo detecta solo.
 
 ### Square (OAuth)
 
-**Qué hace la IA:** Iris ve tus pagos recientes; Iris y Víctor buscan a tus clientes del directorio de Square; Lola e Iris ven las citas de **Square Appointments** (hasta 31 días a la vez), con el nombre de quien reservó.
+**Qué hace la IA:** Mira ve tus pagos recientes; Mira y Rigel buscan a tus clientes del directorio de Square; Aura e Mira ven las citas de **Square Appointments** (hasta 31 días a la vez), con el nombre de quien reservó.
 
 > Square opera en pocos países (por ejemplo Estados Unidos, Canadá y España). Si la cuenta es de otro país, los montos salen en su moneda.
 
@@ -96,7 +96,7 @@ El permiso dura 30 días y Atendel lo renueva solo. **Desconectar** también rev
 
 ### Facturama (por llave)
 
-**Qué hace la IA:** Iris y Víctor ven tus facturas (CFDI) emitidas: fecha, serie y folio, cliente con su RFC, total, si está vigente o cancelada y su UUID. Pueden buscarlas por **RFC** o nombre del cliente, por estado y por fechas, y buscar a tus clientes guardados. **Solo lectura: Atendel nunca timbra, cancela ni envía facturas.**
+**Qué hace la IA:** Mira y Rigel ven tus facturas (CFDI) emitidas: fecha, serie y folio, cliente con su RFC, total, si está vigente o cancelada y su UUID. Pueden buscarlas por **RFC** o nombre del cliente, por estado y por fechas, y buscar a tus clientes guardados. **Solo lectura: Atendel nunca timbra, cancela ni envía facturas.**
 
 **Cómo sacar la llave:**
 
@@ -110,7 +110,7 @@ Si la cuenta es de pruebas (Sandbox), Atendel lo detecta solo.
 
 ### Alegra (por llave)
 
-**Qué hace la IA:** Iris y Víctor ven tus facturas de venta (con lo que falta por cobrar y cuándo vencen) y buscan tus contactos; Iris ve los cobros que registras.
+**Qué hace la IA:** Mira y Rigel ven tus facturas de venta (con lo que falta por cobrar y cuándo vencen) y buscan tus contactos; Mira ve los cobros que registras.
 
 **Cómo sacar la llave:**
 
@@ -122,7 +122,7 @@ Si la cuenta es de pruebas (Sandbox), Atendel lo detecta solo.
 
 ### Holded (por llave)
 
-**Qué hace la IA:** Iris y Víctor ven tus facturas (con lo pendiente por cobrar) y buscan tus contactos; Iris ve también presupuestos, pedidos de venta, proformas, tickets de venta y albaranes.
+**Qué hace la IA:** Mira y Rigel ven tus facturas (con lo pendiente por cobrar) y buscan tus contactos; Mira ve también presupuestos, pedidos de venta, proformas, tickets de venta y albaranes.
 
 Atendel usa la **API v2** de Holded (la v1 ya es obsoleta).
 
@@ -136,7 +136,7 @@ Atendel usa la **API v2** de Holded (la v1 ya es obsoleta).
 
 ### QuickBooks (OAuth)
 
-**Qué hace la IA:** Iris y Víctor ven tus facturas (con saldo y vencimiento) y buscan a tus clientes; Iris ve los pagos que recibes.
+**Qué hace la IA:** Mira y Rigel ven tus facturas (con saldo y vencimiento) y buscan a tus clientes; Mira ve los pagos que recibes.
 
 1. Entra a [developer.intuit.com](https://developer.intuit.com) → **Dashboard** → **Create an app** → **QuickBooks Online and Payments**, ponle "Atendel" y elige el permiso **Accounting** (`com.intuit.quickbooks.accounting`).
 2. En **Keys & credentials**, en **Redirect URIs**, agrega `https://<dominio>/api/conexiones/quickbooks/callback` (una por cada dominio que uses).

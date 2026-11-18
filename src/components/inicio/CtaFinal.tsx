@@ -19,7 +19,7 @@ export function CtaFinal() {
     <Seccion id="lista" etiquetadaPor="lista-titulo" halo fondo="portada" className="cta-final">
       <Halo y="46%" ancho="min(880px, 120vw)" />
       <div className="cta-final__centro">
-        <ul className="cta-final__equipo" aria-label="Lola, Clara, Víctor e Iris">
+        <ul className="cta-final__equipo" aria-label="Aura, Altair, Rigel e Mira">
           {IDS_AGENTES.map((a) => (
             <li
               key={a}
@@ -35,7 +35,7 @@ export function CtaFinal() {
           Aparta el lugar de tu negocio.
         </h2>
         <p className="t-intro cta-final__texto">
-          Déjanos tu correo y te avisamos cuando abramos tu lugar. Mientras, platica con Lola, Clara, Víctor e Iris en
+          Déjanos tu correo y te avisamos cuando abramos tu lugar. Mientras, platica con Aura, Altair, Rigel e Mira en
           Pruébalo.
         </p>
         <FormularioLista centrado className="cta-final__formulario" />

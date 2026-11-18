@@ -11,7 +11,7 @@ import { mandarTexto } from "@/lib/whatsapp/cloud";
  * POST /api/whatsapp/[id]  { accion: "mandar", texto } | { accion: "descartar" }
  *
  * Tu decisión sobre un mensaje de un cliente que espera tu OK: mandarle la
- * respuesta (la que propuso Lola o la tuya) o no contestar.
+ * respuesta (la que propuso Aura o la tuya) o no contestar.
  * - Con tu sesión (RLS): solo mensajes de tu cuenta.
  * - Se "toma" primero: dos clics seguidos no lo mandan dos veces.
  * - Solo dentro de las 24 horas desde su último mensaje (regla de WhatsApp).
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Lo que espera tu decisión. */
 const ESPERAN = ["esperando_ok", "sin_respuesta", "error"];
-/** Lo que se quedó a medias (más de 3 minutos sin que Lola terminara). */
+/** Lo que se quedó a medias (más de 3 minutos sin que Aura terminara). */
 const ATORADOS = ["recibido", "pensando"];
 const TRES_MIN = 3 * 60_000;
 const error = (mensaje: string, status: number) => NextResponse.json({ error: mensaje }, { status });

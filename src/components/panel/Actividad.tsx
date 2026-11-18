@@ -59,7 +59,7 @@ function VistaActividad({ filas, base, hora, dia, nota, resumen, mas = 0 }: { fi
           ))}
         </ol>
       ) : (
-        <Vacio agente="lola" titulo={filtro ? "Nada en ese momento" : "Todavía no hay actividad"} texto={nota ?? "Aquí aparece lo que hacen tus agentes: tus conversaciones y los correos que Clara lee."} />
+        <Vacio agente="lola" titulo={filtro ? "Nada en ese momento" : "Todavía no hay actividad"} texto={nota ?? "Aquí aparece lo que hacen tus agentes: tus conversaciones y los correos que Altair lee."} />
       )}
       {mas > 0 ? <p className="pc-nota">Y {mas.toLocaleString("es-MX")} más. Estos son los más recientes.</p> : null}
     </Seccion>
@@ -89,7 +89,7 @@ export function ActividadReal({ conversaciones, resumenes, hora, dia }: { conver
     ...conversaciones.map((c) => ({ en: c.actualizado_en, f: { id: `c-${c.id}`, agente: c.agente as IdAgente, texto: `Conversación con ${AGENTE_POR_ID[c.agente as IdAgente]?.nombre ?? "tu equipo"}`, detalle: c.titulo, href: `/panel?c=${encodeURIComponent(c.id)}` } })),
     ...resumenes.map((r) => {
       const quien = nombreRemitente(r.remitente);
-      return { en: r.creado_en, f: { id: `r-${r.id}`, agente: "clara" as IdAgente, texto: `Clara leyó un correo de ${quien}`, detalle: r.asunto || "(sin asunto)", href: `/panel?vista=correo&de=${encodeURIComponent(quien)}` } };
+      return { en: r.creado_en, f: { id: `r-${r.id}`, agente: "clara" as IdAgente, texto: `Altair leyó un correo de ${quien}`, detalle: r.asunto || "(sin asunto)", href: `/panel?vista=correo&de=${encodeURIComponent(quien)}` } };
     }),
   ]
     .filter((x) => (hora === undefined || horaLocal(x.en) === hora) && (!dia || diaLocal(x.en) === dia))
@@ -129,11 +129,11 @@ export function ActividadDemo({ hora, dia, periodo, ahora }: { hora?: number; di
   const todas = [
     ...[...porConv.entries()].map(([id, c]) => ({
       en: c.en,
-      f: { id: `w-${id}`, agente: "lola" as IdAgente, texto: `Lola atendió a ${c.cliente} por WhatsApp`, detalle: `${c.tema ?? "Siguió la conversación"} · ${c.n} ${c.n === 1 ? "mensaje" : "mensajes"}`, href: `/pruebalo?vista=citas&de=${encodeURIComponent(c.cliente)}` },
+      f: { id: `w-${id}`, agente: "lola" as IdAgente, texto: `Aura atendió a ${c.cliente} por WhatsApp`, detalle: `${c.tema ?? "Siguió la conversación"} · ${c.n} ${c.n === 1 ? "mensaje" : "mensajes"}`, href: `/pruebalo?vista=citas&de=${encodeURIComponent(c.cliente)}` },
     })),
     ...mails.map((c, i) => {
       const accion = c.accion_sugerida && !/^ninguna/i.test(c.accion_sugerida) ? c.accion_sugerida : null;
-      return { en: c.creado_en, f: { id: `c-${i}-${c.creado_en}`, agente: "clara" as IdAgente, texto: `Clara leyó un correo de ${c.remitente}`, detalle: accion ?? "Sin acción", href: `/pruebalo?vista=correo&de=${encodeURIComponent(c.remitente ?? "")}` } };
+      return { en: c.creado_en, f: { id: `c-${i}-${c.creado_en}`, agente: "clara" as IdAgente, texto: `Altair leyó un correo de ${c.remitente}`, detalle: accion ?? "Sin acción", href: `/pruebalo?vista=correo&de=${encodeURIComponent(c.remitente ?? "")}` } };
     }),
   ].sort((a, b) => b.en.localeCompare(a.en));
   const TOPE = 60;

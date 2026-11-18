@@ -103,7 +103,7 @@ const pathAt = (a: number[], b: number[], t: number) => {
   return `${d}Z`;
 };
 
-// Letras con acento incluidas: así "Víctor" también se encuentra al escribir
+// Letras con acento incluidas: así "Rigel" también se encuentra al escribir
 const parseToken = (draft: string) => {
   const m = /(^|\s)([@/])([\wÀ-ÿ-]*)$/.exec(draft);
   if (!m) return null;

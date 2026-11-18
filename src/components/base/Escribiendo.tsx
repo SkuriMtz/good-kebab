@@ -8,11 +8,11 @@
  *   esquina de abajo a la izquierda en --radio-burbuja-esquina, fondo --c-elevado).
  * - variante "suelto": solo los puntos, del color del texto (en una fila de
  *   lista, en la cabecera de un chat o junto al nombre del agente).
- * - `conTexto`: además, el texto visible ("Lola está escribiendo…").
+ * - `conTexto`: además, el texto visible ("Aura está escribiendo…").
  *
  * Accesibilidad: role="status" con el texto completo; los puntos van ocultos.
  *
- *   <Escribiendo quien="Lola" variante="burbuja" />
+ *   <Escribiendo quien="Aura" variante="burbuja" />
  */
 export function Escribiendo({
   quien,

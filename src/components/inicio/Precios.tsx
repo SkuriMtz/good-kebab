@@ -17,7 +17,7 @@ export function Precios() {
           id="precios-titulo"
           alineacion="izquierda"
           etiqueta="Planes"
-          titulo="Empieza gratis con Clara. Suma a Lola y al resto del equipo cuando lo necesites."
+          titulo="Empieza gratis con Altair. Suma a Aura y al resto del equipo cuando lo necesites."
           className="precios-cabeza__texto"
         />
         <Link href="/precios#comparar" className="enlace-flecha">

@@ -44,7 +44,7 @@ type Mensaje = {
   enCurso?: boolean;
   /** Escrito en esta visita: entra con animación. */
   nuevo?: boolean;
-  /** Lo que hace el agente con una app mientras contesta ("Clara está revisando tu correo…"). */
+  /** Lo que hace el agente con una app mientras contesta ("Altair está revisando tu correo…"). */
   estado?: string | null;
 };
 
@@ -127,7 +127,7 @@ export function Chat({
   textoDeFuera?: boolean;
   /** "Buenas noches, Ana" (con la hora de la Ciudad de México, igual en el servidor y aquí). */
   saludo: string;
-  /** ¿Gmail conectado? (las tarjetas de Clara sin Gmail llevan a conectarlo). */
+  /** ¿Gmail conectado? (las tarjetas de Altair sin Gmail llevan a conectarlo). */
   conGoogle: boolean;
   /** «Hoy»: lo que va debajo de la caja en el Inicio (Te necesita, Lo que viene, Lo que ya hice). */
   hoy?: ReactNode;
@@ -495,7 +495,7 @@ export function Chat({
       .map((p) => {
         const enEquipo = activos.includes(p.agente);
         const enPlan = plan.agentes.includes(p.agente);
-        // Clara lee tu Gmail: sin Gmail, la tarjeta lleva a conectarlo. WhatsApp todavía no: Lola deja el mensaje listo
+        // Altair lee tu Gmail: sin Gmail, la tarjeta lleva a conectarlo. WhatsApp todavía no: Aura deja el mensaje listo
         const sinGmail = p.requiere === "gmail" && !conGoogle;
         return {
           pedido: p,

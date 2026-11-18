@@ -44,8 +44,8 @@ export const es = {
     locale: "es_MX",
     tituloInicio: "Atendel — Tu socio de IA para atender tu negocio",
     descripcionInicio:
-      "Le escribes a Atendel y él reparte el trabajo a su equipo: Lola atiende tu WhatsApp y tus citas, Clara tu correo, Víctor a tus clientes e Iris la oficina. Trabaja aunque no estés y te avisa de todo.",
-    agentes: ["Agentes", "Atendel y su equipo: Lola, Clara, Víctor e Iris. Qué hace cada uno y cómo trabajan juntos."],
+      "Le escribes a Atendel y él reparte el trabajo a su equipo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes e Mira la oficina. Trabaja aunque no estés y te avisa de todo.",
+    agentes: ["Agentes", "Atendel y su equipo: Aura, Altair, Rigel e Mira. Qué hace cada uno y cómo trabajan juntos."],
     precios: ["Precios", "Atendel Free es gratis y trae a todo el equipo para probarlo. One y Max son para el día a día; Max, con 5 veces el uso de One."],
     preguntas: [
       "Posibles preguntas",
@@ -53,7 +53,7 @@ export const es = {
     ],
     paraQuien: [
       "Para quién es",
-      "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Lola, Clara, Víctor e Iris por ti.",
+      "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Aura, Altair, Rigel e Mira por ti.",
     ],
     lista: ["Lista de espera", "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel."],
     contacto: ["Contacto", "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo."],
@@ -115,7 +115,7 @@ export const es = {
     pruebalo: "Pruébalo",
     tusDatos: "Tus datos",
     miPanel: "Mi panel",
-    lema: "Atendel, tu socio de IA: con Lola, Clara, Víctor e Iris atiende tu negocio aunque no estés.",
+    lema: "Atendel, tu socio de IA: con Aura, Altair, Rigel e Mira atiende tu negocio aunque no estés.",
     sello: "Entras con tu correo · sin contraseña",
     franja: "Ayuda y datos",
     privacidad: "Privacidad",
@@ -128,7 +128,7 @@ export const es = {
       etiqueta: "Tu socio de IA",
       titulo: "Que ningún cliente se quede sin respuesta.",
       texto:
-        "Le escribes a Atendel como a un socio y él reparte el trabajo: Lola atiende tu WhatsApp y tus citas, Clara tu correo, Víctor a tus clientes e Iris la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
+        "Le escribes a Atendel como a un socio y él reparte el trabajo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes e Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
     },
     decisiones: {
       titulo: "Trabaja aunque no estés",
@@ -210,7 +210,7 @@ export const es = {
       conexion: "No hay conexión. Revisa tu internet e intenta de nuevo.",
     },
     pagina: {
-      equipo: "Lola, Clara, Víctor e Iris",
+      equipo: "Aura, Altair, Rigel e Mira",
       etiqueta: "Lista de espera",
       titulo: "Anótate y te avisamos cuando abramos tu lugar",
       texto: "Para negocios que atienden personas. Solo necesitamos tu correo.",
@@ -219,7 +219,7 @@ export const es = {
         { titulo: "Tu correo queda en la lista", texto: "No te pedimos nada más: ni teléfono, ni contraseña, ni datos de tu negocio." },
         {
           titulo: "Te escribimos cuando abramos tu lugar",
-          texto: "Atendel abre por etapas: la conexión de Lola con tu WhatsApp y tu agenda llega poco a poco. Te avisamos a ese correo.",
+          texto: "Atendel abre por etapas: la conexión de Aura con tu WhatsApp y tu agenda llega poco a poco. Te avisamos a ese correo.",
         },
         {
           titulo: "Mientras, ya puedes empezar",
@@ -240,7 +240,7 @@ export const es = {
     etiqueta: "Atención · Correo · Clientes · Oficina",
     titulo: "¿Qué le encargas hoy?",
     texto:
-      "Le escribes a Atendel y él se lo pasa a quien le toca: Lola atiende tu WhatsApp y tus citas, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
+      "Le escribes a Atendel y él se lo pasa a quien le toca: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes e Mira hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
     hablar: "Habla con Atendel",
     verPrecios: "Ver precios",
     chatEtiqueta: "El chat",
@@ -262,7 +262,7 @@ export const es = {
     enQuePlan: "En qué plan está",
     incluido: "Incluido",
     noIncluido: "No incluido",
-    llegaCon: (nombre: string, plan: string) => `${nombre} llega con ${plan}. Mientras, puedes empezar gratis con Clara.`,
+    llegaCon: (nombre: string, plan: string) => `${nombre} llega con ${plan}. Mientras, puedes empezar gratis con Altair.`,
     probarGratis: (nombre: string) => `Probar a ${nombre} gratis`,
     empezarGratis: "Empezar gratis",
     pruebaloCon: (nombre: string) => `Pruébalo con ${nombre}`,
@@ -283,10 +283,10 @@ export const es = {
     verFicha: "Ver su ficha",
     conversacionEtiqueta: (canal: string) => `Conversación de ejemplo · ${canal}`,
     tituloConversacion: {
-      lola: "Así contesta Lola un WhatsApp",
-      clara: "Así contesta Clara un correo",
-      victor: "Así le da Víctor seguimiento a quien no agendó",
-      iris: "Así le encargas trabajo a Iris",
+      lola: "Así contesta Aura un WhatsApp",
+      clara: "Así contesta Altair un correo",
+      victor: "Así le da Rigel seguimiento a quien no agendó",
+      iris: "Así le encargas trabajo a Mira",
     } as Record<IdAgente, string>,
     queHace: "Qué hace",
     todoLoQueHace: (nombre: string) => `Todo lo que hace ${nombre}`,
@@ -296,7 +296,7 @@ export const es = {
     planes: "Planes",
     enQuePlan: (nombre: string) => `En qué plan viene ${nombre}`,
     enLosTres: (nombre: string) => `${nombre} viene en los tres planes, también en el gratis: puedes empezar hoy.`,
-    llegaCon: (nombre: string, plan: string) => `${nombre} llega con ${plan}. Mientras, puedes empezar gratis con Clara.`,
+    llegaCon: (nombre: string, plan: string) => `${nombre} llega con ${plan}. Mientras, puedes empezar gratis con Altair.`,
     desdeAqui: "Desde aquí",
     incluye: (nombre: string) => `Incluye a ${nombre}`,
     noViene: "No viene en este plan",
@@ -385,7 +385,7 @@ export const es = {
           },
           {
             p: "¿Tengo que decirle a qué agente le toca?",
-            r: "No. Le escribes a Atendel y él decide a quién le toca: Lola, Clara, Víctor o Iris. Te contesta una sola vez y abajo ves quién lo hizo.",
+            r: "No. Le escribes a Atendel y él decide a quién le toca: Aura, Altair, Rigel o Mira. Te contesta una sola vez y abajo ves quién lo hizo.",
           },
         ],
       },
@@ -537,7 +537,7 @@ export const es = {
     volver: "Volver al inicio",
     sigue: "O sigue por aquí",
     atajos: [
-      { href: "/agentes", titulo: "Agentes", texto: "Lola, Clara, Víctor e Iris: qué hace cada uno" },
+      { href: "/agentes", titulo: "Agentes", texto: "Aura, Altair, Rigel e Mira: qué hace cada uno" },
       { href: "/precios", titulo: "Precios", texto: "Qué trae Free, One y Max" },
       { href: "/preguntas", titulo: "Posibles preguntas", texto: "Cómo se empieza y cómo cuidamos tus datos" },
       { href: "/pruebalo", titulo: "Pruébalo", texto: "Platica con los agentes en un chat de ejemplo" },

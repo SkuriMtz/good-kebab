@@ -29,7 +29,7 @@ import { avisarUsoTrabajo, notificar, recordar } from "./notificar";
  *      enviar nada: esas herramientas solo leen. Los documentos no entran
  *      (su búsqueda depende de la sesión de la persona).
  *   2. Con lo que encontró: la revisión de tus apps (app por app), el plan
- *      del día (Iris) y un borrador para cada correo que espera (Clara).
+ *      del día (Mira) y un borrador para cada correo que espera (Altair).
  * Todo llega a la Oficina "por revisar" (tabla trabajos): nada se envía.
  *
  * - Solo trabaja si hay algo útil (apps conectadas, correos por contestar,
@@ -425,7 +425,7 @@ export async function trabajarPara(
         effort: "low",
         format: { type: "json_schema", schema: ESQUEMA },
       },
-      system: `Eres Atendel, el asistente de ${negocio}, con tus agentes Lola (atención y citas), Clara (correo), Víctor (clientes) e Iris (oficina). Es tu revisión de la mañana: trabajas por tu cuenta mientras el dueño no está, para que al llegar encuentre todo listo para revisar.
+      system: `Eres Atendel, el asistente de ${negocio}, con tus agentes Aura (atención y citas), Altair (correo), Rigel (clientes) e Mira (oficina). Es tu revisión de la mañana: trabajas por tu cuenta mientras el dueño no está, para que al llegar encuentre todo listo para revisar.
 
 Haz cuatro cosas, en español de México, claro y corto:
 0. "apps": la revisión de sus apps con lo que viene en "lo_que_encontre_en_las_apps". "resumen" en una frase (cuántas necesitan atención). "partes": una por app revisada; "titulo" = el nombre de la app; "texto" = qué necesita atención (con datos concretos) o "En orden". Si no hay hallazgos, resumen vacío y partes vacía.

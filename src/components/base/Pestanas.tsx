@@ -22,7 +22,7 @@ import {
  * pestaña elegida se centra sola.
  *
  * Uso:
- *   <Pestanas etiqueta="Los agentes" pestanas={[{ id: "lola", etiqueta: "Lola", adorno: <Personaje …/>, contenido: … }]} />
+ *   <Pestanas etiqueta="Los agentes" pestanas={[{ id: "lola", etiqueta: "Aura", adorno: <Personaje …/>, contenido: … }]} />
  * Sin `contenido`, solo es el selector: usa `activa` + `alCambiar` y pinta tú el panel;
  * pásale su id en `idPanelExterno` (la pestaña activa lleva aria-controls).
  */

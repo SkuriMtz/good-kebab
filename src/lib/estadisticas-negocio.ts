@@ -29,7 +29,7 @@ import {
      mensajes, conversaciones y negocios). RLS ya deja ver a cada quien
      solo lo suyo; además se filtra por owner_id o por sus negocios.
    - Lo que todavía no se guarda (WhatsApp y citas) llega como null y la
-     vista muestra "—" con "Se llena cuando conectes WhatsApp con Lola".
+     vista muestra "—" con "Se llena cuando conectes WhatsApp con Aura".
      Nada se inventa.
    Este archivo no importa nada que sea solo del servidor: los tipos, las
    cuentas y los enlaces también los usa la vista.
@@ -100,7 +100,7 @@ export type DatosNegocio = {
 
 /* ---------- Filas de entrada ---------- */
 
-/** Un resumen de Clara. `tema` (opcional) es cómo se llama lo que pide, si se sabe. */
+/** Un resumen de Altair. `tema` (opcional) es cómo se llama lo que pide, si se sabe. */
 export type FilaCorreo = FilaResumen & { tema?: string | null };
 
 /** Un mensaje de WhatsApp (todavía no se guarda: solo lo trae el ejemplo). */
@@ -155,7 +155,7 @@ const claveWhatsapp = (nombre: string) => `wa:${normalizar(nombre)}`;
  * - Clientes: personas distintas que escribieron (remitentes de correo y,
  *   cuando exista, clientes de WhatsApp). Nuevos = su primer mensaje cae en
  *   este periodo; regresan = ya habían escrito antes.
- * - Correos: cada resumen de Clara (con acción = trae algo que hacer).
+ * - Correos: cada resumen de Altair (con acción = trae algo que hacer).
  * - Respuestas: lo que contestó tu equipo (sus mensajes del chat y de WhatsApp).
  * - Movimiento (mapa de calor y días/horas): todo mensaje y todo correo.
  * - Ahorro: conversaciones con clientes que tu equipo atendió (cada correo

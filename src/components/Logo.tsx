@@ -1,4 +1,4 @@
-/** Los colores de Lola, Clara, Víctor e Iris (los mismos de sus personajes). */
+/** Los colores de Aura, Altair, Rigel e Mira (los mismos de sus personajes). */
 export const COLORES = ["#ff8a6b", "#7fb2ff", "#5fd09f", "#f6c64a"];
 export const POS = [
   [28, 28],

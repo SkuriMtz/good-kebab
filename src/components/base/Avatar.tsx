@@ -8,7 +8,7 @@ import { PuntoEstado, type TonoEstado } from "./PuntoEstado";
  * - Con `src`: la foto (si no carga, quedan las iniciales).
  * - Sin `src`: las iniciales del nombre en gris sobre --c-elevado.
  * - Con `children`: lo que pases adentro (el personaje de un agente:
- *   <Avatar nombre="Lola"><Personaje agente="lola" avatar /></Avatar>).
+ *   <Avatar nombre="Aura"><Personaje agente="lola" avatar /></Avatar>).
  * Tamaños de token: 20 · 24 · 28 · 32 · 40 · 64 (por defecto 32).
  * `estado`: punto de estado en la esquina de abajo, con anillo del color
  * del fondo (cámbialo con `anillo`, ej. "var(--c-superficie)" sobre tarjetas).

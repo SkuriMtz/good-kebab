@@ -34,7 +34,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Sirve para mi negocio?",
-    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Atendel y su equipo (Lola, Clara, Víctor e Iris) hacen esa parte del trabajo.",
+    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Atendel y su equipo (Aura, Altair, Rigel e Mira) hacen esa parte del trabajo.",
   },
   {
     p: "¿Atendel trabaja aunque yo no esté?",
@@ -46,11 +46,11 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Qué puedo usar desde hoy?",
-    r: "El chat con Atendel y su equipo, tu correo, tus apps conectadas, la revisión de cada mañana y las tareas programadas. La conexión de tu WhatsApp Business, para que Lola conteste sola a tus clientes, abre por etapas.",
+    r: "El chat con Atendel y su equipo, tu correo, tus apps conectadas, la revisión de cada mañana y las tareas programadas. La conexión de tu WhatsApp Business, para que Aura conteste sola a tus clientes, abre por etapas.",
   },
   {
     p: "¿Mis clientes sabrán que es un agente de IA?",
-    r: "Si un cliente le pregunta, Lola le dice con naturalidad que es la asistente virtual de tu negocio. Y cuando una conversación necesita a una persona, te avisa y te la pasa.",
+    r: "Si un cliente le pregunta, Aura le dice con naturalidad que es la asistente virtual de tu negocio. Y cuando una conversación necesita a una persona, te avisa y te la pasa.",
   },
   {
     p: "¿Qué pasa si un agente se equivoca?",

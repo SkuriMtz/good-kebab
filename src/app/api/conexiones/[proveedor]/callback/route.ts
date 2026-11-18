@@ -87,7 +87,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ prove
   if (anterior && a.revocar && debeRevocarAnterior(p, fila?.cuenta, cuenta, anterior, tokens)) {
     await a.revocar(anterior).catch(() => undefined);
   }
-  // WhatsApp Business: que los mensajes de tus clientes le lleguen a Lola
+  // WhatsApp Business: que los mensajes de tus clientes le lleguen a Aura
   if (p === "meta" && apps.includes("whatsapp_business")) await registrarNumeroWhatsapp(user.id, tokens).catch(() => false);
   return volverAApps(request, p, { conectada: app }, estado?.volver);
 }

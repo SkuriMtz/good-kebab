@@ -6,10 +6,10 @@
 ## Atendel
 
 **¿Qué es Atendel?**
-Es tu socio de inteligencia artificial para el negocio. Le escribes como a una persona y él atiende tu WhatsApp, tu correo, tus clientes y el trabajo de oficina con la ayuda de su equipo: Lola, Clara, Víctor e Iris.
+Es tu socio de inteligencia artificial para el negocio. Le escribes como a una persona y él atiende tu WhatsApp, tu correo, tus clientes y el trabajo de oficina con la ayuda de su equipo: Aura, Altair, Rigel e Mira.
 
-**¿Quiénes son Lola, Clara, Víctor e Iris?**
-Son los cuatro agentes del equipo de Atendel, cada uno con su área: Lola atiende tu WhatsApp y tus citas, Clara lleva tu correo, Víctor trae de regreso a tus clientes e Iris hace el trabajo de oficina.
+**¿Quiénes son Aura, Altair, Rigel e Mira?**
+Son los cuatro agentes del equipo de Atendel, cada uno con su área: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes e Mira hace el trabajo de oficina.
 
 **¿Tengo que hablar con cada agente por separado?**
 No. Le escribes a Atendel y él decide a quién le toca. Te contesta una sola vez, y abajo ves quién hizo el trabajo.
@@ -23,40 +23,40 @@ Desde el celular, la tablet o la computadora, en el navegador. No hay nada que i
 **¿Es difícil de usar?**
 No. Entras con tu correo, sin contraseña, y le pides las cosas con tus palabras, como se las pedirías a alguien de tu equipo.
 
-## Lola · Atención (WhatsApp y citas)
+## Aura · Atención (WhatsApp y citas)
 
-**¿Qué hace Lola?**
+**¿Qué hace Aura?**
 Contesta a tus clientes a cualquier hora, resuelve las preguntas frecuentes (precios, horarios, ubicación, formas de pago), agenda, confirma y recuerda citas, y te avisa cuando alguien quiere hablar con una persona.
 
 **¿Mis clientes sabrán que es una IA?**
-Si un cliente le pregunta, Lola le dice con naturalidad que es la asistente virtual de tu negocio. Cuando una conversación necesita a una persona, te avisa y te la pasa.
+Si un cliente le pregunta, Aura le dice con naturalidad que es la asistente virtual de tu negocio. Cuando una conversación necesita a una persona, te avisa y te la pasa.
 
-**¿Cómo sabe Lola qué contestar?**
+**¿Cómo sabe Aura qué contestar?**
 Usa lo que le cuentas en Tu negocio (servicios, precios, horarios, ubicación, formas de pago y políticas) y tus Reglas. Si algo no está ahí, no lo inventa: te pregunta.
 
-**¿Lola ya puede contestar mi WhatsApp?**
-La conexión del WhatsApp Business abre por etapas. Mientras, Lola te ayuda desde el chat a preparar respuestas, confirmaciones y recordatorios.
+**¿Aura ya puede contestar mi WhatsApp?**
+La conexión del WhatsApp Business abre por etapas. Mientras, Aura te ayuda desde el chat a preparar respuestas, confirmaciones y recordatorios.
 
-## Clara · Correo (bandeja, facturas y pagos)
+## Altair · Correo (bandeja, facturas y pagos)
 
-**¿Qué hace Clara?**
+**¿Qué hace Altair?**
 Recibe y envía correos, resume tu bandeja, la ordena por urgencia y detecta facturas y pagos para que no se te pase ninguno.
 
 **¿Con qué correo funciona?**
 Con Gmail u Outlook, cuando los conectas en Tu negocio → Apps conectadas.
 
-**¿Clara manda correos sola?**
+**¿Altair manda correos sola?**
 Solo lo que tú le permitas en «Qué hace solo». Lo demás te lo deja listo para que lo apruebes con un toque.
 
 **¿Me avisa de lo importante?**
 Sí. Si llega un correo que necesita algo de ti o una respuesta está lista para tu OK, te avisa en el chat y, si los activaste, en tus notificaciones.
 
-## Víctor · Clientes (ventas y reseñas)
+## Rigel · Clientes (ventas y reseñas)
 
-**¿Qué hace Víctor?**
+**¿Qué hace Rigel?**
 Le da seguimiento a quien preguntó y no agendó, reactiva a clientes que dejaron de venir, rescata a quien faltó a su cita y pide reseñas después de cada cita.
 
-**¿Víctor les escribe a mis clientes sin preguntarme?**
+**¿Rigel les escribe a mis clientes sin preguntarme?**
 Solo si tú se lo permites en «Qué hace solo». Si no, te propone el mensaje y tú decides si sale.
 
 **¿Cómo pide las reseñas?**
@@ -65,16 +65,16 @@ Con un mensaje amable después de la cita, con el tono que tú elijas, para que 
 **¿Respeta a quien no quiere recibir mensajes?**
 Sí, y tu negocio también debe hacerlo: si alguien pide no recibir mensajes, ya no se le escribe.
 
-## Iris · Oficina (investigación, reportes y documentos)
+## Mira · Oficina (investigación, reportes y documentos)
 
-**¿Qué hace Iris?**
+**¿Qué hace Mira?**
 Investiga y lo pone en Excel, resume PDFs, arma los reportes mensuales de citas y clientes y prepara documentos.
 
 **¿Dónde quedan los documentos que prepara?**
 En la Oficina, para que los revises, los apruebes o le pidas cambios.
 
 **¿Puedo pasarle un contrato o un PDF?**
-Sí. Súbelo o pégalo en el chat y pídele, por ejemplo, un resumen en 5 puntos. Revisa lo importante: Iris no da asesoría legal ni contable.
+Sí. Súbelo o pégalo en el chat y pídele, por ejemplo, un resumen en 5 puntos. Revisa lo importante: Mira no da asesoría legal ni contable.
 
 **¿Me puede armar un reporte cada mes?**
 Sí. Pídeselo una vez y prográmalo como tarea: lo hace solo en la fecha que elijas.

@@ -24,7 +24,7 @@ export type AgenteInfo = {
 export const AGENTES_INFO: AgenteInfo[] = [
   {
     id: "lola",
-    nombre: "Lola",
+    nombre: "Aura",
     area: "Atención",
     abarca: "WhatsApp y citas",
     lema: "Contesta a tus clientes a cualquier hora y lleva tus citas.",
@@ -42,7 +42,7 @@ export const AGENTES_INFO: AgenteInfo[] = [
   },
   {
     id: "clara",
-    nombre: "Clara",
+    nombre: "Altair",
     area: "Correo",
     abarca: "Bandeja, facturas y pagos",
     lema: "Recibe y contesta tu correo: lo urgente primero y nada se te pasa.",
@@ -56,7 +56,7 @@ export const AGENTES_INFO: AgenteInfo[] = [
   },
   {
     id: "victor",
-    nombre: "Víctor",
+    nombre: "Rigel",
     area: "Clientes",
     abarca: "Ventas y reseñas",
     lema: "Trae de regreso a tus clientes y se encarga de que te recomienden.",
@@ -74,7 +74,7 @@ export const AGENTES_INFO: AgenteInfo[] = [
   },
   {
     id: "iris",
-    nombre: "Iris",
+    nombre: "Mira",
     area: "Oficina",
     abarca: "Investigación, reportes y documentos",
     lema: "Investiga, resume y te arma los reportes y documentos de la oficina.",

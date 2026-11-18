@@ -102,7 +102,7 @@ export function PendientesDemo({
 }: {
   items: ItemTablero[];
   area: IdArea;
-  /** ?accion=: los correos de Clara que piden eso (desde Estadísticas o Correo). */
+  /** ?accion=: los correos de Altair que piden eso (desde Estadísticas o Correo). */
   accion?: string;
   alMover: (id: string, c: ColumnaTablero) => void;
   alEditar: (id: string, texto: string) => void;
@@ -361,7 +361,7 @@ export function CitasDemo({
     <Seccion>
       <TituloSeccion
         titulo="Citas"
-        texto={de ? `Las citas de ${de}, las que agendó Lola.` : "Lo que Lola agenda, confirma y recuerda por WhatsApp."}
+        texto={de ? `Las citas de ${de}, las que agendó Aura.` : "Lo que Aura agenda, confirma y recuerda por WhatsApp."}
         acciones={
           <button type="button" className={claseBoton("principal")} onClick={abrir}>
             <Icono nombre="mas" tam={16} />
@@ -441,7 +441,7 @@ export function CitasDemo({
         <Vacio
           agente="lola"
           titulo={de ? `${de} no tiene citas en el ejemplo` : activa === "todas" ? `Sin citas ${nombreDia === "Hoy" || nombreDia === "Mañana" ? `para ${nombreDia.toLowerCase()}` : "este día"}` : "Nada con este filtro"}
-          texto={de ? "Atendel le puede apartar una con Lola." : "Elige otro día de la semana o aparta una cita nueva."}
+          texto={de ? "Atendel le puede apartar una con Aura." : "Elige otro día de la semana o aparta una cita nueva."}
           accion={
             de ? (
               <Enlace href={`/pruebalo?pide=${encodeURIComponent(`Apártale una cita a ${de} esta semana.`)}`} className={claseBoton("borde", true)}>
@@ -461,7 +461,7 @@ export function CitasDemo({
         abierto={abierta}
         alCerrar={() => setAbierta(false)}
         titulo="Nueva cita"
-        descripcion="Lola la aparta y le manda la confirmación por WhatsApp (en esta demostración solo se agrega a la lista)."
+        descripcion="Aura la aparta y le manda la confirmación por WhatsApp (en esta demostración solo se agrega a la lista)."
         pie={
           <>
             <button type="button" className={claseBoton("fantasma")} onClick={() => setAbierta(false)}>

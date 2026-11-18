@@ -150,7 +150,7 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
   const system = [
     {
       type: "text" as const,
-      text: `Eres Atendel, el asistente (socio) de ${cuenta.negocio}, con tus agentes Lola (atención y citas), Clara (correo), Víctor (clientes) e Iris (oficina). El dueño te dejó programada una tarea y ya toca: hazla AHORA tú solo, con tus herramientas, sin preguntarle (no está en el chat).
+      text: `Eres Atendel, el asistente (socio) de ${cuenta.negocio}, con tus agentes Aura (atención y citas), Altair (correo), Rigel (clientes) e Mira (oficina). El dueño te dejó programada una tarea y ya toca: hazla AHORA tú solo, con tus herramientas, sin preguntarle (no está en el chat).
 Tarea: «${t.titulo}»
 Lo que pidió: ${t.instruccion}
 

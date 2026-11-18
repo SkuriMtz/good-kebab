@@ -55,8 +55,8 @@ const formatoFecha = new Intl.DateTimeFormat("es-MX", {
 const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim().toLowerCase() !== "ninguna");
 
 /**
- * Correo con Clara, dentro del panel: lo primero es tu bandeja (lo que
- * Clara ya leyó de tu Gmail, solo lectura) con "Revisar Gmail ahora" o
+ * Correo con Altair, dentro del panel: lo primero es tu bandeja (lo que
+ * Altair ya leyó de tu Gmail, solo lectura) con "Revisar Gmail ahora" o
  * "Conectar Gmail"; la prueba con un correo de ejemplo queda escondida en
  * "Probar con un ejemplo". La lógica es la de siempre; solo cambió la forma (la sección del
  * panel nuevo: columna de 768px, título en serif y tarjetas de borde fino).
@@ -205,7 +205,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
     <Seccion>
       <TituloSeccion
         titulo="Correo"
-        texto="Clara lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Solo lectura: nunca envía ni borra nada."
+        texto="Altair lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Solo lectura: nunca envía ni borra nada."
         acciones={
           <span id="gmail" className="pc-correo__acciones">
             {conGoogle && !faltaGmail ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
@@ -244,7 +244,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
         ) : de && historial.length > 0 && visibles?.length === 0 ? (
           <Vacio
             icono="correo"
-            titulo={`Nada de ${de} en lo último que leyó Clara`}
+            titulo={`Nada de ${de} en lo último que leyó Altair`}
             texto="Aquí se ven los 30 resúmenes más recientes."
             accion={
               <Enlace href="/panel?vista=correo#historial" className="pc-enlace">
@@ -258,8 +258,8 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
             agente="clara"
             texto={
               conGoogle
-                ? "Toca «Revisar Gmail ahora» y Clara resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar."
-                : "Conecta tu Gmail y Clara resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar. Solo lectura."
+                ? "Toca «Revisar Gmail ahora» y Altair resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar."
+                : "Conecta tu Gmail y Altair resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar. Solo lectura."
             }
             accion={botonGmail(true)}
           />
@@ -280,7 +280,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
         )}
       </section>
 
-      {/* ---------- Probar con un ejemplo (escondido: Clara ya lee tu bandeja) ---------- */}
+      {/* ---------- Probar con un ejemplo (escondido: Altair ya lee tu bandeja) ---------- */}
       <details className="pc-probar" open={probarAbierto} onToggle={(e) => setProbarAbierto(e.currentTarget.open)}>
         <summary className="pc-probar__resumen">
           <Icono nombre="rayo" tam={16} />
@@ -337,7 +337,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
               <Tarjeta como="div" className="pc-resultado__tarjeta pc-entra">
                 <p className="pc-resultado__quien">
                   <AvatarAgente agente="clara" tam={24} />
-                  Resumen de Clara
+                  Resumen de Altair
                 </p>
                 <p className="pc-resultado__origen">
                   {resultado.remitente} · {resultado.asunto}
@@ -352,7 +352,7 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
               </Tarjeta>
             ) : cargando ? (
               <p className="pc-cargando" role="status">
-                <Giro /> Clara está leyendo el correo…
+                <Giro /> Altair está leyendo el correo…
               </p>
             ) : (
               <p className="pc-nota">El resumen aparece aquí: de qué trata el correo, qué tan urgente es y qué conviene contestar.</p>

@@ -31,7 +31,7 @@ export function datosDemoParaIA(): string {
   return `<perfil_del_negocio>\nnombre: ${DEMO_NEGOCIO.nombre}\nciudad: ${DEMO_NEGOCIO.ciudad}\n${perfil}\n</perfil_del_negocio>\n\n<agenda_de_manana>\n${citas}\n</agenda_de_manana>\n\n<equipo_del_negocio>\n${equipo}\n</equipo_del_negocio>`;
 }
 
-/** Los correos de ejemplo, como los resúmenes que lee Clara. */
+/** Los correos de ejemplo, como los resúmenes que lee Altair. */
 export function correosDemoParaIA(): string {
   return `<correos_recientes>\n${DEMO_CORREOS.map((c) => `- De: ${c.remitente} · Asunto: ${c.asunto} · Resumen: ${c.resumen}${c.accion ? ` · Acción sugerida: ${c.accion}` : ""} · Prioridad: ${c.prioridad}`).join("\n")}\n</correos_recientes>`;
 }

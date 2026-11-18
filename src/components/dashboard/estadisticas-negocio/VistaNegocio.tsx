@@ -16,7 +16,7 @@ import "./negocio.css";
    de cargarNegocio) y /pruebalo (datosNegocioEjemplo). Se pinta dentro de
    la columna de 768 px del armazón, con las piezas compartidas del panel
    (src/components/panel/Piezas.tsx).
-   - Los agentes salen SOLO como crédito ("lo atendió Lola"), nunca en un
+   - Los agentes salen SOLO como crédito ("lo atendió Aura"), nunca en un
      ranking.
    - Todo se pica: un cliente lleva a Correo (?de=), un tema a Pendientes
      (?accion=), una hora o un día a la actividad (?hora=, ?dia=) y una
@@ -37,8 +37,8 @@ export type PropsVistaNegocio = {
   insignia?: ReactNode;
 };
 
-const LOLA = "Se llena cuando conectes WhatsApp con Lola.";
-const CLARA_O_LOLA = "Se llena cuando Clara lea tus correos o conectes WhatsApp con Lola.";
+const LOLA = "Se llena cuando conectes WhatsApp con Aura.";
+const CLARA_O_LOLA = "Se llena cuando Altair lea tus correos o conectes WhatsApp con Aura.";
 const nombre = (a: IdAgente | null) => (a ? AGENTE_POR_ID[a].nombre : null);
 
 export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegocio) {
@@ -96,7 +96,7 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
             </div>
             {(canales.whatsapp || canales.correo) && (
               <p className="neg-credito">
-                {canales.whatsapp ? "Por WhatsApp y correo. Los atendieron Lola y Clara." : "Por correo, los atendió Clara. WhatsApp se suma cuando conectes a Lola."}
+                {canales.whatsapp ? "Por WhatsApp y correo. Los atendieron Aura y Altair." : "Por correo, los atendió Altair. WhatsApp se suma cuando conectes a Aura."}
               </p>
             )}
           </div>
@@ -167,7 +167,7 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
             detalle={
               datos.citas.canceladas !== null ? `${cuenta(datos.citas.canceladas, "cancelada", "canceladas")} · ${cuenta(datos.citas.reagendadas ?? 0, "reagendada", "reagendadas")}` : LOLA
             }
-            credito={canales.citas ? "Las agenda Lola." : null}
+            credito={canales.citas ? "Las agenda Aura." : null}
           />
           <Numero
             indice={siguiente()}
@@ -175,8 +175,8 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
             titulo="Correos de clientes respondidos o resumidos"
             cifra={datos.correos}
             contra={contra}
-            detalle={datos.correos.conAccion !== null ? `${cuenta(datos.correos.conAccion, "traía", "traían")} algo que hacer` : "Se llena cuando Clara lea tus correos."}
-            credito={canales.correo ? "Los leyó Clara." : null}
+            detalle={datos.correos.conAccion !== null ? `${cuenta(datos.correos.conAccion, "traía", "traían")} algo que hacer` : "Se llena cuando Altair lea tus correos."}
+            credito={canales.correo ? "Los leyó Altair." : null}
           />
           <Numero
             indice={siguiente()}
@@ -195,7 +195,7 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
 
         {/* Lo que más preguntan */}
         <Tarjeta como="article" indice={siguiente()} className="neg-caja" etiqueta="Lo que más preguntan tus clientes">
-          <Cabeza titulo="Lo que más preguntan tus clientes" detalle={canales.whatsapp ? "Por WhatsApp y correo" : "Lo que Clara vio en sus correos"} />
+          <Cabeza titulo="Lo que más preguntan tus clientes" detalle={canales.whatsapp ? "Por WhatsApp y correo" : "Lo que Altair vio en sus correos"} />
           {datos.temas.length ? (
             <ul className="neg-filas">
               {datos.temas.map((t) => (
@@ -282,7 +282,7 @@ export function VistaNegocio({ datos, periodo, base, insignia }: PropsVistaNegoc
           <span>
             Tu equipo te ahorró <strong>{cifra(datos.ahorro)}</strong> {datos.ahorro === 1 ? "conversación" : "conversaciones"}
           </span>
-          <span className="neg-ahorro__de">· {canales.whatsapp ? "chats de WhatsApp que atendió Lola y correos que leyó Clara" : "correos que leyó Clara"}</span>
+          <span className="neg-ahorro__de">· {canales.whatsapp ? "chats de WhatsApp que atendió Aura y correos que leyó Altair" : "correos que leyó Altair"}</span>
         </p>
       )}
     </section>
@@ -351,7 +351,7 @@ function Semana({ semana, hoy, base }: { semana: { dia: Dia; citas: number }[]; 
     <div className="neg-semana">
       <p className="neg-semana__total">
         <Odometro valor={total} className="neg-cifra neg-cifra--mediana" />
-        <span className="neg-detalle">{total === 1 ? "cita" : "citas"} · las agenda Lola</span>
+        <span className="neg-detalle">{total === 1 ? "cita" : "citas"} · las agenda Aura</span>
       </p>
       <ol className="neg-semana__barras">
         {semana.map((d, j) => (

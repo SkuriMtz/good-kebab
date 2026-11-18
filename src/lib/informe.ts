@@ -87,7 +87,7 @@ function renglones(n: Numeros): string[] {
   const r: string[] = [];
   if (n.mensajes || n.esperanRespuesta)
     r.push(
-      `- **Clientes por WhatsApp:** ${plural(n.mensajes, "mensaje", "mensajes")}${n.lolaSola ? `; Lola contestó ${n.lolaSola} sola` : ""}.${n.esperanRespuesta ? ` ${plural(n.esperanRespuesta, "espera", "esperan")} tu respuesta.` : ""}`,
+      `- **Clientes por WhatsApp:** ${plural(n.mensajes, "mensaje", "mensajes")}${n.lolaSola ? `; Aura contestó ${n.lolaSola} sola` : ""}.${n.esperanRespuesta ? ` ${plural(n.esperanRespuesta, "espera", "esperan")} tu respuesta.` : ""}`,
     );
   if (n.correos || n.respuestasListas) r.push(`- **Correos:** revisé ${n.correos}${n.respuestasListas ? `; te dejé ${plural(n.respuestasListas, "respuesta lista", "respuestas listas")}` : ""}.`);
   if (n.hechasSolo || n.aprobadas || n.descartadas || n.esperanOk)

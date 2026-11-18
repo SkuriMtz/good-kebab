@@ -143,7 +143,7 @@ export function termsEn(d: DatosLegales): Documento {
       {
         titulo: "What Atendel is",
         parrafos: [
-          "Atendel is an AI assistant for businesses: it answers your WhatsApp and your email, organizes your calendar, prepares documents and alerts you to what matters, following your Rules and using the apps you connect. Four specialists work inside (Lola, Clara, Víctor and Iris), but you only talk to Atendel.",
+          "Atendel is an AI assistant for businesses: it answers your WhatsApp and your email, organizes your calendar, prepares documents and alerts you to what matters, following your Rules and using the apps you connect. Four specialists work inside (Aura, Altair, Rigel and Mira), but you only talk to Atendel.",
         ],
       },
       {

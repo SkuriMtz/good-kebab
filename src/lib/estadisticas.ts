@@ -82,7 +82,7 @@ export type FilaAgenteEst = {
   conversacionesAntes: number;
 };
 
-/** Lo que se puede ver de un solo agente en la gráfica (los correos son todos de Clara). */
+/** Lo que se puede ver de un solo agente en la gráfica (los correos son todos de Altair). */
 export const METRICAS_POR_AGENTE = ["mensajes", "conversaciones", "uso"] as const;
 export type MetricaAgente = (typeof METRICAS_POR_AGENTE)[number];
 export const esMetricaAgente = (m: IdMetrica): m is MetricaAgente => (METRICAS_POR_AGENTE as readonly string[]).includes(m);
@@ -271,7 +271,7 @@ export function normalizar(texto: string) {
 
 const SIN_ACCION = new Set(["", "ninguna", "ninguna accion", "no aplica", "sin accion", "n/a", "na", "-"]);
 
-/** La acción sugerida de un resumen, o null si Clara dijo "ninguna". */
+/** La acción sugerida de un resumen, o null si Altair dijo "ninguna". */
 export function accionValida(texto: string | null | undefined): string | null {
   if (!texto) return null;
   const limpio = texto.trim().replace(/\s+/g, " ");
@@ -323,7 +323,7 @@ function sumar(serie: PuntoDia[], m: IdMetrica) {
  * - Mensajes: todos los del chat (tuyos y de tus agentes).
  * - Conversaciones: las que tuvieron al menos un mensaje ese día (en el
  *   total, cada una cuenta una vez aunque haya tenido movimiento varios días).
- * - Correos resumidos: cada resumen de Clara. Acciones sugeridas: los que
+ * - Correos resumidos: cada resumen de Altair. Acciones sugeridas: los que
  *   traen una acción (no "ninguna").
  * - Uso: tus mensajes (cada uno cuenta para el plan; las respuestas no).
  * - Por agente: la respuesta cuenta para el agente que la escribió (en un

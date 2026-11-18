@@ -51,7 +51,7 @@ export function rangoHora(h: number) {
   return sufijo(h) === sufijo(fin) ? `${doce(h)} a ${doce(fin)} ${sufijo(fin)}` : `${hora(h)} a ${hora(fin)}`;
 }
 
-/** "Lola", "Lola y Clara", "Lola, Clara e Iris". */
+/** "Aura", "Aura y Altair", "Aura, Altair e Mira". */
 export function lista(nombres: string[]) {
   if (nombres.length < 2) return nombres.join("");
   const ultimo = nombres[nombres.length - 1];

@@ -16,7 +16,7 @@ import { registrarEvento } from "@/lib/seguridad";
  * - POST: cada mensaje nuevo. Solo se acepta con la firma de Meta
  *   (X-Hub-Signature-256 con META_APP_SECRET). Se guarda en
  *   whatsapp_mensajes (sin repetir: el id de Meta es único) y la base de
- *   datos le pide al servidor que Lola conteste (migración 0022). Aquí no se
+ *   datos le pide al servidor que Aura conteste (migración 0022). Aquí no se
  *   espera a la IA: Meta necesita la respuesta rápido.
  * - Si algo no se pudo guardar, contesta 500 para que Meta lo vuelva a mandar.
  * - Lo que llega al número de Atendel (WHATSAPP_ENVIO_TELEFONO_ID) no es de un

@@ -76,7 +76,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     lineas.push(`- WhatsApp de clientes por contestar: ${nWa}`);
     for (const w of wa.error ? [] : (wa.data ?? [])) {
       lineas.push(
-        `  · ${corta(w.nombre, 60) || `+${w.telefono}`} (${cuando(w.creado_en)}): «${corta(w.texto, 200)}»${w.borrador ? ` → Lola propone: «${corta(w.borrador, 200)}»` : ""}${w.motivo ? ` (${corta(w.motivo, 160)})` : ""}`,
+        `  · ${corta(w.nombre, 60) || `+${w.telefono}`} (${cuando(w.creado_en)}): «${corta(w.texto, 200)}»${w.borrador ? ` → Aura propone: «${corta(w.borrador, 200)}»` : ""}${w.motivo ? ` (${corta(w.motivo, 160)})` : ""}`,
       );
     }
     const nEnv = envios.error ? 0 : (envios.count ?? 0);
@@ -105,7 +105,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
         .order("creado_en", { ascending: false })
         .limit(200),
     ]);
-    if (!numero && !(msjs ?? []).length) return "WHATSAPP: todavía no está conectado (se conecta en Tu negocio → Apps → WhatsApp Business). Cuando lo esté, Lola contesta sola lo que le toca y deja lo demás en Necesita tu OK.";
+    if (!numero && !(msjs ?? []).length) return "WHATSAPP: todavía no está conectado (se conecta en Tu negocio → Apps → WhatsApp Business). Cuando lo esté, Aura contesta sola lo que le toca y deja lo demás en Necesita tu OK.";
     const lista = msjs ?? [];
     const hoy = hace(24);
     const entrantes = lista.filter((m) => m.direccion === "entrante" && String(m.creado_en) >= hoy).length;
@@ -119,7 +119,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
       error: "no salió la respuesta",
       descartado: "decidiste no contestar",
       enviado: "enviado",
-      pensando: "Lola está contestando",
+      pensando: "Aura está contestando",
       recibido: "recién llegado",
       agrupado: "contestado junto con otro",
       mandando: "mandándose",
@@ -127,10 +127,10 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     const filas = Array.from(porTelefono.values())
       .slice(0, 15)
       .map((m) => {
-        const de = m.direccion === "entrante" ? "el cliente" : m.autor === "dueno" ? "tú" : "Lola";
+        const de = m.direccion === "entrante" ? "el cliente" : m.autor === "dueno" ? "tú" : "Aura";
         return `- ${corta(m.nombre, 60) || `+${m.telefono}`}: lo último (${cuando(m.creado_en)}, de ${de}): «${corta(m.texto, 160)}» [${ESTADO[String(m.estado)] ?? String(m.estado)}]`;
       });
-    return [`WHATSAPP${numero ? "" : " (el número ya no está conectado)"}: en las últimas 24 horas, ${entrantes} mensajes de clientes; Lola contestó sola ${solas}.`, "Pláticas de las últimas 48 horas:", ...(filas.length ? filas : ["- (ninguna)"])].join("\n");
+    return [`WHATSAPP${numero ? "" : " (el número ya no está conectado)"}: en las últimas 24 horas, ${entrantes} mensajes de clientes; Aura contestó sola ${solas}.`, "Pláticas de las últimas 48 horas:", ...(filas.length ? filas : ["- (ninguna)"])].join("\n");
   }
 
   async function tareas(): Promise<string> {

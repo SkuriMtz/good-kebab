@@ -150,7 +150,7 @@ export function instruccionesAcciones(participantes: readonly IdAgente[]): strin
     "- Puedes PREPARAR un envío por WhatsApp al equipo del negocio con proponer_envio_whatsapp. Nunca se manda solo: queda en Pendientes para que el dueño lo apruebe. Dilo así, sin decir que ya se mandó.",
     '- Si te piden las dos cosas ("haz la presentación y mándasela al equipo"), primero crear_presentacion y luego proponer_envio_whatsapp con su archivo_id.',
     "- Los enlaces que regresan estas herramientas (/api/archivos/…, /panel?vista=pendientes) dáselos a la persona tal cual, como enlace en formato [texto](ruta).",
-    participantes.length > 1 ? "- En el grupo, la presentación la arma Iris si está, y el envío lo prepara Lola si está." : "",
+    participantes.length > 1 ? "- En el grupo, la presentación la arma Mira si está, y el envío lo prepara Aura si está." : "",
   ]
     .filter((l, i) => i < 2 || l)
     .join("\n");

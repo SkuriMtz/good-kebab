@@ -36,7 +36,7 @@ export function Conversacion({
   titulo: ReactNode;
   /** Con quién es (el área o el grupo): sale arriba del menú de la flechita. */
   sub: ReactNode;
-  /** Lo que sale junto al título mientras alguien escribe ("Lola está escribiendo…"). */
+  /** Lo que sale junto al título mientras alguien escribe ("Aura está escribiendo…"). */
   estado?: ReactNode;
   /** El menú de la flechita del título. */
   menu?: AccionConversacion[];

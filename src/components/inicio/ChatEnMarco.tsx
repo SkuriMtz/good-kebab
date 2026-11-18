@@ -9,8 +9,8 @@ import { IDS_AGENTES } from "@/lib/agentes";
  * 2. El producto en vivo (Grupo 2 · propuesta G2-T4).
  * Como el editor en la página de GitHub: el producto real, grande, dentro de
  * un marco de navegador que flota sobre el halo morado. Adentro, la
- * conversación de la recepción se reproduce sola al aparecer: Lola agenda a
- * un cliente, le pasa el seguimiento a Víctor y queda un mensaje esperando
+ * conversación de la recepción se reproduce sola al aparecer: Aura agenda a
+ * un cliente, le pasa el seguimiento a Rigel y queda un mensaje esperando
  * tu visto bueno. Después la persona puede escribir (guion local, sin IA).
  */
 export function ChatEnMarco() {
@@ -27,7 +27,7 @@ export function ChatEnMarco() {
         }
         etiqueta="En vivo · guion de ejemplo"
         titulo="Un cliente escribe y tu equipo se pasa el trabajo"
-        texto="Sofía pidió su primera cita por WhatsApp. Mira cómo Lola le da cita y le pasa el seguimiento a Víctor. Luego escríbeles tú: nada sale de esta página."
+        texto="Sofía pidió su primera cita por WhatsApp. Mira cómo Aura le da cita y le pasa el seguimiento a Rigel. Luego escríbeles tú: nada sale de esta página."
       />
       <div className="en-vivo__escenario">
         <Halo y="45%" ancho="min(1760px, 190vw)" proporcion="16 / 10" />
@@ -36,10 +36,10 @@ export function ChatEnMarco() {
       <div className="en-vivo__pie">
         <ol className="en-vivo__nota etiqueta" aria-label="Qué pasa en la conversación">
           <li>
-            <span className="en-vivo__num">01</span> Lola agenda
+            <span className="en-vivo__num">01</span> Aura agenda
           </li>
           <li>
-            <span className="en-vivo__num">02</span> Víctor da seguimiento
+            <span className="en-vivo__num">02</span> Rigel da seguimiento
           </li>
           <li>
             <span className="en-vivo__num">03</span> Tú das el visto bueno

@@ -17,8 +17,8 @@ import type { IdPlan } from "./planes";
  * "Datos de ejemplo"). Nada de esto es un cliente real ni una cifra real
  * de Atendel. Cuenta la misma historia que el chat de ejemplo (ChatDemo):
  * Sofía Ramírez agenda su primera cita, Carla Díaz cambia de hora,
- * Rosa Peña no ha confirmado, Clara leyó 23 correos, Víctor siguió a quien
- * preguntó por un servicio e Iris dejó el reporte de septiembre en Excel.
+ * Rosa Peña no ha confirmado, Altair leyó 23 correos, Rigel siguió a quien
+ * preguntó por un servicio e Mira dejó el reporte de septiembre en Excel.
  *
  * Las horas van en minutos antes de "ahora" (haceMin): así la demostración
  * se ve al día a cualquier hora que se abra.
@@ -170,7 +170,7 @@ export const DEMO_DIA: { id: string; icono: "calendario" | "correo" | "reloj"; t
     id: "visto",
     icono: "reloj",
     texto: "3 cosas esperan tu visto bueno",
-    detalle: "Un mensaje de Víctor, uno de Lola y uno de Clara",
+    detalle: "Un mensaje de Rigel, uno de Aura y uno de Altair",
     tono: "atencion",
     ir: { vista: "actividad", pestana: "visto-bueno" },
   },
@@ -209,13 +209,13 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     agente: "lola",
     con: "victor",
     verbo: "le pasó a",
-    objeto: "Víctor",
+    objeto: "Rigel",
     complemento: "el seguimiento de Sofía Ramírez",
     haceMin: 14,
     tarjeta: {
       tipo: "mensaje",
       texto: "El sábado le escribo para ver cómo le fue y, si quedó contenta, le pido su reseña en Google.",
-      pie: "Víctor · en el grupo Recepción",
+      pie: "Rigel · en el grupo Recepción",
     },
   },
   {
@@ -226,7 +226,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
     haceMin: 47,
     insignia: { tono: "exito", texto: "10 confirmaron" },
     agrupado: { etiqueta: "Ver cómo contestaron", elementos: RECORDATORIOS },
-    accion: { etiqueta: "Abrir el chat con Lola" },
+    accion: { etiqueta: "Abrir el chat con Aura" },
     ir: { vista: "conversaciones", con: "lola" },
   },
   {
@@ -305,7 +305,7 @@ export const DEMO_ACTIVIDAD: (Evento & { ir?: Destino })[] = [
       tipo: "mensaje",
       para: "Para Paola y 11 personas más",
       texto: "Hola, Paola. La semana pasada preguntaste por la sesión de 1 hora. ¿Te aparto un lugar? Tengo viernes 12:00 o sábado 10:30.",
-      pie: "Lola les está apartando cita a quienes contestaron.",
+      pie: "Aura les está apartando cita a quienes contestaron.",
     },
   },
 ];
@@ -338,7 +338,7 @@ export const DEMO_ACTIVIDAD_ANTERIOR: (Evento & { ir?: Destino })[] = [
     tarjeta: {
       tipo: "mensaje",
       texto: "Estás a la mitad del rango: $750 la sesión, 6 por $3,900. Los precios pueden cambiar; conviene confirmarlos.",
-      pie: "Iris · en su chat",
+      pie: "Mira · en su chat",
     },
     ir: { vista: "conversaciones", con: "iris" },
     accion: { etiqueta: "Ver la comparación" },
@@ -366,7 +366,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
     titulo: "Mensaje para 31 clientes que no vienen desde junio",
     para: "Laura y 30 clientes más, cada uno con su nombre",
     texto: "Hola, Laura. Hace tiempo que no te vemos. Este mes tu siguiente sesión va con 20% menos, ¿te aparto un lugar?",
-    alAprobar: "Víctor lo manda hoy a mediodía y te avisa quién regresa.",
+    alAprobar: "Rigel lo manda hoy a mediodía y te avisa quién regresa.",
     haceMin: 128,
     ir: { vista: "conversaciones", con: "victor" },
   },
@@ -376,7 +376,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
     titulo: "Volver a escribirle a Rosa Peña",
     para: "Rosa Peña · asesoría de mañana, 10:00",
     texto: "Hola, Rosa. ¿Nos confirmas tu cita de mañana a las 10:00? Si no puedes, te busco otro horario esta semana.",
-    alAprobar: "Lola le escribe a las 18:00.",
+    alAprobar: "Aura le escribe a las 18:00.",
     haceMin: 47,
     ir: { vista: "conversaciones", con: "lola" },
   },
@@ -386,7 +386,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
     titulo: "Respuesta a Andrea Solís",
     para: "andrea.solis@correo.example · Cambio de cita",
     texto: "Hola, Andrea. Claro que sí: te pasamos a las 17:00 del martes. Si prefieres las 18:30, avísanos y lo cambiamos.",
-    alAprobar: "Clara la envía desde tu correo.",
+    alAprobar: "Altair la envía desde tu correo.",
     haceMin: 96,
     ir: { vista: "conversaciones", con: "clara" },
   },
@@ -396,7 +396,7 @@ export const DEMO_APROBACIONES: Aprobacion[] = [
 
 export const DEMO_DESTACADOS: { id: string; agente: IdAgente; titulo: string; detalle: string; ir: Destino }[] = [
   { id: "reporte", agente: "iris", titulo: "Reporte de septiembre", detalle: "Excel · en el grupo Cierre de mes", ir: { vista: "conversaciones", con: "cierre" } },
-  { id: "recepcion", agente: "lola", titulo: "Grupo Recepción", detalle: "Lola y Víctor · citas y reseñas", ir: { vista: "conversaciones", con: "recepcion" } },
+  { id: "recepcion", agente: "lola", titulo: "Grupo Recepción", detalle: "Aura y Rigel · citas y reseñas", ir: { vista: "conversaciones", con: "recepcion" } },
   { id: "laser", agente: "iris", titulo: "Precios de la sesión de 1 hora", detalle: "Comparación con 4 negocios cercanos", ir: { vista: "conversaciones", con: "iris" } },
 ];
 
@@ -429,7 +429,7 @@ export const DEMO_CONVERSACIONES: ConversacionDemo[] = [
     cliente: "Carla Díaz",
     canal: "WhatsApp",
     agente: "lola",
-    ultimo: "Lola: Listo, quedas mañana a las 17:00.",
+    ultimo: "Aura: Listo, quedas mañana a las 17:00.",
     haceMin: 52,
     ir: { vista: "conversaciones", con: "lola" },
   },
@@ -483,16 +483,16 @@ export const DEMO_CONSEJOS: (Omit<Consejo, "alElegir" | "href"> & { ir: Destino 
     id: "grupo",
     agente: "victor",
     titulo: "Junta la cita y la reseña",
-    texto: "En el grupo Recepción, Lola agenda y Víctor pide la reseña después. Nadie recibe dos mensajes el mismo día.",
+    texto: "En el grupo Recepción, Aura agenda y Rigel pide la reseña después. Nadie recibe dos mensajes el mismo día.",
     etiquetaAccion: "Abrir Recepción",
     ir: { vista: "conversaciones", con: "recepcion" },
   },
   {
     id: "reporte",
     agente: "iris",
-    titulo: "Pídele a Iris el reporte del mes",
+    titulo: "Pídele a Mira el reporte del mes",
     texto: "Escribe /reporte en su chat y te lo deja en Excel, comparado con el mes anterior.",
-    etiquetaAccion: "Hablar con Iris",
+    etiquetaAccion: "Hablar con Mira",
     ir: { vista: "conversaciones", con: "iris" },
   },
 ];
@@ -501,7 +501,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
   {
     id: "a-victor",
     agente: "victor",
-    titulo: "Víctor espera tu visto bueno",
+    titulo: "Rigel espera tu visto bueno",
     detalle: "Mensaje para 31 clientes que no vienen desde junio",
     haceMin: 128,
     ir: { vista: "actividad", pestana: "visto-bueno" },
@@ -524,7 +524,7 @@ export const DEMO_AVISOS: (Omit<Aviso, "alElegir" | "href"> & { ir: Destino })[]
   },
 ];
 
-/* ---------- Vista Correo (lo que Clara leyó hoy) ---------- */
+/* ---------- Vista Correo (lo que Altair leyó hoy) ---------- */
 
 export type CorreoDemo = {
   id: string;
@@ -550,7 +550,7 @@ export const DEMO_CORREOS: CorreoDemo[] = [
     id: "andrea",
     remitente: "Andrea Solís",
     asunto: "Cambio de cita",
-    resumen: "Quiere pasar su cita del martes a la tarde. Clara le ofreció 17:00 o 18:30.",
+    resumen: "Quiere pasar su cita del martes a la tarde. Altair le ofreció 17:00 o 18:30.",
     accion: "Aprueba la respuesta que dejó lista.",
     prioridad: "hoy",
     haceMin: 101,

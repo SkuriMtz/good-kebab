@@ -41,8 +41,8 @@ export function oficinaDeEjemplo(ahora: number): ItemOficina[] {
       vista: {
         tipo: "texto",
         partes: [
-          { titulo: "Lo primero", texto: "Aprueba los 2 mensajes de confirmación de mañana para que Lola los mande temprano." },
-          { titulo: "Después", texto: "Revisa los borradores de Clara: la factura de Limpieza Brillo vence el 20." },
+          { titulo: "Lo primero", texto: "Aprueba los 2 mensajes de confirmación de mañana para que Aura los mande temprano." },
+          { titulo: "Después", texto: "Revisa los borradores de Altair: la factura de Limpieza Brillo vence el 20." },
           { titulo: "Para que tu equipo trabaje mejor", texto: "Sube tu lista de precios: hoy 3 personas preguntaron precios por WhatsApp." },
         ],
       },
@@ -118,7 +118,7 @@ export function oficinaDeEjemplo(ahora: number): ItemOficina[] {
         partes: [
           { titulo: "A quién", texto: "18 clientes que no vienen desde hace más de 3 meses y que antes venían seguido." },
           { titulo: "Qué decirles", texto: "Un saludo corto, sin promociones agresivas: preguntar cómo están y ofrecer apartarles un horario esta semana." },
-          { titulo: "Cuándo", texto: "Martes y miércoles por la mañana, en dos tandas. Lola contesta a quien responda y agenda." },
+          { titulo: "Cuándo", texto: "Martes y miércoles por la mañana, en dos tandas. Aura contesta a quien responda y agenda." },
         ],
       },
     },
@@ -134,8 +134,8 @@ export function oficinaDeEjemplo(ahora: number): ItemOficina[] {
         tipo: "texto",
         partes: [
           { titulo: "Citas", texto: "47 citas, 2 canceladas y 5 cambios de hora." },
-          { titulo: "Mensajes", texto: "Lola contestó 86 WhatsApp; lo que más preguntan son horarios y precios." },
-          { titulo: "Correo", texto: "Clara leyó 112 correos: 4 facturas y 2 proveedores esperan respuesta." },
+          { titulo: "Mensajes", texto: "Aura contestó 86 WhatsApp; lo que más preguntan son horarios y precios." },
+          { titulo: "Correo", texto: "Altair leyó 112 correos: 4 facturas y 2 proveedores esperan respuesta." },
         ],
       },
     },

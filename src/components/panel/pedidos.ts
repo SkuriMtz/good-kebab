@@ -39,8 +39,8 @@ export type Pedido = {
 
 /**
  * Tareas sobre TU correo y TU WhatsApp: el agente ya lee lo tuyo, así que
- * no hace falta darle el texto de nada. Clara lee los resúmenes de tu Gmail (solo
- * lectura); WhatsApp todavía no está conectado: Lola y Víctor dejan el
+ * no hace falta darle el texto de nada. Altair lee los resúmenes de tu Gmail (solo
+ * lectura); WhatsApp todavía no está conectado: Aura y Rigel dejan el
  * mensaje listo para que lo mandes tú.
  */
 export const PEDIDOS: Pedido[] = [

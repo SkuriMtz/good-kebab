@@ -77,7 +77,7 @@
   }
 }
 
-/* Chat (WhatsApp, chat con Iris) */
+/* Chat (WhatsApp, chat con Mira) */
 .conv__fila {
   display: flex;
   flex-direction: column;
@@ -164,7 +164,7 @@
   color: var(--c-enlace);
 }
 
-/* Correo (Clara): un hilo, uno debajo de otro */
+/* Correo (Altair): un hilo, uno debajo de otro */
 .conv--correo .conv__mensajes {
   gap: 0;
   padding-block: var(--spacing-4);

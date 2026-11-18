@@ -88,7 +88,7 @@ const TIPOS: { clase: string; spec: string; ejemplo: string }[] = [
   { clase: "t-display", spec: "64px · 425 · 1.08 · −0.035em (38px en celular)", ejemplo: "Que ningún cliente se quede sin respuesta" },
   { clase: "t-grande", spec: "48px · 440 · 1.18 (34px en celular)", ejemplo: "Cuatro agentes, un solo equipo" },
   { clase: "t-seccion", spec: "40px · 460 · 1.2 (30px en celular)", ejemplo: "Cada negocio ve solo lo suyo" },
-  { clase: "t-titulo", spec: "24px · 600 · 1.3", ejemplo: "Lola, tu agente de atención" },
+  { clase: "t-titulo", spec: "24px · 600 · 1.3", ejemplo: "Aura, tu agente de atención" },
   { clase: "t-sub", spec: "22px · 440 · 1.4", ejemplo: "Contesta tu WhatsApp a cualquier hora" },
   { clase: "t-intro", spec: "18px · 400 · 0.01em · #a4aea6 · máx. 640px", ejemplo: "Les hablas como a una persona y te entregan el trabajo hecho." },
   { clase: "t-editorial", spec: "16px · 400 · 1.5 · color de texto", ejemplo: "Agenda, confirma y recuerda citas." },
@@ -123,7 +123,7 @@ const TIPOS_APP: { clase: string; spec: string; ejemplo: string }[] = [
   { clase: "t-app-titulo-grande", spec: "24px · 600", ejemplo: "Conversaciones" },
   { clase: "t-app-titulo", spec: "20px · 600", ejemplo: "Actividad de tus agentes" },
   { clase: "t-app-mediano", spec: "16px · 600", ejemplo: "Próximas citas" },
-  { clase: "t-app", spec: "14px · 1.43 · −0.01em (el cuerpo de .producto)", ejemplo: "Lola agendó a Mariana para el jueves a las 16:30." },
+  { clase: "t-app", spec: "14px · 1.43 · −0.01em (el cuerpo de .producto)", ejemplo: "Aura agendó a Mariana para el jueves a las 16:30." },
   { clase: "t-app-etiqueta", spec: "12px · 500 · 1.33", ejemplo: "Martes 8 de octubre · 10:44" },
 ];
 
@@ -350,7 +350,7 @@ export default function Base() {
               <div className="flex flex-col items-start gap-[var(--spacing-12)]">
                 <Boton variante="sutil">Prueba los agentes</Boton>
                 <Boton variante="sutil" icono={<Icono nombre="mensaje" tam={16} />}>
-                  Háblale a Lola
+                  Háblale a Aura
                 </Boton>
                 <Boton variante="sutil" cargando>
                   Cargando
@@ -484,7 +484,7 @@ export default function Base() {
                 </div>
               ))}
               <div className="flex flex-col items-center gap-[var(--spacing-8)]">
-                <Avatar nombre="Lola" tam={40} estado="azul" anillo="var(--c-app-fondo)">
+                <Avatar nombre="Aura" tam={40} estado="azul" anillo="var(--c-app-fondo)">
                   <Personaje agente="lola" avatar />
                 </Avatar>
                 <span className="t-app-etiqueta">agente</span>
@@ -593,10 +593,10 @@ export default function Base() {
         >
           <DosModos>
             <div className="flex flex-col items-start gap-[var(--spacing-16)]">
-              <Escribiendo quien="Lola" variante="burbuja" />
-              <Escribiendo quien="Clara" conTexto />
+              <Escribiendo quien="Aura" variante="burbuja" />
+              <Escribiendo quien="Altair" conTexto />
               <span className="flex items-center gap-[var(--spacing-8)] text-grafito">
-                Víctor <Escribiendo quien="Víctor" />
+                Rigel <Escribiendo quien="Rigel" />
               </span>
             </div>
           </DosModos>
@@ -629,9 +629,9 @@ export default function Base() {
             direccion="atendel.mx/panel/chat"
             relleno
             pestanas={[
-              { etiqueta: "Lola · WhatsApp", adorno: <Personaje agente="lola" avatar />, activa: true },
-              { etiqueta: "Clara · Correo", adorno: <Personaje agente="clara" avatar /> },
-              { etiqueta: "Iris · Oficina", adorno: <Personaje agente="iris" avatar /> },
+              { etiqueta: "Aura · WhatsApp", adorno: <Personaje agente="lola" avatar />, activa: true },
+              { etiqueta: "Altair · Correo", adorno: <Personaje agente="clara" avatar /> },
+              { etiqueta: "Mira · Oficina", adorno: <Personaje agente="iris" avatar /> },
             ]}
           >
             <div className="grid gap-[var(--spacing-16)] md:grid-cols-[240px_minmax(0,1fr)]">
@@ -641,7 +641,7 @@ export default function Base() {
                 <p className="t-chico">16:30 porfa</p>
               </div>
               <div className="marco__panel p-[var(--spacing-16)]">
-                <Etiqueta tono="cielo">Lola · WhatsApp · 10:44</Etiqueta>
+                <Etiqueta tono="cielo">Aura · WhatsApp · 10:44</Etiqueta>
                 <p className="t-editorial mt-[var(--spacing-8)]">
                   Listo, te esperamos el jueves a las 16:30. Un día antes te mando un recordatorio.
                 </p>

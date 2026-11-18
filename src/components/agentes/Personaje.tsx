@@ -25,8 +25,8 @@ const ANCHO_MINIMO_VIVO = 44;
 
 /**
  * La personalidad está en cómo mira cada uno (no en adornos):
- * Lola va directo al cursor, Clara mira con calma, Víctor sigue con ganas,
- * Iris apenas se distrae. "forma" es qué tan rápido cambia su contorno.
+ * Aura va directo al cursor, Altair mira con calma, Rigel sigue con ganas,
+ * Mira apenas se distrae. "forma" es qué tan rápido cambia su contorno.
  */
 const TEMPERAMENTO: Record<IdAgente, { ojos: number; forma: number }> = {
   lola: { ojos: 0.2, forma: 1.15 },
@@ -94,8 +94,8 @@ function contorno(t: number, fase: number) {
 
 /**
  * Personaje de cada agente: un cuerpo redondo con cara, en SVG. Un color por
- * personaje y tinta para los detalles (audífonos de Lola, lentes de Clara,
- * moño de Víctor, chongo con lápiz de Iris). Sin saltos ni adornos: la vida
+ * personaje y tinta para los detalles (audífonos de Aura, lentes de Altair,
+ * moño de Rigel, chongo con lápiz de Mira). Sin saltos ni adornos: la vida
  * está en tres cosas pequeñas.
  * - Las pupilas siguen al cursor (o al dedo, unos segundos) sin salirse del
  *   ojo, con el retraso de cada temperamento; la cara se asoma apenas hacia
@@ -275,7 +275,7 @@ export function Personaje({
         {agente === "victor" ? <path d="M85 126 Q100 143 115 126" fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round" /> : null}
         {agente === "iris" ? <path d="M93 131 Q101 135 109 129" fill="none" stroke={TINTA} strokeWidth="3.2" strokeLinecap="round" /> : null}
 
-        {/* Lentes de Clara: mismas medidas que los ojos */}
+        {/* Lentes de Altair: mismas medidas que los ojos */}
         {agente === "clara" ? (
           <g fill="none" stroke={TINTA} strokeWidth="3.4" strokeLinecap="round">
             {OJOS.map((x) => (

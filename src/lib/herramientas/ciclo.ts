@@ -8,7 +8,7 @@ import { ErrorApi, NOMBRE_PROVEEDOR } from "@/lib/conexiones/oauth";
  * 1. Pide la respuesta en vivo (stream) con las herramientas que tocan.
  * 2. El texto se va mandando a la persona tal cual llega.
  * 3. Si el modelo pide herramientas: se manda una línea de estado
- *    ("Clara está revisando tu correo…"), se corren todas a la vez (máximo
+ *    ("Altair está revisando tu correo…"), se corren todas a la vez (máximo
  *    10 s cada una), y sus resultados vuelven al modelo truncados y marcados
  *    como DATOS, no instrucciones. Un error se le da al modelo con un texto
  *    amable para que se lo diga a la persona.

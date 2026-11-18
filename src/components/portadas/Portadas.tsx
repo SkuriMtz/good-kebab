@@ -47,7 +47,7 @@ export function PortadaA() {
   );
 }
 
-/** B · En vivo: el título enorme de lado a lado y, abajo, Lola contestando un WhatsApp que se escribe solo. */
+/** B · En vivo: el título enorme de lado a lado y, abajo, Aura contestando un WhatsApp que se escribe solo. */
 export function PortadaB() {
   return (
     <section className="contenedor pb-[var(--spacing-60)] pt-[var(--spacing-36)] lg:pb-[var(--spacing-96)] lg:pt-[var(--spacing-60)]">

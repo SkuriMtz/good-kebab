@@ -242,7 +242,7 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   const hoy = new Intl.DateTimeFormat("es-MX", { timeZone: aj.zonaHoraria, dateStyle: "full", timeStyle: "short" }).format(new Date());
 
   // Las instrucciones y el cerebro se guardan aparte: una respuesta que copie un pedazo de ellos no sale sola
-  const instrucciones = `Eres Lola, de Atendel: contestas el WhatsApp de «${cuenta.negocio}» a nombre del negocio, mientras el dueño no está. Hablas con un CLIENTE del negocio, no con el dueño. Hoy es ${hoy}.
+  const instrucciones = `Eres Aura, de Atendel: contestas el WhatsApp de «${cuenta.negocio}» a nombre del negocio, mientras el dueño no está. Hablas con un CLIENTE del negocio, no con el dueño. Hoy es ${hoy}.
 
 CÓMO CONTESTAS
 - Como se escribe en WhatsApp: corto (1 a 4 renglones), cálido y claro, en el idioma del cliente y con el tono del perfil. Sin markdown ni listas largas. Como mucho un emoji.
@@ -413,7 +413,7 @@ ${perfilTexto}
       tipo: "lola_contesto",
       agente: "lola",
       chat: `Le contesté a ${quien} por WhatsApp.\n\nEscribió: «${escribio}»\nLe dije: «${propuesta}»`,
-      corto: `Lola le contestó a ${cliente || "un cliente"} por WhatsApp.`,
+      corto: `Aura le contestó a ${cliente || "un cliente"} por WhatsApp.`,
     });
     return { estado: "respondido" };
   }

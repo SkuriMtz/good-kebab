@@ -43,7 +43,7 @@ export function AccionesEnvio({ id }: { id: string }) {
 
 /**
  * Lo que decides sobre un mensaje de un cliente por WhatsApp: mandarle la
- * respuesta que propuso Lola (la puedes cambiar) o no contestarle.
+ * respuesta que propuso Aura (la puedes cambiar) o no contestarle.
  */
 export function AccionesWhatsapp({ id, borrador, vencido }: { id: string; borrador: string; vencido: boolean }) {
   const router = useRouter();
@@ -69,7 +69,7 @@ export function AccionesWhatsapp({ id, borrador, vencido }: { id: string; borrad
     <>
       {vencido ? null : (
         <label className="pc-wa__campo">
-          <span className="pc-wa__etiqueta">{borrador ? "Lo que Lola le quiere contestar (lo puedes cambiar)" : "Tu respuesta"}</span>
+          <span className="pc-wa__etiqueta">{borrador ? "Lo que Aura le quiere contestar (lo puedes cambiar)" : "Tu respuesta"}</span>
           <textarea className="pc-campo__entrada pc-wa__texto" value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} maxLength={4096} placeholder="Escribe la respuesta…" />
         </label>
       )}

@@ -28,7 +28,7 @@ const por = (a: Color, k: number): Color => [a[0] * k, a[1] * k, a[2] * k];
 
 /**
  * La paleta de la escena, tomada de la guía de estilo (diseno/design.md):
- * Electric Iris #8052ff, Saffron Spark #ffb829 y Deep Verdant #15846e
+ * Electric Mira #8052ff, Saffron Spark #ffb829 y Deep Verdant #15846e
  * (aclarado, porque sobre negro casi no se vería), más el espectro de la
  * constelación de Dala: magenta y azul en pocas partículas.
  */
@@ -43,12 +43,12 @@ export const PALETA = {
 /** El espectro completo, para salpicar color como en la constelación de Dala. */
 const ESPECTRO: Color[] = [PALETA.morado, PALETA.morado, PALETA.ambar, PALETA.verdeAzul, PALETA.magenta, PALETA.azul];
 
-/** Los colores de Lola, Clara, Víctor e Iris (los del logo), llevados hacia la paleta de la escena. */
+/** Los colores de Aura, Altair, Rigel e Mira (los del logo), llevados hacia la paleta de la escena. */
 const COLORES_LOGO: Color[] = [
-  mezcla(hex("#ff8a6b"), PALETA.ambar, 0.45), // Lola: coral → ámbar
-  mezcla(hex("#7fb2ff"), PALETA.morado, 0.6), // Clara: azul → morado
-  mezcla(hex("#5fd09f"), PALETA.verdeAzul, 0.5), // Víctor: verde → verde azulado
-  mezcla(hex("#f6c64a"), PALETA.ambar, 0.4), // Iris: amarillo → ámbar
+  mezcla(hex("#ff8a6b"), PALETA.ambar, 0.45), // Aura: coral → ámbar
+  mezcla(hex("#7fb2ff"), PALETA.morado, 0.6), // Altair: azul → morado
+  mezcla(hex("#5fd09f"), PALETA.verdeAzul, 0.5), // Rigel: verde → verde azulado
+  mezcla(hex("#f6c64a"), PALETA.ambar, 0.4), // Mira: amarillo → ámbar
 ];
 
 /** La opacidad de cada partícula: entre 0.5 y 0.8, distinta en cada una. */

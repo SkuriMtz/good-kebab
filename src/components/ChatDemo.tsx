@@ -300,7 +300,7 @@ export const INICIO: Conversacion[] = [
   },
   {
     id: "lola",
-    nombre: "Lola",
+    nombre: "Aura",
     agentes: ["lola"],
     sinLeer: 0,
     orden: 8,
@@ -324,7 +324,7 @@ export const INICIO: Conversacion[] = [
   },
   {
     id: "clara",
-    nombre: "Clara",
+    nombre: "Altair",
     agentes: ["clara"],
     sinLeer: 2,
     orden: 6,
@@ -336,7 +336,7 @@ export const INICIO: Conversacion[] = [
   },
   {
     id: "victor",
-    nombre: "Víctor",
+    nombre: "Rigel",
     agentes: ["victor"],
     sinLeer: 0,
     orden: 5,
@@ -344,12 +344,12 @@ export const INICIO: Conversacion[] = [
       m("tu", "11:20", "/seguimiento", { dia: "Ayer" }),
       m("victor", "11:21", ACCIONES[4].respuesta, { dia: "Ayer", tarjeta: ACCIONES[4].tarjeta }),
       m("tu", "11:40", "Sí, mándalo", { dia: "Ayer" }),
-      m("victor", "12:01", "Enviado a las 12 personas. **3 ya contestaron** y Lola les está apartando cita.", { dia: "Ayer" }),
+      m("victor", "12:01", "Enviado a las 12 personas. **3 ya contestaron** y Aura les está apartando cita.", { dia: "Ayer" }),
     ],
   },
   {
     id: "iris",
-    nombre: "Iris",
+    nombre: "Mira",
     agentes: ["iris"],
     sinLeer: 0,
     orden: 4,
@@ -396,7 +396,7 @@ export type Turno = {
 /** El equipo de ejemplo de Estudio Luna (el mismo de Ajustes > Equipo en /pruebalo). */
 const EQUIPO_EJEMPLO = "Luis y Sofía";
 
-/** "haz la presentación de “ejemplo” y mándasela al equipo por WhatsApp": Iris la arma y Lola deja el envío en Pendientes. */
+/** "haz la presentación de “ejemplo” y mándasela al equipo por WhatsApp": Mira la arma y Aura deja el envío en Pendientes. */
 function presentacionYEnvio(texto: string, miembros: readonly IdAgente[]): Turno[] | null {
   const plano = sinAcentos(texto);
   const presentacion = /presentaci|diapositiva|power ?point|pptx/.test(plano);
@@ -619,7 +619,7 @@ export function ChatDemo({
     } else el.scrollTop = el.scrollHeight; // la fila nueva ya entra subiendo 8px: no hace falta deslizar
   }, [activa, mensajes.length, escribiendoAqui, portada]);
 
-  // "?con=lola" abre directo el chat con ese agente (desde "Háblale a Lola")
+  // "?con=lola" abre directo el chat con ese agente (desde "Háblale a Aura")
   useEffect(() => {
     if (enVivo) return;
     const con = new URLSearchParams(window.location.search).get("con");
@@ -782,7 +782,7 @@ export function ChatDemo({
     name: c.nombre,
     tag: c.agentes.length > 1 ? nombres(c.agentes) : AGENTE_POR_ID[c.agentes[0]].area,
   }));
-  /** Si el texto menciona a alguien que no está en ese chat (@Clara), va con él. */
+  /** Si el texto menciona a alguien que no está en ese chat (@Altair), va con él. */
   const destinoDe = (texto: string, id: string) => {
     const c = convs.find((x) => x.id === id);
     const mencion = (["lola", "clara", "victor", "iris"] as IdAgente[]).find((a) => texto.includes(`@${AGENTE_POR_ID[a].nombre}`));

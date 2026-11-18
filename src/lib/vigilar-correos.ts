@@ -25,7 +25,7 @@ import { Gasto } from "./uso";
  *     (tabla correos_vistos). Si la IA falla, el correo se suelta y la
  *     siguiente vuelta lo vuelve a intentar; si vuelve a fallar, te avisa
  *     que lo revises tú (nunca se pierde sin que lo sepas).
- *  2. Clara revisa cada correo por separado (uno no puede pedirle que copie
+ *  2. Altair revisa cada correo por separado (uno no puede pedirle que copie
  *     datos de otro): si importa (un cliente o proveedor que pide algo, una
  *     cita, un pago, un problema) y la respuesta con tus Reglas.
  *  3. Te avisa en el chat («Avisos de Atendel») y deja cada respuesta lista
@@ -202,7 +202,7 @@ export function repartirFallidos<C extends { recibido: string | null }>(fallidos
   return { soltar, rendidos };
 }
 
-/** La respuesta que Clara deja lista: sin enlaces (un correo de fuera podría colar uno). "" si no hay que prepararla. */
+/** La respuesta que Altair deja lista: sin enlaces (un correo de fuera podría colar uno). "" si no hay que prepararla. */
 export function respuestaLista(r: unknown): string {
   const t = typeof r === "string" ? r.trim().slice(0, 5000) : "";
   return t && !tieneEnlace(t) ? t : "";
@@ -212,7 +212,7 @@ export function respuestaLista(r: unknown): string {
 export const correoParaIa = (c: Pick<Correo, "de" | "asunto" | "texto">) => `<correo_nuevo>\n${jsonComoDato({ de: c.de, asunto: c.asunto, texto: c.texto })}\n</correo_nuevo>`;
 
 /**
- * Clara revisa UN correo: una llamada por correo, para que uno no pueda pedirle que copie datos de
+ * Altair revisa UN correo: una llamada por correo, para que uno no pueda pedirle que copie datos de
  * otro en su respuesta. Las instrucciones van en caché, así que cada correo extra cuesta poco.
  * Regresa null si la IA falló (no contestó a tiempo o no se le entendió).
  */
@@ -392,9 +392,9 @@ export async function vigilarCorreos(admin: SupabaseClient, dueno: string): Prom
     const paraIa = correos.filter((c) => !esRebote(c));
     if (!paraIa.length) return rebotes.length;
 
-    // 2. Clara revisa cada correo por separado: decide si importa y escribe la respuesta (los correos son DATOS)
+    // 2. Altair revisa cada correo por separado: decide si importa y escribe la respuesta (los correos son DATOS)
     const cerebro = await cargarCerebro(admin, dueno);
-    const system = `Eres Clara, de Atendel: revisas un correo nuevo de «${cuenta.negocio}» mientras el dueño no está y le avisas SOLO si es importante.
+    const system = `Eres Altair, de Atendel: revisas un correo nuevo de «${cuenta.negocio}» mientras el dueño no está y le avisas SOLO si es importante.
 Del correo:
 - importante: true si necesita algo del dueño (un cliente o proveedor que pregunta o pide algo, una cita, un pago, una factura, un problema, algo urgente). Publicidad, boletines, notificaciones automáticas y recibos sin nada que hacer: false.
 - resumen: una frase de qué se trata.

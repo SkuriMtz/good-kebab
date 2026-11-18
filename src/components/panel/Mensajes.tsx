@@ -18,7 +18,7 @@ import { Marca } from "@/components/Logo";
  * subiendo 6px en 180ms (ANIMACIONES.md, "del chat"). Estilo en panel.css.
  */
 
-/** "Lola", "Lola y Víctor", "Lola, Clara e Iris". */
+/** "Aura", "Aura y Rigel", "Aura, Altair e Mira". */
 export function nombresDe(ids: readonly IdAgente[]) {
   const n = ids.map((id) => AGENTE_POR_ID[id].nombre);
   if (n.length < 2) return n.join("");
@@ -133,7 +133,7 @@ export function MensajeAgente({
  * hayan hecho varios agentes por dentro (trabajan "en la cocina": el dueño
  * solo le habla a Atendel). Va firmada «Atendel», con el logo de cuatro
  * puntos; abajo, la hora y "Copiar". Mientras llega: los triangulitos y lo
- * que está haciendo ("Clara está revisando tu correo…"), que es la forma de
+ * que está haciendo ("Altair está revisando tu correo…"), que es la forma de
  * asomarse a la cocina.
  */
 export function RespuestaAtendel({
@@ -259,7 +259,7 @@ export function useRevelar(texto: string, activo: boolean) {
  * de quien escribe. Mientras tanto, los cuatro círculos del logo del menú
  * "respiran" (html[data-pc-escribe], en CSS; quietos con reducir movimiento).
  */
-export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente; cabeza?: boolean; /** Lo que está haciendo ("Clara está revisando tu correo…"); sin esto, "está escribiendo…". */ texto?: string }) {
+export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente; cabeza?: boolean; /** Lo que está haciendo ("Altair está revisando tu correo…"); sin esto, "está escribiendo…". */ texto?: string }) {
   const info = AGENTE_POR_ID[agente];
   useEffect(() => {
     const html = document.documentElement;
@@ -285,9 +285,9 @@ export function Escribiendo({ agente, cabeza = true, texto }: { agente: IdAgente
 /**
  * Mientras Atendel piensa o escribe: una nubecita de fragmentos que flotan
  * sin ritmo fijo (FragmentosEscribe), en violeta, el color del agente y
- * turquesa. Sin texto: "Lola está escribiendo" solo lo oye el
+ * turquesa. Sin texto: "Aura está escribiendo" solo lo oye el
  * lector de pantalla (`etiqueta`). Si el agente está usando una app, sí se
- * lee lo que hace ("Clara está revisando tu correo…").
+ * lee lo que hace ("Altair está revisando tu correo…").
  */
 export function LineaEscribe({ texto, agente, etiqueta }: { texto?: string; agente?: IdAgente; etiqueta?: string }) {
   const colores = ["#8052ff", agente ? PERSONAJES[agente].color : "#3d7bff", "#23d9b5"];
@@ -299,7 +299,7 @@ export function LineaEscribe({ texto, agente, etiqueta }: { texto?: string; agen
   );
 }
 
-/** Un aviso en medio del hilo ("Creaste el grupo…", "Lola le pasa el seguimiento a Víctor", un error). */
+/** Un aviso en medio del hilo ("Creaste el grupo…", "Aura le pasa el seguimiento a Rigel", un error). */
 export function AvisoHilo({ children, icono = "usuarios", error = false, nuevo }: { children: ReactNode; icono?: NombreIcono; error?: boolean; nuevo?: boolean }) {
   return (
     <p className={`pc-aviso-hilo${error ? " pc-aviso-hilo--error" : ""}${nuevo ? " pc-msj--nuevo" : ""}`} role={error ? "alert" : undefined}>

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { limpiarDato } from "@/lib/contexto-datos";
 
 /**
- * Lo que Clara puede ver de tu correo en el chat: los resúmenes que ya
+ * Lo que Altair puede ver de tu correo en el chat: los resúmenes que ya
  * guardó (resumenes_correo), nunca el texto original. Solo lectura.
  * - Los últimos 20 de los últimos 14 días, de los negocios de la persona
  *   (filtro por negocio_id además de RLS).
@@ -43,7 +43,7 @@ const sinAccion = (a: string | null) => !a || /^\s*(ninguna|no aplica|sin acci[o
 
 /**
  * El bloque para el system. Puro (sin red): lo usa la API y lo prueba el
- * script. Si no hay correos, le dice a Clara que sugiera conectar Gmail.
+ * script. Si no hay correos, le dice a Altair que sugiera conectar Gmail.
  */
 export function bloqueCorreos(filas: ResumenParaContexto[], aviso?: string): string {
   if (!filas.length) {
@@ -77,7 +77,7 @@ export function bloqueCorreos(filas: ResumenParaContexto[], aviso?: string): str
 
 /**
  * Lee los resúmenes recientes de los negocios de la persona y arma el
- * bloque. Con un error de lectura, lo dice en el bloque (Clara no inventa).
+ * bloque. Con un error de lectura, lo dice en el bloque (Altair no inventa).
  */
 export async function contextoCorreo(supabase: SupabaseClient, userId: string, ahora: Date = new Date()): Promise<string> {
   const { data: negocios, error: errNeg } = await supabase.from("negocios").select("id").eq("owner_id", userId);

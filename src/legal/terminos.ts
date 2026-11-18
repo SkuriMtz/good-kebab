@@ -48,7 +48,7 @@ Para facilitar la interpretación de estos Términos, las siguientes expresiones
 
 **Inteligencia Artificial o IA:** sistemas computacionales capaces de procesar información, interpretar instrucciones, generar contenido y ejecutar determinadas tareas de manera automatizada.
 
-**Especialistas:** componentes funcionales de Atendel identificados como Lola, Clara, Víctor e Iris, que participan en distintas actividades y procesos internos de asistencia.
+**Especialistas:** componentes funcionales de Atendel identificados como Aura, Altair, Rigel e Mira, que participan en distintas actividades y procesos internos de asistencia.
 
 **Aplicaciones conectadas:** servicios externos que el usuario autoriza para que Atendel pueda consultar información o ejecutar acciones, incluyendo Gmail, Outlook, Google Calendar, WhatsApp, Shopify y otros servicios compatibles.
 
@@ -80,7 +80,7 @@ Entre sus principales capacidades se encuentran:
 - Generar notificaciones sobre acontecimientos relevantes.
 - Interactuar con aplicaciones externas autorizadas por el usuario.
 
-Atendel incorpora cuatro especialistas funcionales: Lola, Clara, Víctor e Iris, cada uno orientado a determinadas actividades dentro de la plataforma.
+Atendel incorpora cuatro especialistas funcionales: Aura, Altair, Rigel e Mira, cada uno orientado a determinadas actividades dentro de la plataforma.
 
 No obstante, todos estos componentes forman parte de un mismo servicio integrado. El usuario interactúa con ellos mediante Atendel, sin que ello implique la existencia de contratos independientes con cada especialista.
 
@@ -516,7 +516,7 @@ Salvo autorización expresa, el acceso a Atendel no concede al usuario derechos 
 
 **15.2. Marca y elementos identificativos**
 
-El nombre Atendel, sus elementos gráficos y sus especialistas identificados como Lola, Clara, Víctor e Iris forman parte de la identidad de la plataforma, en la medida en que los derechos correspondientes pertenezcan al Prestador o a sus legítimos titulares.
+El nombre Atendel, sus elementos gráficos y sus especialistas identificados como Aura, Altair, Rigel e Mira forman parte de la identidad de la plataforma, en la medida en que los derechos correspondientes pertenezcan al Prestador o a sus legítimos titulares.
 
 El usuario no podrá utilizar dichos elementos para crear una asociación comercial no autorizada, comercializar productos propios como si fueran oficiales o inducir a terceros a creer que mantiene una relación de representación con Atendel.
 

@@ -59,7 +59,7 @@ export const PREGUNTAS_PLANES: Pregunta[] = [
   },
   {
     p: "¿Tengo que decirle a qué agente le toca?",
-    r: "No. Le escribes a Atendel y él decide a quién le toca: Lola, Clara, Víctor o Iris. Te contesta una sola vez y abajo ves quién lo hizo.",
+    r: "No. Le escribes a Atendel y él decide a quién le toca: Aura, Altair, Rigel o Mira. Te contesta una sola vez y abajo ves quién lo hizo.",
   },
 ];
 

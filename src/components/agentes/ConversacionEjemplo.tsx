@@ -12,10 +12,10 @@ const ARCHIVO = /\b[\w-]+\.(?:xlsx|pdf|docx)\b/g;
 /**
  * La conversación de ejemplo de un agente, como se vería dentro del producto
  * (va dentro de un <MarcoNavegador>). Cada canal se ve como lo que es:
- * - WhatsApp (Lola, Víctor): burbujas; las del negocio a la derecha con
+ * - WhatsApp (Aura, Rigel): burbujas; las del negocio a la derecha con
  *   tinte azul, las del cliente a la izquierda.
- * - Correo (Clara): un hilo de correos, uno debajo de otro, con remitente y hora.
- * - Chat con Iris: tú a la derecha, Iris a la izquierda, y el archivo que
+ * - Correo (Altair): un hilo de correos, uno debajo de otro, con remitente y hora.
+ * - Chat con Mira: tú a la derecha, Mira a la izquierda, y el archivo que
  *   entrega como adjunto.
  * La "nota" final (cita creada, correos enviados) es un evento de la línea de
  * tiempo, con su palomita. Todos los datos salen de detalle.ts; los nombres
@@ -97,7 +97,7 @@ export function ConversacionEjemplo({ agente, animar = false, idioma = "es" }: {
             );
           }
 
-          // Chat: el lado de "lo mío" es el negocio (Lola, Víctor) o tú (con Iris)
+          // Chat: el lado de "lo mío" es el negocio (Aura, Rigel) o tú (con Mira)
           const mio = conIris ? m.de === "otro" : m.de === "agente";
           // En un chat de dos, el nombre solo hace falta la primera vez que contesta el agente
           const cambia = m.de === "agente" && detalle.conversacion.findIndex((x) => x.de === "agente") === i;

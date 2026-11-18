@@ -5,7 +5,7 @@ import { nombreRemitente } from "@/components/panel/remitente";
  * HECHO: lo que el equipo ya terminó. En /panel sale de datos de verdad:
  * cada cosa que la persona le pidió a su equipo en el chat y que ya tiene
  * respuesta (el pedido y el principio de la respuesta), y los correos que
- * Clara resumió. Nada se inventa: sin conversaciones, la lista está vacía.
+ * Altair resumió. Nada se inventa: sin conversaciones, la lista está vacía.
  */
 
 export type ItemHecho = {

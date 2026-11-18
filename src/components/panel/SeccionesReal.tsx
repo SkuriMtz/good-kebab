@@ -161,8 +161,8 @@ export function PendientesReal({
         agenteVacio="clara"
         items={items}
         vacios={{
-          revisar: de || accion ? "Nada con este filtro." : "Nada por revisar. Cuando Clara encuentre un correo que pide algo, aparece aquí.",
-          aprobado: "Lo que apruebes aparece aquí cuando Lola y Víctor estén conectados a tu WhatsApp.",
+          revisar: de || accion ? "Nada con este filtro." : "Nada por revisar. Cuando Altair encuentre un correo que pide algo, aparece aquí.",
+          aprobado: "Lo que apruebes aparece aquí cuando Aura y Rigel estén conectados a tu WhatsApp.",
           enviado: "Aquí verás lo que tu equipo ya mandó.",
         }}
       />
@@ -175,7 +175,7 @@ export function PendientesReal({
 export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string; dia?: string }) {
   return (
     <Seccion>
-      <TituloSeccion titulo="Citas" texto="La agenda que lleva Lola: lo que confirma, cambia y recuerda por WhatsApp." />
+      <TituloSeccion titulo="Citas" texto="La agenda que lleva Aura: lo que confirma, cambia y recuerda por WhatsApp." />
       {de || dia ? (
         <div className="pc-filtros">
           <Enlace href="/panel?vista=citas" className="pc-pildora pc-pildora--quitar" aria-label={`Quitar el filtro: ${de ?? dia}`}>
@@ -195,7 +195,7 @@ export function CitasReal({ conLola, de, dia }: { conLola: boolean; de?: string;
             </Enlace>
           ) : (
             <Enlace href="/precios" className={claseBoton("borde", true)}>
-              Lola llega con {planMinimo("lola").nombre}
+              Aura llega con {planMinimo("lola").nombre}
             </Enlace>
           )
         }

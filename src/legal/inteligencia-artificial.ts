@@ -98,7 +98,7 @@ La disponibilidad de estas funciones dependerá de la configuración del negocio
 
 ### 5. Especialistas internos de Atendel
 
-Atendel puede organizar internamente sus procesos mediante especialistas de inteligencia artificial identificados como Lola, Clara, Víctor e Iris.
+Atendel puede organizar internamente sus procesos mediante especialistas de inteligencia artificial identificados como Aura, Altair, Rigel e Mira.
 
 Estos especialistas representan componentes de trabajo que pueden intervenir en diferentes actividades de análisis, organización, preparación y ejecución de tareas.
 

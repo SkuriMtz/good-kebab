@@ -44,7 +44,7 @@ import { datosDeFueraDelCuerpo, marcarAlTerminar, turnoDelChat } from "@/lib/dat
  * agentes y que no haya pasado su límite del mes, y responde en vivo.
  * En un grupo contesta un solo modelo por todos: cada intervención llega
  * marcada con "@@id" y se guarda como un mensaje de ese agente.
- * Si Clara está (sola o en el grupo), el system lleva los resúmenes de
+ * Si Altair está (solo o en el grupo), el system lleva los resúmenes de
  * correo recientes de la persona (src/lib/contexto-correo.ts): solo
  * lectura, delimitados y marcados como datos, no instrucciones.
  * Para todos los agentes, el system lleva además el perfil del negocio y los
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
   if (errMensaje) return error("No se pudo guardar tu mensaje.", 500);
   await supabase.rpc("sumar_mensaje");
 
-  // 6. Contexto (solo lectura): si Clara está, los resúmenes de correo recientes (nunca el texto
+  // 6. Contexto (solo lectura): si Altair está, los resúmenes de correo recientes (nunca el texto
   //    original); para todos, el perfil del negocio y los fragmentos de sus documentos
   const [correos, perfil, documentos, ajustesGuardados] = await Promise.all([
     participantes.includes("clara")

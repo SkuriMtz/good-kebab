@@ -2,8 +2,8 @@
 
 Atendel es una suscripción de agentes de IA para microempresas mexicanas
 (clínicas, consultorios, estéticas y negocios de servicios). Cuatro agentes:
-**Lola** (Atención, WhatsApp y citas), **Clara** (Correo), **Víctor** (Clientes)
-e **Iris** (Oficina). Stack: Next.js 14 (App Router), TypeScript, Tailwind v3,
+**Aura** (Atención, WhatsApp y citas), **Altair** (Correo), **Rigel** (Clientes)
+e **Mira** (Oficina). Stack: Next.js 14 (App Router), TypeScript, Tailwind v3,
 Supabase. El dueño del proyecto no es técnico y habla español: explica todo en
 español sencillo.
 
@@ -80,6 +80,8 @@ Cada vez que el dueño rechace algo, agrega aquí la lección.
 - Ningún dato inventado.
 - Cuidar el detalle: `text-wrap: balance` en títulos (sin palabras sueltas), líneas de máximo ~70 caracteres, espaciados de la escala de 4px, alineación a la rejilla.
 - Todo elemento interactivo con estados diseñados: hover, foco visible, activo, deshabilitado y cargando.
+
+- (18 nov) **Nombres de los agentes:** Aura (Atención), Altair (Correo; se trata en masculino), Rigel (Clientes) y Mira (Oficina). Los ids internos siguen siendo `lola`, `clara`, `victor` e `iris` (base de datos y código); solo cambió el nombre que se ve.
 
 ## Seguridad (prioridad del dueño: "una seguridad increíble")
 

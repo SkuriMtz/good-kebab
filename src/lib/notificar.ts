@@ -25,11 +25,11 @@ type DefAviso = { nivel: NivelAviso; titulo: string; grupo?: string; siempre?: b
 
 /** Los tipos de aviso (el número es el de la lista de 50 del plan). */
 export const AVISOS = {
-  // Clientes por WhatsApp (Lola)
+  // Clientes por WhatsApp (Aura)
   cliente_espera_ok: { nivel: "urgente", titulo: "Un cliente espera respuesta", grupo: "pendientes" }, // 1
   cliente_te_toca: { nivel: "urgente", titulo: "Un cliente te escribió", grupo: "pendientes" }, // 2
   cliente_molesto: { nivel: "urgente", titulo: "Un cliente necesita que lo atiendas tú" }, // 4
-  lola_contesto: { nivel: "info", titulo: "Lola atendió por WhatsApp", grupo: "lola" }, // 5
+  lola_contesto: { nivel: "info", titulo: "Aura atendió por WhatsApp", grupo: "lola" }, // 5
   // Citas y agenda (vigilar-agenda.ts)
   cita_nueva: { nivel: "importante", titulo: "Cita nueva en tu agenda", grupo: "agenda" }, // 6
   cita_cambio: { nivel: "importante", titulo: "Cambió una cita de tu agenda", grupo: "agenda" }, // 7

@@ -15,7 +15,7 @@ Las apps "por llave" (Telegram, Trello, Airtable, Acuity y SimplyBook.me) no nec
 
 ## Meta: WhatsApp Business, Instagram y Messenger
 
-**Qué hace la IA:** Lola (y Víctor) leen las conversaciones recientes de Messenger y los mensajes directos de Instagram. De WhatsApp Business ve tus números y tus plantillas de mensajes.
+**Qué hace la IA:** Aura (y Rigel) leen las conversaciones recientes de Messenger y los mensajes directos de Instagram. De WhatsApp Business ve tus números y tus plantillas de mensajes.
 
 > La API de WhatsApp Cloud **no deja leer el historial de chats**. Los mensajes que te mandan llegan por un webhook, y eso es de otra fase.
 
@@ -51,7 +51,7 @@ El permiso de Meta dura unos 60 días. Cuando vence, la tarjeta pide volver a co
 
 ## Telegram (por llave)
 
-**Qué hace la IA:** Lola lee los mensajes recientes que le escriben al bot de tu negocio. No marca nada como leído.
+**Qué hace la IA:** Aura lee los mensajes recientes que le escriben al bot de tu negocio. No marca nada como leído.
 
 **Cómo sacar la llave:**
 
@@ -71,7 +71,7 @@ En Vercel no se pone nada.
 
 ## Calendly
 
-**Qué hace la IA:** Lola ve tus próximas citas (quién agendó, cuándo y dónde) y tus tipos de cita con su enlace.
+**Qué hace la IA:** Aura ve tus próximas citas (quién agendó, cuándo y dónde) y tus tipos de cita con su enlace.
 
 1. Entra a [developer.calendly.com](https://developer.calendly.com), inicia sesión y abre **My apps** → **Create new app**.
 2. Tipo **Web**, ambiente **Production** (usa Sandbox solo para pruebas).
@@ -88,7 +88,7 @@ Calendly pide PKCE y Atendel ya lo hace solo. Su permiso dura 2 horas y se renue
 
 ## Zoom
 
-**Qué hace la IA:** Lola ve tus próximas reuniones (fecha, hora, duración, tema y enlace).
+**Qué hace la IA:** Aura ve tus próximas reuniones (fecha, hora, duración, tema y enlace).
 
 1. Entra a [marketplace.zoom.us](https://marketplace.zoom.us) → **Develop** → **Build App** y elige **General App**, administrada por el usuario (*User-managed*).
 2. En **Basic Information → OAuth Information**:
@@ -106,7 +106,7 @@ Calendly pide PKCE y Atendel ya lo hace solo. Su permiso dura 2 horas y se renue
 
 ## Dropbox
 
-**Qué hace la IA:** Iris busca tus archivos y lee su texto: TXT, MD, CSV, PDF y Word (.docx), hasta 10 MB.
+**Qué hace la IA:** Mira busca tus archivos y lee su texto: TXT, MD, CSV, PDF y Word (.docx), hasta 10 MB.
 
 1. Entra a [dropbox.com/developers/apps](https://www.dropbox.com/developers/apps) → **Create app**.
 2. Elige **Scoped access**. Luego **Full Dropbox** (o **App folder**, si solo quieres que vea una carpeta) y ponle nombre.
@@ -123,7 +123,7 @@ Calendly pide PKCE y Atendel ya lo hace solo. Su permiso dura 2 horas y se renue
 
 ## Slack
 
-**Qué hace la IA:** Iris busca mensajes y lee los últimos mensajes de un canal público. Ve lo mismo que puede ver la persona que conectó.
+**Qué hace la IA:** Mira busca mensajes y lee los últimos mensajes de un canal público. Ve lo mismo que puede ver la persona que conectó.
 
 1. Entra a [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**, con nombre y tu espacio de trabajo.
 2. En **OAuth & Permissions**:
@@ -141,7 +141,7 @@ Calendly pide PKCE y Atendel ya lo hace solo. Su permiso dura 2 horas y se renue
 
 ## Trello (por llave)
 
-**Qué hace la IA:** Iris ve tus tableros y las tarjetas de cada lista (vencimientos, etiquetas y descripción), o busca tarjetas.
+**Qué hace la IA:** Mira ve tus tableros y las tarjetas de cada lista (vencimientos, etiquetas y descripción), o busca tarjetas.
 
 **Cómo sacar la llave** (la hace cada persona con su cuenta):
 
@@ -156,7 +156,7 @@ Al desconectar, Atendel borra ese token en Trello. En Vercel no se pone nada.
 
 ## Airtable (por llave)
 
-**Qué hace la IA:** Iris ve tus bases, sus tablas y los registros de una tabla, y puede filtrarlos por texto.
+**Qué hace la IA:** Mira ve tus bases, sus tablas y los registros de una tabla, y puede filtrarlos por texto.
 
 **Cómo sacar la llave:**
 
@@ -171,7 +171,7 @@ Airtable no deja borrar el token desde otra app: si ya no lo quieres, bórralo e
 
 ## HubSpot
 
-**Qué hace la IA:** Víctor busca contactos (nombre, correo, teléfono, empresa y etapa) y negocios (monto, etapa y fecha de cierre) en tu CRM.
+**Qué hace la IA:** Rigel busca contactos (nombre, correo, teléfono, empresa y etapa) y negocios (monto, etapa y fecha de cierre) en tu CRM.
 
 1. Crea una cuenta de desarrollador en [developers.hubspot.com](https://developers.hubspot.com) y crea una app con autenticación **OAuth**.
 2. En la autenticación de la app:
@@ -190,7 +190,7 @@ Atendel usa la versión nueva de la API de OAuth de HubSpot (la v1 se retira en 
 
 ## Reseñas de Facebook (va con la misma app de Meta)
 
-**Qué hace la IA:** Víctor lee las recomendaciones y reseñas recientes de tu página de Facebook y su calificación general, para proponerte cómo contestarlas.
+**Qué hace la IA:** Rigel lee las recomendaciones y reseñas recientes de tu página de Facebook y su calificación general, para proponerte cómo contestarlas.
 
 No hay que crear otra app ni poner otra variable: se usa la misma app de Meta (`META_APP_ID` y `META_APP_SECRET`).
 
@@ -201,7 +201,7 @@ No hay que crear otra app ni poner otra variable: se usa la misma app de Meta (`
 
 ## Google Forms (va con el cliente de Google)
 
-**Qué hace la IA:** Víctor lee las respuestas de un formulario de Google que le indiques (con el link de edición del formulario).
+**Qué hace la IA:** Rigel lee las respuestas de un formulario de Google que le indiques (con el link de edición del formulario).
 
 1. En Google Cloud, en el mismo proyecto de Gmail y Drive, activa la **Google Forms API** (APIs y servicios → Biblioteca).
 2. En la **pantalla de consentimiento** → **Permisos**, agrega:
@@ -215,7 +215,7 @@ No hay que crear otra app ni poner otra variable: se usa la misma app de Meta (`
 
 ## Acuity Scheduling (por llave)
 
-**Qué hace la IA:** Lola ve tus próximas citas, las citas de un cliente (por correo, teléfono o nombre) y tus servicios.
+**Qué hace la IA:** Aura ve tus próximas citas, las citas de un cliente (por correo, teléfono o nombre) y tus servicios.
 
 **Cómo sacar la llave:**
 
@@ -229,7 +229,7 @@ En Vercel no se pone nada.
 
 ## SimplyBook.me (por llave)
 
-**Qué hace la IA:** Lola ve tus próximas reservas, las reservas de un cliente y tus servicios.
+**Qué hace la IA:** Aura ve tus próximas reservas, las reservas de un cliente y tus servicios.
 
 **Cómo sacar la llave:**
 
@@ -246,8 +246,8 @@ Nunca se pega tu contraseña. La API User Key no pide verificación en dos pasos
 
 **Qué hace la IA:**
 
-- Víctor busca tus contactos y tratos de **Zoho CRM**.
-- Clara e Iris ven tus facturas y contactos de **Zoho Books**.
+- Rigel busca tus contactos y tratos de **Zoho CRM**.
+- Altair e Mira ven tus facturas y contactos de **Zoho Books**.
 
 1. Entra a [api-console.zoho.com](https://api-console.zoho.com) → **Add Client** → **Server-based Applications**.
 2. **Authorized Redirect URIs:** `https://<dominio>/api/conexiones/zoho/callback`.
@@ -269,7 +269,7 @@ La autorización empieza siempre en accounts.zoho.com y Zoho manda a la región 
 
 ## Pipedrive
 
-**Qué hace la IA:** Víctor busca tus personas (contactos) y tratos.
+**Qué hace la IA:** Rigel busca tus personas (contactos) y tratos.
 
 1. Entra al [Developer Hub de Pipedrive](https://developers.pipedrive.com) con una cuenta de desarrollador y crea una app privada o pública.
 2. **Callback URL:** `https://<dominio>/api/conexiones/pipedrive/callback`.
@@ -283,7 +283,7 @@ La autorización empieza siempre en accounts.zoho.com y Zoho manda a la región 
 
 ## Kommo
 
-**Qué hace la IA:** Víctor busca tus leads (con su embudo y etapa) y tus contactos.
+**Qué hace la IA:** Rigel busca tus leads (con su embudo y etapa) y tus contactos.
 
 1. En tu cuenta de Kommo entra a **Ajustes** → **Integraciones** → **Crear integración** (externa).
 2. **Redirect URL:** `https://<dominio>/api/conexiones/kommo/callback`.
@@ -299,7 +299,7 @@ La autorización empieza siempre en accounts.zoho.com y Zoho manda a la región 
 
 ## Typeform
 
-**Qué hace la IA:** Víctor ve tus formularios y lee sus respuestas (cada pregunta con lo que contestaron).
+**Qué hace la IA:** Rigel ve tus formularios y lee sus respuestas (cada pregunta con lo que contestaron).
 
 1. En Typeform entra a tu cuenta → **Developer apps** → **Register a new app**.
 2. **Redirect URI(s):** `https://<dominio>/api/conexiones/typeform/callback`.
@@ -314,7 +314,7 @@ Atendel pide `accounts:read`, `forms:read`, `responses:read` y `offline` (para r
 
 ## Mailchimp
 
-**Qué hace la IA:** Víctor ve tus audiencias (cuántos suscritos y sus tasas) y cómo les fue a tus últimas campañas enviadas.
+**Qué hace la IA:** Rigel ve tus audiencias (cuántos suscritos y sus tasas) y cómo les fue a tus últimas campañas enviadas.
 
 1. En Mailchimp entra a tu perfil → **Extras** → **Registered apps** → **Register an app**.
 2. **Redirect URI:** `https://<dominio>/api/conexiones/mailchimp/callback`.

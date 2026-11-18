@@ -29,7 +29,7 @@ import {
  * - Cada llamada lleva appsecret_proof (HMAC del token con META_APP_SECRET).
  * - La API de WhatsApp Cloud NO deja leer el historial de chats: los
  *   mensajes nuevos de los clientes llegan por webhook
- *   (/api/whatsapp/webhook) y Lola los contesta (src/lib/whatsapp). Aquí
+ *   (/api/whatsapp/webhook) y Aura los contesta (src/lib/whatsapp). Aquí
  *   solo se leen números y plantillas.
  */
 

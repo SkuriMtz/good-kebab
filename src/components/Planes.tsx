@@ -12,7 +12,7 @@ import type { Plan } from "@/lib/planes";
 const NOMBRE_CORTO: Record<Plan["id"], string> = { free: "Free", one: "One", max: "Max" };
 
 /** Las líneas de "incluye" que nombran agentes ya se ven en la fila del equipo (con sus personajes). */
-const NOMBRA_AGENTES = /^(Lola|Clara|Víctor|Iris),|^Los \d agentes|^All \d agents/;
+const NOMBRA_AGENTES = /^(Aura|Altair|Rigel|Mira),|^Los \d agentes|^All \d agents/;
 
 /**
  * Los tres planes (Free, One, Max) de src/lib/planes.ts en UN solo panel de

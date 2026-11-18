@@ -47,7 +47,7 @@ const APELLIDOS = ["Herrera", "Núñez", "Ramírez", "Medina", "Ortega", "Cruz",
 /** El cliente número n (siempre el mismo nombre para el mismo n). */
 const nombreNuevo = (n: number) => `${NOMBRES[n % NOMBRES.length]} ${APELLIDOS[Math.floor(n / NOMBRES.length) % APELLIDOS.length]}`;
 
-/** Lo que preguntan por WhatsApp (lo atiende Lola). */
+/** Lo que preguntan por WhatsApp (lo atiende Aura). */
 const TEMAS: readonly (readonly [string, number])[] = [
   ["Agendar una cita", 30],
   ["Cambiar o cancelar su cita", 16],

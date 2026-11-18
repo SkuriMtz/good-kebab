@@ -3,8 +3,8 @@ import { Icono } from "./Iconos";
 
 /**
  * Ventana tipo navegador para mostrar el producto (la prueba principal,
- * como el editor en GitHub): tres puntos de color (los colores de Lola,
- * Iris y Víctor), barra de pestañas con la activa resaltada, barra de
+ * como el editor en GitHub): tres puntos de color (los colores de Aura,
+ * Mira y Rigel), barra de pestañas con la activa resaltada, barra de
  * dirección opcional y el contenido dentro.
  * Radio 8px por fuera; los paneles internos usan la clase "marco__panel" (6px).
  * Superficies #0d1117 / #151a22 y bordes #21262d (en claro, valores de Primer).

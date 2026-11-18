@@ -8,12 +8,12 @@ Son seis apps:
 
 | App | Cómo se conecta | Qué pones en Vercel | Quién la usa |
 | --- | --- | --- | --- |
-| Stripe | La persona pega una **llave restringida** | Nada | Iris (pagos) y Víctor (clientes) |
-| Mercado Pago | Botón **Conectar** | `MERCADOPAGO_CLIENT_ID`, `MERCADOPAGO_CLIENT_SECRET` | Iris |
-| Mercado Libre | Botón **Conectar** | `MERCADOLIBRE_CLIENT_ID`, `MERCADOLIBRE_CLIENT_SECRET` | Iris y Víctor |
-| Shopify | Botón **Conectar** y la persona escribe su tienda | `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET` | Iris y Víctor |
-| Tiendanube | Botón **Conectar** | `TIENDANUBE_CLIENT_ID`, `TIENDANUBE_CLIENT_SECRET` | Iris y Víctor |
-| Facturapi (CFDI) | La persona pega la **llave de su organización** | Nada | Iris |
+| Stripe | La persona pega una **llave restringida** | Nada | Mira (pagos) y Rigel (clientes) |
+| Mercado Pago | Botón **Conectar** | `MERCADOPAGO_CLIENT_ID`, `MERCADOPAGO_CLIENT_SECRET` | Mira |
+| Mercado Libre | Botón **Conectar** | `MERCADOLIBRE_CLIENT_ID`, `MERCADOLIBRE_CLIENT_SECRET` | Mira y Rigel |
+| Shopify | Botón **Conectar** y la persona escribe su tienda | `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET` | Mira y Rigel |
+| Tiendanube | Botón **Conectar** | `TIENDANUBE_CLIENT_ID`, `TIENDANUBE_CLIENT_SECRET` | Mira y Rigel |
+| Facturapi (CFDI) | La persona pega la **llave de su organización** | Nada | Mira |
 
 Todas necesitan además `ATENDEL_LLAVE_CIFRADO` en Vercel, la misma llave de las
 demás apps, porque los tokens y las llaves se guardan cifrados.

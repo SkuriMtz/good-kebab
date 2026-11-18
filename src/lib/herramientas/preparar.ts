@@ -19,9 +19,9 @@ import type { HerramientaChat } from "./ciclo";
  * - Las que HACEN algo (crear, mover, mandar…) solo se dan si llegan
  *   `acciones` (la regla de «Qué hace solo», src/lib/acciones.ts): sin eso
  *   (por ejemplo, la revisión de la mañana) no existen.
- * - De las apps conectadas: según el agente (correo para Clara, agenda para
- *   Lola, documentos para Iris…); en un grupo, las de sus miembros.
- * - Los documentos del negocio (búsqueda del núcleo) para Iris.
+ * - De las apps conectadas: según el agente (correo para Altair, agenda para
+ *   Aura, documentos para Mira…); en un grupo, las de sus miembros.
+ * - Los documentos del negocio (búsqueda del núcleo) para Mira.
  * - El token se pide una sola vez por proveedor y mensaje; con un 401 se
  *   renueva y se reintenta una vez; si vuelve a fallar, la conexión queda en
  *   'error' y el agente dice que hay que volver a conectarla.
@@ -32,7 +32,7 @@ const status = (e: unknown) => (typeof (e as { status?: unknown })?.status === "
 /** Quién del chat usa esa herramienta. */
 const participanteDe = (h: Herramienta, participantes: readonly IdAgente[]): IdAgente => participantes.find((a) => h.agentes.includes(a)) ?? h.agentes[0];
 
-/** "Clara está revisando tu correo…": quién (del chat) y qué hace. */
+/** "Altair está revisando tu correo…": quién (del chat) y qué hace. */
 function lineaEstado(h: Herramienta, participantes: readonly IdAgente[]): string {
   const quien = AGENTE_POR_ID[participanteDe(h, participantes)].nombre;
   const app = APP_POR_ID[h.app];
@@ -141,7 +141,7 @@ export function herramientasDelChat(o: {
             additionalProperties: false,
           },
           fuente: "tus documentos",
-          estado: "Iris está buscando en tus documentos…",
+          estado: "Mira está buscando en tus documentos…",
           async ejecutar(args) {
             const consulta = argTexto(args, "consulta", { requerido: true, max: 300 });
             const max = argNumero(args, "max", { min: 1, max: 10, omision: 6 });

@@ -1,5 +1,5 @@
 /**
- * PRESENTACIONES (.pptx) que arma tu equipo (Iris, sobre todo).
+ * PRESENTACIONES (.pptx) que arma tu equipo (Mira, sobre todo).
  *
  * Lo mismo corre en el servidor (la herramienta crear_presentacion del chat,
  * que guarda el archivo en Storage) y en el navegador (la descarga de

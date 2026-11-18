@@ -71,7 +71,7 @@ export default function Vista3D() {
 
         {/* 7. La burbuja de chat a la izquierda */}
         <Tramo lado="derecha" alto={130}>
-          <p className="t-etiqueta">Lola · Atención</p>
+          <p className="t-etiqueta">Aura · Atención</p>
           <h2 className="t-display mt-[var(--spacing-18)]">Contesta por ti</h2>
           <p className="t-cuerpo mt-[var(--spacing-24)]">
             Responde tu WhatsApp con tus precios y horarios, a cualquier hora, con el tono de tu negocio.

@@ -759,14 +759,14 @@ export function globo(N: number, semilla = 37): Forma {
 /**
  * En el cierre del video, el polvo se junta y forma la marca del sitio. Aquí es
  * la marca de Atendel (src/components/Logo.tsx): cuatro círculos, uno por agente
- * y con su color (Lola, Clara, Víctor e Iris). Cada círculo va un poco inclinado,
+ * y con su color (Aura, Altair, Rigel e Mira). Cada círculo va un poco inclinado,
  * como aspa, para que al girar se vea en 3D. Unidad: la mitad del ancho de la marca.
  */
 const MARCA_CIRCULOS: { x: number; y: number; color: Color; inclina: number }[] = [
-  { x: -0.44, y: 0.44, color: hex("#ff8a6b"), inclina: 0.38 }, // Lola, arriba a la izquierda
-  { x: 0.44, y: 0.44, color: hex("#7fb2ff"), inclina: -0.38 }, // Clara, arriba a la derecha
-  { x: -0.44, y: -0.44, color: hex("#5fd09f"), inclina: -0.38 }, // Víctor, abajo a la izquierda
-  { x: 0.44, y: -0.44, color: hex("#f6c64a"), inclina: 0.38 }, // Iris, abajo a la derecha
+  { x: -0.44, y: 0.44, color: hex("#ff8a6b"), inclina: 0.38 }, // Aura, arriba a la izquierda
+  { x: 0.44, y: 0.44, color: hex("#7fb2ff"), inclina: -0.38 }, // Altair, arriba a la derecha
+  { x: -0.44, y: -0.44, color: hex("#5fd09f"), inclina: -0.38 }, // Rigel, abajo a la izquierda
+  { x: 0.44, y: -0.44, color: hex("#f6c64a"), inclina: 0.38 }, // Mira, abajo a la derecha
 ];
 const MARCA_R = 0.38;
 

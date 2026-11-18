@@ -8,7 +8,7 @@ import { AGENTE_POR_ID } from "@/lib/agentes";
 import { CON_MOVIMIENTO, prepararGsap } from "@/lib/movimiento";
 import { PLANES, type Plan } from "@/lib/planes";
 
-/** "Lola + Clara": los agentes del plan, empezando por Lola (como se presentan en el sitio). */
+/** "Aura + Altair": los agentes del plan, empezando por Aura (como se presentan en el sitio). */
 function agentesDe(plan: Plan) {
   if (plan.agentes.length === 4) return "Los cuatro agentes";
   const orden = ["lola", "clara", "victor", "iris"] as const;
