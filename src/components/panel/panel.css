@@ -9915,3 +9915,15 @@ a.pc-correo__accion:hover {
   gap: 8px;
   margin-top: 8px;
 }
+
+/* Reglas que guardó el chat y esperan tu OK (Cosecha) */
+.pc-cerebro__por-aprobar {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--pc-borde, rgb(255 255 255 / 0.16));
+  border-radius: 999px;
+  color: var(--pc-tenue, #a1a1aa);
+  font-size: 12px;
+  vertical-align: 1px;
+}

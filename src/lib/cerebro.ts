@@ -32,7 +32,8 @@ const limpio = (t: unknown, max: number) => (typeof t === "string" ? t.replace(/
 
 export async function cargarCerebro(supabase: SupabaseClient, userId: string): Promise<Cerebro> {
   const [r, p, m] = await Promise.all([
-    supabase.from("reglas").select("id, tipo, texto").eq("owner_id", userId).order("creado_en").limit(300),
+    // Las que esperan tu OK (por_aprobar, migración 0036) todavía no cuentan
+    supabase.from("reglas").select("id, tipo, texto").eq("owner_id", userId).eq("por_aprobar", false).order("creado_en").limit(300),
     supabase.from("procesos").select("id, titulo, cuando, pasos, activo").eq("owner_id", userId).eq("activo", true).order("creado_en").limit(100),
     supabase.from("memoria").select("id, texto, fuente, creado_en").eq("owner_id", userId).order("creado_en", { ascending: false }).limit(80),
   ]);
@@ -98,7 +99,11 @@ const MAX_REGLAS_GUARDADAS = 300;
  * herramienta (con la sesión: RLS solo deja lo suyo). Solo con palabras del
  * dueño: si en el turno entró algo de fuera, no guarda nada.
  */
-export function herramientaGuardarRegla(supabase: SupabaseClient, userId: string, turno: { externo: boolean }): HerramientaChat {
+/** Lo que no es una Regla del negocio sino un intento de cambiar cómo trabaja Atendel (o de mover dinero). */
+const REGLA_SOSPECHOSA =
+  /\b(ignora|ignore|olvida (las|tus|todas)|instrucci[oó]n|system|prompt|eres un|act[uú]a como|sin (preguntar|pedir|aprobaci[oó]n|mi ok|permiso)|no (me )?(preguntes|pidas)|hazlo solo|transfi[eé]r\w*|manda\w* (dinero|pagos?))\b|https?:\/\/|www\./i;
+
+export function herramientaGuardarRegla(supabase: SupabaseClient, userId: string, turno: { externo: boolean; contexto?: boolean }): HerramientaChat {
   return {
     nombre: "guardar_regla",
     descripcion:
@@ -120,11 +125,16 @@ export function herramientaGuardarRegla(supabase: SupabaseClient, userId: string
       const texto = argTexto(args, "texto", { requerido: true, max: 500 }).replace(/\s+/g, " ").trim();
       if (!texto) return "No había nada que guardar.";
       if (turno.externo) return "No la guardé sola: en esta respuesta leí datos de tus apps o documentos, y las Reglas solo se guardan con palabras del dueño. Si quiere guardarla, que te la diga en su mensaje.";
-      if (/https?:\/\/|www\./i.test(texto)) return "No la guardé: una Regla no lleva enlaces.";
+      if (REGLA_SOSPECHOSA.test(texto)) return "No la guardé: eso no parece una Regla del negocio (precios, políticas, datos o lo que nunca se hace). Si de verdad la quiere, que la escriba él en Tu negocio → Reglas.";
       const { count } = await supabase.from("reglas").select("id", { count: "exact", head: true }).eq("owner_id", userId);
       if ((count ?? 0) >= MAX_REGLAS_GUARDADAS) return "No la guardé: ya hay muchas Reglas. Que borre las que ya no sirvan en Tu negocio → Reglas.";
-      const { error } = await supabase.from("reglas").insert({ owner_id: userId, tipo, texto });
-      return error ? "No se pudo guardar la Regla ahora." : `Guardada como Regla [${NOMBRE_REGLA[tipo]}]: «${texto}». La puede ver o cambiar en [Tu negocio → Reglas](/panel?vista=negocio&tab=reglas).`;
+      // En una plática con correos o documentos (aunque no los haya leído en este turno), la Regla queda por aprobar
+      const porAprobar = Boolean(turno.contexto);
+      const { error } = await supabase.from("reglas").insert({ owner_id: userId, tipo, texto, por_aprobar: porAprobar });
+      if (error) return "No se pudo guardar la Regla ahora.";
+      return porAprobar
+        ? `La dejé lista, ESPERANDO SU OK: [${NOMBRE_REGLA[tipo]}] «${texto}». Por seguridad, como en esta plática hay correos o documentos, no cuenta hasta que la apruebe con un toque en [Tu negocio → Reglas](/panel?vista=negocio&tab=reglas). Díselo así de simple.`
+        : `Guardada como Regla [${NOMBRE_REGLA[tipo]}]: «${texto}». La puede ver o cambiar en [Tu negocio → Reglas](/panel?vista=negocio&tab=reglas).`;
     },
   };
 }

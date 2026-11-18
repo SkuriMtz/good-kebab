@@ -18,7 +18,7 @@ import { useFuenteNegocio } from "./fuente";
    ===================================================================== */
 
 type TipoRegla = "precio" | "politica" | "dato" | "nunca";
-type Regla = { id: string; tipo: TipoRegla; texto: string };
+type Regla = { id: string; tipo: TipoRegla; texto: string; por_aprobar?: boolean };
 type Proceso = { id: string; titulo: string; cuando: string; pasos: string; activo: boolean };
 type Recuerdo = { id: string; texto: string; fuente: "dueño" | "chat" | "trabajo"; creado_en: string };
 
@@ -114,7 +114,7 @@ function Aviso({ error, demo }: { error: string | null; demo: boolean }) {
 
 /* ---------- Reglas ---------- */
 export function ReglasNegocio() {
-  const { lista, error, agregar, cambiar, borrar, demo } = useLista<Regla>("reglas", "id, tipo, texto", { col: "creado_en", asc: true }, DEMO_REGLAS);
+  const { lista, error, agregar, cambiar, borrar, demo } = useLista<Regla>("reglas", "id, tipo, texto, por_aprobar", { col: "creado_en", asc: true }, DEMO_REGLAS);
   const [tipo, setTipo] = useState<TipoRegla>("precio");
   const [texto, setTexto] = useState("");
   const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
@@ -177,8 +177,16 @@ export function ReglasNegocio() {
                       </form>
                     ) : (
                       <>
-                        <span className="pc-cerebro__texto">{r.texto}</span>
+                        <span className="pc-cerebro__texto">
+                          {r.por_aprobar ? <span className="pc-cerebro__por-aprobar">Por aprobar</span> : null}
+                          {r.texto}
+                        </span>
                         <span className="pc-cerebro__acciones">
+                          {r.por_aprobar ? (
+                            <button type="button" className={claseBoton("borde", true)} onClick={() => void cambiar(r.id, { por_aprobar: false })}>
+                              Aprobar
+                            </button>
+                          ) : null}
                           <button type="button" className="pc-icono" aria-label="Cambiar" title="Cambiar" onClick={() => setEditando({ id: r.id, texto: r.texto })}>
                             <Icono nombre="documento" tam={15} />
                           </button>
