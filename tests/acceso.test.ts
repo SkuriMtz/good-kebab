@@ -248,6 +248,18 @@ describe("pedirCodigo (enumeración de cuentas)", () => {
     expect(r.cuerpo).toEqual({ ok: true });
   });
 
+  it("si se acabó el tope de correos de todo el proyecto: 429 (no llegó nada), igual para todos", async () => {
+    const tope: AuthParaPedir = { signInWithOtp: async () => ({ error: { status: 429, code: "over_email_send_rate_limit", message: "email rate limit exceeded" } }) };
+    for (const modo of ["entrar", "crear"] as const) {
+      const r = await pedirCodigo(tope, { ...p, modo });
+      expect(r.status).toBe(429);
+      expect(r.cuerpo).toEqual({ error: MENSAJES_ACCESO.limiteCodigo });
+    }
+    // El de «espera unos segundos» es por cuenta: se sigue contestando como éxito
+    const porCuenta: AuthParaPedir = { signInWithOtp: async () => ({ error: { status: 429, code: "over_email_send_rate_limit", message: "For security purposes, you can only request this after 4 seconds." } }) };
+    expect((await pedirCodigo(porCuenta, { ...p, modo: "entrar" })).status).toBe(200);
+  });
+
   it("si el servicio falla: 503 genérico, sin detalles", async () => {
     const caido: AuthParaPedir = { signInWithOtp: async () => ({ error: { status: 500, code: "unexpected_failure" } }) };
     const sinRed: AuthParaPedir = { signInWithOtp: vi.fn().mockRejectedValue(new Error("fetch failed ana@ejemplo.mx")) };

@@ -297,8 +297,12 @@ export function esCuentaNueva(creadaEn: string | null | undefined, tienePerfil: 
 
 /* ---------------- Lo que dijo Supabase → la respuesta ---------------- */
 
-/** Lo mínimo de un error de Supabase Auth que se usa (nunca su mensaje: puede traer el correo). */
-export type ErrorAuth = { status?: number; code?: string } | null;
+/**
+ * Lo mínimo de un error de Supabase Auth que se usa. El mensaje solo se
+ * compara (para saber si es el tope de correos de todo el proyecto); nunca se
+ * guarda ni se manda al navegador (puede traer el correo).
+ */
+export type ErrorAuth = { status?: number; code?: string; message?: string } | null;
 
 /** Lo mínimo del cliente de Supabase para pedir el código (en pruebas, uno falso). */
 export type AuthParaPedir = {
@@ -328,9 +332,19 @@ export function clasificarErrorAuth(e: NonNullable<ErrorAuth>): "limite" | "clie
 export const CODIGOS_SIN_CUENTA = new Set(["otp_disabled", "signup_disabled", "user_not_found"]);
 
 /** Qué pasó por dentro (para la bitácora y los logs; nunca va al navegador). */
-export type AvisoAcceso = { tipo: "sin_cuenta" | "rechazo" | "servicio"; code: string; status: number };
+export type AvisoAcceso = { tipo: "sin_cuenta" | "rechazo" | "servicio" | "tope_correos"; code: string; status: number };
 
-export type ResultadoCodigo = { status: 200; cuerpo: { ok: true }; aviso: AvisoAcceso | null } | { status: 503; cuerpo: { error: string }; aviso: AvisoAcceso };
+export type ResultadoCodigo =
+  | { status: 200; cuerpo: { ok: true }; aviso: AvisoAcceso | null }
+  | { status: 429 | 503; cuerpo: { error: string }; aviso: AvisoAcceso };
+
+/**
+ * El tope de correos de TODO el proyecto («email rate limit exceeded»): no
+ * depende de la cuenta, así que avisarlo no dice si un correo tiene cuenta.
+ * (El otro 429, «solo puedes pedirlo después de N segundos», sí es por cuenta
+ * y se sigue contestando igual que un éxito.)
+ */
+export const esTopeDeCorreos = (e: NonNullable<ErrorAuth>) => e.status === 429 && /email rate limit exceeded/i.test(e.message ?? "");
 
 const avisoDe = (tipo: AvisoAcceso["tipo"], e: NonNullable<ErrorAuth> | null): AvisoAcceso => ({
   tipo,
@@ -344,7 +358,9 @@ const avisoDe = (tipo: AvisoAcceso["tipo"], e: NonNullable<ErrorAuth> | null): A
  * ENUMERACIÓN: el éxito es SIEMPRE { ok: true }, exista o no la cuenta. Si
  * Supabase rechaza la petición (correo sin cuenta en "entrar", o ya pidió un
  * código hace poco, que solo pasa con cuentas que existen) se contesta igual.
- * Solo una falla del servicio (sin red, error 5xx) es distinta: 503 genérico.
+ * Solo una falla del servicio (sin red, error 5xx) es distinta: 503 genérico;
+ * y el tope de correos de todo el proyecto: 429 (no se mandó ningún correo, y
+ * decir «revisa tu correo» haría esperar algo que no va a llegar).
  */
 export async function pedirCodigo(auth: AuthParaPedir, p: { correo: string; modo: ModoAcceso; redirect: string }): Promise<ResultadoCodigo> {
   const exito = (aviso: AvisoAcceso | null): ResultadoCodigo => ({ status: 200, cuerpo: { ok: true }, aviso });
@@ -355,6 +371,7 @@ export async function pedirCodigo(auth: AuthParaPedir, p: { correo: string; modo
     return { status: 503, cuerpo: { error: MENSAJES_ACCESO.servicio }, aviso: avisoDe("servicio", null) };
   }
   if (!error) return exito(null);
+  if (esTopeDeCorreos(error)) return { status: 429, cuerpo: { error: MENSAJES_ACCESO.limiteCodigo }, aviso: avisoDe("tope_correos", error) };
   if (clasificarErrorAuth(error) === "servicio") return { status: 503, cuerpo: { error: MENSAJES_ACCESO.servicio }, aviso: avisoDe("servicio", error) };
   return exito(avisoDe(CODIGOS_SIN_CUENTA.has(error.code ?? "") ? "sin_cuenta" : "rechazo", error));
 }
