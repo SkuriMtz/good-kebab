@@ -5,7 +5,7 @@ import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
 import { conMarca, partirIntervenciones } from "@/lib/grupo";
 import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
-import { bloqueCerebro, cargarCerebro, herramientaRecordar } from "@/lib/cerebro";
+import { bloqueCerebro, cargarCerebro, herramientaGuardarRegla, herramientaRecordar } from "@/lib/cerebro";
 import { INSTRUCCIONES_TAREAS, herramientaProgramar } from "@/lib/tareas";
 import { TEMA_AVISOS } from "@/lib/avisos";
 import { herramientaVerAtendel } from "@/lib/herramientas/atendel";
@@ -337,6 +337,8 @@ export async function POST(request: NextRequest) {
     }),
     // Guardar en la Memoria lo que vale la pena recordar
     herramientaRecordar(supabase, user.id, turno),
+    // Cosecha: guardar como Regla lo que el dueño corrige y debe valer siempre
+    herramientaGuardarRegla(supabase, user.id, turno),
     // Programar algo para después o que se repita (Tareas)
     herramientaProgramar(supabase, user.id, ajustesCuenta.zonaHoraria, turno),
   ];

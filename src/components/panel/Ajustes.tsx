@@ -11,6 +11,7 @@ import {
   FUENTES,
   IDIOMAS,
   MAX_FIRMA,
+  MAX_VOZ,
   NOMBRE_FUENTE,
   NOMBRE_RESPUESTAS,
   RESPUESTAS,
@@ -128,6 +129,7 @@ type Parte = { id: IdAjuste; etiqueta: string; icono: NombreIcono | "marca"; cla
 type Opcion = { parte: IdAjuste; titulo: string; claves?: string };
 const OPCIONES: Opcion[] = [
   { parte: "atendel", titulo: "Tus instrucciones", claves: "como escriben trato tono estilo forma de hablar ia prompt clientes" },
+  { parte: "atendel", titulo: "Tu forma de escribir", claves: "huella de voz estilo como escribo correos enviados aprender tono" },
   { parte: "atendel", titulo: "Firma", claves: "nombre mensajes despedida" },
   { parte: "atendel", titulo: "Perfil del negocio", claves: "datos negocio" },
   { parte: "atendel", titulo: "Documentos", claves: "archivos pdf docx subir" },
@@ -304,6 +306,89 @@ function Campo({ valor, alCambiar, etiqueta, ejemplo, max, tipo = "text", ancho 
 
 function Area({ valor, alCambiar, etiqueta, ejemplo, max, filas = 3 }: { valor: string; alCambiar: (v: string) => void; etiqueta: string; ejemplo?: string; max: number; filas?: number }) {
   return <textarea className="pc-aj-area" aria-label={etiqueta} value={valor} placeholder={ejemplo} maxLength={max} rows={filas} onChange={(e) => alCambiar(e.target.value)} />;
+}
+
+/**
+ * La huella de voz: cómo escribes tú. Atendel la aprende de tus correos
+ * enviados (Gmail) o de textos tuyos que pegues, y te la deja aquí para que la
+ * revises: lo que redacta a tu nombre sale con tu estilo.
+ */
+function HuellaVoz({ valor, alCambiar }: { valor: string; alCambiar: (v: string) => void }) {
+  const [estado, setEstado] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [pegar, setPegar] = useState(false);
+  const [ejemplos, setEjemplos] = useState("");
+  async function aprender(conEjemplos: boolean) {
+    setOcupado(true);
+    setEstado({ tono: "ok", texto: "Leyendo cómo escribes… tarda unos segundos." });
+    try {
+      const r = await fetch("/api/voz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(conEjemplos ? { ejemplos } : {}) });
+      const d = (await r.json().catch(() => ({}))) as { voz?: string; error?: string };
+      if (r.ok && d.voz) {
+        alCambiar(d.voz);
+        setPegar(false);
+        setEjemplos("");
+        setEstado({ tono: "ok", texto: "Listo. Revísala y cambia lo que no suene a ti." });
+      } else setEstado({ tono: "error", texto: d.error ?? "No se pudo aprender ahora. Intenta en un rato." });
+    } catch {
+      setEstado({ tono: "error", texto: "Sin conexión. Intenta de nuevo." });
+    } finally {
+      setOcupado(false);
+    }
+  }
+  return (
+    <>
+      <textarea
+        className="pc-aj-area"
+        aria-label="Tu forma de escribir"
+        value={valor}
+        placeholder={"- Trato de tú, cálido y directo\n- Saluda con «¡Hola!» y el nombre\n- Mensajes cortos, sin emojis\n- Se despide con «Saludos»"}
+        maxLength={MAX_VOZ}
+        rows={6}
+        onChange={(e) => alCambiar(e.target.value)}
+      />
+      <span className="pc-aj-cuenta">
+        {valor.length.toLocaleString("es-MX")} / {MAX_VOZ.toLocaleString("es-MX")}
+      </span>
+      {pegar ? (
+        <textarea
+          className="pc-aj-area"
+          aria-label="Textos tuyos para aprender"
+          value={ejemplos}
+          placeholder="Pega aquí 2 o 3 correos o mensajes que hayas escrito tú (sepáralos con una línea de ---)."
+          maxLength={15_000}
+          rows={6}
+          onChange={(e) => setEjemplos(e.target.value)}
+        />
+      ) : null}
+      <div className="pc-aj-acciones">
+        {pegar ? (
+          <>
+            <button type="button" className={claseBoton("borde", true)} disabled={ocupado || ejemplos.trim().length < 80} onClick={() => aprender(true)}>
+              Aprender de estos textos
+            </button>
+            <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={() => setPegar(false)}>
+              Cancelar
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={() => aprender(false)}>
+              Aprender de mis correos enviados
+            </button>
+            <button type="button" className={claseBoton("borde", true)} disabled={ocupado} onClick={() => setPegar(true)}>
+              Pegar textos míos
+            </button>
+          </>
+        )}
+      </div>
+      {estado ? (
+        <p className={`pc-aj-nota${estado.tono === "error" ? " pc-aj-nota--error" : ""}`} role={estado.tono === "error" ? "alert" : "status"}>
+          {estado.texto}
+        </p>
+      ) : null}
+    </>
+  );
 }
 
 function Selector({ valor, alCambiar, etiqueta, opciones, vacio }: { valor: string; alCambiar: (v: string) => void; etiqueta: string; opciones: readonly { id: string; nombre: string }[]; vacio?: string }) {
@@ -1005,6 +1090,13 @@ export function VentanaAjustes({
           </Fila>
           <Fila titulo="Firma" texto="Con qué nombre firman los mensajes para tus clientes.">
             <Campo etiqueta="Firma" valor={ajustes.firma} alCambiar={(v) => cambiar("firma", v)} ejemplo={datos.negocio} max={MAX_FIRMA} />
+          </Fila>
+          <Fila
+            titulo="Tu forma de escribir"
+            texto="Tu huella de voz: Atendel la aprende de tus correos enviados (Gmail) o de textos tuyos, y escribe con tu estilo lo que redacta a tu nombre. Revísala y cámbiala cuando quieras."
+            apilada
+          >
+            <HuellaVoz valor={ajustes.voz} alCambiar={(v) => cambiar("voz", v)} />
           </Fila>
         </Grupo>
         <Grupo titulo="Lo que saben de tu negocio">

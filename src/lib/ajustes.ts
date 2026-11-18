@@ -221,6 +221,8 @@ export type AjustesCuenta = {
   /** Cómo quiere que le escriban a sus clientes, con sus palabras (como las instrucciones de una IA). */
   instrucciones: string;
   firma: string;
+  /** Su huella de voz: cómo escribe el dueño (la aprende de sus correos o la escribe él). Describe un estilo, no son órdenes. */
+  voz: string;
   reglas: Partial<Record<IdAgente, string>>;
   zonaHoraria: string;
   revisionDiaria: RevisionDiaria;
@@ -253,11 +255,13 @@ export const aparienciaDe = (a: AjustesCuenta): Apariencia => Object.fromEntries
 
 export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;
+export const MAX_VOZ = 1200;
 export const MAX_REGLAS = 600;
 
 export const AJUSTES_INICIALES: AjustesCuenta = {
   instrucciones: "",
   firma: "",
+  voz: "",
   reglas: {},
   zonaHoraria: "America/Mexico_City",
   revisionDiaria: "activa",
@@ -321,6 +325,7 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
   return {
     instrucciones: texto(a.instrucciones, MAX_INSTRUCCIONES),
     firma: texto(a.firma, MAX_FIRMA),
+    voz: texto(a.voz, MAX_VOZ),
     reglas,
     zonaHoraria: uno(
       a.zonaHoraria,

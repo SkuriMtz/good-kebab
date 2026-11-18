@@ -9907,3 +9907,11 @@ a.pc-correo__accion:hover {
   height: 20px;
   flex: none;
 }
+
+/* Ajustes: botones en fila debajo de un campo (p. ej. Huella de voz) */
+.pc-aj-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}

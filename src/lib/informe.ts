@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { limpiarAjustes } from "./ajustes";
 import { citarLineas } from "./avisos";
+import { conexionesSemana, cosechaMes } from "./cosecha";
 import { NOMBRE_PROVEEDOR } from "./conexiones/oauth";
 import { cargarCuenta } from "./cuenta";
 import type { Proveedor } from "./nucleo-tipos";
@@ -185,7 +186,18 @@ async function informeSemana(admin: SupabaseClient, dueno: string): Promise<bool
   }
   const { negocio } = await cargarCuenta(admin, dueno);
   const consejos = await recomendaciones(admin, dueno, n, negocio, aj.zonaHoraria);
-  const chat = [`**Tu semana con Atendel** (los últimos 7 días):`, "", ...renglones(n), ...(consejos ? ["", "**Lo que te recomiendo:**", consejos] : [])].join("\n");
+  // Patrones de la semana y, el primer lunes del mes, las Reglas que te propone (la cosecha)
+  const conexiones = await conexionesSemana(admin, dueno, desde, negocio, aj.zonaHoraria);
+  const primeraSemana = Number(hoyEn(aj.zonaHoraria).slice(8, 10)) <= 7;
+  const cosecha = primeraSemana ? await cosechaMes(admin, dueno, negocio, aj.zonaHoraria) : "";
+  const chat = [
+    `**Tu semana con Atendel** (los últimos 7 días):`,
+    "",
+    ...renglones(n),
+    ...(consejos ? ["", "**Lo que te recomiendo:**", consejos] : []),
+    ...(conexiones ? ["", "**Conexiones de la semana** (lo que noté al juntar todo):", conexiones] : []),
+    ...(cosecha ? ["", "**Cosecha del mes:** esto aprendí de ti este mes. Toca «Guardarla» para dejarla como Regla (nada se guarda solo):", cosecha] : []),
+  ].join("\n");
   const r = await notificar(admin, dueno, { tipo: "informe_semana", agente: "iris", chat, corto: corto(n, "Tu semana"), clave });
   return r !== "repetido" && r !== "fallo";
 }
