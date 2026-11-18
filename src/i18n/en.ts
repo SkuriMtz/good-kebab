@@ -116,8 +116,16 @@ export const en: Diccionario = {
     idioma: "Language",
     unete: "Join the waitlist",
     crear: "Create account",
-    abrir: "Open navigation",
-    cerrar: "Close navigation",
+    abrir: "Open menu",
+    cerrar: "Close menu",
+    menu: "Menu",
+    inicioMenu: "Home",
+    equipo: "The team",
+    conoce: "Meet Aura, Altair, Rigel and Mira",
+    todos: "See the whole team",
+    ayuda: "Help and contact",
+    contacto: "Contact",
+    legal: "Terms and policies",
   },
 
   tema: {

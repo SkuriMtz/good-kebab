@@ -2,51 +2,77 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { BotonTema } from "./BotonTema";
-import { Marca } from "./Logo";
+import { ConstelacionMenu } from "./ConstelacionMenu";
+import { COLORES, Marca } from "./Logo";
 import { Icono } from "./base/Iconos";
-import { PRUEBALO } from "@/lib/contenido";
+import { POLITICAS } from "@/legal/politicas";
+import { IDS_AGENTES, AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
+import { CORREO_CONTACTO } from "@/lib/sitio";
 import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
 
 /*
- * La barra del sitio público, como la del video de referencia (MEDIDAS.md §3):
- * - Izquierda: la marca de los cuatro agentes y "Atendel".
- * - Derecha: Agentes, Precios, Cuándo sale y Preguntas en mayúsculas chicas
- *   (gris; blanco el encendido), el cambio de idioma EN / ES y el enlace
- *   "Entrar" y la píldora azul "Crea tu cuenta". Los textos salen de src/i18n.
- * - Al empezar a bajar, la barra sube 11 px, el nombre se desvanece y
- *   aparece una franja oscura con desenfoque (57 px a 1212×750).
- * - En el inicio los enlaces bajan a su escena y se encienden según la
- *   escena (data-enlace-activo en <html>, lo pone FondoInicio). En las demás
- *   páginas van a su página.
- * - Celular: la marca, la píldora y el ícono de hamburguesa (con aria-label,
- *   nunca la palabra "Menú"). La hoja trae los enlaces, Pruébalo, Para quién
- *   es, Entrar y el tema.
+ * La barra del sitio público: la marca y "Atendel" a la izquierda y, a la
+ * derecha, solo el botón del menú. Al bajar, la barra sube 11 px, el nombre
+ * se desvanece y aparece una franja oscura con desenfoque.
+ *
+ * El menú cubre toda la pantalla (siempre oscuro):
+ * - Izquierda (computadora): la tarjeta del equipo con la constelación de
+ *   fragmentos (Aura, Altair, Rigel y Mira), que lleva a Agentes.
+ * - Derecha: los lugares en letra grande (Agentes se abre y muestra a los
+ *   cuatro; tocar uno abre su ficha), filas que se abren (Ayuda y contacto,
+ *   Términos y políticas) y, hasta abajo, Crea tu cuenta, Entrar, el idioma y
+ *   el tema. Nada lleva a la demo.
+ * - Escape o la X lo cierran y el foco no se sale de él mientras está abierto.
+ * En el inicio los lugares bajan a su escena; en las demás páginas van a su página.
  */
 
-type Enlace = { id: "agentes" | "precios" | "cuando" | "preguntas"; inicio: string; otra: string };
+type Lugar = { id: "precios" | "cuando" | "preguntas"; inicio: string; otra: string };
 
-const ENLACES: Enlace[] = [
-  { id: "agentes", inicio: "#agentes", otra: "/agentes" },
+const LUGARES: Lugar[] = [
   { id: "precios", inicio: "#precios", otra: "/precios" },
   { id: "cuando", inicio: "#cuando-sale", otra: "/#cuando-sale" },
   { id: "preguntas", inicio: "/preguntas", otra: "/preguntas" },
 ];
 
-const EXTRA_HOJA = [
-  { href: PRUEBALO.href, id: "pruebalo" },
-  { href: "/para-quien-es", id: "paraQuien" },
-] as const;
+const orden = (i: number) => ({ "--i": i }) as CSSProperties;
+
+/** Un enlace que baja dentro de la página (#…), abre el correo o va a otra página. */
+function Enlace({ href, className, actual, onClick, children }: { href: string; className: string; actual?: boolean; onClick: () => void; children: ReactNode }) {
+  if (href.startsWith("#") || href.startsWith("mailto:")) {
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className} aria-current={actual ? "page" : undefined} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
+
+function IconoMenu() {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+      <path d="M3 6h14M3 10h14M3 14h9" />
+    </svg>
+  );
+}
 
 export function Barra({ inicio = false }: { inicio?: boolean }) {
   const pathname = usePathname();
-  const { d } = useIdioma();
+  const { d, idioma } = useIdioma();
   const b = d.barra;
   const [bajando, setBajando] = useState(false);
-  const [hoja, setHoja] = useState(false);
-  const hamburguesa = useRef<HTMLButtonElement>(null);
-  const hojaRef = useRef<HTMLDivElement>(null);
+  const [menu, setMenu] = useState(false);
+  const [abierta, setAbierta] = useState<"agentes" | "ayuda" | "legal" | null>(null);
+  const boton = useRef<HTMLButtonElement>(null);
+  const cerrarRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Al primer movimiento del scroll la barra toma su forma "abajo"
   useEffect(() => {
@@ -56,24 +82,28 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
     return () => window.removeEventListener("scroll", revisar);
   }, []);
 
-  useEffect(() => setHoja(false), [pathname]);
+  useEffect(() => setMenu(false), [pathname]);
 
-  // Hoja abierta: sin scroll atrás, Escape la cierra y el foco no se sale de ella
+  // Menú abierto: sin scroll atrás, Escape lo cierra y el foco no se sale de él
   useEffect(() => {
-    if (!hoja) return;
+    if (!menu) {
+      setAbierta(null);
+      return;
+    }
     const html = document.documentElement;
     const previo = html.style.overflow;
     html.style.overflow = "hidden";
-    const computadora = window.matchMedia("(min-width: 900px)");
-    const alCrecer = () => computadora.matches && setHoja(false);
+    const contenedor = menuRef.current;
+    const abridor = boton.current;
+    cerrarRef.current?.focus();
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setHoja(false);
-        hamburguesa.current?.focus();
+        setMenu(false);
         return;
       }
-      if (e.key !== "Tab" || !hojaRef.current || !hamburguesa.current) return;
-      const lista = [hamburguesa.current, ...Array.from(hojaRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))];
+      if (e.key !== "Tab" || !contenedor) return;
+      const lista = Array.from(contenedor.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")).filter((el) => el.offsetParent !== null);
+      if (!lista.length) return;
       const primero = lista[0];
       const ultimo = lista[lista.length - 1];
       if (e.shiftKey && document.activeElement === primero) {
@@ -85,24 +115,27 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
       }
     };
     window.addEventListener("keydown", alTeclear);
-    computadora.addEventListener("change", alCrecer);
     return () => {
       html.style.overflow = previo;
       window.removeEventListener("keydown", alTeclear);
-      computadora.removeEventListener("change", alCrecer);
+      // El foco vuelve al botón del menú si se había quedado adentro
+      if (contenedor?.contains(document.activeElement)) abridor?.focus();
     };
-  }, [hoja]);
+  }, [menu]);
 
-  const href = (e: Enlace) => (inicio ? e.inicio : e.otra);
-  const actual = (e: Enlace) => (!inicio && pathname === e.otra ? ("page" as const) : undefined);
+  const cerrar = () => setMenu(false);
+  const alternar = (que: "agentes" | "ayuda" | "legal") => setAbierta((a) => (a === que ? null : que));
+  const href = (l: Lugar) => (inicio ? l.inicio : l.otra);
+  const agentesHref = inicio ? "#agentes" : "/agentes";
+  const abrirFicha = (id: IdAgente) => {
+    cerrar();
+    window.dispatchEvent(new CustomEvent(EVENTO_ELEGIR_AGENTE, { detail: id }));
+  };
+  const chevron = <Icono nombre="chevron" className="menu-sitio__chevron" />;
 
   return (
     <>
-      <header
-        className={`barra${inicio ? " barra--inicio" : ""}`}
-        data-bajando={bajando ? "true" : "false"}
-        data-hoja={hoja ? "true" : "false"}
-      >
+      <header className={`barra${inicio ? " barra--inicio" : ""}`} data-bajando={bajando ? "true" : "false"}>
         <a href="#contenido" className="saltar">
           {b.saltar}
         </a>
@@ -113,87 +146,159 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
               Atendel
             </span>
           </Link>
-          <nav className="barra__nav" aria-label={b.principal}>
-            <ul className="barra__lista">
-              {ENLACES.map((e) => (
-                <li key={e.id}>
-                  {href(e).startsWith("#") ? (
-                    // Ancla de la misma página: la baja Lenis (ScrollSuave), sin el router
-                    <a href={href(e)} className="barra__enlace" data-enlace={e.id}>
-                      {b[e.id]}
-                    </a>
-                  ) : (
-                    <Link href={href(e)} className="barra__enlace" data-enlace={e.id} aria-current={actual(e)}>
-                      {b[e.id]}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <BotonIdioma className="barra__idioma" />
-          <Link href="/entrar" className="barra__enlace barra__entrar">
-            {b.entrar}
-          </Link>
-          <Link href="/crear-cuenta" className="boton-lista barra__pildora">
-            <span className="boton-lista__texto">{b.crear}</span>
-          </Link>
           <button
-            ref={hamburguesa}
+            ref={boton}
             type="button"
-            className="barra__hamburguesa"
-            aria-label={hoja ? b.cerrar : b.abrir}
-            aria-expanded={hoja}
-            aria-controls="hoja-barra"
-            onClick={() => setHoja((h) => !h)}
+            className="barra__menu"
+            aria-label={b.abrir}
+            aria-expanded={menu}
+            aria-controls="menu-sitio"
+            onClick={() => setMenu(true)}
           >
-            <Icono nombre={hoja ? "cerrar" : "menu"} tam={20} />
+            <IconoMenu />
           </button>
         </div>
       </header>
 
-      <div id="hoja-barra" ref={hojaRef} className="hoja-barra" data-abierta={hoja ? "true" : "false"} aria-hidden={!hoja} data-lenis-prevent>
-        <nav aria-label={b.principalCelular}>
-          <ul className="hoja-barra__lista">
-            {ENLACES.map((e) => (
-              <li key={e.id}>
-                {href(e).startsWith("#") ? (
-                  <a href={href(e)} className="hoja-barra__enlace" tabIndex={hoja ? 0 : -1} onClick={() => setHoja(false)}>
-                    {b[e.id]}
-                  </a>
-                ) : (
-                  <Link href={href(e)} className="hoja-barra__enlace" aria-current={actual(e)} tabIndex={hoja ? 0 : -1} onClick={() => setHoja(false)}>
-                    {b[e.id]}
-                  </Link>
-                )}
-              </li>
-            ))}
-            {EXTRA_HOJA.map((e) => (
-              <li key={e.href}>
-                <Link
-                  href={e.href}
-                  className="hoja-barra__enlace hoja-barra__enlace--extra"
-                  aria-current={pathname === e.href ? "page" : undefined}
-                  tabIndex={hoja ? 0 : -1}
-                >
-                  {b[e.id]}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="hoja-barra__pie">
-          <Link href="/entrar" className="hoja-barra__entrar" tabIndex={hoja ? 0 : -1}>
-            {b.entrar}
+      <div
+        id="menu-sitio"
+        ref={menuRef}
+        className="menu-sitio"
+        data-abierto={menu ? "true" : "false"}
+        role="dialog"
+        aria-modal="true"
+        aria-label={b.menu}
+        inert={!menu}
+        data-lenis-prevent
+      >
+        <div className="menu-sitio__arriba">
+          <Link href="/" className="menu-sitio__logo" aria-label={b.inicio} onClick={cerrar}>
+            <Marca className="barra__marca" />
+            <span aria-hidden="true">Atendel</span>
           </Link>
-          <div className="hoja-barra__tema">
-            <span id="hoja-barra-idioma">{b.idioma}</span>
-            <BotonIdioma />
-          </div>
-          <div className="hoja-barra__tema">
-            <span id="hoja-barra-tema">{b.tema}</span>
-            <BotonTema variante="selector" etiquetadoPor="hoja-barra-tema" />
-          </div>
+          <button ref={cerrarRef} type="button" className="menu-sitio__cerrar" aria-label={b.cerrar} onClick={cerrar}>
+            <Icono nombre="cerrar" tam={18} />
+          </button>
+        </div>
+
+        <div className="menu-sitio__cuerpo">
+          <aside className="menu-sitio__lado menu-sitio__entra" style={orden(0)}>
+            <p className="menu-sitio__etiqueta">{b.equipo}</p>
+            <Enlace href={agentesHref} className="menu-sitio__tarjeta" actual={pathname === "/agentes"} onClick={cerrar}>
+              <span className="menu-sitio__figura">
+                <ConstelacionMenu activo={menu} />
+              </span>
+              <span className="menu-sitio__tarjeta-titulo">{b.conoce}</span>
+            </Enlace>
+          </aside>
+
+          <nav className="menu-sitio__nav" aria-label={b.principal}>
+            <ul className="menu-sitio__grandes">
+              <li className="menu-sitio__entra" style={orden(1)}>
+                <Enlace href={inicio ? "#contenido" : "/"} className="menu-sitio__grande" actual={pathname === "/"} onClick={cerrar}>
+                  {b.inicioMenu}
+                </Enlace>
+              </li>
+              <li className="menu-sitio__entra" style={orden(2)}>
+                <button
+                  type="button"
+                  className="menu-sitio__grande"
+                  aria-expanded={abierta === "agentes"}
+                  aria-controls="menu-sitio-agentes"
+                  onClick={() => alternar("agentes")}
+                >
+                  {b.agentes}
+                  {chevron}
+                </button>
+                <div id="menu-sitio-agentes" className="menu-sitio__abre" data-abierto={abierta === "agentes" ? "true" : "false"}>
+                  <ul className="menu-sitio__sub">
+                    {IDS_AGENTES.map((id, i) => (
+                      <li key={id}>
+                        <button type="button" className="menu-sitio__sub-enlace" onClick={() => abrirFicha(id)}>
+                          <span className="menu-sitio__punto" style={{ background: COLORES[i] }} aria-hidden="true" />
+                          {AGENTE_POR_ID[id].nombre}
+                          <span className="menu-sitio__area">{d.agentes[id].area}</span>
+                        </button>
+                      </li>
+                    ))}
+                    <li>
+                      <Enlace href={agentesHref} className="menu-sitio__sub-enlace" onClick={cerrar}>
+                        {b.todos}
+                        <Icono nombre="flecha" tam={16} />
+                      </Enlace>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+              {LUGARES.map((l, i) => (
+                <li key={l.id} className="menu-sitio__entra" style={orden(i + 3)}>
+                  <Enlace href={href(l)} className="menu-sitio__grande" actual={!inicio && pathname === l.otra} onClick={cerrar}>
+                    {b[l.id]}
+                  </Enlace>
+                </li>
+              ))}
+            </ul>
+
+            <ul className="menu-sitio__filas menu-sitio__entra" style={orden(6)}>
+              <li>
+                <Enlace href="/para-quien-es" className="menu-sitio__fila" actual={pathname === "/para-quien-es"} onClick={cerrar}>
+                  {b.paraQuien}
+                  <Icono nombre="flecha" tam={16} />
+                </Enlace>
+              </li>
+              <li>
+                <button type="button" className="menu-sitio__fila" aria-expanded={abierta === "ayuda"} aria-controls="menu-sitio-ayuda" onClick={() => alternar("ayuda")}>
+                  {b.ayuda}
+                  {chevron}
+                </button>
+                <div id="menu-sitio-ayuda" className="menu-sitio__abre" data-abierto={abierta === "ayuda" ? "true" : "false"}>
+                  <ul className="menu-sitio__sub menu-sitio__sub--fila">
+                    <li>
+                      <Enlace href="/contacto" className="menu-sitio__sub-enlace" actual={pathname === "/contacto"} onClick={cerrar}>
+                        {b.contacto}
+                      </Enlace>
+                    </li>
+                    <li>
+                      <Enlace href={`mailto:${CORREO_CONTACTO}`} className="menu-sitio__sub-enlace" onClick={cerrar}>
+                        {CORREO_CONTACTO}
+                      </Enlace>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+              <li>
+                <button type="button" className="menu-sitio__fila" aria-expanded={abierta === "legal"} aria-controls="menu-sitio-legal" onClick={() => alternar("legal")}>
+                  {b.legal}
+                  {chevron}
+                </button>
+                <div id="menu-sitio-legal" className="menu-sitio__abre" data-abierto={abierta === "legal" ? "true" : "false"}>
+                  <ul className="menu-sitio__sub menu-sitio__sub--fila">
+                    {POLITICAS.map((p) => (
+                      <li key={p.id}>
+                        <Enlace href={p.href} className="menu-sitio__sub-enlace" actual={pathname === p.href} onClick={cerrar}>
+                          {p.nombre[idioma]}
+                        </Enlace>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            </ul>
+
+            <div className="menu-sitio__pie menu-sitio__entra" style={orden(7)}>
+              <Link href="/crear-cuenta" className="menu-sitio__boton menu-sitio__boton--lleno" onClick={cerrar}>
+                {b.crear}
+              </Link>
+              <Link href="/entrar" className="menu-sitio__boton" onClick={cerrar}>
+                {b.entrar}
+                <Icono nombre="flecha" tam={16} />
+              </Link>
+              <div className="menu-sitio__ajustes">
+                <BotonIdioma />
+                <BotonTema />
+              </div>
+            </div>
+          </nav>
         </div>
       </div>
     </>

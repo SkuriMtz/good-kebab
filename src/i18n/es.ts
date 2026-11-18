@@ -86,8 +86,16 @@ export const es = {
     idioma: "Idioma",
     unete: "Únete a la lista",
     crear: "Crea tu cuenta",
-    abrir: "Abrir la navegación",
-    cerrar: "Cerrar la navegación",
+    abrir: "Abrir el menú",
+    cerrar: "Cerrar el menú",
+    menu: "Menú",
+    inicioMenu: "Inicio",
+    equipo: "El equipo",
+    conoce: "Conoce a Aura, Altair, Rigel y Mira",
+    todos: "Ver a todo el equipo",
+    ayuda: "Ayuda y contacto",
+    contacto: "Contacto",
+    legal: "Términos y políticas",
   },
 
   tema: {
