@@ -9,7 +9,6 @@ import type { Tarjeta } from "@/components/chat/Piezas";
 import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { PERSONAJES } from "@/lib/personajes";
-import { Marca } from "@/components/Logo";
 
 /*
  * Las piezas de la conversación del panel nuevo, como un chat de IA de hoy:
@@ -173,10 +172,8 @@ export function RespuestaAtendel({
   }, [enCurso]);
   return (
     <div className={`pc-msj pc-msj--agente pc-msj--atendel${nuevo ? " pc-msj--nuevo" : ""}`} aria-busy={enCurso || visible.length < texto.length || undefined}>
-      <p className="pc-msj__quien pc-msj__quien--atendel">
-        <Marca className="pc-msj__marca" />
-        <span className="pc-msj__nombre">Atendel</span>
-      </p>
+      {/* Sin encabezado a la vista (el dueño lo pidió): solo los lectores de pantalla oyen quién habla */}
+      <p className="sr-only">Atendel:</p>
       {visible ? (
         <div className="pc-msj__texto">
           <Texto texto={visible} suave={enVivo} />
