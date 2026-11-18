@@ -1,0 +1,140 @@
+/* =====================================================================
+   Las páginas cortas del menú: /apps y /cuando-sale.
+   ===================================================================== */
+
+/* /apps: un renglón por tipo de app (texto a la izquierda, logos a la derecha) */
+.apps-pagina {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--spacing-48, 48px);
+}
+.apps-cat {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 24px 48px;
+  padding-block: 36px;
+  border-top: 1px solid var(--c-borde);
+}
+.apps-cat__texto h2 {
+  margin-bottom: 8px;
+  color: var(--c-texto);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.apps-cat__texto p {
+  max-width: 44ch;
+  color: var(--c-texto-2);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.apps-cat__lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 10px;
+}
+.apps-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--c-borde);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-texto) 3%, transparent);
+  color: var(--c-texto);
+  font-size: 15px;
+}
+/* Fondo claro detrás del logo: así se ven también los logos oscuros (Instagram, Typeform…) */
+.apps-chip img {
+  width: 26px;
+  height: 26px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #fff;
+  object-fit: contain;
+}
+.apps-chip[data-pronto] {
+  opacity: 0.7;
+}
+.apps-chip__pronto {
+  padding: 1px 8px;
+  border: 1px solid var(--c-borde);
+  border-radius: 999px;
+  color: var(--c-tenue);
+  font-size: 12px;
+}
+.apps-pagina__nota,
+.cuando-pagina__nota {
+  padding-top: 28px;
+  border-top: 1px solid var(--c-borde);
+  color: var(--c-tenue);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* /cuando-sale: los tres planes, cada uno con en qué va */
+.cuando-pagina {
+  padding-bottom: var(--spacing-48, 48px);
+}
+.cuando-etapas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.cuando-etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px;
+  border: 1px solid var(--c-borde);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--c-texto) 3%, transparent);
+}
+.cuando-etapa__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--c-texto-2);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cuando-etapa__estado::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f6c64a;
+}
+.cuando-etapa[data-estado="abierto"] .cuando-etapa__estado::before {
+  background: #5fd09f;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #5fd09f 22%, transparent);
+}
+.cuando-etapa h2 {
+  color: var(--c-texto);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.cuando-etapa p {
+  color: var(--c-texto-2);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.cuando-etapa__accion {
+  margin-top: auto;
+  padding-top: 8px;
+}
+@media (max-width: 899px) {
+  .apps-cat {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 28px;
+  }
+  .cuando-etapas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

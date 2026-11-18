@@ -97,6 +97,7 @@ export const es = {
     contacto: "Contacto",
     legal: "Términos y políticas",
     privacy: "Privacidad",
+    apps: "Apps",
     todasPoliticas: "Todos los documentos",
   },
 

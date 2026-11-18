@@ -127,6 +127,7 @@ export const en: Diccionario = {
     contacto: "Contact",
     legal: "Terms and policies",
     privacy: "Privacy",
+    apps: "Apps",
     todasPoliticas: "All documents",
   },
 

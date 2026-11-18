@@ -15,6 +15,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: "/pruebalo", prioridad: 0.6, frecuencia: "monthly" },
     { ruta: "/lista", prioridad: 0.5, frecuencia: "monthly" },
     { ruta: "/contacto", prioridad: 0.5, frecuencia: "monthly" },
+    { ruta: "/apps", prioridad: 0.6, frecuencia: "monthly" },
+    { ruta: "/cuando-sale", prioridad: 0.5, frecuencia: "monthly" },
     ...(legalesCompletos()
       ? [
           { ruta: "/privacidad", prioridad: 0.3, frecuencia: "monthly" as const },

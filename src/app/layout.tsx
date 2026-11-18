@@ -18,6 +18,7 @@ import "../estilos/inicio.css";
 import "../estilos/transiciones.css";
 import "../estilos/acceso.css";
 import "../estilos/legal.css";
+import "../estilos/paginas.css";
 import { headers } from "next/headers";
 import { metadatosInicio } from "@/lib/seo";
 import { SCRIPT_INSTALAR } from "@/lib/avisos-aparato";

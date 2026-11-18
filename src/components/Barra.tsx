@@ -27,16 +27,17 @@ import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
  *   Términos y políticas) y, hasta abajo, Crea tu cuenta, Entrar, el idioma y
  *   el tema. Nada lleva a la demo.
  * - Escape o la X lo cierran y el foco no se sale de él mientras está abierto.
- * En el inicio los lugares bajan a su escena; en las demás páginas van a su página.
+ * Cada lugar va a su página (Agents, Apps, Pricing, Launch, Questions y Privacy).
  */
 
-type Lugar = { id: "precios" | "cuando" | "preguntas" | "privacy"; inicio: string; otra: string };
+type Lugar = { id: "apps" | "precios" | "cuando" | "preguntas" | "privacy"; href: string };
 
 const LUGARES: Lugar[] = [
-  { id: "precios", inicio: "#precios", otra: "/precios" },
-  { id: "cuando", inicio: "#cuando-sale", otra: "/#cuando-sale" },
-  { id: "preguntas", inicio: "/preguntas", otra: "/preguntas" },
-  { id: "privacy", inicio: CENTRO_PRIVACIDAD, otra: CENTRO_PRIVACIDAD },
+  { id: "apps", href: "/apps" },
+  { id: "precios", href: "/precios" },
+  { id: "cuando", href: "/cuando-sale" },
+  { id: "preguntas", href: "/preguntas" },
+  { id: "privacy", href: CENTRO_PRIVACIDAD },
 ];
 
 const orden = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -127,8 +128,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
 
   const cerrar = () => setMenu(false);
   const alternar = (que: "agentes" | "ayuda" | "legal") => setAbierta((a) => (a === que ? null : que));
-  const href = (l: Lugar) => (inicio ? l.inicio : l.otra);
-  const agentesHref = inicio ? "#agentes" : "/agentes";
+  const agentesHref = "/agentes";
   const abrirFicha = (id: IdAgente) => {
     cerrar();
     window.dispatchEvent(new CustomEvent(EVENTO_ELEGIR_AGENTE, { detail: id }));
@@ -235,7 +235,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
               </li>
               {LUGARES.map((l, i) => (
                 <li key={l.id} className="menu-sitio__entra" style={orden(i + 3)}>
-                  <Enlace href={href(l)} className="menu-sitio__grande" actual={!inicio && pathname === l.otra} onClick={cerrar}>
+                  <Enlace href={l.href} className="menu-sitio__grande" actual={pathname === l.href} onClick={cerrar}>
                     {b[l.id]}
                   </Enlace>
                 </li>
