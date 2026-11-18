@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { IDS_AGENTES } from "./agentes";
 import { limpiarAjustes } from "./ajustes";
 import { bloqueCerebro, cargarCerebro } from "./cerebro";
-import { argTexto } from "./conexiones/http";
+import { argCorreos, argTexto } from "./conexiones/http";
 import { conexionesVigentes } from "./conexiones/tokens";
 import { cargarCuenta } from "./cuenta";
 import { accionesDelChat, instruccionesAcciones } from "./herramientas/acciones";
@@ -164,14 +164,24 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
     .filter((h) => h.nombre !== "buscar_en_documentos")
     .map((h) => (h.hace ? h : leer(h)));
   // Con internet, un correo solo puede ir a quien apareció en una página que abrió (o que dio el dueño) y a nadie ya contactado
-  const contactados = (t.contactados ?? []).filter((c) => typeof c === "string").map((c) => c.toLowerCase());
-  const permitidos = new Set(correosEn(t.instruccion));
+  // (solo correos válidos: la lista va en las instrucciones de la IA)
+  const contactados = (t.contactados ?? []).filter((c): c is string => typeof c === "string" && correosEn(c)[0] === c.toLowerCase()).map((c) => c.toLowerCase());
+  const delDueno = new Set(correosEn(t.instruccion));
+  const permitidos = new Set(delDueno);
   const nuevos: string[] = [];
+  // Todo lo que HACE algo y le llega a otra persona (correos, invitados de una cita) pasa por aquí.
+  // Los destinatarios se leen con el mismo lector que usa la herramienta (lista o texto con comas).
   const cuidarCorreo = (h: HerramientaChat): HerramientaChat => ({
     ...h,
     ejecutar: async (args, senal) => {
-      const para = Array.isArray(args.para) ? args.para.filter((x): x is string => typeof x === "string") : [];
-      const r = revisarDestinatarios(para, permitidos, [...contactados, ...nuevos]);
+      let para: string[];
+      try {
+        para = ["para", "invitados"].flatMap((campo) => (args[campo] === undefined ? [] : argCorreos(args, campo)));
+      } catch (e) {
+        return `NO se hizo: ${e instanceof Error ? e.message : "los destinatarios no son válidos"}.`;
+      }
+      if (!para.length) return h.ejecutar(args, senal);
+      const r = revisarDestinatarios(para, permitidos, [...contactados, ...nuevos], delDueno);
       if (!r.ok) {
         const partes = [
           r.noVistos.length ? `${r.noVistos.join(", ")} no aparece en ninguna página que abriste: abre la página oficial con web_fetch y usa el correo que aparece ahí (o no le escribas)` : "",
@@ -185,7 +195,7 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
     },
   });
   const herramientas = [
-    ...(conInternet ? deApps.map((h) => (/_enviar_correo$/.test(h.nombre) ? cuidarCorreo(h) : h)) : deApps),
+    ...(conInternet ? deApps.map((h) => (h.hace ? cuidarCorreo(h) : h)) : deApps),
     ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio }),
     // Lo de su cuenta de Atendel (lo que espera su OK, WhatsApp, Oficina…): para tareas como «cada mañana dime qué tengo pendiente»
     leer(herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria })),

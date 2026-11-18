@@ -15,13 +15,15 @@ import type Anthropic from "@anthropic-ai/sdk";
 export function herramientasWeb(zona: string): Anthropic.Beta.BetaToolUnion[] {
   return [
     { type: "web_search_20260209", name: "web_search", max_uses: 8, user_location: { type: "approximate", timezone: zona } },
-    { type: "web_fetch_20260209", name: "web_fetch", max_uses: 12, max_content_tokens: 20_000 },
+    // La versión básica para abrir páginas: devuelve el texto tal cual (la de filtrado pasa por código de la IA,
+    // y de ahí no se pueden sacar correos confiables)
+    { type: "web_fetch_20250910", name: "web_fetch", max_uses: 12, max_content_tokens: 20_000 },
   ];
 }
 
 /** ¿La tarea pide investigar fuera (para las que se crean a mano en Tareas)? */
 export function pareceInvestigacion(texto: string): boolean {
-  return /\b(investiga\w*|busca\w*\s+en\s+(internet|la\s+web|google)|internet|en\s+l[ií]nea|proveedor\w*|averigu\w*|compara\w*\s+precios|encuentra\w*|cotiza\w*|competencia|noticias)\b/i.test(texto);
+  return /\b(investig\w*|averigu\w*|(busca|encuentra|consigue)\w*\s+(\d+\s+)?(nuev[oa]s\s+)?(proveedor\w*|opciones|precios|empresas|negocios|distribuidor\w*)|en\s+internet|en\s+la\s+web|en\s+l[ií]nea|compara\w*\s+precios|cotiza\w*|noticias\s+de)\b/i.test(texto);
 }
 
 const CORREO = /[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,24}/gi;
@@ -38,16 +40,29 @@ export function correosEn(texto: string): string[] {
   return [...vistos];
 }
 
+/** El texto de una página que abrió (web_fetch), o null si el bloque no es eso. */
+function textoDePagina(b: unknown): string | null {
+  if (!b || typeof b !== "object") return null;
+  const r = b as { type?: unknown; content?: unknown };
+  if (r.type !== "web_fetch_tool_result" || !r.content || typeof r.content !== "object") return null;
+  const f = r.content as { type?: unknown; content?: unknown };
+  if (f.type !== "web_fetch_result" || !f.content || typeof f.content !== "object") return null;
+  const doc = f.content as { type?: unknown; source?: { type?: unknown; data?: unknown } };
+  if (doc.type !== "document" || doc.source?.type !== "text" || typeof doc.source.data !== "string") return null;
+  return doc.source.data;
+}
+
 /**
- * Los correos que trajeron las herramientas de internet en una respuesta: solo
- * de los RESULTADOS (las páginas que abrió, lo que filtró su código), nunca de
- * lo que la IA pidió buscar (ahí podría escribir un correo inventado).
+ * Los correos que aparecen en el TEXTO de las páginas que abrió en una
+ * respuesta. Nada más: ni lo que la IA pidió buscar o abrir, ni la dirección
+ * o el título de la página, ni lo que imprime el código que ella escribe (ahí
+ * podría poner un correo inventado).
  */
-export function correosDeResultados(bloques: readonly { type: string }[]): string[] {
+export function correosDeResultados(bloques: readonly unknown[]): string[] {
   const salida = new Set<string>();
   for (const b of bloques) {
-    if (!b.type.endsWith("_tool_result") || b.type === "tool_result") continue;
-    for (const c of correosEn(JSON.stringify(b))) salida.add(c);
+    const texto = textoDePagina(b);
+    if (texto) for (const c of correosEn(texto)) salida.add(c);
   }
   return [...salida];
 }
@@ -83,12 +98,17 @@ export function yaContactado(correo: string, contactados: readonly string[]): bo
   });
 }
 
-/** Revisa a quién va un correo: solo a correos vistos en internet (o que dio el dueño) y a nadie ya contactado. */
-export function revisarDestinatarios(para: readonly string[], permitidos: ReadonlySet<string>, contactados: readonly string[]) {
+/**
+ * Revisa a quién va un correo: solo a correos vistos en internet o que dio el
+ * dueño, y a nadie ya contactado. Los que escribió el dueño en la tarea
+ * (`delDueno`) siempre se permiten, aunque se repitan cada semana.
+ */
+export function revisarDestinatarios(para: readonly string[], permitidos: ReadonlySet<string>, contactados: readonly string[], delDueno: ReadonlySet<string> = new Set()) {
   const noVistos: string[] = [];
   const repetidos: string[] = [];
   for (const p of para) {
     const c = p.trim().toLowerCase();
+    if (delDueno.has(c)) continue;
     if (!permitidos.has(c)) noVistos.push(c);
     else if (yaContactado(c, contactados)) repetidos.push(c);
   }
