@@ -36,8 +36,20 @@ export async function POST(request: NextRequest) {
   const bloqueo = await puedeUsarVoz(supabase, user.id, "hablar");
   if (bloqueo) return bloqueo;
 
-  const audio = await hablar(texto, antes || undefined);
-  if (!audio) return respuestaError("No pude hablar en este momento.", 502);
+  const r = await hablar(texto, antes || undefined);
+  if ("fallo" in r) {
+    // Solo el código corto (p. ej. «quota_exceeded»): sirve para saber qué arreglar en ElevenLabs
+    const { status, codigo } = r.fallo;
+    const porQue =
+      status === 401 && /quota|credit/i.test(codigo)
+        ? "Se acabaron los créditos de tu cuenta de ElevenLabs."
+        : status === 401
+          ? "ElevenLabs no aceptó la clave (revisa ELEVENLABS_API_KEY y sus permisos)."
+          : status === 402
+            ? "Tu plan de ElevenLabs no permite esto."
+            : "No pude hablar en este momento.";
+    return respuestaError(`${porQue} (código: ${codigo})`, 502, { codigo });
+  }
   await anotarVoz(supabase, costoHablar(texto), "hablar");
-  return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+  return new Response(r.audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
 }

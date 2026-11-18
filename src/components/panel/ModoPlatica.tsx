@@ -176,8 +176,8 @@ export default function ModoPlatica({ abierto, alCerrar, preguntar, detener }: {
           const res = await fetch("/api/platica/hablar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texto: frase, antes }) });
           if (!res.ok) {
             const j = (await res.json().catch(() => ({}))) as { error?: string };
-            // Sin uso o sin voz: se detiene y lo dice (en pantalla); otro error, se salta esa frase (queda escrita en el chat)
-            if (gen === x.gen && (res.status === 429 || res.status === 503)) {
+            // Si no puede hablar, se detiene y dice por qué (en pantalla); la respuesta queda escrita en el chat
+            if (gen === x.gen) {
               x.gen++;
               callarse();
               setNota(j.error ?? "No pude hablar en este momento.");
