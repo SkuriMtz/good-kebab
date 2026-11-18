@@ -1,7 +1,7 @@
 /**
- * Lista de Proveedores y Subencargados (la armé con lo que la app usa de verdad:
- * src/lib/supabase, Vercel, src/lib/planes.ts, src/lib/conexiones/catalogo.ts,
- * notificaciones push y Turnstile). Mantenerla al día cuando cambie un proveedor.
+ * Lista de Proveedores y Subencargados, versión 1.0: texto del dueño completado
+ * con lo que usa la app (regiones verificadas: Supabase us-east-1, Vercel iad1;
+ * catálogo de apps de src/lib/conexiones/catalogo.ts; Turnstile).
  * Todavía no se publica: va en el Centro legal (pendiente).
  */
 export const PROVEEDORES = `# Lista de Proveedores y Subencargados
@@ -9,46 +9,211 @@ export const PROVEEDORES = `# Lista de Proveedores y Subencargados
 
 **Última actualización: 17 de noviembre de 2026**
 
+**Versión:** 1.0
+
 ### 1. Objeto
 
-Esta lista identifica a los proveedores tecnológicos que intervienen en el funcionamiento de Atendel y que pueden tratar información de los usuarios o de sus clientes.
+El presente documento identifica los proveedores tecnológicos y servicios externos que pueden intervenir en la operación de Atendel, así como las funciones generales que desempeñan y las categorías de información que podrían procesar.
 
-Complementa el Aviso de Privacidad Integral, el Acuerdo de Tratamiento de Datos Personales y la Política de Inteligencia Artificial de Atendel.
+Su finalidad es proporcionar transparencia a los usuarios y facilitar la comprensión de las operaciones de tratamiento de datos que pueden realizarse para prestar los servicios de Atendel.
 
-Para cada proveedor se indica para qué se utiliza, qué tipo de información puede tratar y dónde se procesa, de acuerdo con la configuración actual de la plataforma.
+Este documento complementa el Aviso de Privacidad Integral, el Acuerdo de Tratamiento de Datos Personales y los Términos y Condiciones.
 
-### 2. Proveedores principales (subencargados)
+### 2. Alcance
 
-Estos proveedores tratan información por cuenta de Atendel para que la plataforma funcione:
+La lista comprende proveedores que pueden intervenir en:
 
-| Proveedor | Para qué se utiliza | Información que puede tratar | Ubicación |
-|---|---|---|---|
-| Supabase | Base de datos, almacenamiento de archivos, autenticación y envío de los códigos de acceso por correo | Datos de la cuenta y del negocio, conversaciones, archivos, registros técnicos y de seguridad | Estados Unidos |
-| Vercel | Alojamiento del sitio web y del panel, y ejecución del servidor de Atendel | Información que pasa por la plataforma mientras se usa | Estados Unidos, con red global para entregar las páginas |
-| Anthropic | Modelos de inteligencia artificial que interpretan instrucciones y generan respuestas | El contenido necesario para cada tarea solicitada | Estados Unidos |
+- Alojamiento y distribución de la plataforma.
+- Bases de datos y almacenamiento.
+- Autenticación y administración de cuentas.
+- Procesamiento de inteligencia artificial.
+- Conexión con aplicaciones externas.
+- Mensajería y comunicaciones.
+- Notificaciones.
+- Seguridad y funcionamiento técnico.
 
-### 3. Servicios de notificaciones
+La participación de cada proveedor dependerá de las funciones habilitadas, la configuración del usuario y la arquitectura técnica vigente.
 
-Cuando el usuario activa las notificaciones de la app en un dispositivo, el aviso se entrega a través del servicio de notificaciones de su navegador o sistema:
+La inclusión de un proveedor en esta lista no significa necesariamente que todos los datos de Atendel se transmitan a dicho proveedor.
 
-- Google (Chrome y Android).
-- Apple (Safari, iPhone y Mac).
-- Mozilla (Firefox).
-- Microsoft (Edge y Windows).
+### 3. Proveedores identificados
 
-Atendel solo envía a estos servicios un título, un texto corto y un enlace interno; el detalle completo permanece en el panel.
+**3.1. Supabase**
 
-### 4. Servicios que se usan en casos concretos
+**Categoría:** Infraestructura, base de datos, almacenamiento y autenticación.
 
-- **Google:** inicio de sesión con una cuenta de Google, cuando el usuario elige ese método.
-- **Meta (WhatsApp Business):** recepción y envío de mensajes cuando el negocio conecta su número de WhatsApp, y avisos al usuario por WhatsApp cuando él mismo los activa.
-- **Cloudflare (Turnstile):** verificación de que quien crea una cuenta o entra es una persona, cuando esta protección esté activada.
+**Función dentro de Atendel:**
 
-### 5. Aplicaciones que el usuario conecta
+Supabase proporciona los servicios de infraestructura necesarios para almacenar información, administrar registros, gestionar archivos y facilitar los procesos de autenticación, incluido el envío de los códigos de acceso por correo electrónico.
 
-Además de los proveedores anteriores, el usuario puede conectar voluntariamente sus propias cuentas de otras aplicaciones. En esos casos, Atendel se comunica con la aplicación únicamente con los permisos que el usuario concede, y cada aplicación trata la información conforme a sus propios términos y avisos de privacidad, como responsable independiente.
+**Categorías de información que podrían procesarse:**
 
-Las aplicaciones que pueden conectarse incluyen:
+- Datos de cuenta.
+- Información del negocio.
+- Preferencias y configuraciones.
+- Conversaciones con Atendel.
+- Documentos y archivos.
+- Registros técnicos y de seguridad.
+- Información necesaria para mantener las funciones de la plataforma.
+
+**Ubicación del tratamiento:** Estados Unidos (región del este, Virginia), conforme al proyecto contratado por Atendel.
+
+**Condiciones aplicables:** Contrato, documentación de seguridad y políticas del proveedor.
+
+**3.2. Vercel**
+
+**Categoría:** Alojamiento y distribución de aplicaciones.
+
+**Función dentro de Atendel:**
+
+Vercel proporciona la infraestructura para publicar, distribuir y entregar el sitio web y el panel de control de Atendel, y para ejecutar su servidor.
+
+**Categorías de información que podrían procesarse:**
+
+- Solicitudes técnicas.
+- Datos de conexión.
+- Registros de funcionamiento.
+- Información necesaria para entregar páginas y recursos de la plataforma.
+
+**Ubicación del tratamiento:** Estados Unidos (región de Washington, D.C.) para el servidor de Atendel, con una red global de distribución para entregar las páginas.
+
+**Condiciones aplicables:** Contrato y políticas del proveedor.
+
+**3.3. Anthropic**
+
+**Categoría:** Inteligencia artificial.
+
+**Función dentro de Atendel:**
+
+Anthropic proporciona los modelos de inteligencia artificial utilizados para interpretar instrucciones, procesar información y generar los resultados solicitados por los usuarios, incluidos los modos «Rápido» y «Avanzado» que el usuario puede elegir en el chat.
+
+**Categorías de información que podrían procesarse:**
+
+- Instrucciones del usuario.
+- Mensajes y contenido autorizado.
+- Información empresarial necesaria para una tarea.
+- Fragmentos de documentos o archivos que se envíen al modelo.
+- Contexto necesario para generar respuestas o ejecutar procesos.
+
+**Ubicación del tratamiento:** Estados Unidos, según la documentación del proveedor; Atendel confirmará la región aplicable al servicio contratado.
+
+**Condiciones aplicables:** Acuerdos comerciales, condiciones de tratamiento de datos y documentación del proveedor.
+
+Atendel deberá verificar las condiciones específicas de conservación, uso de datos, entrenamiento de modelos y controles de seguridad aplicables al servicio contratado. No se considerará suficiente una descripción comercial general para afirmar que determinada información nunca se conserva o nunca se utiliza para entrenamiento.
+
+**3.4. Meta / WhatsApp**
+
+**Categoría:** Mensajería y comunicación.
+
+**Función dentro de Atendel:**
+
+Meta y los servicios de WhatsApp intervienen en la conexión, recepción y transmisión de mensajes cuando el usuario conecta el WhatsApp de su negocio, y en los avisos que Atendel envía al usuario por WhatsApp cuando él mismo los activa.
+
+**Categorías de información que podrían procesarse:**
+
+- Identificadores de cuentas.
+- Números telefónicos.
+- Mensajes.
+- Metadatos de comunicación.
+- Información necesaria para entregar mensajes y mantener la integración.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos, políticas y documentación aplicable de Meta y WhatsApp.
+
+**3.5. Google**
+
+**Categoría:** Autenticación, servicios de notificación e integraciones.
+
+**Función dentro de Atendel:**
+
+Google interviene en el inicio de sesión con una cuenta de Google, cuando el usuario elige ese método; en la entrega de notificaciones en Chrome y Android; y en las integraciones de Google que el usuario conecte.
+
+**Categorías de información que podrían procesarse:**
+
+- Identificadores técnicos.
+- Datos necesarios para notificaciones.
+- Información autorizada mediante integraciones de Google.
+- Datos de autenticación o autorización cuando corresponda.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos y políticas de Google y condiciones de las integraciones utilizadas.
+
+**3.6. Apple**
+
+**Categoría:** Notificaciones y servicios de dispositivos.
+
+**Función dentro de Atendel:**
+
+Apple interviene en la entrega de notificaciones en Safari, iPhone y Mac cuando el usuario activa las notificaciones en esos dispositivos.
+
+**Categorías de información que podrían procesarse:**
+
+- Identificadores técnicos del dispositivo.
+- Tokens de notificación.
+- Datos necesarios para entregar avisos.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos y políticas de Apple.
+
+**3.7. Mozilla**
+
+**Categoría:** Servicios de notificación del navegador.
+
+**Función dentro de Atendel:**
+
+Mozilla interviene en la entrega de notificaciones web cuando el usuario las activa en Firefox.
+
+**Categorías de información que podrían procesarse:**
+
+- Identificadores de suscripción.
+- Información técnica del navegador.
+- Datos necesarios para entregar notificaciones.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos y políticas de Mozilla.
+
+**3.8. Microsoft**
+
+**Categoría:** Servicios de notificación e integraciones.
+
+**Función dentro de Atendel:**
+
+Microsoft interviene en la entrega de notificaciones en Edge y Windows y en las integraciones de Microsoft que el usuario conecte.
+
+**Categorías de información que podrían procesarse:**
+
+- Identificadores técnicos.
+- Información necesaria para notificaciones.
+- Datos autorizados mediante integraciones de Microsoft.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos y políticas de Microsoft.
+
+**3.9. Cloudflare**
+
+**Categoría:** Seguridad.
+
+**Función dentro de Atendel:**
+
+Cloudflare Turnstile verifica que quien crea una cuenta o inicia sesión es una persona, cuando esta protección se encuentre activada.
+
+**Categorías de información que podrían procesarse:**
+
+- Información técnica del navegador.
+- Datos necesarios para la verificación.
+
+**Ubicación del tratamiento:** Según la infraestructura global del proveedor.
+
+**Condiciones aplicables:** Términos y políticas de Cloudflare.
+
+### 4. Aplicaciones conectadas por el usuario
+
+Atendel permite la conexión voluntaria de aplicaciones externas, incluyendo:
 
 - **Google:** Gmail, Google Calendar, Tareas de Google, Google Drive, Google Sheets, Contactos de Google, Perfil de Negocio de Google y Google Forms.
 - **Microsoft:** Outlook, Calendario de Outlook, Microsoft To Do, OneDrive, Excel y Contactos de Outlook.
@@ -58,20 +223,65 @@ Las aplicaciones que pueden conectarse incluyen:
 - **Agenda y citas:** Calendly, Acuity Scheduling, SimplyBook.me, Setmore, AgendaPro, Fresha, Booksy y Doctoralia.
 - **Pagos y ventas:** Stripe, Mercado Pago, Mercado Libre, Shopify, Tiendanube, Clip, PayPal, Conekta, Openpay y Square.
 - **Contabilidad y facturación:** Zoho Books, Facturama, Alegra, Holded, QuickBooks y facturación CFDI.
+- Otras aplicaciones que se incorporen a la plataforma.
 
-La disponibilidad de cada aplicación puede variar según la etapa de la plataforma y las aprobaciones que cada proveedor exija. Los permisos y credenciales de estas conexiones se guardan cifrados (AES-256-GCM) y el usuario puede desconectarlas en cualquier momento desde Tu negocio → Apps conectadas.
+La disponibilidad de cada aplicación puede variar según la etapa de la plataforma y las aprobaciones que exija cada proveedor.
 
-### 6. Lo que no se utiliza
+Estas aplicaciones pueden procesar información directamente bajo sus propios términos y condiciones.
 
-Atendel no utiliza proveedores de publicidad, redes de anuncios ni herramientas de rastreo de terceros con fines publicitarios. Las fuentes tipográficas se sirven desde el propio dominio de Atendel.
+Cuando Atendel acceda a información mediante una integración, el alcance del acceso dependerá de:
 
-### 7. Cambios a esta lista
+1. La autorización concedida por el usuario.
+2. Los permisos técnicos disponibles.
+3. La configuración de la integración.
+4. Las instrucciones y automatizaciones habilitadas.
+5. Las condiciones del proveedor externo.
 
-Atendel actualizará esta lista cuando incorpore, sustituya o deje de utilizar un proveedor que trate información de los usuarios. Cuando un cambio sea relevante, podrá comunicarlo mediante el panel o correo electrónico.
+Los permisos y credenciales de estas conexiones se guardan cifrados mediante AES-256-GCM.
 
-### 8. Contacto
+El usuario podrá administrar o revocar conexiones desde la sección «Tu negocio → Apps conectadas».
 
-Para consultas relacionadas con esta lista:
+La desconexión de una aplicación impedirá nuevos accesos mediante la integración, pero no necesariamente eliminará información que ya haya sido procesada o conservada conforme a las reglas de retención aplicables.
+
+### 5. Subencargados y responsabilidad
+
+Cuando Atendel contrate un proveedor para procesar datos personales por cuenta de un negocio, procurará establecer condiciones contractuales que regulen:
+
+- Finalidad del tratamiento.
+- Alcance de los servicios.
+- Confidencialidad.
+- Medidas de seguridad.
+- Restricciones de uso.
+- Asistencia ante incidentes.
+- Conservación y eliminación.
+- Participación de otros subencargados.
+- Transferencias internacionales, cuando correspondan.
+
+La clasificación jurídica de cada proveedor dependerá de las actividades que efectivamente realice. Algunos podrán actuar como encargados o subencargados y otros como responsables independientes respecto de sus propios servicios.
+
+Atendel no utiliza proveedores de publicidad, redes de anuncios ni herramientas de rastreo de terceros con fines publicitarios. Las fuentes tipográficas del sitio se sirven desde el propio dominio de Atendel.
+
+### 6. Ubicación y transferencias internacionales
+
+Algunos proveedores pueden almacenar o procesar información fuera de México.
+
+La ubicación concreta puede depender de la región seleccionada, la arquitectura del servicio, la configuración contratada y los mecanismos de distribución utilizados.
+
+Atendel deberá verificar la ubicación efectiva y las condiciones de transferencia aplicables antes de presentar una afirmación específica sobre el país donde se almacena o procesa determinada información.
+
+Cuando corresponda, las transferencias se realizarán conforme al Aviso de Privacidad y a la legislación aplicable.
+
+### 7. Actualizaciones de la lista
+
+Atendel podrá incorporar, sustituir o dejar de utilizar proveedores por motivos técnicos, operativos, de seguridad o comerciales.
+
+La lista se actualizará cuando existan cambios relevantes en los proveedores que intervienen en el tratamiento de información.
+
+Cuando corresponda, Atendel comunicará los cambios mediante el panel o correo electrónico.
+
+### 8. Consultas
+
+Los usuarios podrán solicitar información adicional sobre los proveedores y el tratamiento de datos mediante:
 
 **Correo:** infoatendel@gmail.com
 
