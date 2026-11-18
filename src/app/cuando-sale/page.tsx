@@ -4,13 +4,13 @@ import { Sitio } from "@/components/Sitio";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Seccion } from "@/components/base/Seccion";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
+import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
-import { TEXTOS_CUANDO } from "@/lib/paginas-menu";
 import { metadatosDe } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const idioma = await idiomaServidor();
-  return metadatosDe(idioma, TEXTOS_CUANDO[idioma].meta);
+  return metadatosDe(idioma, t(idioma).paginaCuando.meta);
 }
 
 /**
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function CuandoSale() {
   const idioma = await idiomaServidor();
-  const T = TEXTOS_CUANDO[idioma];
+  const T = t(idioma).paginaCuando;
   return (
     <Sitio>
       <header className="pagina-cabeza contenedor">

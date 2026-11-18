@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import {
   BotonPdf,
   EncabezadoLegal,
@@ -8,8 +7,9 @@ import {
 } from "@/components/legal/BarraSecciones";
 import { DocumentoMd, seccionesMd } from "@/components/legal/DocumentoMd";
 import { serifPanel } from "@/components/panel/fuente";
-import type { Idioma } from "@/i18n";
-import { CENTRO_PRIVACIDAD, ETIQUETAS_LEGALES, type Politica } from "@/legal/politicas";
+import { LOCALE, t, type Idioma } from "@/i18n";
+import { TEXTOS_LEGALES } from "@/legal/documentos";
+import { CENTRO_PRIVACIDAD, type Politica } from "@/legal/politicas";
 import { DATOS_LEGALES } from "@/lib/legal";
 import { CORREO_CONTACTO } from "@/lib/sitio";
 
@@ -22,37 +22,18 @@ const fecha = (iso: string, locale: string) =>
     timeZone: "UTC",
   });
 
-type Version = {
-  etiqueta: string;
-  titulo: string;
-  tipo: string;
-  texto: string;
-  entrada?: ReactNode;
-};
-
 /**
- * Página de un documento legal (/privacidad, /terminos, /cookies) con la cara
- * de Atendel, en español o inglés (la cookie del sitio; se cambia en la
- * ficha). Encabezado fijo (logo al centro que se compacta al bajar,
- * «Políticas» a la derecha y una línea fina con la sección en la que vas),
- * título en serif, ficha (vigencia, tipo, idioma), índice a un lado y pie
- * de una línea. Siempre en claro. Vale el texto en español.
+ * Página de un documento legal con la cara de Atendel, en el idioma del
+ * sitio (la cookie; se cambia en la ficha). Encabezado fijo (logo al centro
+ * que se compacta al bajar, «Políticas» a la derecha y una línea fina con la
+ * sección en la que vas), título en serif, ficha (vigencia, tipo, idioma),
+ * índice a un lado y pie de una línea. Siempre en claro. Vale el texto en
+ * español; los demás idiomas llevan una nota que lo dice.
  */
-export function PaginaDocumento({
-  actual,
-  idioma,
-  es,
-  en,
-}: {
-  actual: Politica;
-  idioma: Idioma;
-  es: Version;
-  /** Sin versión en inglés, se muestra la de español con una nota. */
-  en?: Version;
-}) {
-  const soloEs = idioma === "en" && !en;
-  const v = idioma === "en" && en ? en : es;
-  const E = ETIQUETAS_LEGALES[idioma];
+export function PaginaDocumento({ actual, idioma }: { actual: Politica; idioma: Idioma }) {
+  const d = t(idioma).legal;
+  const E = d.etiquetas;
+  const v = { ...d.docs[actual], texto: TEXTOS_LEGALES[actual][idioma] };
   const secciones = seccionesMd(v.texto);
   return (
     <div className={`legal ${serifPanel.variable}`} lang={idioma}>
@@ -64,7 +45,7 @@ export function PaginaDocumento({
       <main id="legal-contenido" tabIndex={-1} className="legal__main">
         <div className="legal__cabeza">
           <p className="legal__etiqueta">{v.etiqueta}</p>
-          <h1 lang={soloEs ? "es" : undefined}>{v.titulo}</h1>
+          <h1>{v.titulo}</h1>
           <BotonPdf texto={E.pdf} />
         </div>
 
@@ -73,7 +54,7 @@ export function PaginaDocumento({
             <dt>{E.vigente}</dt>
             <dd>
               <time dateTime={DATOS_LEGALES.actualizado}>
-                {fecha(DATOS_LEGALES.actualizado, E.locale)}
+                {fecha(DATOS_LEGALES.actualizado, LOCALE[idioma])}
               </time>
             </dd>
           </div>
@@ -106,12 +87,11 @@ export function PaginaDocumento({
             </dd>
           </div>
         </dl>
-        {soloEs ? <p className="legal__nota">{E.soloEs}</p> : E.nota ? <p className="legal__nota">{E.nota}</p> : null}
+        {E.nota ? <p className="legal__nota">{E.nota}</p> : null}
 
-        <div className="legal__columnas" lang={soloEs ? "es" : undefined}>
+        <div className="legal__columnas">
           <IndiceSecciones secciones={secciones} titulo={E.contenido} />
           <div className="legal__cuerpo">
-            {v.entrada ? <p className="legal__entrada">{v.entrada}</p> : null}
             <DocumentoMd texto={v.texto} soloCuerpo />
           </div>
         </div>

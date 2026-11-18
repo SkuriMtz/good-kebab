@@ -68,7 +68,7 @@ function IconoMenu() {
 
 export function Barra({ inicio = false }: { inicio?: boolean }) {
   const pathname = usePathname();
-  const { d, idioma } = useIdioma();
+  const { d } = useIdioma();
   const b = d.barra;
   const [bajando, setBajando] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -279,7 +279,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
                     {POLITICAS.filter((p) => p.id === "privacidad" || p.id === "terminos" || p.id === "cookies").map((p) => (
                       <li key={p.id}>
                         <Enlace href={p.href} className="menu-sitio__sub-enlace" actual={pathname === p.href} onClick={cerrar}>
-                          {p.nombre[idioma]}
+                          {d.legal.docs[p.id].nombre}
                         </Enlace>
                       </li>
                     ))}

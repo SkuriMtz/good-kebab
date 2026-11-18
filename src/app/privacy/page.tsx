@@ -6,16 +6,17 @@ import { Icono } from "@/components/base/Iconos";
 import { SelectorIdioma } from "@/components/legal/BarraSecciones";
 import { BuscadorPrivacidad } from "@/components/legal/BuscadorPrivacidad";
 import { serifPanel } from "@/components/panel/fuente";
+import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
-import { DOCUMENTOS, buscar, cuenta } from "@/legal/documentos";
-import { ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
+import { TEXTOS_LEGALES, buscar, cuenta } from "@/legal/documentos";
+import { CENTRO_PRIVACIDAD, POLITICAS, type Politica } from "@/legal/politicas";
 import { legalesCompletos } from "@/lib/legal";
 import { metadatosDe } from "@/lib/seo";
 import { CORREO_CONTACTO } from "@/lib/sitio";
 
 export async function generateMetadata(): Promise<Metadata> {
   const idioma = await idiomaServidor();
-  const E = ETIQUETAS_LEGALES[idioma];
+  const E = t(idioma).legal.etiquetas;
   return metadatosDe(idioma, [E.centro, E.centroDescripcion]);
 }
 
@@ -30,11 +31,11 @@ const POR_ID = Object.fromEntries(POLITICAS.map((p) => [p.id, p])) as Record<Pol
 export default async function CentroPrivacidad({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   if (!legalesCompletos()) notFound();
   const idioma = await idiomaServidor();
-  const E = ETIQUETAS_LEGALES[idioma];
+  const L = t(idioma).legal;
+  const E = L.etiquetas;
   const { q } = await searchParams;
   const consulta = (Array.isArray(q) ? q[0] : q ?? "").slice(0, 100).trim();
-  const version = (id: Politica) => (idioma === "en" ? DOCUMENTOS[id].en : undefined) ?? DOCUMENTOS[id].es;
-  const resultados = consulta ? buscar(consulta, version, POLITICAS.map((p) => p.id)) : [];
+  const resultados = consulta ? buscar(consulta, (id) => TEXTOS_LEGALES[id][idioma], POLITICAS.map((p) => p.id)) : [];
 
   return (
     <div className={`legal centro ${serifPanel.variable}`} lang={idioma}>
@@ -72,8 +73,8 @@ export default async function CentroPrivacidad({ searchParams }: { searchParams:
                   return (
                     <li key={`${r.id}-${r.seccion}`}>
                       <Link href={`${p.href}${r.seccion ? `#${r.seccion}` : ""}`}>
-                        <span className="centro__res-doc">{p.nombre[idioma]}</span>
-                        <span className="centro__res-titulo">{r.titulo || p.nombre[idioma]}</span>
+                        <span className="centro__res-doc">{L.docs[r.id].nombre}</span>
+                        <span className="centro__res-titulo">{r.titulo || L.docs[r.id].nombre}</span>
                         <span className="centro__res-texto">
                           {r.antes}
                           {r.marca ? <mark>{r.marca}</mark> : null}
@@ -90,25 +91,23 @@ export default async function CentroPrivacidad({ searchParams }: { searchParams:
               </p>
             )}
             <p className="centro__volver">
-              <Link href="/privacy">{E.verTodo}</Link>
+              <Link href={CENTRO_PRIVACIDAD}>{E.verTodo}</Link>
             </p>
           </section>
         ) : (
           <ul className="centro__rejilla">
             {POLITICAS.map((p) => {
-              const c = cuenta(DOCUMENTOS[p.id].es.texto);
-              const soloEs = idioma === "en" && "soloEs" in p;
+              const c = cuenta(TEXTOS_LEGALES[p.id].es);
               return (
                 <li key={p.id}>
                   <Link href={p.href} className="centro__tarjeta">
                     <span className="centro__icono" aria-hidden="true">
                       <Icono nombre={p.icono} tam={22} />
                     </span>
-                    <h2>{p.nombre[idioma]}</h2>
-                    <p>{p.resumen[idioma]}</p>
+                    <h2>{L.docs[p.id].nombre}</h2>
+                    <p>{L.docs[p.id].resumen}</p>
                     <p className="centro__cuenta">
                       {c.n} {E[c.que]}
-                      {soloEs ? <span className="centro__chip">{E.soloEsCorto}</span> : null}
                     </p>
                   </Link>
                 </li>
@@ -142,7 +141,7 @@ export default async function CentroPrivacidad({ searchParams }: { searchParams:
             <ul>
               {POLITICAS.slice(0, 4).map((p) => (
                 <li key={p.id}>
-                  <Link href={p.href}>{p.nombre[idioma]}</Link>
+                  <Link href={p.href}>{L.docs[p.id].nombre}</Link>
                 </li>
               ))}
               <li>

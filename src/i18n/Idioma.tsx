@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useTransition, type ReactNode } from "react";
-import { IDIOMA_COOKIE, t, type Idioma } from "./index";
+import { IDIOMA_COOKIE, IDIOMAS, NOMBRE_IDIOMA, esIdioma, t, type Idioma } from "./index";
 
 const Contexto = createContext<Idioma>("en");
 
@@ -43,28 +43,37 @@ export function useCambiarIdioma() {
 }
 
 /**
- * "EN / ES": dos opciones en una píldora, la elegida encendida. Cambia el
+ * El selector de idioma: un globo, el nombre del idioma y una flechita
+ * (un <select> de verdad: en el celular abre la lista del sistema). Cambia el
  * idioma de todo el sitio público sin recargar.
  */
 export function BotonIdioma({ className = "" }: { className?: string }) {
   const { idioma, d } = useIdioma();
   const { cambiar, cambiando } = useCambiarIdioma();
   return (
-    <div className={`boton-idioma ${className}`} role="group" aria-label={d.barra.idioma} data-cambiando={cambiando ? "true" : undefined}>
-      {(["en", "es"] as const).map((opcion) => (
-        <button
-          key={opcion}
-          type="button"
-          className="boton-idioma__opcion"
-          lang={opcion}
-          aria-pressed={idioma === opcion}
-          aria-label={opcion === "en" ? "English" : "Español"}
-          data-idioma-boton={opcion}
-          onClick={() => idioma !== opcion && cambiar(opcion)}
-        >
-          {opcion.toUpperCase()}
-        </button>
-      ))}
-    </div>
+    <label className={`boton-idioma ${className}`} data-cambiando={cambiando ? "true" : undefined}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z" />
+      </svg>
+      <select
+        className="boton-idioma__select"
+        value={idioma}
+        aria-label={d.barra.idioma}
+        onChange={(e) => {
+          const nuevo = e.target.value;
+          if (esIdioma(nuevo) && nuevo !== idioma) cambiar(nuevo);
+        }}
+      >
+        {IDIOMAS.map((opcion) => (
+          <option key={opcion} value={opcion} lang={opcion}>
+            {NOMBRE_IDIOMA[opcion]}
+          </option>
+        ))}
+      </select>
+      <svg className="boton-idioma__flecha" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </label>
   );
 }

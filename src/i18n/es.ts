@@ -2,6 +2,8 @@ import { DETALLE, type DetalleAgente } from "@/components/agentes/detalle";
 import { AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { GARANTIAS, PREGUNTAS, SEGMENTOS } from "@/lib/contenido";
 import { PLANES, type IdPlan } from "@/lib/planes";
+import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
+import type { Idioma } from "./index";
 
 /**
  * Textos del sitio público en español: los de siempre, sacados de cada
@@ -39,7 +41,7 @@ const lista = (nombres: string[]) =>
     : `${nombres.slice(0, -1).join(", ")} ${nombres.length > 2 ? "e" : "y"} ${nombres[nombres.length - 1]}`;
 
 export const es = {
-  idioma: "es" as "es" | "en",
+  idioma: "es" as Idioma,
   meta: {
     locale: "es_MX",
     tituloInicio: "Atendel — Tu socio de IA para atender tu negocio",
@@ -558,6 +560,176 @@ export const es = {
     texto: "Fue de nuestro lado, no tuyo. Intenta de nuevo; si sigue, vuelve en unos minutos.",
     reintentar: "Intentar de nuevo",
     volver: "Volver al inicio",
+  },
+  /* Páginas legales y Centro de privacidad (/privacy) */
+  legal: {
+    etiquetas: {
+      saltar: "Saltar al contenido",
+      inicio: "Inicio",
+      politicas: "Políticas",
+      entrar: "Entrar",
+      contacto: "Contacto",
+      contenido: "Contenido",
+      vigente: "Vigente desde",
+      tipo: "Tipo",
+      idioma: "Idioma",
+      pdf: "Descargar PDF",
+      nota: "",
+      pieAria: "Políticas y contacto",
+      centro: "Centro de privacidad",
+      centroTitulo: "Centro de privacidad de Atendel",
+      centroDescripcion: "Todos los documentos legales de Atendel en un solo lugar: privacidad, términos, cookies, tratamiento de datos, IA y más.",
+      buscar: "Buscar en los documentos…",
+      buscarAria: "Buscar en los documentos legales",
+      secciones: "secciones",
+      preguntas: "preguntas",
+      resultados: "resultados",
+      sinResultados: "No encontramos nada con esas palabras. Prueba con otras o escríbenos.",
+      verTodo: "Ver todos los documentos",
+      agentes: "Agentes",
+      precios: "Precios",
+    },
+    docs: {
+      privacidad: {
+        nombre: "Aviso de privacidad",
+        resumen: "Qué datos tratamos, para qué y cómo ejerces tus derechos.",
+        etiqueta: "Legal · Privacidad",
+        titulo: "Aviso de Privacidad",
+        tipo: "Aviso integral",
+      },
+      preguntas: {
+        nombre: "Preguntas frecuentes",
+        resumen: "Respuestas cortas sobre privacidad, seguridad y condiciones.",
+        etiqueta: "Legal · Preguntas",
+        titulo: "Preguntas frecuentes",
+        tipo: "Privacidad, seguridad y condiciones",
+      },
+      terminos: {
+        nombre: "Términos y condiciones",
+        resumen: "Las reglas para usar Atendel: tu cuenta, los planes y la responsabilidad.",
+        etiqueta: "Legal · Términos",
+        titulo: "Términos y Condiciones de Uso",
+        tipo: "Condiciones generales",
+      },
+      cookies: {
+        nombre: "Política de cookies",
+        resumen: "Las cookies que usamos (solo las necesarias) y para qué sirve cada una.",
+        etiqueta: "Legal · Cookies",
+        titulo: "Política de Cookies",
+        tipo: "Cookies y tecnologías similares",
+      },
+      tratamiento: {
+        nombre: "Tratamiento de datos (DPA)",
+        resumen: "Cómo tratamos los datos de tus clientes por cuenta de tu negocio.",
+        etiqueta: "Legal · Tratamiento de datos",
+        titulo: "Acuerdo de Tratamiento de Datos Personales",
+        tipo: "Acuerdo (DPA)",
+      },
+      uso: {
+        nombre: "Uso aceptable",
+        resumen: "Lo que se puede y lo que no se puede hacer con Atendel.",
+        etiqueta: "Legal · Uso aceptable",
+        titulo: "Política de Uso Aceptable",
+        tipo: "Reglas de uso",
+      },
+      reembolsos: {
+        nombre: "Cancelaciones y reembolsos",
+        resumen: "Cómo cancelar Free, One o Max y cuándo procede un reembolso.",
+        etiqueta: "Legal · Reembolsos",
+        titulo: "Política de Cancelaciones y Reembolsos",
+        tipo: "Planes Free, One y Max",
+      },
+      ia: {
+        nombre: "Inteligencia artificial",
+        resumen: "Cómo usa Atendel la IA, sus límites y lo que siempre decides tú.",
+        etiqueta: "Legal · Inteligencia artificial",
+        titulo: "Política de Inteligencia Artificial",
+        tipo: "Uso de la IA",
+      },
+      servicio: {
+        nombre: "Nivel de servicio (SLA)",
+        resumen: "Disponibilidad, mantenimientos, soporte y cómo te avisamos de fallas.",
+        etiqueta: "Legal · Nivel de servicio",
+        titulo: "Acuerdo de Nivel de Servicio",
+        tipo: "Acuerdo (SLA)",
+      },
+      proveedores: {
+        nombre: "Proveedores y subencargados",
+        resumen: "Quién nos ayuda a darte el servicio y dónde se guardan los datos.",
+        etiqueta: "Legal · Proveedores",
+        titulo: "Lista de Proveedores y Subencargados",
+        tipo: "Lista de proveedores",
+      },
+    },
+  },
+
+  /* /apps */
+  paginaApps: {
+    meta: ["Apps que se conectan", "Las apps que se conectan con Atendel y qué hace Atendel con cada una."],
+    etiqueta: "Apps",
+    titulo: "Atendel trabaja con las apps que ya usas.",
+    intro: (n: number) => `Conecta las tuyas y el equipo trabaja con lo que ya tienes. Hoy se conectan ${n} apps; lo de dinero siempre espera tu OK.`,
+    pronto: "En camino",
+    marcas:
+      "Las marcas y logos son de sus dueños; aquí solo dicen con qué se conecta Atendel. Algunas apps piden aprobar a Atendel antes de funcionar con cualquier cuenta.",
+    cierreTitulo: "Conecta tus apps en minutos",
+    cierreTexto: "Entra con tu correo, sin contraseña, y conéctalas desde Tu negocio → Apps conectadas. Las quitas cuando quieras.",
+    crear: "Crea tu cuenta",
+    /** Los nombres de apps que cambian en este idioma (los demás, como en el catálogo). */
+    nombres: {} as Partial<Record<IdApp, string>>,
+    categorias: {
+      correo: {
+        nombre: "Correo",
+        texto: "Altair lee y resume tus correos, y puede contestar o mandar por ti con tu OK (o solo, si así lo eliges).",
+      },
+      mensajes: {
+        nombre: "Mensajes",
+        texto: "Aura lee los mensajes que te mandan tus clientes y Mira resume los canales de tu equipo. Solo lectura.",
+      },
+      agenda: {
+        nombre: "Agenda y pendientes",
+        texto:
+          "Aura ve tu agenda y, en Google Calendar y Outlook, crea, mueve o cancela citas revisando que no choquen. Mira ve tus pendientes y puede crearlos o completarlos.",
+      },
+      reservas: { nombre: "Reservas", texto: "Aura ve tus citas, las de cada cliente y tus servicios. Solo lectura." },
+      documentos: {
+        nombre: "Documentos",
+        texto: "Mira lee los archivos y hojas que le indiques para resumirlos o sacar cuentas; en Airtable y Trello también agrega registros o tarjetas.",
+      },
+      clientes: {
+        nombre: "Clientes",
+        texto: "Rigel busca a tus clientes en tus contactos y tu CRM, y lee las respuestas de tus formularios y cómo les fue a tus campañas. Solo lectura.",
+      },
+      resenas: { nombre: "Reseñas", texto: "Rigel lee tus reseñas para proponerte cómo contestarlas. Solo lectura." },
+      pagos: {
+        nombre: "Pagos y ventas",
+        texto: "Mira ve tus cobros, pagos, pedidos y ventas para llevar las cuentas. Solo lectura: Atendel no mueve dinero.",
+      },
+      contabilidad: { nombre: "Contabilidad", texto: "Mira ve tus facturas, cobros y clientes. Solo lectura: no timbra ni cancela facturas." },
+      facturacion: { nombre: "Facturas electrónicas", texto: "Mira lee tus facturas electrónicas (CFDI) para llevar cobros y pagos. Solo lectura." },
+    } satisfies Record<CategoriaApp, { nombre: string; texto: string }>,
+  },
+
+  /* /cuando-sale */
+  paginaCuando: {
+    meta: ["Cuándo sale", "Free ya está abierto. One y Max abren por etapas: anótate y te avisamos."],
+    etiqueta: "Lanzamiento",
+    titulo: "Cuándo sale Atendel",
+    intro: "Free ya está abierto. One y Max abren por etapas: anótate en la lista y te avisamos cuando abra tu lugar.",
+    etapas: [
+      { plan: "Free", estado: "abierto", estadoTexto: "Ya está abierto", texto: "Entra hoy con tu correo, sin contraseña, y trabaja con Atendel y su equipo en el modo Rápido." },
+      {
+        plan: "One",
+        estado: "pronto",
+        estadoTexto: "Abre por etapas",
+        texto: "Para el día a día: los modos Rápido y Avanzado, y más trabajo por su cuenta. Precio por anunciar.",
+      },
+      { plan: "Max", estado: "pronto", estadoTexto: "Abre por etapas", texto: "Todo lo de One, con 5 veces su uso. Precio por anunciar." },
+    ] as { plan: string; estado: "abierto" | "pronto"; estadoTexto: string; texto: string }[],
+    crear: "Crea tu cuenta",
+    nota: "Nunca te cobraremos nada sin que antes aceptes el precio y las condiciones.",
+    cierreTitulo: "¿Te avisamos?",
+    cierreTexto: "Déjanos tu correo y te escribimos cuando abra tu lugar en One o Max.",
   },
 };
 

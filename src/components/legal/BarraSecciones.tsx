@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Marca } from "@/components/Logo";
 import { useCambiarIdioma } from "@/i18n/Idioma";
-import type { Idioma } from "@/i18n";
-import { CENTRO_PRIVACIDAD, ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
+import { IDIOMAS, NOMBRE_IDIOMA, t, type Idioma } from "@/i18n";
+import { CENTRO_PRIVACIDAD, POLITICAS, type Politica } from "@/legal/politicas";
 
 type Seccion = { id: string; titulo: string };
 
@@ -89,7 +89,8 @@ export function EncabezadoLegal({
   secciones: Seccion[];
   idioma: Idioma;
 }) {
-  const E = ETIQUETAS_LEGALES[idioma];
+  const L = t(idioma).legal;
+  const E = L.etiquetas;
   const [compacto, setCompacto] = useState(false);
   const [politicas, setPoliticas] = useState(false);
   const [lista, setLista] = useState(false);
@@ -163,7 +164,7 @@ export function EncabezadoLegal({
                       aria-current={p.id === actual ? "page" : undefined}
                       onClick={() => setPoliticas(false)}
                     >
-                      {p.nombre[idioma]}
+                      {L.docs[p.id].nombre}
                     </Link>
                   </li>
                 ))}
@@ -279,8 +280,11 @@ export function SelectorIdioma({
         value={idioma}
         onChange={(e) => cambiar(e.target.value as Idioma)}
       >
-        <option value="es">Español</option>
-        <option value="en">English</option>
+        {IDIOMAS.map((i) => (
+          <option key={i} value={i} lang={i}>
+            {NOMBRE_IDIOMA[i]}
+          </option>
+        ))}
       </select>
       <Flecha className="legal__idioma-flecha" />
     </span>

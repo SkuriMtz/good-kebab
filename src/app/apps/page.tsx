@@ -3,15 +3,18 @@ import { Sitio } from "@/components/Sitio";
 import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Seccion } from "@/components/base/Seccion";
+import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { CATALOGO } from "@/lib/conexiones/catalogo";
 import { LOGO_APP } from "@/lib/conexiones/logos";
-import { CATEGORIAS_APPS, NOMBRE_APP_EN, TEXTOS_APPS } from "@/lib/paginas-menu";
+import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
 import { metadatosDe } from "@/lib/seo";
+
+const ORDEN: CategoriaApp[] = ["correo", "mensajes", "agenda", "reservas", "documentos", "clientes", "resenas", "pagos", "contabilidad", "facturacion"];
 
 export async function generateMetadata(): Promise<Metadata> {
   const idioma = await idiomaServidor();
-  return metadatosDe(idioma, TEXTOS_APPS[idioma].meta);
+  return metadatosDe(idioma, t(idioma).paginaApps.meta);
 }
 
 /**
@@ -21,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function Apps() {
   const idioma = await idiomaServidor();
-  const T = TEXTOS_APPS[idioma];
+  const T = t(idioma).paginaApps;
   const conectables = CATALOGO.filter((a) => a.fase === 1).length;
   return (
     <Sitio>
@@ -34,21 +37,22 @@ export default async function Apps() {
       </header>
 
       <div className="contenedor apps-pagina">
-        {CATEGORIAS_APPS.map((c) => {
-          const apps = CATALOGO.filter((a) => a.categoria === c.id).sort((a, b) => a.fase - b.fase);
+        {ORDEN.map((id) => {
+          const c = { id, ...T.categorias[id] };
+          const apps = CATALOGO.filter((a) => a.categoria === id).sort((a, b) => a.fase - b.fase);
           if (!apps.length) return null;
           return (
             <section key={c.id} className="apps-cat" aria-labelledby={`apps-${c.id}`}>
               <div className="apps-cat__texto">
-                <h2 id={`apps-${c.id}`}>{c.nombre[idioma]}</h2>
-                <p>{c.texto[idioma]}</p>
+                <h2 id={`apps-${c.id}`}>{c.nombre}</h2>
+                <p>{c.texto}</p>
               </div>
               <ul className="apps-cat__lista">
                 {apps.map((a) => (
                   <li key={a.id} className="apps-chip" data-pronto={a.fase !== 1 ? "" : undefined}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
                     <img src={LOGO_APP[a.id]} alt="" width={24} height={24} loading="lazy" decoding="async" />
-                    <span>{idioma === "en" ? (NOMBRE_APP_EN[a.id] ?? a.nombre) : a.nombre}</span>
+                    <span>{(T.nombres as Partial<Record<IdApp, string>>)[a.id] ?? a.nombre}</span>
                     {a.fase !== 1 ? <span className="apps-chip__pronto">{T.pronto}</span> : null}
                   </li>
                 ))}

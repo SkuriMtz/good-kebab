@@ -193,44 +193,51 @@
   }
 }
 
-/* EN / ES: dos opciones en una píldora (barra y hoja del celular) */
+/* El selector de idioma: globo, nombre y flechita, en una píldora (menú y hoja) */
 .boton-idioma {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  height: clamp(28px, 2.31vw, 32px);
-  padding: 2px;
+  gap: 8px;
+  height: 40px;
+  padding-inline: 12px 10px;
   border: 1px solid var(--c-borde);
   border-radius: 999px;
+  color: var(--c-texto);
+  cursor: pointer;
+  transition: border-color 200ms ease;
 }
-.boton-idioma__opcion {
-  display: grid;
-  place-items: center;
-  min-width: 32px;
-  height: 100%;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: var(--c-texto-2);
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  transition:
-    color 200ms ease,
-    background-color 200ms ease;
-}
-.boton-idioma__opcion[aria-pressed="true"] {
-  background: var(--c-texto);
-  color: var(--c-fondo);
-}
-@media (hover: hover) and (pointer: fine) {
-  .boton-idioma__opcion[aria-pressed="false"]:hover {
-    color: var(--c-texto);
-  }
-}
-.boton-idioma__opcion:focus-visible {
+.boton-idioma:focus-within {
   outline: 2px solid var(--c-foco);
   outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .boton-idioma:hover {
+    border-color: var(--c-borde-fuerte);
+  }
+}
+/* El <select> cubre toda la píldora (se toca en cualquier parte); el texto lo da su valor */
+.boton-idioma__select {
+  appearance: none;
+  min-width: 0;
+  padding-right: 18px;
+  margin-right: -18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+.boton-idioma__select option {
+  background: #16161a;
+  color: #f4f4f6;
+}
+.boton-idioma__flecha {
+  pointer-events: none;
+  opacity: 0.7;
 }
 .boton-idioma[data-cambiando] {
   opacity: 0.6;

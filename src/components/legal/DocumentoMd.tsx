@@ -130,7 +130,7 @@ export function DocumentoMd({
           b.tipo !== "sub" &&
           !(
             b.tipo === "h3" &&
-            /^(Última actualización|Last updated)/.test(b.texto)
+            /^(Última actualización|Last updated|Última atualização|Dernière mise à jour|Zuletzt aktualisiert|Ultimo aggiornamento|最后更新)/.test(b.texto)
           ),
       )
     : todos;

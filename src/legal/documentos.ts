@@ -1,61 +1,91 @@
+import type { Idioma } from "@/i18n";
 import type { Politica } from "./politicas";
 import { AVISO_PRIVACIDAD } from "./aviso-privacidad";
 import { PRIVACY_NOTICE } from "./aviso-privacidad.en";
-import { COOKIES } from "./cookies";
-import { COOKIES_EN } from "./cookies.en";
-import { DPA } from "./dpa";
-import { POLITICA_IA } from "./inteligencia-artificial";
+import { TEXTO as PRIVACIDAD_PT } from "./aviso-privacidad.pt";
+import { TEXTO as PRIVACIDAD_FR } from "./aviso-privacidad.fr";
+import { TEXTO as PRIVACIDAD_DE } from "./aviso-privacidad.de";
+import { TEXTO as PRIVACIDAD_IT } from "./aviso-privacidad.it";
+import { TEXTO as PRIVACIDAD_ZH } from "./aviso-privacidad.zh";
 import { PREGUNTAS_LEGALES } from "./preguntas";
-import { PROVEEDORES } from "./proveedores";
-import { REEMBOLSOS } from "./reembolsos";
-import { SLA } from "./sla";
+import { TEXTO as PREGUNTAS_EN } from "./preguntas.en";
+import { TEXTO as PREGUNTAS_PT } from "./preguntas.pt";
+import { TEXTO as PREGUNTAS_FR } from "./preguntas.fr";
+import { TEXTO as PREGUNTAS_DE } from "./preguntas.de";
+import { TEXTO as PREGUNTAS_IT } from "./preguntas.it";
+import { TEXTO as PREGUNTAS_ZH } from "./preguntas.zh";
 import { TERMINOS } from "./terminos";
 import { TERMS } from "./terminos.en";
+import { TEXTO as TERMINOS_PT } from "./terminos.pt";
+import { TEXTO as TERMINOS_FR } from "./terminos.fr";
+import { TEXTO as TERMINOS_DE } from "./terminos.de";
+import { TEXTO as TERMINOS_IT } from "./terminos.it";
+import { TEXTO as TERMINOS_ZH } from "./terminos.zh";
+import { COOKIES } from "./cookies";
+import { COOKIES_EN } from "./cookies.en";
+import { TEXTO as COOKIES_PT } from "./cookies.pt";
+import { TEXTO as COOKIES_FR } from "./cookies.fr";
+import { TEXTO as COOKIES_DE } from "./cookies.de";
+import { TEXTO as COOKIES_IT } from "./cookies.it";
+import { TEXTO as COOKIES_ZH } from "./cookies.zh";
+import { DPA } from "./dpa";
+import { TEXTO as TRATAMIENTO_EN } from "./dpa.en";
+import { TEXTO as TRATAMIENTO_PT } from "./dpa.pt";
+import { TEXTO as TRATAMIENTO_FR } from "./dpa.fr";
+import { TEXTO as TRATAMIENTO_DE } from "./dpa.de";
+import { TEXTO as TRATAMIENTO_IT } from "./dpa.it";
+import { TEXTO as TRATAMIENTO_ZH } from "./dpa.zh";
 import { USO_ACEPTABLE } from "./uso-aceptable";
-
-/** Lo que muestra la página de un documento: la etiqueta de arriba, el título, el tipo (ficha) y el texto en Markdown. */
-export type VersionDoc = { etiqueta: string; titulo: string; tipo: string; texto: string };
+import { TEXTO as USO_EN } from "./uso-aceptable.en";
+import { TEXTO as USO_PT } from "./uso-aceptable.pt";
+import { TEXTO as USO_FR } from "./uso-aceptable.fr";
+import { TEXTO as USO_DE } from "./uso-aceptable.de";
+import { TEXTO as USO_IT } from "./uso-aceptable.it";
+import { TEXTO as USO_ZH } from "./uso-aceptable.zh";
+import { REEMBOLSOS } from "./reembolsos";
+import { TEXTO as REEMBOLSOS_EN } from "./reembolsos.en";
+import { TEXTO as REEMBOLSOS_PT } from "./reembolsos.pt";
+import { TEXTO as REEMBOLSOS_FR } from "./reembolsos.fr";
+import { TEXTO as REEMBOLSOS_DE } from "./reembolsos.de";
+import { TEXTO as REEMBOLSOS_IT } from "./reembolsos.it";
+import { TEXTO as REEMBOLSOS_ZH } from "./reembolsos.zh";
+import { POLITICA_IA } from "./inteligencia-artificial";
+import { TEXTO as IA_EN } from "./inteligencia-artificial.en";
+import { TEXTO as IA_PT } from "./inteligencia-artificial.pt";
+import { TEXTO as IA_FR } from "./inteligencia-artificial.fr";
+import { TEXTO as IA_DE } from "./inteligencia-artificial.de";
+import { TEXTO as IA_IT } from "./inteligencia-artificial.it";
+import { TEXTO as IA_ZH } from "./inteligencia-artificial.zh";
+import { SLA } from "./sla";
+import { TEXTO as SERVICIO_EN } from "./sla.en";
+import { TEXTO as SERVICIO_PT } from "./sla.pt";
+import { TEXTO as SERVICIO_FR } from "./sla.fr";
+import { TEXTO as SERVICIO_DE } from "./sla.de";
+import { TEXTO as SERVICIO_IT } from "./sla.it";
+import { TEXTO as SERVICIO_ZH } from "./sla.zh";
+import { PROVEEDORES } from "./proveedores";
+import { TEXTO as PROVEEDORES_EN } from "./proveedores.en";
+import { TEXTO as PROVEEDORES_PT } from "./proveedores.pt";
+import { TEXTO as PROVEEDORES_FR } from "./proveedores.fr";
+import { TEXTO as PROVEEDORES_DE } from "./proveedores.de";
+import { TEXTO as PROVEEDORES_IT } from "./proveedores.it";
+import { TEXTO as PROVEEDORES_ZH } from "./proveedores.zh";
 
 /**
- * Los textos de cada documento (solo para el servidor: pesan). Sin `en`, el
- * documento todavía está solo en español. Las páginas /privacidad, /terminos
- * y /cookies arman su versión ellas mismas (llevan una entrada propia); aquí
- * van sus textos para contar secciones y buscar en el Centro de privacidad.
+ * El texto (Markdown) de cada documento en cada idioma. Vale el español; los
+ * demás son traducciones (solo del servidor: pesan).
  */
-export const DOCUMENTOS: Record<Politica, { es: VersionDoc; en?: VersionDoc }> = {
-  privacidad: {
-    es: { etiqueta: "Legal · Privacidad", titulo: "Aviso de Privacidad", tipo: "Aviso integral", texto: AVISO_PRIVACIDAD },
-    en: { etiqueta: "Legal · Privacy", titulo: "Privacy Notice", tipo: "Comprehensive notice", texto: PRIVACY_NOTICE },
-  },
-  preguntas: {
-    es: { etiqueta: "Legal · Preguntas", titulo: "Preguntas frecuentes", tipo: "Privacidad, seguridad y condiciones", texto: PREGUNTAS_LEGALES },
-  },
-  terminos: {
-    es: { etiqueta: "Legal · Términos", titulo: "Términos y Condiciones de Uso", tipo: "Condiciones generales", texto: TERMINOS },
-    en: { etiqueta: "Legal · Terms", titulo: "Terms and Conditions of Use", tipo: "General conditions", texto: TERMS },
-  },
-  cookies: {
-    es: { etiqueta: "Legal · Cookies", titulo: "Política de Cookies", tipo: "Cookies y tecnologías similares", texto: COOKIES },
-    en: { etiqueta: "Legal · Cookies", titulo: "Cookie Policy", tipo: "Cookies and similar technologies", texto: COOKIES_EN },
-  },
-  tratamiento: {
-    es: { etiqueta: "Legal · Tratamiento de datos", titulo: "Acuerdo de Tratamiento de Datos Personales", tipo: "Acuerdo (DPA)", texto: DPA },
-  },
-  uso: {
-    es: { etiqueta: "Legal · Uso aceptable", titulo: "Política de Uso Aceptable", tipo: "Reglas de uso", texto: USO_ACEPTABLE },
-  },
-  reembolsos: {
-    es: { etiqueta: "Legal · Reembolsos", titulo: "Política de Cancelaciones y Reembolsos", tipo: "Planes Free, One y Max", texto: REEMBOLSOS },
-  },
-  ia: {
-    es: { etiqueta: "Legal · Inteligencia artificial", titulo: "Política de Inteligencia Artificial", tipo: "Uso de la IA", texto: POLITICA_IA },
-  },
-  servicio: {
-    es: { etiqueta: "Legal · Nivel de servicio", titulo: "Acuerdo de Nivel de Servicio", tipo: "Acuerdo (SLA)", texto: SLA },
-  },
-  proveedores: {
-    es: { etiqueta: "Legal · Proveedores", titulo: "Lista de Proveedores y Subencargados", tipo: "Lista de proveedores", texto: PROVEEDORES },
-  },
+export const TEXTOS_LEGALES: Record<Politica, Record<Idioma, string>> = {
+  privacidad: { es: AVISO_PRIVACIDAD, en: PRIVACY_NOTICE, pt: PRIVACIDAD_PT, fr: PRIVACIDAD_FR, de: PRIVACIDAD_DE, it: PRIVACIDAD_IT, zh: PRIVACIDAD_ZH },
+  preguntas: { es: PREGUNTAS_LEGALES, en: PREGUNTAS_EN, pt: PREGUNTAS_PT, fr: PREGUNTAS_FR, de: PREGUNTAS_DE, it: PREGUNTAS_IT, zh: PREGUNTAS_ZH },
+  terminos: { es: TERMINOS, en: TERMS, pt: TERMINOS_PT, fr: TERMINOS_FR, de: TERMINOS_DE, it: TERMINOS_IT, zh: TERMINOS_ZH },
+  cookies: { es: COOKIES, en: COOKIES_EN, pt: COOKIES_PT, fr: COOKIES_FR, de: COOKIES_DE, it: COOKIES_IT, zh: COOKIES_ZH },
+  tratamiento: { es: DPA, en: TRATAMIENTO_EN, pt: TRATAMIENTO_PT, fr: TRATAMIENTO_FR, de: TRATAMIENTO_DE, it: TRATAMIENTO_IT, zh: TRATAMIENTO_ZH },
+  uso: { es: USO_ACEPTABLE, en: USO_EN, pt: USO_PT, fr: USO_FR, de: USO_DE, it: USO_IT, zh: USO_ZH },
+  reembolsos: { es: REEMBOLSOS, en: REEMBOLSOS_EN, pt: REEMBOLSOS_PT, fr: REEMBOLSOS_FR, de: REEMBOLSOS_DE, it: REEMBOLSOS_IT, zh: REEMBOLSOS_ZH },
+  ia: { es: POLITICA_IA, en: IA_EN, pt: IA_PT, fr: IA_FR, de: IA_DE, it: IA_IT, zh: IA_ZH },
+  servicio: { es: SLA, en: SERVICIO_EN, pt: SERVICIO_PT, fr: SERVICIO_FR, de: SERVICIO_DE, it: SERVICIO_IT, zh: SERVICIO_ZH },
+  proveedores: { es: PROVEEDORES, en: PROVEEDORES_EN, pt: PROVEEDORES_PT, fr: PROVEEDORES_FR, de: PROVEEDORES_DE, it: PROVEEDORES_IT, zh: PROVEEDORES_ZH },
 };
 
 const normal = (s: string) =>
@@ -105,7 +135,7 @@ export type Resultado = { id: Politica; seccion: string | null; titulo: string; 
  * sección sale si tiene todas. Devuelve un pedacito alrededor de la primera
  * palabra, con esa palabra aparte para resaltarla.
  */
-export function buscar(consulta: string, version: (id: Politica) => VersionDoc, ids: readonly Politica[], max = 30): Resultado[] {
+export function buscar(consulta: string, texto: (id: Politica) => string, ids: readonly Politica[], max = 30): Resultado[] {
   const palabras = normal(consulta)
     .split(/\s+/)
     .filter((p) => p.length > 1)
@@ -113,7 +143,7 @@ export function buscar(consulta: string, version: (id: Politica) => VersionDoc, 
   if (!palabras.length) return [];
   const salida: Resultado[] = [];
   for (const id of ids) {
-    for (const s of seccionesConTexto(version(id).texto)) {
+    for (const s of seccionesConTexto(texto(id))) {
       const todo = normal(`${s.titulo} ${s.texto}`);
       if (!palabras.every((p) => todo.includes(p))) continue;
       // El texto limpio y su versión sin acentos miden lo mismo (NFD quita solo las marcas)
