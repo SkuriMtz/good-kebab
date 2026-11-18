@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent , type ReactNode } from "react";
 import { Icono } from "@/components/base/Iconos";
 import { createClient } from "@/lib/supabase/client";
 import { NOMBRES_DIA, cuandoEnPalabras, errorFrecuencia, frecuenciaEnPalabras, siguienteVez, type Frecuencia, type TipoTarea } from "@/lib/tareas-tiempo";
@@ -61,7 +61,21 @@ export function tareasDeEjemplo(ahora: number, zona: string): Tarea[] {
   }));
 }
 
-export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolean; zona: string; ahora: number; /** "/panel" o "/pruebalo" */ base: string }) {
+export function TareasVista({
+  demo = false,
+  zona,
+  ahora,
+  base,
+  resumen,
+}: {
+  demo?: boolean;
+  zona: string;
+  ahora: number;
+  /** "/panel" o "/pruebalo" */
+  base: string;
+  /** Te necesita, Lo que viene y Lo que ya hizo (antes iban debajo de la caja de la Oficina). */
+  resumen?: ReactNode;
+}) {
   const [lista, setLista] = useState<Tarea[] | null>(demo ? tareasDeEjemplo(ahora, zona) : null);
   const [error, setError] = useState<string | null>(null);
   const [abierta, setAbierta] = useState(false);
@@ -154,6 +168,7 @@ export function TareasVista({ demo = false, zona, ahora, base }: { demo?: boolea
   return (
     <Seccion>
       <TituloSeccion titulo="Tareas" texto="Lo que Atendel hace solo, a su hora. Cuando toca, lo hace y te deja el resultado." />
+      {resumen}
 
       <section className="pc-tareas__pide" aria-label="Pídeselas a Atendel">
         <p className="pc-tareas__pide-titulo">Lo más fácil: pídeselas a Atendel con tus palabras</p>

@@ -492,17 +492,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            {item(
-              "inicio",
-              "Oficina",
-              "documento",
-              hrefs.inicio,
-              teNecesita ? (
-                <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
-                  {teNecesita}
-                </span>
-              ) : null,
-            )}
+            {item("inicio", "Oficina", "documento", hrefs.inicio)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -511,7 +501,18 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
               </kbd>
             </button>
             {item("citas", "Citas", "calendario", hrefs.citas)}
-            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
+            {/* El número de lo que te necesita va en Tareas: ahí está «Te necesita» */}
+            {item(
+              "tareas",
+              "Tareas",
+              "reloj",
+              hrefs.tareas,
+              teNecesita ? (
+                <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
+                  {teNecesita}
+                </span>
+              ) : null,
+            )}
             {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 

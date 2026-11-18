@@ -230,7 +230,29 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
   } else if (valida === "tareas") {
-    contenido = <TareasVista demo zona="America/Mexico_City" ahora={ahora} base="/pruebalo" />;
+    contenido = (
+      <TareasVista
+        demo
+        zona="America/Mexico_City"
+        ahora={ahora}
+        base="/pruebalo"
+        resumen={
+      <Hoy
+        teNecesita={[
+          ...tablero.filter((i) => i.columna === "revisar").map((i) => ({ id: i.id, titulo: i.titulo, detalle: i.para, agente: i.agente, href: "/pruebalo?vista=pendientes" })),
+          ...oficina.filter((i) => i.revision === "revisar").map((i) => ({ id: `o-${i.id}`, titulo: i.nombre, detalle: i.detalle, agente: i.agente ?? undefined, href: "/pruebalo?vista=oficina" })),
+        ]}
+        total={porRevisar + porRevisarOficina}
+        hrefTeNecesita="/pruebalo?vista=pendientes"
+        viene={tareasDeEjemplo(ahora, "America/Mexico_City").flatMap((t) => (t.proxima ? [{ id: t.id, titulo: t.titulo, cuando: cuandoEnPalabras(t.proxima, t.zona).replace(/^./, (c) => c.toUpperCase()) }] : []))}
+        hrefPiloto="/pruebalo?vista=tareas"
+        hrefCitas="/pruebalo?vista=citas"
+        hecho={hechoDeEjemplo(ahora).slice(0, 5).map((h) => ({ id: h.id, titulo: h.titulo, agente: h.agente, hace: haceTexto(h.en, ahora), href: "/pruebalo?vista=hecho" }))}
+        hrefHecho="/pruebalo?vista=hecho"
+      />
+        }
+      />
+    );
   } else if (valida === "oficina") {
     const marcar = (id: string, revision: ItemOficina["revision"]) => {
       setOficina((l) => l.map((x) => (x.id === id ? { ...x, revision } : x)));
@@ -310,21 +332,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         agentePedido={esIdAgente(agente) ? agente : null}
         pide={texto("pide", 2000)}
         alEmpezar={(id) => navegar(`/pruebalo?con=${id}`)}
-      >
-        <Hoy
-          teNecesita={[
-            ...tablero.filter((i) => i.columna === "revisar").map((i) => ({ id: i.id, titulo: i.titulo, detalle: i.para, agente: i.agente, href: "/pruebalo?vista=pendientes" })),
-            ...oficina.filter((i) => i.revision === "revisar").map((i) => ({ id: `o-${i.id}`, titulo: i.nombre, detalle: i.detalle, agente: i.agente ?? undefined, href: "/pruebalo?vista=oficina" })),
-          ]}
-          total={porRevisar + porRevisarOficina}
-          hrefTeNecesita="/pruebalo?vista=pendientes"
-          viene={tareasDeEjemplo(ahora, "America/Mexico_City").flatMap((t) => (t.proxima ? [{ id: t.id, titulo: t.titulo, cuando: cuandoEnPalabras(t.proxima, t.zona).replace(/^./, (c) => c.toUpperCase()) }] : []))}
-          hrefPiloto="/pruebalo?vista=tareas"
-          hrefCitas="/pruebalo?vista=citas"
-          hecho={hechoDeEjemplo(ahora).slice(0, 5).map((h) => ({ id: h.id, titulo: h.titulo, agente: h.agente, hace: haceTexto(h.en, ahora), href: "/pruebalo?vista=hecho" }))}
-          hrefHecho="/pruebalo?vista=hecho"
-        />
-      </InicioDemo>
+      />
     );
     if (con)
       contenido = (

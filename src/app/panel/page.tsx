@@ -34,7 +34,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
  * deja ver a cada quien solo lo suyo); no cambia datos ni la API.
- * - /panel (&pide=texto, &area=citas): «Hoy», que ES un chat nuevo con lo que te necesita debajo.
+ * - /panel (&pide=texto, &area=citas): la Oficina: el saludo y la caja (un chat nuevo), sin nada debajo.
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
  * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Aura (vacía hasta conectar WhatsApp).
@@ -45,7 +45,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=actividad (&hora=10 o &dia=AAAA-MM-DD): lo que pasó (se llega desde Estadísticas).
  * - ?vista=correo (&de=remitente): Correo con Altair (modo de prueba, Gmail e historial).
  * - ?vista=oficina: lo que Atendel te dejó (archivos e informes) para revisar, aprobar o pedir cambios.
- * - ?vista=tareas: Tareas: lo que Atendel hace solo, a su hora (crear, pausar, borrar).
+ * - ?vista=tareas: Tareas: arriba Te necesita, Lo que viene y Lo que ya hizo; abajo lo que Atendel hace solo, a su hora.
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage(props: { searchParams: Promise<Parametros> }) {
@@ -65,8 +65,31 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
   if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
 
   if (searchParams.vista === "tareas") {
-    const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
-    return <TareasVista zona={limpiarAjustes(filaAjustes?.datos).zonaHoraria} ahora={Date.now()} base="/panel" />;
+    const ahora = Date.now();
+    const [{ data: filaAjustes }, cuentaTareas] = await Promise.all([
+      supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
+      cargarCuenta(supabase, user.id),
+    ]);
+    const hoy = await cargarHoy(supabase, user.id, cuentaTareas, conGoogle, ahora);
+    return (
+      <TareasVista
+        zona={limpiarAjustes(filaAjustes?.datos).zonaHoraria}
+        ahora={ahora}
+        base="/panel"
+        resumen={
+          <Hoy
+            teNecesita={hoy.teNecesita}
+            total={hoy.total}
+            hrefTeNecesita="/panel?vista=pendientes"
+            viene={hoy.viene}
+            hrefPiloto="/panel?vista=tareas"
+            hrefCitas="/panel?vista=citas"
+            hecho={hoy.hecho}
+            hrefHecho="/panel?vista=hecho"
+          />
+        }
+      />
+    );
   }
 
   if (searchParams.vista === "oficina") {
@@ -222,9 +245,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
     );
   }
 
-  // «Hoy» y las conversaciones: el chat
-  const ahora = Date.now();
-  const hoy = await cargarHoy(supabase, user.id, cuenta, conGoogle, ahora);
+  // Las conversaciones: el chat (lo de «Hoy» vive en Tareas)
   const { data: convs } = await supabase
     .from("conversaciones")
     .select("id, agente, titulo, actualizado_en, participantes, tema")
@@ -251,18 +272,6 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       textoDeFuera={searchParams.fuera === "1"}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       conGoogle={conGoogle}
-      hoy={
-        <Hoy
-          teNecesita={hoy.teNecesita}
-          total={hoy.total}
-          hrefTeNecesita="/panel?vista=pendientes"
-          viene={hoy.viene}
-          hrefPiloto="/panel?vista=tareas"
-          hrefCitas="/panel?vista=citas"
-          hecho={hoy.hecho}
-          hrefHecho="/panel?vista=hecho"
-        />
-      }
     />
   );
 }
