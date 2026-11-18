@@ -1,111 +1,25 @@
-import { DATOS_LEGALES } from "@/lib/legal";
-import type { Idioma } from "@/i18n";
-import type { Documento } from "@/legal/textos-es";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { PaginaDocumento } from "@/components/legal/PaginaDocumento";
+import { idiomaServidor } from "@/i18n/servidor";
+import { DOCUMENTOS } from "@/legal/documentos";
+import { POLITICAS, type Politica } from "@/legal/politicas";
+import { legalesCompletos } from "@/lib/legal";
+import { metadatosDe } from "@/lib/seo";
 
-const ETIQUETAS = {
-  es: {
-    actualizado: "Última actualización",
-    indice: "En este documento",
-    aria: "Índice del documento",
-    locale: "es-MX",
-  },
-  en: {
-    actualizado: "Last updated",
-    indice: "In this document",
-    aria: "Document index",
-    locale: "en-US",
-  },
-} as const;
+const datos = (id: Politica) => POLITICAS.find((p) => p.id === id)!;
 
-/** "2026-11-17" → fecha larga en el idioma (en UTC, para que no se corra un día). */
-function fechaLarga(iso: string, locale: string) {
-  const f = new Date(`${iso}T00:00:00Z`);
-  if (Number.isNaN(f.getTime())) return iso;
-  return f.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+/** Título y descripción de la página de un documento, en el idioma del sitio. */
+export async function metadatosLegal(id: Politica): Promise<Metadata> {
+  const idioma = await idiomaServidor();
+  const p = datos(id);
+  return metadatosDe(idioma, [p.nombre[idioma], p.resumen[idioma]]);
 }
 
-/**
- * Pinta un documento legal (aviso de privacidad o términos) con el estilo de
- * las páginas públicas sobrias: título, resumen, fecha, índice con anclas y
- * las secciones en una columna de lectura de ~70 caracteres.
- */
-export function PaginaLegal({
-  doc,
-  idioma,
-  id,
-}: {
-  doc: Documento;
-  idioma: Idioma;
-  id: string;
-}) {
-  const E = ETIQUETAS[idioma];
-  return (
-    <section className="pagina-sobria" aria-labelledby={`${id}-titulo`}>
-      <div className="pagina-legal__columna">
-        <header className="pagina-legal__cabecera">
-          <h1 id={`${id}-titulo`} className="t-grande">
-            {doc.titulo}
-          </h1>
-          {doc.nota ? (
-            <p className="pagina-legal__nota t-chico">{doc.nota}</p>
-          ) : null}
-          <p className="t-intro">{doc.resumen}</p>
-          <p className="t-chico pagina-legal__fecha">
-            {E.actualizado}:{" "}
-            <time dateTime={DATOS_LEGALES.actualizado}>
-              {fechaLarga(DATOS_LEGALES.actualizado, E.locale)}
-            </time>
-          </p>
-        </header>
-
-        <nav className="pagina-legal__indice" aria-label={E.aria}>
-          <p className="etiqueta">{E.indice}</p>
-          <ol>
-            {doc.secciones.map((s, i) => (
-              <li key={i}>
-                <a href={`#${id}-${i + 1}`}>{s.titulo}</a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-
-        {doc.secciones.map((s, i) => (
-          <section
-            key={i}
-            id={`${id}-${i + 1}`}
-            className="pagina-legal__seccion"
-            aria-labelledby={`${id}-${i + 1}-t`}
-          >
-            <h2 id={`${id}-${i + 1}-t`}>{s.titulo}</h2>
-            {s.parrafos?.length ? (
-              <div className="d-parrafos">
-                {s.parrafos.map((p, j) => (
-                  <p key={j}>{p}</p>
-                ))}
-              </div>
-            ) : null}
-            {s.lista?.length ? (
-              <ul className="pagina-legal__lista">
-                {s.lista.map((l, j) => (
-                  <li key={j}>{l}</li>
-                ))}
-              </ul>
-            ) : null}
-            {s.despues?.length ? (
-              <div className="d-parrafos">
-                {s.despues.map((p, j) => (
-                  <p key={j}>{p}</p>
-                ))}
-              </div>
-            ) : null}
-          </section>
-        ))}
-      </div>
-    </section>
-  );
+/** La página de un documento del Centro de privacidad (404 mientras falten los datos del responsable). */
+export async function PaginaLegal({ id }: { id: Politica }) {
+  if (!legalesCompletos()) notFound();
+  const idioma = await idiomaServidor();
+  const d = DOCUMENTOS[id];
+  return <PaginaDocumento actual={id} idioma={idioma} es={d.es} en={d.en} />;
 }

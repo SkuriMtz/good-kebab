@@ -96,6 +96,8 @@ export const es = {
     ayuda: "Ayuda y contacto",
     contacto: "Contacto",
     legal: "Términos y políticas",
+    privacy: "Privacidad",
+    todasPoliticas: "Todos los documentos",
   },
 
   tema: {
@@ -129,6 +131,7 @@ export const es = {
     privacidad: "Privacidad",
     terminos: "Términos",
     cookies: "Cookies",
+    centro: "Centro de privacidad",
   },
 
   inicio: {

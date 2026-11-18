@@ -7,7 +7,7 @@ import { BotonTema } from "./BotonTema";
 import { FondoFragmentos, MarcaFragmentos } from "./FragmentosMenu";
 import { COLORES, Marca } from "./Logo";
 import { Icono } from "./base/Iconos";
-import { POLITICAS } from "@/legal/politicas";
+import { CENTRO_PRIVACIDAD, POLITICAS } from "@/legal/politicas";
 import { IDS_AGENTES, AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { EVENTO_ELEGIR_AGENTE } from "@/lib/eventos";
 import { CORREO_CONTACTO } from "@/lib/sitio";
@@ -30,12 +30,13 @@ import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
  * En el inicio los lugares bajan a su escena; en las demás páginas van a su página.
  */
 
-type Lugar = { id: "precios" | "cuando" | "preguntas"; inicio: string; otra: string };
+type Lugar = { id: "precios" | "cuando" | "preguntas" | "privacy"; inicio: string; otra: string };
 
 const LUGARES: Lugar[] = [
   { id: "precios", inicio: "#precios", otra: "/precios" },
   { id: "cuando", inicio: "#cuando-sale", otra: "/#cuando-sale" },
   { id: "preguntas", inicio: "/preguntas", otra: "/preguntas" },
+  { id: "privacy", inicio: CENTRO_PRIVACIDAD, otra: CENTRO_PRIVACIDAD },
 ];
 
 const orden = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -241,7 +242,7 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
               ))}
             </ul>
 
-            <ul className="menu-sitio__filas menu-sitio__entra" style={orden(6)}>
+            <ul className="menu-sitio__filas menu-sitio__entra" style={orden(7)}>
               <li>
                 <Enlace href="/para-quien-es" className="menu-sitio__fila" actual={pathname === "/para-quien-es"} onClick={cerrar}>
                   {b.paraQuien}
@@ -275,19 +276,25 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
                 </button>
                 <div id="menu-sitio-legal" className="menu-sitio__abre" data-abierto={abierta === "legal" ? "true" : "false"}>
                   <ul className="menu-sitio__sub menu-sitio__sub--fila">
-                    {POLITICAS.map((p) => (
+                    {POLITICAS.filter((p) => p.id === "privacidad" || p.id === "terminos" || p.id === "cookies").map((p) => (
                       <li key={p.id}>
                         <Enlace href={p.href} className="menu-sitio__sub-enlace" actual={pathname === p.href} onClick={cerrar}>
                           {p.nombre[idioma]}
                         </Enlace>
                       </li>
                     ))}
+                    <li>
+                      <Enlace href={CENTRO_PRIVACIDAD} className="menu-sitio__sub-enlace" onClick={cerrar}>
+                        {b.todasPoliticas}
+                        <Icono nombre="flecha" tam={16} />
+                      </Enlace>
+                    </li>
                   </ul>
                 </div>
               </li>
             </ul>
 
-            <div className="menu-sitio__pie menu-sitio__entra" style={orden(7)}>
+            <div className="menu-sitio__pie menu-sitio__entra" style={orden(8)}>
               <Link href="/crear-cuenta" className="menu-sitio__boton menu-sitio__boton--lleno" onClick={cerrar}>
                 {b.crear}
               </Link>

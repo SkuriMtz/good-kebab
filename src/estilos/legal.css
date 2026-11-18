@@ -567,3 +567,301 @@
     break-after: avoid;
   }
 }
+
+/* =====================================================================
+   /privacy: el Centro de privacidad. Arriba una franja gris con el logo,
+   el título en serif y el buscador; abajo, una tarjeta por documento
+   (ícono, nombre, de qué trata y cuántas secciones tiene) y un pie oscuro.
+   ===================================================================== */
+.centro {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.centro__arriba {
+  background: #f1f1f4;
+  border-bottom: 1px solid var(--l-borde);
+}
+.centro__barra,
+.centro__heroe {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+/* Mismo ancho que el buscador (1120 menos el relleno de la franja) */
+.centro__rejilla,
+.centro__pie-dentro {
+  width: 100%;
+  max-width: 1072px;
+  margin-inline: auto;
+}
+.centro__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+}
+.centro__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.centro__marca {
+  width: 28px;
+  height: 28px;
+}
+.centro__nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 32px);
+  font-size: 15px;
+  font-weight: 500;
+}
+.centro__nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  transition: color 150ms ease;
+}
+.centro__heroe {
+  padding: clamp(28px, 5vw, 48px) 24px clamp(40px, 6vw, 56px);
+}
+.centro__titulo {
+  margin-bottom: clamp(24px, 3vw, 36px);
+  font-family: var(--font-serif-panel), Georgia, serif;
+  font-size: clamp(32px, 4.4vw, 48px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-wrap: balance;
+}
+.centro__buscador {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 64px;
+  padding-inline: 24px;
+  border: 1px solid var(--l-borde);
+  border-radius: 12px;
+  background: #f8f8fa;
+  color: var(--l-texto);
+  box-shadow: 0 1px 2px rgb(15 17 21 / 0.04);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.centro__buscador:focus-within {
+  border-color: var(--l-azul);
+  box-shadow: 0 0 0 3px var(--l-azul-suave);
+}
+.centro__buscador[data-buscando] svg {
+  opacity: 0.5;
+}
+.centro__buscador input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 19px;
+  outline: none;
+}
+.centro__buscador input:focus-visible {
+  outline: none;
+}
+.centro__buscador input::placeholder {
+  color: var(--l-texto-2);
+}
+.centro__cuerpo {
+  flex: 1;
+  padding: clamp(32px, 5vw, 52px) 24px clamp(64px, 9vw, 112px);
+}
+.centro__rejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.centro__tarjeta {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 32px;
+  border: 1px solid var(--l-borde);
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.centro__icono {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  border-radius: 11px;
+  background: var(--l-azul);
+  color: #fff;
+}
+.centro__tarjeta h2 {
+  margin-bottom: 6px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.centro__tarjeta p {
+  color: var(--l-texto-2);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.centro .centro__cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 24px;
+  color: var(--l-tenue);
+  font-size: 15px;
+}
+.centro__chip {
+  padding: 2px 9px;
+  border: 1px solid var(--l-borde);
+  border-radius: 999px;
+  font-size: 12px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .centro__nav > a:hover,
+  .centro__pie a:hover {
+    color: var(--l-azul);
+  }
+  .centro__tarjeta:hover {
+    border-color: #c9ced8;
+    box-shadow: 0 8px 28px rgb(15 17 21 / 0.07);
+  }
+  .centro__resultados a:hover {
+    border-color: #c9ced8;
+  }
+}
+.centro__conteo,
+.centro__resultados,
+.centro__vacio,
+.centro__volver {
+  max-width: 840px;
+  margin-inline: auto;
+}
+.centro__conteo {
+  margin-bottom: 16px;
+  color: var(--l-tenue);
+  font-size: 14px;
+}
+.centro__resultados {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.centro__resultados a {
+  display: block;
+  padding: 18px 22px;
+  border: 1px solid var(--l-borde);
+  border-radius: 12px;
+  transition: border-color 150ms ease;
+}
+.centro__res-doc {
+  color: var(--l-azul);
+  font-size: 13px;
+  font-weight: 500;
+}
+.centro__res-titulo {
+  display: block;
+  margin: 2px 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.centro__res-texto {
+  display: block;
+  color: var(--l-texto-2);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.centro__res-texto mark {
+  border-radius: 2px;
+  background: #fff0b3;
+  color: inherit;
+}
+.centro__vacio {
+  color: var(--l-texto-2);
+  font-size: 16px;
+}
+.centro__vacio a,
+.centro__volver a {
+  color: var(--l-azul) !important;
+}
+.centro__volver {
+  margin-top: 28px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.centro__pie {
+  padding: 56px 24px 72px;
+  background: #141518;
+  color: #f2f2f4;
+}
+.centro__pie-dentro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+}
+.centro__pie-columnas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(40px, 8vw, 120px);
+}
+.centro__pie-columnas ul {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.centro__pie-columnas a {
+  color: #c4c6cf;
+  font-size: 15px;
+  transition: color 150ms ease;
+}
+.centro__pie :focus-visible {
+  outline-color: #8ab8ff;
+}
+@media (max-width: 720px) {
+  .centro__rejilla {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .centro__tarjeta {
+    padding: 24px;
+  }
+  .centro__barra {
+    padding: 14px 16px;
+  }
+  .centro__logo > span {
+    display: none;
+  }
+  .centro__heroe,
+  .centro__cuerpo,
+  .centro__pie {
+    padding-inline: 16px;
+  }
+  .centro__buscador {
+    height: 56px;
+    padding-inline: 16px;
+  }
+  .centro__buscador input {
+    font-size: 17px;
+  }
+}

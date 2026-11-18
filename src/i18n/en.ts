@@ -126,6 +126,8 @@ export const en: Diccionario = {
     ayuda: "Help and contact",
     contacto: "Contact",
     legal: "Terms and policies",
+    privacy: "Privacy",
+    todasPoliticas: "All documents",
   },
 
   tema: {
@@ -159,6 +161,7 @@ export const en: Diccionario = {
     privacidad: "Privacy",
     terminos: "Terms",
     cookies: "Cookies",
+    centro: "Privacy Center",
   },
 
   inicio: {

@@ -9,7 +9,7 @@ import {
 import { DocumentoMd, seccionesMd } from "@/components/legal/DocumentoMd";
 import { serifPanel } from "@/components/panel/fuente";
 import type { Idioma } from "@/i18n";
-import { ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
+import { CENTRO_PRIVACIDAD, ETIQUETAS_LEGALES, type Politica } from "@/legal/politicas";
 import { DATOS_LEGALES } from "@/lib/legal";
 import { CORREO_CONTACTO } from "@/lib/sitio";
 
@@ -47,9 +47,11 @@ export function PaginaDocumento({
   actual: Politica;
   idioma: Idioma;
   es: Version;
-  en: Version;
+  /** Sin versión en inglés, se muestra la de español con una nota. */
+  en?: Version;
 }) {
-  const v = idioma === "en" ? en : es;
+  const soloEs = idioma === "en" && !en;
+  const v = idioma === "en" && en ? en : es;
   const E = ETIQUETAS_LEGALES[idioma];
   const secciones = seccionesMd(v.texto);
   return (
@@ -62,7 +64,7 @@ export function PaginaDocumento({
       <main id="legal-contenido" tabIndex={-1} className="legal__main">
         <div className="legal__cabeza">
           <p className="legal__etiqueta">{v.etiqueta}</p>
-          <h1>{v.titulo}</h1>
+          <h1 lang={soloEs ? "es" : undefined}>{v.titulo}</h1>
           <BotonPdf texto={E.pdf} />
         </div>
 
@@ -104,9 +106,9 @@ export function PaginaDocumento({
             </dd>
           </div>
         </dl>
-        {E.nota ? <p className="legal__nota">{E.nota}</p> : null}
+        {soloEs ? <p className="legal__nota">{E.soloEs}</p> : E.nota ? <p className="legal__nota">{E.nota}</p> : null}
 
-        <div className="legal__columnas">
+        <div className="legal__columnas" lang={soloEs ? "es" : undefined}>
           <IndiceSecciones secciones={secciones} titulo={E.contenido} />
           <div className="legal__cuerpo">
             {v.entrada ? <p className="legal__entrada">{v.entrada}</p> : null}
@@ -118,11 +120,7 @@ export function PaginaDocumento({
       <footer className="legal__pie">
         <p>© 2026 Atendel</p>
         <nav aria-label={E.pieAria}>
-          {POLITICAS.filter((p) => p.id !== actual).map((p) => (
-            <Link key={p.id} href={p.href}>
-              {p.nombre[idioma]}
-            </Link>
-          ))}
+          <Link href={CENTRO_PRIVACIDAD}>{E.centro}</Link>
           <Link href="/contacto">{E.contacto}</Link>
           <a href={`mailto:${CORREO_CONTACTO}`}>{CORREO_CONTACTO}</a>
         </nav>

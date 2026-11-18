@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Marca } from "@/components/Logo";
 import { useCambiarIdioma } from "@/i18n/Idioma";
 import type { Idioma } from "@/i18n";
-import { ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
+import { CENTRO_PRIVACIDAD, ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
 
 type Seccion = { id: string; titulo: string };
 
@@ -151,6 +151,11 @@ export function EncabezadoLegal({
             </button>
             {politicas ? (
               <ul id="legal-politicas" className="legal__menu">
+                <li>
+                  <Link href={CENTRO_PRIVACIDAD} onClick={() => setPoliticas(false)}>
+                    {E.centro}
+                  </Link>
+                </li>
                 {POLITICAS.map((p) => (
                   <li key={p.id}>
                     <Link

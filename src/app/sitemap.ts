@@ -20,6 +20,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
           { ruta: "/privacidad", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/terminos", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/cookies", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/privacy", prioridad: 0.4, frecuencia: "monthly" as const },
+          { ruta: "/preguntas-privacidad", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/tratamiento-de-datos", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/uso-aceptable", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/reembolsos", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/inteligencia-artificial", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/nivel-de-servicio", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/proveedores", prioridad: 0.3, frecuencia: "monthly" as const },
         ]
       : []),
   ];
