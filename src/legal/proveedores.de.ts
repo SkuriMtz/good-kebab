@@ -4,7 +4,7 @@
 export const TEXTO = `# Liste der Dienstleister und Unterauftragsverarbeiter
 ## ATENDEL
 
-**Zuletzt aktualisiert: 17. November 2026**
+**Zuletzt aktualisiert: 18. November 2026**
 
 **Version:** 1.0
 
@@ -207,6 +207,23 @@ Cloudflare Turnstile überprüft, dass es sich bei der Person, die ein Konto ers
 **Ort der Verarbeitung:** Nach der globalen Infrastruktur des Dienstleisters.
 
 **Anwendbare Bedingungen:** Bedingungen und Richtlinien von Cloudflare.
+
+**3.10. ElevenLabs**
+
+**Kategorie:** Sprache.
+
+**Funktion innerhalb von Atendel:**
+
+ElevenLabs wandelt das, was der Nutzer im Gesprächsmodus sagt, in Text um und wandelt die Antworten von Atendel in Sprache um, nur wenn der Nutzer den Gesprächsmodus öffnet. Atendel speichert das Audio nicht; das Gespräch bleibt schriftlich im Chat.
+
+**Kategorien von Informationen, die verarbeitet werden können:**
+
+- Sprachaufnahmen des Nutzers während des Gesprächsmodus.
+- Der Text der Antworten, die laut gesprochen werden.
+
+**Ort der Verarbeitung:** Gemäß der Infrastruktur des Anbieters; Atendel bestätigt die für den vertraglich vereinbarten Dienst geltende Region.
+
+**Geltende Bedingungen:** Bedingungen, Datenschutzrichtlinie und Datenverarbeitungsbedingungen von ElevenLabs.
 
 ### 4. Vom Nutzer verbundene Anwendungen
 

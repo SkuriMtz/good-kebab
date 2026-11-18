@@ -4,7 +4,7 @@
 export const TEXTO = `# Lista de Fornecedores e Suboperadores
 ## ATENDEL
 
-**Última atualização: 17 de novembro de 2026**
+**Última atualização: 18 de novembro de 2026**
 
 **Versão:** 1.0
 
@@ -207,6 +207,23 @@ O Cloudflare Turnstile verifica que quem cria uma conta ou faz login é uma pess
 **Localização do tratamento:** Conforme a infraestrutura global do fornecedor.
 
 **Condições aplicáveis:** Termos e políticas da Cloudflare.
+
+**3.10. ElevenLabs**
+
+**Categoria:** Voz.
+
+**Função dentro da Atendel:**
+
+A ElevenLabs transforma em texto o que o usuário diz no modo conversa e transforma em voz as respostas da Atendel, somente quando o usuário abre o modo conversa. A Atendel não guarda o áudio; a conversa fica escrita no chat.
+
+**Categorias de informação que podem ser processadas:**
+
+- Gravações de voz do usuário durante o modo conversa.
+- O texto das respostas que são ditas em voz alta.
+
+**Local do tratamento:** Conforme a infraestrutura do fornecedor; a Atendel confirmará a região aplicável ao serviço contratado.
+
+**Condições aplicáveis:** Termos, política de privacidade e condições de tratamento de dados da ElevenLabs.
 
 ### 4. Aplicativos conectados pelo usuário
 

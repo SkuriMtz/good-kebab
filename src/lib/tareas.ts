@@ -16,7 +16,7 @@ import { inicioSemana } from "./trabajo";
 import { Gasto } from "./uso";
 import { citar, citarLineas } from "./avisos";
 import { avisarUsoTrabajo, limpiarCorto, notificar, recordar } from "./notificar";
-import { herramientaVerAtendel } from "./herramientas/atendel";
+import { herramientaContarClientes, herramientaVerAtendel } from "./herramientas/atendel";
 import { correosDeResultados, correosEn, herramientasWeb, instruccionesInternet, pareceInvestigacion, revisarDestinatarios, usoInternet } from "./investigar";
 
 /**
@@ -199,6 +199,8 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
     ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio }),
     // Lo de su cuenta de Atendel (lo que espera su OK, WhatsApp, Oficina…): para tareas como «cada mañana dime qué tengo pendiente»
     leer(herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria })),
+    // «cada viernes dime cuántos clientes preguntaron por envíos»
+    leer(herramientaContarClientes(admin, dueno)),
   ];
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

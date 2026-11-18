@@ -10,8 +10,9 @@
  *   de un archivo (protege contra ataques de MIME-sniffing).
  * - Referrer-Policy: limita cuánta información de la URL actual se manda a
  *   otros sitios cuando el usuario hace clic en un link saliente.
- * - Permissions-Policy: desactiva por defecto el acceso a cámara, micrófono,
- *   geolocalización, etc. — solo se activan donde explícitamente se necesiten.
+ * - Permissions-Policy: desactiva el acceso a cámara, geolocalización, etc.;
+ *   el micrófono solo lo puede pedir Atendel mismo (el modo plática), nunca un
+ *   sitio de fuera metido en la página.
  * - Strict-Transport-Security (HSTS): obliga al navegador a usar siempre
  *   HTTPS con este dominio, nunca HTTP sin cifrar.
  */
@@ -24,7 +25,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+    value: "camera=(), microphone=(self), geolocation=(), interest-cohort=()",
   },
   {
     key: "Strict-Transport-Security",

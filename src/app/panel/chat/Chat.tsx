@@ -24,6 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Bloqueo } from "@/lib/uso-estado";
 import { useModelo } from "@/components/panel/modelo";
 import { SelectorModelo } from "@/components/panel/SelectorModelo";
+import ModoPlatica, { prepararAudio, type AlTextoVoz } from "@/components/panel/ModoPlatica";
 
 export type Conversacion = {
   id: string;
@@ -112,6 +113,7 @@ export function Chat({
   saludo,
   conGoogle,
   hoy,
+  vozDisponible = false,
 }: {
   planId: IdPlan;
   activos: IdAgente[];
@@ -131,6 +133,8 @@ export function Chat({
   conGoogle: boolean;
   /** «Hoy»: lo que va debajo de la caja en el Inicio (Te necesita, Lo que viene, Lo que ya hice). */
   hoy?: ReactNode;
+  /** ¿Está la voz natural (modo plática)? Solo si el servidor tiene la clave. */
+  vozDisponible?: boolean;
 }) {
   const plan = PLAN_POR_ID[planId];
   // Rápido o Avanzado (como el selector de Claude); se recuerda en este navegador
@@ -310,12 +314,36 @@ export function Chat({
     if (actual === c.id) nueva();
   }
 
-  async function enviar(contenido: string) {
+  // Modo plática (voz): la pantalla vive afuera de las dos vistas (Inicio y conversación) para no
+  // cerrarse cuando la primera pregunta abre la conversación
+  const [platica, setPlatica] = useState(false);
+  const enviarRef = useRef<typeof enviar>(null);
+  const preguntarPorVoz = useCallback((texto: string, alTexto: AlTextoVoz) => enviarRef.current?.(texto, { alTexto }) ?? Promise.resolve("No pude mandarlo."), []);
+  const detenerVoz = useCallback(() => abortar.current?.abort(), []);
+  const cerrarPlatica = useCallback(() => setPlatica(false), []);
+  const abrirPlatica = vozDisponible
+    ? () => {
+        prepararAudio();
+        setPlatica(true);
+      }
+    : undefined;
+  const conPlatica = (vista: ReactNode) => (
+    <>
+      {vista}
+      {vozDisponible ? <ModoPlatica abierto={platica} alCerrar={cerrarPlatica} preguntar={preguntarPorVoz} detener={detenerVoz} /> : null}
+    </>
+  );
+
+  /** Manda un mensaje. Con `voz` (modo plática): contesta para oírse y va avisando lo que llega. Regresa el error, o null si salió bien. */
+  async function enviar(contenido: string, voz?: { alTexto: AlTextoVoz }): Promise<string | null> {
     const limpio = contenido.trim();
-    if (!limpio || enviando || !disponible || sinMensajes) return;
+    if (!limpio) return "No te escuché.";
+    if (sinMensajes) return bloqueo?.texto ?? "Llegaste al límite de uso por ahora.";
+    if (enviando) return "Todavía estoy contestando lo anterior.";
+    if (!disponible) return "Esta conversación ya no está disponible.";
     if (limpio.length > MAX_MENSAJE) {
       setAviso(`El mensaje es muy largo (máximo ${MAX_MENSAJE} caracteres).`);
-      return;
+      return "Fue demasiado largo. Dilo en partes.";
     }
     setAviso(null);
     pegado.current = true;
@@ -345,6 +373,7 @@ export function Chat({
       mensaje: limpio,
       modelo: selector.modelo,
       estados: true,
+      ...(voz ? { voz: true } : {}),
       // Solo hace más estricto el turno: el servidor lo trata como con datos de fuera
       ...(deFuera.current ? { datosDeFuera: true } : {}),
     };
@@ -362,7 +391,7 @@ export function Chat({
         // Llegó al límite de uso: el aviso va en lugar de la caja (y se quita solo a la hora del reinicio)
         if (res.status === 429 && j.error) setBloqueo({ texto: j.error, hasta: j.hasta ?? null });
         actualizar({ enCurso: false, error: j.error ?? "No se pudo enviar el mensaje." });
-        return;
+        return j.error ?? "No se pudo enviar el mensaje.";
       }
       const idConv = res.headers.get("X-Conversacion-Id");
       if (idConv && idConv !== actual) {
@@ -390,6 +419,8 @@ export function Chat({
       const lector = res.body.getReader();
       const decoder = new TextDecoder();
       let acumulado = "";
+      let ultimo = "";
+      let fallo: string | null = null;
       for (;;) {
         const { done, value } = await lector.read();
         if (done) break;
@@ -397,21 +428,33 @@ export function Chat({
         // Primero el error de siempre; luego, lo que hace el agente con las apps (el estado) se separa del texto
         const corte = acumulado.indexOf(MARCA_ERROR);
         if (corte >= 0) {
-          actualizar({ contenido: separarEstado(acumulado.slice(0, corte)).texto, error: acumulado.slice(corte + MARCA_ERROR.length), estado: null });
+          ultimo = separarEstado(acumulado.slice(0, corte)).texto;
+          fallo = acumulado.slice(corte + MARCA_ERROR.length);
+          actualizar({ contenido: ultimo, error: fallo, estado: null });
         } else {
           const { texto, estado } = separarEstado(acumulado);
+          ultimo = texto;
           actualizar({ contenido: texto, estado });
+          voz?.alTexto(texto, false, estado);
         }
       }
       actualizar({ enCurso: false, estado: null });
+      voz?.alTexto(ultimo, true, null);
+      return fallo;
     } catch (e) {
       const detenido = e instanceof DOMException && e.name === "AbortError";
       actualizar({ enCurso: false, error: detenido ? undefined : "Se perdió la conexión. Intenta de nuevo." });
+      return detenido ? null : "Se perdió la conexión. Intenta de nuevo.";
     } finally {
       setEnviando(false);
       abortar.current = null;
     }
   }
+
+  // El modo plática siempre usa la versión más nueva (con el estado de este render)
+  useEffect(() => {
+    enviarRef.current = enviar;
+  });
 
   /** Una respuesta puede traer el trabajo de varios agentes; cada parte con quién la hizo. */
   const voces = (m: Mensaje) => {
@@ -471,7 +514,8 @@ export function Chat({
         models={[]}
         efforts={[]}
         busy={enviando}
-        onSend={(t) => enviar(t)}
+        onSend={(t) => void enviar(t)}
+        onTalk={abrirPlatica}
         onStop={() => abortar.current?.abort()}
         maxRows={8}
         sparkBoost={0}
@@ -511,7 +555,7 @@ export function Chat({
         };
       })
       .sort((a, b) => Number(Boolean(a.bloqueado)) - Number(Boolean(b.bloqueado)));
-    return (
+    return conPlatica(
       // Las píldoras y las tarjetas cambian la dirección sin ir al servidor: el chat no necesita nada más
       <ContextoNavegar.Provider value={navegarAqui}>
         <Inicio
@@ -536,7 +580,7 @@ export function Chat({
   }
 
   /* ---------- La conversación ---------- */
-  return (
+  return conPlatica(
     <>
       <VistaConversacion
         agentes={participantes}

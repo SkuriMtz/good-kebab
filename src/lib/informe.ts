@@ -9,6 +9,7 @@ import { cargarCuenta } from "./cuenta";
 import type { Proveedor } from "./nucleo-tipos";
 import { notificar } from "./notificar";
 import { MODELOS } from "./planes";
+import { clienteServicio } from "./supabase/servicio";
 import { inicioSemana } from "./trabajo";
 import { Gasto } from "./uso";
 
@@ -226,6 +227,23 @@ function minutosDesdeMedianoche(zona: string): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * El informe para cuando lo pide en el chat (o en el modo plática): los mismos
+ * números, de hoy (desde las 00:00 en su zona) o de esta semana (desde el
+ * lunes). `dueno` tiene que ser el de la sesión o el de la tarea (nunca algo
+ * que mande el navegador): se lee con el cliente de servicio porque algunas
+ * tablas (los correos vistos) solo las lee el servidor.
+ */
+export async function informeEnTexto(dueno: string, periodo: "hoy" | "semana", zona: string): Promise<string> {
+  const admin = clienteServicio();
+  if (!admin) return "No pude armar el informe ahora mismo.";
+  const desde = periodo === "hoy" ? new Date(Date.now() - (minutosDesdeMedianoche(zona) * 60_000 + (Date.now() % 60_000))).toISOString() : inicioSemana(zona);
+  const n = await numerosDe(admin, dueno, desde, zona);
+  const titulo = periodo === "hoy" ? "INFORME DE HOY (desde las 00:00)" : "INFORME DE ESTA SEMANA (desde el lunes)";
+  if (vacio(n)) return `${titulo}: casi no hubo movimiento todavía (sin mensajes de clientes, correos, cosas hechas ni tareas).`;
+  return [`${titulo}:`, ...renglones(n)].join("\n");
 }
 
 /** Los informes que tocan (según la base). Regresa cuántos se mandaron. */

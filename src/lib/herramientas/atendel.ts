@@ -4,6 +4,8 @@ import { AGENTE_POR_ID, esIdAgente } from "../agentes";
 import { APP_POR_ID } from "../conexiones/catalogo";
 import { leerConexionesPublicas } from "../conexiones/estado";
 import { NOMBRE_PROVEEDOR } from "../conexiones/oauth";
+import { buscadores, contarMenciones, menciona, palabrasDeBusqueda } from "../contar-clientes";
+import { negociosDe } from "../pendientes";
 import type { Plan } from "../planes";
 import { cuandoEnPalabras, frecuenciaEnPalabras, type Frecuencia } from "../tareas-tiempo";
 import { leerUso } from "../uso";
@@ -20,7 +22,7 @@ import type { HerramientaChat } from "./ciclo";
  *   DATOS, nunca órdenes (el chat lo marca como dato externo).
  */
 
-const PARTES = ["todo", "apps", "pendientes", "hecho", "whatsapp", "tareas", "oficina", "revision", "uso"] as const;
+const PARTES = ["todo", "apps", "pendientes", "hecho", "whatsapp", "tareas", "oficina", "revision", "uso", "informe_hoy", "informe_semana"] as const;
 type Parte = (typeof PARTES)[number];
 
 const corta = (t: unknown, max: number) => (typeof t === "string" ? t.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -202,15 +204,31 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     ].join("\n");
   }
 
-  const LEER: Record<Exclude<Parte, "todo">, () => Promise<string>> = { apps, pendientes, hecho, whatsapp, tareas, oficina, revision, uso };
+  // El informe con números (el mismo del lunes y del resumen del día); se carga aparte para no
+  // traer todo lo del informe a cada herramienta
+  const informe = (periodo: "hoy" | "semana") => async () => (await import("../informe")).informeEnTexto(userId, periodo, o.zona);
+  const LEER: Record<Exclude<Parte, "todo">, () => Promise<string>> = {
+    apps,
+    pendientes,
+    hecho,
+    whatsapp,
+    tareas,
+    oficina,
+    revision,
+    uso,
+    informe_hoy: informe("hoy"),
+    informe_semana: informe("semana"),
+  };
+  // «todo» es el resumen de cómo está la cuenta; los informes se piden aparte
+  const DE_TODO = (Object.keys(LEER) as (keyof typeof LEER)[]).filter((p) => !p.startsWith("informe_"));
 
   return {
     nombre: "ver_atendel",
     descripcion:
-      "Mira lo que hay dentro de Atendel en la cuenta del dueño: las apps conectadas (y si alguna tiene problema), lo que espera su OK (cosas por hacer en sus apps, WhatsApp de clientes, mensajes por mandar, correos por contestar), lo que ya hiciste en sus apps (hecho), las pláticas de WhatsApp con sus clientes, sus tareas programadas, la Oficina (archivos e informes por revisar), la revisión del día y su uso. Úsala cuando pregunte por algo de eso («¿qué tengo pendiente?», «¿qué apps tengo?», «¿quién me escribió?», «¿cómo va todo?») o cuando lo necesites para contestar bien. Solo lee.",
+      "Mira lo que hay dentro de Atendel en la cuenta del dueño: las apps conectadas (y si alguna tiene problema), lo que espera su OK (cosas por hacer en sus apps, WhatsApp de clientes, mensajes por mandar, correos por contestar), lo que ya hiciste en sus apps (hecho), las pláticas de WhatsApp con sus clientes, sus tareas programadas, la Oficina (archivos e informes por revisar), la revisión del día, su uso y el informe con números de hoy o de la semana (informe_hoy, informe_semana). Úsala cuando pregunte por algo de eso («¿qué tengo pendiente?», «¿qué apps tengo?», «¿quién me escribió?», «¿cómo va todo?», «dime el informe del día») o cuando lo necesites para contestar bien. Solo lee.",
     esquema: {
       type: "object",
-      properties: { que: { type: "string", enum: [...PARTES], description: "Qué parte ver: «todo» trae el resumen completo." } },
+      properties: { que: { type: "string", enum: [...PARTES], description: "Qué parte ver: «todo» trae el resumen completo; «informe_hoy» e «informe_semana», los números del día o de la semana." } },
       required: ["que"],
       additionalProperties: false,
     },
@@ -218,9 +236,69 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
     estado: "Atendel está revisando tu cuenta…",
     async ejecutar(args) {
       const que = PARTES.find((p) => p === args.que) ?? "todo";
-      const partes = que === "todo" ? (Object.keys(LEER) as (keyof typeof LEER)[]) : [que];
+      const partes = que === "todo" ? DE_TODO : [que];
       const textos = await Promise.all(partes.map((p) => LEER[p]().catch(() => "")));
       return textos.filter(Boolean).join("\n\n").slice(0, 12_000) || "No pude leer tu cuenta ahora mismo.";
+    },
+  };
+}
+
+/**
+ * «¿CUÁNTOS CLIENTES PREGUNTARON POR…?»: cuenta en lo que escribieron sus
+ * clientes por WhatsApp (clientes distintos y mensajes) y en sus correos
+ * (asunto y resumen), en los últimos días que pida. Solo lee y filtra por
+ * dueño. Los ejemplos son DATOS de fuera (el chat los marca así).
+ */
+export function herramientaContarClientes(supabase: SupabaseClient, userId: string): HerramientaChat {
+  return {
+    nombre: "contar_en_clientes",
+    descripcion:
+      "Cuenta cuántos clientes preguntaron o hablaron de algo: busca palabras en los mensajes de WhatsApp que le escribieron sus clientes y en los correos que le llegaron (asunto y resumen), en los últimos días. Úsala para «¿cuántos clientes preguntaron por envíos esta semana?», «¿alguien pidió factura hoy?». Pasa la palabra y sus variantes (singular, plural, sinónimos: «envío», «envíos», «domicilio», «mandan»). Solo lee.",
+    esquema: {
+      type: "object",
+      properties: {
+        palabras: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6, description: "La palabra y sus variantes (de 2 a 40 letras cada una)." },
+        dias: { type: "integer", minimum: 1, maximum: 90, description: "Cuántos días hacia atrás: 1 = hoy y ayer, 7 = la semana. Por omisión, 7." },
+      },
+      required: ["palabras"],
+      additionalProperties: false,
+    },
+    fuente: "los mensajes de tus clientes",
+    estado: "Atendel está contando lo que preguntaron tus clientes…",
+    async ejecutar(args) {
+      const palabras = palabrasDeBusqueda(args.palabras);
+      if (!palabras.length) return "Dime qué palabra buscar (de 2 a 40 letras).";
+      const dias = Math.min(90, Math.max(1, Math.round(Number(args.dias) || 7)));
+      const desde = new Date(Date.now() - dias * 86_400_000).toISOString();
+      const res = buscadores(palabras);
+
+      // WhatsApp: de 1,000 en 1,000 (lo que regresa la base por vez), hasta 5,000 mensajes
+      const filas: { telefono: unknown; texto: unknown }[] = [];
+      for (let pagina = 0; pagina < 5; pagina++) {
+        const { data, error } = await supabase
+          .from("whatsapp_mensajes")
+          .select("telefono, texto")
+          .eq("owner_id", userId)
+          .eq("direccion", "entrante")
+          .gte("creado_en", desde)
+          .order("creado_en", { ascending: false })
+          .range(pagina * 1000, pagina * 1000 + 999);
+        if (error || !data?.length) break;
+        filas.push(...data);
+        if (data.length < 1000) break;
+      }
+      const wa = contarMenciones(filas, res);
+
+      const ids = await negociosDe(supabase, userId);
+      const { data: correos } = await supabase.from("resumenes_correo").select("asunto, resumen").in("negocio_id", ids).gte("creado_en", desde).limit(1000);
+      const enCorreos = (correos ?? []).filter((c) => menciona(`${c.asunto ?? ""} ${c.resumen ?? ""}`, res)).length;
+
+      return [
+        `CONTEO (últimos ${dias} ${dias === 1 ? "día" : "días"}; palabras buscadas, sin acentos: ${palabras.join(", ")}):`,
+        `- WhatsApp: ${wa.clientes} ${wa.clientes === 1 ? "cliente distinto" : "clientes distintos"} en ${wa.mensajes} ${wa.mensajes === 1 ? "mensaje" : "mensajes"} (revisé ${filas.length}${filas.length >= 5000 ? ", los más nuevos" : ""}).`,
+        `- Correos: ${enCorreos} de ${(correos ?? []).length} que llegaron.`,
+        ...(wa.ejemplos.length ? ["Ejemplos (uno por cliente; para que veas si de verdad hablan de eso):", ...wa.ejemplos.map((e) => `- «${e}»`)] : []),
+      ].join("\n");
     },
   };
 }

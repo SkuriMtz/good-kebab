@@ -4,7 +4,7 @@
 export const TEXTO = `# List of Providers and Subprocessors
 ## ATENDEL
 
-**Last updated: November 17, 2026**
+**Last updated: November 18, 2026**
 
 **Version:** 1.0
 
@@ -207,6 +207,23 @@ Cloudflare Turnstile verifies that the person creating an account or signing in 
 **Processing location:** According to the provider's global infrastructure.
 
 **Applicable terms:** Cloudflare's terms and policies.
+
+**3.10. ElevenLabs**
+
+**Category:** Voice.
+
+**Role within Atendel:**
+
+ElevenLabs turns what the user says in talk mode into text and turns Atendel's answers into speech, only when the user opens talk mode. Atendel does not store the audio; the conversation stays written in the chat.
+
+**Categories of information that may be processed:**
+
+- The user's voice recordings during talk mode.
+- The text of the answers that are spoken aloud.
+
+**Processing location:** According to the provider's infrastructure; Atendel will confirm the region applicable to the contracted service.
+
+**Applicable terms:** ElevenLabs terms, privacy policy and data processing terms.
 
 ### 4. Apps connected by the user
 

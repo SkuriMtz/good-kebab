@@ -8,7 +8,8 @@ import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
 import { bloqueCerebro, cargarCerebro, herramientaGuardarRegla, herramientaRecordar } from "@/lib/cerebro";
 import { INSTRUCCIONES_TAREAS, herramientaProgramar } from "@/lib/tareas";
 import { TEMA_AVISOS } from "@/lib/avisos";
-import { herramientaVerAtendel } from "@/lib/herramientas/atendel";
+import { herramientaContarClientes, herramientaVerAtendel } from "@/lib/herramientas/atendel";
+import { INSTRUCCIONES_VOZ } from "@/lib/platica";
 import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
@@ -102,6 +103,8 @@ export async function POST(request: NextRequest) {
   // ¿El cliente sabe mostrar las líneas de estado? (si no, el stream es solo texto)
   const conEstados =
     body.estados === true || request.headers.get("x-atendel-estados") === "1";
+  // ¿Viene del modo plática? (solo cambia cómo contesta: corto y para oírse)
+  const enVoz = body.voz === true;
 
   // Con quién: la conversación existente manda; si es nueva, lo que pidió el cliente
   let agente: IdAgente;
@@ -318,15 +321,17 @@ export async function POST(request: NextRequest) {
   // 6c. Ver todo lo de su cuenta (apps, lo que espera su OK, WhatsApp, tareas, Oficina…). Trae
   //     mensajes de clientes y correos: datos de fuera, igual que las apps
   const verAtendel = herramientaVerAtendel(supabase, user.id, { zona: ajustesCuenta.zonaHoraria, plan: cuenta.plan });
+  // «¿Cuántos clientes preguntaron por…?»: también trae lo que escribieron (datos de fuera)
+  const contarClientes = herramientaContarClientes(supabase, user.id);
   // 6d. Acciones de Atendel: armar presentaciones y dejar envíos en Pendientes (nunca manda solo)
   const herramientas = [
-    {
-      ...verAtendel,
+    ...[verAtendel, contarClientes].map((h) => ({
+      ...h,
       ejecutar: (args: Record<string, unknown>, senal: AbortSignal) => {
         turno.externo = true;
-        return verAtendel.ejecutar(args, senal);
+        return h.ejecutar(args, senal);
       },
-    },
+    })),
     ...deApps,
     ...accionesDelChat({
       supabase,
@@ -434,6 +439,9 @@ export async function POST(request: NextRequest) {
                 ...(documentos
                   ? [{ type: "text" as const, text: documentos }]
                   : []),
+                // Modo plática: lo dijo en voz alta y va a OÍR la respuesta (va aquí y no en el
+                // system, para no romper la caché de las instrucciones)
+                ...(enVoz ? [{ type: "text" as const, text: INSTRUCCIONES_VOZ }] : []),
                 {
                   type: "text" as const,
                   text: mensaje,

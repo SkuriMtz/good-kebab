@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /*
  * Los fragmentos del menú del sitio:
@@ -118,35 +118,44 @@ function formaAzar(azr: () => number) {
 
 /* ---------- La marca de Atendel ---------- */
 
-async function crearMarca(): Promise<Pintor> {
+/** `nivel` (0 a 1, opcional): qué tan fuerte suena la voz; los fragmentos se abren y brillan con ella (modo plática). */
+async function crearMarca(nivel?: () => number): Promise<Pintor> {
   const { marca } = await import("./escena/figuras/formas");
   const F = marca(2600);
   const azr = azar(7);
   // Un solo relleno por color (cientos de triangulitos de un jalón): los colores se
   // redondean un poco para que salgan pocos grupos
-  const grupos = new Map<string, { ids: number[]; forma: number[][]; giro: number[] }>();
+  const grupos = new Map<string, { ids: number[]; forma: number[][]; giro: number[]; suelto: number[] }>();
   for (let i = 0; i < F.alfa.length; i++) {
     if (F.alfa[i] <= 0) continue;
     const o = i * 3;
     const q = (v: number) => Math.min(255, Math.round((v * 255) / 24) * 24);
     const clave = `rgb(${q(F.col[o])} ${q(F.col[o + 1])} ${q(F.col[o + 2])})`;
-    const g = grupos.get(clave) ?? { ids: [], forma: [], giro: [] };
+    const g = grupos.get(clave) ?? { ids: [], forma: [], giro: [], suelto: [] };
     g.ids.push(i);
     g.forma.push(formaAzar(azr));
     g.giro.push(azr() * Math.PI * 2);
+    g.suelto.push(0.4 + azr() * 1.2);
     grupos.set(clave, g);
   }
   let cx = 0;
   let cy = 0;
   let S = 1;
+  // La voz, suavizada (sube rápido y baja despacio, para que no tiemble)
+  let e = 0;
 
   return {
     medir(w, h) {
       cx = w / 2;
       cy = h / 2;
-      S = Math.min(w, h) * 0.5;
+      // Con voz, más chica: los fragmentos se abren y no deben salirse del lienzo
+      S = Math.min(w, h) * (nivel ? 0.38 : 0.5);
     },
     pintar(ctx, t) {
+      if (nivel) {
+        const v = Math.min(1, Math.max(0, nivel()));
+        e += (v - e) * (v > e ? 0.35 : 0.08);
+      }
       // Como en el cierre del inicio: de lado, girando despacio de un lado a otro
       const yaw = (-32 + 11 * Math.sin(t * 0.38)) * G;
       const pitch = (14 + 3 * Math.sin(t * 0.29 + 1)) * G;
@@ -155,7 +164,7 @@ async function crearMarca(): Promise<Pintor> {
       const D = 8.7 * S;
       const P = F.pos;
       ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = 0.65;
+      ctx.globalAlpha = 0.65 + e * 0.3;
       for (const [color, g] of grupos) {
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -169,7 +178,9 @@ async function crearMarca(): Promise<Pintor> {
           const x3 = x1 * cr - y2 * sr;
           const y3 = x1 * sr + y2 * cr;
           const f = D / (D - z2 * S);
-          triangulo(ctx, cx + x3 * S * f, cy - y3 * S * f, S * 0.017 * F.tam[i] * f, g.giro[j] + t * 0.15, g.forma[j]);
+          // Con la voz, cada fragmento se separa un poco del centro (unos más que otros)
+          const abre = 1 + e * 0.16 * g.suelto[j];
+          triangulo(ctx, cx + x3 * S * f * abre, cy - y3 * S * f * abre, S * 0.017 * F.tam[i] * f * (1 + e * 0.5), g.giro[j] + t * 0.15, g.forma[j]);
         }
         ctx.fill();
       }
@@ -259,8 +270,15 @@ async function crearFondo(): Promise<Pintor> {
   };
 }
 
-export function MarcaFragmentos({ activo }: { activo: boolean }) {
-  return <Lienzo activo={activo} crear={crearMarca} />;
+export function MarcaFragmentos({ activo, nivel, className }: { activo: boolean; nivel?: () => number; className?: string }) {
+  // Lo de `nivel` se lee en cada cuadro (sin volver a crear la marca)
+  const nivelRef = useRef(nivel);
+  useEffect(() => {
+    nivelRef.current = nivel;
+  }, [nivel]);
+  const conNivel = Boolean(nivel);
+  const crear = useCallback(() => crearMarca(conNivel ? () => nivelRef.current?.() ?? 0 : undefined), [conNivel]);
+  return <Lienzo activo={activo} crear={crear} className={className} />;
 }
 
 export function FondoFragmentos({ activo }: { activo: boolean }) {

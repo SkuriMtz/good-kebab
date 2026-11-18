@@ -17,6 +17,7 @@ import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   ArrowDown01Icon,
+  AudioWave01Icon,
   Cancel01Icon,
   File02Icon,
   HelpCircleIcon,
@@ -71,6 +72,8 @@ type Props = {
   onDictate?: () => string | Promise<string>;
   /** Sin dictado todavía: el micrófono se ve, apagado y con su nombre ("Dictar, pronto"). */
   dictarPronto?: boolean;
+  /** Abre el modo plática (hablar y que conteste en voz). Sin esto, el botón no se ve. */
+  onTalk?: () => void;
   background?: string;
   color?: string;
   menuBackground?: string;
@@ -179,6 +182,7 @@ export default function PromptBar({
   onAttach,
   onDictate,
   dictarPronto = false,
+  onTalk,
   background,
   color,
   menuBackground,
@@ -771,6 +775,11 @@ export default function PromptBar({
           ) : dictarPronto ? (
             <button type="button" className="prompt-bar__tool" aria-label="Dictar (pronto)" title="El dictado llega pronto" disabled>
               <HugeiconsIcon icon={Mic01Icon} size={fila ? 19 : 15} strokeWidth={fila ? 1.75 : 2} />
+            </button>
+          ) : null}
+          {onTalk ? (
+            <button type="button" className="prompt-bar__tool" aria-label="Platicar con Atendel (voz)" title="Platicar con Atendel" onMouseDown={(e) => e.preventDefault()} onClick={onTalk}>
+              <HugeiconsIcon icon={AudioWave01Icon} size={fila ? 19 : 15} strokeWidth={fila ? 1.75 : 2} />
             </button>
           ) : null}
           <button

@@ -17,6 +17,7 @@ import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
+import { vozDisponible } from "@/lib/elevenlabs";
 import { cargarHoy } from "@/lib/hoy";
 import { leerUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
@@ -272,6 +273,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       textoDeFuera={searchParams.fuera === "1"}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
       conGoogle={conGoogle}
+      vozDisponible={vozDisponible()}
     />
   );
 }
