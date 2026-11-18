@@ -21,7 +21,8 @@ import { pasarLimite, registrarEvento } from "@/lib/seguridad";
  */
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// Una tarea que investiga en internet puede tardar unos minutos
+export const maxDuration = 300;
 
 /** Solo se empieza otra cuenta si van menos de 15 s (cada una puede tardar ~40 s: las apps y el informe). */
 const TIEMPO = 15_000;
@@ -94,6 +95,8 @@ export async function POST(req: NextRequest) {
   const tareas: { id: string; hecho: boolean; motivo: string }[] = [];
   for (const t of conTareas ? await tareasQueTocan(admin) : []) {
     if (Date.now() - empezo > TIEMPO) break;
+    // Las que investigan en internet tardan: solo arrancan al principio de la vuelta (si no, a la siguiente)
+    if (t.internet && Date.now() - empezo > 5_000) break;
     if (!(await apartarTarea(admin, t))) continue;
     try {
       tareas.push({ id: t.id, ...(await ejecutarTarea(admin, t)) });

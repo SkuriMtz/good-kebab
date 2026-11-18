@@ -31,7 +31,17 @@ const HAIKU_55_LARGO: Precio = { entrada: 0.5, salida: 2.5, cacheLee: 0.05, cach
 const PRECIO_DESCONOCIDO: Precio = PRECIOS["claude-opus-5"];
 
 /** Los tokens de una respuesta (sirve para Message y BetaMessage). */
-type Tokens = { input_tokens: number; output_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null };
+type Tokens = {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_input_tokens?: number | null;
+  cache_creation_input_tokens?: number | null;
+  /** Búsquedas en internet ($10 por cada 1,000; abrir páginas solo cuesta sus tokens). */
+  server_tool_use?: { web_search_requests?: number | null } | null;
+};
+
+/** Una búsqueda en internet, en millonésimas de dólar. */
+const COSTO_BUSQUEDA = 10_000;
 
 /** Lo que costó una respuesta, en micro-dólares (redondeado hacia arriba, mínimo 1). */
 export function costoDe(modelo: string, u: Tokens | null | undefined): number {
@@ -39,7 +49,11 @@ export function costoDe(modelo: string, u: Tokens | null | undefined): number {
   const leidos = (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0);
   const p = modelo === "claude-haiku-5-5" && leidos > 100_000 ? HAIKU_55_LARGO : (PRECIOS[modelo] ?? PRECIO_DESCONOCIDO);
   const total =
-    (u.input_tokens ?? 0) * p.entrada + (u.output_tokens ?? 0) * p.salida + (u.cache_read_input_tokens ?? 0) * p.cacheLee + (u.cache_creation_input_tokens ?? 0) * p.cacheEscribe;
+    (u.input_tokens ?? 0) * p.entrada +
+    (u.output_tokens ?? 0) * p.salida +
+    (u.cache_read_input_tokens ?? 0) * p.cacheLee +
+    (u.cache_creation_input_tokens ?? 0) * p.cacheEscribe +
+    (u.server_tool_use?.web_search_requests ?? 0) * COSTO_BUSQUEDA;
   return total > 0 ? Math.max(1, Math.ceil(total)) : 0;
 }
 

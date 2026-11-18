@@ -17,6 +17,7 @@ import { Gasto } from "./uso";
 import { citar, citarLineas } from "./avisos";
 import { avisarUsoTrabajo, limpiarCorto, notificar, recordar } from "./notificar";
 import { herramientaVerAtendel } from "./herramientas/atendel";
+import { correosDeResultados, correosEn, herramientasWeb, instruccionesInternet, pareceInvestigacion, revisarDestinatarios, usoInternet } from "./investigar";
 
 /**
  * TAREAS (migración 0020): lo que el dueño le pide a Atendel que haga solo,
@@ -51,6 +52,10 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
         dia_mes: { type: "integer", description: "Para mensual: día del mes (1 a 31) o -1 para el último día." },
         fecha: { type: "string", description: "Para una_vez: AAAA-MM-DD." },
         hora: { type: "string", description: "HH:MM en 24 horas, en la hora del negocio. Por ejemplo 15:00." },
+        buscar_en_internet: {
+          type: "boolean",
+          description: "true si la tarea necesita investigar en internet (buscar proveedores, precios, noticias o páginas). Cuando corra, Atendel buscará y abrirá páginas de verdad.",
+        },
       },
       required: ["titulo", "instruccion", "tipo", "hora"],
       additionalProperties: false,
@@ -87,6 +92,7 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
         zona: f.zona,
         proxima,
         activa: !esperaOk,
+        internet: args.buscar_en_internet === true || pareceInvestigacion(`${titulo} ${instruccion}`),
       });
       if (error) return error.code === "23514" ? "No se programó: ya tiene el máximo de 30 tareas. Que borre alguna en Tareas." : "No se pudo programar ahora. Que lo intente de nuevo en un momento.";
       if (esperaOk) {
@@ -100,9 +106,25 @@ export function herramientaProgramar(supabase: SupabaseClient, userId: string, z
 /** Lo que se agrega a las instrucciones del chat sobre las tareas. */
 export const INSTRUCCIONES_TAREAS = `
 
-TAREAS PROGRAMADAS: si el dueño te pide algo para después o que se repita ("cada martes…", "el fin de mes…", "mañana a las 9…"), prográmalo con la herramienta programar_tarea (no le pidas que lo haga él) y confírmale cuándo será la primera vez. Si falta la hora, usa una razonable y díselo.`;
+TAREAS PROGRAMADAS: si el dueño te pide algo para después o que se repita ("cada martes…", "el fin de mes…", "mañana a las 9…"), prográmalo con la herramienta programar_tarea (no le pidas que lo haga él) y confírmale cuándo será la primera vez. Si falta la hora, usa una razonable y díselo. Si la tarea necesita investigar en internet (proveedores, precios, noticias), pon buscar_en_internet: true: cuando corra, buscará y abrirá páginas de verdad, y los correos que salgan de eso esperan su OK.`;
 
-type FilaTarea = { id: string; owner_id: string; titulo: string; instruccion: string; tipo: TipoTarea; dias: number[] | null; dia_mes: number | null; fecha: string | null; hora: string; zona: string; proxima: string };
+type FilaTarea = {
+  id: string;
+  owner_id: string;
+  titulo: string;
+  instruccion: string;
+  tipo: TipoTarea;
+  dias: number[] | null;
+  dia_mes: number | null;
+  fecha: string | null;
+  hora: string;
+  zona: string;
+  proxima: string;
+  /** Investiga en internet (migración 0035). */
+  internet?: boolean | null;
+  /** A quién ya le escribió esta tarea (correos), para no repetir. */
+  contactados?: string[] | null;
+};
 
 /** Corre una tarea que ya tocaba (ya apartada). Deja el resultado en la Oficina. */
 export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promise<{ hecho: boolean; motivo: string }> {
@@ -114,7 +136,9 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
   const { data: gastos } = await admin.from("trabajo_uso").select("costo").eq("owner_id", dueno).gte("creado_en", inicioSemana(aj.zonaHoraria));
   const gastado = (gastos ?? []).reduce((n, g) => n + (Number(g.costo) || 0), 0);
   // Al 80 % y al llegar al límite, te avisa (una vez por semana cada uno)
-  const lleno = gastado + 5_000 > cuenta.plan.trabajo.semana;
+  // Una que investiga en internet gasta más (modelo Avanzado y búsquedas): se aparta más
+  const conInternet = Boolean(t.internet);
+  const lleno = gastado + (conInternet ? 300_000 : 5_000) > cuenta.plan.trabajo.semana;
   await avisarUsoTrabajo(admin, dueno, { gastado, limite: cuenta.plan.trabajo.semana, semana: inicioSemana(aj.zonaHoraria), lleno });
   if (lleno) return { hecho: false, motivo: "límite de la semana" };
 
@@ -139,8 +163,29 @@ export async function ejecutarTarea(admin: SupabaseClient, t: FilaTarea): Promis
   })
     .filter((h) => h.nombre !== "buscar_en_documentos")
     .map((h) => (h.hace ? h : leer(h)));
+  // Con internet, un correo solo puede ir a quien apareció en una página que abrió (o que dio el dueño) y a nadie ya contactado
+  const contactados = (t.contactados ?? []).filter((c) => typeof c === "string").map((c) => c.toLowerCase());
+  const permitidos = new Set(correosEn(t.instruccion));
+  const nuevos: string[] = [];
+  const cuidarCorreo = (h: HerramientaChat): HerramientaChat => ({
+    ...h,
+    ejecutar: async (args, senal) => {
+      const para = Array.isArray(args.para) ? args.para.filter((x): x is string => typeof x === "string") : [];
+      const r = revisarDestinatarios(para, permitidos, [...contactados, ...nuevos]);
+      if (!r.ok) {
+        const partes = [
+          r.noVistos.length ? `${r.noVistos.join(", ")} no aparece en ninguna página que abriste: abre la página oficial con web_fetch y usa el correo que aparece ahí (o no le escribas)` : "",
+          r.repetidos.length ? `a ${r.repetidos.join(", ")} (o a su empresa) ya se le escribió antes en esta tarea: busca otro` : "",
+        ].filter(Boolean);
+        return `NO se mandó el correo: ${partes.join("; ")}.`;
+      }
+      const salida = await h.ejecutar(args, senal);
+      nuevos.push(...para.map((c) => c.trim().toLowerCase()));
+      return salida;
+    },
+  });
   const herramientas = [
-    ...deApps,
+    ...(conInternet ? deApps.map((h) => (/_enviar_correo$/.test(h.nombre) ? cuidarCorreo(h) : h)) : deApps),
     ...accionesDelChat({ supabase: admin, userId: dueno, participantes: IDS_AGENTES, conversacionId: null, negocio: cuenta.negocio }),
     // Lo de su cuenta de Atendel (lo que espera su OK, WhatsApp, Oficina…): para tareas como «cada mañana dime qué tengo pendiente»
     leer(herramientaVerAtendel(admin, dueno, { zona: aj.zonaHoraria })),
@@ -157,14 +202,17 @@ Lo que pidió: ${t.instruccion}
 - Hazla completa con lo que tengas. Si algo no se puede (falta una app, un dato o una persona en su equipo), haz lo que sí se pueda y di claro qué faltó.
 - Al terminar, escribe para el dueño, en español de México y en pocas líneas: qué hiciste, qué encontraste y qué queda pendiente (si algo).
 - Nunca digas que enviaste algo que quedó en Pendientes esperando su visto bueno.${bloqueCerebro(cerebro, aj)}
-${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcciones(IDS_AGENTES)}`,
+${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcciones(IDS_AGENTES)}${conInternet ? instruccionesInternet(contactados) : ""}`,
       cache_control: { type: "ephemeral" as const },
     },
   ];
   const gasto = new Gasto();
-  const pedir = (p: PeticionRonda) => client.beta.messages.stream({ model: MODELOS.rapido.api, max_tokens: 4000, system, ...p, output_config: { effort: MODELOS.rapido.esfuerzo } });
+  // Investigar en internet va con el modelo Avanzado (sus herramientas de internet son las completas) y con más tiempo
+  const modelo = conInternet ? MODELOS.avanzado : MODELOS.rapido;
+  const pedir = (p: PeticionRonda) =>
+    client.beta.messages.stream({ model: modelo.api, max_tokens: conInternet ? 16_000 : 4000, system, ...p, output_config: { effort: modelo.esfuerzo } });
   const control = new AbortController();
-  const reloj = setTimeout(() => control.abort(), 35_000);
+  const reloj = setTimeout(() => control.abort(), conInternet ? 200_000 : 35_000);
   let texto = "";
   try {
     await responderConHerramientas({
@@ -175,13 +223,28 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
         texto += d;
       },
       alEstado: () => {},
-      alUso: (m) => gasto.sumar(m, MODELOS.rapido.api),
+      alUso: (m) => {
+        gasto.sumar(m, modelo.api);
+        if (!conInternet) return;
+        // Lo de internet es de fuera: desde ahí, lo que HACE algo (mandar correos) espera tu OK
+        if (usoInternet(m.content)) corrida.externo = true;
+        for (const c of correosDeResultados(m.content)) permitidos.add(c);
+      },
       senal: control.signal,
+      ...(conInternet ? { servidor: herramientasWeb(aj.zonaHoraria), maxRondas: 6 } : {}),
     });
   } catch (e) {
     if (!control.signal.aborted) console.error("Tarea falló:", e instanceof Error ? e.message : e);
   } finally {
     clearTimeout(reloj);
+    // A quién ya se le escribió (o se le dejó listo el correo): la próxima vez no se repite
+    if (nuevos.length) {
+      await admin
+        .from("tareas")
+        .update({ contactados: [...new Set([...contactados, ...nuevos])].slice(-500) })
+        .eq("id", t.id)
+        .eq("owner_id", dueno);
+    }
     if (gasto.costo > 0) {
       await admin.from("trabajo_uso").insert({ owner_id: dueno, costo: Math.max(1, Math.min(Math.round(gasto.costo), 5_000_000)), entrada: gasto.entrada, salida: gasto.salida, modelo: gasto.modelo.slice(0, 60) });
     }
@@ -230,7 +293,7 @@ ${instruccionesHerramientas(IDS_AGENTES, deApps, conexiones)}${instruccionesAcci
 export async function tareasQueTocan(admin: SupabaseClient, limite = 10): Promise<FilaTarea[]> {
   const { data } = await admin
     .from("tareas")
-    .select("id, owner_id, titulo, instruccion, tipo, dias, dia_mes, fecha, hora, zona, proxima")
+    .select("id, owner_id, titulo, instruccion, tipo, dias, dia_mes, fecha, hora, zona, proxima, internet, contactados")
     .eq("activa", true)
     .lte("proxima", new Date().toISOString())
     .order("proxima", { ascending: true })

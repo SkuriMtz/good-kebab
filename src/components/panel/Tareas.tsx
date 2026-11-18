@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { NOMBRES_DIA, cuandoEnPalabras, errorFrecuencia, frecuenciaEnPalabras, siguienteVez, type Frecuencia, type TipoTarea } from "@/lib/tareas-tiempo";
 import { Enlace, TituloSeccion, claseBoton, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
+import { pareceInvestigacion } from "@/lib/investigar";
 
 /* =====================================================================
    PILOTO AUTOMÁTICO (antes «Tareas»): lo que Atendel hace solo, a la hora que le dijiste (0020).
@@ -133,7 +134,12 @@ export function TareasVista({
     if (demo) {
       setLista((l) => [...(l ?? []), { ...nueva, id: `d${Date.now()}`, ultima: null, ultimo_resultado: null, activa: true }]);
     } else {
-      const { data, error: e2 } = await createClient().from("tareas").insert(nueva).select(COLUMNAS).single();
+      // Si pide investigar (proveedores, precios…), cuando corra buscará en internet
+      const { data, error: e2 } = await createClient()
+        .from("tareas")
+        .insert({ ...nueva, internet: pareceInvestigacion(que) })
+        .select(COLUMNAS)
+        .single();
       if (e2 || !data) return setError(e2?.code === "23514" ? "Ya tienes 30 tareas, el máximo. Borra alguna para agregar otra." : "No se pudo guardar. Intenta de nuevo.");
       setLista((l) => [...(l ?? []), data as Tarea]);
     }

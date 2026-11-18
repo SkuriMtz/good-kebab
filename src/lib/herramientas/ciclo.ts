@@ -47,7 +47,7 @@ type Flujo = AsyncIterable<Anthropic.Beta.BetaRawMessageStreamEvent> & {
 
 export type PeticionRonda = {
   messages: Anthropic.Beta.BetaMessageParam[];
-  tools?: Anthropic.Beta.BetaTool[];
+  tools?: Anthropic.Beta.BetaToolUnion[];
   tool_choice?: Anthropic.Beta.BetaToolChoice;
 };
 
@@ -157,19 +157,30 @@ export async function responderConHerramientas(o: {
   alEstado: (texto: string) => void;
   /** El flujo vigente (para cortarlo si la persona toca "Detener"). */
   alFlujo?: (f: Flujo) => void;
-  /** Lo que gastó cada ronda (tokens): para el límite de uso del plan. Si se corta a la mitad, lo que alcanzó a gastar. */
+  /** Lo que gastó cada ronda (tokens): para el límite de uso del plan. Si se corta a la mitad, lo que alcanzó a gastar. Llega antes de correr las herramientas de esa ronda. */
   alUso?: (m: Anthropic.Beta.BetaMessage) => void;
   senal: AbortSignal;
+  /** Herramientas que corren del lado de Anthropic (buscar y abrir páginas de internet). */
+  servidor?: Anthropic.Beta.BetaToolUnion[];
+  /** Cuántas rondas de herramientas propias (por omisión, MAX_RONDAS). */
+  maxRondas?: number;
 }): Promise<{ texto: string; final: Anthropic.Beta.BetaMessage | null; rondas: number }> {
   const mensajes = [...o.mensajes];
   const porNombre = new Map(o.herramientas.map((h) => [h.nombre, h]));
-  const tools: Anthropic.Beta.BetaTool[] = o.herramientas.map((h) => ({
-    name: h.nombre,
-    description: h.descripcion,
-    input_schema: h.esquema as Anthropic.Beta.BetaTool.InputSchema,
-    // Llegan en vivo; cada entrada se valida en la herramienta antes de usarla
-    eager_input_streaming: true,
-  }));
+  const tools: Anthropic.Beta.BetaToolUnion[] = [
+    ...o.herramientas.map(
+      (h): Anthropic.Beta.BetaTool => ({
+        name: h.nombre,
+        description: h.descripcion,
+        input_schema: h.esquema as Anthropic.Beta.BetaTool.InputSchema,
+        // Llegan en vivo; cada entrada se valida en la herramienta antes de usarla
+        eager_input_streaming: true,
+      }),
+    ),
+    ...(o.servidor ?? []),
+  ];
+  const maxRondas = o.maxRondas ?? MAX_RONDAS;
+  let pausas = 0;
 
   let texto = "";
   let final: Anthropic.Beta.BetaMessage | null = null;
@@ -177,7 +188,7 @@ export async function responderConHerramientas(o: {
   let reintentosJson = 0;
 
   while (!o.senal.aborted) {
-    const ultima = rondas >= MAX_RONDAS;
+    const ultima = rondas >= maxRondas;
     const flujo = o.pedir({ messages: mensajes, ...(tools.length ? { tools, ...(ultima ? { tool_choice: { type: "none" as const } } : {}) } : {}) });
     o.alFlujo?.(flujo);
     let deRonda = "";
@@ -203,6 +214,11 @@ export async function responderConHerramientas(o: {
       throw e;
     }
     reintentosJson = 0;
+    // Internet (del lado de Anthropic) hizo una pausa larga: se manda igual y sigue donde iba
+    if (final.stop_reason === "pause_turn" && pausas++ < 4) {
+      mensajes.push({ role: "assistant", content: final.content });
+      continue;
+    }
     // Solo con stop_reason "tool_use" se corren herramientas (nunca con max_tokens ni refusal)
     if (final.stop_reason !== "tool_use" || ultima) break;
     const usos = final.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
