@@ -43,5 +43,5 @@ export function metadatosInicio(idioma: Idioma): Metadata {
 /** Los del inicio en español (los usan las páginas que todavía no cambian de idioma). */
 export const TITULO_INICIO = "Atendel — Agentes de IA para negocios que atienden personas";
 export const DESCRIPCION_INICIO =
-  "Aura contesta tu WhatsApp y agenda citas, Altair ordena tu correo, Rigel trae de regreso a tus clientes e Mira lleva el trabajo de oficina. Agentes de IA para negocios que atienden personas.";
+  "Aura contesta tu WhatsApp y agenda citas, Altair ordena tu correo, Rigel trae de regreso a tus clientes y Mira lleva el trabajo de oficina. Agentes de IA para negocios que atienden personas.";
 export const OG_INICIO: Metadata["openGraph"] = { ...BASE_OG, title: TITULO_INICIO, description: DESCRIPCION_INICIO };

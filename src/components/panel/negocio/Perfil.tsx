@@ -271,7 +271,7 @@ export function PerfilNegocioVista() {
         <p className="pc-medidor__detalle">
           {llenos === CAMPOS_PERFIL.length
             ? "Tu equipo ya sabe lo esencial. Actualízalo cuando algo cambie."
-            : `${llenos} de ${CAMPOS_PERFIL.length} temas. Aura, Altair, Rigel e Mira usan lo que guardes aquí al contestar.`}
+            : `${llenos} de ${CAMPOS_PERFIL.length} temas. Aura, Altair, Rigel y Mira usan lo que guardes aquí al contestar.`}
         </p>
       </Tarjeta>
 

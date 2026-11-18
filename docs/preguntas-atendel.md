@@ -6,10 +6,10 @@
 ## Atendel
 
 **¿Qué es Atendel?**
-Es tu socio de inteligencia artificial para el negocio. Le escribes como a una persona y él atiende tu WhatsApp, tu correo, tus clientes y el trabajo de oficina con la ayuda de su equipo: Aura, Altair, Rigel e Mira.
+Es tu socio de inteligencia artificial para el negocio. Le escribes como a una persona y él atiende tu WhatsApp, tu correo, tus clientes y el trabajo de oficina con la ayuda de su equipo: Aura, Altair, Rigel y Mira.
 
-**¿Quiénes son Aura, Altair, Rigel e Mira?**
-Son los cuatro agentes del equipo de Atendel, cada uno con su área: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes e Mira hace el trabajo de oficina.
+**¿Quiénes son Aura, Altair, Rigel y Mira?**
+Son los cuatro agentes del equipo de Atendel, cada uno con su área: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes y Mira hace el trabajo de oficina.
 
 **¿Tengo que hablar con cada agente por separado?**
 No. Le escribes a Atendel y él decide a quién le toca. Te contesta una sola vez, y abajo ves quién hizo el trabajo.
@@ -45,7 +45,7 @@ Recibe y envía correos, resume tu bandeja, la ordena por urgencia y detecta fac
 **¿Con qué correo funciona?**
 Con Gmail u Outlook, cuando los conectas en Tu negocio → Apps conectadas.
 
-**¿Altair manda correos sola?**
+**¿Altair manda correos solo?**
 Solo lo que tú le permitas en «Qué hace solo». Lo demás te lo deja listo para que lo apruebes con un toque.
 
 **¿Me avisa de lo importante?**

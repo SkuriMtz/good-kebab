@@ -43,7 +43,7 @@ export const PALETA = {
 /** El espectro completo, para salpicar color como en la constelación de Dala. */
 const ESPECTRO: Color[] = [PALETA.morado, PALETA.morado, PALETA.ambar, PALETA.verdeAzul, PALETA.magenta, PALETA.azul];
 
-/** Los colores de Aura, Altair, Rigel e Mira (los del logo), llevados hacia la paleta de la escena. */
+/** Los colores de Aura, Altair, Rigel y Mira (los del logo), llevados hacia la paleta de la escena. */
 const COLORES_LOGO: Color[] = [
   mezcla(hex("#ff8a6b"), PALETA.ambar, 0.45), // Aura: coral → ámbar
   mezcla(hex("#7fb2ff"), PALETA.morado, 0.6), // Altair: azul → morado

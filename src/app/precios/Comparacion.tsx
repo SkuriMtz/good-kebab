@@ -8,7 +8,7 @@ import { agenteDe, planesDe, t, type Idioma } from "@/i18n";
 
 const NOMBRE_CORTO: Record<Plan["id"], string> = { free: "Free", one: "One", max: "Max" };
 
-/** Los agentes en el orden en que se suman: Altair (Free), Aura (One), Rigel e Mira (Max). */
+/** Los agentes en el orden en que se suman: Altair (Free), Aura (One), Rigel y Mira (Max). */
 const ORDEN: IdAgente[] = ["clara", "lola", "victor", "iris"];
 
 function Celda({ si, plan, incluido, noIncluido }: { si: boolean; plan: Plan; incluido: string; noIncluido: string }) {

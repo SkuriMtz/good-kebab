@@ -20,7 +20,7 @@ import { AGENTE_POR_ID, AGENTES_INFO, IDS_AGENTES, type IdAgente } from "@/lib/a
  * producen (una cita, un mensaje programado, un archivo) va en una tarjeta.
  */
 
-/** "Aura", "Aura y Rigel", "Aura, Altair e Mira". */
+/** "Aura", "Aura y Rigel", "Aura, Altair y Mira". */
 export function nombres(ids: readonly IdAgente[]) {
   const n = ids.map((id) => AGENTE_POR_ID[id].nombre);
   if (n.length < 2) return n.join("");

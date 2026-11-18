@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
  * `densidad` 1 = la imagen principal; menos de 1 = solo el polvo de fondo.
  */
 
-/** Aura, Altair, Rigel e Mira (los colores del logo) y los acentos violeta y ámbar. */
+/** Aura, Altair, Rigel y Mira (los colores del logo) y los acentos violeta y ámbar. */
 const AGENTES = ["#ff8a6b", "#7fb2ff", "#5fd09f", "#f6c64a"];
 const ACENTOS = ["#8052ff", "#ffb829"];
 /** Centros de los cuatro círculos del logo, en un cuadro de [-1, 1]. */

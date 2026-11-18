@@ -34,7 +34,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Sirve para mi negocio?",
-    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Atendel y su equipo (Aura, Altair, Rigel e Mira) hacen esa parte del trabajo.",
+    r: "Si atiendes personas por WhatsApp, correo o con citas, sí: Atendel y su equipo (Aura, Altair, Rigel y Mira) hacen esa parte del trabajo.",
   },
   {
     p: "¿Atendel trabaja aunque yo no esté?",

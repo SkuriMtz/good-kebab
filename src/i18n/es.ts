@@ -44,8 +44,8 @@ export const es = {
     locale: "es_MX",
     tituloInicio: "Atendel — Tu socio de IA para atender tu negocio",
     descripcionInicio:
-      "Le escribes a Atendel y él reparte el trabajo a su equipo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes e Mira la oficina. Trabaja aunque no estés y te avisa de todo.",
-    agentes: ["Agentes", "Atendel y su equipo: Aura, Altair, Rigel e Mira. Qué hace cada uno y cómo trabajan juntos."],
+      "Le escribes a Atendel y él reparte el trabajo a su equipo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés y te avisa de todo.",
+    agentes: ["Agentes", "Atendel y su equipo: Aura, Altair, Rigel y Mira. Qué hace cada uno y cómo trabajan juntos."],
     precios: ["Precios", "Atendel Free es gratis y trae a todo el equipo para probarlo. One y Max son para el día a día; Max, con 5 veces el uso de One."],
     preguntas: [
       "Posibles preguntas",
@@ -53,7 +53,7 @@ export const es = {
     ],
     paraQuien: [
       "Para quién es",
-      "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Aura, Altair, Rigel e Mira por ti.",
+      "Si trabajas con citas, te escriben a todas horas, vives de que tus clientes regresen o el papeleo te quita tiempo: qué hacen Aura, Altair, Rigel y Mira por ti.",
     ],
     lista: ["Lista de espera", "Déjanos tu correo y te avisamos cuando abramos tu lugar en Atendel."],
     contacto: ["Contacto", "Escríbenos tus dudas sobre Atendel, los planes o cómo cuidamos tus datos. Te contestamos a tu correo."],
@@ -115,7 +115,7 @@ export const es = {
     pruebalo: "Pruébalo",
     tusDatos: "Tus datos",
     miPanel: "Mi panel",
-    lema: "Atendel, tu socio de IA: con Aura, Altair, Rigel e Mira atiende tu negocio aunque no estés.",
+    lema: "Atendel, tu socio de IA: con Aura, Altair, Rigel y Mira atiende tu negocio aunque no estés.",
     sello: "Entras con tu correo · sin contraseña",
     franja: "Ayuda y datos",
     privacidad: "Privacidad",
@@ -128,7 +128,7 @@ export const es = {
       etiqueta: "Tu socio de IA",
       titulo: "Que ningún cliente se quede sin respuesta.",
       texto:
-        "Le escribes a Atendel como a un socio y él reparte el trabajo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes e Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
+        "Le escribes a Atendel como a un socio y él reparte el trabajo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
     },
     decisiones: {
       titulo: "Trabaja aunque no estés",
@@ -210,7 +210,7 @@ export const es = {
       conexion: "No hay conexión. Revisa tu internet e intenta de nuevo.",
     },
     pagina: {
-      equipo: "Aura, Altair, Rigel e Mira",
+      equipo: "Aura, Altair, Rigel y Mira",
       etiqueta: "Lista de espera",
       titulo: "Anótate y te avisamos cuando abramos tu lugar",
       texto: "Para negocios que atienden personas. Solo necesitamos tu correo.",
@@ -240,7 +240,7 @@ export const es = {
     etiqueta: "Atención · Correo · Clientes · Oficina",
     titulo: "¿Qué le encargas hoy?",
     texto:
-      "Le escribes a Atendel y él se lo pasa a quien le toca: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes e Mira hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
+      "Le escribes a Atendel y él se lo pasa a quien le toca: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de regreso a tus clientes y Mira hace el trabajo de oficina. Toca a cualquiera para ver su ficha.",
     hablar: "Habla con Atendel",
     verPrecios: "Ver precios",
     chatEtiqueta: "El chat",
@@ -537,7 +537,7 @@ export const es = {
     volver: "Volver al inicio",
     sigue: "O sigue por aquí",
     atajos: [
-      { href: "/agentes", titulo: "Agentes", texto: "Aura, Altair, Rigel e Mira: qué hace cada uno" },
+      { href: "/agentes", titulo: "Agentes", texto: "Aura, Altair, Rigel y Mira: qué hace cada uno" },
       { href: "/precios", titulo: "Precios", texto: "Qué trae Free, One y Max" },
       { href: "/preguntas", titulo: "Posibles preguntas", texto: "Cómo se empieza y cómo cuidamos tus datos" },
       { href: "/pruebalo", titulo: "Pruébalo", texto: "Platica con los agentes en un chat de ejemplo" },

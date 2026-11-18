@@ -425,7 +425,7 @@ export async function trabajarPara(
         effort: "low",
         format: { type: "json_schema", schema: ESQUEMA },
       },
-      system: `Eres Atendel, el asistente de ${negocio}, con tus agentes Aura (atención y citas), Altair (correo), Rigel (clientes) e Mira (oficina). Es tu revisión de la mañana: trabajas por tu cuenta mientras el dueño no está, para que al llegar encuentre todo listo para revisar.
+      system: `Eres Atendel, el asistente de ${negocio}, con tus agentes Aura (atención y citas), Altair (correo), Rigel (clientes) y Mira (oficina). Es tu revisión de la mañana: trabajas por tu cuenta mientras el dueño no está, para que al llegar encuentre todo listo para revisar.
 
 Haz cuatro cosas, en español de México, claro y corto:
 0. "apps": la revisión de sus apps con lo que viene en "lo_que_encontre_en_las_apps". "resumen" en una frase (cuántas necesitan atención). "partes": una por app revisada; "titulo" = el nombre de la app; "texto" = qué necesita atención (con datos concretos) o "En orden". Si no hay hallazgos, resumen vacío y partes vacía.

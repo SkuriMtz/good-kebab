@@ -26,7 +26,7 @@ const VERDE_CLARO = hex("#7be08a");
 const BLANCO = hex("#ffffff");
 const ROSA = hex("#ffc2d4");
 const CORAL = hex("#ff8a6b");
-/** Aura, Altair, Rigel e Mira: los colores del logo. */
+/** Aura, Altair, Rigel y Mira: los colores del logo. */
 const AGENTES = [hex("#ff8a6b"), hex("#7fb2ff"), hex("#5fd09f"), hex("#f6c64a")];
 
 const mezcla = (a: Color, b: Color, k: number): Color => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];

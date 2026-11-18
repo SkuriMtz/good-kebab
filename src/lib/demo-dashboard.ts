@@ -18,7 +18,7 @@ import type { IdPlan } from "./planes";
  * de Atendel. Cuenta la misma historia que el chat de ejemplo (ChatDemo):
  * Sofía Ramírez agenda su primera cita, Carla Díaz cambia de hora,
  * Rosa Peña no ha confirmado, Altair leyó 23 correos, Rigel siguió a quien
- * preguntó por un servicio e Mira dejó el reporte de septiembre en Excel.
+ * preguntó por un servicio y Mira dejó el reporte de septiembre en Excel.
  *
  * Las horas van en minutos antes de "ahora" (haceMin): así la demostración
  * se ve al día a cualquier hora que se abra.

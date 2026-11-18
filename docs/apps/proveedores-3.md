@@ -71,7 +71,7 @@ Si la llave es del ambiente de pruebas (Sandbox), Atendel lo detecta solo.
 
 ### Square (OAuth)
 
-**Qué hace la IA:** Mira ve tus pagos recientes; Mira y Rigel buscan a tus clientes del directorio de Square; Aura e Mira ven las citas de **Square Appointments** (hasta 31 días a la vez), con el nombre de quien reservó.
+**Qué hace la IA:** Mira ve tus pagos recientes; Mira y Rigel buscan a tus clientes del directorio de Square; Aura y Mira ven las citas de **Square Appointments** (hasta 31 días a la vez), con el nombre de quien reservó.
 
 > Square opera en pocos países (por ejemplo Estados Unidos, Canadá y España). Si la cuenta es de otro país, los montos salen en su moneda.
 

@@ -142,7 +142,7 @@ export function terminosEs(d: DatosLegales): Documento {
       {
         titulo: "Qué es Atendel",
         parrafos: [
-          "Atendel es un asistente con inteligencia artificial para negocios: contesta tu WhatsApp y tu correo, acomoda tu agenda, prepara documentos y te avisa de lo importante, con tus Reglas y con las apps que conectes. Dentro trabajan cuatro especialistas (Aura, Altair, Rigel e Mira), pero tú solo le hablas a Atendel.",
+          "Atendel es un asistente con inteligencia artificial para negocios: contesta tu WhatsApp y tu correo, acomoda tu agenda, prepara documentos y te avisa de lo importante, con tus Reglas y con las apps que conectes. Dentro trabajan cuatro especialistas (Aura, Altair, Rigel y Mira), pero tú solo le hablas a Atendel.",
         ],
       },
       {

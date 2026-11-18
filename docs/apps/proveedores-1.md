@@ -247,7 +247,7 @@ Nunca se pega tu contraseña. La API User Key no pide verificación en dos pasos
 **Qué hace la IA:**
 
 - Rigel busca tus contactos y tratos de **Zoho CRM**.
-- Altair e Mira ven tus facturas y contactos de **Zoho Books**.
+- Altair y Mira ven tus facturas y contactos de **Zoho Books**.
 
 1. Entra a [api-console.zoho.com](https://api-console.zoho.com) → **Add Client** → **Server-based Applications**.
 2. **Authorized Redirect URIs:** `https://<dominio>/api/conexiones/zoho/callback`.

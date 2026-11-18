@@ -18,7 +18,7 @@ import { Marca } from "@/components/Logo";
  * subiendo 6px en 180ms (ANIMACIONES.md, "del chat"). Estilo en panel.css.
  */
 
-/** "Aura", "Aura y Rigel", "Aura, Altair e Mira". */
+/** "Aura", "Aura y Rigel", "Aura, Altair y Mira". */
 export function nombresDe(ids: readonly IdAgente[]) {
   const n = ids.map((id) => AGENTE_POR_ID[id].nombre);
   if (n.length < 2) return n.join("");
