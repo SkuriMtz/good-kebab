@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Marca } from "@/components/Logo";
-import { POLITICAS, type Politica } from "@/legal/politicas";
+import { useCambiarIdioma } from "@/i18n/Idioma";
+import type { Idioma } from "@/i18n";
+import { ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
 
 type Seccion = { id: string; titulo: string };
 
@@ -81,10 +83,13 @@ const Flecha = ({ className = "" }: { className?: string }) => (
 export function EncabezadoLegal({
   actual,
   secciones,
+  idioma,
 }: {
   actual: Politica;
   secciones: Seccion[];
+  idioma: Idioma;
 }) {
+  const E = ETIQUETAS_LEGALES[idioma];
   const [compacto, setCompacto] = useState(false);
   const [politicas, setPoliticas] = useState(false);
   const [lista, setLista] = useState(false);
@@ -121,7 +126,7 @@ export function EncabezadoLegal({
                 strokeLinejoin="round"
               />
             </svg>
-            <span className="legal__solo-ancho">Inicio</span>
+            <span className="legal__solo-ancho">{E.inicio}</span>
           </Link>
         </div>
 
@@ -141,7 +146,7 @@ export function EncabezadoLegal({
               aria-controls="legal-politicas"
               onClick={() => setPoliticas((a) => !a)}
             >
-              Políticas
+              {E.politicas}
               <Flecha className="legal__flecha" />
             </button>
             {politicas ? (
@@ -153,7 +158,7 @@ export function EncabezadoLegal({
                       aria-current={p.id === actual ? "page" : undefined}
                       onClick={() => setPoliticas(false)}
                     >
-                      {p.nombre}
+                      {p.nombre[idioma]}
                     </Link>
                   </li>
                 ))}
@@ -162,7 +167,7 @@ export function EncabezadoLegal({
           </div>
 
           <Link href="/entrar" className="legal__pildora legal__pildora--azul">
-            Entrar
+            {E.entrar}
           </Link>
         </nav>
       </header>
@@ -203,12 +208,18 @@ export function EncabezadoLegal({
 }
 
 /** Índice a un lado (en compu) que marca la sección en la que vas. */
-export function IndiceSecciones({ secciones }: { secciones: Seccion[] }) {
+export function IndiceSecciones({
+  secciones,
+  titulo: tituloIndice,
+}: {
+  secciones: Seccion[];
+  titulo: string;
+}) {
   const actual = useSeccionActual(secciones);
   const titulo = (t: string) => t.replace(/^\d+\.\s*/, "");
   return (
-    <nav className="legal__indice" aria-label="Contenido">
-      <p className="legal__indice-titulo">Contenido</p>
+    <nav className="legal__indice" aria-label={tituloIndice}>
+      <p className="legal__indice-titulo">{tituloIndice}</p>
       <ol>
         {secciones.map((s, i) => (
           <li key={s.id}>
@@ -226,7 +237,7 @@ export function IndiceSecciones({ secciones }: { secciones: Seccion[] }) {
 }
 
 /** "Descargar PDF": abre la impresión del navegador, que deja guardarlo como PDF (la hoja de impresión deja solo el texto). */
-export function BotonPdf() {
+export function BotonPdf({ texto }: { texto: string }) {
   return (
     <button type="button" className="legal__pdf" onClick={() => window.print()}>
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -239,7 +250,34 @@ export function BotonPdf() {
           strokeLinejoin="round"
         />
       </svg>
-      Descargar PDF
+      {texto}
     </button>
+  );
+}
+
+/** El idioma del documento: Español o English (guarda la cookie del sitio y vuelve a pedir la página). */
+export function SelectorIdioma({
+  idioma,
+  etiqueta,
+}: {
+  idioma: Idioma;
+  etiqueta: string;
+}) {
+  const { cambiar, cambiando } = useCambiarIdioma();
+  return (
+    <span
+      className="legal__idioma"
+      data-cambiando={cambiando ? "true" : undefined}
+    >
+      <select
+        aria-label={etiqueta}
+        value={idioma}
+        onChange={(e) => cambiar(e.target.value as Idioma)}
+      >
+        <option value="es">Español</option>
+        <option value="en">English</option>
+      </select>
+      <Flecha className="legal__idioma-flecha" />
+    </span>
   );
 }

@@ -1,70 +1,82 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BotonPdf, EncabezadoLegal, IndiceSecciones } from "@/components/legal/BarraSecciones";
-import { POLITICAS, type Politica } from "@/legal/politicas";
+import {
+  BotonPdf,
+  EncabezadoLegal,
+  IndiceSecciones,
+  SelectorIdioma,
+} from "@/components/legal/BarraSecciones";
 import { DocumentoMd, seccionesMd } from "@/components/legal/DocumentoMd";
 import { serifPanel } from "@/components/panel/fuente";
+import type { Idioma } from "@/i18n";
+import { ETIQUETAS_LEGALES, POLITICAS, type Politica } from "@/legal/politicas";
 import { DATOS_LEGALES } from "@/lib/legal";
 import { CORREO_CONTACTO } from "@/lib/sitio";
 
-/** "2026-11-17" → "17 de noviembre de 2026" (en UTC, para que no se corra un día). */
-const fecha = (iso: string) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString("es-MX", {
+/** "2026-11-17" → fecha larga en el idioma (en UTC, para que no se corra un día). */
+const fecha = (iso: string, locale: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
     timeZone: "UTC",
   });
 
-/**
- * Página de un documento legal (/privacidad, /terminos, /cookies) con la cara
- * de Atendel: encabezado fijo (logo al centro que se compacta al bajar,
- * «Políticas» a la derecha y una línea fina con la sección en la que vas),
- * título en serif, ficha (vigencia, tipo, idioma), índice a un lado y un
- * pie de una línea.
- * Siempre en claro y en español (es el texto que vale).
- */
-export function PaginaDocumento({
-  actual,
-  etiqueta,
-  titulo,
-  tipo,
-  texto,
-  entrada,
-}: {
-  actual: Politica;
+type Version = {
   etiqueta: string;
   titulo: string;
   tipo: string;
   texto: string;
   entrada?: ReactNode;
+};
+
+/**
+ * Página de un documento legal (/privacidad, /terminos, /cookies) con la cara
+ * de Atendel, en español o inglés (la cookie del sitio; se cambia en la
+ * ficha). Encabezado fijo (logo al centro que se compacta al bajar,
+ * «Políticas» a la derecha y una línea fina con la sección en la que vas),
+ * título en serif, ficha (vigencia, tipo, idioma), índice a un lado y pie
+ * de una línea. Siempre en claro. Vale el texto en español.
+ */
+export function PaginaDocumento({
+  actual,
+  idioma,
+  es,
+  en,
+}: {
+  actual: Politica;
+  idioma: Idioma;
+  es: Version;
+  en: Version;
 }) {
-  const secciones = seccionesMd(texto);
+  const v = idioma === "en" ? en : es;
+  const E = ETIQUETAS_LEGALES[idioma];
+  const secciones = seccionesMd(v.texto);
   return (
-    <div className={`legal ${serifPanel.variable}`} lang="es">
+    <div className={`legal ${serifPanel.variable}`} lang={idioma}>
       <a href="#legal-contenido" className="legal__saltar">
-        Saltar al contenido
+        {E.saltar}
       </a>
-      <EncabezadoLegal actual={actual} secciones={secciones} />
+      <EncabezadoLegal actual={actual} secciones={secciones} idioma={idioma} />
 
       <main id="legal-contenido" tabIndex={-1} className="legal__main">
         <div className="legal__cabeza">
-          <p className="legal__etiqueta">{etiqueta}</p>
-          <h1>{titulo}</h1>
-          <BotonPdf />
+          <p className="legal__etiqueta">{v.etiqueta}</p>
+          <h1>{v.titulo}</h1>
+          <BotonPdf texto={E.pdf} />
         </div>
 
         <dl className="legal__ficha">
           <div>
-            <dt>Vigente desde</dt>
+            <dt>{E.vigente}</dt>
             <dd>
               <time dateTime={DATOS_LEGALES.actualizado}>
-                {fecha(DATOS_LEGALES.actualizado)}
+                {fecha(DATOS_LEGALES.actualizado, E.locale)}
               </time>
             </dd>
           </div>
           <div>
-            <dt>Tipo</dt>
+            <dt>{E.tipo}</dt>
             <dd>
               <span className="legal__chip">
                 <svg
@@ -81,36 +93,37 @@ export function PaginaDocumento({
                     strokeLinejoin="round"
                   />
                 </svg>
-                {tipo}
+                {v.tipo}
               </span>
             </dd>
           </div>
           <div>
-            <dt>Idioma</dt>
+            <dt>{E.idioma}</dt>
             <dd>
-              <span className="legal__chip legal__chip--borde">Español</span>
+              <SelectorIdioma idioma={idioma} etiqueta={E.idioma} />
             </dd>
           </div>
         </dl>
+        {E.nota ? <p className="legal__nota">{E.nota}</p> : null}
 
         <div className="legal__columnas">
-          <IndiceSecciones secciones={secciones} />
+          <IndiceSecciones secciones={secciones} titulo={E.contenido} />
           <div className="legal__cuerpo">
-            {entrada ? <p className="legal__entrada">{entrada}</p> : null}
-            <DocumentoMd texto={texto} soloCuerpo />
+            {v.entrada ? <p className="legal__entrada">{v.entrada}</p> : null}
+            <DocumentoMd texto={v.texto} soloCuerpo />
           </div>
         </div>
       </main>
 
       <footer className="legal__pie">
         <p>© 2026 Atendel</p>
-        <nav aria-label="Políticas y contacto">
+        <nav aria-label={E.pieAria}>
           {POLITICAS.filter((p) => p.id !== actual).map((p) => (
             <Link key={p.id} href={p.href}>
-              {p.nombre}
+              {p.nombre[idioma]}
             </Link>
           ))}
-          <Link href="/contacto">Contacto</Link>
+          <Link href="/contacto">{E.contacto}</Link>
           <a href={`mailto:${CORREO_CONTACTO}`}>{CORREO_CONTACTO}</a>
         </nav>
       </footer>

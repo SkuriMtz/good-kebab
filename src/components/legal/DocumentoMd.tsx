@@ -128,7 +128,10 @@ export function DocumentoMd({
         (b) =>
           b.tipo !== "h1" &&
           b.tipo !== "sub" &&
-          !(b.tipo === "h3" && b.texto.startsWith("Última actualización")),
+          !(
+            b.tipo === "h3" &&
+            /^(Última actualización|Last updated)/.test(b.texto)
+          ),
       )
     : todos;
   const secciones = bloques.filter(

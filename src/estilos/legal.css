@@ -300,6 +300,42 @@
   color: var(--l-texto-2);
 }
 
+.legal__idioma {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.legal__idioma select {
+  appearance: none;
+  min-height: 32px;
+  padding: 0 30px 0 10px;
+  border: 1px solid var(--l-borde);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: var(--l-texto-2);
+  cursor: pointer;
+}
+.legal__idioma select:hover {
+  border-color: #c9ccd4;
+}
+.legal__idioma-flecha {
+  position: absolute;
+  right: 9px;
+  pointer-events: none;
+  color: var(--l-tenue);
+}
+.legal__idioma[data-cambiando] {
+  opacity: 0.6;
+}
+.legal__nota {
+  margin-top: 16px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--l-tenue);
+}
+
 /* ---- Índice + texto ---- */
 .legal__columnas {
   display: grid;
