@@ -569,15 +569,38 @@
   margin-top: 0;
 }
 
+/* En celular, la tarjeta más chica (300 px en vez de casi todo el ancho) para que se vea el fondo;
+   el campo y el botón se quedan de 48 px (fáciles de tocar) y el campo con letra de 16 px (si no,
+   el iPhone hace zoom al escribir). En compu no cambia nada. */
 @media (max-width: 479px) {
   .acc__centro {
     padding: 24px 16px 8px;
   }
   .acc__tarjeta {
-    padding: 28px 22px;
-    border-radius: 18px;
+    max-width: 300px;
+    padding: 22px 20px 20px;
+    border-radius: 16px;
+  }
+  .acc__marca-svg {
+    width: 22px;
+    height: 22px;
+  }
+  .acc__marca-nombre {
+    font-size: 17px;
   }
   .acc__titulo {
-    font-size: 21px;
+    margin-top: 12px;
+    font-size: 19px;
+  }
+  .acc__texto {
+    font-size: 14px;
+  }
+  .acc__formulario {
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .acc__pie-tarjeta {
+    margin-top: 16px;
+    font-size: 13px;
   }
 }
