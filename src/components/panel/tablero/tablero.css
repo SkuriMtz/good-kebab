@@ -933,3 +933,61 @@
     transition: none;
   }
 }
+
+/* ---------- Al bajar: el saludo se va y lo de abajo sube ----------
+   Animaciones ligadas al scroll (sin JavaScript, las mueve el navegador): el saludo y la barra se
+   desvanecen, se achican un poco y se desenfocan; el banner, los mosaicos, la columna de hoy y cada
+   sección suben y aparecen al entrar (en cascada). Solo opacidad, transform y un desenfoque leve.
+   Donde el navegador no lo soporta, o con «reducir movimiento» (del sistema o de Apariencia), todo se
+   ve quieto, como antes. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .pc:not([data-movimiento="reducido"]) .tb .tb-heroe {
+      view-timeline: --tb-heroe block;
+    }
+    .pc:not([data-movimiento="reducido"]) .tb-heroe__centro {
+      animation: tb-heroe-se-va linear both;
+      animation-timeline: --tb-heroe;
+      animation-range: exit 0% exit 75%;
+      transform-origin: 50% 40%;
+    }
+    .pc:not([data-movimiento="reducido"]) .tb-heroe .pc-inicio__fragmentos {
+      animation: tb-se-apaga linear both;
+      animation-timeline: --tb-heroe;
+      animation-range: exit 0% exit 60%;
+    }
+    .pc:not([data-movimiento="reducido"]) .tb-banner,
+    .pc:not([data-movimiento="reducido"]) .tb-mosaicos,
+    .pc:not([data-movimiento="reducido"]) .tb-hoy,
+    .pc:not([data-movimiento="reducido"]) .tb-secciones > * {
+      animation: tb-sube linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    /* La cascada: lo que entra junto (el banner y la columna de hoy) no llega al mismo tiempo */
+    .pc:not([data-movimiento="reducido"]) .tb-hoy {
+      animation-range: entry 15% entry 85%;
+    }
+    .pc:not([data-movimiento="reducido"]) .tb-mosaicos {
+      animation-range: entry 10% entry 80%;
+    }
+  }
+}
+@keyframes tb-heroe-se-va {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(6px);
+  }
+}
+@keyframes tb-se-apaga {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes tb-sube {
+  from {
+    opacity: 0;
+    transform: translateY(56px) scale(0.98);
+  }
+}
