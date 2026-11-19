@@ -60,27 +60,16 @@
   }
 }
 
-/* ---------- Dos columnas: lo del negocio a la izquierda, «Hoy» a la derecha ---------- */
+/* ---------- El cuerpo: el bento arriba y las secciones abajo, a todo lo ancho ---------- */
 .tb-cuerpo {
-  display: grid;
-  gap: 56px 24px;
+  container: tb-cuerpo / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
   min-width: 0;
 }
 .tb-cuerpo > * {
   min-width: 0;
-}
-@media (min-width: 1180px) {
-  .tb-cuerpo {
-    grid-template-columns: minmax(0, 1fr) 360px;
-    align-items: start;
-  }
-  .tb-cuerpo > :not(.tb-hoy) {
-    grid-column: 1;
-  }
-  .tb-cuerpo > .tb-hoy {
-    grid-column: 2;
-    grid-row: 1 / span 3;
-  }
 }
 .tb-secciones {
   display: flex;
@@ -88,14 +77,70 @@
   gap: 56px;
 }
 
+/* ---------- Bento: una sola cuadrícula para el banner, los mosaicos y los paneles de hoy ----------
+   En compu (4 columnas; cada mosaico mide como los de ElevenLabs, 16:9):
+     B  B  B  B      B = el banner, a todo lo ancho
+     M  P  P  V      M = un mosaico · P = Pendientes (2×2) · V = Lo que viene (1×2)
+     M  P  P  V
+     M  M  M  A      A = Tus apps (1×2), debajo de Lo que viene
+     M  M  M  A
+   Los mosaicos se acomodan solos en los huecos (6, 7 u 8, según lo que tenga cada quien: con 7, el
+   último ocupa dos; con 6, Tus apps ocupa 2×2). Las filas miden lo de un mosaico; si un panel
+   necesita más, la fila crece y los mosaicos de esa fila se estiran con ella (nada se corta).
+   En tablet: 2 columnas, Lo que viene y Tus apps lado a lado y Pendientes a lo ancho.
+   En celular: 2 columnas de mosaicos y los paneles uno debajo del otro. */
+.tb-bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: var(--tb-hueco);
+}
+.tb-bento > * {
+  min-width: 0;
+}
+.tb-bento > .tb-banner,
+.tb-bento > .tb-panel {
+  grid-column: 1 / -1;
+}
+.tb-bento > .tb-mosaico {
+  align-self: stretch;
+}
+@container tb-cuerpo (min-width: 560px) {
+  .tb-bento > .tb-viene,
+  .tb-bento > .tb-apps {
+    grid-column: auto / span 1;
+  }
+}
+@container tb-cuerpo (min-width: 880px) {
+  .tb-bento {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-flow: row;
+  }
+  .tb-bento > .tb-pend {
+    grid-column: 2 / span 2;
+    grid-row: 2 / span 2;
+  }
+  .tb-bento > .tb-viene {
+    grid-column: 4;
+    grid-row: 2 / span 2;
+  }
+  .tb-bento > .tb-apps {
+    grid-column: 4;
+    grid-row: 4 / span 2;
+  }
+  /* El ancho mide dos mosaicos pero el alto, el de su fila (no 16:9, que lo haría el doble de alto) */
+  .tb-bento[data-n="7"] > .tb-mosaico:last-of-type {
+    grid-column: auto / span 2;
+    aspect-ratio: auto;
+  }
+  .tb-bento[data-n="6"] > .tb-apps {
+    grid-column: 3 / span 2;
+  }
+}
+
 /* ---------- Mosaicos: tarjetas 16:9 como las de ElevenLabs ----------
    El color llena toda la tarjeta (con una luz), el ícono grande al centro, el título abajo a la
    izquierda sobre una sombra suave, y el numerito de pendientes adentro de la esquina. */
-.tb-mosaicos {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--tb-hueco);
-}
 .tb-mosaico {
   --tb-color: #8d8d96;
   position: relative;
@@ -199,30 +244,25 @@
 }
 @media (max-width: 560px) {
   /* En celular: 2 por fila, un poco más altas para que quepa el texto */
-  .tb-mosaicos .tb-mosaico {
+  .tb-bento .tb-mosaico {
     aspect-ratio: 4 / 3;
   }
-  .tb-mosaicos .tb-mosaico__arte svg {
+  .tb-bento .tb-mosaico__arte svg {
     width: 34px;
     height: 34px;
   }
-  .tb-mosaicos .tb-mosaico__texto {
+  .tb-bento .tb-mosaico__texto {
     padding: 10px 12px;
   }
-  .tb-mosaicos .tb-mosaico__titulo {
+  .tb-bento .tb-mosaico__titulo {
     font-size: 0.95rem;
   }
-  .tb-mosaicos .tb-mosaico__dato {
+  .tb-bento .tb-mosaico__dato {
     display: none;
   }
 }
 
-/* ---------- La columna de hoy ---------- */
-.tb-hoy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tb-hueco);
-}
+/* ---------- Los paneles de hoy ---------- */
 .tb-panel {
   padding: 20px;
   border: 1px solid var(--pc-borde-suave, var(--pc-borde));
@@ -231,9 +271,10 @@
 }
 .tb-panel__cabeza {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 2px 8px;
   margin-bottom: 12px;
 }
 .tb-panel__titulo {
@@ -268,7 +309,7 @@
   grid-template-columns: 10px minmax(0, 1fr);
   align-items: baseline;
   column-gap: 12px;
-  padding: 10px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--pc-borde-suave, var(--pc-borde));
 }
 .tb-agenda__fila:first-child {
@@ -282,7 +323,12 @@
   background: var(--pc-exito);
 }
 .tb-agenda__texto {
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .tb-agenda__hora {
   grid-column: 2;
@@ -346,9 +392,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 8px;
+  padding: 8px;
   margin: 0 -8px;
-  border-radius: 10px;
+  border-radius: var(--tb-radio-chico);
   color: var(--pc-texto);
   text-decoration: none;
 }
@@ -362,8 +408,12 @@
 }
 .tb-lista__detalle {
   color: var(--pc-texto-2);
-  font-size: 0.84rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .tb-mosaico:focus-visible,
 .tb-pestana:focus-visible,
@@ -963,10 +1013,16 @@
   padding: 0;
   list-style: none;
 }
+/* Cada app: el logo a la izquierda; arriba el nombre con su estado a la derecha, abajo la cuenta
+   (así cabe también en la columna angosta del bento) */
 .tb-apps__fila {
-  display: flex;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "logo nombre estado"
+    "logo cuenta cuenta";
   align-items: center;
-  gap: 12px;
+  column-gap: 10px;
   min-height: 56px;
   padding: 8px 0;
   border-top: 1px solid var(--pc-borde-suave);
@@ -977,6 +1033,7 @@
   border-top: 0;
 }
 .tb-apps__logo {
+  grid-area: logo;
   display: grid;
   place-items: center;
   flex: none;
@@ -990,15 +1047,19 @@
   border-radius: 3px;
 }
 .tb-apps__texto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
+  display: contents;
 }
 .tb-apps__nombre {
+  grid-area: nombre;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.9375rem;
   font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tb-apps__cuenta {
+  grid-area: cuenta;
   overflow: hidden;
   color: var(--pc-texto-2);
   font-size: 0.85rem;
@@ -1006,12 +1067,13 @@
   white-space: nowrap;
 }
 .tb-apps__estado {
+  grid-area: estado;
   display: inline-flex;
-  flex: none;
   align-items: center;
   gap: 6px;
   color: var(--pc-texto-2);
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
 }
 .tb-apps__estado[data-estado="error"] {
   color: var(--pc-atencion);

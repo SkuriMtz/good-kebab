@@ -7,9 +7,11 @@ import "./tablero.css";
 
 /*
  * EL TABLERO: lo primero al entrar (el Chat es otra pestaña del menú). El
- * saludo, un banner con lo importante, los mosaicos de cada sección y las
- * secciones del negocio; a la derecha, lo que viene, los pendientes y tus
- * apps. Todo se acomoda según lo que tiene cada quien (src/lib/tablero.ts).
+ * saludo y una cuadrícula de 4 columnas (como un bento): arriba el banner con
+ * lo importante; luego los mosaicos de cada sección, y entre ellos, a la
+ * derecha, los paneles de hoy (Pendientes de 2×2, Lo que viene y Tus apps de
+ * 1×2). Abajo, las secciones del negocio. Todo se acomoda según lo que tiene
+ * cada quien (src/lib/tablero.ts); el acomodo está en tablero.css («Bento»).
  */
 
 const numero = new Intl.NumberFormat("es-MX");
@@ -27,30 +29,27 @@ const TINTE: Record<string, string> = {
 };
 const tinteDe = (t: Tarjeta) => (t.tono === "alerta" ? "alerta" : (TINTE[t.id] ?? "gris"));
 
-function Mosaicos({ mosaicos }: { mosaicos: Mosaico[] }) {
+/** Un mosaico: una sección con su dato (va directo en la cuadrícula del bento). */
+function MosaicoTablero({ m }: { m: Mosaico }) {
   return (
-    <nav className="tb-mosaicos" aria-label="Secciones">
-      {mosaicos.map((m) => (
-        <a key={m.id} href={m.href} className="tb-mosaico" data-color={m.color}>
-          <span className="tb-mosaico__arte" aria-hidden="true">
-            <Icono nombre={m.icono} tam={30} />
-          </span>
-          <span className="tb-mosaico__texto">
-            <span className="tb-mosaico__titulo">{m.titulo}</span>
-            <span className="tb-mosaico__dato">{m.dato}</span>
-          </span>
-          {m.cuenta ? (
-            <span className="tb-mosaico__globo" aria-label={`${m.cuenta} pendientes`}>
-              {m.cuenta > 99 ? "99+" : m.cuenta}
-            </span>
-          ) : null}
-        </a>
-      ))}
-    </nav>
+    <a href={m.href} className="tb-mosaico" data-color={m.color}>
+      <span className="tb-mosaico__arte" aria-hidden="true">
+        <Icono nombre={m.icono} tam={30} />
+      </span>
+      <span className="tb-mosaico__texto">
+        <span className="tb-mosaico__titulo">{m.titulo}</span>
+        <span className="tb-mosaico__dato">{m.dato}</span>
+      </span>
+      {m.cuenta ? (
+        <span className="tb-mosaico__globo" aria-label={`${m.cuenta} pendientes`}>
+          {m.cuenta > 99 ? "99+" : m.cuenta}
+        </span>
+      ) : null}
+    </a>
   );
 }
 
-/* ---------- La columna de hoy (con pestañas) ---------- */
+/* ---------- Los paneles de hoy (con pestañas) ---------- */
 
 /** Tus apps: cada cuenta conectada con su logo, su correo y si funciona. */
 function TusApps({ lista, href }: { lista: AppTablero[]; href: string }) {
@@ -95,7 +94,7 @@ function TusApps({ lista, href }: { lista: AppTablero[]; href: string }) {
   );
 }
 
-function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: string; children?: ReactNode }) {
+function PanelesHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
   const [activa, setActiva] = useState(hoy.pestanas.find((p) => p.cuenta)?.id ?? hoy.pestanas[0]?.id);
   const pestana = hoy.pestanas.find((p) => p.id === activa) ?? hoy.pestanas[0];
   const mover = (dir: 1 | -1) => {
@@ -105,8 +104,8 @@ function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: strin
     document.getElementById(`tb-pest-${sig.id}`)?.focus();
   };
   return (
-    <aside className="tb-hoy" aria-label="Hoy">
-      <section className="tb-panel">
+    <>
+      <section className="tb-panel tb-viene">
         <div className="tb-panel__cabeza">
           <h2 className="tb-panel__titulo">Lo que viene</h2>
           <a href={hrefTareas} className="tb-panel__enlace">
@@ -129,7 +128,7 @@ function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: strin
       </section>
 
       {pestana ? (
-        <section className="tb-panel">
+        <section className="tb-panel tb-pend">
           <div className="tb-panel__cabeza">
             <h2 className="tb-panel__titulo">Pendientes</h2>
             <a href={pestana.href} className="tb-panel__enlace">
@@ -177,8 +176,7 @@ function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: strin
           </div>
         </section>
       ) : null}
-      {children}
-    </aside>
+    </>
   );
 }
 
@@ -399,14 +397,23 @@ function useTransicion() {
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches || el.closest(".pc")?.getAttribute("data-movimiento") === "reducido";
     if (quieto) return;
     el.classList.add("tb--anima");
-    const piezas = [...el.querySelectorAll<HTMLElement>(".tb-banner, .tb-mosaicos, .tb-hoy > *, .tb-secciones > *")];
+    const piezas = [...el.querySelectorAll<HTMLElement>(".tb-bento > *, .tb-secciones > *")];
+    // Al terminar de aparecer, cada pieza vuelve a sus transiciones normales (el «apretar» de los mosaicos es rápido)
+    const listo = (e: TransitionEvent) => {
+      const pieza = e.currentTarget as HTMLElement;
+      if (e.target !== pieza || e.propertyName !== "transform") return;
+      pieza.classList.remove("tb-aparece", "tb-visto");
+      pieza.removeEventListener("transitionend", listo);
+    };
     const ver = new IntersectionObserver(
       (entradas) => {
         entradas
           .filter((e) => e.isIntersecting)
           .forEach((e, n) => {
             const pieza = e.target as HTMLElement;
-            pieza.style.setProperty("--tb-retraso", `${n * 90}ms`);
+            // Uno tras otro, 50 ms entre cada uno (en el bento entran hasta 12 a la vez)
+            pieza.style.setProperty("--tb-retraso", `${n * 50}ms`);
+            pieza.addEventListener("transitionend", listo);
             pieza.classList.add("tb-visto");
             ver.unobserve(pieza);
           });
@@ -420,7 +427,10 @@ function useTransicion() {
     return () => {
       ver.disconnect();
       el.classList.remove("tb--anima");
-      for (const p of piezas) p.classList.remove("tb-aparece", "tb-visto");
+      for (const p of piezas) {
+        p.removeEventListener("transitionend", listo);
+        p.classList.remove("tb-aparece", "tb-visto");
+      }
     };
   }, []);
   return raiz;
@@ -435,11 +445,14 @@ export function Tablero({ datos, saludo, fecha, base }: { datos: DatosTablero; s
         {fecha ? <p className="tb-cabeza__fecha">{fecha}</p> : null}
       </header>
       <div className="tb-cuerpo">
-        <Banner destacadas={datos.destacadas} />
-        {datos.mosaicos.length ? <Mosaicos mosaicos={datos.mosaicos} /> : null}
-        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`}>
+        <div className="tb-bento" data-n={datos.mosaicos.length}>
+          <Banner destacadas={datos.destacadas} />
+          {datos.mosaicos.map((m) => (
+            <MosaicoTablero key={m.id} m={m} />
+          ))}
+          <PanelesHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`} />
           <TusApps lista={datos.apps.lista} href={datos.apps.href} />
-        </ColumnaHoy>
+        </div>
         <div className="tb-secciones">
           {datos.filas.map((f) => (
             <Seccion key={f.id} id={f.id} titulo={f.titulo} href={f.href}>
