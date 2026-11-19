@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, regionDeIdioma, urlSegura, urlsDeBusqueda } from "@/lib/noticias";
+import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, regionDeIdioma, resultadosDeBusqueda, urlSegura } from "@/lib/noticias";
 
 const resultado = (...urls: string[]) => ({
   type: "web_search_tool_result",
@@ -40,7 +40,7 @@ describe("noticias de tu industria", () => {
   });
 
   it("un enlace que no salió de la búsqueda no pasa (nada inventado)", () => {
-    const permitidas = urlsDeBusqueda([resultado("https://www.eleconomista.com.mx/a", "https://expansion.mx/b"), { type: "text", text: "x" }]);
+    const permitidas = resultadosDeBusqueda([resultado("https://www.eleconomista.com.mx/a", "https://expansion.mx/b"), { type: "text", text: "x" }]);
     const texto =
       'Aquí van: {"noticias":[' +
       '{"titulo":"Nueva norma para consultorios","resumen":"Pide **registro** nuevo.","url":"https://www.eleconomista.com.mx/a"},' +
@@ -53,9 +53,25 @@ describe("noticias de tu industria", () => {
     expect(n[1].resumen).toBe("15 % más");
   });
 
+  it("si la IA escribe la dirección un poco distinta, se usa la de la búsqueda", () => {
+    const res = [
+      { url: "https://www.milenio.com/negocios/barberias-nueva-norma?utm=x", titulo: "Nueva norma sanitaria para barberías en CDMX - Milenio" },
+      { url: "https://expansion.mx/empresas/precio-navajas", titulo: "Sube 15% el precio de las navajas y productos" },
+    ];
+    const texto = JSON.stringify({
+      noticias: [
+        { titulo: "Nueva norma para barberías", resumen: "x", url: "http://milenio.com/negocios/barberias-nueva-norma/" },
+        { titulo: "Sube el precio de las navajas y productos de barbería", resumen: "x", url: "https://expansion.mx/otra-cosa" },
+        { titulo: "Algo que no salió en la búsqueda", resumen: "x", url: "https://inventado.com/z" },
+      ],
+    });
+    const n = leerNoticias(texto, res);
+    expect(n.map((x) => x.url)).toEqual(["https://www.milenio.com/negocios/barberias-nueva-norma?utm=x", "https://expansion.mx/empresas/precio-navajas"]);
+  });
+
   it("si no es JSON o no hay lista, nada", () => {
-    expect(leerNoticias("no encontré nada", new Set())).toEqual([]);
-    expect(leerNoticias('{"otra":1}', new Set())).toEqual([]);
+    expect(leerNoticias("no encontré nada", [])).toEqual([]);
+    expect(leerNoticias('{"otra":1}', [])).toEqual([]);
   });
 
   it("lo guardado se vuelve a revisar al leer", () => {

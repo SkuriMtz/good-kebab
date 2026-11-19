@@ -117,7 +117,7 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
     })),
     uso: { semanaPct: uso ? porcentaje(uso.semana.usado, uso.semana.limite) : null, trabajoPct: uso?.trabajo ? porcentaje(uso.trabajo.usado, uso.trabajo.limite) : null },
     noticias: noticias.noticias,
-    noticiasAlDia: noticias.dia === diaNoticias(o.zona),
+    noticiasAlDia: noticias.dia === diaNoticias(o.zona) && noticias.noticias.length > 0,
   };
   return armarTablero(entrada);
 }

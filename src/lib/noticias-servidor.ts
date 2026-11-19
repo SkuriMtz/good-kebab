@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdIdioma } from "./ajustes";
 import { cargarCuenta } from "./cuenta";
 import { conUrlDeFoto, guardarFotos } from "./fotos-noticias";
-import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, urlsDeBusqueda, type Noticia } from "./noticias";
+import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, resultadosDeBusqueda, type Noticia } from "./noticias";
 import { MODELOS } from "./planes";
 import { pasarLimite } from "./seguridad";
 import { inicioSemana } from "./trabajo";
@@ -38,18 +38,23 @@ async function alcanza(admin: SupabaseClient, dueno: string, zona: string): Prom
 }
 
 /**
- * Las de hoy: si ya están, esas; si no, las busca (una sola vez al día por
- * clave, aunque muchos abran el Tablero al mismo tiempo).
+ * Las de hoy: si ya están, esas; si no, las busca. Por tipo de negocio,
+ * una búsqueda por hora como mucho y 3 al día, aunque muchos abran el
+ * Tablero al mismo tiempo.
  */
 export async function noticiasDeHoy(admin: SupabaseClient, dueno: string, o: { tipo: string | null; idioma: IdIdioma; zona: string }): Promise<Noticia[]> {
   const clave = claveNoticias(o.tipo, o.idioma);
   const dia = diaNoticias(o.zona);
   const antes = await leerNoticiasGuardadas(admin, clave);
-  if (antes.dia === dia || !process.env.ANTHROPIC_API_KEY) return antes.noticias;
-  // Uno a la vez por clave y día (si falla, se queda con las de antes hasta mañana); y nadie más de 3 al día
-  if (!(await pasarLimite(`noticias_usuario:${dueno}`, 3, 86_400, false))) return antes.noticias;
+  // Ya hay de hoy: esas. (Si hoy no salió ninguna, se vuelve a intentar, con los topes de abajo)
+  if ((antes.dia === dia && antes.noticias.length) || !process.env.ANTHROPIC_API_KEY) return antes.noticias;
+  // Tope por cuenta (cada vez que abre el Tablero sin noticias de hoy se pregunta; buscar, casi nunca)
+  if (!(await pasarLimite(`noticias_usuario:${dueno}`, 12, 86_400, false))) return antes.noticias;
   if (!(await alcanza(admin, dueno, o.zona))) return antes.noticias;
-  if (!(await pasarLimite(`noticias:${clave}:${dia}`, 1, 2 * 86_400, false))) return antes.noticias;
+  // Por tipo de negocio: una búsqueda a la vez (cada hora como mucho) y máximo 3 al día
+  const hora = new Date().toISOString().slice(0, 13);
+  if (!(await pasarLimite(`noticias:${clave}:${hora}`, 1, 2 * 3_600, false))) return antes.noticias;
+  if (!(await pasarLimite(`noticias:${clave}:${dia}`, 3, 2 * 86_400, false))) return antes.noticias;
 
   const { system, mensaje } = pedidoNoticias(o.tipo, o.idioma, dia);
   const gasto = new Gasto();
@@ -79,14 +84,13 @@ export async function noticiasDeHoy(admin: SupabaseClient, dueno: string, o: { t
       }
       mensajes.push({ role: "assistant", content: r.content });
     }
-    const permitidas = urlsDeBusqueda(bloques);
+    const resultados = resultadosDeBusqueda(bloques);
     const ultimas = bloques.slice(bloques.map((b) => b.type).lastIndexOf("web_search_tool_result") + 1);
     const texto = ultimas.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
-    const encontradas = leerNoticias(texto, permitidas);
+    const encontradas = leerNoticias(texto, resultados);
     if (!encontradas.length) {
-      // No hubo nada: se quedan las de antes, pero se marca el día para no volver a buscar hasta mañana
-      if (antes.dia) await admin.from("noticias_industria").update({ dia, actualizado_en: new Date().toISOString() }).eq("clave", clave);
-      else await admin.from("noticias_industria").insert({ clave, dia, noticias: [] });
+      // No hubo nada que pasara: se quedan las de antes y se vuelve a intentar más tarde (máximo 3 al día)
+      console.error(`Noticias: ninguna pasó (${resultados.length} resultados de la búsqueda, ${texto.length} caracteres de respuesta)`);
       return antes.noticias;
     }
     // Cada una con su foto (la de la nota), guardada en Storage

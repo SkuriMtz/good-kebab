@@ -60,22 +60,69 @@ export function pedidoNoticias(tipo: string | null | undefined, idioma: IdIdioma
   };
 }
 
-/** Las direcciones que salieron en los resultados de búsqueda (web_search_tool_result) de una respuesta. */
-export function urlsDeBusqueda(bloques: readonly unknown[]): Set<string> {
-  const urls = new Set<string>();
+/** Un resultado real de la búsqueda (su dirección, ya revisada, y su título). */
+export type ResultadoBusqueda = { url: string; titulo: string };
+
+/** Los resultados que trajo la búsqueda (web_search_tool_result) en una respuesta. */
+export function resultadosDeBusqueda(bloques: readonly unknown[]): ResultadoBusqueda[] {
+  const salida: ResultadoBusqueda[] = [];
   for (const b of bloques) {
     if (!b || typeof b !== "object") continue;
     const r = b as { type?: unknown; content?: unknown };
     if (r.type !== "web_search_tool_result" || !Array.isArray(r.content)) continue;
     for (const x of r.content) {
-      const u = (x as { type?: unknown; url?: unknown } | null)?.url;
-      if ((x as { type?: unknown } | null)?.type === "web_search_result" && typeof u === "string") {
-        const limpia = urlSegura(u);
-        if (limpia) urls.add(limpia);
-      }
+      const o = (x ?? {}) as { type?: unknown; url?: unknown; title?: unknown };
+      const url = o.type === "web_search_result" ? urlSegura(o.url) : null;
+      if (url) salida.push({ url, titulo: typeof o.title === "string" ? o.title : "" });
     }
   }
-  return urls;
+  return salida;
+}
+
+/** Para comparar direcciones: sin «www.», sin parámetros ni diagonal final, y da igual http o https. */
+const llaveUrl = (u: unknown): string | null => {
+  if (typeof u !== "string" || u.length > 600) return null;
+  try {
+    const x = new URL(u.trim());
+    return `${x.hostname.toLowerCase().replace(/^www\./, "")}${decodeURI(x.pathname).replace(/\/+$/, "").toLowerCase()}`;
+  } catch {
+    return null;
+  }
+};
+
+/** Las palabras de un título (sin acentos ni signos), para compararlo con otro. */
+const palabras = (t: string) =>
+  new Set(
+    t
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .split(/[^a-z0-9ñ]+/)
+      .filter((w) => w.length > 2),
+  );
+
+/** ¿Hablan de lo mismo? (al menos 60 % de las palabras del más corto están en el otro) */
+function mismoTitulo(a: string, b: string): boolean {
+  const x = palabras(a);
+  const y = palabras(b);
+  if (x.size < 3 || y.size < 3) return false;
+  const [chico, grande] = x.size <= y.size ? [x, y] : [y, x];
+  let comunes = 0;
+  for (const w of chico) if (grande.has(w)) comunes++;
+  return comunes / chico.size >= 0.6;
+}
+
+/**
+ * El resultado real de la búsqueda al que se refiere la IA: por su dirección
+ * (aunque la escriba un poco distinta) o, si no, por su título. Lo que se
+ * guarda es la dirección de la búsqueda, nunca la que escribió la IA.
+ */
+export function resultadoDe(o: { url?: unknown; titulo?: unknown }, resultados: readonly ResultadoBusqueda[]): ResultadoBusqueda | null {
+  const llave = llaveUrl(o.url);
+  const porUrl = llave ? resultados.find((r) => llaveUrl(r.url) === llave) : undefined;
+  if (porUrl) return porUrl;
+  const titulo = typeof o.titulo === "string" ? o.titulo : "";
+  return resultados.find((r) => r.titulo && mismoTitulo(titulo, r.titulo)) ?? null;
 }
 
 /** La dirección normalizada si es https pública y razonable; si no, null. */
@@ -111,7 +158,7 @@ function limpio(t: unknown, max: number): string {
  * Lee lo que contestó la IA (el JSON, aunque venga partido en varios bloques
  * por las citas) y deja solo las noticias con enlace de la búsqueda.
  */
-export function leerNoticias(texto: string, permitidas: ReadonlySet<string>): Noticia[] {
+export function leerNoticias(texto: string, resultados: readonly ResultadoBusqueda[]): Noticia[] {
   const i = texto.indexOf("{");
   const f = texto.lastIndexOf("}");
   if (i < 0 || f <= i) return [];
@@ -128,8 +175,8 @@ export function leerNoticias(texto: string, permitidas: ReadonlySet<string>): No
   for (const n of lista) {
     if (salida.length >= MAX_NOTICIAS) break;
     const o = (n ?? {}) as { titulo?: unknown; resumen?: unknown; url?: unknown };
-    const url = urlSegura(o.url);
-    if (!url || !permitidas.has(url) || vistas.has(url)) continue;
+    const url = resultadoDe(o, resultados)?.url;
+    if (!url || vistas.has(url)) continue;
     const titulo = limpio(o.titulo, 140);
     if (titulo.length < 8) continue;
     vistas.add(url);
