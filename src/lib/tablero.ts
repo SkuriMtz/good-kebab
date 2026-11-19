@@ -62,12 +62,17 @@ export type Mosaico = { id: string; titulo: string; dato: string; cuenta?: numbe
 export type PestanaHoy = { id: string; titulo: string; cuenta: number | null; renglones: Renglon[]; vacio: string; href: string };
 export type Hoy = { viene: Renglon[]; pestanas: PestanaHoy[] };
 
+/** Una cuenta conectada (Google, Microsoft, Stripe…), con su correo y si funciona. */
+export type AppTablero = { id: string; nombre: string; cuenta: string | null; logo: string | null; apps: string[]; estado: "activa" | "error" };
+
 export type DatosTablero = {
   destacadas: Destacada[];
   accesos: Acceso[];
   mosaicos: Mosaico[];
   hoy: Hoy;
   filas: FilaTablero[];
+  /** Tus apps, en la columna de hoy (debajo de los pendientes). */
+  apps: { lista: AppTablero[]; href: string };
 };
 
 
@@ -92,7 +97,7 @@ export type EntradaTablero = {
   clientes: (Semana & { nuevos: number }) | null;
   respuestas: Semana | null;
   citas: Semana | null;
-  apps: { id: string; nombre: string; cuenta: string | null; logo: string | null; apps: string[]; estado: "activa" | "error" }[];
+  apps: AppTablero[];
   uso: { semanaPct: number | null; trabajoPct: number | null };
 };
 
@@ -207,36 +212,6 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     v(b, "vista=estadisticas"),
   );
 
-  /* Tus apps: cada cuenta, con su correo y si funciona */
-  const apps = fila(
-    "apps",
-    "Tus apps",
-    e.apps.length
-      ? e.apps.map((a) => ({
-          id: `app-${a.id}`,
-          titulo: a.nombre,
-          icono: "enlace" as const,
-          href: v(b, "vista=negocio&tab=apps"),
-          renglones: [],
-          app: { logo: a.logo, cuenta: a.cuenta, estado: a.estado, apps: a.apps },
-          tono: a.estado === "error" ? ("alerta" as const) : ("normal" as const),
-          // Las que fallan, primero (y la fila sube)
-          peso: a.estado === "error" ? 90 : 10,
-        }))
-      : [
-          {
-            id: "sin-apps",
-            titulo: "Conecta tus apps",
-            icono: "enlace",
-            href: v(b, "vista=negocio&tab=apps"),
-            renglones: [],
-            vacio: "Conecta tu correo, agenda, WhatsApp o cobros para verlos aquí.",
-            peso: 15,
-          },
-        ],
-    v(b, "vista=negocio&tab=apps"),
-  );
-
   /* Tu plan */
   const plan = fila(
     "plan",
@@ -290,8 +265,8 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     ],
   };
 
-  const filas = [clientes, semana, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
-  return { destacadas, accesos, mosaicos, hoy, filas };
+  const filas = [clientes, semana, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
+  return { destacadas, accesos, mosaicos, hoy, filas, apps: { lista: e.apps, href: v(b, "vista=negocio&tab=apps") } };
 }
 
 /** Cuánto cambió contra antes, en %, o null si antes no hubo nada (no se puede comparar). */

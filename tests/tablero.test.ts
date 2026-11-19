@@ -25,11 +25,11 @@ describe("tablero", () => {
     expect(ids).not.toContain("whatsapp");
     expect(ids).not.toContain("correo");
     expect(t.accesos.map((a) => a.id)).not.toContain("clientes");
-    // Sin apps: invita a conectarlas
-    expect(ids).toContain("sin-apps");
+    // Sin apps: la columna de la derecha invita a conectarlas
+    expect(t.apps.lista).toEqual([]);
   });
 
-  it("una app con problema sube su fila y sale en lo importante", () => {
+  it("una app con problema sale en lo importante y en la columna de apps", () => {
     const t = armarTablero({
       ...base,
       whatsapp: { semana: 10, antes: 5, serie: [1, 2, 1, 2, 1, 2, 1], esperan: 0, ultimos: [] },
@@ -38,8 +38,9 @@ describe("tablero", () => {
         { id: "m", nombre: "Microsoft", cuenta: "c@d.mx", logo: null, apps: ["Outlook"], estado: "error" },
       ],
     });
-    expect(t.filas[0].id).toBe("apps");
-    expect(t.filas[0].tarjetas[0]).toMatchObject({ titulo: "Microsoft", grande: true, tono: "alerta" });
+    // Las apps van en la columna de la derecha (no en las secciones)
+    expect(t.filas.map((f) => f.id)).not.toContain("apps");
+    expect(t.apps.lista.map((a) => a.estado)).toEqual(["activa", "error"]);
     expect(t.destacadas[0]).toMatchObject({ titulo: "Vuelve a conectar Microsoft", tono: "alerta" });
   });
 

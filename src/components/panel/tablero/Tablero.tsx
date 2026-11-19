@@ -1,20 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import PromptBar from "@/components/PromptBar";
 import { Icono } from "@/components/base/Iconos";
-import { Marca } from "@/components/Logo";
-import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type Tarjeta } from "@/lib/tablero";
-import { FragmentosInicio } from "../FragmentosInicio";
+import { cambio, type AppTablero, type DatosTablero, type Destacada, type Hoy, type Mosaico, type Tarjeta } from "@/lib/tablero";
 import "./tablero.css";
 
 /*
- * EL TABLERO: lo primero al entrar. Arriba, al centro, la IA (el corazón de
- * Atendel): «¿En qué te ayudo hoy?» y su caja; al mandar, Atendel empieza en
- * el chat. Luego las herramientas, un banner con lo importante y las
- * secciones del negocio (tarjetas del mismo tamaño, que se deslizan si no
- * caben). Todo se acomoda según lo que tiene cada quien (src/lib/tablero.ts).
+ * EL TABLERO: lo primero al entrar (el Chat es otra pestaña del menú). El
+ * saludo, un banner con lo importante, los mosaicos de cada sección y las
+ * secciones del negocio; a la derecha, lo que viene, los pendientes y tus
+ * apps. Todo se acomoda según lo que tiene cada quien (src/lib/tablero.ts).
  */
 
 const numero = new Intl.NumberFormat("es-MX");
@@ -31,58 +26,6 @@ const TINTE: Record<string, string> = {
   uso: "gris",
 };
 const tinteDe = (t: Tarjeta) => (t.tono === "alerta" ? "alerta" : (TINTE[t.id] ?? "gris"));
-
-/* ---------- La IA: la barra de Atendel, con sus fragmentos ---------- */
-
-/** Pedidos de un toque (van directo a la IA). */
-// Tres, no más (ley de Hick): lo de «cómo voy» ya lo enseña el Tablero al bajar
-const SUGERENCIAS = ["Dame el informe de hoy", "Contesta a mis clientes de hoy", "Agenda una cita"];
-
-function useMandarAIA(base: string) {
-  const router = useRouter();
-  return (texto: string) => {
-    const t = texto.trim();
-    if (!t) return;
-    if (base === "/panel") {
-      // Se guarda en esta pestaña y el chat lo manda al abrir (nunca va en la dirección)
-      try {
-        sessionStorage.setItem(PEDIDO_TABLERO, t.slice(0, 4000));
-        router.push("/panel?vista=chat");
-        return;
-      } catch {
-        /* sin almacenamiento: abre el chat con el texto escrito */
-      }
-    }
-    router.push(`${base}?pide=${encodeURIComponent(t.slice(0, 2000))}`);
-  };
-}
-
-function Heroe({ saludo, base }: { saludo: string; base: string }) {
-  const mandar = useMandarAIA(base);
-  return (
-    <section className="pc-inicio tb-heroe" aria-label="Pídele algo a Atendel">
-      <FragmentosInicio />
-      <div className="pc-inicio__centro tb-heroe__centro">
-        <h1 className="pc-saludo">
-          <Marca className="pc-saludo__marca pc-logo-entra" />
-          <span>{saludo}</span>
-        </h1>
-        <div className="pc-inicio__caja">
-          <PromptBar className="pc-caja" placeholder="Pídele algo a Atendel…" forma="fila" sources={[]} models={[]} efforts={[]} onSend={(t) => mandar(t)} maxRows={8} sparkBoost={0} dictarPronto />
-        </div>
-        <div className="tb-sugerencias">
-          {SUGERENCIAS.map((s) => (
-            <button key={s} type="button" className="tb-sugerencia" onClick={() => mandar(s)}>
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------- Mosaicos (como Toddle) ---------- */
 
 function Mosaicos({ mosaicos }: { mosaicos: Mosaico[] }) {
   return (
@@ -109,7 +52,50 @@ function Mosaicos({ mosaicos }: { mosaicos: Mosaico[] }) {
 
 /* ---------- La columna de hoy (con pestañas) ---------- */
 
-function ColumnaHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
+/** Tus apps: cada cuenta conectada con su logo, su correo y si funciona. */
+function TusApps({ lista, href }: { lista: AppTablero[]; href: string }) {
+  return (
+    <section className="tb-panel tb-apps">
+      <div className="tb-panel__cabeza">
+        <h2 className="tb-panel__titulo">Tus apps</h2>
+        <a href={href} className="tb-panel__enlace">
+          {lista.length ? "Ver todo" : "Conectar"}
+        </a>
+      </div>
+      {lista.length ? (
+        <ul className="tb-apps__lista">
+          {lista.map((a) => (
+            <li key={a.id}>
+              <a href={href} className="tb-apps__fila">
+                <span className="tb-apps__logo">
+                  {a.logo ? (
+                    // Logos chicos y fijos de /public
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.logo} alt="" width={20} height={20} />
+                  ) : (
+                    <Icono nombre="enlace" tam={16} />
+                  )}
+                </span>
+                <span className="tb-apps__texto">
+                  <span className="tb-apps__nombre">{a.nombre}</span>
+                  {a.cuenta ? <span className="tb-apps__cuenta">{a.cuenta}</span> : null}
+                </span>
+                <span className="tb-apps__estado" data-estado={a.estado}>
+                  <span className="tb-app__punto" aria-hidden="true" />
+                  {a.estado === "activa" ? "Conectada" : "Reconectar"}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="tb-panel__vacio">Conecta tu correo, agenda, WhatsApp o cobros y Atendel podrá usarlos.</p>
+      )}
+    </section>
+  );
+}
+
+function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: string; children?: ReactNode }) {
   const [activa, setActiva] = useState(hoy.pestanas.find((p) => p.cuenta)?.id ?? hoy.pestanas[0]?.id);
   const pestana = hoy.pestanas.find((p) => p.id === activa) ?? hoy.pestanas[0];
   const mover = (dir: 1 | -1) => {
@@ -191,6 +177,7 @@ function ColumnaHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
           </div>
         </section>
       ) : null}
+      {children}
     </aside>
   );
 }
@@ -399,9 +386,9 @@ function Seccion({ id, titulo, href, children }: { id: string; titulo: string; h
 }
 
 /**
- * La transición al bajar (ver tablero.css, «Al bajar»): el saludo se va al
- * pasarlo y cada pieza de abajo aparece al entrar, una tras otra. Nada se
- * esconde si hay «reducir movimiento» o si no hay IntersectionObserver.
+ * La transición (ver tablero.css, «Aparecen»): cada pieza aparece suave al
+ * entrar a la pantalla, una tras otra. Nada se esconde si hay «reducir
+ * movimiento» o si no hay IntersectionObserver.
  */
 function useTransicion() {
   const raiz = useRef<HTMLDivElement>(null);
@@ -411,15 +398,14 @@ function useTransicion() {
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches || el.closest(".pc")?.getAttribute("data-movimiento") === "reducido";
     if (quieto) return;
     el.classList.add("tb--anima");
-    // Cada pieza aparece al entrar; las que entran juntas, una tras otra
-    const piezas = [...el.querySelectorAll<HTMLElement>(".tb-banner, .tb-mosaicos, .tb-hoy, .tb-secciones > *")];
+    const piezas = [...el.querySelectorAll<HTMLElement>(".tb-banner, .tb-mosaicos, .tb-hoy > *, .tb-secciones > *")];
     const ver = new IntersectionObserver(
       (entradas) => {
         entradas
           .filter((e) => e.isIntersecting)
           .forEach((e, n) => {
             const pieza = e.target as HTMLElement;
-            pieza.style.setProperty("--tb-retraso", `${n * 110}ms`);
+            pieza.style.setProperty("--tb-retraso", `${n * 90}ms`);
             pieza.classList.add("tb-visto");
             ver.unobserve(pieza);
           });
@@ -430,29 +416,29 @@ function useTransicion() {
       p.classList.add("tb-aparece");
       ver.observe(p);
     }
-    // El saludo se va cuando ya pasó casi la mitad (y regresa al volver arriba)
-    const heroe = el.querySelector(".tb-heroe");
-    const salida = new IntersectionObserver(([e]) => el.classList.toggle("tb--abajo", e.intersectionRatio < 0.55), { threshold: [0, 0.55, 1] });
-    if (heroe) salida.observe(heroe);
     return () => {
       ver.disconnect();
-      salida.disconnect();
-      el.classList.remove("tb--anima", "tb--abajo");
+      el.classList.remove("tb--anima");
       for (const p of piezas) p.classList.remove("tb-aparece", "tb-visto");
     };
   }, []);
   return raiz;
 }
 
-export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
+export function Tablero({ datos, saludo, fecha, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
   const raiz = useTransicion();
   return (
     <div className="tb" ref={raiz}>
-      <Heroe saludo={saludo} base={base} />
+      <header className="tb-cabeza">
+        <h1 className="tb-cabeza__saludo">{saludo}</h1>
+        {fecha ? <p className="tb-cabeza__fecha">{fecha}</p> : null}
+      </header>
       <div className="tb-cuerpo">
         <Banner destacadas={datos.destacadas} />
         {datos.mosaicos.length ? <Mosaicos mosaicos={datos.mosaicos} /> : null}
-        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`} />
+        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`}>
+          <TusApps lista={datos.apps.lista} href={datos.apps.href} />
+        </ColumnaHoy>
         <div className="tb-secciones">
           {datos.filas.map((f) => (
             <Seccion key={f.id} id={f.id} titulo={f.titulo} href={f.href}>

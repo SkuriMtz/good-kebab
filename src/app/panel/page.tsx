@@ -259,7 +259,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
     const meta = user.user_metadata ?? {};
     const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
     const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(new Date());
-    return <Tablero datos={datos} saludo={completo ? `¿En qué te ayudo hoy, ${completo.split(" ")[0]}?` : "¿En qué te ayudo hoy?"} fecha={fecha} base="/panel" />;
+    return <Tablero datos={datos} saludo={completo ? `${saludoDeHora()}, ${completo.split(" ")[0]}` : saludoDeHora()} fecha={fecha} base="/panel" />;
   }
 
   // Las conversaciones: el chat (lo de «Hoy» vive en Tareas)

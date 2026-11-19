@@ -230,7 +230,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   let contenido;
   if (valida === "tablero") {
-    contenido = <Tablero datos={tableroDeEjemplo()} saludo="¿En qué te ayudo hoy, Luna?" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
+    contenido = <Tablero datos={tableroDeEjemplo()} saludo="Hola, Luna" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
   } else if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;

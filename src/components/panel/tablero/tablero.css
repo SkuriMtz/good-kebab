@@ -18,42 +18,35 @@
   }
 }
 
-/* ---------- La IA: la barra de Atendel y sus fragmentos (los del Inicio del chat) ---------- */
-.tb .tb-heroe {
-  padding: 0 0 8px;
-}
-/* Como el Inicio del chat: el saludo y la barra al centro de la primera pantalla, con aire arriba
-   y abajo (el centro del saludo al ~42 % del alto, como allá). Lo del negocio empieza al bajar; se
-   asoma apenas abajo para invitar a bajar. */
-.tb .tb-heroe {
-  min-height: calc(100dvh - 72px);
-  padding-bottom: 32px;
-}
-.tb-sugerencias {
+/* ---------- El saludo (la barra de la IA vive en la pestaña Chat) ---------- */
+.tb-cabeza {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 40px;
 }
-.tb-sugerencia {
-  min-height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--pc-borde);
-  border-radius: 999px;
-  background: var(--pc-tarjeta);
-  color: var(--pc-texto-2);
-  font: inherit;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, transform 160ms var(--tb-sale);
-}
-.tb-sugerencia:hover {
-  background: var(--pc-hover);
+.tb-cabeza__saludo {
+  margin: 0;
   color: var(--pc-texto);
+  font-family: var(--pc-serif);
+  font-size: clamp(2rem, 1.5rem + 1.2vw, 2.6rem);
+  font-weight: 400;
+  font-variation-settings: "opsz" 60;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
-.tb-sugerencia:active {
-  transform: scale(0.97);
+.tb-cabeza__fecha {
+  margin: 0;
+  color: var(--pc-texto-2);
+  font-size: 1rem;
+}
+.tb-cabeza__fecha::first-letter {
+  text-transform: uppercase;
+}
+@media (max-width: 720px) {
+  .tb-cabeza {
+    padding-top: 8px;
+  }
 }
 
 /* ---------- Dos columnas: lo del negocio a la izquierda, «Hoy» a la derecha ---------- */
@@ -346,7 +339,6 @@
   line-height: 1.4;
 }
 .tb-mosaico:focus-visible,
-.tb-sugerencia:focus-visible,
 .tb-pestana:focus-visible,
 .tb-lista__fila:focus-visible,
 .tb-panel__enlace:focus-visible {
@@ -872,41 +864,20 @@
 @media (prefers-reduced-motion: reduce) {
   .tb-tarjeta__enlace,
   .tb-mosaico,
-  .tb-sugerencia,
   .tb-banner__cuerpo,
   .tb-banner__punto::before {
     transition: none;
   }
 }
 
-/* ---------- Al bajar: el saludo se va y lo de abajo aparece (suave) ----------
+/* ---------- Aparecen (suave) ----------
    Lo prende el Tablero con JavaScript (IntersectionObserver), solo si no hay «reducir movimiento»
-   (del sistema o de Apariencia): sin eso, o sin JavaScript, todo se ve quieto como siempre.
-   - Al pasar el saludo, el saludo y la barra se desvanecen, se achican un poco y se desenfocan; al
-     volver arriba, regresan.
-   - El banner, los mosaicos, la columna de hoy y cada sección aparecen deslizándose al entrar a la
-     pantalla, uno tras otro (una sola vez).
-   Curva ease-out larga y suave; solo opacidad, transform y un desenfoque leve. */
+   (del sistema o de Apariencia): sin eso, o sin JavaScript, todo se ve quieto como siempre. El
+   banner, los mosaicos, cada panel de la derecha y cada sección aparecen deslizándose al entrar a la
+   pantalla, uno tras otro (una sola vez). Curva ease-out larga; solo opacidad, transform y un
+   desenfoque leve. */
 .tb--anima {
   --tb-suave: cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tb--anima .tb-heroe__centro,
-.tb--anima .tb-heroe .pc-inicio__fragmentos {
-  transition:
-    opacity 650ms var(--tb-suave),
-    transform 800ms var(--tb-suave),
-    filter 650ms var(--tb-suave);
-}
-.tb--anima .tb-heroe__centro {
-  transform-origin: 50% 30%;
-}
-.tb--abajo .tb-heroe__centro {
-  opacity: 0;
-  transform: translateY(-16px) scale(0.95);
-  filter: blur(6px);
-}
-.tb--abajo .tb-heroe .pc-inicio__fragmentos {
-  opacity: 0;
 }
 .tb--anima .tb-aparece {
   transition:
@@ -918,4 +889,133 @@
   opacity: 0;
   transform: translateY(48px) scale(0.98);
   filter: blur(4px);
+}
+
+/* ---------- Como el banner: fondo oscuro con una luz de color ----------
+   Las tarjetas de las secciones y los paneles de la derecha se ven como el banner de arriba (lo que más
+   le gustó al dueño): negro con dos luces de color en la esquina, esquinas grandes y texto claro. Los
+   mosaicos se quedan como están. Se ve igual con tema claro u oscuro, como el banner. */
+.tb-panel,
+.tb-tarjeta__enlace {
+  --tb-luz-2: #f6c64a;
+  --pc-texto: #f4f4f6;
+  --pc-texto-2: rgb(244 244 246 / 0.7);
+  --pc-borde: rgb(255 255 255 / 0.14);
+  --pc-borde-suave: rgb(255 255 255 / 0.08);
+  --pc-hover: rgb(255 255 255 / 0.08);
+  --pc-tarjeta: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: 28px;
+  background:
+    radial-gradient(70% 120% at 100% 0%, color-mix(in srgb, var(--tb-luz-1) 44%, transparent), transparent 62%),
+    radial-gradient(60% 90% at 88% 100%, color-mix(in srgb, var(--tb-luz-2) 24%, transparent), transparent 62%),
+    #0b0b0d;
+  color: var(--pc-texto);
+}
+.tb-tarjeta__enlace {
+  --tb-luz-1: var(--tb-tinte);
+  padding: 24px;
+}
+.tb-tarjeta[data-tinte="gris"] .tb-tarjeta__enlace {
+  --tb-luz-1: #8b5cff;
+  --tb-luz-2: #7fb2ff;
+}
+.tb-tarjeta[data-tinte="alerta"] .tb-tarjeta__enlace,
+.tb-tarjeta[data-tinte="naranja"] .tb-tarjeta__enlace {
+  --tb-luz-1: #ff8a6b;
+}
+.tb-tarjeta__enlace:hover {
+  border-color: rgb(255 255 255 / 0.18);
+}
+.tb-tarjeta__icono {
+  border: 1px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.06);
+  color: #f4f4f6;
+}
+/* Cada panel de la derecha con su luz: lo que viene (azul), pendientes (como el banner), apps (verde) */
+.tb-hoy > .tb-panel:nth-child(1) {
+  --tb-luz-1: #7fb2ff;
+  --tb-luz-2: #8b5cff;
+}
+.tb-hoy > .tb-panel:nth-child(2) {
+  --tb-luz-1: #ff8a6b;
+}
+.tb-hoy > .tb-apps {
+  --tb-luz-1: #5fd09f;
+  --tb-luz-2: #7fb2ff;
+}
+.tb-panel .tb-panel__enlace {
+  color: #f4f4f6;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.35);
+  text-underline-offset: 3px;
+}
+
+/* ---------- Tus apps (en la columna de la derecha) ---------- */
+.tb-apps__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-apps__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-top: 1px solid var(--pc-borde-suave);
+  color: inherit;
+  text-decoration: none;
+}
+.tb-apps__lista li:first-child .tb-apps__fila {
+  border-top: 0;
+}
+.tb-apps__logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+}
+.tb-apps__logo img {
+  border-radius: 3px;
+}
+.tb-apps__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.tb-apps__nombre {
+  font-weight: 500;
+}
+.tb-apps__cuenta {
+  overflow: hidden;
+  color: var(--pc-texto-2);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-apps__estado {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--pc-texto-2);
+  font-size: 0.82rem;
+}
+.tb-apps__estado[data-estado="error"] {
+  color: #ffb199;
+}
+.tb-apps__estado[data-estado="error"] .tb-app__punto {
+  background: var(--pc-atencion);
+}
+.tb-apps__fila:focus-visible {
+  outline: 2px solid var(--pc-foco, var(--pc-acento));
+  outline-offset: 2px;
+  border-radius: 10px;
 }

@@ -495,6 +495,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
 
           <nav className="pc-menu__nav" aria-label="Secciones">
             {hrefs.tablero ? item("tablero", "Tablero", "inicio", hrefs.tablero) : item("inicio", "Oficina", "documento", hrefs.inicio)}
+            {hrefs.tablero ? item("inicio", "Chat", "conversaciones", hrefs.inicio) : null}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
