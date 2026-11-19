@@ -57,8 +57,9 @@ function pedir(url: string, acepta: string, max: number, cortar: boolean): Promi
       const tipo = String(res.headers["content-type"] ?? "");
       const ubicacion = typeof res.headers.location === "string" ? res.headers.location : null;
       if (status < 200 || status >= 300) {
-        res.resume();
+        // No se lee el cuerpo de una redirección o un error: se corta ya (si no, podría no acabar nunca)
         fin({ status, tipo, ubicacion, datos: null });
+        req.destroy();
         return;
       }
       const partes: Buffer[] = [];
