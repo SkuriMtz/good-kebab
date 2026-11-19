@@ -72,23 +72,13 @@ export type DatosTablero = {
   mosaicos: Mosaico[];
   hoy: Hoy;
   filas: FilaTablero[];
+  /** Las noticias de tu industria (en la columna de hoy, debajo de los pendientes). */
+  noticias: NoticiaTablero[];
   /** false: las noticias de tu industria no son de hoy y el Tablero las pide (/api/tablero/noticias). */
   noticiasAlDia: boolean;
 };
 
 export type NoticiaTablero = { id: string; titulo: string; resumen: string; fuente: string; url: string; foto?: string };
-
-/** Una noticia de tu industria en la fila grande de arriba (lleva a su fuente, fuera de Atendel). */
-export const destacadaDeNoticia = (n: NoticiaTablero): Destacada => ({
-  id: `n-${n.id}`,
-  etiqueta: "Tu industria",
-  titulo: n.titulo,
-  detalle: n.resumen,
-  href: n.url,
-  tono: "normal",
-  fuera: { nombre: n.fuente },
-  ...(n.foto ? { foto: n.foto } : {}),
-});
 
 /* ---------- Lo que entra ---------- */
 
@@ -146,8 +136,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
       tono: "alerta" as const,
     })),
     ...e.teNecesita.slice(0, 4).map((t) => ({ id: `ok-${t.id}`, etiqueta: "Te necesita", titulo: t.titulo, detalle: t.detalle, href: t.href, tono: "alerta" as const })),
-    ...e.noticias.slice(0, 3).map(destacadaDeNoticia),
-  ];
+  ].slice(0, 4);
 
   /* Accesos rápidos (solo los que aplican) */
   const accesos: Acceso[] = [
@@ -201,10 +190,10 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     v(b, "vista=estadisticas"),
   );
 
-  /* Agenda y tareas */
-  const agenda = fila(
-    "agenda",
-    "Agenda y tareas",
+  /* Tu semana: citas y respuestas (lo que viene y lo hecho ya están en la columna de hoy) */
+  const semana = fila(
+    "semana",
+    "Tu semana",
     [
       e.citas && {
         id: "citas",
@@ -215,34 +204,6 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
         serie: e.citas.serie,
         renglones: [],
         peso: 45 + Math.min(e.citas.semana, 30),
-      },
-      {
-        id: "viene",
-        titulo: "Lo que viene",
-        icono: "reloj",
-        href: v(b, "vista=tareas"),
-        renglones: e.viene.slice(0, 3).map((t) => ({ id: t.id, texto: t.titulo, hora: t.cuando })),
-        vacio: "No hay tareas programadas. Pídele a Atendel algo que se repita.",
-        peso: 25 + e.viene.length * 4,
-      },
-    ],
-    v(b, "vista=tareas"),
-  );
-
-  /* Lo que hizo Atendel */
-  const hizo = fila(
-    "hecho",
-    "Lo que hizo Atendel",
-    [
-      {
-        id: "hecho",
-        titulo: "Lo último que terminó",
-        icono: "check-doble",
-        href: v(b, "vista=hecho"),
-        renglones: e.hecho.slice(0, 3).map((h) => ({ id: h.id, texto: h.titulo, hora: h.hace })),
-        vacio: "Todavía no hay nada terminado.",
-        tono: "bien",
-        peso: 20 + e.hecho.length * 3,
       },
       e.respuestas && {
         id: "respuestas",
@@ -255,7 +216,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
         peso: 20 + Math.min(e.respuestas.semana, 30),
       },
     ],
-    v(b, "vista=hecho"),
+    v(b, "vista=estadisticas"),
   );
 
   /* Tus apps: cada cuenta, con su correo y si funciona */
@@ -311,7 +272,8 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     v(b, "vista=ajustes"),
   );
 
-  /* Mosaicos: cada sección con su dato; lo que tiene algo pendiente va primero */
+  /* Mosaicos: solo las secciones con algo pendiente (máximo 4). Las demás ya están en el menú:
+     repetirlas aquí era dar más opciones de las necesarias (ley de Hick). */
   const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
   const mosaicos = (
     [
@@ -325,10 +287,8 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
       { id: "apps", titulo: "Apps conectadas", dato: e.apps.length ? plural(e.apps.length, "conectada", "conectadas") : "Conecta tus apps", cuenta: conProblema.length, href: v(b, "vista=negocio&tab=apps"), icono: "enlace", color: "gris" },
     ] as (Mosaico | null | false)[]
   )
-    .filter((m): m is Mosaico => Boolean(m))
-    .map((m, i) => ({ m, i }))
-    .sort((a, z) => Number(Boolean(z.m.cuenta)) - Number(Boolean(a.m.cuenta)) || a.i - z.i)
-    .map((x) => x.m);
+    .filter((m): m is Mosaico => Boolean(m) && Boolean((m as Mosaico).cuenta))
+    .slice(0, 4);
 
   /* Hoy: lo que viene y los pendientes en pestañas */
   const esOficina = (id: string) => /^(f|t|r)-/.test(id);
@@ -341,8 +301,8 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     ],
   };
 
-  const filas = [clientes, agenda, hizo, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
-  return { destacadas, accesos, mosaicos, hoy, filas, noticiasAlDia: e.noticiasAlDia ?? true };
+  const filas = [clientes, semana, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
+  return { destacadas, accesos, mosaicos, hoy, filas, noticias: e.noticias.slice(0, 3), noticiasAlDia: e.noticiasAlDia ?? true };
 }
 
 /** Cuánto cambió contra antes, en %, o null si antes no hubo nada (no se puede comparar). */

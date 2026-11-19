@@ -55,9 +55,21 @@ describe("tablero", () => {
     expect(clientes.tarjetas.filter((x) => x.grande)).toHaveLength(1);
   });
 
-  it("las noticias de la industria llevan a su fuente", () => {
-    const t = armarTablero({ ...base, noticias: [{ id: "1", titulo: "Sube el precio del papel", resumen: "…", fuente: "El Economista", url: "https://ejemplo.mx/nota" }] });
-    expect(t.destacadas[0]).toMatchObject({ etiqueta: "Tu industria", href: "https://ejemplo.mx/nota", fuera: { nombre: "El Economista" } });
+  it("las noticias van en la columna de hoy (no en el banner), máximo 3", () => {
+    const nota = (id: string) => ({ id, titulo: "Sube el precio del papel", resumen: "…", fuente: "eleconomista.com.mx", url: `https://ejemplo.mx/${id}` });
+    const t = armarTablero({ ...base, noticias: ["1", "2", "3", "4"].map(nota) });
+    expect(t.noticias).toHaveLength(3);
+    expect(t.destacadas.some((d) => d.fuera)).toBe(false);
+  });
+
+  it("ley de Hick: solo los mosaicos con algo pendiente (máx. 4) y nada repetido", () => {
+    const t = armarTablero(base);
+    expect(t.mosaicos.length).toBeLessThanOrEqual(4);
+    expect(t.mosaicos.every((m) => (m.cuenta ?? 0) > 0)).toBe(true);
+    expect(t.destacadas.length).toBeLessThanOrEqual(4);
+    const tarjetas = t.filas.flatMap((f) => f.tarjetas.map((x) => x.id));
+    expect(tarjetas).not.toContain("viene");
+    expect(tarjetas).not.toContain("hecho");
   });
 
   it("el cambio contra la semana pasada", () => {
