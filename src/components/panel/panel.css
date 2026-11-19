@@ -9927,3 +9927,95 @@ a.pc-correo__accion:hover {
   font-size: 12px;
   vertical-align: 1px;
 }
+
+/* Voz de Atendel (Apariencia): 4 tarjetas; al tocar una suena su muestra */
+.pc-aj-voces {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+@media (max-width: 560px) {
+  .pc-aj-voces {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.pc-aj-voz {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-borde, rgb(127 127 127 / 0.3));
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pc-aj-voz:hover {
+  background: rgb(127 127 127 / 0.08);
+}
+.pc-aj-voz[aria-checked="true"] {
+  border-color: var(--pc-acento, currentColor);
+  box-shadow: inset 0 0 0 1px var(--pc-acento, currentColor);
+}
+.pc-aj-voz:focus-visible {
+  outline: 2px solid var(--pc-acento, currentColor);
+  outline-offset: 2px;
+}
+.pc-aj-voz__nombre {
+  font-weight: 600;
+}
+.pc-aj-voz__genero {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+.pc-aj-voz__onda {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  margin-bottom: 4px;
+}
+.pc-aj-voz__onda i {
+  width: 3px;
+  height: 5px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.pc-aj-voz__onda i:nth-child(2) {
+  height: 10px;
+}
+.pc-aj-voz[data-sonando] .pc-aj-voz__onda i {
+  opacity: 1;
+  animation: pc-aj-voz-onda 0.9s ease-in-out infinite;
+}
+.pc-aj-voz[data-sonando] .pc-aj-voz__onda i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.pc-aj-voz[data-sonando] .pc-aj-voz__onda i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes pc-aj-voz-onda {
+  0%,
+  100% {
+    height: 4px;
+  }
+  50% {
+    height: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-aj-voz[data-sonando] .pc-aj-voz__onda i {
+    animation: none;
+  }
+}
+.pc-aj-voces__nota {
+  margin: 6px 0 0;
+  font-size: 0.9em;
+  opacity: 0.75;
+}

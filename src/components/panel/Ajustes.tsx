@@ -43,6 +43,7 @@ import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/
 import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil } from "@/lib/nucleo-tipos";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
+import { nombresDeVoces, type GeneroVoz } from "@/lib/voces-atendel";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 import { useFuenteNegocio } from "./negocio/fuente";
 import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
@@ -189,7 +190,7 @@ const OPCIONES: Opcion[] = [
 ];
 const PARTES: Parte[] = [
   { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos socio autonomia solo pregunta permiso", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
-  { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu", grupo: 0, sub: "Tema, colores, letra e idioma." },
+  { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu voz voces habla", grupo: 0, sub: "Tema, colores, letra e idioma." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos notificaciones celular telefono app instalar aparato whatsapp silencio noche prueba", grupo: 1, sub: "Avisos en tu celular o tu compu, aunque no tengas Atendel abierto." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
   { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 2, sub: "Cuánto llevas de tu sesión y de la semana." },
@@ -284,6 +285,124 @@ function Segmentos<T extends string>({ opciones, activa, alElegir, etiqueta }: {
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * LA VOZ DE ATENDEL: 4 voces (2 de mujer y 2 de hombre) con su nombre en el
+ * idioma del panel. Al tocar una se escoge y se oye su muestra (no cuenta en
+ * tu límite de uso). Sin voz en el servidor, no se muestra.
+ */
+function ElegirVoz({ valor, idioma, alElegir }: { valor: string; idioma: string; alElegir: (id: string) => void }) {
+  type Voz = { id: string; genero: GeneroVoz; lugar: number };
+  const [estado, setEstado] = useState<"cargando" | "oculto" | { voces: Voz[] } | { error: string }>("cargando");
+  const [sonando, setSonando] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const audio = useRef<{ ctx: AudioContext | null; fuente: AudioBufferSourceNode | null; vez: number }>({ ctx: null, fuente: null, vez: 0 });
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/platica/voces")
+      .then(async (r) => {
+        // Sin voz en el servidor, o en la demo (sin cuenta): no se muestra
+        if (r.status === 503 || r.status === 401) return "oculto" as const;
+        const j = (await r.json().catch(() => ({}))) as { voces?: Voz[]; error?: string };
+        return r.ok ? { voces: j.voces ?? [] } : { error: j.error ?? "No pude traer las voces." };
+      })
+      .catch(() => ({ error: "No pude traer las voces." }))
+      .then((x) => {
+        if (vivo) setEstado(x);
+      });
+    const a = audio.current;
+    return () => {
+      vivo = false;
+      try {
+        a.fuente?.stop();
+      } catch {
+        /* ya había terminado */
+      }
+      void a.ctx?.close().catch(() => undefined);
+    };
+  }, []);
+
+  if (estado === "oculto") return null;
+  const nombres = nombresDeVoces(idioma);
+  const voces = typeof estado === "object" && "voces" in estado ? estado.voces : [];
+  const elegida = voces.some((v) => v.id === valor) ? valor : voces[0]?.id;
+
+  async function probar(id: string) {
+    alElegir(id);
+    setAviso(null);
+    const a = audio.current;
+    const vez = ++a.vez;
+    try {
+      a.fuente?.stop();
+    } catch {
+      /* ya había terminado */
+    }
+    // El audio arranca con el toque (en iPhone solo así)
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    a.ctx ??= new Ctx();
+    void a.ctx.resume().catch(() => undefined);
+    setSonando(id);
+    try {
+      const r = await fetch("/api/platica/muestra", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ voz: id, idioma }) });
+      if (!r.ok) {
+        const j = (await r.json().catch(() => ({}))) as { error?: string };
+        if (vez === a.vez) {
+          setAviso(j.error ?? "No pude poner la muestra.");
+          setSonando(null);
+        }
+        return;
+      }
+      const datos = await a.ctx.decodeAudioData(await r.arrayBuffer());
+      if (vez !== a.vez) return;
+      const fuente = a.ctx.createBufferSource();
+      fuente.buffer = datos;
+      fuente.connect(a.ctx.destination);
+      fuente.onended = () => setSonando((s) => (s === id ? null : s));
+      a.fuente = fuente;
+      fuente.start();
+    } catch {
+      if (vez === a.vez) {
+        setAviso("No pude poner la muestra.");
+        setSonando(null);
+      }
+    }
+  }
+
+  return (
+    <Fila titulo="Voz de Atendel" texto="Cómo te habla Atendel en el modo plática. Toca una para escucharla." apilada>
+      {estado === "cargando" ? (
+        <p className="pc-aj-voces__nota">Cargando las voces…</p>
+      ) : "error" in estado ? (
+        <p className="pc-aj-voces__nota">{estado.error}</p>
+      ) : (
+        <>
+          <div className="pc-aj-voces" role="radiogroup" aria-label="Voz de Atendel">
+            {voces.map((v) => (
+              <button key={v.id} type="button" role="radio" aria-checked={v.id === elegida} className="pc-aj-voz" data-sonando={sonando === v.id ? "" : undefined} onClick={() => void probar(v.id)}>
+                <span className="pc-aj-voz__onda" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span className="pc-aj-voz__nombre" translate="no">
+                  {nombres[v.lugar]}
+                </span>
+                <span className="pc-aj-voz__genero">{v.genero === "mujer" ? "Mujer" : "Hombre"}</span>
+              </button>
+            ))}
+          </div>
+          {aviso ? (
+            <p className="pc-aj-voces__nota" role="status">
+              {aviso}
+            </p>
+          ) : null}
+        </>
+      )}
+    </Fila>
   );
 }
 
@@ -1178,6 +1297,7 @@ export function VentanaAjustes({
           <Fila titulo="Idioma" texto="Todo el panel y las respuestas de tus agentes (también lo que escriben a tus clientes). La primera vez tarda unos segundos en traducirse.">
             <Desplegable etiqueta="Idioma" valor={ajustes.idioma} alCambiar={(v) => cambiar("idioma", v)} opciones={IDIOMAS} sinTraducir />
           </Fila>
+          <ElegirVoz valor={ajustes.vozAtendel} idioma={ajustes.idioma} alElegir={(id) => cambiar("vozAtendel", id)} />
         </Grupo>
         <Grupo titulo="Letra">
           <Fila titulo="Letra de la interfaz">

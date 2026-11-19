@@ -1,10 +1,12 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { limpiarAjustes } from "./ajustes";
 import { cargarCuenta } from "./cuenta";
 import { pasarLimite } from "./seguridad";
 import { Gasto, leerUso, registrarUso } from "./uso";
 import { bloqueoConHora } from "./uso-estado";
+import { codigoIdioma } from "./voces-atendel";
 
 /*
  * Lo que comparten las dos rutas del modo plática (/api/platica/escuchar y
@@ -33,4 +35,11 @@ export async function anotarVoz(supabase: SupabaseClient, costo: number, que: "e
   gasto.costo = Math.max(1, Math.round(costo));
   gasto.modelo = que === "escuchar" ? "voz: escuchar" : "voz: hablar";
   await registrarUso(supabase, gasto, "chat");
+}
+
+/** La voz que escogió en Apariencia y el idioma del panel (para hablar y escuchar en ese idioma). */
+export async function preferenciasDeVoz(supabase: SupabaseClient, userId: string): Promise<{ voz: string; idioma: string; codigo?: string }> {
+  const { data } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", userId).maybeSingle();
+  const aj = limpiarAjustes(data?.datos);
+  return { voz: aj.vozAtendel, idioma: aj.idioma, codigo: codigoIdioma(aj.idioma) };
 }

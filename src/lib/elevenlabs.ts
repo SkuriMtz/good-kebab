@@ -1,13 +1,15 @@
 import "server-only";
+import { ID_VOZ, LUGARES_VOZ, type GeneroVoz } from "./voces-atendel";
 
 /*
  * LA VOZ DEL MODO PLÁTICA (ElevenLabs), solo en el servidor:
  * - escuchar: el audio que grabó el navegador → texto (Scribe);
  * - hablar: una frase → audio MP3 (en streaming).
  * La clave va SOLO en Vercel como ELEVENLABS_API_KEY (nunca en el código ni
- * en el navegador). Opcionales: ELEVENLABS_VOZ_ID (la voz que elijas en tu
- * cuenta de ElevenLabs; si no, se toma una en español de tu cuenta) y
- * ELEVENLABS_MODELO (por omisión, el de tiempo real).
+ * en el navegador). Opcionales: ELEVENLABS_VOZ_ID (la voz por omisión; si no,
+ * la primera de la lista) y ELEVENLABS_MODELO (por omisión, el de tiempo real).
+ * La lista de 4 voces que se escogen en Apariencia sale de tu cuenta de
+ * ElevenLabs (2 de mujer y 2 de hombre, las que mejor hablan español).
  */
 
 const BASE = "https://api.elevenlabs.io";
@@ -25,10 +27,7 @@ const modeloHablar = () => {
   return /^[a-z0-9_]{3,40}$/.test(m) ? m : MODELO_HABLAR_PREDETERMINADO;
 };
 
-/* ---------- La voz ---------- */
-
-let vozGuardada: { id: string; hasta: number } | null = null;
-const ID_VOZ = /^[A-Za-z0-9]{10,40}$/;
+/* ---------- Las voces ---------- */
 
 type VozApi = { voice_id?: unknown; labels?: Record<string, unknown> | null; verified_languages?: { language?: unknown; accent?: unknown; locale?: unknown }[] | null };
 
@@ -45,6 +44,11 @@ function puntos(v: VozApi): number {
   return 0;
 }
 
+const generoDe = (v: VozApi): GeneroVoz | null => {
+  const g = String(v.labels?.gender ?? "").toLowerCase();
+  return g === "female" ? "mujer" : g === "male" ? "hombre" : null;
+};
+
 /** Por qué falló (para decirlo en pantalla): el código HTTP y el código corto de ElevenLabs, nunca su mensaje. */
 export type FalloVoz = { status: number; codigo: string };
 
@@ -56,31 +60,68 @@ async function codigoDe(r: Response): Promise<string> {
   return c.replace(/[^a-z0-9_]/gi, "").slice(0, 60) || `http_${r.status}`;
 }
 
-async function idDeVoz(): Promise<{ id: string } | { fallo: FalloVoz }> {
-  const fija = (process.env.ELEVENLABS_VOZ_ID ?? "").trim();
-  if (ID_VOZ.test(fija)) return { id: fija };
-  if (vozGuardada && vozGuardada.hasta > Date.now()) return { id: vozGuardada.id };
+/** Una voz de la lista: su id, si es de mujer u hombre y en qué lugar va (para su nombre). */
+export type VozDeLista = { id: string; genero: GeneroVoz; lugar: number };
+
+let listaGuardada: { voces: VozDeLista[]; hasta: number } | null = null;
+
+/**
+ * Las 4 voces para escoger (en los lugares [mujer, hombre, mujer, hombre]),
+ * de las de tu cuenta de ElevenLabs que mejor hablan español. Se guarda una hora.
+ */
+export async function vocesDeAtendel(): Promise<{ voces: VozDeLista[] } | { fallo: FalloVoz }> {
+  if (listaGuardada && listaGuardada.hasta > Date.now()) return { voces: listaGuardada.voces };
   try {
     const r = await fetch(`${BASE}/v1/voices`, { headers: { "xi-api-key": llave() }, signal: AbortSignal.timeout(10_000), cache: "no-store" });
     if (!r.ok) return { fallo: { status: r.status, codigo: `voces_${await codigoDe(r)}` } };
     const j = (await r.json()) as { voices?: VozApi[] };
-    const voces = (j.voices ?? []).filter((v) => typeof v.voice_id === "string" && ID_VOZ.test(v.voice_id));
+    const todas = (j.voices ?? []).filter((v) => typeof v.voice_id === "string" && ID_VOZ.test(v.voice_id));
+    // Las que mejor hablan español primero (si empatan, el orden de la cuenta)
+    const ordenadas = todas.map((v, i) => ({ v, i })).sort((a, b) => puntos(b.v) - puntos(a.v) || a.i - b.i).map((x) => x.v);
+    const usadas = new Set<string>();
+    const voces: VozDeLista[] = [];
+    LUGARES_VOZ.forEach((genero, lugar) => {
+      const v = ordenadas.find((x) => !usadas.has(String(x.voice_id)) && generoDe(x) === genero);
+      if (!v) return;
+      usadas.add(String(v.voice_id));
+      voces.push({ id: String(v.voice_id), genero, lugar });
+    });
     if (!voces.length) return { fallo: { status: 0, codigo: "sin_voces" } };
-    const mejor = voces.reduce((a, b) => (puntos(b) > puntos(a) ? b : a));
-    vozGuardada = { id: String(mejor.voice_id), hasta: Date.now() + 3_600_000 };
-    return { id: vozGuardada.id };
+    listaGuardada = { voces, hasta: Date.now() + 3_600_000 };
+    return { voces };
   } catch {
     return { fallo: { status: 0, codigo: "voces_sin_conexion" } };
   }
 }
 
+/**
+ * La voz con la que habla: la que escogió en Apariencia SOLO si está en la
+ * lista (así nadie puede usar otra voz de la cuenta, como una voz clonada);
+ * si no, ELEVENLABS_VOZ_ID; si no, la primera de la lista.
+ */
+async function idDeVoz(preferida?: string): Promise<{ id: string } | { fallo: FalloVoz }> {
+  const fija = (process.env.ELEVENLABS_VOZ_ID ?? "").trim();
+  const lista = await vocesDeAtendel();
+  if ("voces" in lista && preferida && lista.voces.some((v) => v.id === preferida)) return { id: preferida };
+  if (ID_VOZ.test(fija)) return { id: fija };
+  if ("fallo" in lista) return lista;
+  return { id: lista.voces[0].id };
+}
+
+/** ¿Esa voz se puede usar para la muestra? (solo las de la lista) */
+export async function esVozDeLista(id: string): Promise<boolean> {
+  const lista = await vocesDeAtendel();
+  return "voces" in lista && lista.voces.some((v) => v.id === id);
+}
+
 /* ---------- Escuchar ---------- */
 
 /** Pasa a texto lo que dijo. `segundos`: cuánto duró el audio (para el costo). null si falló. */
-export async function escuchar(audio: Blob, nombre: string): Promise<{ texto: string; segundos: number } | null> {
+export async function escuchar(audio: Blob, nombre: string, idioma?: string): Promise<{ texto: string; segundos: number } | null> {
   const datos = new FormData();
   datos.append("model_id", MODELO_ESCUCHAR);
-  datos.append("language_code", "es");
+  // El idioma del panel ayuda a entender mejor; sin él, lo detecta solo
+  if (idioma) datos.append("language_code", idioma);
   datos.append("tag_audio_events", "false");
   datos.append("file", audio, nombre);
   try {
@@ -109,8 +150,9 @@ let modeloQueSirve: string | null = null;
  * Dice una frase: el audio (MP3) en streaming, o por qué falló.
  * `antes`: lo que dijo justo antes (para que suene seguido).
  */
-export async function hablar(texto: string, antes?: string): Promise<{ audio: ReadableStream<Uint8Array> } | { fallo: FalloVoz }> {
-  const voz = await idDeVoz();
+export async function hablar(texto: string, o: { antes?: string; voz?: string; idioma?: string } = {}): Promise<{ audio: ReadableStream<Uint8Array> } | { fallo: FalloVoz }> {
+  const { antes, idioma } = o;
+  const voz = await idDeVoz(o.voz);
   if ("fallo" in voz) return voz;
   const modelos = [...new Set([modeloQueSirve ?? modeloHablar(), modeloHablar(), ...RESPALDOS])];
   let fallo: FalloVoz = { status: 0, codigo: "sin_respuesta" };
@@ -122,7 +164,7 @@ export async function hablar(texto: string, antes?: string): Promise<{ audio: Re
         body: JSON.stringify({
           text: texto,
           model_id: modelo,
-          language_code: "es",
+          ...(idioma ? { language_code: idioma } : {}),
           ...(antes ? { previous_text: antes.slice(-300) } : {}),
           // Los modelos Flash no leen bien números y fechas si no se les pide
           apply_text_normalization: modelo.startsWith("eleven_flash") ? "on" : "auto",
@@ -139,7 +181,7 @@ export async function hablar(texto: string, antes?: string): Promise<{ audio: Re
       // Clave mala, sin saldo o demasiadas peticiones: otro modelo no lo arregla
       if (r.status === 401 || r.status === 402 || r.status === 429) break;
       // La voz guardada ya no existe: se vuelve a escoger la próxima vez
-      if (/voice/i.test(fallo.codigo)) vozGuardada = null;
+      if (/voice/i.test(fallo.codigo)) listaGuardada = null;
     } catch {
       fallo = { status: 0, codigo: "sin_conexion" };
     }

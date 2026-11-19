@@ -1,4 +1,5 @@
 import { AGENTE_POR_ID, IDS_AGENTES, type IdAgente } from "./agentes";
+import { ID_VOZ } from "./voces-atendel";
 
 /**
  * AJUSTES DE LA CUENTA (tabla ajustes_cuenta, un jsonb por cuenta)
@@ -238,6 +239,8 @@ export type AjustesCuenta = {
   ancho: AnchoChat;
   movimiento: Movimiento;
   idioma: IdIdioma;
+  /** La voz de Atendel en el modo plática (una de las 4 de Apariencia; "" = la de siempre). */
+  vozAtendel: string;
   interlineado: Interlineado;
   densidad: Densidad;
   contraste: Contraste;
@@ -275,6 +278,7 @@ export const AJUSTES_INICIALES: AjustesCuenta = {
   ancho: "normal",
   movimiento: "sistema",
   idioma: "es-MX",
+  vozAtendel: "",
   interlineado: "normal",
   densidad: "normal",
   contraste: "normal",
@@ -353,6 +357,8 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
       IDIOMAS.map((i) => i.id),
       b.idioma,
     ),
+    // Solo la forma de un id de ElevenLabs; que esté en la lista lo revisa el servidor al usarla
+    vozAtendel: typeof a.vozAtendel === "string" && ID_VOZ.test(a.vozAtendel) ? a.vozAtendel : b.vozAtendel,
     avisos: {
       app: uno(av.app, MODOS_AVISO, b.avisos.app),
       whatsapp: uno(av.whatsapp, MODOS_AVISO, b.avisos.whatsapp),

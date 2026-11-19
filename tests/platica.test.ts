@@ -77,3 +77,25 @@ describe("contar en clientes", () => {
     expect(r).toEqual({ clientes: 2, mensajes: 3, ejemplos: ["¿Hacen envíos?", "¿Entregan a domicilio?"] });
   });
 });
+
+describe("voces de Atendel", () => {
+  it("los nombres cambian según el idioma (y hay unos generales)", async () => {
+    const { nombresDeVoces, textoDeMuestra, codigoIdioma } = await import("@/lib/voces-atendel");
+    expect(nombresDeVoces("es-MX")).toEqual(["Sofía", "Mateo", "Lucía", "Daniel"]);
+    expect(nombresDeVoces("en-US")[0]).toBe("Sophie");
+    expect(nombresDeVoces("zh-TW")[0]).toBe("索菲亞");
+    expect(nombresDeVoces("zh-CN")[0]).toBe("索菲亚");
+    expect(nombresDeVoces("sw-KE")).toEqual(["Sofia", "Mateo", "Lucia", "Daniel"]);
+    expect(textoDeMuestra("es-MX", "Sofía")).toContain("soy Sofía");
+    expect(textoDeMuestra("sw-KE", "Sofia")).toContain("I'm Sofia");
+    expect(codigoIdioma("pt-BR")).toBe("pt");
+    expect(codigoIdioma("nah-MX")).toBeUndefined();
+  });
+
+  it("en los ajustes solo se guarda algo con forma de id de voz", async () => {
+    const { limpiarAjustes } = await import("@/lib/ajustes");
+    expect(limpiarAjustes({ vozAtendel: "21m00Tcm4TlvDq8ikWAM" }).vozAtendel).toBe("21m00Tcm4TlvDq8ikWAM");
+    expect(limpiarAjustes({ vozAtendel: "../../v1/user" }).vozAtendel).toBe("");
+    expect(limpiarAjustes({}).vozAtendel).toBe("");
+  });
+});

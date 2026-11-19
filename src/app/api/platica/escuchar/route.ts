@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { escuchar, vozDisponible } from "@/lib/elevenlabs";
 import { costoEscuchar, MAX_AUDIO_BYTES, MIN_AUDIO_BYTES } from "@/lib/platica";
-import { anotarVoz, puedeUsarVoz, respuestaError } from "@/lib/platica-servidor";
+import { anotarVoz, preferenciasDeVoz, puedeUsarVoz, respuestaError } from "@/lib/platica-servidor";
 import { createClient } from "@/lib/supabase/server";
 
 /*
@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
   if (!audio) return respuestaError("Fue demasiado largo. Dilo en partes.", 413);
   if (audio.byteLength < MIN_AUDIO_BYTES) return NextResponse.json({ texto: "" }, { headers: { "Cache-Control": "no-store" } });
 
-  const r = await escuchar(new Blob([audio], { type: tipo }), nombre);
+  const { codigo } = await preferenciasDeVoz(supabase, user.id);
+  const r = await escuchar(new Blob([audio], { type: tipo }), nombre, codigo);
   if (!r) return respuestaError("No te pude escuchar en este momento. Intenta otra vez.", 502);
   await anotarVoz(supabase, costoEscuchar(r.segundos), "escuchar");
   return NextResponse.json({ texto: r.texto.slice(0, 4000) }, { headers: { "Cache-Control": "no-store" } });

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { hablar, vozDisponible } from "@/lib/elevenlabs";
 import { costoHablar, MAX_FRASE, textoParaVoz } from "@/lib/platica";
-import { anotarVoz, puedeUsarVoz, respuestaError } from "@/lib/platica-servidor";
+import { anotarVoz, preferenciasDeVoz, puedeUsarVoz, respuestaError } from "@/lib/platica-servidor";
 import { createClient } from "@/lib/supabase/server";
 
 /*
@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
   const bloqueo = await puedeUsarVoz(supabase, user.id, "hablar");
   if (bloqueo) return bloqueo;
 
-  const r = await hablar(texto, antes || undefined);
+  // Con la voz que escogió en Apariencia y en el idioma de su panel
+  const pref = await preferenciasDeVoz(supabase, user.id);
+  const r = await hablar(texto, { antes: antes || undefined, voz: pref.voz || undefined, idioma: pref.codigo });
   if ("fallo" in r) {
     // Solo el código corto (p. ej. «quota_exceeded»): sirve para saber qué arreglar en ElevenLabs
     const { status, codigo } = r.fallo;
