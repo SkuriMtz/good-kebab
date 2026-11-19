@@ -19,6 +19,19 @@ const RECARGA = "atendel-recarga-version";
 export default function ErrorDelPanel({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error("Error del panel", error.digest ?? "");
+    // El detalle técnico va a la bitácora del servidor (para poder arreglarlo); nunca se muestra
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const vista = [q.get("vista"), q.get("tab")].filter(Boolean).join("/") || "inicio";
+      void fetch("/api/errores-panel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vista, nombre: error.name, mensaje: error.message, digest: error.digest ?? "", pila: (error.stack ?? "").slice(0, 1500) }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {
+      /* sin bitácora no pasa nada */
+    }
     if (!VERSION_VIEJA.test(`${error.name} ${error.message}`)) return;
     try {
       const antes = Number(sessionStorage.getItem(RECARGA) || 0);
