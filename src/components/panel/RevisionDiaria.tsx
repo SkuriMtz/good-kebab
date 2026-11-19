@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Icono } from "@/components/base/Iconos";
-import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
+import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { AvatarAgente } from "./Mensajes";
 import { Enlace, claseBoton } from "./Piezas";
 
@@ -12,27 +12,8 @@ import { Enlace, claseBoton } from "./Piezas";
  * Arriba de la Oficina. "Revisar ahora" la vuelve a hacer al momento.
  */
 
-export type FaltaRevision = { texto: string; href: string };
-export type ParteRevision = { agente: IdAgente; faltan: FaltaRevision[] };
-export type DatosRevision = { id?: string; fecha: string; creado: string; partes: ParteRevision[]; faltan: number; leida?: boolean };
-
-/** Lee lo que guardó la base de datos, sin confiar en su forma. */
-export function partesDe(valor: unknown): ParteRevision[] {
-  if (!Array.isArray(valor)) return [];
-  return valor.flatMap((p) => {
-    if (!p || typeof p !== "object") return [];
-    const { agente, faltan } = p as { agente?: unknown; faltan?: unknown };
-    if (!esIdAgente(agente)) return [];
-    const lista = Array.isArray(faltan)
-      ? faltan.flatMap((f) => {
-          const x = f as { texto?: unknown; href?: unknown };
-          // Solo enlaces del panel
-          return typeof x?.texto === "string" && typeof x?.href === "string" && x.href.startsWith("/") && !x.href.startsWith("//") ? [{ texto: x.texto.slice(0, 300), href: x.href.slice(0, 300) }] : [];
-        })
-      : [];
-    return [{ agente, faltan: lista }];
-  });
-}
+export { partesDe, type DatosRevision, type FaltaRevision, type ParteRevision } from "./revision";
+import type { DatosRevision, ParteRevision } from "./revision";
 
 const formatoDia = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 

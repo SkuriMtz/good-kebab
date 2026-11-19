@@ -5,7 +5,7 @@ import { ActividadReal, type ConvActividad, type ResumenActividad } from "@/comp
 import { Hecho } from "@/components/panel/Hecho";
 import { Hoy } from "@/components/panel/Hoy";
 import { OficinaReal, type ItemOficina, type Revision, type TipoArchivo } from "@/components/panel/Oficina";
-import { partesDe } from "@/components/panel/RevisionDiaria";
+import { partesDe } from "@/components/panel/revision";
 import { TareasVista } from "@/components/panel/Tareas";
 import { PorAprobar } from "@/components/panel/PorAprobar";
 import { limpiarAjustes } from "@/lib/ajustes";
@@ -13,7 +13,8 @@ import { TEMA_AVISOS } from "@/lib/avisos";
 import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
-import { TuNegocio, pestanaDe } from "@/components/panel/negocio/TuNegocio";
+import { TuNegocio } from "@/components/panel/negocio/TuNegocio";
+import { pestanaDe } from "@/components/panel/negocio/pestanas";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";

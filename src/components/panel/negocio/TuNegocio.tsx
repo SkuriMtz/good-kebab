@@ -9,11 +9,11 @@ import { MemoriaNegocio, ProcesosNegocio, ReglasNegocio } from "./Cerebro";
 import { DocumentosNegocio } from "./Documentos";
 import { useFuenteNegocio } from "./fuente";
 import { PerfilNegocioVista } from "./Perfil";
+import { PESTANAS_NEGOCIO, type PestanaNegocio } from "./pestanas";
 
-export const PESTANAS_NEGOCIO = ["perfil", "reglas", "memoria", "documentos", "apps"] as const;
-export type PestanaNegocio = (typeof PESTANAS_NEGOCIO)[number];
+export { PESTANAS_NEGOCIO, pestanaDe, type PestanaNegocio } from "./pestanas";
+
 // "procesos" ahora vive dentro de Reglas (enlaces viejos)
-export const pestanaDe = (v: string | null | undefined): PestanaNegocio => (v === "procesos" ? "reglas" : (PESTANAS_NEGOCIO as readonly string[]).includes(v ?? "") ? (v as PestanaNegocio) : "perfil");
 
 const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", reglas: "Reglas", memoria: "Memoria", documentos: "Documentos", apps: "Apps" };
 

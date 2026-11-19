@@ -36,7 +36,8 @@ import { AgentesDemo, CitasDemo, CorreoDemo, PendientesDemo, tableroInicial, typ
 import { PEDIDOS, esArea } from "./pedidos";
 import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
-import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
+import { TuNegocio } from "./negocio/TuNegocio";
+import { pestanaDe } from "./negocio/pestanas";
 import { usoDeEjemplo } from "@/lib/uso-estado";
 import { fraseDelDia } from "@/lib/tablero";
 import { tableroDeEjemplo } from "@/lib/tablero-demo";

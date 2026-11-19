@@ -3,7 +3,8 @@ import { Marca } from "@/components/Logo";
 import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { AvatarAgente } from "./Mensajes";
-import { Enlace, retrasoEscalon } from "./Piezas";
+import { Enlace } from "./Piezas";
+import { retrasoEscalon } from "./piezas-estilo";
 
 /**
  * «Hoy»: lo que hay debajo del saludo y la caja de Atendel. Tres secciones

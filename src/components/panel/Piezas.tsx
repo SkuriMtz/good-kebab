@@ -1,5 +1,9 @@
 "use client";
 
+import { claseBoton, retrasoEscalon, type Variante } from "./piezas-estilo";
+
+export { claseBoton, retrasoEscalon, type Variante } from "./piezas-estilo";
+
 import Link from "next/link";
 import {
   createContext,
@@ -155,14 +159,6 @@ export function Tarjeta({
   );
 }
 
-/**
- * Retraso de la entrada escalonada: 40ms entre tarjetas al principio y
- * cada vez menos (no es un metrónomo), con tope en ~240ms: lo del final
- * llega con las últimas y nada bloquea los clics.
- */
-export function retrasoEscalon(i: number) {
-  return Math.min(240, Math.round(40 * Math.pow(Math.max(0, i), 0.85)));
-}
 
 /* ---------- Píldoras (filtros y periodos) ---------- */
 
@@ -414,10 +410,8 @@ export function BarraBuscar({ texto = "Buscar en tu panel" }: { texto?: string }
 
 /* ---------- Botones del panel ---------- */
 
-type Variante = "principal" | "suave" | "borde" | "fantasma";
 
 /** Clase de botón del panel (para <button>, <a> o Enlace). */
-export const claseBoton = (variante: Variante = "suave", chico = false) => `pc-boton pc-boton--${variante}${chico ? " pc-boton--chico" : ""}`;
 
 /* ---------- La marca de fragmentos de Atendel ---------- */
 

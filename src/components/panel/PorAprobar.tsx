@@ -1,5 +1,6 @@
 import { Icono } from "@/components/base/Iconos";
-import { Enlace, claseBoton } from "./Piezas";
+import { Enlace } from "./Piezas";
+import { claseBoton } from "./piezas-estilo";
 
 /**
  * Arriba de la Oficina: lo que espera tu OK (mensajes listos para mandar,
