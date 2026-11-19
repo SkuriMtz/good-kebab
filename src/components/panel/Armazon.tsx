@@ -71,6 +71,8 @@ type Props = {
   info?: (p: { tab: TabInfo; pedido: number; alIr: (t: TabInfo) => void; alVer: (t: TabInfo) => void; alCerrar: () => void }) => ReactNode;
   /** Lo que muestra la ventana de Ajustes (se abre con el engrane del pie del menú o con un enlace a ?vista=ajustes). */
   ajustes: DatosAjustes;
+  /** Piezas que flotan sobre todo (ej. «¿Te aviso en este aparato?»): van dentro de .pc para tomar sus colores y sus botones. */
+  flotantes?: ReactNode;
   children: ReactNode;
 };
 
@@ -107,7 +109,7 @@ function enfocarCaja() {
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, porRevisar, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, porRevisar, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, flotantes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -645,6 +647,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
       ) : null}
       <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
+      {flotantes}
     </div>
   );
 }

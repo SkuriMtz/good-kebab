@@ -357,10 +357,10 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         indice={indice}
         alCapturarClic={alCapturarClic}
         info={info}
+        flotantes={<OfertaAvisos />}
       >
         {children}
       </Armazon>
-      <OfertaAvisos />
     </ContextoChats.Provider>
   );
 }

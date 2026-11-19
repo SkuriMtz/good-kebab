@@ -102,10 +102,21 @@
 .tb-bento > .tb-panel {
   grid-column: 1 / -1;
 }
+/* El alto de cada mosaico sale del ancho de su columna (100cqi = el ancho de la cuadrícula): 4:3 en
+   celular, 16:9 en tablet y compu. Sin aspect-ratio: dentro de la cuadrícula, Safari (iPhone)
+   calculaba mal los mosaicos con aspect-ratio y salían unos chicos y otros grandes. Si un panel de
+   la misma fila es más alto, el mosaico se estira con la fila. */
+.tb-bento {
+  --tb-alto: calc((100cqi - var(--tb-hueco)) / 2 * 3 / 4);
+}
 .tb-bento > .tb-mosaico {
-  align-self: stretch;
+  aspect-ratio: auto;
+  min-height: var(--tb-alto);
 }
 @container tb-cuerpo (min-width: 560px) {
+  .tb-bento {
+    --tb-alto: calc((100cqi - var(--tb-hueco)) / 2 * 9 / 16);
+  }
   .tb-bento > .tb-viene,
   .tb-bento > .tb-apps {
     grid-column: auto / span 1;
@@ -113,6 +124,7 @@
 }
 @container tb-cuerpo (min-width: 880px) {
   .tb-bento {
+    --tb-alto: calc((100cqi - 3 * var(--tb-hueco)) / 4 * 9 / 16);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-auto-flow: row;
   }
@@ -128,10 +140,9 @@
     grid-column: 4;
     grid-row: 4 / span 2;
   }
-  /* El ancho mide dos mosaicos pero el alto, el de su fila (no 16:9, que lo haría el doble de alto) */
+  /* Mide dos mosaicos de ancho y el alto de su fila */
   .tb-bento[data-n="7"] > .tb-mosaico:last-of-type {
     grid-column: auto / span 2;
-    aspect-ratio: auto;
   }
   .tb-bento[data-n="6"] > .tb-apps {
     grid-column: 3 / span 2;
@@ -243,10 +254,7 @@
   box-shadow: 0 4px 12px rgb(229 72 77 / 0.4);
 }
 @media (max-width: 560px) {
-  /* En celular: 2 por fila, un poco más altas para que quepa el texto */
-  .tb-bento .tb-mosaico {
-    aspect-ratio: 4 / 3;
-  }
+  /* En celular: 2 por fila, un poco más altas (4:3, arriba en «Bento») para que quepa el texto */
   .tb-bento .tb-mosaico__arte svg {
     width: 34px;
     height: 34px;
