@@ -46,9 +46,8 @@ function armarCsp(nonce: string): string {
     // El Picker se abre en un iframe de docs.google.com; Turnstile, en uno de challenges.cloudflare.com
     `frame-src 'self' https://docs.google.com https://apis.google.com${TURNSTILE}`,
     "style-src 'self' 'unsafe-inline'",
-    // Imágenes: las propias, las de Google (el selector de Drive) y las fotos de las noticias del
-    // Tablero (las guarda el servidor en Storage; solo esa carpeta); ninguna otra
-    `img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com ${SUPABASE_ORIGEN}/storage/v1/object/public/noticias/`,
+    // Imágenes: las propias y las de Google (el selector de Drive); ninguna otra
+    "img-src 'self' data: blob: https://*.googleusercontent.com https://ssl.gstatic.com https://www.gstatic.com",
     "font-src 'self'",
     `connect-src 'self' ${SUPABASE_ORIGEN} https://www.googleapis.com${TURNSTILE}`,
     // Sin plugins (Flash, Java…) y todo por HTTPS

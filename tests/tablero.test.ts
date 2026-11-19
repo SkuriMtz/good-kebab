@@ -16,7 +16,6 @@ const base: EntradaTablero = {
   citas: null,
   apps: [],
   uso: { semanaPct: 10, trabajoPct: 5 },
-  noticias: [],
 };
 
 describe("tablero", () => {
@@ -53,13 +52,6 @@ describe("tablero", () => {
     const clientes = t.filas.find((f) => f.id === "clientes")!;
     expect(clientes.tarjetas[0]).toMatchObject({ id: "whatsapp", grande: true });
     expect(clientes.tarjetas.filter((x) => x.grande)).toHaveLength(1);
-  });
-
-  it("las noticias van en la columna de hoy (no en el banner), máximo 3", () => {
-    const nota = (id: string) => ({ id, titulo: "Sube el precio del papel", resumen: "…", fuente: "eleconomista.com.mx", url: `https://ejemplo.mx/${id}` });
-    const t = armarTablero({ ...base, noticias: ["1", "2", "3", "4"].map(nota) });
-    expect(t.noticias).toHaveLength(3);
-    expect(t.destacadas.some((d) => d.fuera)).toBe(false);
   });
 
   it("ley de Hick: solo los mosaicos con algo pendiente (máx. 4) y nada repetido", () => {

@@ -55,6 +55,5 @@ export function tableroDeEjemplo(): DatosTablero {
       { id: "s", nombre: "Stripe", cuenta: "Estudio Luna", logo: "/apps/stripe.svg", apps: ["Stripe"], estado: "activa" },
     ],
     uso: { semanaPct: 43, trabajoPct: 21 },
-    noticias: [],
   });
 }

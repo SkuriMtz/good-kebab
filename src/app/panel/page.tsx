@@ -254,9 +254,8 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
   const alChat = searchParams.vista === "chat" || Boolean(searchParams.c || searchParams.pide || searchParams.agente || searchParams.area || searchParams.avisos);
   if (!alChat) {
     const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
-    const aj = limpiarAjustes(filaAjustes?.datos);
-    const zona = aj.zonaHoraria;
-    const datos = await cargarTablero(supabase, user.id, { cuenta, conGoogle, zona, idioma: aj.idioma });
+    const zona = limpiarAjustes(filaAjustes?.datos).zonaHoraria;
+    const datos = await cargarTablero(supabase, user.id, { cuenta, conGoogle, zona });
     const meta = user.user_metadata ?? {};
     const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
     const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(new Date());

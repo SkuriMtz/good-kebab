@@ -51,10 +51,6 @@ export type Destacada = {
   detalle?: string;
   href: string;
   tono: Tono;
-  /** Las noticias de tu industria llevan a su fuente (fuera de Atendel). */
-  fuera?: { nombre: string };
-  /** La foto de la noticia (guardada en la Supabase de Atendel). */
-  foto?: string;
 };
 
 export type Acceso = { id: string; titulo: string; icono: IconoTablero; href: string };
@@ -72,13 +68,8 @@ export type DatosTablero = {
   mosaicos: Mosaico[];
   hoy: Hoy;
   filas: FilaTablero[];
-  /** Las noticias de tu industria (en la columna de hoy, debajo de los pendientes). */
-  noticias: NoticiaTablero[];
-  /** false: las noticias de tu industria no son de hoy y el Tablero las pide (/api/tablero/noticias). */
-  noticiasAlDia: boolean;
 };
 
-export type NoticiaTablero = { id: string; titulo: string; resumen: string; fuente: string; url: string; foto?: string };
 
 /* ---------- Lo que entra ---------- */
 
@@ -103,9 +94,6 @@ export type EntradaTablero = {
   citas: Semana | null;
   apps: { id: string; nombre: string; cuenta: string | null; logo: string | null; apps: string[]; estado: "activa" | "error" }[];
   uso: { semanaPct: number | null; trabajoPct: number | null };
-  noticias: NoticiaTablero[];
-  /** ¿Las noticias ya son de hoy? (si no se dice, sí: no se piden). */
-  noticiasAlDia?: boolean;
 };
 
 /* ---------- El armado ---------- */
@@ -302,7 +290,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
   };
 
   const filas = [clientes, semana, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
-  return { destacadas, accesos, mosaicos, hoy, filas, noticias: e.noticias.slice(0, 3), noticiasAlDia: e.noticiasAlDia ?? true };
+  return { destacadas, accesos, mosaicos, hoy, filas };
 }
 
 /** Cuánto cambió contra antes, en %, o null si antes no hubo nada (no se puede comparar). */

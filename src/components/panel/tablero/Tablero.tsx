@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import PromptBar from "@/components/PromptBar";
 import { Icono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
-import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type NoticiaTablero, type Tarjeta } from "@/lib/tablero";
+import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type Tarjeta } from "@/lib/tablero";
 import { FragmentosInicio } from "../FragmentosInicio";
 import "./tablero.css";
 
@@ -109,7 +109,7 @@ function Mosaicos({ mosaicos }: { mosaicos: Mosaico[] }) {
 
 /* ---------- La columna de hoy (con pestañas) ---------- */
 
-function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: string; children?: ReactNode }) {
+function ColumnaHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
   const [activa, setActiva] = useState(hoy.pestanas.find((p) => p.cuenta)?.id ?? hoy.pestanas[0]?.id);
   const pestana = hoy.pestanas.find((p) => p.id === activa) ?? hoy.pestanas[0];
   const mover = (dir: 1 | -1) => {
@@ -191,7 +191,6 @@ function ColumnaHoy({ hoy, hrefTareas, children }: { hoy: Hoy; hrefTareas: strin
           </div>
         </section>
       ) : null}
-      {children}
     </aside>
   );
 }
@@ -214,15 +213,7 @@ function Banner({ destacadas }: { destacadas: Destacada[] }) {
     );
   }
   return (
-    <section className="tb-banner" data-tono={actual.tono} data-foto={actual.foto ? "" : undefined} aria-roledescription="carrusel" aria-label="Lo importante">
-      {actual.foto ? (
-        <>
-          {/* La foto de la nota (guardada en Storage por el servidor); si no carga, se quita */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img key={`f-${actual.id}`} className="tb-banner__foto" src={actual.foto} alt="" referrerPolicy="no-referrer" decoding="async" onError={(e) => (e.currentTarget.hidden = true)} />
-          {actual.fuera ? <span className="tb-banner__credito">Foto: {actual.fuera.nombre}</span> : null}
-        </>
-      ) : null}
+    <section className="tb-banner" data-tono={actual.tono} aria-roledescription="carrusel" aria-label="Lo importante">
       <div key={actual.id} className="tb-banner__cuerpo" aria-live="polite">
         <span className="tb-banner__etiqueta">
           {actual.tono === "alerta" ? <Icono nombre="alerta" tam={14} /> : null}
@@ -230,15 +221,9 @@ function Banner({ destacadas }: { destacadas: Destacada[] }) {
         </span>
         <p className="tb-banner__titulo">{actual.titulo}</p>
         {actual.detalle ? <p className="tb-banner__detalle">{actual.detalle}</p> : null}
-        {actual.fuera ? (
-          <a href={actual.href} target="_blank" rel="noopener noreferrer" className="tb-banner__boton">
-            Leer en {actual.fuera.nombre} <Icono nombre="flecha-arriba-derecha" tam={16} />
-          </a>
-        ) : (
-          <a href={actual.href} className="tb-banner__boton">
-            {actual.tono === "alerta" ? "Resolverlo" : "Ver"} <Icono nombre="chevron-derecha" tam={16} />
-          </a>
-        )}
+        <a href={actual.href} className="tb-banner__boton">
+          {actual.tono === "alerta" ? "Resolverlo" : "Ver"} <Icono nombre="chevron-derecha" tam={16} />
+        </a>
       </div>
       {total > 1 ? (
         <div className="tb-banner__controles">
@@ -414,99 +399,6 @@ function Seccion({ id, titulo, href, children }: { id: string; titulo: string; h
 }
 
 /**
- * Las noticias de tu industria, si las guardadas no son de hoy: se piden
- * después de abrir (la búsqueda tarda). null mientras se buscan.
- */
-function useNoticias(alDia: boolean): NoticiaTablero[] | null {
-  const [nuevas, setNuevas] = useState<NoticiaTablero[] | null>(null);
-  useEffect(() => {
-    if (alDia) return;
-    const control = new AbortController();
-    fetch("/api/tablero/noticias", { method: "POST", signal: control.signal })
-      .then((r) => (r.ok ? (r.json() as Promise<{ noticias?: NoticiaTablero[] }>) : null))
-      .then((d) => setNuevas((d?.noticias ?? []).filter((n) => typeof n?.url === "string" && n.url.startsWith("https://") && typeof n.titulo === "string").slice(0, 3)))
-      .catch(() => setNuevas([]));
-    return () => control.abort();
-  }, [alDia]);
-  return nuevas;
-}
-
-/** Las noticias de tu industria: una a la vez, con su foto, y flechas para pasar a otra. */
-function Noticias({ noticias, cargando, sinNada }: { noticias: NoticiaTablero[]; cargando: boolean; sinNada: boolean }) {
-  const [i, setI] = useState(0);
-  const total = noticias.length;
-  // Las fotos de todas se bajan de una vez (son ligeras): al picar la flecha, la siguiente ya está
-  const fotos = noticias.map((n) => n.foto ?? "").join("|");
-  useEffect(() => {
-    for (const f of fotos.split("|")) {
-      if (!f) continue;
-      const img = new Image();
-      img.decoding = "async";
-      img.src = f;
-    }
-  }, [fotos]);
-  if (!total && !cargando && !sinNada) return null;
-  const n = noticias[Math.min(i, total - 1)];
-  return (
-    <section className="tb-panel tb-noticias" aria-roledescription="carrusel" aria-label="Noticias de tu industria">
-      <div className="tb-panel__cabeza">
-        <h2 className="tb-panel__titulo">Tu industria</h2>
-        {total > 1 ? (
-          <div className="tb-noticias__flechas">
-            <span className="tb-noticias__cuenta" aria-hidden="true">
-              {Math.min(i, total - 1) + 1} de {total}
-            </span>
-            <button type="button" className="tb-flecha" aria-label="Noticia anterior" onClick={() => setI((x) => (x - 1 + total) % total)}>
-              <Icono nombre="chevron-izquierda" tam={16} />
-            </button>
-            <button type="button" className="tb-flecha" aria-label="Siguiente noticia" onClick={() => setI((x) => (x + 1) % total)}>
-              <Icono nombre="chevron-derecha" tam={16} />
-            </button>
-          </div>
-        ) : null}
-      </div>
-      {!n && !cargando ? (
-        // Ya se buscó y no hubo nada que valga la pena (o se vuelve a buscar en un rato): se dice, no se esconde
-        <p className="tb-panel__vacio" aria-live="polite">
-          Todavía no hay noticias importantes de hoy para tu negocio. Vuelvo a buscar en un rato.
-        </p>
-      ) : !n ? (
-        <div className="tb-noticia tb-noticia--cargando" aria-live="polite">
-          <span className="tb-noticia__foto" />
-          <span className="tb-panel__vacio">Buscando las noticias de hoy…</span>
-        </div>
-      ) : (
-        <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer" className="tb-noticia" aria-live="polite">
-          <span className="tb-noticia__foto">
-            {n.foto ? (
-              // La foto de la nota (guardada en Storage por el servidor); si no carga, se queda el fondo
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={n.foto}
-                alt=""
-                decoding="async"
-                fetchPriority="high"
-                referrerPolicy="no-referrer"
-                // También si falló antes de que React tomara la página
-                ref={(el) => {
-                  if (el?.complete && el.naturalWidth === 0) el.hidden = true;
-                }}
-                onError={(e) => (e.currentTarget.hidden = true)}
-              />
-            ) : null}
-          </span>
-          <span className="tb-noticia__titulo">{n.titulo}</span>
-          {n.resumen ? <span className="tb-noticia__resumen">{n.resumen}</span> : null}
-          <span className="tb-noticia__fuente">
-            Leer en {n.fuente} <Icono nombre="flecha-arriba-derecha" tam={14} />
-          </span>
-        </a>
-      )}
-    </section>
-  );
-}
-
-/**
  * La transición al bajar (ver tablero.css, «Al bajar»): el saludo se va al
  * pasarlo y cada pieza de abajo aparece al entrar, una tras otra. Nada se
  * esconde si hay «reducir movimiento» o si no hay IntersectionObserver.
@@ -554,20 +446,13 @@ function useTransicion() {
 
 export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
   const raiz = useTransicion();
-  const nuevas = useNoticias(datos.noticiasAlDia);
-  // Si llegaron las de hoy, reemplazan a las guardadas (de otro día)
-  const noticias = nuevas?.length ? nuevas : datos.noticias;
-  const buscando = !datos.noticiasAlDia && nuevas === null && !datos.noticias.length;
-  const sinNada = !datos.noticiasAlDia && nuevas !== null && !noticias.length;
   return (
     <div className="tb" ref={raiz}>
       <Heroe saludo={saludo} base={base} />
       <div className="tb-cuerpo">
         <Banner destacadas={datos.destacadas} />
         {datos.mosaicos.length ? <Mosaicos mosaicos={datos.mosaicos} /> : null}
-        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`}>
-          <Noticias noticias={noticias} cargando={buscando} sinNada={sinNada} />
-        </ColumnaHoy>
+        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`} />
         <div className="tb-secciones">
           {datos.filas.map((f) => (
             <Seccion key={f.id} id={f.id} titulo={f.titulo} href={f.href}>

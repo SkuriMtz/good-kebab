@@ -253,7 +253,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   };
 
   const indice: ResultadoBusqueda[] = [
-    { id: "s-tablero", grupo: "Secciones", titulo: "Tablero", detalle: "El resumen de tu negocio", icono: "grafica", claves: "inicio tablero resumen negocio noticias apps", href: "/panel" },
+    { id: "s-tablero", grupo: "Secciones", titulo: "Tablero", detalle: "El resumen de tu negocio", icono: "grafica", claves: "inicio tablero resumen negocio apps", href: "/panel" },
     { id: "s-inicio", grupo: "Secciones", titulo: "Chat con Atendel", detalle: "Platica con Atendel y pídele cosas", icono: "documento", claves: "chat nueva conversacion pedir escribir", href: "/panel?vista=chat" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
     { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
