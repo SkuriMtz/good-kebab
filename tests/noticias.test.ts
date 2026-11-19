@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, regionDeIdioma, resultadosDeBusqueda, urlSegura } from "@/lib/noticias";
+import { claveNoticias, datosParaElegir, diaNoticias, listaParaElegir, noticiasElegidas, noticiasGuardadas, pedidoNoticias, regionDeIdioma, resultadosDeBusqueda, urlSegura } from "@/lib/noticias";
 
 const resultado = (...urls: string[]) => ({
   type: "web_search_tool_result",
@@ -39,39 +39,34 @@ describe("noticias de tu industria", () => {
     expect(urlSegura("https://milenio.com:8443/x")).toBeNull();
   });
 
-  it("un enlace que no salió de la búsqueda no pasa (nada inventado)", () => {
-    const permitidas = resultadosDeBusqueda([resultado("https://www.eleconomista.com.mx/a", "https://expansion.mx/b"), { type: "text", text: "x" }]);
-    const texto =
-      'Aquí van: {"noticias":[' +
-      '{"titulo":"Nueva norma para consultorios","resumen":"Pide **registro** nuevo.","url":"https://www.eleconomista.com.mx/a"},' +
-      '{"titulo":"Inventada por la IA","resumen":"x","url":"https://inventado.com/z"},' +
-      '{"titulo":"Repetida otra vez igual","resumen":"x","url":"https://www.eleconomista.com.mx/a"},' +
-      '{"titulo":"Sube el precio del material","resumen":"<b>15 %</b> más","url":"https://expansion.mx/b"}]}';
-    const n = leerNoticias(texto, permitidas);
-    expect(n.map((x) => x.fuente)).toEqual(["eleconomista.com.mx", "expansion.mx"]);
-    expect(n[0].resumen).toBe("Pide registro nuevo.");
-    expect(n[1].resumen).toBe("15 % más");
+  it("la dirección sale del resultado real por su número (nada inventado)", () => {
+    const lista = listaParaElegir(resultadosDeBusqueda([resultado("https://www.eleconomista.com.mx/a", "https://expansion.mx/b", "https://www.eleconomista.com.mx/a", "javascript:alert(1)"), { type: "text", text: "x" }]));
+    expect(lista.map((r) => r.url)).toEqual(["https://www.eleconomista.com.mx/a", "https://expansion.mx/b"]);
+    const n = noticiasElegidas(
+      {
+        noticias: [
+          { numero: 2, titulo: "Sube el precio del **material**", resumen: "<b>15 %</b> más" },
+          { numero: 2, titulo: "Repetida otra vez igual", resumen: "x" },
+          { numero: 9, titulo: "Número que no está en la lista", resumen: "x" },
+          { numero: 1.5, titulo: "Número raro que no es entero", resumen: "x" },
+          { numero: 1, titulo: "Nueva norma para consultorios", resumen: "Pide registro nuevo.", url: "https://inventado.com/z" },
+        ],
+      },
+      lista,
+    );
+    expect(n.map((x) => x.url)).toEqual(["https://expansion.mx/b", "https://www.eleconomista.com.mx/a"]);
+    expect(n[0]).toMatchObject({ titulo: "Sube el precio del material", resumen: "15 % más", fuente: "expansion.mx" });
   });
 
-  it("si la IA escribe la dirección un poco distinta, se usa la de la búsqueda", () => {
-    const res = [
-      { url: "https://www.milenio.com/negocios/barberias-nueva-norma?utm=x", titulo: "Nueva norma sanitaria para barberías en CDMX - Milenio" },
-      { url: "https://expansion.mx/empresas/precio-navajas", titulo: "Sube 15% el precio de las navajas y productos" },
-    ];
-    const texto = JSON.stringify({
-      noticias: [
-        { titulo: "Nueva norma para barberías", resumen: "x", url: "http://milenio.com/negocios/barberias-nueva-norma/" },
-        { titulo: "Sube el precio de las navajas y productos de barbería", resumen: "x", url: "https://expansion.mx/otra-cosa" },
-        { titulo: "Algo que no salió en la búsqueda", resumen: "x", url: "https://inventado.com/z" },
-      ],
-    });
-    const n = leerNoticias(texto, res);
-    expect(n.map((x) => x.url)).toEqual(["https://www.milenio.com/negocios/barberias-nueva-norma?utm=x", "https://expansion.mx/empresas/precio-navajas"]);
+  it("lo que se manda a elegir lleva números, títulos y fuentes", () => {
+    const d = JSON.parse(datosParaElegir([{ url: "https://expansion.mx/b", titulo: "Título <b>real</b>" }], "notas"));
+    expect(d.resultados[0]).toEqual({ numero: 1, titulo: "Título real", fuente: "expansion.mx" });
+    expect(d.notas).toBe("notas");
   });
 
-  it("si no es JSON o no hay lista, nada", () => {
-    expect(leerNoticias("no encontré nada", [])).toEqual([]);
-    expect(leerNoticias('{"otra":1}', [])).toEqual([]);
+  it("si no hay lista o no es lo esperado, nada", () => {
+    expect(noticiasElegidas(null, [])).toEqual([]);
+    expect(noticiasElegidas({ otra: 1 }, [])).toEqual([]);
   });
 
   it("lo guardado se vuelve a revisar al leer", () => {

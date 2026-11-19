@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdIdioma } from "./ajustes";
 import { cargarCuenta } from "./cuenta";
 import { conUrlDeFoto, guardarFotos } from "./fotos-noticias";
-import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, resultadosDeBusqueda, type Noticia } from "./noticias";
+import { claveNoticias, datosParaElegir, diaNoticias, ESQUEMA_ELECCION, listaParaElegir, noticiasElegidas, noticiasGuardadas, pedidoNoticias, resultadosDeBusqueda, type Noticia } from "./noticias";
 import { MODELOS } from "./planes";
 import { pasarLimite } from "./seguridad";
 import { inicioSemana } from "./trabajo";
@@ -56,7 +56,7 @@ export async function noticiasDeHoy(admin: SupabaseClient, dueno: string, o: { t
   if (!(await pasarLimite(`noticias:${clave}:${hora}`, 1, 2 * 3_600, false))) return antes.noticias;
   if (!(await pasarLimite(`noticias:${clave}:${dia}`, 3, 2 * 86_400, false))) return antes.noticias;
 
-  const { system, mensaje } = pedidoNoticias(o.tipo, o.idioma, dia);
+  const { system, mensaje, eleccion } = pedidoNoticias(o.tipo, o.idioma, dia);
   const gasto = new Gasto();
   const modelo = MODELOS.rapido.api;
   try {
@@ -78,19 +78,39 @@ export async function noticiasDeHoy(admin: SupabaseClient, dueno: string, o: { t
       );
       gasto.sumar(r, modelo);
       bloques.push(...r.content);
-      if (r.stop_reason !== "pause_turn") {
-        if (r.stop_reason !== "end_turn") return antes.noticias;
-        break;
-      }
+      if (r.stop_reason !== "pause_turn") break;
       mensajes.push({ role: "assistant", content: r.content });
     }
-    const resultados = resultadosDeBusqueda(bloques);
-    const ultimas = bloques.slice(bloques.map((b) => b.type).lastIndexOf("web_search_tool_result") + 1);
-    const texto = ultimas.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
-    const encontradas = leerNoticias(texto, resultados);
+    // Paso 2: elegir de la lista numerada de resultados REALES (salida con formato fijo). La dirección
+    // de cada noticia sale de la lista por su número, nunca de lo que escriba la IA.
+    const lista = listaParaElegir(resultadosDeBusqueda(bloques));
+    if (!lista.length) {
+      console.error("Noticias: la búsqueda no trajo resultados");
+      return antes.noticias;
+    }
+    const notas = bloques.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+    const r2 = await client.messages.create(
+      {
+        model: modelo,
+        max_tokens: 1500,
+        output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA_ELECCION as unknown as Record<string, unknown> } },
+        system: eleccion,
+        messages: [{ role: "user", content: datosParaElegir(lista, notas) }],
+      },
+      { timeout: 30_000, maxRetries: 1 },
+    );
+    gasto.sumar(r2, modelo);
+    const texto = r2.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+    let crudo: unknown = null;
+    try {
+      crudo = r2.stop_reason === "end_turn" ? JSON.parse(texto) : null;
+    } catch {
+      crudo = null;
+    }
+    const encontradas = noticiasElegidas(crudo, lista);
     if (!encontradas.length) {
-      // No hubo nada que pasara: se quedan las de antes y se vuelve a intentar más tarde (máximo 3 al día)
-      console.error(`Noticias: ninguna pasó (${resultados.length} resultados de la búsqueda, ${texto.length} caracteres de respuesta)`);
+      // Nada sirvió: se quedan las de antes y se vuelve a intentar más tarde (máximo 3 al día)
+      console.error(`Noticias: ninguna elegida (${lista.length} resultados, fin: ${r2.stop_reason})`);
       return antes.noticias;
     }
     // Cada una con su foto (la de la nota), guardada en Storage

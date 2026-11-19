@@ -432,10 +432,10 @@ function useNoticias(alDia: boolean): NoticiaTablero[] | null {
 }
 
 /** Las noticias de tu industria: una a la vez, con su foto, y flechas para pasar a otra. */
-function Noticias({ noticias, cargando }: { noticias: NoticiaTablero[]; cargando: boolean }) {
+function Noticias({ noticias, cargando, sinNada }: { noticias: NoticiaTablero[]; cargando: boolean; sinNada: boolean }) {
   const [i, setI] = useState(0);
   const total = noticias.length;
-  if (!total && !cargando) return null;
+  if (!total && !cargando && !sinNada) return null;
   const n = noticias[Math.min(i, total - 1)];
   return (
     <section className="tb-panel tb-noticias" aria-roledescription="carrusel" aria-label="Noticias de tu industria">
@@ -455,7 +455,12 @@ function Noticias({ noticias, cargando }: { noticias: NoticiaTablero[]; cargando
           </div>
         ) : null}
       </div>
-      {!n ? (
+      {!n && !cargando ? (
+        // Ya se buscó y no hubo nada que valga la pena (o se vuelve a buscar en un rato): se dice, no se esconde
+        <p className="tb-panel__vacio" aria-live="polite">
+          Todavía no hay noticias importantes de hoy para tu negocio. Vuelvo a buscar en un rato.
+        </p>
+      ) : !n ? (
         <div className="tb-noticia tb-noticia--cargando" aria-live="polite">
           <span className="tb-noticia__foto" />
           <span className="tb-panel__vacio">Buscando las noticias de hoy…</span>
@@ -543,6 +548,7 @@ export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: 
   // Si llegaron las de hoy, reemplazan a las guardadas (de otro día)
   const noticias = nuevas?.length ? nuevas : datos.noticias;
   const buscando = !datos.noticiasAlDia && nuevas === null && !datos.noticias.length;
+  const sinNada = !datos.noticiasAlDia && nuevas !== null && !noticias.length;
   return (
     <div className="tb" ref={raiz}>
       <Heroe saludo={saludo} base={base} />
@@ -550,7 +556,7 @@ export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: 
         <Banner destacadas={datos.destacadas} />
         {datos.mosaicos.length ? <Mosaicos mosaicos={datos.mosaicos} /> : null}
         <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`}>
-          <Noticias noticias={noticias} cargando={buscando} />
+          <Noticias noticias={noticias} cargando={buscando} sinNada={sinNada} />
         </ColumnaHoy>
         <div className="tb-secciones">
           {datos.filas.map((f) => (
