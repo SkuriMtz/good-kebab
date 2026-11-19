@@ -6,10 +6,10 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 8px 32px 72px;
+  padding: 4px 32px 72px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 }
 @media (max-width: 720px) {
   .tb {
@@ -22,12 +22,13 @@
 .tb .tb-heroe {
   padding: 0 0 8px;
 }
+/* Empieza arriba: el saludo y la barra pegados al principio (sin hueco vacío) */
 .tb .tb-heroe .pc-inicio__centro {
-  padding-top: 64px;
+  padding-top: 20px;
 }
 @media (max-width: 720px) {
   .tb .tb-heroe .pc-inicio__centro {
-    padding-top: 24px;
+    padding-top: 8px;
   }
 }
 .tb-sugerencias {
