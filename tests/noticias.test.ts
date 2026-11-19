@@ -86,7 +86,7 @@ describe("la foto de cada noticia", () => {
   });
 
   it("no deja que el servidor llame a redes privadas", () => {
-    for (const ip of ["127.0.0.1", "10.2.3.4", "172.20.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "::ffff:7f00:1"]) expect(esIpPrivada(ip)).toBe(true);
+    for (const ip of ["127.0.0.1", "10.2.3.4", "172.20.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "::ffff:7f00:1", "::7f00:1", "::127.0.0.1", "64:ff9b::a00:1", "2002:a00:1::1", "2001::1", "2001:db8::1", "fe80::1%eth0", "300.1.1.1", "203.0.113.5", "fec0::1", "100::1"]) expect(esIpPrivada(ip)).toBe(true);
     for (const ip of ["8.8.8.8", "151.101.1.1", "2606:4700::1111"]) expect(esIpPrivada(ip)).toBe(false);
   });
 

@@ -204,12 +204,32 @@ export function tipoDeImagen(b: Uint8Array): "jpg" | "png" | "webp" | null {
   return null;
 }
 
-/** ¿Es una dirección de red privada, local o reservada? (para no dejar que el servidor llame adentro) */
+/** Los 8 grupos de una IPv6 (expandiendo «::»), o null si no se puede leer o trae una IPv4 adentro. */
+function gruposIpv6(x: string): number[] | null {
+  if (x.includes(".") || x.includes("%")) return null;
+  const mitades = x.split("::");
+  if (mitades.length > 2) return null;
+  const izq = mitades[0] ? mitades[0].split(":") : [];
+  const der = mitades.length === 2 ? (mitades[1] ? mitades[1].split(":") : []) : null;
+  const faltan = der ? 8 - izq.length - der.length : 0;
+  if (der && faltan < 1) return null;
+  const grupos = der ? [...izq, ...Array<string>(faltan).fill("0"), ...der] : izq;
+  if (grupos.length !== 8 || grupos.some((g) => !/^[0-9a-f]{1,4}$/i.test(g))) return null;
+  return grupos.map((g) => parseInt(g, 16));
+}
+
+/**
+ * ¿Es una dirección a la que el servidor NO debe llamar? Lista de permitidas,
+ * no de prohibidas: en IPv4, todo menos redes privadas, locales y reservadas;
+ * en IPv6, solo unicast global (2000::/3), sin las de documentación, 6to4,
+ * Teredo y especiales (2001:0000-01ff), ni nada que lleve una IPv4 adentro.
+ */
 export function esIpPrivada(ip: string): boolean {
   const v4 = ip.replace(/^::ffff:/i, "");
   const m = v4.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (m) {
-    const [a, b] = [Number(m[1]), Number(m[2])];
+    const [a, b, c] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    if ([a, b, c, Number(m[4])].some((n) => n > 255)) return true;
     return (
       a === 0 || a === 10 || a === 127 || a >= 224 ||
       (a === 100 && b >= 64 && b <= 127) ||
@@ -217,10 +237,14 @@ export function esIpPrivada(ip: string): boolean {
       (a === 172 && b >= 16 && b <= 31) ||
       (a === 192 && b === 168) ||
       (a === 192 && b === 0) ||
-      (a === 198 && (b === 18 || b === 19))
+      (a === 192 && b === 88 && c === 99) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      (a === 198 && b === 51 && c === 100) ||
+      (a === 203 && b === 0 && c === 113)
     );
   }
-  const x = ip.toLowerCase();
-  if (!x.includes(":")) return true;
-  return x === "::" || x === "::1" || /^(fc|fd|fe8|fe9|fea|feb|ff)/.test(x) || x.startsWith("64:ff9b") || x.startsWith("2001:db8") || x.startsWith("::ffff:");
+  const g = gruposIpv6(ip.toLowerCase());
+  if (!g) return true;
+  const publica = g[0] >= 0x2000 && g[0] <= 0x3fff && g[0] !== 0x2002 && !(g[0] === 0x2001 && (g[1] < 0x0200 || g[1] === 0x0db8));
+  return !publica;
 }
