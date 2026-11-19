@@ -3,13 +3,16 @@
    aprieta se hunde un poco (scale 0.97); curvas ease-out fuertes y menos de 300 ms. */
 .tb {
   --tb-sale: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Medidas parejas en todo el Tablero (como ElevenLabs): un solo espacio entre tarjetas */
+  --tb-hueco: 18px;
+  --tb-radio: 16px;
   width: 100%;
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 32px 72px;
+  padding: 0 40px 96px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 48px;
 }
 @media (max-width: 720px) {
   .tb {
@@ -22,17 +25,19 @@
 .tb-cabeza {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-top: 40px;
+  align-items: center;
+  gap: 8px;
+  padding-top: 64px;
+  text-align: center;
 }
 .tb-cabeza__saludo {
   margin: 0;
   color: var(--pc-texto);
   font-family: var(--pc-sans);
-  font-size: clamp(2rem, 1.5rem + 1.3vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-size: clamp(2rem, 1.6rem + 1vw, 2.6rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 .tb-cabeza__fecha {
@@ -52,7 +57,7 @@
 /* ---------- Dos columnas: lo del negocio a la izquierda, «Hoy» a la derecha ---------- */
 .tb-cuerpo {
   display: grid;
-  gap: 48px 40px;
+  gap: 56px 32px;
   min-width: 0;
 }
 .tb-cuerpo > * {
@@ -60,7 +65,7 @@
 }
 @media (min-width: 1180px) {
   .tb-cuerpo {
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 1fr) 360px;
     align-items: start;
   }
   .tb-cuerpo > :not(.tb-hoy) {
@@ -77,51 +82,29 @@
   gap: 56px;
 }
 
-/* ---------- Mosaicos (como Toddle) ---------- */
+/* ---------- Mosaicos: tarjetas 16:9 como las de ElevenLabs ----------
+   El color llena toda la tarjeta (con una luz), el ícono grande al centro, el título abajo a la
+   izquierda sobre una sombra suave, y el numerito de pendientes adentro de la esquina. */
 .tb-mosaicos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-@media (max-width: 560px) {
-  /* En celular: 2 por fila, con el color arriba */
-  .tb-mosaicos {
-    gap: 12px;
-  }
-  .tb-mosaicos .tb-mosaico {
-    flex-direction: column;
-    min-height: 0;
-  }
-  .tb-mosaicos .tb-mosaico__arte {
-    width: auto;
-    height: 64px;
-    border-radius: 17px 17px 0 0;
-  }
-  .tb-mosaicos .tb-mosaico__texto {
-    padding: 10px 12px 12px;
-  }
-  .tb-mosaicos .tb-mosaico__titulo {
-    font-size: 0.95rem;
-  }
-  .tb-mosaicos .tb-mosaico__dato {
-    font-size: 0.8rem;
-  }
+  gap: var(--tb-hueco);
 }
 .tb-mosaico {
   --tb-color: #8d8d96;
   position: relative;
   display: flex;
-  align-items: stretch;
-  min-height: 108px;
-  border: 1px solid var(--pc-borde-suave, var(--pc-borde));
-  border-radius: 18px;
-  background: var(--pc-tarjeta);
-  color: var(--pc-texto);
+  align-items: flex-end;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--tb-radio);
+  background:
+    radial-gradient(80% 90% at 70% 20%, color-mix(in srgb, var(--tb-color) 55%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--tb-color) 38%, #0b0b0d), #0b0b0d 85%);
+  color: #fff;
   text-decoration: none;
-  transition: border-color 150ms ease, transform 160ms var(--tb-sale);
-}
-.tb-mosaico:hover {
-  border-color: color-mix(in srgb, var(--tb-color) 45%, var(--pc-borde));
+  isolation: isolate;
+  transition: transform 160ms var(--tb-sale);
 }
 .tb-mosaico:active {
   transform: scale(0.98);
@@ -148,58 +131,99 @@
   --tb-color: #2bb5a8;
 }
 .tb-mosaico__arte {
+  position: absolute;
+  inset: 0 0 34% 0;
+  z-index: -1;
   display: grid;
   place-items: center;
-  width: 104px;
-  flex: none;
-  border-radius: 17px 0 0 17px;
-  background: color-mix(in srgb, var(--tb-color) 18%, transparent);
-  color: var(--tb-color);
+  color: color-mix(in srgb, var(--tb-color) 70%, #fff);
+  transition: transform 400ms var(--tb-sale), opacity 200ms ease;
+}
+.tb-mosaico__arte svg {
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--tb-color) 60%, transparent));
+}
+/* Al pasar el mouse, el dibujo crece apenas (lo de ElevenLabs con sus fotos); la tarjeta no se mueve */
+@media (hover: hover) and (pointer: fine) {
+  .tb-mosaico:hover .tb-mosaico__arte {
+    transform: scale(1.06);
+  }
+}
+/* La sombra de abajo, para que el texto se lea sobre el color */
+.tb-mosaico::after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.65), transparent);
 }
 .tb-mosaico__texto {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
-  padding: 14px 18px;
+  padding: 16px 18px;
 }
 .tb-mosaico__titulo {
   font-size: 1.05rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .tb-mosaico__dato {
-  color: var(--pc-texto-2);
-  font-size: 0.92rem;
+  color: rgb(255 255 255 / 0.78);
+  font-size: 0.88rem;
 }
 .tb-mosaico__globo {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 12px;
+  right: 12px;
   display: grid;
   place-items: center;
   min-width: 26px;
   height: 26px;
-  padding: 0 7px;
-  border: 2px solid var(--pc-lienzo, var(--pc-tarjeta));
+  padding: 0 8px;
   border-radius: 999px;
   background: #e5484d;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 12px rgb(229 72 77 / 0.4);
+}
+@media (max-width: 560px) {
+  /* En celular: 2 por fila, un poco más altas para que quepa el texto */
+  .tb-mosaicos {
+    gap: 12px;
+  }
+  .tb-mosaicos .tb-mosaico {
+    aspect-ratio: 4 / 3;
+  }
+  .tb-mosaicos .tb-mosaico__arte svg {
+    width: 34px;
+    height: 34px;
+  }
+  .tb-mosaicos .tb-mosaico__texto {
+    padding: 10px 12px;
+  }
+  .tb-mosaicos .tb-mosaico__titulo {
+    font-size: 0.95rem;
+  }
+  .tb-mosaicos .tb-mosaico__dato {
+    display: none;
+  }
 }
 
 /* ---------- La columna de hoy ---------- */
 .tb-hoy {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--tb-hueco);
 }
 .tb-panel {
   padding: 24px;
   border: 1px solid var(--pc-borde-suave, var(--pc-borde));
-  border-radius: 18px;
+  border-radius: var(--tb-radio);
   background: var(--pc-tarjeta);
 }
 .tb-panel__cabeza {
@@ -354,9 +378,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 280px;
-  padding: 40px 48px;
-  border-radius: 28px;
+  align-items: center;
+  min-height: 300px;
+  padding: 48px 48px 72px;
+  border-radius: 24px;
+  text-align: center;
   background:
     radial-gradient(60% 120% at 100% 0%, color-mix(in srgb, var(--tb-luz-1) 55%, transparent), transparent 60%),
     radial-gradient(50% 100% at 85% 100%, color-mix(in srgb, var(--tb-luz-2) 45%, transparent), transparent 60%),
@@ -505,7 +531,7 @@
 .tb-seccion {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--tb-hueco);
 }
 .tb-seccion__cabeza {
   display: flex;
@@ -581,8 +607,8 @@
   display: grid;
   grid-auto-flow: column;
   /* Si son menos que las columnas, se estiran y llenan el ancho */
-  grid-auto-columns: minmax(calc((100% - (var(--tb-cols) - 1) * 16px) / var(--tb-cols)), 1fr);
-  gap: 16px;
+  grid-auto-columns: minmax(calc((100% - (var(--tb-cols) - 1) * var(--tb-hueco)) / var(--tb-cols)), 1fr);
+  gap: var(--tb-hueco);
   margin: 0;
   padding: 4px 0 8px;
   list-style: none;
@@ -998,4 +1024,35 @@
   outline: 2px solid var(--pc-foco, var(--pc-acento));
   outline-offset: 2px;
   border-radius: 10px;
+}
+
+/* ---------- Proporciones de ElevenLabs en el banner y las tarjetas ----------
+   El banner con el texto centrado y los puntos abajo al centro; las tarjetas con el mismo radio y el
+   mismo espacio que los mosaicos. */
+.tb-banner .tb-banner__cuerpo {
+  align-items: center;
+  max-width: 720px;
+}
+.tb-banner .tb-banner__controles {
+  left: 50%;
+  right: auto;
+  bottom: 18px;
+  transform: translateX(-50%);
+}
+.tb-tarjeta__enlace,
+.tb-tarjeta[data-destacada] .tb-tarjeta__enlace {
+  border-radius: var(--tb-radio);
+  padding: 22px;
+}
+@media (max-width: 720px) {
+  .tb {
+    gap: 32px;
+  }
+  .tb-cabeza {
+    padding-top: 16px;
+  }
+  .tb-banner {
+    min-height: 260px;
+    padding: 32px 22px 72px;
+  }
 }
