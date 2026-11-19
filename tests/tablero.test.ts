@@ -54,10 +54,11 @@ describe("tablero", () => {
     expect(clientes.tarjetas.filter((x) => x.grande)).toHaveLength(1);
   });
 
-  it("ley de Hick: solo los mosaicos con algo pendiente (máx. 4) y nada repetido", () => {
+  it("todos los mosaicos, con lo pendiente primero, y nada repetido abajo", () => {
     const t = armarTablero(base);
-    expect(t.mosaicos.length).toBeLessThanOrEqual(4);
-    expect(t.mosaicos.every((m) => (m.cuenta ?? 0) > 0)).toBe(true);
+    expect(t.mosaicos.map((m) => m.id)).toEqual(expect.arrayContaining(["ok", "citas", "oficina", "tareas", "estadisticas", "apps"]));
+    const conCuenta = t.mosaicos.map((m) => Boolean(m.cuenta));
+    expect(conCuenta).toEqual([...conCuenta].sort((a, z) => Number(z) - Number(a)));
     expect(t.destacadas.length).toBeLessThanOrEqual(4);
     const tarjetas = t.filas.flatMap((f) => f.tarjetas.map((x) => x.id));
     expect(tarjetas).not.toContain("viene");

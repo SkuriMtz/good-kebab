@@ -260,8 +260,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     v(b, "vista=ajustes"),
   );
 
-  /* Mosaicos: solo las secciones con algo pendiente (máximo 4). Las demás ya están en el menú:
-     repetirlas aquí era dar más opciones de las necesarias (ley de Hick). */
+  /* Mosaicos: cada sección con su dato; lo que tiene algo pendiente va primero */
   const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
   const mosaicos = (
     [
@@ -275,8 +274,10 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
       { id: "apps", titulo: "Apps conectadas", dato: e.apps.length ? plural(e.apps.length, "conectada", "conectadas") : "Conecta tus apps", cuenta: conProblema.length, href: v(b, "vista=negocio&tab=apps"), icono: "enlace", color: "gris" },
     ] as (Mosaico | null | false)[]
   )
-    .filter((m): m is Mosaico => Boolean(m) && Boolean((m as Mosaico).cuenta))
-    .slice(0, 4);
+    .filter((m): m is Mosaico => Boolean(m))
+    .map((m, i) => ({ m, i }))
+    .sort((a, z) => Number(Boolean(z.m.cuenta)) - Number(Boolean(a.m.cuenta)) || a.i - z.i)
+    .map((x) => x.m);
 
   /* Hoy: lo que viene y los pendientes en pestañas */
   const esOficina = (id: string) => /^(f|t|r)-/.test(id);
