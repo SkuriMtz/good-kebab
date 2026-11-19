@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import PromptBar from "@/components/PromptBar";
 import { Icono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
-import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type Tarjeta } from "@/lib/tablero";
+import { cambio, destacadaDeNoticia, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type NoticiaTablero, type Tarjeta } from "@/lib/tablero";
 import { FragmentosInicio } from "../FragmentosInicio";
 import "./tablero.css";
 
@@ -403,12 +403,36 @@ function Seccion({ id, titulo, href, children }: { id: string; titulo: string; h
   );
 }
 
+/**
+ * Las noticias de tu industria, si las guardadas no son de hoy: se piden
+ * después de abrir (la búsqueda tarda) y se suman al final del banner.
+ */
+function useNoticias(alDia: boolean): Destacada[] {
+  const [nuevas, setNuevas] = useState<Destacada[]>([]);
+  useEffect(() => {
+    if (alDia) return;
+    const control = new AbortController();
+    fetch("/api/tablero/noticias", { method: "POST", signal: control.signal })
+      .then((r) => (r.ok ? (r.json() as Promise<{ noticias?: NoticiaTablero[] }>) : null))
+      .then((d) => {
+        const lista = (d?.noticias ?? []).filter((n) => typeof n?.url === "string" && n.url.startsWith("https://") && typeof n.titulo === "string");
+        setNuevas(lista.slice(0, 3).map(destacadaDeNoticia));
+      })
+      .catch(() => {});
+    return () => control.abort();
+  }, [alDia]);
+  return nuevas;
+}
+
 export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
+  const nuevas = useNoticias(datos.noticiasAlDia);
+  // Si llegaron las de hoy, reemplazan a las guardadas (de otro día)
+  const destacadas = nuevas.length ? [...datos.destacadas.filter((d) => !d.fuera), ...nuevas] : datos.destacadas;
   return (
     <div className="tb">
       <Heroe saludo={saludo} base={base} />
       <div className="tb-cuerpo">
-        <Banner destacadas={datos.destacadas} />
+        <Banner destacadas={destacadas} />
         <Mosaicos mosaicos={datos.mosaicos} />
         <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`} />
         <div className="tb-secciones">

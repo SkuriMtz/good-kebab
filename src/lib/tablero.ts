@@ -64,7 +64,28 @@ export type Mosaico = { id: string; titulo: string; dato: string; cuenta?: numbe
 export type PestanaHoy = { id: string; titulo: string; cuenta: number | null; renglones: Renglon[]; vacio: string; href: string };
 export type Hoy = { viene: Renglon[]; pestanas: PestanaHoy[] };
 
-export type DatosTablero = { destacadas: Destacada[]; accesos: Acceso[]; mosaicos: Mosaico[]; hoy: Hoy; filas: FilaTablero[] };
+export type DatosTablero = {
+  destacadas: Destacada[];
+  accesos: Acceso[];
+  mosaicos: Mosaico[];
+  hoy: Hoy;
+  filas: FilaTablero[];
+  /** false: las noticias de tu industria no son de hoy y el Tablero las pide (/api/tablero/noticias). */
+  noticiasAlDia: boolean;
+};
+
+export type NoticiaTablero = { id: string; titulo: string; resumen: string; fuente: string; url: string };
+
+/** Una noticia de tu industria en la fila grande de arriba (lleva a su fuente, fuera de Atendel). */
+export const destacadaDeNoticia = (n: NoticiaTablero): Destacada => ({
+  id: `n-${n.id}`,
+  etiqueta: "Tu industria",
+  titulo: n.titulo,
+  detalle: n.resumen,
+  href: n.url,
+  tono: "normal",
+  fuera: { nombre: n.fuente },
+});
 
 /* ---------- Lo que entra ---------- */
 
@@ -89,7 +110,9 @@ export type EntradaTablero = {
   citas: Semana | null;
   apps: { id: string; nombre: string; cuenta: string | null; logo: string | null; apps: string[]; estado: "activa" | "error" }[];
   uso: { semanaPct: number | null; trabajoPct: number | null };
-  noticias: { id: string; titulo: string; resumen: string; fuente: string; url: string }[];
+  noticias: NoticiaTablero[];
+  /** ¿Las noticias ya son de hoy? (si no se dice, sí: no se piden). */
+  noticiasAlDia?: boolean;
 };
 
 /* ---------- El armado ---------- */
@@ -120,7 +143,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
       tono: "alerta" as const,
     })),
     ...e.teNecesita.slice(0, 4).map((t) => ({ id: `ok-${t.id}`, etiqueta: "Te necesita", titulo: t.titulo, detalle: t.detalle, href: t.href, tono: "alerta" as const })),
-    ...e.noticias.slice(0, 3).map((n) => ({ id: `n-${n.id}`, etiqueta: "Tu industria", titulo: n.titulo, detalle: n.resumen, href: n.url, tono: "normal" as const, fuera: { nombre: n.fuente } })),
+    ...e.noticias.slice(0, 3).map(destacadaDeNoticia),
   ];
 
   /* Accesos rápidos (solo los que aplican) */
@@ -316,7 +339,7 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
   };
 
   const filas = [clientes, agenda, hizo, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
-  return { destacadas, accesos, mosaicos, hoy, filas };
+  return { destacadas, accesos, mosaicos, hoy, filas, noticiasAlDia: e.noticiasAlDia ?? true };
 }
 
 /** Cuánto cambió contra antes, en %, o null si antes no hubo nada (no se puede comparar). */

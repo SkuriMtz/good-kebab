@@ -9,6 +9,9 @@ import { NOMBRE_PROVEEDOR } from "./conexiones/oauth";
 import type { Cuenta } from "./cuenta";
 import { cargarNegocio } from "./estadisticas-negocio";
 import { cargarHoy } from "./hoy";
+import type { IdIdioma } from "./ajustes";
+import { claveNoticias, diaNoticias } from "./noticias";
+import { leerNoticiasGuardadas } from "./noticias-servidor";
 import { negociosDe } from "./pendientes";
 import { armarTablero, type DatosTablero, type EntradaTablero, type Renglon } from "./tablero";
 import { leerUso } from "./uso";
@@ -34,13 +37,16 @@ function semanas(zona: string, ahora: number) {
 
 const porcentaje = (usado: number, limite: number) => (limite > 0 ? Math.min(100, Math.round((usado / limite) * 100)) : null);
 
-export async function cargarTablero(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGoogle: boolean; zona: string }): Promise<DatosTablero> {
+export async function cargarTablero(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGoogle: boolean; zona: string; idioma: IdIdioma }): Promise<DatosTablero> {
   const ahora = Date.now();
   const { antes: diasAntes, estas: diasEstas } = semanas(o.zona, ahora);
   const desde = new Date(ahora - 14 * 86_400_000).toISOString();
   const ids = await negociosDe(supabase, userId);
 
-  const [hoy, negocio, wa, numero, correos, conexiones, uso] = await Promise.all([
+  const { data: perfil } = await supabase.from("perfil_negocio").select("tipo").eq("owner_id", userId).maybeSingle();
+  const tipo = typeof perfil?.tipo === "string" ? perfil.tipo : null;
+
+  const [hoy, negocio, wa, numero, correos, conexiones, uso, noticias] = await Promise.all([
     cargarHoy(supabase, userId, o.cuenta, o.conGoogle, ahora),
     cargarNegocio(supabase, userId, "7d", o.cuenta).catch(() => null),
     supabase.from("whatsapp_mensajes").select("telefono, nombre, texto, estado, creado_en").eq("owner_id", userId).eq("direccion", "entrante").gte("creado_en", desde).order("creado_en", { ascending: false }).limit(1000),
@@ -48,6 +54,7 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
     supabase.from("resumenes_correo").select("id, remitente, asunto, creado_en").in("negocio_id", ids).order("creado_en", { ascending: false }).limit(3),
     leerConexionesPublicas(supabase, userId).catch(() => []),
     leerUso(supabase, userId, o.cuenta.plan).catch(() => null),
+    leerNoticiasGuardadas(supabase, claveNoticias(tipo, o.idioma)).catch(() => ({ dia: null, noticias: [] })),
   ]);
 
   /* WhatsApp: mensajes de clientes por día (esta semana y la anterior) */
@@ -109,7 +116,8 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
       estado: c.estado,
     })),
     uso: { semanaPct: uso ? porcentaje(uso.semana.usado, uso.semana.limite) : null, trabajoPct: uso?.trabajo ? porcentaje(uso.trabajo.usado, uso.trabajo.limite) : null },
-    noticias: [],
+    noticias: noticias.noticias,
+    noticiasAlDia: noticias.dia === diaNoticias(o.zona),
   };
   return armarTablero(entrada);
 }
