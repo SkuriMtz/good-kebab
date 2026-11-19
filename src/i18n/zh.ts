@@ -460,6 +460,16 @@ export const zh: Diccionario = {
     loAtiende: (nombre: string) => ` · 由 ${nombre} 处理`,
     ejemplo: "示例姓名",
     desdeTuCorreo: "来自你的邮箱",
+    seLoPaso: (nombre: string) => `好的，我交给 ${nombre}。`,
+    pidele: "让 Atendel 帮你做点什么…",
+    tu: "你",
+    picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],
+    conAtendel: {
+      lola: { pedido: "在 WhatsApp 上回复 Mariana，帮她约周四。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
+      clara: { pedido: "Andrea Solís 想把周二的预约改到下午，帮我回复她。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
+      victor: { pedido: "给上周问过一小时课程的 Paola 发个消息。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
+      iris: { pedido: "附近其他店一小时的课收多少钱？", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
+    },
   },
 
   paginaAgente: {

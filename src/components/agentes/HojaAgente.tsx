@@ -1,8 +1,7 @@
-import { Boton, claseBotonBase } from "@/components/base/Boton";
+import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
-import { BotonFicha } from "./BotonFicha";
-import { ConversacionEjemplo } from "./ConversacionEjemplo";
+import { MarcoCelular } from "@/components/base/MarcoCelular";
+import { ConversacionAtendel } from "./ConversacionAtendel";
 import { Personaje } from "./Personaje";
 import { PlanesDelAgente } from "./piezas";
 import type { AgenteInfo } from "@/lib/agentes";
@@ -12,8 +11,8 @@ import { t, type Idioma } from "@/i18n";
  * La sección profunda de un agente en /agentes (ancla #lola, #clara…):
  * arriba quién es (personaje, área, nombre y lo que hace en una línea) con
  * sus botones; abajo, en dos columnas que se alternan de lado, todo lo que
- * hace (lista con divisiones, como una lista de GitHub) y su conversación de
- * ejemplo dentro de la ventana del producto.
+ * hace (lista con divisiones, como una lista de GitHub) y, en un celular de
+ * muestra, cómo funciona: le escribes a Atendel y el agente lo hace.
  */
 export function HojaAgente({ agente: a, invertida = false, idioma = "es" }: { agente: AgenteInfo; invertida?: boolean; idioma?: Idioma }) {
   const d = t(idioma);
@@ -34,9 +33,6 @@ export function HojaAgente({ agente: a, invertida = false, idioma = "es" }: { ag
             <p className="t-intro">{a.lema}</p>
           </div>
           <div className="hoja__acciones">
-            <BotonFicha agente={a.id} className={claseBotonBase("sutil")}>
-              {P.verFicha}
-            </BotonFicha>
             <Boton href={`/agentes/${a.id}`} variante="fantasma" flecha>
               {P.suPagina}
             </Boton>
@@ -57,13 +53,9 @@ export function HojaAgente({ agente: a, invertida = false, idioma = "es" }: { ag
             </ul>
             <PlanesDelAgente agente={a.id} className="hoja__planes" idioma={idioma} />
           </div>
-          <MarcoNavegador
-            className="hoja__marco"
-            titulo={P.conversacionCon(a.nombre)}
-            pestanas={[{ etiqueta: `${a.nombre} · ${detalle.canal}`, adorno: <Personaje agente={a.id} avatar />, activa: true }]}
-          >
-            <ConversacionEjemplo agente={a.id} idioma={idioma} />
-          </MarcoNavegador>
+          <MarcoCelular className="hoja__marco" titulo={P.conversacionCon(a.nombre)} quien={a.nombre} idioma={idioma}>
+            <ConversacionAtendel agente={a.id} idioma={idioma} />
+          </MarcoCelular>
         </div>
       </div>
     </section>

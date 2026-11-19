@@ -464,6 +464,16 @@ export const en: Diccionario = {
     loAtiende: (nombre: string) => ` · handled by ${nombre}`,
     ejemplo: "Sample names",
     desdeTuCorreo: "from your email",
+    seLoPaso: (nombre: string) => `On it. Passing it to ${nombre}.`,
+    pidele: "Ask Atendel anything…",
+    tu: "You",
+    picar: (quien: string) => [`Not here! 👀`, `Hey! This phone is just a demo.`, `No tickling! 😆`, `Shh… ${quien} is working.`, `Look, don't touch. 😄`, `Whoa! You almost dropped me.`],
+    conAtendel: {
+      lola: { pedido: "Reply to Mariana on WhatsApp and book her for Thursday.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
+      clara: { pedido: "Andrea Solís wants to move her Tuesday appointment to the afternoon. Reply to her.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
+      victor: { pedido: "Message Paola, who asked about the one-hour session last week.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
+      iris: { pedido: "How much do other businesses nearby charge for a 1-hour session?", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
+    },
   },
 
   paginaAgente: {

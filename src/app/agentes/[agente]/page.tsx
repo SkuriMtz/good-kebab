@@ -6,11 +6,11 @@ import { Boton, claseBotonBase } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { Icono } from "@/components/base/Iconos";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
+import { MarcoCelular } from "@/components/base/MarcoCelular";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
 import { TarjetaVidrio } from "@/components/base/TarjetaVidrio";
 import { BotonFicha } from "@/components/agentes/BotonFicha";
-import { ConversacionEjemplo } from "@/components/agentes/ConversacionEjemplo";
+import { ConversacionAtendel } from "@/components/agentes/ConversacionAtendel";
 import { Personaje } from "@/components/agentes/Personaje";
 import { PlanesDelAgente } from "@/components/agentes/piezas";
 import { esIdAgente } from "@/lib/agentes";
@@ -98,13 +98,9 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
           etiqueta={P.conversacionEtiqueta(detalle.canal)}
           titulo={P.tituloConversacion[id]}
         />
-        <MarcoNavegador
-          className="agente-conversacion"
-          titulo={d.paginaAgentes.conversacionCon(a.nombre)}
-          pestanas={[{ etiqueta: `${a.nombre} · ${detalle.canal}`, adorno: <Personaje agente={id} avatar />, activa: true }]}
-        >
-          <ConversacionEjemplo agente={id} idioma={idioma} />
-        </MarcoNavegador>
+        <MarcoCelular className="agente-conversacion" titulo={d.paginaAgentes.conversacionCon(a.nombre)} quien={a.nombre} idioma={idioma}>
+          <ConversacionAtendel agente={id} idioma={idioma} />
+        </MarcoCelular>
       </Seccion>
 
       {/* Todo lo que hace */}

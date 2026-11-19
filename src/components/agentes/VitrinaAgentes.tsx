@@ -5,10 +5,10 @@ import { Boton, claseBotonBase } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Halo } from "@/components/base/Halo";
 import { Icono } from "@/components/base/Iconos";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
+import { MarcoCelular } from "@/components/base/MarcoCelular";
 import { Pestanas } from "@/components/base/Pestanas";
 import { BotonFicha } from "./BotonFicha";
-import { ConversacionEjemplo } from "./ConversacionEjemplo";
+import { ConversacionAtendel } from "./ConversacionAtendel";
 import { Personaje } from "./Personaje";
 import { DETALLE } from "./detalle";
 import { PlanesDelAgente } from "./piezas";
@@ -84,13 +84,9 @@ export function VitrinaAgentes() {
             </div>
           </div>
 
-          <MarcoNavegador
-            className="vitrina__marco"
-            titulo={`Conversación de ejemplo con ${a.nombre}`}
-            pestanas={[{ etiqueta: `${a.nombre} · ${detalle.canal}`, adorno: <Personaje agente={activa} avatar />, activa: true }]}
-          >
-            <ConversacionEjemplo agente={activa} animar />
-          </MarcoNavegador>
+          <MarcoCelular className="vitrina__marco" titulo={`Conversación de ejemplo con ${a.nombre}`} quien={a.nombre}>
+            <ConversacionAtendel agente={activa} />
+          </MarcoCelular>
         </div>
       </div>
     </div>

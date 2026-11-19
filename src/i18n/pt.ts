@@ -464,6 +464,16 @@ export const pt: Diccionario = {
     loAtiende: (nombre: string) => ` · atendido por ${nombre}`,
     ejemplo: "Nomes de exemplo",
     desdeTuCorreo: "do seu e-mail",
+    seLoPaso: (nombre: string) => `Beleza. Passo para ${nombre}.`,
+    pidele: "Peça algo ao Atendel…",
+    tu: "Você",
+    picar: (quien: string) => [`Aqui não! 👀`, `Ei! Este celular é só de exemplo.`, `Cócegas não! 😆`, `Psiu… ${quien} está trabalhando.`, `Pode olhar, mas não toque. 😄`, `Opa! Quase me derrubou.`],
+    conAtendel: {
+      lola: { pedido: "Responde a Mariana no WhatsApp e agenda ela para quinta.", reporte: "Pronto. Falei que a sessão de uma hora custa $850 e ofereci 11:00 ou 16:30. Ela escolheu 16:30; mando um lembrete no dia anterior." },
+      clara: { pedido: "A Andrea Solís quer mudar o horário de terça para a tarde. Responde para ela.", reporte: "Ofereci 17:00 ou 18:30 pelo seu e-mail. Ela escolheu 17:00: já mudei o horário e mando um lembrete no dia anterior." },
+      victor: { pedido: "Escreve para a Paola, que perguntou da sessão de uma hora semana passada.", reporte: "Escrevi no WhatsApp com sexta 12:00 ou sábado 10:30. Ela escolheu sexta: está agendado e mando a localização." },
+      iris: { pedido: "Quanto outros negócios da região cobram por uma sessão de 1 hora?", reporte: "Comparei 4 negócios próximos: entre $590 e $990. Você está em $750, no meio. Deixei a tabela com as fontes em precos-da-regiao.xlsx." },
+    },
   },
 
   paginaAgente: {

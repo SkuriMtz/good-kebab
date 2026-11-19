@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Boton, BotonIcono } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Icono } from "@/components/base/Iconos";
-import { MarcoNavegador } from "@/components/base/MarcoNavegador";
-import { ConversacionEjemplo } from "./ConversacionEjemplo";
+import { MarcoCelular } from "@/components/base/MarcoCelular";
+import { ConversacionAtendel } from "./ConversacionAtendel";
 import { Personaje } from "./Personaje";
 import type { IdAgente } from "@/lib/agentes";
 import { agenteDe, planesDe, planMinimoDe } from "@/i18n";
@@ -119,12 +119,9 @@ export function AgenteModal({ agente, onClose }: { agente: IdAgente | null; onCl
             </div>
 
             <div className="ficha__columna">
-              <MarcoNavegador
-                titulo={d.paginaAgentes.conversacionCon(info.nombre)}
-                pestanas={[{ etiqueta: `${info.nombre} · ${detalle.canal}`, adorno: <Personaje agente={id} avatar />, activa: true }]}
-              >
-                <ConversacionEjemplo agente={id} idioma={idioma} />
-              </MarcoNavegador>
+              <MarcoCelular titulo={d.paginaAgentes.conversacionCon(info.nombre)} quien={info.nombre} idioma={idioma}>
+                <ConversacionAtendel agente={id} idioma={idioma} />
+              </MarcoCelular>
 
               <section>
                 <h3 className="etiqueta">{F.enQuePlan}</h3>
