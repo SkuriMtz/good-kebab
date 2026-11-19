@@ -435,6 +435,16 @@ function useNoticias(alDia: boolean): NoticiaTablero[] | null {
 function Noticias({ noticias, cargando, sinNada }: { noticias: NoticiaTablero[]; cargando: boolean; sinNada: boolean }) {
   const [i, setI] = useState(0);
   const total = noticias.length;
+  // Las fotos de todas se bajan de una vez (son ligeras): al picar la flecha, la siguiente ya está
+  const fotos = noticias.map((n) => n.foto ?? "").join("|");
+  useEffect(() => {
+    for (const f of fotos.split("|")) {
+      if (!f) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = f;
+    }
+  }, [fotos]);
   if (!total && !cargando && !sinNada) return null;
   const n = noticias[Math.min(i, total - 1)];
   return (
@@ -474,8 +484,8 @@ function Noticias({ noticias, cargando, sinNada }: { noticias: NoticiaTablero[];
               <img
                 src={n.foto}
                 alt=""
-                loading="lazy"
                 decoding="async"
+                fetchPriority="high"
                 referrerPolicy="no-referrer"
                 // También si falló antes de que React tomara la página
                 ref={(el) => {

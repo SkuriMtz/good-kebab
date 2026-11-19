@@ -3,6 +3,7 @@ import { lookup as dnsLookup, type LookupAddress } from "node:dns";
 import { request } from "node:https";
 import type { LookupFunction } from "node:net";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { esIpPrivada, fotoEnHtml, rutaDeFoto, tipoDeImagen, urlDeFoto, urlSegura, type Noticia } from "./noticias";
 
 /*
@@ -106,44 +107,59 @@ async function traer(url: string, acepta: string, max: number, cortar: boolean):
   return null;
 }
 
-/** La foto de una nota: sus bytes y su tipo, o null si no tiene o no se pudo. */
-async function fotoDe(pagina: string): Promise<{ datos: Uint8Array; ext: "jpg" | "png" | "webp" } | null> {
+/**
+ * La foto de una nota, lista para el panel: recortada a 16:9 (800 × 450, al
+ * centro de lo importante) y en WebP ligero (~30-60 KB en vez de ~300 KB).
+ * Solo si la original es de verdad JPG, PNG o WebP (por sus bytes) y la
+ * librería la puede leer; si no, null.
+ */
+async function fotoDe(pagina: string): Promise<Uint8Array | null> {
   const p = await traer(pagina, "text/html,application/xhtml+xml", MAX_HTML, true);
   if (!p || !/text\/html|application\/xhtml/i.test(p.tipo)) return null;
   const foto = fotoEnHtml(new TextDecoder().decode(p.datos), p.url);
   if (!foto) return null;
   const f = await traer(foto, "image/jpeg,image/png,image/webp", MAX_FOTO, false);
-  const ext = f ? tipoDeImagen(f.datos) : null;
-  return f && ext && f.datos.length > 2_000 ? { datos: f.datos, ext } : null;
+  if (!f || f.datos.length < 2_000 || !tipoDeImagen(f.datos)) return null;
+  try {
+    const salida = await sharp(f.datos, { limitInputPixels: 40_000_000, failOn: "error" })
+      .rotate()
+      .resize({ width: 800, height: 450, fit: "cover", position: "attention", withoutEnlargement: false })
+      .webp({ quality: 72, effort: 4 })
+      .toBuffer();
+    return new Uint8Array(salida);
+  } catch {
+    return null;
+  }
 }
-
-const MIME = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;
 
 /**
  * Baja y guarda la foto de cada noticia (en paralelo; la que falle se queda
- * sin foto) y borra las de días pasados de esa clave.
+ * sin foto).
  */
 export async function guardarFotos(admin: SupabaseClient, clave: string, dia: string, noticias: Noticia[]): Promise<Noticia[]> {
   const conFoto = await Promise.all(
     noticias.map(async (n, i) => {
       try {
-        const f = await fotoDe(n.url);
-        if (!f) return n;
-        const ruta = rutaDeFoto(clave, dia, i + 1, f.ext);
-        const { error } = await admin.storage.from("noticias").upload(ruta, f.datos, { contentType: MIME[f.ext], upsert: true, cacheControl: "86400" });
-        if (error) return n;
-        return { ...n, foto: ruta };
+        const datos = await fotoDe(n.url);
+        if (!datos) return n;
+        const ruta = rutaDeFoto(clave, dia, i + 1, "webp");
+        // El nombre lleva el día: la foto de esa ruta no cambia y el navegador la guarda una semana
+        const { error } = await admin.storage.from("noticias").upload(ruta, datos, { contentType: "image/webp", upsert: true, cacheControl: "604800" });
+        return error ? n : { ...n, foto: ruta };
       } catch {
         return n;
       }
     }),
   );
-  // Las fotos de otros días ya no se usan
-  const carpeta = rutaDeFoto(clave, dia, 1, "jpg").split("/")[0];
+  return conFoto;
+}
+
+/** Ya guardadas las de hoy: borra las fotos de otros días de esa clave (antes no, por si hoy no salió nada). */
+export async function borrarFotosViejas(admin: SupabaseClient, clave: string, dia: string): Promise<void> {
+  const carpeta = rutaDeFoto(clave, dia, 1, "webp").split("/")[0];
   const { data: viejas } = await admin.storage.from("noticias").list(carpeta, { limit: 100 });
   const borrar = (viejas ?? []).filter((o) => !o.name.startsWith(`${dia}-`)).map((o) => `${carpeta}/${o.name}`);
   if (borrar.length) await admin.storage.from("noticias").remove(borrar);
-  return conFoto;
 }
 
 /** Para mandar al navegador: la ruta guardada se vuelve la dirección pública. */

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { citar } from "@/lib/avisos";
 import { mandarInformes } from "@/lib/informe";
+import { prepararNoticias } from "@/lib/noticias-servidor";
 import { limpiarCorto, notificar, soltarAvisos } from "@/lib/notificar";
 import { clienteServicio } from "@/lib/supabase/servicio";
 import { apartarTarea, ejecutarTarea, tareasQueTocan } from "@/lib/tareas";
@@ -57,6 +58,11 @@ export async function POST(req: NextRequest) {
     const r = await soltarAvisos(admin, 25_000);
     const informes = await mandarInformes(admin, Math.max(5_000, 45_000 - (Date.now() - empezo)));
     return NextResponse.json({ ...r, informes }, { headers: { "Cache-Control": "no-store" } });
+  }
+  // Las noticias de tu industria (cada hora, migración 0038): las de hoy, para los tipos de negocio con gente activa
+  if (que === "noticias") {
+    const r = await prepararNoticias(admin, 50_000);
+    return NextResponse.json(r, { headers: { "Cache-Control": "no-store" } });
   }
   // Los correos nuevos (cada 10 minutos, migración 0024): de las cuentas con Gmail u Outlook conectado
   if (que === "correos") {
