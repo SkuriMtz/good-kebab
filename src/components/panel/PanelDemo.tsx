@@ -38,6 +38,8 @@ import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
 import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
 import { usoDeEjemplo } from "@/lib/uso-estado";
+import { tableroDeEjemplo } from "@/lib/tablero-demo";
+import { Tablero } from "./tablero/Tablero";
 
 /* =====================================================================
    /pruebalo: el mismo panel con DATOS DE EJEMPLO de un negocio inventado
@@ -48,7 +50,7 @@ import { usoDeEjemplo } from "@/lib/uso-estado";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["tablero", "agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 /** El uso de ejemplo de Estudio Luna (sesión al 18 %, semana al 43 %). */
 const USO_DEMO = usoDeEjemplo(PLAN.limite);
@@ -155,7 +157,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   };
 
   // Pendientes, Hecho y Oficina cuelgan de «Hoy» (ya no están en el menú)
-  const activa: IdSeccion = valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" || valida === "oficina" ? "inicio" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
+  const activa: IdSeccion = valida === "tablero" ? "tablero" : valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" || valida === "oficina" ? "inicio" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
     { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=uso" },
@@ -226,7 +228,9 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       );
 
   let contenido;
-  if (valida === "agentes") {
+  if (valida === "tablero") {
+    contenido = <Tablero datos={tableroDeEjemplo()} saludo="Buenas tardes, Luna" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
+  } else if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
   } else if (valida === "tareas") {
@@ -352,6 +356,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         activa={activa}
         chatActual={conv?.id ?? null}
         hrefs={{
+          tablero: "/pruebalo?vista=tablero",
           inicio: "/pruebalo",
           tareas: "/pruebalo?vista=tareas",
           pendientes: "/pruebalo?vista=pendientes",

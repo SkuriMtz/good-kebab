@@ -1,0 +1,572 @@
+/* EL TABLERO: filas que se deslizan, tarjetas grandes, lo importante arriba */
+.tb {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 32px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+@media (max-width: 720px) {
+  .tb {
+    padding: 20px 16px 48px;
+    gap: 24px;
+  }
+}
+
+/* ---------- Arriba: saludo y «Pídele algo» ---------- */
+.tb-cabeza {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tb-cabeza__fecha {
+  margin: 0;
+  color: var(--pc-texto-2);
+  font-size: 0.875rem;
+}
+.tb-cabeza__fecha::first-letter {
+  text-transform: uppercase;
+}
+.tb-cabeza__saludo {
+  margin: 0 0 10px;
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.tb-pide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 640px;
+  min-height: 52px;
+  padding: 6px 6px 6px 18px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  background: var(--pc-tarjeta);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tb-pide:focus-within {
+  border-color: var(--pc-acento);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-acento) 22%, transparent);
+}
+.tb-pide__campo {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pc-texto);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+.tb-pide__campo::placeholder {
+  color: var(--pc-placeholder, var(--pc-texto-2));
+}
+.tb-pide__boton {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pc-acento);
+  color: #fff;
+  cursor: pointer;
+}
+.tb-pide__boton:hover {
+  background: var(--pc-acento-hover, var(--pc-acento));
+}
+
+/* ---------- Accesos rápidos ---------- */
+.tb-accesos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tb-acceso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 112px;
+  min-height: 96px;
+  padding: 12px 8px;
+  border-radius: 14px;
+  color: var(--pc-texto);
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.tb-acceso:hover {
+  background: var(--pc-hover);
+}
+.tb-acceso__icono {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 14px;
+  background: var(--pc-tarjeta);
+}
+.tb-acceso__texto {
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+@media (max-width: 720px) {
+  .tb-accesos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .tb-acceso {
+    width: auto;
+  }
+}
+
+/* ---------- Una fila que se desliza ---------- */
+.tb-carril {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tb-carril__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tb-carril__titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.tb-carril__controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tb-carril__todo {
+  margin-right: 6px;
+  color: var(--pc-texto-2);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.tb-carril__todo:hover {
+  color: var(--pc-texto);
+  text-decoration: underline;
+}
+.tb-flecha {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 50%;
+  background: var(--pc-tarjeta);
+  color: var(--pc-texto);
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.tb-flecha:hover:not(:disabled) {
+  background: var(--pc-hover);
+}
+.tb-flecha:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@media (hover: none) {
+  /* En el celular se desliza con el dedo */
+  .tb-flecha {
+    display: none;
+  }
+}
+.tb-carril__marco {
+  position: relative;
+  margin: 0 -32px;
+}
+@media (max-width: 720px) {
+  .tb-carril__marco {
+    margin: 0 -16px;
+  }
+}
+/* Las orillas se desvanecen cuando hay más de ese lado */
+.tb-carril[data-der] .tb-carril__marco {
+  mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+}
+.tb-carril[data-izq] .tb-carril__marco {
+  mask-image: linear-gradient(to right, transparent, #000 56px);
+}
+.tb-carril[data-izq][data-der] .tb-carril__marco {
+  mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+}
+.tb-carril__pista {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 4px 32px 10px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 32px;
+  scrollbar-width: none;
+}
+.tb-carril__pista::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 720px) {
+  .tb-carril__pista {
+    gap: 12px;
+    padding-inline: 16px;
+    scroll-padding-inline: 16px;
+  }
+}
+
+/* ---------- Las tarjetas ---------- */
+.tb-tarjeta,
+.tb-destacada {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.tb-tarjeta {
+  width: 300px;
+}
+.tb-tarjeta[data-grande] {
+  width: 460px;
+}
+@media (max-width: 720px) {
+  .tb-tarjeta {
+    width: 78vw;
+  }
+  .tb-tarjeta[data-grande] {
+    width: 86vw;
+  }
+}
+.tb-tarjeta__enlace,
+.tb-destacada__enlace {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 236px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--pc-borde-suave, var(--pc-borde));
+  border-radius: 18px;
+  background: var(--pc-tarjeta);
+  color: var(--pc-texto);
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.tb-tarjeta__enlace:hover,
+.tb-destacada__enlace:hover {
+  transform: translateY(-2px);
+  border-color: var(--pc-borde);
+  box-shadow: var(--pc-sombra-levanta, 0 8px 24px rgb(0 0 0 / 0.12));
+}
+.tb-tarjeta__enlace:active,
+.tb-destacada__enlace:active {
+  transform: translateY(0) scale(0.99);
+}
+.tb-tarjeta__enlace:focus-visible,
+.tb-destacada__enlace:focus-visible,
+.tb-acceso:focus-visible,
+.tb-flecha:focus-visible,
+.tb-carril__todo:focus-visible {
+  outline: 2px solid var(--pc-foco, var(--pc-acento));
+  outline-offset: 2px;
+}
+/* Lo que pide atención: una raya de color arriba (y el texto lo dice) */
+.tb-tarjeta[data-tono="alerta"] .tb-tarjeta__enlace,
+.tb-destacada[data-tono="alerta"] .tb-destacada__enlace {
+  border-color: color-mix(in srgb, var(--pc-atencion) 55%, var(--pc-borde));
+}
+.tb-tarjeta[data-tono="alerta"] .tb-tarjeta__enlace::before,
+.tb-destacada[data-tono="alerta"] .tb-destacada__enlace::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--pc-atencion);
+}
+.tb-tarjeta__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pc-texto-2);
+  font-size: 0.9rem;
+}
+.tb-tarjeta__logo {
+  border-radius: 5px;
+}
+.tb-tarjeta__titulo {
+  color: var(--pc-texto);
+  font-weight: 500;
+}
+
+/* El número grande */
+.tb-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tb-cifra__fila {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.tb-cifra__valor {
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.tb-tarjeta[data-grande] .tb-cifra__valor {
+  font-size: 3.25rem;
+}
+.tb-cifra__etiqueta {
+  color: var(--pc-texto-2);
+  font-size: 0.85rem;
+}
+.tb-cambio {
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tb-cambio[data-sentido="sube"] {
+  color: var(--pc-exito);
+}
+.tb-cambio[data-sentido="baja"] {
+  color: var(--pc-error);
+}
+.tb-cambio[data-sentido="igual"] {
+  color: var(--pc-texto-2);
+}
+
+/* La mini gráfica */
+.tb-linea {
+  display: block;
+  width: 100%;
+  height: 44px;
+  color: var(--pc-acento);
+}
+.tb-linea__trazo {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.tb-linea__area {
+  fill: currentColor;
+  opacity: 0.12;
+}
+
+/* Lo más reciente */
+.tb-renglones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+.tb-renglon {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.tb-renglon__texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-renglon__hora {
+  flex: none;
+  color: var(--pc-texto-2);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.tb-vacio {
+  margin-top: auto;
+  color: var(--pc-texto-2);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.tb-tarjeta__ir,
+.tb-destacada__ir {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  color: var(--pc-texto-2);
+  font-size: 0.85rem;
+}
+.tb-tarjeta__enlace:hover .tb-tarjeta__ir,
+.tb-destacada__enlace:hover .tb-destacada__ir {
+  color: var(--pc-texto);
+}
+/* Sin número grande, la lista va arriba (sin hueco) */
+.tb-tarjeta__cabeza + .tb-renglones,
+.tb-tarjeta__cabeza + .tb-vacio,
+.tb-tarjeta__cabeza + .tb-app,
+.tb-tarjeta__cabeza + .tb-barras {
+  margin-top: 6px;
+}
+.tb-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tb-barra {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.tb-barra__fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tb-barra__pct {
+  color: var(--pc-texto-2);
+  font-variant-numeric: tabular-nums;
+}
+.tb-barra__riel {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pc-hover);
+  overflow: hidden;
+}
+.tb-barra__lleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pc-acento);
+}
+.tb-barra[data-alto] .tb-barra__lleno {
+  background: var(--pc-atencion);
+}
+.tb-barras + .tb-tarjeta__ir,
+.tb-renglones + .tb-tarjeta__ir,
+.tb-vacio + .tb-tarjeta__ir,
+.tb-app + .tb-tarjeta__ir {
+  margin-top: 0;
+}
+
+/* Las apps: cuenta y estado */
+.tb-app {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+}
+.tb-app__cuenta {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.tb-app__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.tb-app__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pc-exito);
+}
+.tb-app__estado[data-estado="error"] .tb-app__punto {
+  background: var(--pc-atencion);
+}
+.tb-app__apps {
+  color: var(--pc-texto-2);
+  font-size: 0.85rem;
+}
+
+/* ---------- Lo importante (arriba, más grande) ---------- */
+.tb-destacada {
+  width: 380px;
+}
+@media (max-width: 720px) {
+  .tb-destacada {
+    width: 86vw;
+  }
+}
+.tb-destacada__enlace {
+  min-height: 190px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--pc-acento) 16%, transparent), transparent 60%),
+    var(--pc-tarjeta);
+}
+.tb-destacada[data-tono="alerta"] .tb-destacada__enlace {
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--pc-atencion) 16%, transparent), transparent 60%),
+    var(--pc-tarjeta);
+}
+.tb-destacada__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border: 1px solid var(--pc-borde);
+  border-radius: 999px;
+  color: var(--pc-texto-2);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.tb-destacada[data-tono="alerta"] .tb-destacada__etiqueta {
+  color: var(--pc-texto);
+  border-color: color-mix(in srgb, var(--pc-atencion) 60%, var(--pc-borde));
+}
+.tb-destacada__titulo {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.tb-destacada__detalle {
+  color: var(--pc-texto-2);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tb-tranquilo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid var(--pc-borde-suave, var(--pc-borde));
+  border-radius: 14px;
+  color: var(--pc-texto-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-tarjeta__enlace,
+  .tb-destacada__enlace,
+  .tb-pide {
+    transition: none;
+  }
+  .tb-tarjeta__enlace:hover,
+  .tb-destacada__enlace:hover {
+    transform: none;
+  }
+}

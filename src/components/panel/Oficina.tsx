@@ -400,7 +400,7 @@ export function OficinaReal({
     <Oficina
       items={lista}
       ahora={ahora}
-      hrefChat="/panel"
+      hrefChat="/panel?vista=chat"
       arriba={
         <>
           {porAprobar}

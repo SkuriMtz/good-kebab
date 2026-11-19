@@ -19,6 +19,8 @@ import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { vozDisponible } from "@/lib/elevenlabs";
 import { cargarHoy } from "@/lib/hoy";
+import { cargarTablero } from "@/lib/tablero-datos";
+import { Tablero } from "@/components/panel/tablero/Tablero";
 import { leerUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
 import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
@@ -35,7 +37,8 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
  * deja ver a cada quien solo lo suyo); no cambia datos ni la API.
- * - /panel (&pide=texto, &area=citas): la Oficina: el saludo y la caja (un chat nuevo), sin nada debajo.
+ * - /panel: el Tablero (el resumen del negocio, lo primero al entrar).
+ * - /panel?vista=chat (&pide=texto, &area=citas): la Oficina: el saludo y la caja (un chat nuevo).
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
  * - ?vista=citas (&de=cliente, &dia=AAAA-MM-DD): la agenda de Aura (vacía hasta conectar WhatsApp).
@@ -244,6 +247,19 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
         accion={texto(searchParams.accion)}
       />
     );
+  }
+
+  // /panel solo: el TABLERO (lo primero al entrar). El chat: ?vista=chat, o cuando trae una
+  // conversación o algo que pedir (?c=, ?pide=, ?agente=, ?area=, ?avisos=1)
+  const alChat = searchParams.vista === "chat" || Boolean(searchParams.c || searchParams.pide || searchParams.agente || searchParams.area || searchParams.avisos);
+  if (!alChat) {
+    const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
+    const zona = limpiarAjustes(filaAjustes?.datos).zonaHoraria;
+    const datos = await cargarTablero(supabase, user.id, { cuenta, conGoogle, zona });
+    const meta = user.user_metadata ?? {};
+    const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
+    const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(new Date());
+    return <Tablero datos={datos} saludo={completo ? `${saludoDeHora()}, ${completo.split(" ")[0]}` : saludoDeHora()} fecha={fecha} base="/panel" />;
   }
 
   // Las conversaciones: el chat (lo de «Hoy» vive en Tareas)

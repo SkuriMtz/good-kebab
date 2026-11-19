@@ -136,7 +136,7 @@ export function PendientesReal({
 
   return (
     <Seccion ancha>
-      <VolverOficina href="/panel" />
+      <VolverOficina href="/panel?vista=chat" />
       <TituloSeccion titulo="Por aprobar" texto="Lo que Atendel dejó listo y espera tu OK: mensajes para mandar, correos que piden algo y pasos por hacer." />
       <PestanasPendientes base="/panel?vista=pendientes" activa="revisar" porRevisar={(totalCorreos ?? 0) + pasos.length + envios.length} />
       <div className="pc-filtros">

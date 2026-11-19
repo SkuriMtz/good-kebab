@@ -24,7 +24,7 @@ import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
-export type IdSeccion = "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "tablero" | "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
 /** El id de algo que espera tu OK (?aprobar=<id>). */
 const ID_ACCION = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,7 +47,7 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
+  hrefs: { tablero?: string; inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
   /** Lo que te necesita (OK pendientes y archivos por revisar): el número de «Hoy». */
@@ -482,7 +482,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
             >
               <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={20} />
             </button>
-            <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+            <Enlace href={hrefs.tablero ?? hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
               <Marca className="pc-logo__marca" />
               <span className="pc-logo__nombre">Atendel</span>
             </Enlace>
@@ -492,6 +492,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
+            {hrefs.tablero ? item("tablero", "Tablero", "grafica", hrefs.tablero) : null}
             {item("inicio", "Oficina", "documento", hrefs.inicio)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
@@ -544,7 +545,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
           >
             <Icono nombre="menu" tam={20} />
           </button>
-          <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+          <Enlace href={hrefs.tablero ?? hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
             <Marca className="pc-logo__marca" />
             <span className="pc-logo__nombre">Atendel</span>
           </Enlace>

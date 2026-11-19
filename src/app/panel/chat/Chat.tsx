@@ -190,6 +190,8 @@ export function Chat({
   /** Escribe la dirección sin ir al servidor (Next la sincroniza); el filtro del Inicio se queda. */
   const ponerUrl = (p: Record<string, string>) => {
     const q = new URLSearchParams(p);
+    // Sin conversación, la dirección dice que es el chat (/panel solo es el Tablero)
+    if (!p.c) q.set("vista", "chat");
     const filtroActual = new URLSearchParams(window.location.search).get("area");
     if (filtroActual && !p.c) q.set("area", filtroActual);
     const texto = q.toString();
@@ -202,7 +204,7 @@ export function Chat({
     (href: string) => {
       const url = new URL(href, window.location.href);
       // Solo lo que se queda en el chat (filtro, tarjeta) cambia sin ir al servidor; una sección sí lo necesita
-      if (url.pathname === window.location.pathname && !url.searchParams.has("vista")) window.history.pushState(null, "", `${url.pathname}${url.search}`);
+      if (url.pathname === window.location.pathname && (url.searchParams.get("vista") ?? "chat") === "chat") window.history.pushState(null, "", `${url.pathname}${url.search}`);
       else router.push(href);
     },
     [router],
@@ -526,7 +528,7 @@ export function Chat({
     // Una conversación vieja con alguien que ya no está en tu equipo
     <p className="pc-aviso-caja">
       Esta conversación es con alguien que ya no está en tu equipo.{" "}
-      <Enlace href="/panel" className="pc-enlace">
+      <Enlace href="/panel?vista=chat" className="pc-enlace">
         Empieza una nueva con Atendel
       </Enlace>
     </p>
@@ -564,7 +566,7 @@ export function Chat({
           uso={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} />}
           selector={null}
           area={area}
-          hrefArea={(a) => (a === "todo" ? "/panel" : `/panel?area=${a}`)}
+          hrefArea={(a) => (a === "todo" ? "/panel?vista=chat" : `/panel?vista=chat&area=${a}`)}
           tarjetas={tarjetas}
         >
           {hoy}
@@ -587,7 +589,7 @@ export function Chat({
         titulo={tituloConv}
         sub="Conversación con Atendel"
         menu={[
-          { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel" },
+          { id: "nueva", etiqueta: "Nueva conversación", icono: "mas", href: "/panel?vista=chat" },
           ...(actualConv ? [{ id: "borrar", etiqueta: "Borrar conversación", icono: "basura" as const, alElegir: () => setPorBorrar(actualConv), peligroso: true }] : []),
         ]}
         scrollRef={scrollRef}
