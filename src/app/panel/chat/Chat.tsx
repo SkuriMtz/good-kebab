@@ -25,6 +25,7 @@ import type { Bloqueo } from "@/lib/uso-estado";
 import { useModelo } from "@/components/panel/modelo";
 import { SelectorModelo } from "@/components/panel/SelectorModelo";
 import ModoPlatica, { prepararAudio, type AlTextoVoz } from "@/components/panel/ModoPlatica";
+import { PEDIDO_TABLERO } from "@/lib/tablero";
 
 export type Conversacion = {
   id: string;
@@ -457,6 +458,20 @@ export function Chat({
   useEffect(() => {
     enviarRef.current = enviar;
   });
+
+  // Lo que pediste en la caja del Tablero: se guardó en ESTA pestaña (nunca en la dirección, así un
+  // enlace de fuera no puede hacer que Atendel empiece algo solo) y se manda en cuanto abre el chat
+  useEffect(() => {
+    let pedido: string | null = null;
+    try {
+      pedido = sessionStorage.getItem(PEDIDO_TABLERO);
+      sessionStorage.removeItem(PEDIDO_TABLERO);
+    } catch {
+      /* sin almacenamiento: no hay pedido */
+    }
+    const texto = pedido?.trim().slice(0, MAX_MENSAJE);
+    if (texto) window.setTimeout(() => void enviarRef.current?.(texto), 0);
+  }, []);
 
   /** Una respuesta puede traer el trabajo de varios agentes; cada parte con quién la hizo. */
   const voces = (m: Mensaje) => {

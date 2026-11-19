@@ -3917,6 +3917,7 @@ a.pc-correo__accion:hover {
   .pc[data-menu="oculto"] .pc-menu__item-texto,
   .pc[data-menu="oculto"] .pc-menu__nuevo span,
   .pc[data-menu="oculto"] .pc-menu__atajo,
+  .pc[data-menu="oculto"] .pc-menu__subtitulo,
   .pc[data-menu="oculto"] .pc-menu__listas,
   .pc[data-menu="oculto"] .pc-aviso-demo,
   .pc[data-menu="oculto"] .pc-cuenta__nombre,
@@ -10018,4 +10019,14 @@ a.pc-correo__accion:hover {
   margin: 6px 0 0;
   font-size: 0.9em;
   opacity: 0.75;
+}
+
+/* Los grupos del menú (Tu día, Tu negocio) */
+.pc-menu__subtitulo {
+  margin: 14px 0 2px;
+  padding: 0 10px;
+  color: var(--pc-texto-2);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }

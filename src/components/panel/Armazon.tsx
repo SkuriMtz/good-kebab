@@ -24,7 +24,7 @@ import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
-export type IdSeccion = "tablero" | "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "tablero" | "apps" | "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
 /** El id de algo que espera tu OK (?aprobar=<id>). */
 const ID_ACCION = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,7 +47,9 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { tablero?: string; inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string };
+  hrefs: { tablero?: string; inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string; oficina?: string; correo?: string; apps?: string };
+  /** Lo que Atendel dejó en la Oficina para revisar (el número junto a «Oficina»). */
+  porRevisar?: number | null;
   /** Lo que espera algo de ti (null: no se pudo leer). */
   pendientes: number | null;
   /** Lo que te necesita (OK pendientes y archivos por revisar): el número de «Hoy». */
@@ -105,7 +107,7 @@ function enfocarCaja() {
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, porRevisar, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -492,8 +494,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            {hrefs.tablero ? item("tablero", "Tablero", "grafica", hrefs.tablero) : null}
-            {item("inicio", "Oficina", "documento", hrefs.inicio)}
+            {hrefs.tablero ? item("tablero", "Tablero", "inicio", hrefs.tablero) : item("inicio", "Oficina", "documento", hrefs.inicio)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -501,20 +502,37 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, cha
                 ⌘K
               </kbd>
             </button>
-            {item("citas", "Citas", "calendario", hrefs.citas)}
-            {/* El número de lo que te necesita va en Tareas: ahí está «Te necesita» */}
-            {item(
-              "tareas",
-              "Tareas",
-              "reloj",
-              hrefs.tareas,
-              teNecesita ? (
-                <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
-                  {teNecesita}
-                </span>
-              ) : null,
+            {hrefs.tablero ? (
+              <>
+                {/* Como Supabase y ElevenLabs: las secciones en grupos */}
+                <p className="pc-menu__subtitulo">Tu día</p>
+                {item("pendientes", "Necesita tu OK", "check-circulo", hrefs.pendientes, pendientes ? <span className="pc-menu__cuenta" aria-label={`${pendientes} por ver`}>{pendientes}</span> : null)}
+                {item("citas", "Citas", "calendario", hrefs.citas)}
+                {item("tareas", "Tareas", "reloj", hrefs.tareas)}
+                {item("oficina", "Oficina", "documento", hrefs.oficina ?? hrefs.inicio, porRevisar ? <span className="pc-menu__cuenta" aria-label={`${porRevisar} por ver`}>{porRevisar}</span> : null)}
+                <p className="pc-menu__subtitulo">Tu negocio</p>
+                {hrefs.correo ? item("correo", "Correo", "correo", hrefs.correo) : null}
+                {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
+                {hrefs.apps ? item("apps", "Apps conectadas", "enlace", hrefs.apps) : null}
+                {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
+              </>
+            ) : (
+              <>
+                {item("citas", "Citas", "calendario", hrefs.citas)}
+                {item(
+                  "tareas",
+                  "Tareas",
+                  "reloj",
+                  hrefs.tareas,
+                  teNecesita ? (
+                    <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
+                      {teNecesita}
+                    </span>
+                  ) : null,
+                )}
+                {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
+              </>
             )}
-            {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 
           <div className="pc-menu__listas">

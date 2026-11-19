@@ -89,15 +89,19 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     ? "agentes"
     : valida === "actividad"
       ? "estadisticas"
-      : valida === "hecho" || valida === "pendientes" || valida === "oficina" || valida === "chat"
-        ? "inicio"
-        : valida
-          ? (valida as IdSeccion)
-          : c
-            ? "chat"
-            : delChat
-              ? "inicio"
-              : "tablero";
+      : valida === "hecho"
+        ? "pendientes"
+        : valida === "chat"
+          ? "inicio"
+          : valida === "negocio" && params.get("tab") === "apps"
+            ? "apps"
+            : valida
+              ? (valida as IdSeccion)
+              : c
+                ? "chat"
+                : delChat
+                  ? "inicio"
+                  : "tablero";
   const clave = ruta === "/panel" ? `/panel?${valida ?? (delChat ? "chat" : "tablero")}` : ruta;
 
   // La vista nueva ya se pintó: la transición puede seguir
@@ -250,7 +254,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
 
   const indice: ResultadoBusqueda[] = [
     { id: "s-tablero", grupo: "Secciones", titulo: "Tablero", detalle: "El resumen de tu negocio", icono: "grafica", claves: "inicio tablero resumen negocio noticias apps", href: "/panel" },
-    { id: "s-inicio", grupo: "Secciones", titulo: "Oficina", detalle: "Platica con Atendel y pídele cosas", icono: "documento", claves: "chat nueva conversacion pedir escribir", href: "/panel?vista=chat" },
+    { id: "s-inicio", grupo: "Secciones", titulo: "Chat con Atendel", detalle: "Platica con Atendel y pídele cosas", icono: "documento", claves: "chat nueva conversacion pedir escribir", href: "/panel?vista=chat" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
     { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
@@ -331,6 +335,9 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         hrefs={{
           tablero: "/panel",
           inicio: "/panel?vista=chat",
+          oficina: "/panel?vista=oficina",
+          correo: "/panel?vista=correo",
+          apps: "/panel?vista=negocio&tab=apps",
           tareas: "/panel?vista=tareas",
           pendientes: "/panel?vista=pendientes",
           citas: "/panel?vista=citas",
@@ -340,6 +347,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         }}
         pendientes={datos.pendientes}
         teNecesita={(datos.oficina ?? 0) + (datos.pendientes ?? 0) || null}
+        porRevisar={datos.oficina}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}

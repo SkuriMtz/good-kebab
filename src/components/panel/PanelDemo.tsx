@@ -157,7 +157,8 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   };
 
   // Pendientes, Hecho y Oficina cuelgan de «Hoy» (ya no están en el menú)
-  const activa: IdSeccion = valida === "tablero" ? "tablero" : valida === "actividad" ? "estadisticas" : valida === "hecho" || valida === "pendientes" || valida === "oficina" ? "inicio" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
+  const activa: IdSeccion =
+    valida === "actividad" ? "estadisticas" : valida === "hecho" ? "pendientes" : valida === "negocio" && params.get("tab") === "apps" ? "apps" : valida ? (valida as IdSeccion) : conv ? "chat" : "inicio";
 
   const cuenta: ElementoCuenta[] = [
     { id: "plan", etiqueta: "Mi plan y uso", detalle: PLAN.nombre, icono: "facturacion", href: "/pruebalo?vista=ajustes&seccion=uso" },
@@ -229,7 +230,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   let contenido;
   if (valida === "tablero") {
-    contenido = <Tablero datos={tableroDeEjemplo()} saludo="Buenas tardes, Luna" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
+    contenido = <Tablero datos={tableroDeEjemplo()} saludo="¿En qué te ayudo hoy, Luna?" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
   } else if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
@@ -358,6 +359,9 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         hrefs={{
           tablero: "/pruebalo?vista=tablero",
           inicio: "/pruebalo",
+          oficina: "/pruebalo?vista=oficina",
+          correo: "/pruebalo?vista=correo",
+          apps: "/pruebalo?vista=negocio&tab=apps",
           tareas: "/pruebalo?vista=tareas",
           pendientes: "/pruebalo?vista=pendientes",
           citas: "/pruebalo?vista=citas",
@@ -367,6 +371,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         }}
         pendientes={porRevisar}
         teNecesita={porRevisarOficina + (porRevisar ?? 0)}
+        porRevisar={porRevisarOficina}
         chats={chats}
         organizacion={organizacion}
         acciones={acciones}

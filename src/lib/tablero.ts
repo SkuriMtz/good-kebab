@@ -15,6 +15,9 @@
 
 export type Tono = "normal" | "alerta" | "bien";
 
+/** Donde la caja del Tablero deja lo que pediste para que el chat lo mande (sessionStorage de la pestaña). */
+export const PEDIDO_TABLERO = "atendel-pedido";
+
 export type Renglon = { id: string; texto: string; detalle?: string; hora?: string };
 
 export type IconoTablero = "mensaje" | "correo" | "clientes" | "calendario" | "reloj" | "check-doble" | "rayo" | "grafica" | "documento" | "alerta" | "negocio" | "conversaciones" | "enlace";
