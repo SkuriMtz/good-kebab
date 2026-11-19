@@ -467,6 +467,7 @@ export const en: Diccionario = {
     seLoPaso: (nombre: string) => `On it. Passing it to ${nombre}.`,
     pidele: "Ask Atendel anything…",
     tu: "You",
+    trabajaCon: "Works with",
     picar: (quien: string) => [`Not here! 👀`, `Hey! This phone is just a demo.`, `No tickling! 😆`, `Shh… ${quien} is working.`, `Look, don't touch. 😄`, `Whoa! You almost dropped me.`],
     conAtendel: {
       lola: { pedido: "Reply to Mariana on WhatsApp and book her for Thursday.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },

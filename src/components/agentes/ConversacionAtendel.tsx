@@ -18,8 +18,11 @@ const ARCHIVO = /[^\s,:;]+\.(?:xlsx|pdf|docx)/g;
  * diccionario (conversacion.conAtendel) y los nombres son de ejemplo.
  * Al llegar a la pantalla, los mensajes entran uno tras otro (con los tres
  * puntos de «escribiendo»); con «reducir movimiento», todo desde el inicio.
+ * - `activo`: si se pasa, entran cuando se vuelve true (el recorrido de
+ *   /agentes, donde todas las pantallas están en el mismo celular).
+ * - `pintada`: la pantalla del color del agente (texto oscuro).
  */
-export function ConversacionAtendel({ agente, idioma = "es" }: { agente: IdAgente; idioma?: Idioma }) {
+export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = false }: { agente: IdAgente; idioma?: Idioma; activo?: boolean; pintada?: boolean }) {
   const d = t(idioma);
   const C = d.conversacion;
   const info = agenteDe(idioma, agente);
@@ -31,19 +34,23 @@ export function ConversacionAtendel({ agente, idioma = "es" }: { agente: IdAgent
   const raiz = useRef<HTMLDivElement>(null);
   const [vistos, setVistos] = useState(0);
   const [escribe, setEscribe] = useState<"atendel" | "agente" | null>(null);
+  const corrio = useRef(false);
+  const porActivo = activo !== undefined;
 
   useEffect(() => {
     const el = raiz.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") {
+    if (!el || corrio.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || (!porActivo && typeof IntersectionObserver === "undefined")) {
       setVistos(pasos);
       return;
     }
+    if (porActivo && !activo) return;
     let cancelado = false;
     const timers: number[] = [];
     const esperar = (ms: number) => new Promise<void>((ok) => timers.push(window.setTimeout(ok, ms)));
     const correr = async () => {
-      await esperar(400);
+      corrio.current = true;
+      await esperar(porActivo ? 250 : 400);
       if (cancelado) return;
       setVistos(1);
       setEscribe("atendel");
@@ -61,6 +68,16 @@ export function ConversacionAtendel({ agente, idioma = "es" }: { agente: IdAgent
         if (!cancelado) setVistos(4);
       }
     };
+    if (porActivo) {
+      void correr();
+      return () => {
+        cancelado = true;
+        timers.forEach((x) => window.clearTimeout(x));
+        // Si se cortó a la mitad, que se vea completa (sin volver a empezar)
+        setEscribe(null);
+        setVistos(pasos);
+      };
+    }
     const ver = new IntersectionObserver(
       ([e]) => {
         if (!e.isIntersecting) return;
@@ -75,10 +92,10 @@ export function ConversacionAtendel({ agente, idioma = "es" }: { agente: IdAgent
       ver.disconnect();
       timers.forEach((x) => window.clearTimeout(x));
     };
-  }, [pasos]);
+  }, [pasos, porActivo, activo]);
 
   return (
-    <div ref={raiz} className="conva" style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
+    <div ref={raiz} className={`conva${pintada ? " conva--pintada" : ""}`} style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
       <div className="conva__cabeza">
         <span className="conva__logo">
           <Marca className="h-[18px] w-[18px]" />

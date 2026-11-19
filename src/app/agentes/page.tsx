@@ -3,8 +3,7 @@ import { Sitio } from "@/components/Sitio";
 import { Boton } from "@/components/base/Boton";
 import { Halo } from "@/components/base/Halo";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
-import { HojaAgente } from "@/components/agentes/HojaAgente";
-import { NavAgentes } from "@/components/agentes/NavAgentes";
+import { RecorridoAgentes } from "@/components/agentes/RecorridoAgentes";
 import { Personaje } from "@/components/agentes/Personaje";
 import { TarjetasAgentes } from "@/components/agentes/TarjetasAgentes";
 import { agentesDe, t } from "@/i18n";
@@ -18,9 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /*
  * /agentes (G3-T1): el encabezado con los cuatro personajes de pie (cada uno
- * abre su ficha, sus ojos siguen al cursor); una fila de pestañas en píldora
- * que se queda pegada mientras bajas; una sección profunda por agente
- * (#lola, #clara, #victor, #iris) y el acceso al chat al final.
+ * lleva a su parte del recorrido, sus ojos siguen al cursor); el recorrido
+ * (texto y celular fijos que pasan por los cuatro: #lola, #clara, #victor,
+ * #iris) y el acceso al chat al final.
  * "?ficha=lola" abre la ficha (lo resuelve FichasAgentes, en Sitio).
  */
 export default async function Agentes() {
@@ -49,12 +48,8 @@ export default async function Agentes() {
         </div>
       </section>
 
-      <div className="agentes-hojas">
-        <NavAgentes />
-        {agentes.map((a, i) => (
-          <HojaAgente key={a.id} agente={a} invertida={i % 2 === 1} idioma={idioma} />
-        ))}
-      </div>
+      {/* Al bajar: el texto y el celular se quedan fijos y pasan por los cuatro agentes */}
+      <RecorridoAgentes idioma={idioma} />
 
       {/* Acceso al chat */}
       <Seccion halo fondo="fondo-2" etiquetadaPor="agentes-chat-titulo" className="agentes-cierre">

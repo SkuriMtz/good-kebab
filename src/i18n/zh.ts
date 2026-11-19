@@ -463,6 +463,7 @@ export const zh: Diccionario = {
     seLoPaso: (nombre: string) => `好的，我交给 ${nombre}。`,
     pidele: "让 Atendel 帮你做点什么…",
     tu: "你",
+    trabajaCon: "可连接",
     picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],
     conAtendel: {
       lola: { pedido: "在 WhatsApp 上回复 Mariana，帮她约周四。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },

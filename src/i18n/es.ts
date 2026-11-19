@@ -291,6 +291,7 @@ export const es = {
     seLoPaso: (nombre: string) => `Va. Se lo paso a ${nombre}.`,
     pidele: "Pídele algo a Atendel…",
     tu: "Tú",
+    trabajaCon: "Trabaja con",
     picar: (quien: string) => [`¡Aquí no! 👀`, `¡Ey! Este celular es de muestra.`, `¡Cosquillas no! 😆`, `Shh… ${quien} está trabajando.`, `Mira, pero no toques. 😄`, `¡Uy! Casi me tiras.`],
     conAtendel: {
       lola: { pedido: "Contesta a Mariana por WhatsApp y agéndale el jueves.", reporte: "Listo. Le dije que la sesión de una hora cuesta $850 y le ofrecí 11:00 o 16:30. Eligió 16:30; un día antes le mando recordatorio." },

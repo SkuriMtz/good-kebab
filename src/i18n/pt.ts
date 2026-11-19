@@ -467,6 +467,7 @@ export const pt: Diccionario = {
     seLoPaso: (nombre: string) => `Beleza. Passo para ${nombre}.`,
     pidele: "Peça algo ao Atendel…",
     tu: "Você",
+    trabajaCon: "Trabalha com",
     picar: (quien: string) => [`Aqui não! 👀`, `Ei! Este celular é só de exemplo.`, `Cócegas não! 😆`, `Psiu… ${quien} está trabalhando.`, `Pode olhar, mas não toque. 😄`, `Opa! Quase me derrubou.`],
     conAtendel: {
       lola: { pedido: "Responde a Mariana no WhatsApp e agenda ela para quinta.", reporte: "Pronto. Falei que a sessão de uma hora custa $850 e ofereci 11:00 ou 16:30. Ela escolheu 16:30; mando um lembrete no dia anterior." },

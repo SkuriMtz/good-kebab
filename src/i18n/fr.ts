@@ -463,6 +463,7 @@ export const fr: Diccionario = {
     seLoPaso: (nombre: string) => `D'accord. Je le confie à ${nombre}.`,
     pidele: "Demandez quelque chose à Atendel…",
     tu: "Vous",
+    trabajaCon: "Travaille avec",
     picar: (quien: string) => [`Pas ici ! 👀`, `Hé ! Ce téléphone est une démo.`, `Pas de chatouilles ! 😆`, `Chut… ${quien} travaille.`, `On regarde, on ne touche pas. 😄`, `Oups ! Vous avez failli me faire tomber.`],
     conAtendel: {
       lola: { pedido: "Réponds à Mariana sur WhatsApp et réserve-lui jeudi.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },

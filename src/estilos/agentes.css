@@ -1486,3 +1486,294 @@
     animation: none;
   }
 }
+
+/* ---------- El celular con pantalla de color (el recorrido de /agentes) ---------- */
+.celular[data-pintada] .celular__pantalla {
+  background: var(--pantalla);
+  color: #141414;
+  transition: background-color 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.celular[data-pintada] .celular__bateria {
+  border-color: rgb(0 0 0 / 0.45);
+}
+.celular[data-pintada] .celular__bateria::after {
+  background: rgb(0 0 0 / 0.45);
+}
+.celular[data-pintada] .celular__barra {
+  background: rgb(0 0 0 / 0.45);
+}
+
+/* La plática con Atendel sobre la pantalla de color: texto oscuro, burbujas de vidrio */
+.conva--pintada .conva__cabeza {
+  border-bottom-color: rgb(0 0 0 / 0.1);
+}
+.conva--pintada .conva__logo,
+.conva--pintada .conva__avatar {
+  background: rgb(255 255 255 / 0.55);
+}
+.conva--pintada .conva__burbuja,
+.conva--pintada .conva__puntos {
+  background: rgb(255 255 255 / 0.58);
+  color: #141414;
+}
+.conva--pintada .conva__burbuja--tu {
+  background: rgb(20 20 20 / 0.9);
+  color: #fff;
+}
+.conva--pintada .conva__agente .conva__burbuja {
+  border-left-color: rgb(0 0 0 / 0.28);
+}
+.conva--pintada .conva__chip {
+  background: rgb(0 0 0 / 0.1);
+  color: #141414;
+}
+.conva--pintada .conva__firma {
+  color: #141414;
+}
+.conva--pintada .conva__firma span,
+.conva--pintada .conva__puntos i {
+  color: rgb(20 20 20 / 0.6);
+}
+.conva--pintada .conva__puntos i {
+  background: rgb(20 20 20 / 0.5);
+}
+.conva--pintada .conva__adjunto,
+.conva--pintada .conva__nota {
+  border-color: rgb(0 0 0 / 0.1);
+  background: rgb(255 255 255 / 0.45);
+  color: #141414;
+}
+.conva--pintada .conva__nota-icono {
+  background: rgb(20 20 20 / 0.88);
+  color: #fff;
+}
+.conva--pintada .conva__barra {
+  border-color: transparent;
+  background: rgb(255 255 255 / 0.5);
+  color: rgb(20 20 20 / 0.6);
+}
+.conva--pintada .conva__enviar {
+  background: rgb(20 20 20 / 0.88);
+  color: #fff;
+}
+
+/* ---------- El recorrido de /agentes (RecorridoAgentes) ----------
+   El bloque mide una pantalla de alto por agente; adentro, el texto y el celular se quedan fijos
+   (sticky) y cambian según la marca que cruza la mitad de la pantalla. Transición tipo fundido: lo
+   que se va se apaga y se desenfoca; lo que llega aparece desde borroso un poco después. */
+.recorrido {
+  --recorrido-sale: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  height: calc(var(--n) * 100svh);
+}
+.recorrido__marca {
+  position: absolute;
+  top: calc(var(--i) * 100svh);
+  left: 0;
+  width: 1px;
+  height: 100svh;
+  pointer-events: none;
+}
+.recorrido__fijo {
+  position: sticky;
+  top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(32px, 6vw, 96px);
+  height: 100svh;
+  padding-top: 56px;
+}
+.recorrido__textos {
+  position: relative;
+  height: min(560px, 80svh);
+}
+.recorrido__texto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(18px);
+  pointer-events: none;
+  transition:
+    opacity 450ms var(--recorrido-sale),
+    filter 450ms var(--recorrido-sale),
+    transform 600ms var(--recorrido-sale);
+}
+.recorrido__texto[data-activo] {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+  pointer-events: auto;
+  transition-delay: 140ms;
+}
+.recorrido__globo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 8px;
+  border-radius: 14px;
+  background: var(--agente);
+  color: #141414;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+/* La colita del globo (como un mensaje) */
+.recorrido__globo::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 18px;
+  width: 14px;
+  height: 10px;
+  background: var(--agente);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.recorrido__cara {
+  width: 24px;
+  height: 24px;
+}
+.recorrido__titulo {
+  margin: 6px 0 0;
+  max-width: 16ch;
+  color: var(--c-texto);
+  font-size: clamp(2.1rem, 1.3rem + 2.4vw, 3.6rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.recorrido__parrafo {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--c-texto-2);
+  font-size: 1.06rem;
+  line-height: 1.55;
+}
+.recorrido__apps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.recorrido__trabaja {
+  color: var(--c-tenue);
+  font-size: 0.85rem;
+}
+.recorrido__apps ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recorrido__app {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--c-borde);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-texto) 6%, transparent);
+  color: var(--c-texto);
+  font-size: 0.88rem;
+}
+.recorrido__app img {
+  border-radius: 3px;
+}
+.recorrido__celular {
+  padding: 0;
+}
+.recorrido__celular .celular__cuerpo {
+  width: auto;
+  height: min(660px, calc(100svh - 120px));
+  aspect-ratio: 340 / 660;
+}
+/* Las pantallas de los cuatro, una encima de otra: se cruzan con un fundido */
+.recorrido__pantallas {
+  position: relative;
+  height: 100%;
+}
+.recorrido__pantalla {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  filter: blur(6px);
+  transform: scale(0.985);
+  pointer-events: none;
+  transition:
+    opacity 450ms var(--recorrido-sale),
+    filter 450ms var(--recorrido-sale),
+    transform 600ms var(--recorrido-sale);
+}
+.recorrido__pantalla[data-activo] {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+  pointer-events: auto;
+  transition-delay: 120ms;
+}
+.recorrido__celular .celular__contenido {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.recorrido__celular .conva {
+  height: 100%;
+}
+@media (max-width: 899px) {
+  .recorrido__fijo {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    gap: 16px;
+    padding-top: 72px;
+    padding-bottom: 16px;
+  }
+  .recorrido__textos {
+    height: 36svh;
+  }
+  .recorrido__texto {
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .recorrido__titulo {
+    font-size: clamp(1.6rem, 1.1rem + 3vw, 2.2rem);
+    max-width: none;
+  }
+  .recorrido__parrafo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    font-size: 0.95rem;
+  }
+  .recorrido__apps,
+  .recorrido__accion {
+    display: none;
+  }
+  /* En celular, el teléfono de tamaño normal, asomado desde abajo (lo de abajo se corta) */
+  .recorrido__fijo {
+    overflow: hidden;
+  }
+  .recorrido__celular {
+    justify-content: center;
+    align-self: start;
+  }
+  .recorrido__celular .celular__cuerpo {
+    width: min(300px, 80vw);
+    height: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recorrido__texto,
+  .recorrido__pantalla,
+  .celular[data-pintada] .celular__pantalla {
+    transition: none;
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { t, type Idioma } from "@/i18n";
 
 /**
@@ -13,7 +13,22 @@ import { t, type Idioma } from "@/i18n";
  * mensaje). Es de juego: no hace nada más.
  */
 
-export function MarcoCelular({ titulo, quien, idioma = "es", className = "", children }: { titulo: string; quien: string; idioma?: Idioma; className?: string; children: ReactNode }) {
+export function MarcoCelular({
+  titulo,
+  quien,
+  idioma = "es",
+  pantalla,
+  className = "",
+  children,
+}: {
+  titulo: string;
+  quien: string;
+  idioma?: Idioma;
+  /** Color de la pantalla (claro: la hora y la batería se ven oscuras). Cambia con un fundido. */
+  pantalla?: string;
+  className?: string;
+  children: ReactNode;
+}) {
   const cuerpo = useRef<HTMLDivElement>(null);
   const ultimo = useRef(-1);
   const reloj = useRef<number | undefined>(undefined);
@@ -39,7 +54,7 @@ export function MarcoCelular({ titulo, quien, idioma = "es", className = "", chi
   };
 
   return (
-    <div className={`celular ${className}`}>
+    <div className={`celular ${className}`} data-pintada={pantalla ? "" : undefined} style={pantalla ? ({ "--pantalla": pantalla } as CSSProperties) : undefined}>
       {/* Toda la pantalla se puede picar (de juego); se sigue pudiendo deslizar y leer igual */}
       <div ref={cuerpo} className="celular__cuerpo" role="group" aria-label={titulo} onClick={picar}>
         <div className="celular__pantalla">
