@@ -64,3 +64,37 @@ describe("noticias de tu industria", () => {
     expect(noticiasGuardadas(null)).toEqual([]);
   });
 });
+
+import { esIpPrivada, fotoEnHtml, rutaDeFoto, RUTA_FOTO, tipoDeImagen } from "@/lib/noticias";
+
+describe("la foto de cada noticia", () => {
+  it("toma la og:image de la página (https, relativa resuelta, sin SVG)", () => {
+    const html = `<head><meta name="twitter:image" content="https://cdn.x.com/t.jpg"><meta property="og:image" content="/fotos/camion.jpg?w=1200&amp;h=630"></head>`;
+    expect(fotoEnHtml(html, "https://www.milenio.com/negocios/nota")).toBe("https://www.milenio.com/fotos/camion.jpg?w=1200&h=630");
+    expect(fotoEnHtml(`<meta content='https://cdn.x.com/a.png' property='og:image'>`, "https://x.com/")).toBe("https://cdn.x.com/a.png");
+    expect(fotoEnHtml(`<meta property="og:image" content="https://x.com/logo.svg">`, "https://x.com/")).toBeNull();
+    expect(fotoEnHtml(`<meta property="og:image" content="http://x.com/a.jpg">`, "https://x.com/")).toBeNull();
+    expect(fotoEnHtml(`<meta property="og:image" content="https://10.0.0.1/a.jpg">`, "https://x.com/")).toBeNull();
+    expect(fotoEnHtml("<p>sin meta</p>", "https://x.com/")).toBeNull();
+  });
+
+  it("el tipo sale de los bytes, no de lo que diga el servidor", () => {
+    expect(tipoDeImagen(new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0]))).toBe("jpg");
+    expect(tipoDeImagen(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0]))).toBe("png");
+    expect(tipoDeImagen(new TextEncoder().encode("RIFF1234WEBPVP8 "))).toBe("webp");
+    expect(tipoDeImagen(new TextEncoder().encode("<svg onload=alert(1)>"))).toBeNull();
+  });
+
+  it("no deja que el servidor llame a redes privadas", () => {
+    for (const ip of ["127.0.0.1", "10.2.3.4", "172.20.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "::ffff:7f00:1"]) expect(esIpPrivada(ip)).toBe(true);
+    for (const ip of ["8.8.8.8", "151.101.1.1", "2606:4700::1111"]) expect(esIpPrivada(ip)).toBe(false);
+  });
+
+  it("la ruta en Storage es fija y se revisa al leer", () => {
+    const ruta = rutaDeFoto("consultorio_medico|es-419", "2026-11-19", 2, "webp");
+    expect(ruta).toBe("consultorio_medico__es-419/2026-11-19-2.webp");
+    expect(RUTA_FOTO.test(ruta)).toBe(true);
+    expect(RUTA_FOTO.test("../otro/2026-11-19-1.jpg")).toBe(false);
+    expect(RUTA_FOTO.test("general__es-MX/2026-11-19-1.svg")).toBe(false);
+  });
+});

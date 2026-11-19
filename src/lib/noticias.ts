@@ -12,7 +12,7 @@ import { esTipoNegocio, nombreTipoNegocio } from "./tipos-negocio";
  * - Lo que trae internet son DATOS: aquí solo se toma texto corto y limpio.
  */
 
-export type Noticia = { id: string; titulo: string; resumen: string; fuente: string; url: string };
+export type Noticia = { id: string; titulo: string; resumen: string; fuente: string; url: string; foto?: string };
 
 export const MAX_NOTICIAS = 4;
 
@@ -147,7 +147,80 @@ export function noticiasGuardadas(x: unknown): Noticia[] {
     const url = urlSegura(o.url);
     const titulo = limpio(o.titulo, 140);
     if (!url || !titulo) continue;
-    salida.push({ id: String(salida.length + 1), titulo, resumen: limpio(o.resumen, 260), fuente: fuenteDe(url), url });
+    const foto = typeof o.foto === "string" && RUTA_FOTO.test(o.foto) ? urlDeFoto(o.foto) : null;
+    salida.push({ id: String(salida.length + 1), titulo, resumen: limpio(o.resumen, 260), fuente: fuenteDe(url), url, ...(foto ? { foto } : {}) });
   }
   return salida;
+}
+
+/* ---------- La foto de cada noticia (la que el mismo medio publica para compartirla) ---------- */
+
+/** Dónde se guarda la foto en Supabase Storage (bucket «noticias»): carpeta de la clave, con el día. */
+export const RUTA_FOTO = /^[a-z_]+__[A-Za-z0-9-]+\/\d{4}-\d{2}-\d{2}-[1-6]\.(jpg|png|webp)$/;
+
+export const rutaDeFoto = (clave: string, dia: string, n: number, ext: "jpg" | "png" | "webp") => `${clave.replace("|", "__")}/${dia}-${n}.${ext}`;
+
+/** La dirección pública de la foto (de la Supabase de Atendel; el panel solo deja ver fotos de ahí). */
+export function urlDeFoto(ruta: string): string | null {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base || !RUTA_FOTO.test(ruta)) return null;
+  try {
+    return new URL(`/storage/v1/object/public/noticias/${ruta}`, base).toString();
+  } catch {
+    return null;
+  }
+}
+
+/** La foto para compartir de una página (og:image o twitter:image), como dirección https segura; o null. */
+export function fotoEnHtml(html: string, pagina: string): string | null {
+  const metas = html.slice(0, 400_000).match(/<meta\b[^>]*>/gi) ?? [];
+  const valor = (m: string, attr: string) => m.match(new RegExp(`\\b${attr}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i"));
+  let mejor: string | null = null;
+  for (const m of metas) {
+    const nombre = valor(m, "property") ?? valor(m, "name");
+    const clave = (nombre?.[2] ?? nombre?.[3] ?? "").toLowerCase();
+    if (clave !== "og:image" && clave !== "og:image:secure_url" && clave !== "twitter:image") continue;
+    const c = valor(m, "content");
+    const crudo = (c?.[2] ?? c?.[3] ?? "").replace(/&amp;/g, "&").trim();
+    if (!crudo) continue;
+    try {
+      const u = urlSegura(new URL(crudo, pagina).toString());
+      if (u && !/\.svg(\?|$)/i.test(u)) {
+        mejor = u;
+        if (clave !== "twitter:image") break;
+      }
+    } catch {
+      /* dirección rota: se ignora */
+    }
+  }
+  return mejor;
+}
+
+/** El tipo real de la imagen por sus primeros bytes (no por lo que diga el servidor). Nada de SVG. */
+export function tipoDeImagen(b: Uint8Array): "jpg" | "png" | "webp" | null {
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b.length > 12 && String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP") return "webp";
+  return null;
+}
+
+/** ¿Es una dirección de red privada, local o reservada? (para no dejar que el servidor llame adentro) */
+export function esIpPrivada(ip: string): boolean {
+  const v4 = ip.replace(/^::ffff:/i, "");
+  const m = v4.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    return (
+      a === 0 || a === 10 || a === 127 || a >= 224 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 192 && b === 0) ||
+      (a === 198 && (b === 18 || b === 19))
+    );
+  }
+  const x = ip.toLowerCase();
+  if (!x.includes(":")) return true;
+  return x === "::" || x === "::1" || /^(fc|fd|fe8|fe9|fea|feb|ff)/.test(x) || x.startsWith("64:ff9b") || x.startsWith("2001:db8") || x.startsWith("::ffff:");
 }

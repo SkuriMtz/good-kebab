@@ -53,6 +53,8 @@ export type Destacada = {
   tono: Tono;
   /** Las noticias de tu industria llevan a su fuente (fuera de Atendel). */
   fuera?: { nombre: string };
+  /** La foto de la noticia (guardada en la Supabase de Atendel). */
+  foto?: string;
 };
 
 export type Acceso = { id: string; titulo: string; icono: IconoTablero; href: string };
@@ -74,7 +76,7 @@ export type DatosTablero = {
   noticiasAlDia: boolean;
 };
 
-export type NoticiaTablero = { id: string; titulo: string; resumen: string; fuente: string; url: string };
+export type NoticiaTablero = { id: string; titulo: string; resumen: string; fuente: string; url: string; foto?: string };
 
 /** Una noticia de tu industria en la fila grande de arriba (lleva a su fuente, fuera de Atendel). */
 export const destacadaDeNoticia = (n: NoticiaTablero): Destacada => ({
@@ -85,6 +87,7 @@ export const destacadaDeNoticia = (n: NoticiaTablero): Destacada => ({
   href: n.url,
   tono: "normal",
   fuera: { nombre: n.fuente },
+  ...(n.foto ? { foto: n.foto } : {}),
 });
 
 /* ---------- Lo que entra ---------- */

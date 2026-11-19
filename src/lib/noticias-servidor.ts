@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IdIdioma } from "./ajustes";
 import { cargarCuenta } from "./cuenta";
+import { conUrlDeFoto, guardarFotos } from "./fotos-noticias";
 import { claveNoticias, diaNoticias, leerNoticias, noticiasGuardadas, pedidoNoticias, urlsDeBusqueda, type Noticia } from "./noticias";
 import { MODELOS } from "./planes";
 import { pasarLimite } from "./seguridad";
@@ -81,13 +82,18 @@ export async function noticiasDeHoy(admin: SupabaseClient, dueno: string, o: { t
     const permitidas = urlsDeBusqueda(bloques);
     const ultimas = bloques.slice(bloques.map((b) => b.type).lastIndexOf("web_search_tool_result") + 1);
     const texto = ultimas.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
-    const noticias = leerNoticias(texto, permitidas);
-    // Aunque no haya nada, se guarda el día: así no se vuelve a buscar hasta mañana
-    const { error } = await admin
-      .from("noticias_industria")
-      .upsert({ clave, dia, noticias: noticias.length ? noticias : antes.noticias, actualizado_en: new Date().toISOString() }, { onConflict: "clave" });
+    const encontradas = leerNoticias(texto, permitidas);
+    if (!encontradas.length) {
+      // No hubo nada: se quedan las de antes, pero se marca el día para no volver a buscar hasta mañana
+      if (antes.dia) await admin.from("noticias_industria").update({ dia, actualizado_en: new Date().toISOString() }).eq("clave", clave);
+      else await admin.from("noticias_industria").insert({ clave, dia, noticias: [] });
+      return antes.noticias;
+    }
+    // Cada una con su foto (la de la nota), guardada en Storage
+    const noticias = await guardarFotos(admin, clave, dia, encontradas);
+    const { error } = await admin.from("noticias_industria").upsert({ clave, dia, noticias, actualizado_en: new Date().toISOString() }, { onConflict: "clave" });
     if (error) console.error("Noticias: no se pudieron guardar", error.code);
-    return noticias.length ? noticias : antes.noticias;
+    return noticias.map(conUrlDeFoto);
   } catch (e) {
     console.error("Noticias: la búsqueda falló", e instanceof Anthropic.APIError ? e.status : e instanceof Error ? e.message : e);
     return antes.noticias;

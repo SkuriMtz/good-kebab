@@ -212,7 +212,15 @@ function Banner({ destacadas }: { destacadas: Destacada[] }) {
     );
   }
   return (
-    <section className="tb-banner" data-tono={actual.tono} aria-roledescription="carrusel" aria-label="Lo importante">
+    <section className="tb-banner" data-tono={actual.tono} data-foto={actual.foto ? "" : undefined} aria-roledescription="carrusel" aria-label="Lo importante">
+      {actual.foto ? (
+        <>
+          {/* La foto de la nota (guardada en Storage por el servidor); si no carga, se quita */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img key={`f-${actual.id}`} className="tb-banner__foto" src={actual.foto} alt="" referrerPolicy="no-referrer" decoding="async" onError={(e) => (e.currentTarget.hidden = true)} />
+          {actual.fuera ? <span className="tb-banner__credito">Foto: {actual.fuera.nombre}</span> : null}
+        </>
+      ) : null}
       <div key={actual.id} className="tb-banner__cuerpo" aria-live="polite">
         <span className="tb-banner__etiqueta">
           {actual.tono === "alerta" ? <Icono nombre="alerta" tam={14} /> : null}
