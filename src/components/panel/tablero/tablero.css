@@ -934,60 +934,43 @@
   }
 }
 
-/* ---------- Al bajar: el saludo se va y lo de abajo sube ----------
-   Animaciones ligadas al scroll (sin JavaScript, las mueve el navegador): el saludo y la barra se
-   desvanecen, se achican un poco y se desenfocan; el banner, los mosaicos, la columna de hoy y cada
-   sección suben y aparecen al entrar (en cascada). Solo opacidad, transform y un desenfoque leve.
-   Donde el navegador no lo soporta, o con «reducir movimiento» (del sistema o de Apariencia), todo se
-   ve quieto, como antes. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .pc:not([data-movimiento="reducido"]) .tb .tb-heroe {
-      view-timeline: --tb-heroe block;
-    }
-    .pc:not([data-movimiento="reducido"]) .tb-heroe__centro {
-      animation: tb-heroe-se-va linear both;
-      animation-timeline: --tb-heroe;
-      animation-range: exit 0% exit 75%;
-      transform-origin: 50% 40%;
-    }
-    .pc:not([data-movimiento="reducido"]) .tb-heroe .pc-inicio__fragmentos {
-      animation: tb-se-apaga linear both;
-      animation-timeline: --tb-heroe;
-      animation-range: exit 0% exit 60%;
-    }
-    .pc:not([data-movimiento="reducido"]) .tb-banner,
-    .pc:not([data-movimiento="reducido"]) .tb-mosaicos,
-    .pc:not([data-movimiento="reducido"]) .tb-hoy,
-    .pc:not([data-movimiento="reducido"]) .tb-secciones > * {
-      animation: tb-sube linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 70%;
-    }
-    /* La cascada: lo que entra junto (el banner y la columna de hoy) no llega al mismo tiempo */
-    .pc:not([data-movimiento="reducido"]) .tb-hoy {
-      animation-range: entry 15% entry 85%;
-    }
-    .pc:not([data-movimiento="reducido"]) .tb-mosaicos {
-      animation-range: entry 10% entry 80%;
-    }
-  }
+/* ---------- Al bajar: el saludo se va y lo de abajo aparece (suave) ----------
+   Lo prende el Tablero con JavaScript (IntersectionObserver), solo si no hay «reducir movimiento»
+   (del sistema o de Apariencia): sin eso, o sin JavaScript, todo se ve quieto como siempre.
+   - Al pasar el saludo, el saludo y la barra se desvanecen, se achican un poco y se desenfocan; al
+     volver arriba, regresan.
+   - El banner, los mosaicos, la columna de hoy y cada sección aparecen deslizándose al entrar a la
+     pantalla, uno tras otro (una sola vez).
+   Curva ease-out larga y suave; solo opacidad, transform y un desenfoque leve. */
+.tb--anima {
+  --tb-suave: cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes tb-heroe-se-va {
-  to {
-    opacity: 0;
-    transform: scale(0.94);
-    filter: blur(6px);
-  }
+.tb--anima .tb-heroe__centro,
+.tb--anima .tb-heroe .pc-inicio__fragmentos {
+  transition:
+    opacity 650ms var(--tb-suave),
+    transform 800ms var(--tb-suave),
+    filter 650ms var(--tb-suave);
 }
-@keyframes tb-se-apaga {
-  to {
-    opacity: 0;
-  }
+.tb--anima .tb-heroe__centro {
+  transform-origin: 50% 30%;
 }
-@keyframes tb-sube {
-  from {
-    opacity: 0;
-    transform: translateY(56px) scale(0.98);
-  }
+.tb--abajo .tb-heroe__centro {
+  opacity: 0;
+  transform: translateY(-16px) scale(0.95);
+  filter: blur(6px);
+}
+.tb--abajo .tb-heroe .pc-inicio__fragmentos {
+  opacity: 0;
+}
+.tb--anima .tb-aparece {
+  transition:
+    opacity 800ms var(--tb-suave) var(--tb-retraso, 0ms),
+    transform 1000ms var(--tb-suave) var(--tb-retraso, 0ms),
+    filter 800ms var(--tb-suave) var(--tb-retraso, 0ms);
+}
+.tb--anima .tb-aparece:not(.tb-visto) {
+  opacity: 0;
+  transform: translateY(48px) scale(0.98);
+  filter: blur(4px);
 }

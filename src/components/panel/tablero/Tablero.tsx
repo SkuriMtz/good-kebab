@@ -432,12 +432,59 @@ function useNoticias(alDia: boolean): Destacada[] {
   return nuevas;
 }
 
+/**
+ * La transición al bajar (ver tablero.css, «Al bajar»): el saludo se va al
+ * pasarlo y cada pieza de abajo aparece al entrar, una tras otra. Nada se
+ * esconde si hay «reducir movimiento» o si no hay IntersectionObserver.
+ */
+function useTransicion() {
+  const raiz = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = raiz.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches || el.closest(".pc")?.getAttribute("data-movimiento") === "reducido";
+    if (quieto) return;
+    el.classList.add("tb--anima");
+    // Cada pieza aparece al entrar; las que entran juntas, una tras otra
+    const piezas = [...el.querySelectorAll<HTMLElement>(".tb-banner, .tb-mosaicos, .tb-hoy, .tb-secciones > *")];
+    const ver = new IntersectionObserver(
+      (entradas) => {
+        entradas
+          .filter((e) => e.isIntersecting)
+          .forEach((e, n) => {
+            const pieza = e.target as HTMLElement;
+            pieza.style.setProperty("--tb-retraso", `${n * 110}ms`);
+            pieza.classList.add("tb-visto");
+            ver.unobserve(pieza);
+          });
+      },
+      { threshold: 0.06 },
+    );
+    for (const p of piezas) {
+      p.classList.add("tb-aparece");
+      ver.observe(p);
+    }
+    // El saludo se va cuando ya pasó casi la mitad (y regresa al volver arriba)
+    const heroe = el.querySelector(".tb-heroe");
+    const salida = new IntersectionObserver(([e]) => el.classList.toggle("tb--abajo", e.intersectionRatio < 0.55), { threshold: [0, 0.55, 1] });
+    if (heroe) salida.observe(heroe);
+    return () => {
+      ver.disconnect();
+      salida.disconnect();
+      el.classList.remove("tb--anima", "tb--abajo");
+      for (const p of piezas) p.classList.remove("tb-aparece", "tb-visto");
+    };
+  }, []);
+  return raiz;
+}
+
 export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
+  const raiz = useTransicion();
   const nuevas = useNoticias(datos.noticiasAlDia);
   // Si llegaron las de hoy, reemplazan a las guardadas (de otro día)
   const destacadas = nuevas.length ? [...datos.destacadas.filter((d) => !d.fuera), ...nuevas] : datos.destacadas;
   return (
-    <div className="tb">
+    <div className="tb" ref={raiz}>
       <Heroe saludo={saludo} base={base} />
       <div className="tb-cuerpo">
         <Banner destacadas={destacadas} />
