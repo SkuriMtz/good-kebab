@@ -892,11 +892,11 @@
 }
 
 /* ---------- Como el banner: fondo oscuro con una luz de color ----------
-   Las tarjetas de las secciones y los paneles de la derecha se ven como el banner de arriba (lo que más
-   le gustó al dueño): negro con dos luces de color en la esquina, esquinas grandes y texto claro. Los
-   mosaicos se quedan como están. Se ve igual con tema claro u oscuro, como el banner. */
-.tb-panel,
-.tb-tarjeta__enlace {
+   Solo la tarjeta principal de cada sección (no todas: con todas se veía raro). Las demás tarjetas,
+   los paneles de la derecha y los mosaicos se quedan sencillos. Se ve igual con tema claro u oscuro,
+   como el banner. */
+.tb-tarjeta[data-destacada] .tb-tarjeta__enlace {
+  --tb-luz-1: var(--tb-tinte);
   --tb-luz-2: #f6c64a;
   --pc-texto: #f4f4f6;
   --pc-texto-2: rgb(244 244 246 / 0.7);
@@ -904,6 +904,7 @@
   --pc-borde-suave: rgb(255 255 255 / 0.08);
   --pc-hover: rgb(255 255 255 / 0.08);
   --pc-tarjeta: rgb(255 255 255 / 0.06);
+  padding: 24px;
   border: 1px solid rgb(255 255 255 / 0.07);
   border-radius: 28px;
   background:
@@ -912,43 +913,21 @@
     #0b0b0d;
   color: var(--pc-texto);
 }
-.tb-tarjeta__enlace {
-  --tb-luz-1: var(--tb-tinte);
-  padding: 24px;
-}
-.tb-tarjeta[data-tinte="gris"] .tb-tarjeta__enlace {
+.tb-tarjeta[data-destacada][data-tinte="gris"] .tb-tarjeta__enlace {
   --tb-luz-1: #8b5cff;
   --tb-luz-2: #7fb2ff;
 }
-.tb-tarjeta[data-tinte="alerta"] .tb-tarjeta__enlace,
-.tb-tarjeta[data-tinte="naranja"] .tb-tarjeta__enlace {
+.tb-tarjeta[data-destacada][data-tinte="alerta"] .tb-tarjeta__enlace,
+.tb-tarjeta[data-destacada][data-tinte="naranja"] .tb-tarjeta__enlace {
   --tb-luz-1: #ff8a6b;
 }
-.tb-tarjeta__enlace:hover {
+.tb-tarjeta[data-destacada] .tb-tarjeta__enlace:hover {
   border-color: rgb(255 255 255 / 0.18);
 }
-.tb-tarjeta__icono {
+.tb-tarjeta[data-destacada] .tb-tarjeta__icono {
   border: 1px solid rgb(255 255 255 / 0.18);
   background: rgb(255 255 255 / 0.06);
   color: #f4f4f6;
-}
-/* Cada panel de la derecha con su luz: lo que viene (azul), pendientes (como el banner), apps (verde) */
-.tb-hoy > .tb-panel:nth-child(1) {
-  --tb-luz-1: #7fb2ff;
-  --tb-luz-2: #8b5cff;
-}
-.tb-hoy > .tb-panel:nth-child(2) {
-  --tb-luz-1: #ff8a6b;
-}
-.tb-hoy > .tb-apps {
-  --tb-luz-1: #5fd09f;
-  --tb-luz-2: #7fb2ff;
-}
-.tb-panel .tb-panel__enlace {
-  color: #f4f4f6;
-  text-decoration: underline;
-  text-decoration-color: rgb(255 255 255 / 0.35);
-  text-underline-offset: 3px;
 }
 
 /* ---------- Tus apps (en la columna de la derecha) ---------- */
@@ -978,6 +957,7 @@
   flex: none;
   width: 36px;
   height: 36px;
+  border: 1px solid var(--pc-borde-suave, var(--pc-borde));
   border-radius: 10px;
   background: #fff;
 }
@@ -1009,7 +989,7 @@
   font-size: 0.82rem;
 }
 .tb-apps__estado[data-estado="error"] {
-  color: #ffb199;
+  color: var(--pc-atencion);
 }
 .tb-apps__estado[data-estado="error"] .tb-app__punto {
   background: var(--pc-atencion);

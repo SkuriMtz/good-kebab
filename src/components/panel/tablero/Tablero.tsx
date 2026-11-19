@@ -260,7 +260,8 @@ function Cambio({ valor, antes }: { valor: number; antes: number | null }) {
 
 function TarjetaTablero({ t }: { t: Tarjeta }) {
   return (
-    <li className="tb-tarjeta" data-tinte={tinteDe(t)}>
+    // La principal de cada sección (menos la del plan) lleva el estilo del banner; las demás, sencillas
+    <li className="tb-tarjeta" data-tinte={tinteDe(t)} data-destacada={t.grande && t.id !== "uso" ? "" : undefined}>
       <a href={t.href} className="tb-tarjeta__enlace">
         <span className="tb-tarjeta__cabeza">
           <span className="tb-tarjeta__icono">
