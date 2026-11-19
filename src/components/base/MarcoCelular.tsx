@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { t, type Idioma } from "@/i18n";
 
 /**
@@ -8,7 +8,7 @@ import { t, type Idioma } from "@/i18n";
  * conversación de ejemplo: marco con la isla de arriba, la hora, la batería y
  * la barrita de abajo; la pantalla se desliza si no cabe.
  *
- * Si le picas, la isla de arriba se estira y te dice algo («¡Aquí no! 👀»),
+ * Si le picas, sale un globito justo donde picaste y te dice algo («¡Aquí no! 👀»),
  * y el celular da un pequeño temblor (con «reducir movimiento», solo el
  * mensaje). Es de juego: no hace nada más.
  */
@@ -32,16 +32,21 @@ export function MarcoCelular({
   const cuerpo = useRef<HTMLDivElement>(null);
   const ultimo = useRef(-1);
   const reloj = useRef<number | undefined>(undefined);
-  const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
+  const [aviso, setAviso] = useState<{ id: number; texto: string; x: number; y: number; abajo: boolean } | null>(null);
 
   useEffect(() => () => window.clearTimeout(reloj.current), []);
 
-  const picar = () => {
+  const picar = (e: MouseEvent<HTMLDivElement>) => {
     const lista = t(idioma).conversacion.picar(quien);
     let i = Math.floor(Math.random() * lista.length);
     if (i === ultimo.current) i = (i + 1) % lista.length;
     ultimo.current = i;
-    setAviso({ id: Date.now(), texto: lista[i] });
+    // El globito sale donde picaste (arriba del dedo; si es muy arriba, abajo), sin salirse del celular
+    const caja = e.currentTarget.getBoundingClientRect();
+    const tocoX = e.clientX ? e.clientX - caja.left : caja.width / 2;
+    const tocoY = e.clientY ? e.clientY - caja.top : caja.height / 2;
+    const x = Math.min(Math.max(tocoX, 96), caja.width - 96);
+    setAviso({ id: Date.now(), texto: lista[i], x, y: tocoY, abajo: tocoY < 120 });
     window.clearTimeout(reloj.current);
     reloj.current = window.setTimeout(() => setAviso(null), 1900);
     // El temblor (se puede repetir aunque no haya terminado el anterior)
@@ -80,7 +85,7 @@ export function MarcoCelular({
         </div>
         <div className="celular__isla" aria-hidden="true" />
         {aviso ? (
-          <div key={aviso.id} className="celular__aviso" role="status">
+          <div key={aviso.id} className="celular__aviso" data-abajo={aviso.abajo ? "" : undefined} style={{ left: aviso.x, top: aviso.y }} role="status">
             {aviso.texto}
           </div>
         ) : null}
