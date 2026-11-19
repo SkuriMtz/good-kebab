@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import PromptBar from "@/components/PromptBar";
 import { Icono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
-import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Tarjeta } from "@/lib/tablero";
+import { cambio, PEDIDO_TABLERO, type DatosTablero, type Destacada, type Hoy, type Mosaico, type Tarjeta } from "@/lib/tablero";
+import { FragmentosInicio } from "../FragmentosInicio";
 import "./tablero.css";
 
 /*
@@ -30,13 +32,14 @@ const TINTE: Record<string, string> = {
 };
 const tinteDe = (t: Tarjeta) => (t.tono === "alerta" ? "alerta" : (TINTE[t.id] ?? "gris"));
 
-/* ---------- La caja de la IA ---------- */
+/* ---------- La IA: la barra de Atendel, con sus fragmentos ---------- */
 
-function CajaIA({ base }: { base: string }) {
+/** Pedidos de un toque (van directo a la IA). */
+const SUGERENCIAS = ["Dame el informe de hoy", "Contesta a mis clientes de hoy", "Agenda una cita", "¿Cómo voy esta semana?"];
+
+function useMandarAIA(base: string) {
   const router = useRouter();
-  const [texto, setTexto] = useState("");
-  const enviar = (e: FormEvent) => {
-    e.preventDefault();
+  return (texto: string) => {
     const t = texto.trim();
     if (!t) return;
     if (base === "/panel") {
@@ -51,19 +54,143 @@ function CajaIA({ base }: { base: string }) {
     }
     router.push(`${base}?pide=${encodeURIComponent(t.slice(0, 2000))}`);
   };
+}
+
+function Heroe({ saludo, base }: { saludo: string; base: string }) {
+  const mandar = useMandarAIA(base);
   return (
-    <form className="tb-ia" onSubmit={enviar} role="search">
-      <span className="tb-ia__orbe" aria-hidden="true">
-        <Marca className="tb-ia__marca" />
-      </span>
-      <label htmlFor="tb-ia" className="sr-only">
-        Pídele algo a Atendel
-      </label>
-      <input id="tb-ia" className="tb-ia__campo" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Pídele algo a Atendel…" maxLength={4000} autoComplete="off" />
-      <button type="submit" className="tb-ia__enviar" aria-label="Pedírselo a Atendel" disabled={!texto.trim()}>
-        <Icono nombre="enviar" tam={18} />
-      </button>
-    </form>
+    <section className="pc-inicio tb-heroe" aria-label="Pídele algo a Atendel">
+      <FragmentosInicio />
+      <div className="pc-inicio__centro tb-heroe__centro">
+        <h1 className="pc-saludo">
+          <Marca className="pc-saludo__marca pc-logo-entra" />
+          <span>{saludo}</span>
+        </h1>
+        <div className="pc-inicio__caja">
+          <PromptBar className="pc-caja" placeholder="Pídele algo a Atendel…" forma="fila" sources={[]} models={[]} efforts={[]} onSend={(t) => mandar(t)} maxRows={8} sparkBoost={0} dictarPronto />
+        </div>
+        <div className="tb-sugerencias">
+          {SUGERENCIAS.map((s) => (
+            <button key={s} type="button" className="tb-sugerencia" onClick={() => mandar(s)}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Mosaicos (como Toddle) ---------- */
+
+function Mosaicos({ mosaicos }: { mosaicos: Mosaico[] }) {
+  return (
+    <nav className="tb-mosaicos" aria-label="Secciones">
+      {mosaicos.map((m) => (
+        <a key={m.id} href={m.href} className="tb-mosaico" data-color={m.color}>
+          <span className="tb-mosaico__arte" aria-hidden="true">
+            <Icono nombre={m.icono} tam={30} />
+          </span>
+          <span className="tb-mosaico__texto">
+            <span className="tb-mosaico__titulo">{m.titulo}</span>
+            <span className="tb-mosaico__dato">{m.dato}</span>
+          </span>
+          {m.cuenta ? (
+            <span className="tb-mosaico__globo" aria-label={`${m.cuenta} pendientes`}>
+              {m.cuenta > 99 ? "99+" : m.cuenta}
+            </span>
+          ) : null}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+/* ---------- La columna de hoy (con pestañas) ---------- */
+
+function ColumnaHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
+  const [activa, setActiva] = useState(hoy.pestanas.find((p) => p.cuenta)?.id ?? hoy.pestanas[0]?.id);
+  const pestana = hoy.pestanas.find((p) => p.id === activa) ?? hoy.pestanas[0];
+  const mover = (dir: 1 | -1) => {
+    const i = hoy.pestanas.findIndex((p) => p.id === activa);
+    const sig = hoy.pestanas[(i + dir + hoy.pestanas.length) % hoy.pestanas.length];
+    setActiva(sig.id);
+    document.getElementById(`tb-pest-${sig.id}`)?.focus();
+  };
+  return (
+    <aside className="tb-hoy" aria-label="Hoy">
+      <section className="tb-panel">
+        <div className="tb-panel__cabeza">
+          <h2 className="tb-panel__titulo">Lo que viene</h2>
+          <a href={hrefTareas} className="tb-panel__enlace">
+            Ver tareas
+          </a>
+        </div>
+        {hoy.viene.length ? (
+          <ul className="tb-agenda">
+            {hoy.viene.map((r) => (
+              <li key={r.id} className="tb-agenda__fila">
+                <span className="tb-agenda__punto" aria-hidden="true" />
+                <span className="tb-agenda__texto">{r.texto}</span>
+                {r.hora ? <span className="tb-agenda__hora">{r.hora}</span> : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="tb-panel__vacio">Nada programado. Pídele a Atendel algo que se repita.</p>
+        )}
+      </section>
+
+      {pestana ? (
+        <section className="tb-panel">
+          <div className="tb-panel__cabeza">
+            <h2 className="tb-panel__titulo">Pendientes</h2>
+            <a href={pestana.href} className="tb-panel__enlace">
+              Ver todo
+            </a>
+          </div>
+          <div className="tb-pestanas" role="tablist" aria-label="Pendientes">
+            {hoy.pestanas.map((p) => (
+              <button
+                key={p.id}
+                id={`tb-pest-${p.id}`}
+                type="button"
+                role="tab"
+                aria-selected={p.id === activa}
+                aria-controls="tb-pest-panel"
+                tabIndex={p.id === activa ? 0 : -1}
+                className="tb-pestana"
+                onClick={() => setActiva(p.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight") mover(1);
+                  if (e.key === "ArrowLeft") mover(-1);
+                }}
+              >
+                {p.titulo}
+                {p.cuenta ? <span className="tb-pestana__cuenta">{p.cuenta}</span> : null}
+              </button>
+            ))}
+          </div>
+          <div id="tb-pest-panel" role="tabpanel" aria-labelledby={`tb-pest-${pestana.id}`}>
+            {pestana.renglones.length ? (
+              <ul className="tb-lista">
+                {pestana.renglones.map((r) => (
+                  <li key={r.id}>
+                    <a href={r.href ?? pestana.href} className="tb-lista__fila">
+                      <span className="tb-lista__texto">{r.texto}</span>
+                      {r.detalle ? <span className="tb-lista__detalle">{r.detalle}</span> : null}
+                      {r.hora ? <span className="tb-lista__detalle">{r.hora}</span> : null}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="tb-panel__vacio">{pestana.vacio}</p>
+            )}
+          </div>
+        </section>
+      ) : null}
+    </aside>
   );
 }
 
@@ -279,31 +406,21 @@ function Seccion({ id, titulo, href, children }: { id: string; titulo: string; h
 export function Tablero({ datos, saludo, base }: { datos: DatosTablero; saludo: string; fecha?: string; base: string }) {
   return (
     <div className="tb">
-      <header className="tb-heroe">
-        <h1 className="tb-heroe__titulo">{saludo}</h1>
-        <CajaIA base={base} />
-      </header>
-
-      <nav className="tb-herramientas" aria-label="Herramientas">
-        {datos.accesos.map((a) => (
-          <a key={a.id} href={a.href} className="tb-herramienta">
-            <span className="tb-herramienta__icono">
-              <Icono nombre={a.icono} tam={22} />
-            </span>
-            <span className="tb-herramienta__texto">{a.titulo}</span>
-          </a>
-        ))}
-      </nav>
-
-      <Banner destacadas={datos.destacadas} />
-
-      {datos.filas.map((f) => (
-        <Seccion key={f.id} id={f.id} titulo={f.titulo} href={f.href}>
-          {f.tarjetas.map((t) => (
-            <TarjetaTablero key={t.id} t={t} />
+      <Heroe saludo={saludo} base={base} />
+      <div className="tb-cuerpo">
+        <Banner destacadas={datos.destacadas} />
+        <Mosaicos mosaicos={datos.mosaicos} />
+        <ColumnaHoy hoy={datos.hoy} hrefTareas={`${base}?vista=tareas`} />
+        <div className="tb-secciones">
+          {datos.filas.map((f) => (
+            <Seccion key={f.id} id={f.id} titulo={f.titulo} href={f.href}>
+              {f.tarjetas.map((t) => (
+                <TarjetaTablero key={t.id} t={t} />
+              ))}
+            </Seccion>
           ))}
-        </Seccion>
-      ))}
+        </div>
+      </div>
     </div>
   );
 }

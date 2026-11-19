@@ -18,7 +18,7 @@ export type Tono = "normal" | "alerta" | "bien";
 /** Donde la caja del Tablero deja lo que pediste para que el chat lo mande (sessionStorage de la pestaña). */
 export const PEDIDO_TABLERO = "atendel-pedido";
 
-export type Renglon = { id: string; texto: string; detalle?: string; hora?: string };
+export type Renglon = { id: string; texto: string; detalle?: string; hora?: string; href?: string };
 
 export type IconoTablero = "mensaje" | "correo" | "clientes" | "calendario" | "reloj" | "check-doble" | "rayo" | "grafica" | "documento" | "alerta" | "negocio" | "conversaciones" | "enlace";
 
@@ -57,7 +57,14 @@ export type Destacada = {
 
 export type Acceso = { id: string; titulo: string; icono: IconoTablero; href: string };
 
-export type DatosTablero = { destacadas: Destacada[]; accesos: Acceso[]; filas: FilaTablero[] };
+/** Un mosaico (como Toddle): cada sección con su color, su dato principal y lo pendiente en un globito. */
+export type Mosaico = { id: string; titulo: string; dato: string; cuenta?: number; href: string; icono: IconoTablero; color: "lila" | "amarillo" | "verde" | "azul" | "durazno" | "rosa" | "menta" | "gris" };
+
+/** La columna de hoy: lo que viene y los pendientes en pestañas. */
+export type PestanaHoy = { id: string; titulo: string; cuenta: number | null; renglones: Renglon[]; vacio: string; href: string };
+export type Hoy = { viene: Renglon[]; pestanas: PestanaHoy[] };
+
+export type DatosTablero = { destacadas: Destacada[]; accesos: Acceso[]; mosaicos: Mosaico[]; hoy: Hoy; filas: FilaTablero[] };
 
 /* ---------- Lo que entra ---------- */
 
@@ -68,6 +75,9 @@ export type EntradaTablero = {
   base: string;
   teNecesita: { id: string; titulo: string; detalle?: string; href: string }[];
   totalTeNecesita: number;
+  /** Del total: lo que espera tu OK y lo que hay en la Oficina por revisar. */
+  totalOk: number;
+  totalOficina: number;
   viene: { id: string; titulo: string; cuando: string }[];
   hecho: { id: string; titulo: string; hace: string }[];
   /** null: WhatsApp no está conectado ni hay mensajes. */
@@ -275,8 +285,38 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     v(b, "vista=ajustes"),
   );
 
+  /* Mosaicos: cada sección con su dato; lo que tiene algo pendiente va primero */
+  const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+  const mosaicos = (
+    [
+      { id: "ok", titulo: "Necesita tu OK", dato: e.totalOk ? plural(e.totalOk, "espera tu OK", "esperan tu OK") : "Nada pendiente", cuenta: e.totalOk, href: v(b, "vista=pendientes"), icono: "check-doble", color: "lila" },
+      { id: "citas", titulo: "Citas", dato: e.citas ? `${plural(e.citas.semana, "agendada", "agendadas")} esta semana` : "Tu agenda", href: v(b, "vista=citas"), icono: "calendario", color: "amarillo" },
+      e.whatsapp && { id: "clientes", titulo: "Clientes", dato: `${plural(e.whatsapp.semana, "mensaje", "mensajes")} esta semana`, cuenta: e.whatsapp.esperan, href: v(b, "vista=pendientes"), icono: "mensaje", color: "verde" },
+      e.correo && { id: "correo", titulo: "Correo", dato: `${plural(e.correo.semana, "correo", "correos")} esta semana`, cuenta: e.correo.conAccion, href: v(b, "vista=correo"), icono: "correo", color: "azul" },
+      { id: "oficina", titulo: "Oficina", dato: e.totalOficina ? `${e.totalOficina} por revisar` : "Archivos e informes", cuenta: e.totalOficina, href: v(b, "vista=oficina"), icono: "documento", color: "durazno" },
+      { id: "tareas", titulo: "Tareas", dato: e.viene.length ? plural(e.viene.length, "programada", "programadas") : "Lo que Atendel hace solo", href: v(b, "vista=tareas"), icono: "reloj", color: "rosa" },
+      { id: "estadisticas", titulo: "Estadísticas", dato: e.clientes ? `${plural(e.clientes.semana, "persona", "personas")} esta semana` : "Cómo va tu negocio", href: v(b, "vista=estadisticas"), icono: "grafica", color: "menta" },
+      { id: "apps", titulo: "Apps conectadas", dato: e.apps.length ? plural(e.apps.length, "conectada", "conectadas") : "Conecta tus apps", cuenta: conProblema.length, href: v(b, "vista=negocio&tab=apps"), icono: "enlace", color: "gris" },
+    ] as (Mosaico | null | false)[]
+  )
+    .filter((m): m is Mosaico => Boolean(m))
+    .map((m, i) => ({ m, i }))
+    .sort((a, z) => Number(Boolean(z.m.cuenta)) - Number(Boolean(a.m.cuenta)) || a.i - z.i)
+    .map((x) => x.m);
+
+  /* Hoy: lo que viene y los pendientes en pestañas */
+  const esOficina = (id: string) => /^(f|t|r)-/.test(id);
+  const hoy: Hoy = {
+    viene: e.viene.slice(0, 4).map((t) => ({ id: t.id, texto: t.titulo, hora: t.cuando })),
+    pestanas: [
+      { id: "ok", titulo: "Tu OK", cuenta: e.totalOk, renglones: e.teNecesita.filter((t) => !esOficina(t.id)).slice(0, 5).map((t) => ({ id: t.id, texto: t.titulo, detalle: t.detalle, href: t.href })), vacio: "Nada espera tu OK.", href: v(b, "vista=pendientes") },
+      { id: "oficina", titulo: "Oficina", cuenta: e.totalOficina, renglones: e.teNecesita.filter((t) => esOficina(t.id)).slice(0, 5).map((t) => ({ id: t.id, texto: t.titulo, detalle: t.detalle, href: t.href })), vacio: "No hay nada por revisar.", href: v(b, "vista=oficina") },
+      { id: "hecho", titulo: "Hecho", cuenta: null, renglones: e.hecho.slice(0, 5).map((h) => ({ id: h.id, texto: h.titulo, hora: h.hace })), vacio: "Todavía no hay nada terminado.", href: v(b, "vista=hecho") },
+    ],
+  };
+
   const filas = [clientes, agenda, hizo, apps, plan].filter((f): f is FilaTablero => f !== null).sort((a, z) => z.peso - a.peso);
-  return { destacadas, accesos, filas };
+  return { destacadas, accesos, mosaicos, hoy, filas };
 }
 
 /** Cuánto cambió contra antes, en %, o null si antes no hubo nada (no se puede comparar). */

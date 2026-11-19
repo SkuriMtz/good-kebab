@@ -70,6 +70,8 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
     base: "/panel",
     teNecesita: hoy.teNecesita.map((t) => ({ id: t.id, titulo: t.titulo, detalle: t.detalle, href: t.href ?? "/panel?vista=pendientes" })),
     totalTeNecesita: hoy.total,
+    totalOk: hoy.totalOk,
+    totalOficina: hoy.totalOficina,
     viene: hoy.viene,
     hecho: hoy.hecho.map((h) => ({ id: h.id, titulo: h.titulo, hace: h.hace })),
     whatsapp: conWhatsapp

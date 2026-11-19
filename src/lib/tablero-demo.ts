@@ -10,8 +10,12 @@ export function tableroDeEjemplo(): DatosTablero {
     teNecesita: [
       { id: "1", titulo: "Mariana pidió cambiar su cita del jueves", detalle: "Aura dejó lista la respuesta con dos horarios libres. Falta tu OK.", href: "/pruebalo?vista=pendientes" },
       { id: "2", titulo: "Contestar a Grupo Sierra: cotización de 12 sesiones", detalle: "Altair preparó la respuesta con tu lista de precios.", href: "/pruebalo?vista=pendientes" },
+      { id: "f-1", titulo: "Presentación de servicios 2027", detalle: "Para revisar y aprobar", href: "/pruebalo?vista=oficina" },
+      { id: "t-1", titulo: "Borradores de respuesta para 3 clientes", detalle: "Lo hizo por su cuenta. Espera tu revisión", href: "/pruebalo?vista=oficina" },
     ],
-    totalTeNecesita: 2,
+    totalTeNecesita: 8,
+    totalOk: 2,
+    totalOficina: 6,
     viene: [
       { id: "v1", titulo: "Recordatorio de citas de mañana", cuando: "Hoy a las 19:00" },
       { id: "v2", titulo: "Informe de la semana", cuando: "Lunes a las 9:00" },

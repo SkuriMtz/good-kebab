@@ -16,7 +16,15 @@ import { nombreRemitente } from "@/components/panel/remitente";
  * - Lo que ya hice: lo último que se terminó (el mismo armado que Hecho).
  * El total de «Te necesita» se cuenta igual que el número del menú.
  */
-export type DatosHoy = { teNecesita: FilaTeNecesita[]; total: number; viene: FilaViene[]; hecho: FilaHecha[] };
+export type DatosHoy = {
+  teNecesita: FilaTeNecesita[];
+  total: number;
+  /** De ese total: lo que espera tu OK (acciones, WhatsApp, envíos, correos) y lo que hay en la Oficina por revisar. */
+  totalOk: number;
+  totalOficina: number;
+  viene: FilaViene[];
+  hecho: FilaHecha[];
+};
 
 const corto = (t: string, max: number) => {
   const limpio = t.replace(/\s+/g, " ").trim();
@@ -74,7 +82,9 @@ export async function cargarHoy(
     ...(rev.data ? [{ id: `r-${rev.data.id}`, titulo: "Revisión del día", detalle: `${Number(rev.data.faltan)} ${Number(rev.data.faltan) === 1 ? "cosa por ver" : "cosas por ver"}`, href: "/panel?vista=oficina" }] : []),
     ...pend.pasos.filter((p) => !p.listo).map((p) => ({ id: `p-${p.id}`, titulo: p.titulo, detalle: corto(p.detalle, 100), href: p.href })),
   ];
-  const total = (pend.total ?? 0) + (archivos.count ?? 0) + (trabajos.count ?? 0) + (rev.data ? 1 : 0);
+  const totalOk = pend.total ?? 0;
+  const totalOficina = (archivos.count ?? 0) + (trabajos.count ?? 0) + (rev.data ? 1 : 0);
+  const total = totalOk + totalOficina;
 
   const viene: FilaViene[] = (tareas.data ?? []).flatMap((t) => (t.proxima ? [{ id: String(t.id), titulo: corto(String(t.titulo), 100), cuando: mayuscula(cuandoEnPalabras(String(t.proxima), String(t.zona))) }] : []));
 
@@ -82,5 +92,5 @@ export async function cargarHoy(
     .slice(0, 5)
     .map((h) => ({ id: h.id, titulo: corto(h.titulo, 110), agente: h.agente, hace: haceTexto(h.en, ahora), href: h.href }));
 
-  return { teNecesita: filas, total, viene, hecho };
+  return { teNecesita: filas, total, totalOk, totalOficina, viene, hecho };
 }

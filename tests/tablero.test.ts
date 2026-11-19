@@ -5,6 +5,8 @@ const base: EntradaTablero = {
   base: "/panel",
   teNecesita: [],
   totalTeNecesita: 0,
+  totalOk: 0,
+  totalOficina: 0,
   viene: [],
   hecho: [],
   whatsapp: null,
