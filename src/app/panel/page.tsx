@@ -19,6 +19,7 @@ import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { vozDisponible } from "@/lib/elevenlabs";
 import { cargarHoy } from "@/lib/hoy";
+import { fraseDelDia } from "@/lib/tablero";
 import { cargarTablero } from "@/lib/tablero-datos";
 import { Tablero } from "@/components/panel/tablero/Tablero";
 import { leerUso } from "@/lib/uso";
@@ -256,10 +257,11 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
     const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
     const zona = limpiarAjustes(filaAjustes?.datos).zonaHoraria;
     const datos = await cargarTablero(supabase, user.id, { cuenta, conGoogle, zona });
-    const meta = user.user_metadata ?? {};
-    const completo = (meta.full_name as string | undefined) || (meta.name as string | undefined);
-    const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(new Date());
-    return <Tablero datos={datos} saludo={completo ? `${saludoDeHora()}, ${completo.split(" ")[0]}` : saludoDeHora()} fecha={fecha} base="/panel" />;
+    const ahora = new Date();
+    const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(ahora);
+    // Una frase corta al azar, fija todo el día (cambia al siguiente)
+    const dia = new Intl.DateTimeFormat("en-CA", { timeZone: zona }).format(ahora);
+    return <Tablero datos={datos} saludo={fraseDelDia(dia, user.id)} fecha={fecha} base="/panel" />;
   }
 
   // Las conversaciones: el chat (lo de «Hoy» vive en Tareas)

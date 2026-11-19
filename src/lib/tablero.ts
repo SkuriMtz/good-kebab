@@ -76,6 +76,37 @@ export type DatosTablero = {
 };
 
 
+/* ---------- La frase de arriba ---------- */
+
+/** Las frases cortas de arriba del Tablero (una por día). */
+export const FRASES_TABLERO = [
+  "¿Qué hay en mente hoy?",
+  "¿Por dónde empezamos?",
+  "¿Qué sigue hoy?",
+  "¿Qué movemos hoy?",
+  "¿Qué toca hoy?",
+  "¿Qué resolvemos hoy?",
+  "¿Qué hacemos hoy?",
+  "¿Qué quieres lograr hoy?",
+  "¿Qué ideas traes hoy?",
+  "¿Cómo va el negocio?",
+  "¿Qué arreglamos hoy?",
+  "¿Qué pendiente sigue?",
+  "Listo cuando digas.",
+  "A darle hoy.",
+  "Hoy, paso a paso.",
+] as const;
+
+/**
+ * La frase del día: al azar, pero fija todo el día (cambia al siguiente) y
+ * distinta entre cuentas. `dia` es AAAA-MM-DD en la zona de la persona.
+ */
+export function fraseDelDia(dia: string, semilla: string): string {
+  let h = 2166136261;
+  for (const c of `${dia}|${semilla}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return FRASES_TABLERO[(h >>> 0) % FRASES_TABLERO.length];
+}
+
 /* ---------- Lo que entra ---------- */
 
 type Semana = { semana: number; antes: number; serie: number[] };

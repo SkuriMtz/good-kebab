@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { armarTablero, cambio, type EntradaTablero } from "@/lib/tablero";
+import { armarTablero, cambio, FRASES_TABLERO, fraseDelDia, type EntradaTablero } from "@/lib/tablero";
 
 const base: EntradaTablero = {
   base: "/panel",
@@ -64,6 +64,14 @@ describe("tablero", () => {
     const tarjetas = t.filas.flatMap((f) => f.tarjetas.map((x) => x.id));
     expect(tarjetas).not.toContain("viene");
     expect(tarjetas).not.toContain("hecho");
+  });
+
+  it("la frase de arriba: 15 distintas, fija todo el día y cambia entre días", () => {
+    expect(new Set(FRASES_TABLERO).size).toBe(15);
+    expect(fraseDelDia("2026-11-19", "u1")).toBe(fraseDelDia("2026-11-19", "u1"));
+    const semana = ["13", "14", "15", "16", "17", "18", "19"].map((d) => fraseDelDia(`2026-11-${d}`, "u1"));
+    expect(new Set(semana).size).toBeGreaterThan(3);
+    expect(FRASES_TABLERO.every((f) => f.length <= 26)).toBe(true);
   });
 
   it("el cambio contra la semana pasada", () => {

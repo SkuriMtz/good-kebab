@@ -38,6 +38,7 @@ import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
 import { TuNegocio, pestanaDe } from "./negocio/TuNegocio";
 import { usoDeEjemplo } from "@/lib/uso-estado";
+import { fraseDelDia } from "@/lib/tablero";
 import { tableroDeEjemplo } from "@/lib/tablero-demo";
 import { Tablero } from "./tablero/Tablero";
 
@@ -230,7 +231,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
 
   let contenido;
   if (valida === "tablero") {
-    contenido = <Tablero datos={tableroDeEjemplo()} saludo="Hola, Luna" fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
+    contenido = <Tablero datos={tableroDeEjemplo()} saludo={fraseDelDia(new Date(ahora).toISOString().slice(0, 10), "demo")} fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
   } else if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
