@@ -5,7 +5,7 @@
 export const PRIVACY_NOTICE = `# COMPREHENSIVE PRIVACY NOTICE
 ## ATENDEL
 
-**Last updated: November 17, 2026**
+**Last updated: November 20, 2026**
 
 ### 1. Identity and address of the data controller
 
@@ -70,6 +70,8 @@ Depending on the permissions granted and the features enabled, this information 
 - Data related to the activities requested by the user.
 
 The permissions and authorization credentials of connected apps are stored encrypted with the AES-256-GCM algorithm. These permissions are used exclusively by Atendel's servers to carry out the authorized operations.
+
+**Google data.** Atendel's use and transfer to any other app of information received from Google APIs will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements. Atendel uses that data only to provide the features the user turns on (reading and replying to their email, seeing and moving their appointments, reviewing their files and forms); it does not sell it, does not use it for advertising or to train general artificial intelligence models, and no person reads it except with the user's permission to provide support, for security reasons or when required by law.
 
 **2.5. Preferences, settings and notifications**
 

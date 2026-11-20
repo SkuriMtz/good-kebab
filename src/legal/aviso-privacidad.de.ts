@@ -4,7 +4,7 @@
 export const TEXTO = `# AUSFÜHRLICHE DATENSCHUTZERKLÄRUNG (AVISO DE PRIVACIDAD INTEGRAL)
 ## ATENDEL
 
-**Zuletzt aktualisiert: 17. November 2026**
+**Zuletzt aktualisiert: 20. November 2026**
 
 ### 1. Identität und Anschrift des Verantwortlichen
 
@@ -69,6 +69,8 @@ Je nach den erteilten Berechtigungen und den aktivierten Funktionen können dies
 - Daten im Zusammenhang mit den vom Nutzer angeforderten Tätigkeiten.
 
 Die Berechtigungen und Autorisierungsdaten der verbundenen Anwendungen werden mit dem Algorithmus AES-256-GCM verschlüsselt gespeichert. Diese Berechtigungen werden ausschließlich von den Servern von Atendel zur Ausführung der autorisierten Vorgänge verwendet.
+
+**Daten von Google.** Die Nutzung von Informationen, die Atendel über Google-APIs erhält, und deren Übertragung an andere Apps erfolgt gemäß der [Richtlinie zu Nutzerdaten für Google API-Dienste](https://developers.google.com/terms/api-services-user-data-policy), einschließlich der Anforderungen zur eingeschränkten Nutzung (Limited Use). Atendel verwendet diese Daten ausschließlich, um die vom Nutzer aktivierten Funktionen bereitzustellen (E-Mails lesen und beantworten, Termine einsehen und verschieben, Dateien und Formulare prüfen); es verkauft sie nicht, nutzt sie weder für Werbung noch zum Training allgemeiner KI-Modelle, und kein Mensch liest sie, außer mit Zustimmung des Nutzers für den Support, aus Sicherheitsgründen oder wenn das Gesetz es verlangt.
 
 **2.5. Präferenzen, Konfiguration und Benachrichtigungen**
 

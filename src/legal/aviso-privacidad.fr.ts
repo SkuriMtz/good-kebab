@@ -4,7 +4,7 @@
 export const TEXTO = `# AVIS DE CONFIDENTIALITÉ INTÉGRAL
 ## ATENDEL
 
-**Dernière mise à jour : 17 novembre 2026**
+**Dernière mise à jour : 20 novembre 2026**
 
 ### 1. Identité et domicile du responsable du traitement
 
@@ -69,6 +69,8 @@ Selon les autorisations accordées et les fonctions activées, ces informations 
 - Les données liées aux activités demandées par l'utilisateur.
 
 Les autorisations et identifiants d'autorisation des applications connectées sont stockés chiffrés au moyen de l'algorithme AES-256-GCM. Ces autorisations sont utilisées exclusivement par les serveurs d'Atendel pour exécuter les opérations autorisées.
+
+**Données de Google.** L'utilisation par Atendel des informations reçues des API de Google, et leur transfert vers toute autre application, respectent le [Règlement sur les données des utilisateurs des services d'API Google](https://developers.google.com/terms/api-services-user-data-policy), y compris les exigences d'utilisation limitée (Limited Use). Atendel utilise ces données uniquement pour fournir les fonctions que l'utilisateur active (lire et répondre à ses e-mails, consulter et déplacer ses rendez-vous, examiner ses fichiers et formulaires) ; il ne les vend pas, ne les utilise ni à des fins publicitaires ni pour entraîner des modèles généraux d'intelligence artificielle, et aucune personne ne les lit, sauf avec l'autorisation de l'utilisateur pour l'assistance, pour des raisons de sécurité ou lorsque la loi l'exige.
 
 **2.5. Préférences, configuration et notifications**
 

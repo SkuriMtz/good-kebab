@@ -4,7 +4,7 @@
 export const TEXTO = `# INFORMATIVA SULLA PRIVACY INTEGRALE
 ## ATENDEL
 
-**Ultimo aggiornamento: 17 novembre 2026**
+**Ultimo aggiornamento: 20 novembre 2026**
 
 ### 1. Identità e sede del titolare del trattamento
 
@@ -69,6 +69,8 @@ A seconda dei permessi concessi e delle funzioni attivate, tali informazioni pot
 - Dati relativi alle attività richieste dall'utente.
 
 I permessi e le credenziali di autorizzazione delle applicazioni collegate sono conservati in forma cifrata mediante l'algoritmo AES-256-GCM. Tali permessi sono utilizzati esclusivamente dai server di Atendel per eseguire le operazioni autorizzate.
+
+**Dati di Google.** L'uso da parte di Atendel delle informazioni ricevute dalle API di Google, e il loro trasferimento a qualsiasi altra app, rispettano le [Norme relative ai dati utente dei servizi API di Google](https://developers.google.com/terms/api-services-user-data-policy), inclusi i requisiti di utilizzo limitato (Limited Use). Atendel usa questi dati solo per fornire le funzioni che l'utente attiva (leggere e rispondere alle email, vedere e spostare gli appuntamenti, esaminare file e moduli); non li vende, non li usa per pubblicità né per addestrare modelli generali di intelligenza artificiale, e nessuna persona li legge, salvo con il permesso dell'utente per l'assistenza, per motivi di sicurezza o quando lo richiede la legge.
 
 **2.5. Preferenze, configurazione e notifiche**
 

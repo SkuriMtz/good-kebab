@@ -16,7 +16,7 @@ export const DATOS_LEGALES = {
   /** Ciudad cuyos tribunales resuelven cualquier desacuerdo (normalmente la del domicilio). */
   jurisdiccion: "Monterrey, Nuevo León, México",
   /** Fecha de la última actualización de los textos (AAAA-MM-DD). */
-  actualizado: "2026-11-17",
+  actualizado: "2026-11-20",
 };
 
 export type DatosLegales = typeof DATOS_LEGALES;

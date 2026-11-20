@@ -209,6 +209,18 @@ export const de: Diccionario = {
       titulo: "Verbindet sich mit den Apps, die du schon nutzt",
       nota: (n: number) => `${n} Apps, mit deinem eigenen Konto. Atendel prüft sie für dich und erledigt mit deiner Erlaubnis Dinge darin: Termine eintragen, antworten und senden.`,
     },
+    /** Privacidad (después de las apps): entra a tus cosas, pero lo que ve se queda contigo. */
+    privacidad: {
+      titulo: "Deine Daten gehören dir",
+      texto: "Um dir zu helfen, greift Atendel auf deine E-Mails, deinen Kalender und deine Apps zu. Was es sieht, bleibt in deinem Konto.",
+      puntos: [
+        ["Nur du siehst es", "Deine Kunden, deine Termine und deine Zahlen sieht nur dein Konto. Das stellt die Datenbank sicher, nicht nur ein Versprechen."],
+        ["Deine Berechtigungen, sicher verwahrt", "Die Berechtigungen deiner Apps werden verschlüsselt gespeichert, und du kannst sie jederzeit entfernen."],
+        ["Wir verkaufen nichts", "Weder deine Daten noch die deiner Kunden. Wir nutzen sie nicht für Werbung, und die KI trainiert nicht damit."],
+        ["Du entscheidest", "Du legst fest, was es allein macht und was es dich vorher fragt; bei Geld fragt es immer. Du kannst deine Daten einsehen, korrigieren oder löschen."],
+      ] as [string, string][],
+      enlace: "Datenschutzhinweis lesen",
+    },
     planes: {
       titulo: "Pläne",
       texto: "Starte kostenlos mit dem ganzen Team. One und Max öffnen nach und nach: Trag dich in die Warteliste ein und wir sagen dir Bescheid.",

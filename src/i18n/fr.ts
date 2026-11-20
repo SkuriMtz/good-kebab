@@ -205,6 +205,18 @@ export const fr: Diccionario = {
       titulo: "Se connecte aux applications que vous utilisez déjà",
       nota: (n: number) => `${n} applis, avec votre propre compte. Atendel les vérifie pour vous et, avec votre permission, agit dedans : rendez-vous, réponses et envois.`,
     },
+    /** Privacidad (después de las apps): entra a tus cosas, pero lo que ve se queda contigo. */
+    privacidad: {
+      titulo: "Vos données sont à vous",
+      texto: "Pour vous aider, Atendel accède à vos e-mails, votre agenda et vos applis. Ce qu'il voit reste dans votre compte.",
+      puntos: [
+        ["Vous seul le voyez", "Vos clients, vos rendez-vous et vos chiffres ne sont visibles que par votre compte. C'est la base de données qui l'impose, pas une simple promesse."],
+        ["Vos autorisations, sous clé", "Les autorisations de vos applis sont stockées chiffrées, et vous pouvez les retirer quand vous voulez."],
+        ["Nous ne vendons rien", "Ni vos données ni celles de vos clients. Nous ne les utilisons pas pour la publicité, et l'IA ne s'en sert pas pour s'entraîner."],
+        ["C'est vous qui décidez", "Vous choisissez ce qu'il fait seul et ce qu'il vous demande avant ; pour l'argent, il demande toujours. Vous pouvez consulter, corriger ou supprimer vos données."],
+      ] as [string, string][],
+      enlace: "Lire l'avis de confidentialité",
+    },
     planes: {
       titulo: "Formules",
       texto: "Commencez gratuitement avec toute l'équipe. One et Max ouvrent par étapes : rejoignez la liste d'attente et nous vous prévenons.",

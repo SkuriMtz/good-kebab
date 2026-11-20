@@ -1519,3 +1519,77 @@
     padding: 0 24px;
   }
 }
+
+/* =====================================================================
+   6c. Privacidad (page.tsx): «Tus datos son tuyos». La cabeza como la de
+   Planes; abajo, los cuatro compromisos en fila (en celular, uno debajo
+   del otro), separados por una línea fina, y el enlace al aviso.
+   ===================================================================== */
+.ini-privacidad {
+  position: relative;
+  padding: clamp(96px, 16vh, 160px) 7.51vw clamp(72px, 12vh, 120px);
+}
+.ini-privacidad__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 48px;
+  margin-bottom: clamp(32px, 4vw, 64px);
+}
+.ini-privacidad__cabeza .ini-cuerpo {
+  max-width: 30rem;
+  color: var(--ini-gris);
+}
+.ini-privacidad__lista {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 2.6vw, 40px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ini-privacidad__punto {
+  padding-top: 20px;
+  border-top: 1px solid var(--ini-linea);
+}
+.ini-privacidad__titulo {
+  margin: 0 0 8px;
+  color: var(--ini-texto);
+  font-size: clamp(16px, 1.3vw, 19px);
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+.ini-privacidad__texto {
+  margin: 0;
+  color: var(--ini-gris);
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  font-weight: 300;
+  line-height: 1.55;
+}
+.ini-privacidad__enlace {
+  display: inline-block;
+  margin-top: clamp(28px, 3vw, 44px);
+  color: var(--ini-texto);
+  font-size: clamp(14px, 1.1vw, 16px);
+  text-decoration: underline;
+  text-decoration-color: var(--ini-linea);
+  text-underline-offset: 4px;
+}
+.ini-privacidad__enlace:hover {
+  text-decoration-color: currentColor;
+}
+@media (max-width: 899px) {
+  .ini-privacidad__lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .ini-privacidad {
+    padding-inline: 24px;
+  }
+  .ini-privacidad__lista {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

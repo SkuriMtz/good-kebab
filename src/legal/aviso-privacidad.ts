@@ -6,7 +6,7 @@
 export const AVISO_PRIVACIDAD = `# AVISO DE PRIVACIDAD INTEGRAL
 ## ATENDEL
 
-**Última actualización: 17 de noviembre de 2026**
+**Última actualización: 20 de noviembre de 2026**
 
 ### 1. Identidad y domicilio del responsable
 
@@ -71,6 +71,8 @@ Dependiendo de los permisos concedidos y de las funciones activadas, esta inform
 - Datos relacionados con las actividades solicitadas por el usuario.
 
 Los permisos y credenciales de autorización de las aplicaciones conectadas se almacenan cifrados mediante el algoritmo AES-256-GCM. Dichos permisos son utilizados exclusivamente por los servidores de Atendel para ejecutar las operaciones autorizadas.
+
+**Datos de Google.** El uso que hace Atendel de la información recibida de las API de Google, y su transferencia a cualquier otra aplicación, se apega a la [Política de datos del usuario de los servicios de API de Google](https://developers.google.com/terms/api-services-user-data-policy), incluidos los requisitos de Uso Limitado (Limited Use). Atendel utiliza dichos datos únicamente para proporcionar las funciones que el usuario activa (leer y contestar su correo, ver y mover sus citas, revisar sus archivos y formularios); no los vende, no los utiliza con fines publicitarios ni para entrenar modelos generales de inteligencia artificial, y ninguna persona los lee, salvo con autorización del usuario para brindarle soporte, por motivos de seguridad o cuando la ley lo exija.
 
 **2.5. Preferencias, configuración y notificaciones**
 
