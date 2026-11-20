@@ -826,18 +826,6 @@ export const pt: Diccionario = {
   },
   /* Páginas legais e Central de Privacidade (/privacy) */
   legal: {
-    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
-    datos: {
-      titulo: "Seus dados são seus",
-      texto: "Para te ajudar, o Atendel entra no seu e-mail, na sua agenda e nos seus apps. O que ele vê fica na sua conta.",
-      puntos: [
-        ["Só você vê", "Seus clientes, seus horários e seus números só a sua conta vê. Quem garante é o banco de dados, não só uma promessa."],
-        ["Suas permissões, trancadas", "As permissões dos seus apps ficam guardadas com criptografia, e você pode tirar quando quiser."],
-        ["Não vendemos nada", "Nem os seus dados nem os dos seus clientes. Não usamos para publicidade, e a IA não usa para treinar."],
-        ["Você manda", "Você decide o que ele faz sozinho e o que pergunta antes; o que envolve dinheiro, ele sempre pergunta. Você pode ver, corrigir ou apagar seus dados."],
-      ] as [string, string][],
-      enlace: "Leia o aviso de privacidade",
-    },
     etiquetas: {
       saltar: "Pular para o conteúdo",
       inicio: "Início",
@@ -871,6 +859,13 @@ export const pt: Diccionario = {
         etiqueta: "Legal · Privacidade",
         titulo: "Aviso de Privacidade",
         tipo: "Aviso completo",
+      },
+      acceso: {
+        nombre: "Acesso às suas contas",
+        resumen: "Como o Atendel entra no seu e-mail, na sua agenda e nos seus apps, e mantém tudo privado.",
+        etiqueta: "Legal · Acesso às contas",
+        titulo: "Política de Acesso a Contas e Dados",
+        tipo: "Contas conectadas e privacidade",
       },
       preguntas: {
         nombre: "Perguntas frequentes",

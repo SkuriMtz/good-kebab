@@ -574,18 +574,6 @@ export const es = {
   },
   /* Páginas legales y Centro de privacidad (/privacy) */
   legal: {
-    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
-    datos: {
-      titulo: "Tus datos son tuyos",
-      texto: "Para ayudarte, Atendel entra a tu correo, tu agenda y tus apps. Lo que ve se queda en tu cuenta.",
-      puntos: [
-        ["Solo tú lo ves", "Tus clientes, tus citas y tus números solo los ve tu cuenta. Lo controla la base de datos, no una promesa."],
-        ["Tus permisos, bajo llave", "Los permisos de tus apps se guardan cifrados y los puedes quitar cuando quieras."],
-        ["No vendemos nada", "Ni tus datos ni los de tus clientes. No los usamos para publicidad, y la IA no los usa para entrenarse."],
-        ["Tú mandas", "Decides qué hace solo y qué te pregunta antes; lo de dinero, siempre te lo pregunta. Puedes ver, corregir o borrar tus datos."],
-      ] as [string, string][],
-      enlace: "Lee el aviso de privacidad",
-    },
     etiquetas: {
       saltar: "Saltar al contenido",
       inicio: "Inicio",
@@ -619,6 +607,13 @@ export const es = {
         etiqueta: "Legal · Privacidad",
         titulo: "Aviso de Privacidad",
         tipo: "Aviso integral",
+      },
+      acceso: {
+        nombre: "Acceso a tus cuentas",
+        resumen: "Cómo entra Atendel a tu correo, tu agenda y tus apps, y cómo lo mantiene privado.",
+        etiqueta: "Legal · Acceso a tus datos",
+        titulo: "Política de Acceso a Cuentas y Datos",
+        tipo: "Cuentas conectadas y privacidad",
       },
       preguntas: {
         nombre: "Preguntas frecuentes",

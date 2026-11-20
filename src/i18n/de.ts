@@ -826,18 +826,6 @@ export const de: Diccionario = {
   },
   /* Rechtliche Seiten und Datenschutzzentrum (/privacy) */
   legal: {
-    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
-    datos: {
-      titulo: "Deine Daten gehören dir",
-      texto: "Um dir zu helfen, greift Atendel auf deine E-Mails, deinen Kalender und deine Apps zu. Was es sieht, bleibt in deinem Konto.",
-      puntos: [
-        ["Nur du siehst es", "Deine Kunden, deine Termine und deine Zahlen sieht nur dein Konto. Das stellt die Datenbank sicher, nicht nur ein Versprechen."],
-        ["Deine Berechtigungen, sicher verwahrt", "Die Berechtigungen deiner Apps werden verschlüsselt gespeichert, und du kannst sie jederzeit entfernen."],
-        ["Wir verkaufen nichts", "Weder deine Daten noch die deiner Kunden. Wir nutzen sie nicht für Werbung, und die KI trainiert nicht damit."],
-        ["Du entscheidest", "Du legst fest, was es allein macht und was es dich vorher fragt; bei Geld fragt es immer. Du kannst deine Daten einsehen, korrigieren oder löschen."],
-      ] as [string, string][],
-      enlace: "Datenschutzhinweis lesen",
-    },
     etiquetas: {
       saltar: "Zum Inhalt springen",
       inicio: "Startseite",
@@ -871,6 +859,13 @@ export const de: Diccionario = {
         etiqueta: "Rechtliches · Datenschutz",
         titulo: "Datenschutzhinweis",
         tipo: "Ausführlicher Hinweis",
+      },
+      acceso: {
+        nombre: "Zugriff auf deine Konten",
+        resumen: "Wie Atendel auf deine E-Mails, deinen Kalender und deine Apps zugreift und alles privat hält.",
+        etiqueta: "Rechtliches · Kontozugriff",
+        titulo: "Richtlinie zum Zugriff auf Konten und Daten",
+        tipo: "Verbundene Konten und Datenschutz",
       },
       preguntas: {
         nombre: "Häufige Fragen",

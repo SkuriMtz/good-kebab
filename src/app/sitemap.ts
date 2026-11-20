@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           { ruta: "/privacidad", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/terminos", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/cookies", prioridad: 0.3, frecuencia: "monthly" as const },
+          { ruta: "/acceso-a-tus-datos", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/privacy", prioridad: 0.4, frecuencia: "monthly" as const },
           { ruta: "/preguntas-privacidad", prioridad: 0.3, frecuencia: "monthly" as const },
           { ruta: "/tratamiento-de-datos", prioridad: 0.3, frecuencia: "monthly" as const },

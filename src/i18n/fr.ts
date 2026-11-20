@@ -822,18 +822,6 @@ export const fr: Diccionario = {
   },
   /* Pages légales et Centre de confidentialité (/privacy) */
   legal: {
-    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
-    datos: {
-      titulo: "Vos données sont à vous",
-      texto: "Pour vous aider, Atendel accède à vos e-mails, votre agenda et vos applis. Ce qu'il voit reste dans votre compte.",
-      puntos: [
-        ["Vous seul le voyez", "Vos clients, vos rendez-vous et vos chiffres ne sont visibles que par votre compte. C'est la base de données qui l'impose, pas une simple promesse."],
-        ["Vos autorisations, sous clé", "Les autorisations de vos applis sont stockées chiffrées, et vous pouvez les retirer quand vous voulez."],
-        ["Nous ne vendons rien", "Ni vos données ni celles de vos clients. Nous ne les utilisons pas pour la publicité, et l'IA ne s'en sert pas pour s'entraîner."],
-        ["C'est vous qui décidez", "Vous choisissez ce qu'il fait seul et ce qu'il vous demande avant ; pour l'argent, il demande toujours. Vous pouvez consulter, corriger ou supprimer vos données."],
-      ] as [string, string][],
-      enlace: "Lire l'avis de confidentialité",
-    },
     etiquetas: {
       saltar: "Aller au contenu",
       inicio: "Accueil",
@@ -867,6 +855,13 @@ export const fr: Diccionario = {
         etiqueta: "Juridique · Confidentialité",
         titulo: "Avis de confidentialité",
         tipo: "Avis complet",
+      },
+      acceso: {
+        nombre: "Accès à vos comptes",
+        resumen: "Comment Atendel accède à vos e-mails, votre agenda et vos applis, et garde tout privé.",
+        etiqueta: "Juridique · Accès aux comptes",
+        titulo: "Politique d'accès aux comptes et aux données",
+        tipo: "Comptes connectés et confidentialité",
       },
       preguntas: {
         nombre: "Questions fréquentes",

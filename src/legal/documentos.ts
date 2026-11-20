@@ -7,6 +7,13 @@ import { TEXTO as PRIVACIDAD_FR } from "./aviso-privacidad.fr";
 import { TEXTO as PRIVACIDAD_DE } from "./aviso-privacidad.de";
 import { TEXTO as PRIVACIDAD_IT } from "./aviso-privacidad.it";
 import { TEXTO as PRIVACIDAD_ZH } from "./aviso-privacidad.zh";
+import { ACCESO_DATOS } from "./acceso-datos";
+import { TEXTO as ACCESO_EN } from "./acceso-datos.en";
+import { TEXTO as ACCESO_PT } from "./acceso-datos.pt";
+import { TEXTO as ACCESO_FR } from "./acceso-datos.fr";
+import { TEXTO as ACCESO_DE } from "./acceso-datos.de";
+import { TEXTO as ACCESO_IT } from "./acceso-datos.it";
+import { TEXTO as ACCESO_ZH } from "./acceso-datos.zh";
 import { PREGUNTAS_LEGALES } from "./preguntas";
 import { TEXTO as PREGUNTAS_EN } from "./preguntas.en";
 import { TEXTO as PREGUNTAS_PT } from "./preguntas.pt";
@@ -77,6 +84,7 @@ import { TEXTO as PROVEEDORES_ZH } from "./proveedores.zh";
  */
 export const TEXTOS_LEGALES: Record<Politica, Record<Idioma, string>> = {
   privacidad: { es: AVISO_PRIVACIDAD, en: PRIVACY_NOTICE, pt: PRIVACIDAD_PT, fr: PRIVACIDAD_FR, de: PRIVACIDAD_DE, it: PRIVACIDAD_IT, zh: PRIVACIDAD_ZH },
+  acceso: { es: ACCESO_DATOS, en: ACCESO_EN, pt: ACCESO_PT, fr: ACCESO_FR, de: ACCESO_DE, it: ACCESO_IT, zh: ACCESO_ZH },
   preguntas: { es: PREGUNTAS_LEGALES, en: PREGUNTAS_EN, pt: PREGUNTAS_PT, fr: PREGUNTAS_FR, de: PREGUNTAS_DE, it: PREGUNTAS_IT, zh: PREGUNTAS_ZH },
   terminos: { es: TERMINOS, en: TERMS, pt: TERMINOS_PT, fr: TERMINOS_FR, de: TERMINOS_DE, it: TERMINOS_IT, zh: TERMINOS_ZH },
   cookies: { es: COOKIES, en: COOKIES_EN, pt: COOKIES_PT, fr: COOKIES_FR, de: COOKIES_DE, it: COOKIES_IT, zh: COOKIES_ZH },

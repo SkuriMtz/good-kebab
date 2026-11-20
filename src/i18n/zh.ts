@@ -822,18 +822,6 @@ export const zh: Diccionario = {
   },
   /* 法律页面和隐私中心 (/privacy) */
   legal: {
-    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
-    datos: {
-      titulo: "你的数据属于你",
-      texto: "为了帮你，Atendel 会进入你的邮箱、日程和应用。它看到的内容只留在你的账户里。",
-      puntos: [
-        ["只有你能看到", "你的客人、预约和数字只有你的账户能看到。这是由数据库保证的，而不只是一句承诺。"],
-        ["你的授权，锁好保存", "你的应用授权会加密保存，你随时可以取消。"],
-        ["我们什么都不卖", "不卖你的数据，也不卖你客人的数据。不用于广告，AI 也不会用它们来训练。"],
-        ["你说了算", "你决定哪些事它自己做、哪些先问你；涉及钱的事，它一定先问你。你可以查看、更正或删除你的数据。"],
-      ] as [string, string][],
-      enlace: "阅读隐私声明",
-    },
     etiquetas: {
       saltar: "跳到正文",
       inicio: "首页",
@@ -867,6 +855,13 @@ export const zh: Diccionario = {
         etiqueta: "法律 · 隐私",
         titulo: "隐私声明",
         tipo: "完整声明",
+      },
+      acceso: {
+        nombre: "访问你的账户",
+        resumen: "Atendel 如何进入你的邮箱、日程和应用，以及如何保护隐私。",
+        etiqueta: "法律 · 账户访问",
+        titulo: "账户与数据访问政策",
+        tipo: "已连接账户与隐私",
       },
       preguntas: {
         nombre: "常见问题",

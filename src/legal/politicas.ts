@@ -7,6 +7,7 @@
  */
 export const POLITICAS = [
   { id: "privacidad", href: "/privacidad", icono: "candado" },
+  { id: "acceso", href: "/acceso-a-tus-datos", icono: "enlace" },
   { id: "preguntas", href: "/preguntas-privacidad", icono: "ayuda" },
   { id: "terminos", href: "/terminos", icono: "documento" },
   { id: "cookies", href: "/cookies", icono: "ajustes" },
