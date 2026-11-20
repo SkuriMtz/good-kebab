@@ -1814,3 +1814,56 @@
     transition: none;
   }
 }
+
+/* ---------- El recorrido en celular: los agentes uno tras otro (RecorridoAgentes) ----------
+   Nada se queda fijo: cada agente con su globo, su lema, qué hace, sus apps, su teléfono entero (la
+   plática empieza sola al verse) y su botón. En compu se usa el recorrido fijo de arriba. */
+.recorrido-lista {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  padding-block: 32px 72px;
+  background: var(--recorrido-fondo, #000);
+}
+.recorrido-lista__agente {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  scroll-margin-top: 72px;
+}
+.recorrido-lista .recorrido__titulo {
+  max-width: none;
+  font-size: clamp(1.6rem, 1.1rem + 3vw, 2.2rem);
+}
+.recorrido-lista .recorrido__parrafo {
+  display: block;
+  overflow: visible;
+  font-size: 0.95rem;
+}
+.recorrido-lista .recorrido__apps {
+  display: flex;
+  margin-top: 4px;
+}
+.recorrido-lista .recorrido__accion {
+  display: block;
+}
+.recorrido-lista__celular {
+  align-self: center;
+  width: 100%;
+  padding: 12px 0 4px;
+}
+.recorrido-lista__celular .celular__cuerpo {
+  width: min(320px, 84vw);
+  height: auto;
+  aspect-ratio: 340 / 660;
+}
+.recorrido-lista__celular .celular__contenido {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.recorrido-lista__celular .conva {
+  height: 100%;
+}
