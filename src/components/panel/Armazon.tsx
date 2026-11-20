@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
+import { IconoBarra } from "./IconosBarra";
 import type { IdAgente } from "@/lib/agentes";
 import { clasesFuentesApariencia, serifPanel } from "./fuente";
 import { TraduccionPanel } from "./TraduccionPanel";
@@ -463,17 +464,18 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
           ]
         : [];
   const cuentaDia = (pendientes ?? 0) + (porRevisar ?? 0);
-  const pestanaAbajo = (id: typeof tema, etiqueta: string, icono: NombreIcono, href: string, cuenta?: number) => (
-    <Enlace href={href} className="pc-abajo__item" aria-current={tema === id && !ajustesAbierto ? "page" : undefined}>
+  // Como la de Instagram: solo el ícono (dibujado); el nombre queda para los lectores de pantalla
+  const pestanaAbajo = (id: typeof tema, etiqueta: string, href: string, cuenta?: number) => (
+    <Enlace href={href} className="pc-abajo__item" aria-current={tema === id && !ajustesAbierto ? "page" : undefined} title={etiqueta}>
       <span className="pc-abajo__icono">
-        <Icono nombre={icono} tam={22} />
+        <IconoBarra nombre={id} />
         {cuenta ? (
-          <span className="pc-abajo__cuenta" aria-label={`${cuenta} por ver`}>
+          <span className="pc-abajo__cuenta" aria-hidden="true">
             {cuenta > 99 ? "99+" : cuenta}
           </span>
         ) : null}
       </span>
-      <span className="pc-abajo__texto">{etiqueta}</span>
+      <span className="pc-abajo__texto">{cuenta ? `${etiqueta}, ${cuenta} por ver` : etiqueta}</span>
     </Enlace>
   );
 
@@ -658,13 +660,13 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
       </div>
 
       <nav className="pc-abajo" aria-label="Menú">
-        {pestanaAbajo("inicio", "Inicio", "inicio", hrefs.tablero ?? hrefs.inicio)}
-        {conTablero ? pestanaAbajo("chat", "Chat", "conversaciones", hrefs.inicio) : null}
-        {pestanaAbajo("dia", "Tu día", "sol", hrefs.pendientes, cuentaDia)}
-        {pestanaAbajo("negocio", "Negocio", "negocio", hrefs.correo ?? hrefs.estadisticas)}
-        <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined}>
+        {pestanaAbajo("inicio", "Inicio", hrefs.tablero ?? hrefs.inicio)}
+        {conTablero ? pestanaAbajo("chat", "Chat", hrefs.inicio) : null}
+        {pestanaAbajo("dia", "Tu día", hrefs.pendientes, cuentaDia)}
+        {pestanaAbajo("negocio", "Negocio", hrefs.correo ?? hrefs.estadisticas)}
+        <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined} title="Ajustes">
           <span className="pc-abajo__icono">
-            <Icono nombre="ajustes" tam={22} />
+            <IconoBarra nombre="ajustes" />
           </span>
           <span className="pc-abajo__texto">Ajustes</span>
         </button>

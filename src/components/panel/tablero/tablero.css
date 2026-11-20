@@ -1186,3 +1186,28 @@
     font-size: 2rem;
   }
 }
+
+/* ---------- Celular: los mosaicos con menos color ----------
+   Fondo de tarjeta normal con un brillo suave de su color arriba, el ícono de su color y el texto
+   normal (antes todo el mosaico pintado se veía opaco). En compu se quedan como en ElevenLabs. */
+@media (max-width: 859px) {
+  .tb-bento > .tb-mosaico {
+    border: 1px solid var(--pc-borde-suave, var(--pc-borde));
+    background:
+      radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--tb-color) 16%, transparent), transparent 72%),
+      var(--pc-tarjeta);
+    color: var(--pc-texto);
+  }
+  .tb-bento > .tb-mosaico::after {
+    display: none;
+  }
+  .tb-bento .tb-mosaico__arte {
+    color: color-mix(in srgb, var(--tb-color) 85%, var(--pc-texto));
+  }
+  .tb-bento .tb-mosaico__arte svg {
+    filter: none;
+  }
+  .tb-bento .tb-mosaico__dato {
+    color: var(--pc-texto-2);
+  }
+}
