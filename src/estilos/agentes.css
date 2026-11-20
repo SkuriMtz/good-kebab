@@ -1597,14 +1597,16 @@
   /* Tapa los fragmentos del fondo del sitio (aquí se ve limpio, solo el texto y el celular) */
   z-index: 1;
   background: var(--recorrido-fondo, #000);
-  height: calc(var(--n) * 100svh);
+  /* Cuánto se baja de un agente al otro (en celular, menos: ver abajo) */
+  --paso: 100svh;
+  height: calc((var(--n) - 1) * var(--paso) + 100svh);
 }
 .recorrido__marca {
   position: absolute;
-  top: calc(var(--i) * 100svh);
+  top: calc(var(--i) * var(--paso));
   left: 0;
   width: 1px;
-  height: 100svh;
+  height: var(--paso);
   pointer-events: none;
 }
 .recorrido__fijo {
@@ -1763,48 +1765,54 @@
 .recorrido__celular .conva {
   height: 100%;
 }
+/* En celular: también fijo, pero todo cabe. Arriba el globo y el lema (sin el párrafo ni las apps:
+   están en la página de cada agente); abajo el teléfono ENTERO, achicado con --escala (lo calcula
+   RecorridoAgentes con lo que queda de pantalla). Menos scroll entre un agente y otro. */
 @media (max-width: 899px) {
+  .recorrido {
+    --paso: 65svh;
+  }
   .recorrido__fijo {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     align-items: start;
-    gap: 16px;
-    padding-top: 72px;
-    padding-bottom: 16px;
+    gap: 12px;
+    padding-top: 68px;
+    padding-bottom: 12px;
+    overflow: hidden;
   }
   .recorrido__textos {
-    height: 36svh;
+    height: 128px;
   }
   .recorrido__texto {
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
+  }
+  .recorrido__globo {
+    padding: 5px 12px 5px 6px;
+    font-size: 0.85rem;
   }
   .recorrido__titulo {
-    font-size: clamp(1.6rem, 1.1rem + 3vw, 2.2rem);
     max-width: none;
+    margin-top: 4px;
+    font-size: clamp(1.3rem, 1rem + 2vw, 1.7rem);
   }
-  .recorrido__parrafo {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-    font-size: 0.95rem;
-  }
+  .recorrido__parrafo,
   .recorrido__apps,
   .recorrido__accion {
     display: none;
   }
-  /* En celular, el teléfono de tamaño normal, asomado desde abajo (lo de abajo se corta) */
-  .recorrido__fijo {
-    overflow: hidden;
-  }
   .recorrido__celular {
     justify-content: center;
     align-self: start;
+    height: calc(660px * var(--escala, 1));
   }
   .recorrido__celular .celular__cuerpo {
-    width: min(300px, 80vw);
-    height: auto;
+    flex: none;
+    width: 340px;
+    height: 660px;
+    transform: scale(var(--escala, 1));
+    transform-origin: top center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1815,55 +1823,3 @@
   }
 }
 
-/* ---------- El recorrido en celular: los agentes uno tras otro (RecorridoAgentes) ----------
-   Nada se queda fijo: cada agente con su globo, su lema, qué hace, sus apps, su teléfono entero (la
-   plática empieza sola al verse) y su botón. En compu se usa el recorrido fijo de arriba. */
-.recorrido-lista {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 72px;
-  padding-block: 32px 72px;
-  background: var(--recorrido-fondo, #000);
-}
-.recorrido-lista__agente {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  scroll-margin-top: 72px;
-}
-.recorrido-lista .recorrido__titulo {
-  max-width: none;
-  font-size: clamp(1.6rem, 1.1rem + 3vw, 2.2rem);
-}
-.recorrido-lista .recorrido__parrafo {
-  display: block;
-  overflow: visible;
-  font-size: 0.95rem;
-}
-.recorrido-lista .recorrido__apps {
-  display: flex;
-  margin-top: 4px;
-}
-.recorrido-lista .recorrido__accion {
-  display: block;
-}
-.recorrido-lista__celular {
-  align-self: center;
-  width: 100%;
-  padding: 12px 0 4px;
-}
-.recorrido-lista__celular .celular__cuerpo {
-  width: min(320px, 84vw);
-  height: auto;
-  aspect-ratio: 340 / 660;
-}
-.recorrido-lista__celular .celular__contenido {
-  overflow: hidden;
-  padding-bottom: 0;
-}
-.recorrido-lista__celular .conva {
-  height: 100%;
-}

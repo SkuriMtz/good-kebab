@@ -23,8 +23,10 @@ import { agentesDe, t, type Idioma } from "@/i18n";
  *   desenfoca; lo que llega aparece desde borroso, un poco después. La
  *   pantalla del celular cambia de color con un fundido.
  * - Con «reducir movimiento», cambia sin animación.
- * - En celular no se fija nada (se sentía trabado y el teléfono se cortaba):
- *   los agentes van uno tras otro, cada uno con su texto y su teléfono entero.
+ * - En celular también se queda fijo, pero todo cabe: arriba el nombre y el
+ *   lema, y el teléfono entero, achicado para caber en lo que queda de
+ *   pantalla (antes se cortaba y se sentía trabado). Entre un agente y otro
+ *   hay menos scroll que en compu.
  */
 
 /** Las más conocidas primero (solo pasan si de verdad están en el catálogo para ese agente). */
@@ -76,30 +78,23 @@ function TextoAgente({ a, idioma }: { a: ReturnType<typeof agentesDe>[number]; i
   );
 }
 
-/** En celular (como en el CSS: menos de 900 px) no se fija nada: los agentes van uno tras otro. */
+/** En celular (como en el CSS: menos de 900 px) el teléfono se achica para caber entero. */
 const CELULAR = "(max-width: 899px)";
+/** El alto del teléfono a tamaño normal (agentes.css, .celular__cuerpo). */
+const ALTO_CELULAR = 660;
 
 export function RecorridoAgentes({ idioma = "es" }: { idioma?: Idioma }) {
   const d = t(idioma);
   const P = d.paginaAgentes;
   const agentes = agentesDe(idioma);
   const marcas = useRef<(HTMLDivElement | null)[]>([]);
+  const fijo = useRef<HTMLDivElement>(null);
   const [activo, setActivo] = useState(0);
-  const [movil, setMovil] = useState(false);
+  /** En celular: cuánto se achica el teléfono para que quepa entero debajo del título (1 = normal). */
+  const [escala, setEscala] = useState(1);
 
   useEffect(() => {
-    const mq = window.matchMedia(CELULAR);
-    const cambiar = () => setMovil(mq.matches);
-    cambiar();
-    // Si llegó con #lola (u otro), ya en la lista del celular se va a ese agente
-    const ancla = window.location.hash.slice(1);
-    if (mq.matches && ["lola", "clara", "victor", "iris"].includes(ancla)) requestAnimationFrame(() => document.getElementById(ancla)?.scrollIntoView());
-    mq.addEventListener("change", cambiar);
-    return () => mq.removeEventListener("change", cambiar);
-  }, []);
-
-  useEffect(() => {
-    if (movil || typeof IntersectionObserver === "undefined") return;
+    if (typeof IntersectionObserver === "undefined") return;
     const ver = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) if (e.isIntersecting) setActivo(Number((e.target as HTMLElement).dataset.i));
@@ -108,31 +103,32 @@ export function RecorridoAgentes({ idioma = "es" }: { idioma?: Idioma }) {
     );
     for (const m of marcas.current) if (m) ver.observe(m);
     return () => ver.disconnect();
-  }, [movil]);
+  }, []);
 
-  // Celular: cada agente con su texto completo y su propio teléfono entero (la plática empieza sola al verse)
-  if (movil) {
-    return (
-      <section className="recorrido-lista contenedor" aria-label={P.etiqueta}>
-        {agentes.map((a) => {
-          const suColor = PERSONAJES[a.id].color;
-          return (
-            <article key={a.id} id={a.id} className="recorrido-lista__agente" style={{ "--agente": suColor } as CSSProperties}>
-              <TextoAgente a={a} idioma={idioma} />
-              <MarcoCelular className="recorrido-lista__celular" titulo={P.conversacionCon(a.nombre)} quien={a.nombre} idioma={idioma} pantalla={suColor}>
-                <ConversacionAtendel agente={a.id} idioma={idioma} pintada />
-              </MarcoCelular>
-              <div className="recorrido__accion">
-                <Boton href={`/agentes/${a.id}`} variante="fantasma" flecha>
-                  {P.suPagina}
-                </Boton>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-    );
-  }
+  // Lo que queda de pantalla debajo del título es lo que mide el teléfono (completo, nunca cortado)
+  useEffect(() => {
+    const el = fijo.current;
+    if (!el) return;
+    const mq = window.matchMedia(CELULAR);
+    const medir = () => {
+      const cel = el.querySelector<HTMLElement>(".recorrido__celular");
+      if (!mq.matches || !cel) {
+        setEscala(1);
+        return;
+      }
+      const abajo = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+      const disponible = el.clientHeight - abajo - (cel.getBoundingClientRect().top - el.getBoundingClientRect().top);
+      setEscala(Math.min(1, Math.max(0.45, Math.floor((disponible / ALTO_CELULAR) * 100) / 100)));
+    };
+    medir();
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(medir);
+    ro?.observe(el);
+    mq.addEventListener("change", medir);
+    return () => {
+      ro?.disconnect();
+      mq.removeEventListener("change", medir);
+    };
+  }, []);
 
   const color = PERSONAJES[agentes[activo]?.id ?? "lola"].color;
 
@@ -152,7 +148,7 @@ export function RecorridoAgentes({ idioma = "es" }: { idioma?: Idioma }) {
         />
       ))}
 
-      <div className="recorrido__fijo contenedor">
+      <div ref={fijo} className="recorrido__fijo contenedor" style={{ "--escala": escala } as CSSProperties}>
         <div className="recorrido__textos">
           {agentes.map((a, i) => {
             const esta = i === activo;

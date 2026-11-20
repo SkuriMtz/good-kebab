@@ -43,9 +43,12 @@ export function MarcoCelular({
     ultimo.current = i;
     // El globito sale donde picaste (arriba del dedo; si es muy arriba, abajo), sin salirse del celular
     const caja = e.currentTarget.getBoundingClientRect();
-    const tocoX = e.clientX ? e.clientX - caja.left : caja.width / 2;
-    const tocoY = e.clientY ? e.clientY - caja.top : caja.height / 2;
-    const x = Math.min(Math.max(tocoX, 96), caja.width - 96);
+    // Si el celular está achicado (el recorrido de /agentes en celular), se pasa a sus medidas reales
+    const ancho = e.currentTarget.offsetWidth || caja.width;
+    const k = caja.width / ancho || 1;
+    const tocoX = e.clientX ? (e.clientX - caja.left) / k : ancho / 2;
+    const tocoY = e.clientY ? (e.clientY - caja.top) / k : (e.currentTarget.offsetHeight || caja.height) / 2;
+    const x = Math.min(Math.max(tocoX, 96), ancho - 96);
     setAviso({ id: Date.now(), texto: lista[i], x, y: tocoY, abajo: tocoY < 120 });
     window.clearTimeout(reloj.current);
     reloj.current = window.setTimeout(() => setAviso(null), 1900);
