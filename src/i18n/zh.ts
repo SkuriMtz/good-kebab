@@ -462,10 +462,6 @@ export const zh: Diccionario = {
     desdeTuCorreo: "来自你的邮箱",
     seLoPaso: (nombre: string) => `好的，我交给 ${nombre}。`,
     pidele: "让 Atendel 帮你做点什么…",
-    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
-    porWhatsApp: "通过 WhatsApp",
-    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
-    mensaje: "消息",
     tu: "你",
     trabajaCon: "可连接",
     picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],

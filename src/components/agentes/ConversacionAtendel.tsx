@@ -5,7 +5,6 @@ import { Icono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
 import { Personaje } from "./Personaje";
 import type { IdAgente } from "@/lib/agentes";
-import { LOGO_APP } from "@/lib/conexiones/logos";
 import { PERSONAJES } from "@/lib/personajes";
 import { agenteDe, t, type Idioma } from "@/i18n";
 
@@ -13,9 +12,9 @@ import { agenteDe, t, type Idioma } from "@/i18n";
 const ARCHIVO = /[^\s,:;]+\.(?:xlsx|pdf|docx)/g;
 
 /**
- * Cómo funciona Atendel, dentro del celular de muestra (un chat de WhatsApp
- * con Atendel): Atendel ya sabe lo que pasó (lo leyó en tu WhatsApp, tu
- * correo o tus apps) y te avisa; tú solo le dices «Soluciónalo»; Atendel se
+ * Cómo funciona Atendel, dentro del celular de muestra (el chat de la app):
+ * Atendel ya sabe lo que pasó (lo leyó en tu WhatsApp, tu correo o tus
+ * apps) y te avisa; tú solo le dices «Soluciónalo»; Atendel se
  * lo pasa al agente que le toca, el agente lo resuelve y te cuenta qué hizo
  * (y lo que quedó, con su palomita). Los textos salen del diccionario
  * (conversacion.conAtendel) y los nombres son de ejemplo.
@@ -124,17 +123,7 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
         <span className="conva__logo">
           <Marca className="h-[18px] w-[18px]" />
         </span>
-        <span className="conva__nombres">
-          <span className="conva__titulo">Atendel</span>
-          {LOGO_APP.whatsapp_business ? (
-            <span className="conva__canal">
-              {/* Logo chico y fijo de /public */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO_APP.whatsapp_business} alt="" width={12} height={12} />
-              {C.porWhatsApp}
-            </span>
-          ) : null}
-        </span>
+        <span className="conva__titulo">Atendel</span>
       </div>
 
       <ol className="conva__mensajes" aria-live="polite">
@@ -212,7 +201,7 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
       </ol>
 
       <div className="conva__barra" aria-hidden="true">
-        <span>{C.mensaje}</span>
+        <span>{C.pidele}</span>
         <span className="conva__enviar">
           <Icono nombre="enviar" tam={14} />
         </span>

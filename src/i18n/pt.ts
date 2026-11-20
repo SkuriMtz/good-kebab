@@ -466,10 +466,6 @@ export const pt: Diccionario = {
     desdeTuCorreo: "do seu e-mail",
     seLoPaso: (nombre: string) => `Beleza. Passo para ${nombre}.`,
     pidele: "Peça algo ao Atendel…",
-    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
-    porWhatsApp: "pelo WhatsApp",
-    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
-    mensaje: "Mensagem",
     tu: "Você",
     trabajaCon: "Trabalha com",
     picar: (quien: string) => [`Aqui não! 👀`, `Ei! Este celular é só de exemplo.`, `Cócegas não! 😆`, `Psiu… ${quien} está trabalhando.`, `Pode olhar, mas não toque. 😄`, `Opa! Quase me derrubou.`],

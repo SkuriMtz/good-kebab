@@ -290,10 +290,6 @@ export const es = {
     desdeTuCorreo: "desde tu correo",
     seLoPaso: (nombre: string) => `Va. Se lo paso a ${nombre}.`,
     pidele: "Pídele algo a Atendel…",
-    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
-    porWhatsApp: "por WhatsApp",
-    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
-    mensaje: "Mensaje",
     tu: "Tú",
     trabajaCon: "Trabaja con",
     picar: (quien: string) => [`¡Aquí no! 👀`, `¡Ey! Este celular es de muestra.`, `¡Cosquillas no! 😆`, `Shh… ${quien} está trabajando.`, `Mira, pero no toques. 😄`, `¡Uy! Casi me tiras.`],
