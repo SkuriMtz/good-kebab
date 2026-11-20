@@ -10030,3 +10030,194 @@ a.pc-correo__accion:hover {
   font-weight: 500;
   letter-spacing: 0.02em;
 }
+
+/* =====================================================================
+   47. CELULAR: la barra de abajo (como WhatsApp) y los botones del tema
+   (Armazon.tsx). Solo en pantallas de menos de 860 px, las mismas del
+   cajón; en compu no se ven. Inicio · Chat · Tu día · Negocio · Ajustes;
+   arriba, los botones del tema elegido (Tu OK, Oficina, Citas, Tareas…).
+   El cajón ya solo trae tus conversaciones (se abre desde el Chat).
+   ===================================================================== */
+.pc-abajo,
+.pc-subtemas {
+  display: none;
+}
+@media (max-width: 859px) {
+  .pc {
+    --pc-abajo-alto: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Que nada quede escondido detrás de la barra */
+  .pc-principal {
+    padding-bottom: var(--pc-abajo-alto);
+  }
+  .pc-conv {
+    height: calc(100dvh - 52px - var(--pc-abajo-alto));
+  }
+  .pc-oferta-avisos {
+    bottom: calc(var(--pc-abajo-alto) + 12px);
+  }
+  .pc-aviso-flota {
+    bottom: calc(var(--pc-abajo-alto) + 12px);
+  }
+  /* En el cajón solo van tus conversaciones: las secciones están en la barra */
+  .pc-menu__nav {
+    display: none;
+  }
+
+  .pc-abajo {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 30;
+    display: flex;
+    height: var(--pc-abajo-alto);
+    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid var(--pc-borde-suave, var(--pc-borde));
+    background: var(--pc-menu);
+  }
+  .pc-abajo__item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--pc-texto-2);
+    font: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* El ícono de la pestaña elegida va en una pastilla de color (como WhatsApp) */
+  .pc-abajo__icono {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 28px;
+    border-radius: 999px;
+    transition:
+      background-color 160ms ease,
+      transform 160ms var(--pc-sale);
+  }
+  .pc-abajo__item:active .pc-abajo__icono {
+    transform: scale(0.94);
+  }
+  .pc-abajo__texto {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pc-abajo__item[aria-current="page"],
+  .pc-abajo__item[data-activo] {
+    color: var(--pc-texto);
+  }
+  .pc-abajo__item[aria-current="page"] .pc-abajo__icono,
+  .pc-abajo__item[data-activo] .pc-abajo__icono {
+    background: color-mix(in srgb, var(--pc-acento) 22%, transparent);
+  }
+  .pc-abajo__item[aria-current="page"] .pc-abajo__texto,
+  .pc-abajo__item[data-activo] .pc-abajo__texto {
+    font-weight: 600;
+  }
+  .pc-abajo__cuenta {
+    position: absolute;
+    top: -5px;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e5484d; /* el mismo rojo de los numeritos del Tablero (blanco encima se lee bien) */
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 0 2px var(--pc-menu);
+  }
+  .pc-abajo__item:focus-visible {
+    outline: none;
+  }
+  .pc-abajo__item:focus-visible .pc-abajo__icono {
+    outline: 2px solid var(--pc-foco);
+    outline-offset: 2px;
+  }
+
+  /* Los botones del tema: pastillas arriba, se deslizan si no caben */
+  .pc-subtemas {
+    position: sticky;
+    top: 52px;
+    z-index: 19;
+    display: flex;
+    gap: 8px;
+    padding: 4px 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--pc-lienzo);
+  }
+  .pc-subtemas::-webkit-scrollbar {
+    display: none;
+  }
+  .pc-subtemas__opcion {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--pc-borde);
+    border-radius: 999px;
+    color: var(--pc-texto-2);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--pc-sale);
+  }
+  .pc-subtemas__opcion:active {
+    transform: scale(0.97);
+  }
+  .pc-subtemas__opcion[aria-current="page"] {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--pc-acento) 22%, transparent);
+    color: var(--pc-texto);
+  }
+  .pc-subtemas__cuenta {
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--pc-hover);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-subtemas__opcion[aria-current="page"] .pc-subtemas__cuenta {
+    background: color-mix(in srgb, var(--pc-acento) 35%, transparent);
+  }
+}
+@media (max-width: 859px) and (prefers-reduced-motion: reduce) {
+  .pc-abajo__icono,
+  .pc-subtemas__opcion {
+    transition: none;
+  }
+}
+/* Celular: los títulos de cada sección un poco más chicos (en compu no cambian) */
+@media (max-width: 560px) {
+  .pc-titulo__h {
+    font-size: 24px;
+  }
+  .pc-titulo__sub {
+    font-size: 14px;
+  }
+}

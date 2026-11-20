@@ -82,6 +82,9 @@ const CLAVE_OCULTO = "atendel-panel-menu-oculto";
 const CLAVE_INFO = "atendel-panel-info";
 const CLAVE_TAB = "atendel-panel-info-tab";
 const CELULAR = "(max-width: 859px)";
+/** Las secciones de cada tema de la barra de abajo del celular. */
+const TEMA_DIA: IdSeccion[] = ["pendientes", "oficina", "citas", "tareas"];
+const TEMA_NEGOCIO: IdSeccion[] = ["correo", "estadisticas", "apps", "negocio"];
 /** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
 const ANGOSTO = "(max-width: 1359px)";
 
@@ -438,6 +441,42 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
     </Enlace>
   );
 
+  /* En celular (como WhatsApp): la barra de abajo con 5 pestañas (Inicio · Chat · Tu día · Negocio ·
+     Ajustes) y, arriba, los botones del tema elegido (Tu día: Tu OK, Oficina, Citas y Tareas; Negocio:
+     Correo, Estadísticas, Apps y Tu negocio). Ajustes abre su ventana. En compu no se ven (panel.css). */
+  const conTablero = Boolean(hrefs.tablero);
+  const tema: "inicio" | "chat" | "dia" | "negocio" = TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : conTablero && activa !== "tablero" ? "chat" : "inicio";
+  const opcionesTema: { id: IdSeccion; etiqueta: string; href: string; cuenta?: number | null }[] =
+    tema === "dia"
+      ? [
+          { id: "pendientes", etiqueta: "Tu OK", href: hrefs.pendientes, cuenta: pendientes },
+          ...(hrefs.oficina ? [{ id: "oficina" as const, etiqueta: "Oficina", href: hrefs.oficina, cuenta: porRevisar }] : []),
+          { id: "citas", etiqueta: "Citas", href: hrefs.citas },
+          { id: "tareas", etiqueta: "Tareas", href: hrefs.tareas },
+        ]
+      : tema === "negocio"
+        ? [
+            ...(hrefs.correo ? [{ id: "correo" as const, etiqueta: "Correo", href: hrefs.correo }] : []),
+            { id: "estadisticas", etiqueta: "Estadísticas", href: hrefs.estadisticas },
+            ...(hrefs.apps ? [{ id: "apps" as const, etiqueta: "Apps", href: hrefs.apps }] : []),
+            { id: "negocio", etiqueta: "Tu negocio", href: hrefs.negocio },
+          ]
+        : [];
+  const cuentaDia = (pendientes ?? 0) + (porRevisar ?? 0);
+  const pestanaAbajo = (id: typeof tema, etiqueta: string, icono: NombreIcono, href: string, cuenta?: number) => (
+    <Enlace href={href} className="pc-abajo__item" aria-current={tema === id && !ajustesAbierto ? "page" : undefined}>
+      <span className="pc-abajo__icono">
+        <Icono nombre={icono} tam={22} />
+        {cuenta ? (
+          <span className="pc-abajo__cuenta" aria-label={`${cuenta} por ver`}>
+            {cuenta > 99 ? "99+" : cuenta}
+          </span>
+        ) : null}
+      </span>
+      <span className="pc-abajo__texto">{etiqueta}</span>
+    </Enlace>
+  );
+
   return (
     <div
       className={`pc ${serifPanel.variable} ${clasesFuentesApariencia}`}
@@ -555,26 +594,47 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
 
       <div ref={principalRef} className="pc-principal">
         <div className="pc-barra-movil">
-          <button
-            ref={hamburguesa}
-            type="button"
-            className="pc-icono"
-            onClick={() => setCajon(true)}
-            aria-label="Abrir el menú"
-            aria-expanded={cajon}
-            aria-controls="pc-menu"
-          >
-            <Icono nombre="menu" tam={20} />
-          </button>
+          {/* Tus conversaciones (el cajón): solo en el Chat; lo demás está en la barra de abajo */}
+          {tema === "chat" ? (
+            <button
+              ref={hamburguesa}
+              type="button"
+              className="pc-icono"
+              onClick={() => setCajon(true)}
+              aria-label="Tus conversaciones"
+              title="Tus conversaciones"
+              aria-expanded={cajon}
+              aria-controls="pc-menu"
+            >
+              <Icono nombre="menu" tam={20} />
+            </button>
+          ) : null}
           <Enlace href={hrefs.tablero ?? hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
             <Marca className="pc-logo__marca" />
             <span className="pc-logo__nombre">Atendel</span>
           </Enlace>
           {aviso ? <div className="pc-aviso-demo pc-aviso-demo--movil">{aviso}</div> : null}
+          <button type="button" className="pc-icono" onClick={() => setBuscar({ instantaneo: false })} aria-label="Buscar">
+            <Icono nombre="buscar" tam={20} />
+          </button>
           <Enlace href={hrefs.inicio} className="pc-icono" aria-label="Nueva conversación" onClick={enfocarCaja}>
             <Icono nombre="mas" tam={20} />
           </Enlace>
         </div>
+        {opcionesTema.length ? (
+          <nav className="pc-subtemas" aria-label={tema === "dia" ? "Tu día" : "Tu negocio"}>
+            {opcionesTema.map((o) => (
+              <Enlace key={o.id} href={o.href} className="pc-subtemas__opcion" aria-current={activa === o.id ? "page" : undefined}>
+                {o.etiqueta}
+                {o.cuenta ? (
+                  <span className="pc-subtemas__cuenta" aria-label={`${o.cuenta} por ver`}>
+                    {o.cuenta > 99 ? "99+" : o.cuenta}
+                  </span>
+                ) : null}
+              </Enlace>
+            ))}
+          </nav>
+        ) : null}
         {info ? (
           <div className="pc-barra-info" role="toolbar" aria-label="Información de tu negocio">
             {/* Un solo botón con nombre (antes, cuatro iconos sin nombre): abre o cierra el resumen */}
@@ -596,6 +656,19 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
           {children}
         </main>
       </div>
+
+      <nav className="pc-abajo" aria-label="Menú">
+        {pestanaAbajo("inicio", "Inicio", "inicio", hrefs.tablero ?? hrefs.inicio)}
+        {conTablero ? pestanaAbajo("chat", "Chat", "conversaciones", hrefs.inicio) : null}
+        {pestanaAbajo("dia", "Tu día", "sol", hrefs.pendientes, cuentaDia)}
+        {pestanaAbajo("negocio", "Negocio", "negocio", hrefs.correo ?? hrefs.estadisticas)}
+        <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined}>
+          <span className="pc-abajo__icono">
+            <Icono nombre="ajustes" tam={22} />
+          </span>
+          <span className="pc-abajo__texto">Ajustes</span>
+        </button>
+      </nav>
 
       {info ? (
         <>
