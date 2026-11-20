@@ -28,7 +28,7 @@ export async function cargarCuenta(supabase: SupabaseClient, userId: string): Pr
   const plan = planDe(sus.data?.plan);
   // Sin elección guardada: todo lo que su plan incluye
   const elegidos = eleg.data ? (eleg.data.agentes as unknown[]).filter(esIdAgente) : [...plan.agentes];
-  // Le escribes a Atendel y él reparte el trabajo: los 4 agentes trabajan siempre
+  // Atendel ve lo que pasa (o tú le pides algo) y reparte el trabajo: los 4 agentes trabajan siempre
   // (todos los planes los traen). Lo que se eligió antes ya no apaga a nadie.
   const activos = [...plan.agentes];
 

@@ -33,7 +33,7 @@ const TONO_ESTADO = { azul: "azul", exito: "exito", atencion: "atencion", neutro
 export function AgentesDemo({ enfocado }: { enfocado?: IdAgente }) {
   return (
     <Seccion>
-      <TituloSeccion titulo="Agentes" texto="Le escribes a Atendel y él le pasa cada tarea al agente que le toca, o a varios a la vez. Así va la semana de cada uno en Estudio Luna." />
+      <TituloSeccion titulo="Agentes" texto="Atendel ve lo que pasa y le pasa cada tarea al agente que le toca, o a varios a la vez. Así va la semana de cada uno en Estudio Luna." />
       <div className="pc-agentes">
         {AGENTES_INFO.map((a, i) => {
           const e = DEMO_ESTADOS[a.id];

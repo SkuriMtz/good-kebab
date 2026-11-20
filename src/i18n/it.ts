@@ -70,7 +70,7 @@ export const it: Diccionario = {
     locale: "it_IT",
     tituloInicio: "Atendel — Il tuo socio di intelligenza artificiale per servire la tua attività",
     descripcionInicio:
-      "Scrivi ad Atendel e lui passa il lavoro al suo team: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei e ti tiene aggiornato.",
+      "Atendel vede cosa succede nella tua attività, ti avvisa su WhatsApp e, appena dici «pensaci tu», passa il lavoro al suo team: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei e ti tiene aggiornato.",
     agentes: ["Agenti", "Atendel e il suo team: Aura, Altair, Rigel e Mira. Cosa fa ciascuno e come lavorano insieme."],
     precios: ["Prezzi", "Atendel Free è gratuito e include tutto il team per provarlo. One e Max sono per il tuo lavoro di ogni giorno; Max, con 5 volte l'uso di One."],
     preguntas: [
@@ -166,7 +166,7 @@ export const it: Diccionario = {
       etiqueta: "Il tuo socio di intelligenza artificiale",
       titulo: "Nessun cliente senza risposta.",
       texto:
-        "Scrivi ad Atendel come scriveresti a un socio e lui distribuisce il lavoro: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei, e niente che riguardi i soldi parte senza il tuo OK.",
+        "Atendel vede cosa succede nella tua attività e ti avvisa su WhatsApp, come un socio; tu dici «pensaci tu» e lui distribuisce il lavoro: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei, e niente che riguardi i soldi parte senza il tuo OK.",
     },
     decisiones: {
       titulo: "Lavora anche quando non ci sei",
@@ -426,12 +426,12 @@ export const it: Diccionario = {
     etiqueta: "Accoglienza · Email · Clienti · Ufficio",
     titulo: "Cosa delegherai oggi?",
     texto:
-      "Scrivi ad Atendel e lui passa il lavoro a quello giusto: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair si occupa della tua email, Rigel fa tornare i tuoi clienti e Mira fa il lavoro d'ufficio. Tocca uno qualsiasi per vedere la sua scheda.",
+      "Atendel vede cosa succede, ti avvisa su WhatsApp e passa il lavoro a quello giusto: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair si occupa della tua email, Rigel fa tornare i tuoi clienti e Mira fa il lavoro d'ufficio. Tocca uno qualsiasi per vedere la sua scheda.",
     hablar: "Parla con Atendel",
     verPrecios: "Vedi i prezzi",
     chatEtiqueta: "La chat",
     chatTitulo: "Provali nella chat",
-    chatTexto: "Dì ad Atendel cosa ti serve, come in qualsiasi chat: lui distribuisce il lavoro e ti risponde una volta sola.",
+    chatTexto: "Atendel ti avvisa di cosa succede e puoi anche chiedergli delle cose, come in qualsiasi chat: lui distribuisce il lavoro e ti risponde una volta sola.",
     irAgente: "Vai a un agente",
     verFicha: "Vedi la scheda",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: vedi la scheda`,
@@ -636,7 +636,7 @@ export const it: Diccionario = {
           },
           {
             p: "Devo dirgli quale agente deve occuparsene?",
-            r: "No. Scrivi ad Atendel e lui decide a chi tocca: Aura, Altair, Rigel o Mira. Ricevi una sola risposta e sotto vedi chi se n'è occupato.",
+            r: "No. Atendel decide da solo a chi tocca, che sia qualcosa che ha visto o che gli chiedi tu: Aura, Altair, Rigel o Mira. Ricevi una sola risposta e sotto vedi chi se n'è occupato.",
           },
         ],
       },

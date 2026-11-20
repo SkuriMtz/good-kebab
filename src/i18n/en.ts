@@ -74,7 +74,7 @@ export const en: Diccionario = {
     locale: "en_US",
     tituloInicio: "Atendel — Your AI partner for serving your business",
     descripcionInicio:
-      "You write to Atendel and it hands the work to its team: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away and keeps you posted.",
+      "Atendel sees what's happening in your business, tells you on WhatsApp and, once you say “handle it”, hands the work to its team: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away and keeps you posted.",
     agentes: ["Agents", "Atendel and its team: Aura, Altair, Rigel and Mira. What each one does and how they work together."],
     precios: ["Pricing", "Atendel Free is free and comes with the whole team to try it out. One and Max are for your day to day; Max, with 5 times the usage of One."],
     preguntas: [
@@ -170,7 +170,7 @@ export const en: Diccionario = {
       etiqueta: "Your AI partner",
       titulo: "No client left without an answer.",
       texto:
-        "You write to Atendel like you would to a partner and it hands out the work: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
+        "Atendel sees what's happening in your business and tells you on WhatsApp, like a partner; you say “handle it” and it hands out the work: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
     },
     decisiones: {
       titulo: "It works even when you're away",
@@ -430,12 +430,12 @@ export const en: Diccionario = {
     etiqueta: "Front desk · Email · Clients · Office",
     titulo: "What will you hand off today?",
     texto:
-      "You write to Atendel and it passes the job to the right one: Aura takes your WhatsApp and appointments, Altair handles your email, Rigel brings your clients back and Mira does the office work. Tap any of them to see their profile.",
+      "Atendel sees what's happening, tells you on WhatsApp and passes the job to the right one: Aura takes your WhatsApp and appointments, Altair handles your email, Rigel brings your clients back and Mira does the office work. Tap any of them to see their profile.",
     hablar: "Talk to Atendel",
     verPrecios: "See pricing",
     chatEtiqueta: "The chat",
     chatTitulo: "Try them in the chat",
-    chatTexto: "Tell Atendel what you need, like in any chat: it hands out the work and answers you once.",
+    chatTexto: "Atendel tells you what's going on, and you can also ask it for things, like in any chat: it hands out the work and answers you once.",
     irAgente: "Go to an agent",
     verFicha: "View profile",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: view profile`,
@@ -640,7 +640,7 @@ export const en: Diccionario = {
           },
           {
             p: "Do I have to tell it which agent should do it?",
-            r: "No. You write to Atendel and it decides whose job it is: Aura, Altair, Rigel or Mira. You get one answer, and below it you see who did it.",
+            r: "No. Atendel decides whose job it is on its own, whether it's something it noticed or something you asked for: Aura, Altair, Rigel or Mira. You get one answer, and below it you see who did it.",
           },
         ],
       },

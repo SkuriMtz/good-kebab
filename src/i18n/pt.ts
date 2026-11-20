@@ -74,7 +74,7 @@ export const pt: Diccionario = {
     locale: "pt_BR",
     tituloInicio: "Atendel — Seu sócio de IA para atender o seu negócio",
     descripcionInicio:
-      "Você escreve para o Atendel e ele reparte o trabalho com a equipe: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel dos seus clientes e Mira do escritório. Funciona mesmo quando você não está e mantém você informado.",
+      "O Atendel vê o que acontece no seu negócio, te avisa pelo WhatsApp e, com um “resolve isso”, reparte o trabalho com a equipe: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel dos seus clientes e Mira do escritório. Funciona mesmo quando você não está e mantém você informado.",
     agentes: ["Agentes", "O Atendel e sua equipe: Aura, Altair, Rigel e Mira. O que cada um faz e como trabalham juntos."],
     precios: ["Preços", "O Atendel Free é grátis e traz a equipe inteira para você testar. One e Max são para o seu dia a dia; o Max, com 5 vezes o uso do One."],
     preguntas: [
@@ -170,7 +170,7 @@ export const pt: Diccionario = {
       etiqueta: "Seu sócio de IA",
       titulo: "Nenhum cliente sem resposta.",
       texto:
-        "Você escreve para o Atendel como escreveria para um sócio e ele reparte o trabalho: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel dos seus clientes e Mira do escritório. Funciona mesmo quando você não está, e nada que envolva dinheiro sai sem o seu OK.",
+        "O Atendel vê o que acontece no seu negócio e te avisa pelo WhatsApp, como um sócio; você diz “resolve isso” e ele reparte o trabalho: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel dos seus clientes e Mira do escritório. Funciona mesmo quando você não está, e nada que envolva dinheiro sai sem o seu OK.",
     },
     decisiones: {
       titulo: "Funciona mesmo quando você não está",
@@ -430,12 +430,12 @@ export const pt: Diccionario = {
     etiqueta: "Recepção · E-mail · Clientes · Escritório",
     titulo: "O que você vai delegar hoje?",
     texto:
-      "Você escreve para o Atendel e ele passa a tarefa para quem for certo: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel traz seus clientes de volta e Mira faz o trabalho de escritório. Toque em qualquer um para ver a ficha.",
+      "O Atendel vê o que acontece, te avisa pelo WhatsApp e passa a tarefa para quem for certo: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel traz seus clientes de volta e Mira faz o trabalho de escritório. Toque em qualquer um para ver a ficha.",
     hablar: "Falar com o Atendel",
     verPrecios: "Ver preços",
     chatEtiqueta: "O chat",
     chatTitulo: "Experimente no chat",
-    chatTexto: "Conte ao Atendel o que você precisa, como em qualquer chat: ele reparte o trabalho e responde uma só vez.",
+    chatTexto: "O Atendel te avisa do que acontece e você também pode pedir coisas, como em qualquer chat: ele reparte o trabalho e responde uma só vez.",
     irAgente: "Ir para um agente",
     verFicha: "Ver ficha",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: ver ficha`,
@@ -640,7 +640,7 @@ export const pt: Diccionario = {
           },
           {
             p: "Preciso dizer qual agente deve fazer a tarefa?",
-            r: "Não. Você escreve para o Atendel e ele decide de quem é a tarefa: Aura, Altair, Rigel ou Mira. Você recebe uma resposta, e abaixo dela vê quem fez.",
+            r: "Não. O Atendel decide sozinho de quem é a tarefa, seja algo que ele viu ou algo que você pediu: Aura, Altair, Rigel ou Mira. Você recebe uma resposta, e abaixo dela vê quem fez.",
           },
         ],
       },

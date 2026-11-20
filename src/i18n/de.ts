@@ -74,7 +74,7 @@ export const de: Diccionario = {
     locale: "de_DE",
     tituloInicio: "Atendel — Dein KI-Partner für dein Geschäft",
     descripcionInicio:
-      "Du schreibst an Atendel und es gibt die Arbeit an sein Team weiter: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und hält dich auf dem Laufenden.",
+      "Atendel sieht, was in deinem Geschäft passiert, sagt dir auf WhatsApp Bescheid und gibt die Arbeit nach deinem „Kümmere dich darum“ an sein Team weiter: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und hält dich auf dem Laufenden.",
     agentes: ["Agenten", "Atendel und sein Team: Aura, Altair, Rigel und Mira. Was jeder von ihnen macht und wie sie zusammenarbeiten."],
     precios: ["Preise", "Atendel Free ist kostenlos und enthält das ganze Team zum Ausprobieren. One und Max sind für deinen Alltag; Max mit der 5-fachen Nutzung von One."],
     preguntas: [
@@ -170,7 +170,7 @@ export const de: Diccionario = {
       etiqueta: "Dein KI-Partner",
       titulo: "Kein Kunde ohne Antwort.",
       texto:
-        "Du schreibst an Atendel wie an einen Geschäftspartner und es verteilt die Arbeit: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und nichts, was mit Geld zu tun hat, geht ohne dein OK raus.",
+        "Atendel sieht, was in deinem Geschäft passiert, und sagt dir wie ein Geschäftspartner auf WhatsApp Bescheid; du sagst „Kümmere dich darum“ und es verteilt die Arbeit: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und nichts, was mit Geld zu tun hat, geht ohne dein OK raus.",
     },
     decisiones: {
       titulo: "Es arbeitet auch, wenn du nicht da bist",
@@ -430,12 +430,12 @@ export const de: Diccionario = {
     etiqueta: "Empfang · E-Mail · Kunden · Büro",
     titulo: "Was gibst du heute ab?",
     texto:
-      "Du schreibst an Atendel und es gibt die Aufgabe an den Richtigen weiter: Aura übernimmt dein WhatsApp und deine Termine, Altair kümmert sich um deine E-Mails, Rigel holt deine Kunden zurück und Mira erledigt die Büroarbeit. Tippe auf einen von ihnen, um sein Profil zu sehen.",
+      "Atendel sieht, was passiert, sagt dir auf WhatsApp Bescheid und gibt die Aufgabe an den Richtigen weiter: Aura übernimmt dein WhatsApp und deine Termine, Altair kümmert sich um deine E-Mails, Rigel holt deine Kunden zurück und Mira erledigt die Büroarbeit. Tippe auf einen von ihnen, um sein Profil zu sehen.",
     hablar: "Mit Atendel sprechen",
     verPrecios: "Preise ansehen",
     chatEtiqueta: "Der Chat",
     chatTitulo: "Probiere sie im Chat aus",
-    chatTexto: "Sag Atendel, was du brauchst, wie in jedem Chat: Es verteilt die Arbeit und antwortet dir einmal.",
+    chatTexto: "Atendel sagt dir, was passiert, und du kannst es auch um Dinge bitten, wie in jedem Chat: Es verteilt die Arbeit und antwortet dir einmal.",
     irAgente: "Zu einem Agenten",
     verFicha: "Profil ansehen",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area}: Profil ansehen`,
@@ -640,7 +640,7 @@ export const de: Diccionario = {
           },
           {
             p: "Muss ich sagen, welcher Agent es machen soll?",
-            r: "Nein. Du schreibst an Atendel und es entscheidet, wer zuständig ist: Aura, Altair, Rigel oder Mira. Du bekommst eine Antwort und siehst darunter, wer es gemacht hat.",
+            r: "Nein. Atendel entscheidet selbst, wer zuständig ist, egal ob es etwas bemerkt hat oder du um etwas bittest: Aura, Altair, Rigel oder Mira. Du bekommst eine Antwort und siehst darunter, wer es gemacht hat.",
           },
         ],
       },

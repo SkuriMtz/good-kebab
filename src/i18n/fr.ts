@@ -70,7 +70,7 @@ export const fr: Diccionario = {
     locale: "fr_FR",
     tituloInicio: "Atendel — Votre partenaire IA pour s'occuper de votre activité",
     descripcionInicio:
-      "Vous écrivez à Atendel et il confie le travail à son équipe : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là et vous tient au courant.",
+      "Atendel voit ce qui se passe dans votre commerce, vous prévient sur WhatsApp et, dès que vous dites « occupe-t'en », confie le travail à son équipe : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là et vous tient au courant.",
     agentes: ["Agents", "Atendel et son équipe : Aura, Altair, Rigel et Mira. Ce que fait chacun et comment ils travaillent ensemble."],
     precios: ["Tarifs", "Atendel Free est gratuit et inclut toute l'équipe pour l'essayer. One et Max sont pour votre quotidien ; Max, avec 5 fois l'utilisation de One."],
     preguntas: [
@@ -166,7 +166,7 @@ export const fr: Diccionario = {
       etiqueta: "Votre partenaire IA",
       titulo: "Aucun client sans réponse.",
       texto:
-        "Vous écrivez à Atendel comme à un associé et il distribue le travail : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là, et rien qui touche à l'argent ne part sans votre accord.",
+        "Atendel voit ce qui se passe dans votre commerce et vous prévient sur WhatsApp, comme un associé ; vous dites « occupe-t'en » et il distribue le travail : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là, et rien qui touche à l'argent ne part sans votre accord.",
     },
     decisiones: {
       titulo: "Il travaille même quand vous n'êtes pas là",
@@ -426,12 +426,12 @@ export const fr: Diccionario = {
     etiqueta: "Accueil · E-mail · Clients · Bureau",
     titulo: "Qu'allez-vous déléguer aujourd'hui ?",
     texto:
-      "Vous écrivez à Atendel et il confie la tâche à la bonne personne : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel fait revenir vos clients et Mira fait le travail de bureau. Touchez l'un d'eux pour voir sa fiche.",
+      "Atendel voit ce qui se passe, vous prévient sur WhatsApp et confie la tâche à la bonne personne : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel fait revenir vos clients et Mira fait le travail de bureau. Touchez l'un d'eux pour voir sa fiche.",
     hablar: "Parler à Atendel",
     verPrecios: "Voir les tarifs",
     chatEtiqueta: "Le chat",
     chatTitulo: "Essayez-les dans le chat",
-    chatTexto: "Dites à Atendel ce dont vous avez besoin, comme dans n'importe quel chat : il distribue le travail et vous répond une seule fois.",
+    chatTexto: "Atendel vous prévient de ce qui se passe, et vous pouvez aussi lui demander des choses, comme dans n'importe quel chat : il distribue le travail et vous répond une seule fois.",
     irAgente: "Aller à un agent",
     verFicha: "Voir la fiche",
     abrirFicha: (nombre: string, area: string) => `${nombre}, ${area} : voir la fiche`,
@@ -636,7 +636,7 @@ export const fr: Diccionario = {
           },
           {
             p: "Dois-je dire quel agent doit s'en occuper ?",
-            r: "Non. Vous écrivez à Atendel et il décide à qui revient la tâche : Aura, Altair, Rigel ou Mira. Vous recevez une seule réponse, et en dessous, vous voyez qui l'a faite.",
+            r: "Non. Atendel décide seul à qui revient la tâche, que ce soit quelque chose qu'il a vu ou que vous lui demandez : Aura, Altair, Rigel ou Mira. Vous recevez une seule réponse, et en dessous, vous voyez qui l'a faite.",
           },
         ],
       },

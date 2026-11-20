@@ -1447,7 +1447,7 @@ export function VentanaAjustes({
   } else if (seccion === "agentes") {
     contenido = (
       <>
-        <p className="pc-aj-nota">Le escribes a Atendel y él le pasa cada tarea al agente que le toca. Los cuatro trabajan para ti en todos los planes; aquí les dejas sus reglas.</p>
+        <p className="pc-aj-nota">Atendel ve lo que pasa, te avisa y le pasa cada tarea al agente que le toca. Los cuatro trabajan para ti en todos los planes; aquí les dejas sus reglas.</p>
         <Grupo>
           {AGENTES_INFO.map((a) => (
             <div key={a.id} className="pc-aj-bloque">

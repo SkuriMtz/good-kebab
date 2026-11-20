@@ -70,7 +70,7 @@ export const zh: Diccionario = {
     locale: "zh_CN",
     tituloInicio: "Atendel — 帮你服务客人的 AI 伙伴",
     descripcionInicio:
-      "你只要告诉 Atendel，它就会把活儿分给团队：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，并随时告诉你进展。",
+      "Atendel 会看到你生意里发生的事，通过 WhatsApp 告诉你；你说一句“你来处理”，它就把活儿分给团队：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，并随时告诉你进展。",
     agentes: ["智能体", "Atendel 和它的团队：Aura、Altair、Rigel 和 Mira。每个人做什么，以及他们如何协作。"],
     precios: ["价格", "Atendel Free 免费，包含整个团队，可以先试用。One 和 Max 适合日常使用；Max 的用量是 One 的 5 倍。"],
     preguntas: [
@@ -166,7 +166,7 @@ export const zh: Diccionario = {
       etiqueta: "你的 AI 伙伴",
       titulo: "不让任何一位客人没有回音。",
       texto:
-        "你像跟合伙人说话一样告诉 Atendel，它就会把活儿分下去：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，凡是涉及钱的事，没有你的同意都不会发出去。",
+        "Atendel 像合伙人一样，看到你生意里发生的事就通过 WhatsApp 告诉你；你说“你来处理”，它就把活儿分下去：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，凡是涉及钱的事，没有你的同意都不会发出去。",
     },
     decisiones: {
       titulo: "你不在，它也在工作",
@@ -426,12 +426,12 @@ export const zh: Diccionario = {
     etiqueta: "前台 · 邮件 · 客户 · 办公室",
     titulo: "今天你想交出去什么？",
     texto:
-      "你告诉 Atendel，它就把活儿交给合适的人：Aura 负责你的 WhatsApp 和预约，Altair 处理你的邮件，Rigel 把你的客人请回来，Mira 做办公室的工作。点击任何一位，查看他们的简介。",
+      "Atendel 看到发生的事，通过 WhatsApp 告诉你，再把活儿交给合适的人：Aura 负责你的 WhatsApp 和预约，Altair 处理你的邮件，Rigel 把你的客人请回来，Mira 做办公室的工作。点击任何一位，查看他们的简介。",
     hablar: "和 Atendel 聊聊",
     verPrecios: "查看价格",
     chatEtiqueta: "聊天",
     chatTitulo: "在聊天里试试他们",
-    chatTexto: "像在任何聊天里一样，告诉 Atendel 你需要什么：它会分派工作，并给你一个答复。",
+    chatTexto: "Atendel 会告诉你发生了什么，你也可以像在任何聊天里一样请它做事：它会分派工作，并给你一个答复。",
     irAgente: "前往某位智能体",
     verFicha: "查看简介",
     abrirFicha: (nombre: string, area: string) => `${nombre}，${area}：查看简介`,
@@ -636,7 +636,7 @@ export const zh: Diccionario = {
           },
           {
             p: "我需要指定由哪位智能体来做吗？",
-            r: "不需要。你告诉 Atendel，它来判断该由谁负责：Aura、Altair、Rigel 还是 Mira。你只会得到一个答复，下面会看到是谁做的。",
+            r: "不需要。不管是它自己发现的事还是你交代的事，Atendel 都会自己判断该由谁负责：Aura、Altair、Rigel 还是 Mira。你只会得到一个答复，下面会看到是谁做的。",
           },
         ],
       },
