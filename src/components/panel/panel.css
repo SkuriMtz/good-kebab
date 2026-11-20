@@ -10226,3 +10226,11 @@ a.pc-correo__accion:hover {
     font-size: 14px;
   }
 }
+/* Celular: ninguna caja de texto con letra de menos de 16 px. Con menos, el iPhone hace zoom a toda la
+   pantalla al picarle (y se queda así). No se bloquea el zoom de la página: eso le quitaría a la gente
+   poder acercar para leer. En compu no cambia nada. */
+@media (max-width: 859px) {
+  .pc :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
+    font-size: 16px;
+  }
+}
