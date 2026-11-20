@@ -174,7 +174,7 @@ export const de: Diccionario = {
     },
     decisiones: {
       titulo: "Es arbeitet auch, wenn du nicht da bist",
-      texto: "Es schaut jeden Morgen in deine Apps, erledigt die Aufgaben, die du planst, und antwortet deinen Kunden mit deinen Preisen und deinen Regeln. Über alles gibt es Bescheid in deinem Chat.",
+      texto: "Es behält tagsüber dein WhatsApp, deine E-Mails und deinen Kalender im Blick, erledigt die Aufgaben, die du planst, und antwortet deinen Kunden mit deinen Preisen und deinen Regeln. Was wichtig ist, sagt es dir auf WhatsApp oder mit einer Benachrichtigung auf deinem Handy.",
     },
     caos: {
       aria: "So sieht dein Tag heute aus",
@@ -187,9 +187,9 @@ export const de: Diccionario = {
     foco: {
       titulo: "Ein Chat, ein ganzes Team",
       textos: [
-        "Atendel ist dein Partner mit künstlicher Intelligenz: Du schreibst ihm, und dahinter arbeiten vier Agenten für dein Geschäft.",
-        "Du fragst, wie du einen Menschen fragen würdest, und es entscheidet, wer zuständig ist: antworten, buchen, deine E-Mails ordnen oder ein Dokument vorbereiten. Du bekommst eine einzige Antwort.",
-        "Du bestimmst, was es von allein macht und was es dich vorher fragt. Bei allem, was mit Geld zu tun hat, fragt es immer.",
+        "Atendel ist dein KI-Partner: Es sagt dir, was wichtig ist, und du sagst nur „Kümmere dich darum“. Dahinter arbeiten vier Agenten für dein Geschäft.",
+        "Es entscheidet, wer zuständig ist: antworten, Termine eintragen, einen Termin verschieben, deine E-Mails ordnen oder ein Dokument vorbereiten. Es erledigt das in deinen eigenen Apps und sagt dir einmal, was es getan hat.",
+        "Es lernt dein Geschäft mit deinen Regeln, deinen Abläufen und seinem Gedächtnis. Du entscheidest, was es allein macht und was es dich vorher fragt; bei Geld fragt es immer.",
       ],
     },
     globo: {
@@ -198,7 +198,7 @@ export const de: Diccionario = {
       texto2a: "Deine Kunden bekommen Antworten und du bekommst Zeit zurück, um ",
       texto2b: "sie besser zu betreuen",
       texto2c: ".",
-      texto3: "Melde dich mit deiner E-Mail an, ohne Passwort, vom Handy oder vom Computer.",
+      texto3: "Du meldest dich mit deiner E-Mail an, ohne Passwort, vom Handy oder Computer, und installierst es als App auf deinem Handy. Wenn du willst, kannst du auch mit ihm sprechen.",
     },
     equipo: {
       titulo: "Dein Team",
@@ -207,7 +207,7 @@ export const de: Diccionario = {
     },
     apps: {
       titulo: "Verbindet sich mit den Apps, die du schon nutzt",
-      nota: (n: number) => `${n} Apps, mit deinem eigenen Konto und nur lesend: Atendel schaut jeden Morgen für dich hinein.`,
+      nota: (n: number) => `${n} Apps, mit deinem eigenen Konto. Atendel prüft sie für dich und erledigt mit deiner Erlaubnis Dinge darin: Termine eintragen, antworten und senden.`,
     },
     planes: {
       titulo: "Pläne",
@@ -614,11 +614,11 @@ export const de: Diccionario = {
           },
           {
             p: "Arbeitet Atendel auch, wenn ich nicht da bin?",
-            r: "Ja. Jeden Morgen schaut es in deine verbundenen Apps und hinterlässt dir den Plan für den Tag, es erledigt die Aufgaben, die du planst, und mit verbundenem WhatsApp Business antwortet es deinen Kunden mit deinen Preisen und deinen Regeln. Über alles gibt es Bescheid in deinem Chat. Bei allem, was mit Geld zu tun hat, oder was deine Regeln nicht abdecken, fragt es dich vorher.",
+            r: "Ja. Es behält deine verbundenen Apps tagsüber im Blick und hinterlässt dir jeden Morgen den Plan für den Tag; es erledigt die Aufgaben, die du planst, und mit verbundenem WhatsApp Business antwortet es deinen Kunden mit deinen Preisen und deinen Regeln. Was wichtig ist, sagt es dir auf WhatsApp oder mit einer Benachrichtigung auf deinem Handy, und alles bleibt in deinem Chat. Bei allem, was mit Geld zu tun hat, oder was deine Regeln nicht abdecken, fragt es dich vorher.",
           },
           {
             p: "Was kann ich heute nutzen?",
-            r: "Den Chat mit Atendel und seinem Team, deine E-Mails, deine verbundenen Apps, die Morgendurchsicht und geplante Aufgaben. Die Verbindung mit deinem WhatsApp Business, damit Aura deinen Kunden von allein antworten kann, wird nach und nach eingeführt.",
+            r: "Den Chat mit Atendel und seinem Team, deine E-Mails, deine verbundenen Apps, die Morgendurchsicht, geplante Aufgaben und Benachrichtigungen auf deinem Handy. Die Verbindung mit deinem WhatsApp Business, damit Aura deinen Kunden von allein antworten kann, wird nach und nach eingeführt.",
           },
         ],
       },

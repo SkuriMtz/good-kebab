@@ -146,7 +146,7 @@ export const es = {
     },
     decisiones: {
       titulo: "Trabaja aunque no estés",
-      texto: "Revisa tus apps cada mañana, hace las tareas que le programas y contesta a tus clientes con tus precios y tus reglas. De todo te avisa en tu chat.",
+      texto: "Vigila tu WhatsApp, tu correo y tu agenda durante el día, hace las tareas que le programas y contesta a tus clientes con tus precios y tus reglas. Lo importante te lo avisa por WhatsApp o con una notificación en tu celular.",
     },
     caos: {
       aria: "Así es tu día hoy",
@@ -159,9 +159,9 @@ export const es = {
     foco: {
       titulo: "Un solo chat, todo un equipo",
       textos: [
-        "Atendel es tu socio de inteligencia artificial: le escribes a él y detrás trabajan cuatro agentes para tu negocio.",
-        "Se lo pides como a una persona y él decide a quién le toca: contestar, agendar, ordenar tu correo o preparar un documento. Te contesta una sola vez.",
-        "Tú decides qué hace solo y qué te pregunta antes. Lo de dinero, siempre te lo pregunta.",
+        "Atendel es tu socio de inteligencia artificial: te avisa de lo importante y tú solo le dices «soluciónalo». Detrás trabajan cuatro agentes para tu negocio.",
+        "Él decide a quién le toca: contestar, agendar, mover una cita, ordenar tu correo o preparar un documento. Lo hace en tus propias apps y te cuenta una sola vez qué hizo.",
+        "Aprende tu negocio con tus Reglas, tus Procesos y su Memoria. Tú decides qué hace solo y qué te pregunta antes; lo de dinero, siempre te lo pregunta.",
       ],
     },
     globo: {
@@ -170,7 +170,7 @@ export const es = {
       texto2a: "Tus clientes reciben respuesta y tú recuperas tu tiempo para ",
       texto2b: "atender mejor",
       texto2c: ".",
-      texto3: "Entras con tu correo, sin contraseña, desde el celular o la computadora.",
+      texto3: "Entras con tu correo, sin contraseña, desde el celular o la computadora, y lo instalas como app en tu celular. Si prefieres, también le hablas.",
     },
     equipo: {
       titulo: "Tu equipo",
@@ -179,7 +179,7 @@ export const es = {
     },
     apps: {
       titulo: "Se conecta con las apps que ya usas",
-      nota: (n: number) => `${n} apps, con tu propia cuenta y solo para leer: Atendel las revisa por ti cada mañana.`,
+      nota: (n: number) => `${n} apps, con tu propia cuenta. Atendel las revisa por ti y, con tu permiso, hace cosas en ellas: agenda, contesta y manda.`,
     },
     planes: {
       titulo: "Planes",

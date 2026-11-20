@@ -174,7 +174,7 @@ export const pt: Diccionario = {
     },
     decisiones: {
       titulo: "Funciona mesmo quando você não está",
-      texto: "Ele confere seus apps toda manhã, faz as tarefas que você agenda e responde seus clientes com seus preços e suas regras. Tudo o que faz, ele conta no seu chat.",
+      texto: "Ele fica de olho no seu WhatsApp, no seu e-mail e na sua agenda durante o dia, faz as tarefas que você programa e responde seus clientes com seus preços e suas regras. O que importa, ele te avisa pelo WhatsApp ou com uma notificação no celular.",
     },
     caos: {
       aria: "Assim é o seu dia hoje",
@@ -187,9 +187,9 @@ export const pt: Diccionario = {
     foco: {
       titulo: "Um só chat, uma equipe inteira",
       textos: [
-        "O Atendel é seu sócio de inteligência artificial: você escreve para ele, e por trás dele quatro agentes trabalham pelo seu negócio.",
-        "Você pede como pediria a uma pessoa e ele decide de quem é a tarefa: responder, agendar, organizar seu e-mail ou preparar um documento. Você recebe uma única resposta.",
-        "Você decide o que ele faz sozinho e o que ele pergunta antes. Se envolve dinheiro, ele sempre pergunta.",
+        "O Atendel é seu sócio de inteligência artificial: te avisa do que importa e você só diz “resolve isso”. Por trás, quatro agentes trabalham para o seu negócio.",
+        "Ele decide de quem é a tarefa: responder, agendar, mudar um horário, organizar seu e-mail ou preparar um documento. Faz isso nos seus próprios apps e te conta uma só vez o que fez.",
+        "Ele aprende o seu negócio com suas Regras, seus Processos e a Memória dele. Você decide o que ele faz sozinho e o que pergunta antes; o que envolve dinheiro, ele sempre pergunta.",
       ],
     },
     globo: {
@@ -198,7 +198,7 @@ export const pt: Diccionario = {
       texto2a: "Seus clientes recebem resposta e você ganha tempo de volta para ",
       texto2b: "atendê-los melhor",
       texto2c: ".",
-      texto3: "Entre com seu e-mail, sem senha, pelo celular ou pelo computador.",
+      texto3: "Você entra com seu e-mail, sem senha, pelo celular ou pelo computador, e instala como app no celular. Se preferir, também pode falar com ele.",
     },
     equipo: {
       titulo: "Sua equipe",
@@ -207,7 +207,7 @@ export const pt: Diccionario = {
     },
     apps: {
       titulo: "Conecta com os apps que você já usa",
-      nota: (n: number) => `${n} apps, com a sua própria conta e somente leitura: o Atendel confere tudo para você toda manhã.`,
+      nota: (n: number) => `${n} apps, com a sua própria conta. O Atendel confere tudo para você e, com sua permissão, faz coisas neles: agenda, responde e envia.`,
     },
     planes: {
       titulo: "Planos",
@@ -614,11 +614,11 @@ export const pt: Diccionario = {
           },
           {
             p: "O Atendel funciona mesmo quando eu não estou?",
-            r: "Sim. Toda manhã ele confere seus apps conectados e deixa o plano do dia para você, faz as tarefas que você agenda e, com o seu WhatsApp Business conectado, responde seus clientes com seus preços e suas regras. Tudo o que faz, ele conta no seu chat. Se envolve dinheiro, ou algo que as suas Regras não cobrem, ele pergunta antes.",
+            r: "Sim. Ele fica de olho nos seus apps conectados durante o dia e toda manhã deixa o plano do dia para você; faz as tarefas que você agenda e, com o seu WhatsApp Business conectado, responde seus clientes com seus preços e suas regras. O que importa, ele te avisa pelo WhatsApp ou com uma notificação no celular, e tudo fica no seu chat. Se envolve dinheiro, ou algo que as suas Regras não cobrem, ele pergunta antes.",
           },
           {
             p: "O que posso usar hoje?",
-            r: "O chat com o Atendel e sua equipe, seu e-mail, seus apps conectados, a revisão da manhã e as tarefas agendadas. A conexão com o seu WhatsApp Business, para que a Aura responda seus clientes sozinha, está sendo liberada por etapas.",
+            r: "O chat com o Atendel e sua equipe, seu e-mail, seus apps conectados, a revisão da manhã, as tarefas agendadas e os avisos no celular. A conexão com o seu WhatsApp Business, para que a Aura responda seus clientes sozinha, está sendo liberada por etapas.",
           },
         ],
       },

@@ -174,7 +174,7 @@ export const en: Diccionario = {
     },
     decisiones: {
       titulo: "It works even when you're away",
-      texto: "It checks your apps every morning, does the tasks you schedule and answers your clients with your prices and your rules. It tells you about everything in your chat.",
+      texto: "It keeps an eye on your WhatsApp, your email and your calendar during the day, does the tasks you schedule and answers your clients with your prices and your rules. It tells you what matters on WhatsApp or with a notification on your phone.",
     },
     caos: {
       aria: "This is your day today",
@@ -187,9 +187,9 @@ export const en: Diccionario = {
     foco: {
       titulo: "One chat, a whole team",
       textos: [
-        "Atendel is your artificial intelligence partner: you write to it, and behind it four agents work for your business.",
-        "You ask like you would ask a person and it decides whose job it is: replying, booking, organizing your email or preparing a document. You get one single answer.",
-        "You decide what it does on its own and what it asks you first. Anything involving money, it always asks.",
+        "Atendel is your AI partner: it tells you what matters and you just say “handle it”. Behind it, four agents work for your business.",
+        "It decides whose job it is: replying, booking, moving an appointment, sorting your email or preparing a document. It does it in your own apps and tells you once what it did.",
+        "It learns your business through your Rules, your Processes and its Memory. You decide what it does on its own and what it asks you first; anything involving money, it always asks.",
       ],
     },
     globo: {
@@ -198,7 +198,7 @@ export const en: Diccionario = {
       texto2a: "Your clients get answers and you get your time back to ",
       texto2b: "serve them better",
       texto2c: ".",
-      texto3: "Sign in with your email, no password, from your phone or your computer.",
+      texto3: "You sign in with your email, no password, from your phone or computer, and install it as an app on your phone. If you prefer, you can also talk to it.",
     },
     equipo: {
       titulo: "Your team",
@@ -207,7 +207,7 @@ export const en: Diccionario = {
     },
     apps: {
       titulo: "Connects with the apps you already use",
-      nota: (n: number) => `${n} apps, with your own account and read-only: Atendel checks them for you every morning.`,
+      nota: (n: number) => `${n} apps, with your own account. Atendel checks them for you and, with your permission, gets things done in them: booking, replying and sending.`,
     },
     planes: {
       titulo: "Plans",
@@ -614,11 +614,11 @@ export const en: Diccionario = {
           },
           {
             p: "Does Atendel work even when I'm away?",
-            r: "Yes. Every morning it checks your connected apps and leaves you the plan for the day, it does the tasks you schedule and, with your WhatsApp Business connected, it answers your clients with your prices and your rules. It tells you about everything in your chat. Anything involving money, or anything your Rules don't cover, it asks you first.",
+            r: "Yes. It keeps an eye on your connected apps during the day and every morning leaves you the plan for the day; it does the tasks you schedule and, with your WhatsApp Business connected, it answers your clients with your prices and your rules. It tells you what matters on WhatsApp or with a notification on your phone, and everything stays in your chat. Anything involving money, or anything your Rules don't cover, it asks you first.",
           },
           {
             p: "What can I use today?",
-            r: "The chat with Atendel and its team, your email, your connected apps, the morning review and scheduled tasks. Connecting your WhatsApp Business, so Aura can answer your clients on her own, is rolling out in stages.",
+            r: "The chat with Atendel and its team, your email, your connected apps, the morning review, scheduled tasks and alerts on your phone. Connecting your WhatsApp Business, so Aura can answer your clients on her own, is rolling out in stages.",
           },
         ],
       },

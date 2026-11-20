@@ -170,7 +170,7 @@ export const fr: Diccionario = {
     },
     decisiones: {
       titulo: "Il travaille même quand vous n'êtes pas là",
-      texto: "Il consulte vos applications chaque matin, fait les tâches que vous programmez et répond à vos clients avec vos tarifs et vos règles. Il vous dit tout dans votre chat.",
+      texto: "Il surveille votre WhatsApp, vos e-mails et votre agenda pendant la journée, fait les tâches que vous programmez et répond à vos clients avec vos prix et vos règles. L'important, il vous le signale sur WhatsApp ou par une notification sur votre téléphone.",
     },
     caos: {
       aria: "Voici votre journée aujourd'hui",
@@ -183,9 +183,9 @@ export const fr: Diccionario = {
     foco: {
       titulo: "Un seul chat, toute une équipe",
       textos: [
-        "Atendel est votre partenaire d'intelligence artificielle : vous lui écrivez, et derrière lui quatre agents travaillent pour votre activité.",
-        "Vous demandez comme à une personne et il décide à qui revient la tâche : répondre, réserver, ranger vos e-mails ou préparer un document. Vous recevez une seule réponse.",
-        "Vous décidez ce qu'il fait tout seul et ce qu'il vous demande d'abord. Dès que de l'argent est en jeu, il demande toujours.",
+        "Atendel est votre associé d'intelligence artificielle : il vous signale l'important et vous lui dites simplement « occupe-t'en ». Derrière lui, quatre agents travaillent pour votre commerce.",
+        "Il décide à qui revient la tâche : répondre, prendre un rendez-vous, déplacer un rendez-vous, trier vos e-mails ou préparer un document. Il le fait dans vos propres applis et vous dit une seule fois ce qu'il a fait.",
+        "Il apprend votre commerce grâce à vos Règles, vos Processus et sa Mémoire. Vous décidez ce qu'il fait seul et ce qu'il vous demande avant ; pour l'argent, il demande toujours.",
       ],
     },
     globo: {
@@ -194,7 +194,7 @@ export const fr: Diccionario = {
       texto2a: "Vos clients obtiennent des réponses et vous retrouvez du temps pour ",
       texto2b: "mieux les servir",
       texto2c: ".",
-      texto3: "Connectez-vous avec votre e-mail, sans mot de passe, depuis votre téléphone ou votre ordinateur.",
+      texto3: "Vous vous connectez avec votre e-mail, sans mot de passe, depuis votre téléphone ou votre ordinateur, et vous l'installez comme une appli sur votre téléphone. Si vous préférez, vous pouvez aussi lui parler.",
     },
     equipo: {
       titulo: "Votre équipe",
@@ -203,7 +203,7 @@ export const fr: Diccionario = {
     },
     apps: {
       titulo: "Se connecte aux applications que vous utilisez déjà",
-      nota: (n: number) => `${n} applications, avec votre propre compte et en lecture seule : Atendel les consulte pour vous chaque matin.`,
+      nota: (n: number) => `${n} applis, avec votre propre compte. Atendel les vérifie pour vous et, avec votre permission, agit dedans : rendez-vous, réponses et envois.`,
     },
     planes: {
       titulo: "Formules",
@@ -610,11 +610,11 @@ export const fr: Diccionario = {
           },
           {
             p: "Atendel travaille-t-il même quand je ne suis pas là ?",
-            r: "Oui. Chaque matin, il consulte vos applications connectées et vous laisse le programme de la journée, il fait les tâches que vous programmez et, avec votre WhatsApp Business connecté, il répond à vos clients avec vos tarifs et vos règles. Il vous dit tout dans votre chat. Dès que de l'argent est en jeu, ou si vos Règles ne couvrent pas le cas, il vous demande d'abord.",
+            r: "Oui. Il surveille vos applications connectées pendant la journée et chaque matin vous laisse le programme de la journée ; il fait les tâches que vous programmez et, avec votre WhatsApp Business connecté, il répond à vos clients avec vos tarifs et vos règles. L'important, il vous le signale sur WhatsApp ou par une notification sur votre téléphone, et tout reste dans votre chat. Dès que de l'argent est en jeu, ou si vos Règles ne couvrent pas le cas, il vous demande d'abord.",
           },
           {
             p: "Que puis-je utiliser aujourd'hui ?",
-            r: "Le chat avec Atendel et son équipe, vos e-mails, vos applications connectées, le bilan du matin et les tâches programmées. La connexion de votre WhatsApp Business, pour qu'Aura réponde seule à vos clients, arrive par étapes.",
+            r: "Le chat avec Atendel et son équipe, vos e-mails, vos applications connectées, le bilan du matin, les tâches programmées et les alertes sur votre téléphone. La connexion de votre WhatsApp Business, pour qu'Aura réponde seule à vos clients, arrive par étapes.",
           },
         ],
       },

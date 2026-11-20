@@ -38,7 +38,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Atendel trabaja aunque yo no esté?",
-    r: "Sí. Cada mañana revisa tus apps conectadas y te deja el plan del día, hace las tareas que le programas y, con tu WhatsApp Business conectado, contesta a tus clientes con tus precios y tus reglas. De todo te avisa en tu chat. Lo de dinero y lo que tus Reglas no cubren te lo pregunta antes.",
+    r: "Sí. Vigila tus apps conectadas durante el día y cada mañana te deja el plan del día; hace las tareas que le programas y, con tu WhatsApp Business conectado, contesta a tus clientes con tus precios y tus reglas. Lo importante te lo avisa por WhatsApp o con una notificación en tu celular, y todo queda en tu chat. Lo de dinero y lo que tus Reglas no cubren te lo pregunta antes.",
   },
   {
     p: "¿Qué incluye cada plan?",
@@ -46,7 +46,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Qué puedo usar desde hoy?",
-    r: "El chat con Atendel y su equipo, tu correo, tus apps conectadas, la revisión de cada mañana y las tareas programadas. La conexión de tu WhatsApp Business, para que Aura conteste sola a tus clientes, abre por etapas.",
+    r: "El chat con Atendel y su equipo, tu correo, tus apps conectadas, la revisión de cada mañana, las tareas programadas y los avisos en tu celular. La conexión de tu WhatsApp Business, para que Aura conteste sola a tus clientes, abre por etapas.",
   },
   {
     p: "¿Mis clientes sabrán que es un agente de IA?",
