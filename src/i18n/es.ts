@@ -181,18 +181,6 @@ export const es = {
       titulo: "Se conecta con las apps que ya usas",
       nota: (n: number) => `${n} apps, con tu propia cuenta. Atendel las revisa por ti y, con tu permiso, hace cosas en ellas: agenda, contesta y manda.`,
     },
-    /** Privacidad (después de las apps): entra a tus cosas, pero lo que ve se queda contigo. */
-    privacidad: {
-      titulo: "Tus datos son tuyos",
-      texto: "Para ayudarte, Atendel entra a tu correo, tu agenda y tus apps. Lo que ve se queda en tu cuenta.",
-      puntos: [
-        ["Solo tú lo ves", "Tus clientes, tus citas y tus números solo los ve tu cuenta. Lo controla la base de datos, no una promesa."],
-        ["Tus permisos, bajo llave", "Los permisos de tus apps se guardan cifrados y los puedes quitar cuando quieras."],
-        ["No vendemos nada", "Ni tus datos ni los de tus clientes. No los usamos para publicidad, y la IA no los usa para entrenarse."],
-        ["Tú mandas", "Decides qué hace solo y qué te pregunta antes; lo de dinero, siempre te lo pregunta. Puedes ver, corregir o borrar tus datos."],
-      ] as [string, string][],
-      enlace: "Lee el aviso de privacidad",
-    },
     planes: {
       titulo: "Planes",
       texto: "Empieza gratis con todo el equipo. One y Max abren por etapas: anótate en la lista y te avisamos.",
@@ -586,6 +574,18 @@ export const es = {
   },
   /* Páginas legales y Centro de privacidad (/privacy) */
   legal: {
+    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
+    datos: {
+      titulo: "Tus datos son tuyos",
+      texto: "Para ayudarte, Atendel entra a tu correo, tu agenda y tus apps. Lo que ve se queda en tu cuenta.",
+      puntos: [
+        ["Solo tú lo ves", "Tus clientes, tus citas y tus números solo los ve tu cuenta. Lo controla la base de datos, no una promesa."],
+        ["Tus permisos, bajo llave", "Los permisos de tus apps se guardan cifrados y los puedes quitar cuando quieras."],
+        ["No vendemos nada", "Ni tus datos ni los de tus clientes. No los usamos para publicidad, y la IA no los usa para entrenarse."],
+        ["Tú mandas", "Decides qué hace solo y qué te pregunta antes; lo de dinero, siempre te lo pregunta. Puedes ver, corregir o borrar tus datos."],
+      ] as [string, string][],
+      enlace: "Lee el aviso de privacidad",
+    },
     etiquetas: {
       saltar: "Saltar al contenido",
       inicio: "Inicio",

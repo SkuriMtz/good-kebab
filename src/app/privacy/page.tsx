@@ -95,25 +95,47 @@ export default async function CentroPrivacidad({ searchParams }: { searchParams:
             </p>
           </section>
         ) : (
-          <ul className="centro__rejilla">
-            {POLITICAS.map((p) => {
-              const c = cuenta(TEXTOS_LEGALES[p.id].es);
-              return (
-                <li key={p.id}>
-                  <Link href={p.href} className="centro__tarjeta">
-                    <span className="centro__icono" aria-hidden="true">
-                      <Icono nombre={p.icono} tam={22} />
-                    </span>
-                    <h2>{L.docs[p.id].nombre}</h2>
-                    <p>{L.docs[p.id].resumen}</p>
-                    <p className="centro__cuenta">
-                      {c.n} {E[c.que]}
-                    </p>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {/* Lo primero: en corto, que Atendel entra a tus cosas pero lo que ve se queda contigo */}
+            <section className="centro__datos" aria-labelledby="centro-datos-titulo">
+              <div className="centro__datos-cabeza">
+                <h2 id="centro-datos-titulo" className="centro__datos-titulo">
+                  {L.datos.titulo}
+                </h2>
+                <p className="centro__datos-texto">{L.datos.texto}</p>
+              </div>
+              <ul className="centro__datos-lista">
+                {L.datos.puntos.map(([titulo, texto]) => (
+                  <li key={titulo} className="centro__datos-punto">
+                    <h3>{titulo}</h3>
+                    <p>{texto}</p>
+                  </li>
+                ))}
+              </ul>
+              <p className="centro__datos-enlace">
+                <Link href={POR_ID.privacidad.href}>{L.datos.enlace} →</Link>
+              </p>
+            </section>
+            <ul className="centro__rejilla">
+              {POLITICAS.map((p) => {
+                const c = cuenta(TEXTOS_LEGALES[p.id].es);
+                return (
+                  <li key={p.id}>
+                    <Link href={p.href} className="centro__tarjeta">
+                      <span className="centro__icono" aria-hidden="true">
+                        <Icono nombre={p.icono} tam={22} />
+                      </span>
+                      <h2>{L.docs[p.id].nombre}</h2>
+                      <p>{L.docs[p.id].resumen}</p>
+                      <p className="centro__cuenta">
+                        {c.n} {E[c.que]}
+                      </p>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </main>
 

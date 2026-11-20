@@ -126,29 +126,6 @@ export default async function Inicio() {
       {/* 6b. Las apps con las que se conecta (una sola fila que se desliza) */}
       <AppsMarquesina titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
 
-      {/* 6c. Privacidad: Atendel entra a tus cosas, pero lo que ve se queda contigo (resumen del aviso) */}
-      <section id="privacidad" className="ini-privacidad" aria-labelledby="privacidad-titulo">
-        <div className="ini-privacidad__cabeza">
-          <TextoDala como="h2" tipo="titulo" id="privacidad-titulo" className="ini-grande">
-            {d.privacidad.titulo}
-          </TextoDala>
-          <TextoDala className="ini-cuerpo" retraso={0.25}>
-            {d.privacidad.texto}
-          </TextoDala>
-        </div>
-        <ul className="ini-privacidad__lista">
-          {d.privacidad.puntos.map(([titulo, texto]) => (
-            <li key={titulo} className="ini-privacidad__punto">
-              <h3 className="ini-privacidad__titulo">{titulo}</h3>
-              <p className="ini-privacidad__texto">{texto}</p>
-            </li>
-          ))}
-        </ul>
-        <a href="/privacidad" className="ini-privacidad__enlace">
-          {d.privacidad.enlace} →
-        </a>
-      </section>
-
       {/* 7. Planes: las tarjetas de siempre (Free, One y Max) y cuándo sale */}
       <section id="precios" className="ini-bloque ini-planes ini-planes--tarjetas" data-escena="planes" aria-labelledby="planes-titulo">
         <span id="cuando-sale" className="ini-ancla" aria-hidden="true" />

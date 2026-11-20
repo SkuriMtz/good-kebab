@@ -205,18 +205,6 @@ export const it: Diccionario = {
       titulo: "Si collega alle app che già usi",
       nota: (n: number) => `${n} app, con il tuo account. Atendel le controlla per te e, con il tuo permesso, fa le cose al loro interno: fissa, risponde e invia.`,
     },
-    /** Privacidad (después de las apps): entra a tus cosas, pero lo que ve se queda contigo. */
-    privacidad: {
-      titulo: "I tuoi dati sono tuoi",
-      texto: "Per aiutarti, Atendel entra nella tua email, nella tua agenda e nelle tue app. Ciò che vede resta nel tuo account.",
-      puntos: [
-        ["Lo vedi solo tu", "I tuoi clienti, i tuoi appuntamenti e i tuoi numeri li vede solo il tuo account. Lo garantisce il database, non solo una promessa."],
-        ["I tuoi permessi, sotto chiave", "I permessi delle tue app sono salvati cifrati e puoi toglierli quando vuoi."],
-        ["Non vendiamo nulla", "Né i tuoi dati né quelli dei tuoi clienti. Non li usiamo per la pubblicità e l'IA non li usa per addestrarsi."],
-        ["Decidi tu", "Scegli cosa fa da solo e cosa ti chiede prima; per i soldi chiede sempre. Puoi vedere, correggere o cancellare i tuoi dati."],
-      ] as [string, string][],
-      enlace: "Leggi l'informativa sulla privacy",
-    },
     planes: {
       titulo: "Piani",
       texto: "Inizia gratis con tutto il team. One e Max si aprono per fasi: iscriviti alla lista d'attesa e ti avviseremo.",
@@ -834,6 +822,18 @@ export const it: Diccionario = {
   },
   /* Pagine legali e Centro privacy (/privacy) */
   legal: {
+    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
+    datos: {
+      titulo: "I tuoi dati sono tuoi",
+      texto: "Per aiutarti, Atendel entra nella tua email, nella tua agenda e nelle tue app. Ciò che vede resta nel tuo account.",
+      puntos: [
+        ["Lo vedi solo tu", "I tuoi clienti, i tuoi appuntamenti e i tuoi numeri li vede solo il tuo account. Lo garantisce il database, non solo una promessa."],
+        ["I tuoi permessi, sotto chiave", "I permessi delle tue app sono salvati cifrati e puoi toglierli quando vuoi."],
+        ["Non vendiamo nulla", "Né i tuoi dati né quelli dei tuoi clienti. Non li usiamo per la pubblicità e l'IA non li usa per addestrarsi."],
+        ["Decidi tu", "Scegli cosa fa da solo e cosa ti chiede prima; per i soldi chiede sempre. Puoi vedere, correggere o cancellare i tuoi dati."],
+      ] as [string, string][],
+      enlace: "Leggi l'informativa sulla privacy",
+    },
     etiquetas: {
       saltar: "Vai al contenuto",
       inicio: "Home",

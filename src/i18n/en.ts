@@ -209,18 +209,6 @@ export const en: Diccionario = {
       titulo: "Connects with the apps you already use",
       nota: (n: number) => `${n} apps, with your own account. Atendel checks them for you and, with your permission, gets things done in them: booking, replying and sending.`,
     },
-    /** Privacidad (después de las apps): entra a tus cosas, pero lo que ve se queda contigo. */
-    privacidad: {
-      titulo: "Your data is yours",
-      texto: "To help you, Atendel goes into your email, your calendar and your apps. What it sees stays in your account.",
-      puntos: [
-        ["Only you see it", "Your clients, your appointments and your numbers are only visible to your account. The database enforces it, not just a promise."],
-        ["Your permissions, under lock", "Your apps' permissions are stored encrypted, and you can remove them whenever you want."],
-        ["We don't sell anything", "Not your data or your clients' data. We don't use it for advertising, and the AI doesn't use it to train."],
-        ["You're in charge", "You decide what it does on its own and what it asks you first; anything involving money, it always asks. You can see, correct or delete your data."],
-      ] as [string, string][],
-      enlace: "Read the privacy notice",
-    },
     planes: {
       titulo: "Plans",
       texto: "Start for free with the whole team. One and Max open in stages: join the waitlist and we'll let you know.",
@@ -838,6 +826,18 @@ export const en: Diccionario = {
   },
   /* Legal pages and Privacy Center (/privacy) */
   legal: {
+    /** Arriba del Centro de privacidad (/privacy): entra a tus cosas, pero lo que ve se queda contigo. */
+    datos: {
+      titulo: "Your data is yours",
+      texto: "To help you, Atendel goes into your email, your calendar and your apps. What it sees stays in your account.",
+      puntos: [
+        ["Only you see it", "Your clients, your appointments and your numbers are only visible to your account. The database enforces it, not just a promise."],
+        ["Your permissions, under lock", "Your apps' permissions are stored encrypted, and you can remove them whenever you want."],
+        ["We don't sell anything", "Not your data or your clients' data. We don't use it for advertising, and the AI doesn't use it to train."],
+        ["You're in charge", "You decide what it does on its own and what it asks you first; anything involving money, it always asks. You can see, correct or delete your data."],
+      ] as [string, string][],
+      enlace: "Read the privacy notice",
+    },
     etiquetas: {
       saltar: "Skip to content",
       inicio: "Home",
