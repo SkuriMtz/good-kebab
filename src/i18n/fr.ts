@@ -70,7 +70,7 @@ export const fr: Diccionario = {
     locale: "fr_FR",
     tituloInicio: "Atendel — Votre partenaire IA pour s'occuper de votre activité",
     descripcionInicio:
-      "Atendel voit ce qui se passe dans votre commerce, vous prévient sur WhatsApp et, dès que vous dites « occupe-t'en », confie le travail à son équipe : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là et vous tient au courant.",
+      "Atendel voit ce qui se passe dans votre commerce, s'en occupe avec son équipe et vous prévient sur WhatsApp : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là et vous tient au courant.",
     agentes: ["Agents", "Atendel et son équipe : Aura, Altair, Rigel et Mira. Ce que fait chacun et comment ils travaillent ensemble."],
     precios: ["Tarifs", "Atendel Free est gratuit et inclut toute l'équipe pour l'essayer. One et Max sont pour votre quotidien ; Max, avec 5 fois l'utilisation de One."],
     preguntas: [
@@ -166,7 +166,7 @@ export const fr: Diccionario = {
       etiqueta: "Votre partenaire IA",
       titulo: "Aucun client sans réponse.",
       texto:
-        "Atendel voit ce qui se passe dans votre commerce et vous prévient sur WhatsApp, comme un associé ; vous dites « occupe-t'en » et il distribue le travail : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là, et rien qui touche à l'argent ne part sans votre accord.",
+        "Atendel voit ce qui se passe dans votre commerce et s'en occupe comme un associé, avec son équipe ; l'important, il vous le signale sur WhatsApp : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là, et rien qui touche à l'argent ne part sans votre accord.",
     },
     decisiones: {
       titulo: "Il travaille même quand vous n'êtes pas là",
@@ -183,7 +183,7 @@ export const fr: Diccionario = {
     foco: {
       titulo: "Un seul chat, toute une équipe",
       textos: [
-        "Atendel est votre associé d'intelligence artificielle : il vous signale l'important et vous lui dites simplement « occupe-t'en ». Derrière lui, quatre agents travaillent pour votre commerce.",
+        "Atendel est votre associé d'intelligence artificielle : il voit ce qui se passe dans votre commerce, s'en occupe et vous signale l'important. Derrière lui, quatre agents travaillent pour votre commerce.",
         "Il décide à qui revient la tâche : répondre, prendre un rendez-vous, déplacer un rendez-vous, trier vos e-mails ou préparer un document. Il le fait dans vos propres applis et vous dit une seule fois ce qu'il a fait.",
         "Il apprend votre commerce grâce à vos Règles, vos Processus et sa Mémoire. Vous décidez ce qu'il fait seul et ce qu'il vous demande avant ; pour l'argent, il demande toujours.",
       ],
@@ -460,16 +460,16 @@ export const fr: Diccionario = {
     loAtiende: (nombre: string) => ` · pris en charge par ${nombre}`,
     ejemplo: "Noms d'exemple",
     desdeTuCorreo: "depuis votre e-mail",
-    seLoPaso: (nombre: string) => `D'accord. Je le confie à ${nombre}.`,
+    seLoPaso: (nombre: string) => `Je l'ai confié à ${nombre}.`,
     pidele: "Demandez quelque chose à Atendel…",
     tu: "Vous",
     trabajaCon: "Travaille avec",
     picar: (quien: string) => [`Pas ici ! 👀`, `Hé ! Ce téléphone est une démo.`, `Pas de chatouilles ! 😆`, `Chut… ${quien} travaille.`, `On regarde, on ne touche pas. 😄`, `Oups ! Vous avez failli me faire tomber.`],
     conAtendel: {
-      lola: { aviso: "Mariana vous a écrit sur WhatsApp : elle demande le prix de la séance d'une heure et veut venir jeudi.", pedido: "Occupe-t'en.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },
-      clara: { aviso: "Andrea Solís vous a envoyé un e-mail : elle veut déplacer son rendez-vous de mardi à l'après-midi.", pedido: "Occupe-t'en.", reporte: "Je lui ai proposé 17h00 ou 18h30 depuis votre e-mail. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
-      victor: { aviso: "Paola a demandé la séance d'une heure la semaine dernière et n'a pas réservé. Je lui écris ?", pedido: "Oui, écris-lui.", reporte: "Je lui ai écrit sur WhatsApp avec vendredi 12h00 ou samedi 10h30. Elle a choisi vendredi : c'est réservé et je lui envoie l'adresse." },
-      iris: { aviso: "Cette semaine, trois clientes ont demandé si vos prix sont à jour. Je regarde combien prennent les commerces du quartier ?", pedido: "Oui, regarde.", reporte: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx." },
+      lola: { aviso: "Mariana vous a écrit sur WhatsApp : elle demande le prix de la séance d'une heure et veut venir jeudi.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },
+      clara: { aviso: "Andrea Solís vous a envoyé un e-mail : elle veut déplacer son rendez-vous de mardi à l'après-midi.", reporte: "Je lui ai proposé 17h00 ou 18h30 depuis votre e-mail. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
+      victor: { aviso: "Paola a demandé la séance d'une heure la semaine dernière et n'a pas réservé.", reporte: "Je lui ai écrit sur WhatsApp avec vendredi 12h00 ou samedi 10h30. Elle a choisi vendredi : c'est réservé et je lui envoie l'adresse." },
+      iris: { aviso: "Cette semaine, trois clientes ont demandé si vos prix sont à jour.", reporte: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx." },
     },
   },
 

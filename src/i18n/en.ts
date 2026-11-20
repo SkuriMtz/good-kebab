@@ -74,7 +74,7 @@ export const en: Diccionario = {
     locale: "en_US",
     tituloInicio: "Atendel — Your AI partner for serving your business",
     descripcionInicio:
-      "Atendel sees what's happening in your business, tells you on WhatsApp and, once you say “handle it”, hands the work to its team: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away and keeps you posted.",
+      "Atendel sees what's happening in your business, sorts it out with its team and keeps you posted on WhatsApp: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away and keeps you posted.",
     agentes: ["Agents", "Atendel and its team: Aura, Altair, Rigel and Mira. What each one does and how they work together."],
     precios: ["Pricing", "Atendel Free is free and comes with the whole team to try it out. One and Max are for your day to day; Max, with 5 times the usage of One."],
     preguntas: [
@@ -170,7 +170,7 @@ export const en: Diccionario = {
       etiqueta: "Your AI partner",
       titulo: "No client left without an answer.",
       texto:
-        "Atendel sees what's happening in your business and tells you on WhatsApp, like a partner; you say “handle it” and it hands out the work: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
+        "Atendel sees what's happening in your business and sorts it out like a partner, with its team; it tells you what matters on WhatsApp: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
     },
     decisiones: {
       titulo: "It works even when you're away",
@@ -187,7 +187,7 @@ export const en: Diccionario = {
     foco: {
       titulo: "One chat, a whole team",
       textos: [
-        "Atendel is your AI partner: it tells you what matters and you just say “handle it”. Behind it, four agents work for your business.",
+        "Atendel is your AI partner: it sees what's happening in your business, sorts it out and tells you what matters. Behind it, four agents work for your business.",
         "It decides whose job it is: replying, booking, moving an appointment, sorting your email or preparing a document. It does it in your own apps and tells you once what it did.",
         "It learns your business through your Rules, your Processes and its Memory. You decide what it does on its own and what it asks you first; anything involving money, it always asks.",
       ],
@@ -464,16 +464,16 @@ export const en: Diccionario = {
     loAtiende: (nombre: string) => ` · handled by ${nombre}`,
     ejemplo: "Sample names",
     desdeTuCorreo: "from your email",
-    seLoPaso: (nombre: string) => `On it. Passing it to ${nombre}.`,
+    seLoPaso: (nombre: string) => `I passed it to ${nombre}.`,
     pidele: "Ask Atendel anything…",
     tu: "You",
     trabajaCon: "Works with",
     picar: (quien: string) => [`Not here! 👀`, `Hey! This phone is just a demo.`, `No tickling! 😆`, `Shh… ${quien} is working.`, `Look, don't touch. 😄`, `Whoa! You almost dropped me.`],
     conAtendel: {
-      lola: { aviso: "Mariana messaged you on WhatsApp: she's asking what the one-hour session costs and wants to come in Thursday.", pedido: "Handle it.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
-      clara: { aviso: "Andrea Solís emailed you: she wants to move her Tuesday appointment to the afternoon.", pedido: "Handle it.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
-      victor: { aviso: "Paola asked about the one-hour session last week and didn't book. Should I message her?", pedido: "Yes, message her.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
-      iris: { aviso: "Three clients asked this week if your prices are up to date. Should I check what places nearby charge?", pedido: "Yes, check.", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
+      lola: { aviso: "Mariana messaged you on WhatsApp: she's asking what the one-hour session costs and wants to come in Thursday.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
+      clara: { aviso: "Andrea Solís emailed you: she wants to move her Tuesday appointment to the afternoon.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
+      victor: { aviso: "Paola asked about the one-hour session last week and didn't book.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
+      iris: { aviso: "Three clients asked this week if your prices are up to date.", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
     },
   },
 

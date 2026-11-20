@@ -70,7 +70,7 @@ export const zh: Diccionario = {
     locale: "zh_CN",
     tituloInicio: "Atendel — 帮你服务客人的 AI 伙伴",
     descripcionInicio:
-      "Atendel 会看到你生意里发生的事，通过 WhatsApp 告诉你；你说一句“你来处理”，它就把活儿分给团队：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，并随时告诉你进展。",
+      "Atendel 会看到你生意里发生的事，和团队一起处理好，并通过 WhatsApp 告诉你：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，并随时告诉你进展。",
     agentes: ["智能体", "Atendel 和它的团队：Aura、Altair、Rigel 和 Mira。每个人做什么，以及他们如何协作。"],
     precios: ["价格", "Atendel Free 免费，包含整个团队，可以先试用。One 和 Max 适合日常使用；Max 的用量是 One 的 5 倍。"],
     preguntas: [
@@ -166,7 +166,7 @@ export const zh: Diccionario = {
       etiqueta: "你的 AI 伙伴",
       titulo: "不让任何一位客人没有回音。",
       texto:
-        "Atendel 像合伙人一样，看到你生意里发生的事就通过 WhatsApp 告诉你；你说“你来处理”，它就把活儿分下去：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，凡是涉及钱的事，没有你的同意都不会发出去。",
+        "Atendel 像合伙人一样，看到你生意里发生的事就和团队一起处理好；重要的事会通过 WhatsApp 告诉你：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，凡是涉及钱的事，没有你的同意都不会发出去。",
     },
     decisiones: {
       titulo: "你不在，它也在工作",
@@ -183,7 +183,7 @@ export const zh: Diccionario = {
     foco: {
       titulo: "一个聊天窗口，一整个团队",
       textos: [
-        "Atendel 是你的人工智能合伙人：它把重要的事告诉你，你只要说一句“你来处理”。在它身后，有四位智能体为你的生意工作。",
+        "Atendel 是你的人工智能合伙人：它看到你生意里发生的事就去处理，并把重要的事告诉你。在它身后，有四位智能体为你的生意工作。",
         "它会判断该由谁来做：回复、预约、改约、整理邮件或准备文件。它在你自己的应用里完成，并只告诉你一次它做了什么。",
         "它通过你的规则、流程和它的记忆来了解你的生意。你决定哪些事它可以自己做、哪些要先问你；涉及钱的事，它一定先问你。",
       ],
@@ -460,16 +460,16 @@ export const zh: Diccionario = {
     loAtiende: (nombre: string) => ` · 由 ${nombre} 处理`,
     ejemplo: "示例姓名",
     desdeTuCorreo: "来自你的邮箱",
-    seLoPaso: (nombre: string) => `好的，我交给 ${nombre}。`,
+    seLoPaso: (nombre: string) => `我已经交给 ${nombre} 了。`,
     pidele: "让 Atendel 帮你做点什么…",
     tu: "你",
     trabajaCon: "可连接",
     picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],
     conAtendel: {
-      lola: { aviso: "Mariana 在 WhatsApp 上给你发消息：她问一小时的课多少钱，想约周四。", pedido: "你来处理。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
-      clara: { aviso: "Andrea Solís 给你发了邮件：她想把周二的预约改到下午。", pedido: "你来处理。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
-      victor: { aviso: "Paola 上周问过一小时的课，但还没预约。要我给她发消息吗？", pedido: "好，发吧。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
-      iris: { aviso: "这周有三位客人问你的价格是不是最新的。要我查查附近的店收多少吗？", pedido: "好，查一下。", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
+      lola: { aviso: "Mariana 在 WhatsApp 上给你发消息：她问一小时的课多少钱，想约周四。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
+      clara: { aviso: "Andrea Solís 给你发了邮件：她想把周二的预约改到下午。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
+      victor: { aviso: "Paola 上周问过一小时的课，但还没预约。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
+      iris: { aviso: "这周有三位客人问你的价格是不是最新的。", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
     },
   },
 

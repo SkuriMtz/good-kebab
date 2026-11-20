@@ -46,7 +46,7 @@ export const es = {
     locale: "es_MX",
     tituloInicio: "Atendel — Tu socio de IA para atender tu negocio",
     descripcionInicio:
-      "Atendel ve lo que pasa en tu negocio, te avisa por WhatsApp y, con un «soluciónalo», reparte el trabajo a su equipo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés y te avisa de todo.",
+      "Atendel ve lo que pasa en tu negocio, lo resuelve con su equipo y te avisa por WhatsApp: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés y te avisa de todo.",
     agentes: ["Agentes", "Atendel y su equipo: Aura, Altair, Rigel y Mira. Qué hace cada uno y cómo trabajan juntos."],
     precios: ["Precios", "Atendel Free es gratis y trae a todo el equipo para probarlo. One y Max son para el día a día; Max, con 5 veces el uso de One."],
     preguntas: [
@@ -142,7 +142,7 @@ export const es = {
       etiqueta: "Tu socio de IA",
       titulo: "Que ningún cliente se quede sin respuesta.",
       texto:
-        "Atendel ve lo que pasa en tu negocio y te avisa por WhatsApp, como un socio; tú le dices «soluciónalo» y él reparte el trabajo: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
+        "Atendel ve lo que pasa en tu negocio y lo resuelve como un socio, con su equipo; de lo importante te avisa por WhatsApp: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
     },
     decisiones: {
       titulo: "Trabaja aunque no estés",
@@ -159,7 +159,7 @@ export const es = {
     foco: {
       titulo: "Un solo chat, todo un equipo",
       textos: [
-        "Atendel es tu socio de inteligencia artificial: te avisa de lo importante y tú solo le dices «soluciónalo». Detrás trabajan cuatro agentes para tu negocio.",
+        "Atendel es tu socio de inteligencia artificial: ve lo que pasa en tu negocio, lo resuelve y te avisa de lo importante. Detrás trabajan cuatro agentes para tu negocio.",
         "Él decide a quién le toca: contestar, agendar, mover una cita, ordenar tu correo o preparar un documento. Lo hace en tus propias apps y te cuenta una sola vez qué hizo.",
         "Aprende tu negocio con tus Reglas, tus Procesos y su Memoria. Tú decides qué hace solo y qué te pregunta antes; lo de dinero, siempre te lo pregunta.",
       ],
@@ -288,16 +288,16 @@ export const es = {
     loAtiende: (nombre: string) => ` · lo atiende ${nombre}`,
     ejemplo: "Nombres de ejemplo",
     desdeTuCorreo: "desde tu correo",
-    seLoPaso: (nombre: string) => `Va. Se lo paso a ${nombre}.`,
+    seLoPaso: (nombre: string) => `Ya se lo pasé a ${nombre}.`,
     pidele: "Pídele algo a Atendel…",
     tu: "Tú",
     trabajaCon: "Trabaja con",
     picar: (quien: string) => [`¡Aquí no! 👀`, `¡Ey! Este celular es de muestra.`, `¡Cosquillas no! 😆`, `Shh… ${quien} está trabajando.`, `Mira, pero no toques. 😄`, `¡Uy! Casi me tiras.`],
     conAtendel: {
-      lola: { aviso: "Mariana te escribió por WhatsApp: pregunta cuánto cuesta la sesión de una hora y quiere cita el jueves.", pedido: "Soluciónalo.", reporte: "Listo. Le dije que la sesión de una hora cuesta $850 y le ofrecí 11:00 o 16:30. Eligió 16:30; un día antes le mando recordatorio." },
-      clara: { aviso: "Andrea Solís te mandó un correo: quiere cambiar su cita del martes a la tarde.", pedido: "Soluciónalo.", reporte: "Le ofrecí 17:00 o 18:30 desde tu correo. Eligió 17:00: ya moví su cita y un día antes le mando recordatorio." },
-      victor: { aviso: "Paola preguntó por botox la semana pasada y no agendó. ¿Le escribo?", pedido: "Sí, escríbele.", reporte: "Le escribí por WhatsApp con viernes 12:00 o sábado 10:30. Eligió el viernes: ya quedó agendada y le mando la ubicación." },
-      iris: { aviso: "Esta semana tres clientas preguntaron si tus precios están al día. ¿Reviso cuánto cobran en la zona?", pedido: "Sí, revísalo.", reporte: "Revisé 4 negocios cercanos: cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-zona.xlsx." },
+      lola: { aviso: "Mariana te escribió por WhatsApp: pregunta cuánto cuesta la sesión de una hora y quiere cita el jueves.", reporte: "Listo. Le dije que la sesión de una hora cuesta $850 y le ofrecí 11:00 o 16:30. Eligió 16:30; un día antes le mando recordatorio." },
+      clara: { aviso: "Andrea Solís te mandó un correo: quiere cambiar su cita del martes a la tarde.", reporte: "Le ofrecí 17:00 o 18:30 desde tu correo. Eligió 17:00: ya moví su cita y un día antes le mando recordatorio." },
+      victor: { aviso: "Paola preguntó por botox la semana pasada y no agendó.", reporte: "Le escribí por WhatsApp con viernes 12:00 o sábado 10:30. Eligió el viernes: ya quedó agendada y le mando la ubicación." },
+      iris: { aviso: "Esta semana tres clientas preguntaron si tus precios están al día.", reporte: "Revisé 4 negocios cercanos: cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-zona.xlsx." },
     },
   },
 

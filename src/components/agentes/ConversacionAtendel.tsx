@@ -14,9 +14,9 @@ const ARCHIVO = /[^\s,:;]+\.(?:xlsx|pdf|docx)/g;
 /**
  * Cómo funciona Atendel, dentro del celular de muestra (el chat de la app):
  * Atendel ya sabe lo que pasó (lo leyó en tu WhatsApp, tu correo o tus
- * apps) y te avisa; tú solo le dices «Soluciónalo»; Atendel se
- * lo pasa al agente que le toca, el agente lo resuelve y te cuenta qué hizo
- * (y lo que quedó, con su palomita). Los textos salen del diccionario
+ * apps), se lo pasa al agente que le toca y te avisa; el agente lo resuelve
+ * y te cuenta qué hizo (y lo que quedó, con su palomita). Tú no tienes que
+ * pedírselo: Atendel no depende de ti (lo de dinero sí te lo pregunta). Los textos salen del diccionario
  * (conversacion.conAtendel) y los nombres son de ejemplo.
  * Al llegar a la pantalla, los mensajes entran uno tras otro (con los tres
  * puntos de «escribiendo»); con «reducir movimiento», todo desde el inicio.
@@ -31,12 +31,12 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
   const guion = C.conAtendel[agente];
   const nota = d.detalle[agente].conversacion.findLast((m) => m.de === "nota")?.texto;
   const archivos = guion.reporte.match(ARCHIVO) ?? [];
-  // 1 Atendel te avisa · 2 tú: «Soluciónalo» · 3 Atendel se lo pasa al agente · 4 el agente te cuenta · 5 lo que quedó
-  const pasos = nota ? 5 : 4;
+  // 1 Atendel te avisa · 2 te dice a quién se lo pasó · 3 el agente te cuenta qué hizo · 4 lo que quedó
+  const pasos = nota ? 4 : 3;
 
   const raiz = useRef<HTMLDivElement>(null);
   const [vistos, setVistos] = useState(0);
-  const [escribe, setEscribe] = useState<"aviso" | "atendel" | "agente" | null>(null);
+  const [escribe, setEscribe] = useState<"aviso" | "agente" | null>(null);
   const corrio = useRef(false);
   const porActivo = activo !== undefined;
 
@@ -60,22 +60,17 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
       if (cancelado) return;
       setEscribe(null);
       setVistos(1);
-      await esperar(900);
-      if (cancelado) return;
-      setVistos(2);
-      setEscribe("atendel");
       await esperar(700);
       if (cancelado) return;
-      setEscribe(null);
-      setVistos(3);
+      setVistos(2);
       setEscribe("agente");
       await esperar(1400);
       if (cancelado) return;
       setEscribe(null);
-      setVistos(4);
-      if (pasos > 4) {
+      setVistos(3);
+      if (pasos > 3) {
         await esperar(700);
-        if (!cancelado) setVistos(5);
+        if (!cancelado) setVistos(4);
       }
     };
     if (porActivo) {
@@ -140,12 +135,6 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
         ) : null}
 
         {vistos >= 2 ? (
-          <li className="conva__fila conva__fila--tu">
-            <p className="conva__burbuja conva__burbuja--tu">{guion.pedido}</p>
-          </li>
-        ) : null}
-
-        {vistos >= 3 ? (
           <li className="conva__fila">
             {avatarAtendel}
             <p className="conva__burbuja">
@@ -156,14 +145,9 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
               </span>
             </p>
           </li>
-        ) : escribe === "atendel" ? (
-          <li className="conva__fila" aria-label="Atendel…">
-            {avatarAtendel}
-            {puntos}
-          </li>
         ) : null}
 
-        {vistos >= 4 ? (
+        {vistos >= 3 ? (
           <li className="conva__fila">
             <span className="conva__avatar" aria-hidden="true">
               <Personaje agente={agente} avatar />
@@ -190,7 +174,7 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
           </li>
         ) : null}
 
-        {vistos >= 5 && nota ? (
+        {vistos >= 4 && nota ? (
           <li className="conva__nota">
             <span className="conva__nota-icono">
               <Icono nombre="check" tam={14} />

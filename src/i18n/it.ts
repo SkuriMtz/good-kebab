@@ -70,7 +70,7 @@ export const it: Diccionario = {
     locale: "it_IT",
     tituloInicio: "Atendel — Il tuo socio di intelligenza artificiale per servire la tua attività",
     descripcionInicio:
-      "Atendel vede cosa succede nella tua attività, ti avvisa su WhatsApp e, appena dici «pensaci tu», passa il lavoro al suo team: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei e ti tiene aggiornato.",
+      "Atendel vede cosa succede nella tua attività, lo risolve con il suo team e ti avvisa su WhatsApp: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei e ti tiene aggiornato.",
     agentes: ["Agenti", "Atendel e il suo team: Aura, Altair, Rigel e Mira. Cosa fa ciascuno e come lavorano insieme."],
     precios: ["Prezzi", "Atendel Free è gratuito e include tutto il team per provarlo. One e Max sono per il tuo lavoro di ogni giorno; Max, con 5 volte l'uso di One."],
     preguntas: [
@@ -166,7 +166,7 @@ export const it: Diccionario = {
       etiqueta: "Il tuo socio di intelligenza artificiale",
       titulo: "Nessun cliente senza risposta.",
       texto:
-        "Atendel vede cosa succede nella tua attività e ti avvisa su WhatsApp, come un socio; tu dici «pensaci tu» e lui distribuisce il lavoro: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei, e niente che riguardi i soldi parte senza il tuo OK.",
+        "Atendel vede cosa succede nella tua attività e lo risolve come un socio, con il suo team; le cose importanti te le dice su WhatsApp: Aura gestisce il tuo WhatsApp e gli appuntamenti, Altair la tua email, Rigel i tuoi clienti e Mira l'ufficio. Lavora anche quando non ci sei, e niente che riguardi i soldi parte senza il tuo OK.",
     },
     decisiones: {
       titulo: "Lavora anche quando non ci sei",
@@ -183,7 +183,7 @@ export const it: Diccionario = {
     foco: {
       titulo: "Una chat, un intero team",
       textos: [
-        "Atendel è il tuo socio di intelligenza artificiale: ti avvisa di ciò che conta e tu gli dici solo «pensaci tu». Dietro lavorano quattro agenti per la tua attività.",
+        "Atendel è il tuo socio di intelligenza artificiale: vede cosa succede nella tua attività, lo risolve e ti avvisa di ciò che conta. Dietro lavorano quattro agenti per la tua attività.",
         "Decide lui a chi tocca: rispondere, fissare o spostare un appuntamento, ordinare la tua email o preparare un documento. Lo fa nelle tue app e ti dice una volta sola cosa ha fatto.",
         "Impara la tua attività con le tue Regole, i tuoi Processi e la sua Memoria. Tu decidi cosa fa da solo e cosa ti chiede prima; per i soldi chiede sempre.",
       ],
@@ -460,16 +460,16 @@ export const it: Diccionario = {
     loAtiende: (nombre: string) => ` · gestito da ${nombre}`,
     ejemplo: "Nomi di esempio",
     desdeTuCorreo: "dalla tua email",
-    seLoPaso: (nombre: string) => `Ok. Lo passo a ${nombre}.`,
+    seLoPaso: (nombre: string) => `L'ho passato a ${nombre}.`,
     pidele: "Chiedi qualcosa ad Atendel…",
     tu: "Tu",
     trabajaCon: "Lavora con",
     picar: (quien: string) => [`Non qui! 👀`, `Ehi! Questo telefono è solo una demo.`, `Niente solletico! 😆`, `Shh… ${quien} sta lavorando.`, `Guarda, ma non toccare. 😄`, `Ops! Per poco non mi fai cadere.`],
     conAtendel: {
-      lola: { aviso: "Mariana ti ha scritto su WhatsApp: chiede quanto costa la sessione di un'ora e vuole venire giovedì.", pedido: "Pensaci tu.", reporte: "Fatto. Le ho detto che la sessione di un'ora costa $850 e le ho proposto le 11:00 o le 4:30 del pomeriggio. Ha scelto le 4:30; il giorno prima le mando un promemoria." },
-      clara: { aviso: "Andrea Solís ti ha mandato un'email: vuole spostare l'appuntamento di martedì al pomeriggio.", pedido: "Pensaci tu.", reporte: "Le ho proposto le 5:00 o le 6:30 del pomeriggio dalla tua email. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
-      victor: { aviso: "La settimana scorsa Paola ha chiesto della sessione di un'ora e non ha prenotato. Le scrivo?", pedido: "Sì, scrivile.", reporte: "Le ho scritto su WhatsApp proponendo venerdì alle 12:00 o sabato alle 10:30. Ha scelto venerdì: è fissato e le mando l'indirizzo." },
-      iris: { aviso: "Questa settimana tre clienti hanno chiesto se i tuoi prezzi sono aggiornati. Controllo quanto fanno pagare in zona?", pedido: "Sì, controlla.", reporte: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx." },
+      lola: { aviso: "Mariana ti ha scritto su WhatsApp: chiede quanto costa la sessione di un'ora e vuole venire giovedì.", reporte: "Fatto. Le ho detto che la sessione di un'ora costa $850 e le ho proposto le 11:00 o le 4:30 del pomeriggio. Ha scelto le 4:30; il giorno prima le mando un promemoria." },
+      clara: { aviso: "Andrea Solís ti ha mandato un'email: vuole spostare l'appuntamento di martedì al pomeriggio.", reporte: "Le ho proposto le 5:00 o le 6:30 del pomeriggio dalla tua email. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
+      victor: { aviso: "La settimana scorsa Paola ha chiesto della sessione di un'ora e non ha prenotato.", reporte: "Le ho scritto su WhatsApp proponendo venerdì alle 12:00 o sabato alle 10:30. Ha scelto venerdì: è fissato e le mando l'indirizzo." },
+      iris: { aviso: "Questa settimana tre clienti hanno chiesto se i tuoi prezzi sono aggiornati.", reporte: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx." },
     },
   },
 

@@ -18,7 +18,7 @@ export const PRUEBALO = { href: "/pruebalo", label: "Pruébalo" };
 export const PASOS = [
   ["Entras con tu correo", "Sin contraseña y sin instalar nada. Desde el celular, la tablet o la computadora."],
   ["Conectas lo que ya usas", "Tu correo, tu agenda, tu WhatsApp y tus apps, con tu propia cuenta."],
-  ["Te avisa y lo resuelve", "Atendel ve lo que pasa en tu negocio y te avisa por WhatsApp, como un socio. Le dices «soluciónalo» y él reparte el trabajo a su equipo; trabaja aunque no estés y lo de dinero te lo pregunta antes."],
+  ["Lo resuelve y te avisa", "Atendel ve lo que pasa en tu negocio y lo resuelve con su equipo, como un socio. Te avisa por WhatsApp de lo importante, trabaja aunque no estés y lo de dinero te lo pregunta antes."],
 ];
 
 export const GARANTIAS = [

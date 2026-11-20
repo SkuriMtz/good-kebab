@@ -74,7 +74,7 @@ export const de: Diccionario = {
     locale: "de_DE",
     tituloInicio: "Atendel — Dein KI-Partner für dein Geschäft",
     descripcionInicio:
-      "Atendel sieht, was in deinem Geschäft passiert, sagt dir auf WhatsApp Bescheid und gibt die Arbeit nach deinem „Kümmere dich darum“ an sein Team weiter: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und hält dich auf dem Laufenden.",
+      "Atendel sieht, was in deinem Geschäft passiert, erledigt es mit seinem Team und sagt dir auf WhatsApp Bescheid: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und hält dich auf dem Laufenden.",
     agentes: ["Agenten", "Atendel und sein Team: Aura, Altair, Rigel und Mira. Was jeder von ihnen macht und wie sie zusammenarbeiten."],
     precios: ["Preise", "Atendel Free ist kostenlos und enthält das ganze Team zum Ausprobieren. One und Max sind für deinen Alltag; Max mit der 5-fachen Nutzung von One."],
     preguntas: [
@@ -170,7 +170,7 @@ export const de: Diccionario = {
       etiqueta: "Dein KI-Partner",
       titulo: "Kein Kunde ohne Antwort.",
       texto:
-        "Atendel sieht, was in deinem Geschäft passiert, und sagt dir wie ein Geschäftspartner auf WhatsApp Bescheid; du sagst „Kümmere dich darum“ und es verteilt die Arbeit: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und nichts, was mit Geld zu tun hat, geht ohne dein OK raus.",
+        "Atendel sieht, was in deinem Geschäft passiert, und erledigt es wie ein Geschäftspartner mit seinem Team; was wichtig ist, sagt es dir auf WhatsApp: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und nichts, was mit Geld zu tun hat, geht ohne dein OK raus.",
     },
     decisiones: {
       titulo: "Es arbeitet auch, wenn du nicht da bist",
@@ -187,7 +187,7 @@ export const de: Diccionario = {
     foco: {
       titulo: "Ein Chat, ein ganzes Team",
       textos: [
-        "Atendel ist dein KI-Partner: Es sagt dir, was wichtig ist, und du sagst nur „Kümmere dich darum“. Dahinter arbeiten vier Agenten für dein Geschäft.",
+        "Atendel ist dein KI-Partner: Es sieht, was in deinem Geschäft passiert, erledigt es und sagt dir, was wichtig ist. Dahinter arbeiten vier Agenten für dein Geschäft.",
         "Es entscheidet, wer zuständig ist: antworten, Termine eintragen, einen Termin verschieben, deine E-Mails ordnen oder ein Dokument vorbereiten. Es erledigt das in deinen eigenen Apps und sagt dir einmal, was es getan hat.",
         "Es lernt dein Geschäft mit deinen Regeln, deinen Abläufen und seinem Gedächtnis. Du entscheidest, was es allein macht und was es dich vorher fragt; bei Geld fragt es immer.",
       ],
@@ -464,16 +464,16 @@ export const de: Diccionario = {
     loAtiende: (nombre: string) => ` · betreut von ${nombre}`,
     ejemplo: "Beispielnamen",
     desdeTuCorreo: "von deiner E-Mail-Adresse",
-    seLoPaso: (nombre: string) => `Mach ich. Ich gebe es an ${nombre} weiter.`,
+    seLoPaso: (nombre: string) => `Ich habe es an ${nombre} weitergegeben.`,
     pidele: "Frag Atendel etwas…",
     tu: "Du",
     trabajaCon: "Arbeitet mit",
     picar: (quien: string) => [`Nicht hier! 👀`, `Hey! Das ist nur ein Vorführhandy.`, `Nicht kitzeln! 😆`, `Psst… ${quien} arbeitet gerade.`, `Nur schauen, nicht anfassen. 😄`, `Hoppla! Fast fallen gelassen.`],
     conAtendel: {
-      lola: { aviso: "Mariana hat dir auf WhatsApp geschrieben: Sie fragt, was die einstündige Sitzung kostet, und möchte am Donnerstag kommen.", pedido: "Kümmere dich darum.", reporte: "Erledigt. Ich habe ihr gesagt, dass die einstündige Sitzung $850 kostet, und 11:00 oder 16:30 angeboten. Sie hat 16:30 gewählt; am Tag vorher bekommt sie eine Erinnerung." },
-      clara: { aviso: "Andrea Solís hat dir eine E-Mail geschickt: Sie möchte ihren Termin am Dienstag auf den Nachmittag verschieben.", pedido: "Kümmere dich darum.", reporte: "Ich habe ihr von deiner E-Mail-Adresse 17:00 oder 18:30 angeboten. Sie hat 17:00 gewählt: Termin verschoben, am Tag vorher kommt eine Erinnerung." },
-      victor: { aviso: "Paola hat letzte Woche nach der einstündigen Sitzung gefragt und keinen Termin gebucht. Soll ich ihr schreiben?", pedido: "Ja, schreib ihr.", reporte: "Ich habe ihr auf WhatsApp Freitag 12:00 oder Samstag 10:30 angeboten. Sie hat Freitag gewählt: Der Termin steht und ich schicke ihr die Adresse." },
-      iris: { aviso: "Diese Woche haben drei Kundinnen gefragt, ob deine Preise noch aktuell sind. Soll ich prüfen, was andere in der Nähe verlangen?", pedido: "Ja, prüf das.", reporte: "Ich habe 4 Geschäfte in der Nähe verglichen: zwischen $590 und $990. Du liegst mit $750 genau in der Mitte. Die Tabelle mit Quellen liegt in preise-in-der-naehe.xlsx." },
+      lola: { aviso: "Mariana hat dir auf WhatsApp geschrieben: Sie fragt, was die einstündige Sitzung kostet, und möchte am Donnerstag kommen.", reporte: "Erledigt. Ich habe ihr gesagt, dass die einstündige Sitzung $850 kostet, und 11:00 oder 16:30 angeboten. Sie hat 16:30 gewählt; am Tag vorher bekommt sie eine Erinnerung." },
+      clara: { aviso: "Andrea Solís hat dir eine E-Mail geschickt: Sie möchte ihren Termin am Dienstag auf den Nachmittag verschieben.", reporte: "Ich habe ihr von deiner E-Mail-Adresse 17:00 oder 18:30 angeboten. Sie hat 17:00 gewählt: Termin verschoben, am Tag vorher kommt eine Erinnerung." },
+      victor: { aviso: "Paola hat letzte Woche nach der einstündigen Sitzung gefragt und keinen Termin gebucht.", reporte: "Ich habe ihr auf WhatsApp Freitag 12:00 oder Samstag 10:30 angeboten. Sie hat Freitag gewählt: Der Termin steht und ich schicke ihr die Adresse." },
+      iris: { aviso: "Diese Woche haben drei Kundinnen gefragt, ob deine Preise noch aktuell sind.", reporte: "Ich habe 4 Geschäfte in der Nähe verglichen: zwischen $590 und $990. Du liegst mit $750 genau in der Mitte. Die Tabelle mit Quellen liegt in preise-in-der-naehe.xlsx." },
     },
   },
 
