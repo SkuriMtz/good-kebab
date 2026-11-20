@@ -5,6 +5,7 @@ import { Icono } from "@/components/base/Iconos";
 import { Marca } from "@/components/Logo";
 import { Personaje } from "./Personaje";
 import type { IdAgente } from "@/lib/agentes";
+import { LOGO_APP } from "@/lib/conexiones/logos";
 import { PERSONAJES } from "@/lib/personajes";
 import { agenteDe, t, type Idioma } from "@/i18n";
 
@@ -12,10 +13,12 @@ import { agenteDe, t, type Idioma } from "@/i18n";
 const ARCHIVO = /[^\s,:;]+\.(?:xlsx|pdf|docx)/g;
 
 /**
- * Cómo funciona Atendel, dentro del celular de muestra: tú le escribes a
- * Atendel, Atendel se lo pasa al agente que le toca, el agente lo hace y te
- * cuenta qué hizo (y lo que quedó, con su palomita). Los textos salen del
- * diccionario (conversacion.conAtendel) y los nombres son de ejemplo.
+ * Cómo funciona Atendel, dentro del celular de muestra (un chat de WhatsApp
+ * con Atendel): Atendel ya sabe lo que pasó (lo leyó en tu WhatsApp, tu
+ * correo o tus apps) y te avisa; tú solo le dices «Soluciónalo»; Atendel se
+ * lo pasa al agente que le toca, el agente lo resuelve y te cuenta qué hizo
+ * (y lo que quedó, con su palomita). Los textos salen del diccionario
+ * (conversacion.conAtendel) y los nombres son de ejemplo.
  * Al llegar a la pantalla, los mensajes entran uno tras otro (con los tres
  * puntos de «escribiendo»); con «reducir movimiento», todo desde el inicio.
  * - `activo`: si se pasa, entran cuando se vuelve true (el recorrido de
@@ -29,11 +32,12 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
   const guion = C.conAtendel[agente];
   const nota = d.detalle[agente].conversacion.findLast((m) => m.de === "nota")?.texto;
   const archivos = guion.reporte.match(ARCHIVO) ?? [];
-  const pasos = nota ? 4 : 3;
+  // 1 Atendel te avisa · 2 tú: «Soluciónalo» · 3 Atendel se lo pasa al agente · 4 el agente te cuenta · 5 lo que quedó
+  const pasos = nota ? 5 : 4;
 
   const raiz = useRef<HTMLDivElement>(null);
   const [vistos, setVistos] = useState(0);
-  const [escribe, setEscribe] = useState<"atendel" | "agente" | null>(null);
+  const [escribe, setEscribe] = useState<"aviso" | "atendel" | "agente" | null>(null);
   const corrio = useRef(false);
   const porActivo = activo !== undefined;
 
@@ -50,22 +54,29 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
     const esperar = (ms: number) => new Promise<void>((ok) => timers.push(window.setTimeout(ok, ms)));
     const correr = async () => {
       corrio.current = true;
-      await esperar(porActivo ? 250 : 400);
+      await esperar(porActivo ? 200 : 350);
       if (cancelado) return;
-      setVistos(1);
-      setEscribe("atendel");
-      await esperar(900);
+      setEscribe("aviso");
+      await esperar(800);
       if (cancelado) return;
       setEscribe(null);
+      setVistos(1);
+      await esperar(900);
+      if (cancelado) return;
       setVistos(2);
-      setEscribe("agente");
-      await esperar(1500);
+      setEscribe("atendel");
+      await esperar(700);
       if (cancelado) return;
       setEscribe(null);
       setVistos(3);
-      if (pasos > 3) {
+      setEscribe("agente");
+      await esperar(1400);
+      if (cancelado) return;
+      setEscribe(null);
+      setVistos(4);
+      if (pasos > 4) {
         await esperar(700);
-        if (!cancelado) setVistos(4);
+        if (!cancelado) setVistos(5);
       }
     };
     if (porActivo) {
@@ -94,27 +105,60 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
     };
   }, [pasos, porActivo, activo]);
 
+  const avatarAtendel = (
+    <span className="conva__avatar conva__avatar--atendel" aria-hidden="true">
+      <Marca className="h-[16px] w-[16px]" />
+    </span>
+  );
+  const puntos = (
+    <span className="conva__puntos">
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+
   return (
     <div ref={raiz} className={`conva${pintada ? " conva--pintada" : ""}`} style={{ "--agente": PERSONAJES[agente].color } as CSSProperties}>
       <div className="conva__cabeza">
         <span className="conva__logo">
           <Marca className="h-[18px] w-[18px]" />
         </span>
-        <span className="conva__titulo">Atendel</span>
+        <span className="conva__nombres">
+          <span className="conva__titulo">Atendel</span>
+          {LOGO_APP.whatsapp_business ? (
+            <span className="conva__canal">
+              {/* Logo chico y fijo de /public */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={LOGO_APP.whatsapp_business} alt="" width={12} height={12} />
+              {C.porWhatsApp}
+            </span>
+          ) : null}
+        </span>
       </div>
 
       <ol className="conva__mensajes" aria-live="polite">
         {vistos >= 1 ? (
+          <li className="conva__fila">
+            {avatarAtendel}
+            <p className="conva__burbuja">{guion.aviso}</p>
+          </li>
+        ) : escribe === "aviso" ? (
+          <li className="conva__fila" aria-label="Atendel…">
+            {avatarAtendel}
+            {puntos}
+          </li>
+        ) : null}
+
+        {vistos >= 2 ? (
           <li className="conva__fila conva__fila--tu">
             <p className="conva__burbuja conva__burbuja--tu">{guion.pedido}</p>
           </li>
         ) : null}
 
-        {vistos >= 2 ? (
+        {vistos >= 3 ? (
           <li className="conva__fila">
-            <span className="conva__avatar conva__avatar--atendel" aria-hidden="true">
-              <Marca className="h-[16px] w-[16px]" />
-            </span>
+            {avatarAtendel}
             <p className="conva__burbuja">
               {C.seLoPaso(info.nombre)}
               <span className="conva__chip">
@@ -125,18 +169,12 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
           </li>
         ) : escribe === "atendel" ? (
           <li className="conva__fila" aria-label="Atendel…">
-            <span className="conva__avatar conva__avatar--atendel" aria-hidden="true">
-              <Marca className="h-[16px] w-[16px]" />
-            </span>
-            <span className="conva__puntos">
-              <i />
-              <i />
-              <i />
-            </span>
+            {avatarAtendel}
+            {puntos}
           </li>
         ) : null}
 
-        {vistos >= 3 ? (
+        {vistos >= 4 ? (
           <li className="conva__fila">
             <span className="conva__avatar" aria-hidden="true">
               <Personaje agente={agente} avatar />
@@ -159,15 +197,11 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
             <span className="conva__avatar" aria-hidden="true">
               <Personaje agente={agente} avatar />
             </span>
-            <span className="conva__puntos">
-              <i />
-              <i />
-              <i />
-            </span>
+            {puntos}
           </li>
         ) : null}
 
-        {vistos >= 4 && nota ? (
+        {vistos >= 5 && nota ? (
           <li className="conva__nota">
             <span className="conva__nota-icono">
               <Icono nombre="check" tam={14} />
@@ -178,7 +212,7 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
       </ol>
 
       <div className="conva__barra" aria-hidden="true">
-        <span>{C.pidele}</span>
+        <span>{C.mensaje}</span>
         <span className="conva__enviar">
           <Icono nombre="enviar" tam={14} />
         </span>

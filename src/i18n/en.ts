@@ -466,14 +466,18 @@ export const en: Diccionario = {
     desdeTuCorreo: "from your email",
     seLoPaso: (nombre: string) => `On it. Passing it to ${nombre}.`,
     pidele: "Ask Atendel anything…",
+    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
+    porWhatsApp: "on WhatsApp",
+    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
+    mensaje: "Message",
     tu: "You",
     trabajaCon: "Works with",
     picar: (quien: string) => [`Not here! 👀`, `Hey! This phone is just a demo.`, `No tickling! 😆`, `Shh… ${quien} is working.`, `Look, don't touch. 😄`, `Whoa! You almost dropped me.`],
     conAtendel: {
-      lola: { pedido: "Reply to Mariana on WhatsApp and book her for Thursday.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
-      clara: { pedido: "Andrea Solís wants to move her Tuesday appointment to the afternoon. Reply to her.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
-      victor: { pedido: "Message Paola, who asked about the one-hour session last week.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
-      iris: { pedido: "How much do other businesses nearby charge for a 1-hour session?", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
+      lola: { aviso: "Mariana messaged you on WhatsApp: she's asking what the one-hour session costs and wants to come in Thursday.", pedido: "Handle it.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
+      clara: { aviso: "Andrea Solís emailed you: she wants to move her Tuesday appointment to the afternoon.", pedido: "Handle it.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
+      victor: { aviso: "Paola asked about the one-hour session last week and didn't book. Should I message her?", pedido: "Yes, message her.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
+      iris: { aviso: "Three clients asked this week if your prices are up to date. Should I check what places nearby charge?", pedido: "Yes, check.", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
     },
   },
 

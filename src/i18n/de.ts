@@ -466,14 +466,18 @@ export const de: Diccionario = {
     desdeTuCorreo: "von deiner E-Mail-Adresse",
     seLoPaso: (nombre: string) => `Mach ich. Ich gebe es an ${nombre} weiter.`,
     pidele: "Frag Atendel etwas…",
+    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
+    porWhatsApp: "über WhatsApp",
+    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
+    mensaje: "Nachricht",
     tu: "Du",
     trabajaCon: "Arbeitet mit",
     picar: (quien: string) => [`Nicht hier! 👀`, `Hey! Das ist nur ein Vorführhandy.`, `Nicht kitzeln! 😆`, `Psst… ${quien} arbeitet gerade.`, `Nur schauen, nicht anfassen. 😄`, `Hoppla! Fast fallen gelassen.`],
     conAtendel: {
-      lola: { pedido: "Antworte Mariana auf WhatsApp und trag sie für Donnerstag ein.", reporte: "Erledigt. Ich habe ihr gesagt, dass die einstündige Sitzung $850 kostet, und 11:00 oder 16:30 angeboten. Sie hat 16:30 gewählt; am Tag vorher bekommt sie eine Erinnerung." },
-      clara: { pedido: "Andrea Solís möchte ihren Termin am Dienstag auf den Nachmittag verschieben. Antworte ihr.", reporte: "Ich habe ihr von deiner E-Mail-Adresse 17:00 oder 18:30 angeboten. Sie hat 17:00 gewählt: Termin verschoben, am Tag vorher kommt eine Erinnerung." },
-      victor: { pedido: "Schreib Paola, die letzte Woche nach der einstündigen Sitzung gefragt hat.", reporte: "Ich habe ihr auf WhatsApp Freitag 12:00 oder Samstag 10:30 angeboten. Sie hat Freitag gewählt: Der Termin steht und ich schicke ihr die Adresse." },
-      iris: { pedido: "Was verlangen andere Geschäfte in der Nähe für eine einstündige Sitzung?", reporte: "Ich habe 4 Geschäfte in der Nähe verglichen: zwischen $590 und $990. Du liegst mit $750 genau in der Mitte. Die Tabelle mit Quellen liegt in preise-in-der-naehe.xlsx." },
+      lola: { aviso: "Mariana hat dir auf WhatsApp geschrieben: Sie fragt, was die einstündige Sitzung kostet, und möchte am Donnerstag kommen.", pedido: "Kümmere dich darum.", reporte: "Erledigt. Ich habe ihr gesagt, dass die einstündige Sitzung $850 kostet, und 11:00 oder 16:30 angeboten. Sie hat 16:30 gewählt; am Tag vorher bekommt sie eine Erinnerung." },
+      clara: { aviso: "Andrea Solís hat dir eine E-Mail geschickt: Sie möchte ihren Termin am Dienstag auf den Nachmittag verschieben.", pedido: "Kümmere dich darum.", reporte: "Ich habe ihr von deiner E-Mail-Adresse 17:00 oder 18:30 angeboten. Sie hat 17:00 gewählt: Termin verschoben, am Tag vorher kommt eine Erinnerung." },
+      victor: { aviso: "Paola hat letzte Woche nach der einstündigen Sitzung gefragt und keinen Termin gebucht. Soll ich ihr schreiben?", pedido: "Ja, schreib ihr.", reporte: "Ich habe ihr auf WhatsApp Freitag 12:00 oder Samstag 10:30 angeboten. Sie hat Freitag gewählt: Der Termin steht und ich schicke ihr die Adresse." },
+      iris: { aviso: "Diese Woche haben drei Kundinnen gefragt, ob deine Preise noch aktuell sind. Soll ich prüfen, was andere in der Nähe verlangen?", pedido: "Ja, prüf das.", reporte: "Ich habe 4 Geschäfte in der Nähe verglichen: zwischen $590 und $990. Du liegst mit $750 genau in der Mitte. Die Tabelle mit Quellen liegt in preise-in-der-naehe.xlsx." },
     },
   },
 

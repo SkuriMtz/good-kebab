@@ -462,14 +462,18 @@ export const it: Diccionario = {
     desdeTuCorreo: "dalla tua email",
     seLoPaso: (nombre: string) => `Ok. Lo passo a ${nombre}.`,
     pidele: "Chiedi qualcosa ad Atendel…",
+    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
+    porWhatsApp: "su WhatsApp",
+    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
+    mensaje: "Messaggio",
     tu: "Tu",
     trabajaCon: "Lavora con",
     picar: (quien: string) => [`Non qui! 👀`, `Ehi! Questo telefono è solo una demo.`, `Niente solletico! 😆`, `Shh… ${quien} sta lavorando.`, `Guarda, ma non toccare. 😄`, `Ops! Per poco non mi fai cadere.`],
     conAtendel: {
-      lola: { pedido: "Rispondi a Mariana su WhatsApp e fissale giovedì.", reporte: "Fatto. Le ho detto che la sessione di un'ora costa $850 e le ho proposto le 11:00 o le 4:30 del pomeriggio. Ha scelto le 4:30; il giorno prima le mando un promemoria." },
-      clara: { pedido: "Andrea Solís vuole spostare l'appuntamento di martedì al pomeriggio. Rispondile.", reporte: "Le ho proposto le 5:00 o le 6:30 del pomeriggio dalla tua email. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
-      victor: { pedido: "Scrivi a Paola, che la settimana scorsa ha chiesto della sessione di un'ora.", reporte: "Le ho scritto su WhatsApp proponendo venerdì alle 12:00 o sabato alle 10:30. Ha scelto venerdì: è fissato e le mando l'indirizzo." },
-      iris: { pedido: "Quanto fanno pagare le altre attività della zona per una sessione di 1 ora?", reporte: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx." },
+      lola: { aviso: "Mariana ti ha scritto su WhatsApp: chiede quanto costa la sessione di un'ora e vuole venire giovedì.", pedido: "Pensaci tu.", reporte: "Fatto. Le ho detto che la sessione di un'ora costa $850 e le ho proposto le 11:00 o le 4:30 del pomeriggio. Ha scelto le 4:30; il giorno prima le mando un promemoria." },
+      clara: { aviso: "Andrea Solís ti ha mandato un'email: vuole spostare l'appuntamento di martedì al pomeriggio.", pedido: "Pensaci tu.", reporte: "Le ho proposto le 5:00 o le 6:30 del pomeriggio dalla tua email. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
+      victor: { aviso: "La settimana scorsa Paola ha chiesto della sessione di un'ora e non ha prenotato. Le scrivo?", pedido: "Sì, scrivile.", reporte: "Le ho scritto su WhatsApp proponendo venerdì alle 12:00 o sabato alle 10:30. Ha scelto venerdì: è fissato e le mando l'indirizzo." },
+      iris: { aviso: "Questa settimana tre clienti hanno chiesto se i tuoi prezzi sono aggiornati. Controllo quanto fanno pagare in zona?", pedido: "Sì, controlla.", reporte: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx." },
     },
   },
 

@@ -462,14 +462,18 @@ export const fr: Diccionario = {
     desdeTuCorreo: "depuis votre e-mail",
     seLoPaso: (nombre: string) => `D'accord. Je le confie à ${nombre}.`,
     pidele: "Demandez quelque chose à Atendel…",
+    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
+    porWhatsApp: "sur WhatsApp",
+    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
+    mensaje: "Message",
     tu: "Vous",
     trabajaCon: "Travaille avec",
     picar: (quien: string) => [`Pas ici ! 👀`, `Hé ! Ce téléphone est une démo.`, `Pas de chatouilles ! 😆`, `Chut… ${quien} travaille.`, `On regarde, on ne touche pas. 😄`, `Oups ! Vous avez failli me faire tomber.`],
     conAtendel: {
-      lola: { pedido: "Réponds à Mariana sur WhatsApp et réserve-lui jeudi.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },
-      clara: { pedido: "Andrea Solís veut déplacer son rendez-vous de mardi à l'après-midi. Réponds-lui.", reporte: "Je lui ai proposé 17h00 ou 18h30 depuis votre e-mail. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
-      victor: { pedido: "Écris à Paola, qui a demandé la séance d'une heure la semaine dernière.", reporte: "Je lui ai écrit sur WhatsApp avec vendredi 12h00 ou samedi 10h30. Elle a choisi vendredi : c'est réservé et je lui envoie l'adresse." },
-      iris: { pedido: "Combien les autres commerces du quartier font-ils payer une séance d'une heure ?", reporte: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx." },
+      lola: { aviso: "Mariana vous a écrit sur WhatsApp : elle demande le prix de la séance d'une heure et veut venir jeudi.", pedido: "Occupe-t'en.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },
+      clara: { aviso: "Andrea Solís vous a envoyé un e-mail : elle veut déplacer son rendez-vous de mardi à l'après-midi.", pedido: "Occupe-t'en.", reporte: "Je lui ai proposé 17h00 ou 18h30 depuis votre e-mail. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
+      victor: { aviso: "Paola a demandé la séance d'une heure la semaine dernière et n'a pas réservé. Je lui écris ?", pedido: "Oui, écris-lui.", reporte: "Je lui ai écrit sur WhatsApp avec vendredi 12h00 ou samedi 10h30. Elle a choisi vendredi : c'est réservé et je lui envoie l'adresse." },
+      iris: { aviso: "Cette semaine, trois clientes ont demandé si vos prix sont à jour. Je regarde combien prennent les commerces du quartier ?", pedido: "Oui, regarde.", reporte: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx." },
     },
   },
 

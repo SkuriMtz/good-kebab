@@ -1327,6 +1327,22 @@
   font-weight: 600;
   font-size: 15px;
 }
+/* El nombre y, abajo, «por WhatsApp» con su logo (Atendel te escribe por WhatsApp) */
+.conva__nombres {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.conva__canal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-tenue);
+  font-size: 11px;
+}
+.conva--pintada .conva__canal {
+  color: rgb(20 20 20 / 0.6);
+}
 .conva__mensajes {
   display: flex;
   flex: 1;

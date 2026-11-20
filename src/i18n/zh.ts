@@ -462,14 +462,18 @@ export const zh: Diccionario = {
     desdeTuCorreo: "来自你的邮箱",
     seLoPaso: (nombre: string) => `好的，我交给 ${nombre}。`,
     pidele: "让 Atendel 帮你做点什么…",
+    /** Arriba del chat de muestra: Atendel te escribe por WhatsApp. */
+    porWhatsApp: "通过 WhatsApp",
+    /** Lo que dice la caja de escribir del chat de muestra (como en WhatsApp). */
+    mensaje: "消息",
     tu: "你",
     trabajaCon: "可连接",
     picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],
     conAtendel: {
-      lola: { pedido: "在 WhatsApp 上回复 Mariana，帮她约周四。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
-      clara: { pedido: "Andrea Solís 想把周二的预约改到下午，帮我回复她。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
-      victor: { pedido: "给上周问过一小时课程的 Paola 发个消息。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
-      iris: { pedido: "附近其他店一小时的课收多少钱？", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
+      lola: { aviso: "Mariana 在 WhatsApp 上给你发消息：她问一小时的课多少钱，想约周四。", pedido: "你来处理。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
+      clara: { aviso: "Andrea Solís 给你发了邮件：她想把周二的预约改到下午。", pedido: "你来处理。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
+      victor: { aviso: "Paola 上周问过一小时的课，但还没预约。要我给她发消息吗？", pedido: "好，发吧。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
+      iris: { aviso: "这周有三位客人问你的价格是不是最新的。要我查查附近的店收多少吗？", pedido: "好，查一下。", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
     },
   },
 
