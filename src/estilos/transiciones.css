@@ -32,6 +32,18 @@
 :root.vt-pagina:not(.vt-capa) .pc-menu {
   view-transition-name: vt-panel-lateral;
 }
+/* En celular, la barra de arriba, los botones del tema y la barra de abajo también se quedan
+   quietas y encima (si no, la foto del contenido las tapaba medio segundo). En compu no se ven
+   (display: none), así que ahí no cambia nada. */
+:root.vt-pagina:not(.vt-capa) .pc-barra-movil {
+  view-transition-name: vt-panel-barra;
+}
+:root.vt-pagina:not(.vt-capa) .pc-subtemas {
+  view-transition-name: vt-panel-temas;
+}
+:root.vt-pagina:not(.vt-capa) .pc-abajo {
+  view-transition-name: vt-panel-abajo;
+}
 
 /* ---------- Lo que cambia: el contenido (y el pie) ----------
    Lo que sale y lo que entra llevan nombres distintos: así la foto de
@@ -81,7 +93,9 @@
   z-index: 4;
 }
 ::view-transition-group(vt-barra),
-::view-transition-group(vt-panel-barra) {
+::view-transition-group(vt-panel-barra),
+::view-transition-group(vt-panel-temas),
+::view-transition-group(vt-panel-abajo) {
   z-index: 5;
 }
 
@@ -95,6 +109,10 @@
 ::view-transition-new(vt-hoja),
 ::view-transition-old(vt-panel-barra),
 ::view-transition-new(vt-panel-barra),
+::view-transition-old(vt-panel-temas),
+::view-transition-new(vt-panel-temas),
+::view-transition-old(vt-panel-abajo),
+::view-transition-new(vt-panel-abajo),
 ::view-transition-old(vt-panel-lateral),
 ::view-transition-new(vt-panel-lateral) {
   animation-duration: var(--vt-sale);
@@ -138,6 +156,25 @@
   from {
     opacity: 0;
     transform: translateY(6px);
+  }
+}
+/* En celular, sin encimarse: lo viejo se va en 110ms y lo nuevo espera a que se haya ido (se veían
+   las dos páginas una sobre otra). En compu se queda como arriba. */
+@media (max-width: 859px) {
+  :root.vt-app::view-transition-old(vt-sale) {
+    animation-duration: 110ms;
+  }
+  :root.vt-app::view-transition-new(vt-entra),
+  :root.vt-app::view-transition-new(vt-entra-pie) {
+    animation-delay: 110ms;
+  }
+  /* Los botones del tema, cuando solo están en una de las dos páginas (del Inicio a Tu día, o al
+     revés), entran y salen al ritmo del contenido (si no, salían encima del saludo un instante) */
+  :root.vt-app::view-transition-old(vt-panel-temas):only-child {
+    animation: vt-sale 110ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  :root.vt-app::view-transition-new(vt-panel-temas):only-child {
+    animation: vt-entra-app 220ms var(--vt-curva) 110ms both;
   }
 }
 @keyframes vt-sale {
