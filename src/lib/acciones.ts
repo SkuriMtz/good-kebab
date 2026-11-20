@@ -10,7 +10,7 @@ import { clienteServicio } from "./supabase/servicio";
 
 /**
  * LO QUE ATENDEL HACE EN TUS APPS (crear, mover o cancelar citas, mandar
- * correos, crear tareas…), según «Qué hace solo» (Ajustes > Atendel):
+ * correos, crear tareas…), según «Qué hace solo» (Ajustes > Autonomía):
  * - Si esa categoría la hace sola, se hace al momento y queda en el historial.
  * - Si no (o si en esa misma respuesta leyó algo de fuera: correos, mensajes
  *   de clientes, datos de apps), NO se hace: queda en «Necesita tu OK»

@@ -410,7 +410,7 @@ export function OficinaReal({
           hora={hora}
           activa={activa}
           zona={zona}
-          hrefAjustes="/panel?vista=ajustes&seccion=atendel"
+          hrefAjustes="/panel?vista=ajustes&seccion=capacidades"
           alRevisar={async () => {
             const { error } = await createClient().rpc("revisar_ahora");
             if (error) return "No se pudo revisar ahora. Intenta de nuevo.";

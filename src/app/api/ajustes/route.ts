@@ -48,9 +48,9 @@ export async function PUT(request: NextRequest) {
     await notificar(admin, user.id, {
       tipo: "cuenta_cambio",
       agente: "iris",
-      chat: `Cambió «Qué hace solo»:\n${lista}\n\nSi no fuiste tú, revísalo en [Ajustes → Atendel](/panel?vista=ajustes&seccion=atendel) y cierra la sesión en todos lados en [Ajustes → Cuenta](/panel?vista=ajustes&seccion=cuenta).`,
+      chat: `Cambió «Qué hace solo»:\n${lista}\n\nSi no fuiste tú, revísalo en [Ajustes → Autonomía](/panel?vista=ajustes&seccion=autonomia) y cierra la sesión en todos lados en [Ajustes → Cuenta](/panel?vista=ajustes&seccion=cuenta).`,
       corto: `Cambió «Qué hace solo» (${cambios.length === 1 ? `«${cambios[0].titulo}»` : `${cambios.length} cosas`}). Si no fuiste tú, revísalo.`,
-      enlace: "/panel?vista=ajustes&seccion=atendel",
+      enlace: "/panel?vista=ajustes&seccion=autonomia",
       clave: `autonomia:${Math.floor(Date.now() / 1_800_000)}`,
       chatSiempre: true,
       excepto: aparatoDe(request),

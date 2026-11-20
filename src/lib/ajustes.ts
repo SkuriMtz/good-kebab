@@ -219,6 +219,8 @@ export const DIAS_INFORME = [
 export type DatosCfdi = { rfc: string; razonSocial: string; regimen: string; codigoPostal: string; uso: string; correo: string };
 
 export type AjustesCuenta = {
+  /** Cómo quiere el dueño que Atendel le diga («Caro», «Don Luis»); "" = por su nombre. */
+  apodo: string;
   /** Cómo quiere que le escriban a sus clientes, con sus palabras (como las instrucciones de una IA). */
   instrucciones: string;
   firma: string;
@@ -258,10 +260,12 @@ export const aparienciaDe = (a: AjustesCuenta): Apariencia => Object.fromEntries
 
 export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;
+export const MAX_APODO = 40;
 export const MAX_VOZ = 1200;
 export const MAX_REGLAS = 600;
 
 export const AJUSTES_INICIALES: AjustesCuenta = {
+  apodo: "",
   instrucciones: "",
   firma: "",
   voz: "",
@@ -327,6 +331,7 @@ export function limpiarAjustes(entrada: unknown): AjustesCuenta {
     if (r) reglas[id] = r;
   }
   return {
+    apodo: texto(a.apodo, MAX_APODO),
     instrucciones: texto(a.instrucciones, MAX_INSTRUCCIONES),
     firma: texto(a.firma, MAX_FIRMA),
     voz: texto(a.voz, MAX_VOZ),
@@ -406,12 +411,13 @@ export function bloqueParaAgentes(a: AjustesCuenta, agentes: readonly IdAgente[]
     idioma && idioma.id !== "es-MX"
       ? `- Idioma: contesta SIEMPRE en ${idioma.es} (${idioma.nombre}), también los mensajes que dejes listos para sus clientes, aunque estas instrucciones estén en español. Si el dueño te escribe en otro idioma, contéstale en ${idioma.es} de todos modos, salvo que te pida cambiar.`
       : null,
+    a.apodo ? `- Cuando le hables al dueño, dile «${a.apodo}» (así pidió que le digas).` : null,
     a.instrucciones ? `- Cómo escribirles a sus clientes (con sus palabras): «${a.instrucciones}»` : null,
     a.firma ? `- Si escribes un mensaje para que el dueño lo mande a un cliente, fírmalo como: «${a.firma}».` : null,
     `- Zona horaria del negocio: ${zona} (${a.zonaHoraria}). Las horas que menciones van en esa zona.`,
     a.revisionDiaria === "activa"
-      ? `- Revisión diaria: prendida, todos los días a las ${a.horaRevision}. Trabajo por su cuenta en sus apps conectadas: ${a.trabajoAutonomo === "activa" ? "prendido" : "apagado (lo puede prender en Ajustes > Atendel)"}.`
-      : "- Revisión diaria: apagada (la puede prender en Ajustes > Atendel > Revisión diaria).",
+      ? `- Revisión diaria: prendida, todos los días a las ${a.horaRevision}. Trabajo por su cuenta en sus apps conectadas: ${a.trabajoAutonomo === "activa" ? "prendido" : "apagado (lo puede prender en Ajustes > Capacidades)"}.`
+      : "- Revisión diaria: apagada (la puede prender en Ajustes > Capacidades > Revisión diaria).",
     ...agentes.filter((id) => a.reglas[id]).map((id) => `- Reglas del dueño para ${AGENTE_POR_ID[id].nombre}: «${a.reglas[id]}»`),
   ].filter(Boolean);
   return `\n\nPREFERENCIAS DEL DUEÑO (las eligió en Ajustes; síguelas, salvo que pidan algo inseguro o que vaya contra tus reglas de solo lectura):\n${lineas.join("\n")}`;

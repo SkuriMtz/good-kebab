@@ -279,7 +279,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
               items={tablero.filter((i) => i.columna === "revisar").map((i) => ({ id: i.id, titulo: i.titulo, detalle: i.para }))}
               href="/pruebalo?vista=pendientes"
             />
-            <RevisionDiaria revision={revision} hoy={revision.fecha} hora="08:00" activa zona="America/Mexico_City" hrefAjustes="/pruebalo?vista=ajustes&seccion=atendel" alRevisar={() => null} />
+            <RevisionDiaria revision={revision} hoy={revision.fecha} hora="08:00" activa zona="America/Mexico_City" hrefAjustes="/pruebalo?vista=ajustes&seccion=capacidades" alRevisar={() => null} />
           </>
         }
         alAprobar={(id) => marcar(id, "aprobado")}

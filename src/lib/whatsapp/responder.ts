@@ -198,7 +198,7 @@ export async function responderWhatsapp(admin: SupabaseClient, id: string): Prom
   // 3. ¿Puede trabajar?
   const [{ data: filaAjustes }, cuenta] = await Promise.all([admin.from("ajustes_cuenta").select("datos").eq("owner_id", dueno).maybeSingle(), cargarCuenta(admin, dueno)]);
   const aj = limpiarAjustes(filaAjustes?.datos);
-  if (aj.trabajoAutonomo !== "activa") return sinResponder("tienes apagado «Que trabajen por su cuenta» (Ajustes > Atendel).");
+  if (aj.trabajoAutonomo !== "activa") return sinResponder("tienes apagado «Que trabajen por su cuenta» (Ajustes > Capacidades).");
   const { data: gastos } = await admin.from("trabajo_uso").select("costo").eq("owner_id", dueno).gte("creado_en", inicioSemana(aj.zonaHoraria));
   const gastado = (gastos ?? []).reduce((n, g) => n + (Number(g.costo) || 0), 0);
   if (gastado + MINIMO > cuenta.plan.trabajo.semana) return sinResponder("ya se usó todo el trabajo por su cuenta de esta semana (se renueva el lunes).");
@@ -366,7 +366,7 @@ ${perfilTexto}
       // Repite palabra por palabra un pedazo de lo de adentro (60 letras o más): podría estar enseñando algo interno
       porQue = "mi respuesta repite palabra por palabra un pedazo de mis instrucciones o de tus Reglas, Procesos o Memoria, y eso podría ser algo interno que el cliente no debe ver.";
     } else if (aj.autonomia[tema] !== "solo") {
-      porQue = `es de «${AUTONOMIA.find((x) => x.id === tema)?.titulo ?? "algo nuevo"}», y eso me pediste que te lo pregunte antes (lo cambias en Ajustes > Atendel > Qué hace solo).`;
+      porQue = `es de «${AUTONOMIA.find((x) => x.id === tema)?.titulo ?? "algo nuevo"}», y eso me pediste que te lo pregunte antes (lo cambias en Ajustes > Autonomía).`;
     } else if (!cubierto) {
       porQue = "no está en tus Reglas ni en tu perfil, y no quiero inventarle nada.";
     } else {

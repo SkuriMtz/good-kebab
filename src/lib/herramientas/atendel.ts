@@ -164,7 +164,7 @@ export function herramientaVerAtendel(supabase: SupabaseClient, userId: string, 
 
   async function revision(): Promise<string> {
     const { data: r } = await supabase.from("revisiones").select("fecha, creado_en, partes, faltan").eq("owner_id", userId).order("fecha", { ascending: false }).limit(1).maybeSingle();
-    if (!r) return "REVISIÓN DIARIA: todavía no hay ninguna (llega sola a la hora elegida en Ajustes > Atendel).";
+    if (!r) return "REVISIÓN DIARIA: todavía no hay ninguna (llega sola a la hora elegida en Ajustes > Capacidades).";
     const partes = Array.isArray(r.partes) ? (r.partes as { agente?: unknown; faltan?: { texto?: unknown }[] }[]) : [];
     const faltan = partes.flatMap((p) => (Array.isArray(p.faltan) ? p.faltan : []).map((f) => `- ${quienAgente(p.agente)}: ${corta(f?.texto, 200)}`));
     return [`REVISIÓN DIARIA (${cuando(r.creado_en)}): ${Number(r.faltan) || 0} cosas por hacer para que el equipo trabaje completo.`, ...(faltan.length ? faltan : ["- Todo en orden."])].join("\n");

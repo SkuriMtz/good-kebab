@@ -10,6 +10,7 @@ import {
   ACENTOS,
   FUENTES,
   IDIOMAS,
+  MAX_APODO,
   MAX_FIRMA,
   MAX_VOZ,
   NOMBRE_FUENTE,
@@ -40,9 +41,11 @@ import {
 } from "@/lib/ajustes";
 import { activarAvisos, alCambiarInstalacion, apagarAvisos, esIOS, estaInstalada, estadoAparato, instalar, puedeInstalar, type EstadoAparato } from "@/lib/avisos-aparato";
 import { mostrarWhatsapp, normalizarWhatsapp, type ContactoEquipo } from "@/lib/equipo";
-import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil } from "@/lib/nucleo-tipos";
+import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formatoPeso, type CampoPerfil, type IdApp } from "@/lib/nucleo-tipos";
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
+import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { LOGO_APP } from "@/lib/conexiones/logos";
 import { nombresDeVoces, type GeneroVoz } from "@/lib/voces-atendel";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 import { useFuenteNegocio } from "./negocio/fuente";
@@ -61,10 +64,10 @@ import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
  * WhatsApp) dice "Pronto". En /pruebalo nada se guarda.
  */
 
-export const IDS_AJUSTE = ["atendel", "apariencia", "negocio", "agentes", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
+export const IDS_AJUSTE = ["atendel", "autonomia", "capacidades", "apariencia", "negocio", "agentes", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
 export type IdAjuste = (typeof IDS_AJUSTE)[number];
 /** Secciones que ya no se muestran (lo suyo vive en Tu negocio o todavía no funciona): más simple. */
-const OCULTAS: readonly string[] = ["negocio", "agentes", "conexiones"];
+const OCULTAS: readonly string[] = ["negocio", "agentes"];
 export const esIdAjuste = (v: unknown): v is IdAjuste => typeof v === "string" && (IDS_AJUSTE as readonly string[]).includes(v) && !OCULTAS.includes(v);
 
 /** Los campos del perfil del negocio que se editan aquí (los demás, en Tu negocio). */
@@ -134,7 +137,7 @@ const OPCIONES: Opcion[] = [
   { parte: "atendel", titulo: "Firma", claves: "nombre mensajes despedida" },
   { parte: "atendel", titulo: "Perfil del negocio", claves: "datos negocio" },
   { parte: "atendel", titulo: "Documentos", claves: "archivos pdf docx subir" },
-  { parte: "atendel", titulo: "Tu visto bueno antes de enviar", claves: "aprobar aprobacion enviar revisar" },
+  { parte: "autonomia", titulo: "Tu visto bueno antes de enviar", claves: "aprobar aprobacion enviar revisar" },
   { parte: "apariencia", titulo: "Tema", claves: "oscuro claro sistema modo noche dia" },
   { parte: "apariencia", titulo: "Color", claves: "acento azul morado rosa rojo ambar verde turquesa grafito gris botones" },
   { parte: "apariencia", titulo: "Letra de la interfaz", claves: `fuente tipografia tipo de letra panel ${FUENTES.map((f) => NOMBRE_FUENTE[f]).join(" ")}` },
@@ -151,8 +154,13 @@ const OPCIONES: Opcion[] = [
   { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
   { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
   { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
-  { parte: "atendel", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
-  { parte: "atendel", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
+  { parte: "capacidades", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
+  { parte: "capacidades", titulo: "Que trabajen por su cuenta", claves: "trabajo autonomo solo aunque no estes correo whatsapp" },
+  { parte: "capacidades", titulo: "Modelo: Rápido o Avanzado", claves: "modelo rapido avanzado inteligencia" },
+  { parte: "capacidades", titulo: "Modo plática", claves: "voz hablar platica microfono escuchar" },
+  { parte: "autonomia", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
+  { parte: "conexiones", titulo: "Conectar una app", claves: "apps conectar gmail google calendar whatsapp outlook drive integraciones" },
+  { parte: "privacidad", titulo: "Política de acceso a tus cuentas", claves: "acceso cuentas conectadas tokens cifrado google" },
   { parte: "notificaciones", titulo: "Avisos en este aparato", claves: "activar notificaciones celular push prueba" },
   { parte: "notificaciones", titulo: "Instalar Atendel", claves: "app pantalla de inicio icono instalar" },
   { parte: "notificaciones", titulo: "En la app", claves: "que tanto todo importante urgente nada" },
@@ -183,20 +191,25 @@ const OPCIONES: Opcion[] = [
   { parte: "privacidad", titulo: "Borrar tu cuenta", claves: "eliminar borrar cuenta datos" },
   { parte: "privacidad", titulo: "Contraseñas y llaves", claves: "contrasena llaves seguridad tokens" },
   { parte: "cuenta", titulo: "Foto de perfil", claves: "foto avatar imagen" },
-  { parte: "cuenta", titulo: "Nombre", claves: "nombre perfil" },
+  { parte: "cuenta", titulo: "Nombre completo", claves: "nombre perfil" },
+  { parte: "cuenta", titulo: "¿Cómo quieres que te diga Atendel?", claves: "apodo nombre como te dice llamar saludo" },
+  { parte: "cuenta", titulo: "¿A qué se dedica tu negocio?", claves: "giro negocio trabajo industria dedica" },
   { parte: "cuenta", titulo: "Correo", claves: "email correo electronico" },
   { parte: "cuenta", titulo: "Zona horaria", claves: "hora horario zona" },
   { parte: "cuenta", titulo: "Cerrar sesión en todos lados", claves: "salir sesion dispositivos" },
 ];
 const PARTES: Parte[] = [
-  { id: "atendel", etiqueta: "Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben revision diaria hora revisar solos socio autonomia solo pregunta permiso", grupo: 0, sub: "Cómo trabajan tus agentes y lo que saben de tu negocio." },
-  { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu voz voces habla", grupo: 0, sub: "Tema, colores, letra e idioma." },
+  { id: "cuenta", etiqueta: "Cuenta", icono: "persona", claves: "perfil nombre apodo como te dice correo zona horaria sesion salir negocio dedica", grupo: 0, sub: "Tu perfil, zona horaria y sesión." },
+  { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 0, sub: "Plan, pago, facturas y datos para CFDI." },
+  { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 0, sub: "Cuánto llevas de tu sesión y de la semana." },
+  { id: "apariencia", etiqueta: "Apariencia", icono: "sol", claves: "tema oscuro claro colores acento letra idioma menu voz voces habla", grupo: 1, sub: "Tema, colores, letra, idioma y voz." },
+  { id: "atendel", etiqueta: "Tu Atendel", icono: "marca", claves: "agentes instrucciones como escriben clientes trato tono estilo firma saben perfil documentos huella", grupo: 1, sub: "Cómo les escribe a tus clientes y lo que sabe de tu negocio." },
+  { id: "autonomia", etiqueta: "Autonomía", icono: "check-circulo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno confianza", grupo: 1, sub: "Qué hace solo y qué te pregunta antes de hacerlo." },
+  { id: "capacidades", etiqueta: "Capacidades", icono: "rayo", claves: "revision diaria hora revisar solos trabajo por su cuenta modelo rapido avanzado platica voz", grupo: 1, sub: "Lo que Atendel puede hacer por ti, y cuándo." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos notificaciones celular telefono app instalar aparato whatsapp silencio noche prueba", grupo: 1, sub: "Avisos en tu celular o tu compu, aunque no tengas Atendel abierto." },
-  { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 1, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
-  { id: "uso", etiqueta: "Uso", icono: "grafica", claves: "uso sesion semana reinicia limite", grupo: 2, sub: "Cuánto llevas de tu sesión y de la semana." },
-  { id: "plan", etiqueta: "Plan y facturación", icono: "facturacion", claves: "plan pago facturas cfdi rfc sat", grupo: 2, sub: "Plan, pago, facturas y datos para CFDI." },
-  { id: "privacidad", etiqueta: "Privacidad", icono: "escudo", claves: "aviso borrar exportar datos seguridad", grupo: 3, sub: "Aviso de privacidad, borrar o exportar tus datos y seguridad." },
-  { id: "cuenta", etiqueta: "Cuenta", icono: "persona", claves: "perfil nombre correo zona horaria sesion salir", grupo: 3, sub: "Tus datos, zona horaria y sesión." },
+  { id: "privacidad", etiqueta: "Privacidad y seguridad", icono: "escudo", claves: "aviso borrar exportar datos seguridad privacidad acceso cuentas", grupo: 1, sub: "Tus datos, cómo los cuidamos y tu seguridad." },
+  { id: "conexiones", etiqueta: "Apps conectadas", icono: "enlace", claves: "apps conectar gmail google calendar whatsapp outlook drive integraciones", grupo: 2, sub: "Las apps con las que trabaja Atendel." },
+  { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 2, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
 ];
 
 /** Con qué letra se ve cada opción en su desplegable (las variables las pone el armazón del panel). */
@@ -1132,7 +1145,7 @@ export function VentanaAjustes({
 
   // El perfil del negocio se lee la primera vez que se abre "Mi negocio" (cuenta real)
   useEffect(() => {
-    if (!abierta || seccion !== "negocio" || perfil || !guardar) return;
+    if (!abierta || (seccion !== "negocio" && seccion !== "cuenta") || perfil || !guardar) return;
     let vivo = true;
     fetch("/api/negocio/perfil", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
@@ -1230,22 +1243,11 @@ export function VentanaAjustes({
             </Enlace>
           </Fila>
         </Grupo>
-        <Grupo titulo="Revisión diaria">
-          <Fila titulo="Que revisen todo solos" texto="Cada día, a esa hora, cada agente revisa su parte y te deja en la Oficina lo que falta, aunque no entres al panel.">
-            <Interruptor etiqueta="Revisión diaria" activo={ajustes.revisionDiaria === "activa"} alCambiar={(v) => cambiar("revisionDiaria", v ? "activa" : "apagada")} />
-          </Fila>
-          {ajustes.revisionDiaria === "activa" ? (
-            <Fila titulo="A qué hora" texto="En la zona horaria de tu cuenta." hija>
-              <Selector etiqueta="Hora de la revisión diaria" valor={ajustes.horaRevision} alCambiar={(v) => cambiar("horaRevision", v as HoraRevision)} opciones={HORAS_REVISION.map((h) => ({ id: h, nombre: h }))} />
-            </Fila>
-          ) : null}
-          <Fila
-            titulo="Que trabajen por su cuenta"
-            texto="Trabajan aunque no estés: contestan tu WhatsApp, revisan tu correo cada 10 minutos y te avisan en el chat de lo importante (con la respuesta lista para un clic) y, después de la revisión diaria, te dejan el plan del día. Lo que es para un cliente sigue lo que elijas en «Qué hace solo». Tiene su propio límite, aparte del chat."
-          >
-            <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
-          </Fila>
-        </Grupo>
+      </>
+    );
+  } else if (seccion === "autonomia") {
+    contenido = (
+      <>
         <Grupo titulo="Qué hace solo" texto="Atendel es tu socio: lo de rutina lo hace solo y te avisa después. Lo que marques, te lo pregunta antes.">
           {AUTONOMIA.map((x) => (
             <Fila key={x.id} ancla={x.id === "preguntas" ? "Qué hace solo" : undefined} titulo={x.titulo} texto={x.texto}>
@@ -1264,8 +1266,41 @@ export function VentanaAjustes({
         <Grupo titulo="Mensajes a tus clientes">
           <Fila
             titulo="WhatsApp de tus clientes"
-            texto="Con WhatsApp Business conectado (Tu negocio → Apps), Aura contesta sola lo que marcaste como «Lo hace solo», siempre con tus Reglas. Lo demás te lo deja en «Necesita tu OK», y de todo te avisa en el chat («Avisos de Atendel»). Nunca dice que algo salió si no salió."
+            texto="Con WhatsApp Business conectado (Apps conectadas), Aura contesta sola lo que marcaste como «Lo hace solo», siempre con tus Reglas. Lo demás te lo deja en «Necesita tu OK», y de todo te avisa en el chat («Avisos de Atendel»). Nunca dice que algo salió si no salió."
           />
+        </Grupo>
+      </>
+    );
+  } else if (seccion === "capacidades") {
+    contenido = (
+      <>
+        <Grupo titulo="Revisión diaria">
+          <Fila titulo="Que revisen todo solos" texto="Cada día, a esa hora, cada agente revisa su parte y te deja en la Oficina lo que falta, aunque no entres al panel.">
+            <Interruptor etiqueta="Revisión diaria" activo={ajustes.revisionDiaria === "activa"} alCambiar={(v) => cambiar("revisionDiaria", v ? "activa" : "apagada")} />
+          </Fila>
+          {ajustes.revisionDiaria === "activa" ? (
+            <Fila titulo="A qué hora" texto="En la zona horaria de tu cuenta." hija>
+              <Selector etiqueta="Hora de la revisión diaria" valor={ajustes.horaRevision} alCambiar={(v) => cambiar("horaRevision", v as HoraRevision)} opciones={HORAS_REVISION.map((h) => ({ id: h, nombre: h }))} />
+            </Fila>
+          ) : null}
+          <Fila
+            titulo="Que trabajen por su cuenta"
+            texto="Trabajan aunque no estés: contestan tu WhatsApp, revisan tu correo cada 10 minutos y te avisan en el chat de lo importante (con la respuesta lista para un clic) y, después de la revisión diaria, te dejan el plan del día. Lo que es para un cliente sigue lo que elijas en «Qué hace solo». Tiene su propio límite, aparte del chat."
+          >
+            <Interruptor etiqueta="Trabajo por su cuenta" activo={ajustes.trabajoAutonomo === "activa"} alCambiar={(v) => cambiar("trabajoAutonomo", v ? "activa" : "apagada")} />
+          </Fila>
+        </Grupo>
+        <Grupo titulo="En el chat">
+          <Fila titulo="Modelo: Rápido o Avanzado" texto="Lo eliges en la barra del chat. Rápido es para el día a día; Avanzado es para lo pesado (Excel, análisis) y gasta más de tu límite.">
+            <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("uso")}>
+              Ver mi uso
+            </button>
+          </Fila>
+          <Fila titulo="Modo plática" texto="Le hablas y te contesta con voz: toca «Platicar con Atendel» en la barra del chat. La voz la eliges en Apariencia.">
+            <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("apariencia")}>
+              Elegir voz
+            </button>
+          </Fila>
         </Grupo>
       </>
     );
@@ -1483,32 +1518,42 @@ export function VentanaAjustes({
       </>
     );
   } else if (seccion === "conexiones") {
-    const apps: { app: string; titulo: string; texto: string }[] = [
-      { app: "whatsapp_business", titulo: "WhatsApp", texto: "Aura lee tus mensajes y te propone respuestas." },
-      { app: "gmail", titulo: "Correo · Gmail", texto: "Altair lo lee. Solo lectura: nunca envía ni borra nada." },
-      { app: "outlook", titulo: "Correo · Outlook", texto: "Lo mismo, si usas Outlook." },
-      { app: "google_calendar", titulo: "Calendario", texto: "Aura ve tu agenda: qué citas tienes y qué horas quedan libres." },
-      { app: "instagram", titulo: "Redes · Instagram", texto: "Los mensajes directos de tu cuenta de negocio." },
-      { app: "messenger", titulo: "Redes · Messenger", texto: "Los mensajes de tu página de Facebook." },
-      { app: "google_business", titulo: "Google Business", texto: "Rigel lee tus reseñas de Google y te propone respuestas." },
-    ];
+    const tuyas = [...new Set([...(datos.gmail ? ["gmail"] : []), ...datos.conectadas])].filter((id): id is IdApp => esIdApp(id));
     contenido = (
       <>
-        <Grupo>
-          {apps.map((a) => (
-            <Fila key={a.app} titulo={a.titulo} texto={a.texto}>
-              <Estado tono={conectada(a.app) ? "exito" : "neutro"}>{conectada(a.app) ? "Conectada" : "Sin conectar"}</Estado>
-              <Enlace href={`${datos.hrefs.apps}&app=${a.app}`} className={claseBoton("borde", true)}>
-                {conectada(a.app) ? "Ver" : "Conectar"}
-              </Enlace>
-            </Fila>
-          ))}
+        <Grupo titulo="Tus apps">
+          {tuyas.length ? (
+            tuyas.map((id) => (
+              <Fila
+                key={id}
+                titulo={
+                  <span className="pc-aj-app">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
+                    <img className="pc-aj-app__logo" src={LOGO_APP[id]} alt="" width={20} height={20} loading="lazy" decoding="async" />
+                    {APP_POR_ID[id].nombre}
+                  </span>
+                }
+              >
+                <Estado tono="exito">Conectada</Estado>
+                <Enlace href={`${datos.hrefs.apps}&app=${id}`} className={claseBoton("borde", true)}>
+                  Ver
+                </Enlace>
+              </Fila>
+            ))
+          ) : (
+            <Fila titulo="Todavía no conectas ninguna app" texto="Conecta tu correo, tu agenda o tu WhatsApp para que Atendel trabaje con ellos." />
+          )}
         </Grupo>
         <Grupo>
-          <Fila titulo="Todas las apps" texto="Pagos, tiendas, notas y más: cada una con tu propia cuenta y solo para leer.">
+          <Fila titulo="Conectar una app" texto="Correo, agenda, WhatsApp, pagos, tiendas, notas y más, cada una con tu propia cuenta. Puedes quitarla cuando quieras.">
             <Enlace href={datos.hrefs.apps} className={claseBoton("borde", true)}>
               Ver apps
             </Enlace>
+          </Fila>
+          <Fila titulo="Qué hace con ellas" texto="Lee lo que pasa y, con tu permiso, hace cosas por ti: contestar, agendar, crear tareas. Lo que hace solo y lo que te pregunta lo eliges en Autonomía.">
+            <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("autonomia")}>
+              Elegir
+            </button>
           </Fila>
         </Grupo>
       </>
@@ -1786,8 +1831,12 @@ export function VentanaAjustes({
           ) : null}
         </Grupo>
         <Grupo titulo="Seguridad">
-          <Fila titulo="Solo lectura" texto="Por ahora tu equipo solo lee lo que conectas: no envía, no borra ni paga nada por su cuenta.">
-            <Estado tono="exito">Activo</Estado>
+          <Fila titulo="Tus cuentas conectadas, cifradas" texto="Atendel nunca guarda las contraseñas de tus apps. Los permisos que le das se guardan cifrados y los quitas cuando quieras.">
+            {legalesCompletos() ? (
+              <a href="/acceso-a-tus-datos" target="_blank" rel="noopener" className={claseBoton("borde", true)}>
+                Ver política
+              </a>
+            ) : null}
           </Fila>
           <Fila titulo="Contraseñas y llaves" texto="Atendel nunca te las pide en el chat. Si alguien lo hace a nombre de Atendel, no las des." />
           <Fila titulo="Cada cuenta ve solo lo suyo" texto="Nadie más puede leer tus conversaciones ni tus números." />
@@ -1803,8 +1852,18 @@ export function VentanaAjustes({
               {(nombre.trim()[0] ?? "A").toUpperCase()}
             </span>
           </Fila>
-          <Fila titulo="Nombre" texto="Como te saludan tus agentes.">
-            <Campo etiqueta="Nombre" valor={nombre} alCambiar={setNombre} max={80} />
+          <Fila titulo="Nombre completo">
+            <Campo etiqueta="Nombre completo" valor={nombre} alCambiar={setNombre} max={80} />
+          </Fila>
+          <Fila titulo="¿Cómo quieres que te diga Atendel?" texto="Si lo dejas vacío, te dice por tu nombre.">
+            <Campo etiqueta="Cómo quieres que te diga Atendel" valor={ajustes.apodo} alCambiar={(v) => cambiar("apodo", v)} ejemplo={nombre.trim().split(/\s+/)[0] || "Caro"} max={MAX_APODO} />
+          </Fila>
+          <Fila titulo="¿A qué se dedica tu negocio?" texto="En dos o tres líneas. Atendel lo lee antes de contestar." apilada>
+            {perfil === null && guardar ? (
+              <p className="pc-aj-cargando">Cargando…</p>
+            ) : (
+              <Area etiqueta="A qué se dedica tu negocio" valor={perfil?.a_que_se_dedica ?? ""} alCambiar={(v) => cambiarPerfil("a_que_se_dedica", v)} ejemplo="Ej.: Estudio de uñas con cita; también vendemos productos en el local." max={2000} filas={3} />
+            )}
           </Fila>
           <Fila titulo="Correo" texto={datos.demo ? "Un correo de ejemplo: no es de nadie." : "Con el que entras a Atendel."}>
             <Valor>{datos.correo}</Valor>
@@ -1914,6 +1973,12 @@ export function VentanaAjustes({
             ) : null}
             {partes.length === 0 && opciones.length === 0 ? <li className="pc-aj__nada">Nada con “{busqueda.trim()}”.</li> : null}
           </ul>
+          {legalesCompletos() ? (
+            <a className="pc-aj__pie" href="/privacy" target="_blank" rel="noopener">
+              Centro de privacidad
+              <Icono nombre="flecha-arriba-derecha" tam={16} />
+            </a>
+          ) : null}
         </nav>
         <div className="pc-aj__contenido" key={seccion} tabIndex={-1} {...AUTOFOCO}>
           <h2 className="pc-aj__titulo">{parte.etiqueta}</h2>

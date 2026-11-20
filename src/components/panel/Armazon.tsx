@@ -275,7 +275,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
   const routerAjustes = useRouter();
   const abrirAjustes = useCallback(
     (parte?: string | null) => {
-      const movida = parte ? ({ negocio: "perfil", agentes: "reglas", conexiones: "apps" } as Record<string, string>)[parte] : undefined;
+      const movida = parte ? ({ negocio: "perfil", agentes: "reglas" } as Record<string, string>)[parte] : undefined;
       if (movida) {
         routerAjustes.replace(`${hrefs.negocio}&tab=${movida}`);
         return;

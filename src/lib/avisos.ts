@@ -39,6 +39,9 @@ const ENLACES_AVISO = new Set([
   "/panel?vista=ajustes&seccion=plan",
   "/panel?vista=ajustes&seccion=cuenta",
   "/panel?vista=ajustes&seccion=atendel",
+  "/panel?vista=ajustes&seccion=autonomia",
+  "/panel?vista=ajustes&seccion=capacidades",
+  "/panel?vista=ajustes&seccion=conexiones",
 ]);
 
 /** La conversación «Avisos de Atendel» del dueño (la crea si no hay). */

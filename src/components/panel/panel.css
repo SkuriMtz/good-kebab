@@ -10234,3 +10234,40 @@ a.pc-correo__accion:hover {
     font-size: 16px;
   }
 }
+
+/* ---------- 48. Ajustes como los de Claude: el menú con el Centro de privacidad abajo y las apps con su logo ---------- */
+.pc-aj__nav {
+  display: flex;
+  flex-direction: column;
+}
+.pc-aj__pie {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding: 16px 10px 2px;
+  color: var(--pc-texto-2);
+  font-size: 13px;
+  transition: color 120ms ease;
+}
+.pc-aj__pie:hover {
+  color: var(--pc-texto);
+}
+.pc-aj-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.pc-aj-app__logo {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+@media (max-width: 859px) {
+  .pc-aj__pie {
+    display: none;
+  }
+}
