@@ -462,6 +462,8 @@ export const zh: Diccionario = {
     desdeTuCorreo: "来自你的邮箱",
     seLoPaso: (nombre: string) => `我已经交给 ${nombre} 了。`,
     pidele: "让 Atendel 帮你做点什么…",
+    /** Lo que te deja para revisar (un archivo): tú lo apruebas. */
+    revision: { cambios: "要求修改", aprobar: "批准", aprobado: (archivo: string) => `你已批准 ${archivo}，它已放进你的办公室。` },
     tu: "你",
     trabajaCon: "可连接",
     picar: (quien: string) => [`别点这里！👀`, `嘿！这只是演示手机。`, `别挠我！😆`, `嘘……${quien} 正在工作。`, `只看，别碰。😄`, `哎呀！差点把我摔了。`],
@@ -469,7 +471,7 @@ export const zh: Diccionario = {
       lola: { aviso: "Mariana 在 WhatsApp 上给你发消息：她问一小时的课多少钱，想约周四。", reporte: "好了。我告诉她一小时的课是 $850，并给了 11:00 或 4:30 两个时间。她选了 4:30，我会在前一天提醒她。" },
       clara: { aviso: "Andrea Solís 给你发了邮件：她想把周二的预约改到下午。", reporte: "我用你的邮箱给她提供了 5:00 或 6:30。她选了 5:00：预约已改好，前一天会提醒她。" },
       victor: { aviso: "Paola 上周问过一小时的课，但还没预约。", reporte: "我在 WhatsApp 上给她提供了周五 12:00 或周六 10:30。她选了周五：已经约好，我会把地址发给她。" },
-      iris: { aviso: "这周有三位客人问你的价格是不是最新的。", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。" },
+      iris: { aviso: "这周有三位客人问你的价格是不是最新的。", reporte: "我比较了附近 4 家店：价格在 $590 到 $990 之间。你是 $750，正好在中间。表格和来源放在 附近价格.xlsx。要批准吗？" },
     },
   },
 

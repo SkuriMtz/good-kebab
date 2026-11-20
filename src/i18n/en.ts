@@ -466,6 +466,8 @@ export const en: Diccionario = {
     desdeTuCorreo: "from your email",
     seLoPaso: (nombre: string) => `I passed it to ${nombre}.`,
     pidele: "Ask Atendel anything…",
+    /** Lo que te deja para revisar (un archivo): tú lo apruebas. */
+    revision: { cambios: "Request changes", aprobar: "Approve", aprobado: (archivo: string) => `You approved ${archivo}. It’s in your Office now.` },
     tu: "You",
     trabajaCon: "Works with",
     picar: (quien: string) => [`Not here! 👀`, `Hey! This phone is just a demo.`, `No tickling! 😆`, `Shh… ${quien} is working.`, `Look, don't touch. 😄`, `Whoa! You almost dropped me.`],
@@ -473,7 +475,7 @@ export const en: Diccionario = {
       lola: { aviso: "Mariana messaged you on WhatsApp: she's asking what the one-hour session costs and wants to come in Thursday.", reporte: "Done. I told her the one-hour session is $850 and offered 11:00 or 4:30. She picked 4:30; I'll send her a reminder the day before." },
       clara: { aviso: "Andrea Solís emailed you: she wants to move her Tuesday appointment to the afternoon.", reporte: "I offered 5:00 or 6:30 from your email. She picked 5:00: I moved her appointment and I'll remind her the day before." },
       victor: { aviso: "Paola asked about the one-hour session last week and didn't book.", reporte: "I messaged her on WhatsApp with Friday at 12:00 or Saturday at 10:30. She picked Friday: she's booked and I'm sending her the location." },
-      iris: { aviso: "Three clients asked this week if your prices are up to date.", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx." },
+      iris: { aviso: "Three clients asked this week if your prices are up to date.", reporte: "I checked 4 nearby businesses: they charge between $590 and $990. You're at $750, right in the middle. I left the table with sources in prices-nearby.xlsx. Approve it?" },
     },
   },
 

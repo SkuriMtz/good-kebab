@@ -16,7 +16,8 @@ const ARCHIVO = /[^\s,:;]+\.(?:xlsx|pdf|docx)/g;
  * Atendel ya sabe lo que pasó (lo leyó en tu WhatsApp, tu correo o tus
  * apps), se lo pasa al agente que le toca y te avisa; el agente lo resuelve
  * y te cuenta qué hizo (y lo que quedó, con su palomita). Tú no tienes que
- * pedírselo: Atendel no depende de ti (lo de dinero sí te lo pregunta). Los textos salen del diccionario
+ * pedírselo: Atendel no depende de ti (lo de dinero sí te lo pregunta, y lo
+ * que te deja para revisar, como la tabla de Mira, lo apruebas tú). Los textos salen del diccionario
  * (conversacion.conAtendel) y los nombres son de ejemplo.
  * Al llegar a la pantalla, los mensajes entran uno tras otro (con los tres
  * puntos de «escribiendo»); con «reducir movimiento», todo desde el inicio.
@@ -31,8 +32,14 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
   const guion = C.conAtendel[agente];
   const nota = d.detalle[agente].conversacion.findLast((m) => m.de === "nota")?.texto;
   const archivos = guion.reporte.match(ARCHIVO) ?? [];
-  // 1 Atendel te avisa · 2 te dice a quién se lo pasó · 3 el agente te cuenta qué hizo · 4 lo que quedó
-  const pasos = nota ? 4 : 3;
+  // Si te deja un archivo (Mira), tú lo apruebas: salen «Pedir cambios» y «Aprobar», se toca «Aprobar» y queda la nota.
+  const archivo = archivos[0];
+  const revisar = archivo !== undefined;
+  const notaFinal = revisar ? C.revision.aprobado(archivo) : nota;
+  // 1 Atendel te avisa · 2 te dice a quién se lo pasó · 3 el agente te cuenta qué hizo
+  // · (si hay que revisar: 4 tocas «Aprobar») · lo que quedó
+  const pasoNota = revisar ? 5 : 4;
+  const pasos = notaFinal ? pasoNota : 3;
 
   const raiz = useRef<HTMLDivElement>(null);
   const [vistos, setVistos] = useState(0);
@@ -68,7 +75,14 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
       if (cancelado) return;
       setEscribe(null);
       setVistos(3);
-      if (pasos > 3) {
+      if (pasos === 5) {
+        // Tiempo para leer, y luego se toca «Aprobar»
+        await esperar(1600);
+        if (cancelado) return;
+        setVistos(4);
+        await esperar(450);
+        if (!cancelado) setVistos(5);
+      } else if (pasos > 3) {
         await esperar(700);
         if (!cancelado) setVistos(4);
       }
@@ -163,6 +177,12 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
                   {a}
                 </span>
               ))}
+              {revisar && vistos < pasoNota ? (
+                <span className="conva__revisar" aria-hidden="true">
+                  <span className="conva__boton">{C.revision.cambios}</span>
+                  <span className={`conva__boton conva__boton--si${vistos >= 4 ? " es-tocado" : ""}`}>{C.revision.aprobar}</span>
+                </span>
+              ) : null}
             </div>
           </li>
         ) : escribe === "agente" ? (
@@ -174,12 +194,12 @@ export function ConversacionAtendel({ agente, idioma = "es", activo, pintada = f
           </li>
         ) : null}
 
-        {vistos >= 4 && nota ? (
+        {vistos >= pasoNota && notaFinal ? (
           <li className="conva__nota">
             <span className="conva__nota-icono">
               <Icono nombre="check" tam={14} />
             </span>
-            {nota}
+            {notaFinal}
           </li>
         ) : null}
       </ol>
