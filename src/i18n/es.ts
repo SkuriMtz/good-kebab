@@ -290,16 +290,16 @@ export const es = {
     desdeTuCorreo: "desde tu correo",
     seLoPaso: (nombre: string) => `Ya se lo pasé a ${nombre}.`,
     pidele: "Pídele algo a Atendel…",
-    /** Lo que te deja para revisar (un archivo): tú lo apruebas. */
-    revision: { cambios: "Pedir cambios", aprobar: "Aprobar", aprobado: (archivo: string) => `Aprobaste ${archivo}. Ya quedó en tu Oficina.` },
+    /** La nota cuando apruebas un archivo que te dejó (Mira). */
+    aprobado: (archivo: string) => `Aprobado · ${archivo}`,
     tu: "Tú",
     trabajaCon: "Trabaja con",
     picar: (quien: string) => [`¡Aquí no! 👀`, `¡Ey! Este celular es de muestra.`, `¡Cosquillas no! 😆`, `Shh… ${quien} está trabajando.`, `Mira, pero no toques. 😄`, `¡Uy! Casi me tiras.`],
     conAtendel: {
-      lola: { aviso: "Mariana te escribió por WhatsApp: pregunta cuánto cuesta la sesión de una hora y quiere cita el jueves.", reporte: "Listo. Le dije que la sesión de una hora cuesta $850 y le ofrecí 11:00 o 16:30. Eligió 16:30; un día antes le mando recordatorio." },
-      clara: { aviso: "Andrea Solís te mandó un correo: quiere cambiar su cita del martes a la tarde.", reporte: "Le ofrecí 17:00 o 18:30 desde tu correo. Eligió 17:00: ya moví su cita y un día antes le mando recordatorio." },
-      victor: { aviso: "Paola preguntó por botox la semana pasada y no agendó.", reporte: "Le escribí por WhatsApp con viernes 12:00 o sábado 10:30. Eligió el viernes: ya quedó agendada y le mando la ubicación." },
-      iris: { aviso: "Esta semana tres clientas preguntaron si tus precios están al día.", reporte: "Revisé 4 negocios cercanos: cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-zona.xlsx. ¿La apruebas?" },
+      lola: { aviso: "Mariana te escribió por WhatsApp: pregunta cuánto cuesta la sesión de una hora y quiere cita el jueves.", pregunta: "Le preparé la respuesta: la sesión de una hora cuesta $850 y el jueves hay 11:00 o 16:30. ¿Se la mando?", respuesta: "Sí, mándala", hecho: "Listo, se la mandé. Eligió 16:30: ya quedó agendada y un día antes le mando recordatorio." },
+      clara: { aviso: "Andrea Solís te mandó un correo: quiere cambiar su cita del martes a la tarde.", pregunta: "Le preparé un correo desde tu cuenta con dos horarios para el martes: 17:00 o 18:30. ¿Lo mando?", respuesta: "Sí, mándalo", hecho: "Mandado. Eligió 17:00: ya moví su cita y un día antes le mando recordatorio." },
+      victor: { aviso: "Paola preguntó por botox la semana pasada y no agendó.", pregunta: "Le quiero escribir por WhatsApp con dos opciones: viernes 12:00 o sábado 10:30. ¿Le escribo?", respuesta: "Sí, escríbele", hecho: "Listo. Eligió el viernes: ya quedó agendada y le mandé la ubicación." },
+      iris: { aviso: "Esta semana tres clientas preguntaron si tus precios están al día.", pregunta: "Revisé 4 negocios cercanos: cobran entre $590 y $990. Tú estás en $750, a la mitad. Te dejé la tabla con fuentes en precios-zona.xlsx. ¿La apruebas?", respuesta: "Sí, la apruebo", hecho: "Perfecto, ya quedó en tu Oficina." },
     },
   },
 

@@ -462,16 +462,16 @@ export const fr: Diccionario = {
     desdeTuCorreo: "depuis votre e-mail",
     seLoPaso: (nombre: string) => `Je l'ai confié à ${nombre}.`,
     pidele: "Demandez quelque chose à Atendel…",
-    /** Lo que te deja para revisar (un archivo): tú lo apruebas. */
-    revision: { cambios: "Demander des modifications", aprobar: "Approuver", aprobado: (archivo: string) => `Vous avez approuvé ${archivo}. Le fichier est maintenant dans votre Bureau.` },
+    /** La nota cuando apruebas un archivo que te dejó (Mira). */
+    aprobado: (archivo: string) => `Approuvé · ${archivo}`,
     tu: "Vous",
     trabajaCon: "Travaille avec",
     picar: (quien: string) => [`Pas ici ! 👀`, `Hé ! Ce téléphone est une démo.`, `Pas de chatouilles ! 😆`, `Chut… ${quien} travaille.`, `On regarde, on ne touche pas. 😄`, `Oups ! Vous avez failli me faire tomber.`],
     conAtendel: {
-      lola: { aviso: "Mariana vous a écrit sur WhatsApp : elle demande le prix de la séance d'une heure et veut venir jeudi.", reporte: "C'est fait. Je lui ai dit que la séance d'une heure est à 850 $ et proposé 11h00 ou 16h30. Elle a choisi 16h30 ; je lui envoie un rappel la veille." },
-      clara: { aviso: "Andrea Solís vous a envoyé un e-mail : elle veut déplacer son rendez-vous de mardi à l'après-midi.", reporte: "Je lui ai proposé 17h00 ou 18h30 depuis votre e-mail. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
-      victor: { aviso: "Paola a demandé la séance d'une heure la semaine dernière et n'a pas réservé.", reporte: "Je lui ai écrit sur WhatsApp avec vendredi 12h00 ou samedi 10h30. Elle a choisi vendredi : c'est réservé et je lui envoie l'adresse." },
-      iris: { aviso: "Cette semaine, trois clientes ont demandé si vos prix sont à jour.", reporte: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx. Vous l’approuvez ?" },
+      lola: { aviso: "Mariana vous a écrit sur WhatsApp : elle demande le prix de la séance d'une heure et veut venir jeudi.", pregunta: "J'ai préparé sa réponse : la séance d'une heure est à 850 $ et jeudi il y a 11h00 ou 16h30. Je l'envoie ?", respuesta: "Oui, envoie-la", hecho: "C'est envoyé. Elle a choisi 16h30 : c'est réservé et je lui envoie un rappel la veille." },
+      clara: { aviso: "Andrea Solís vous a envoyé un e-mail : elle veut déplacer son rendez-vous de mardi à l'après-midi.", pregunta: "J'ai préparé un e-mail depuis votre compte avec deux horaires pour mardi : 17h00 ou 18h30. Je l'envoie ?", respuesta: "Oui, envoie-le", hecho: "Envoyé. Elle a choisi 17h00 : rendez-vous déplacé, et un rappel partira la veille." },
+      victor: { aviso: "Paola a demandé la séance d'une heure la semaine dernière et n'a pas réservé.", pregunta: "J'aimerais lui écrire sur WhatsApp avec deux options : vendredi 12h00 ou samedi 10h30. Je lui écris ?", respuesta: "Oui, écris-lui", hecho: "C'est fait. Elle a choisi vendredi : c'est réservé et je lui ai envoyé l'adresse." },
+      iris: { aviso: "Cette semaine, trois clientes ont demandé si vos prix sont à jour.", pregunta: "J'ai comparé 4 commerces proches : entre 590 $ et 990 $. Vous êtes à 750 $, au milieu. Le tableau avec les sources est dans prix-alentour.xlsx. Vous l’approuvez ?", respuesta: "Oui, je l'approuve", hecho: "Parfait, il est maintenant dans votre Bureau." },
     },
   },
 

@@ -462,16 +462,16 @@ export const it: Diccionario = {
     desdeTuCorreo: "dalla tua email",
     seLoPaso: (nombre: string) => `L'ho passato a ${nombre}.`,
     pidele: "Chiedi qualcosa ad Atendel…",
-    /** Lo que te deja para revisar (un archivo): tú lo apruebas. */
-    revision: { cambios: "Chiedi modifiche", aprobar: "Approva", aprobado: (archivo: string) => `Hai approvato ${archivo}. Ora è nel tuo Ufficio.` },
+    /** La nota cuando apruebas un archivo que te dejó (Mira). */
+    aprobado: (archivo: string) => `Approvato · ${archivo}`,
     tu: "Tu",
     trabajaCon: "Lavora con",
     picar: (quien: string) => [`Non qui! 👀`, `Ehi! Questo telefono è solo una demo.`, `Niente solletico! 😆`, `Shh… ${quien} sta lavorando.`, `Guarda, ma non toccare. 😄`, `Ops! Per poco non mi fai cadere.`],
     conAtendel: {
-      lola: { aviso: "Mariana ti ha scritto su WhatsApp: chiede quanto costa la sessione di un'ora e vuole venire giovedì.", reporte: "Fatto. Le ho detto che la sessione di un'ora costa $850 e le ho proposto le 11:00 o le 4:30 del pomeriggio. Ha scelto le 4:30; il giorno prima le mando un promemoria." },
-      clara: { aviso: "Andrea Solís ti ha mandato un'email: vuole spostare l'appuntamento di martedì al pomeriggio.", reporte: "Le ho proposto le 5:00 o le 6:30 del pomeriggio dalla tua email. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
-      victor: { aviso: "La settimana scorsa Paola ha chiesto della sessione di un'ora e non ha prenotato.", reporte: "Le ho scritto su WhatsApp proponendo venerdì alle 12:00 o sabato alle 10:30. Ha scelto venerdì: è fissato e le mando l'indirizzo." },
-      iris: { aviso: "Questa settimana tre clienti hanno chiesto se i tuoi prezzi sono aggiornati.", reporte: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx. La approvi?" },
+      lola: { aviso: "Mariana ti ha scritto su WhatsApp: chiede quanto costa la sessione di un'ora e vuole venire giovedì.", pregunta: "Ho preparato la risposta: la sessione di un'ora costa $850 e giovedì ci sono le 11:00 o le 4:30 del pomeriggio. Gliela mando?", respuesta: "Sì, mandala", hecho: "Fatto, mandata. Ha scelto le 4:30: è fissato e il giorno prima le mando un promemoria." },
+      clara: { aviso: "Andrea Solís ti ha mandato un'email: vuole spostare l'appuntamento di martedì al pomeriggio.", pregunta: "Ho preparato un'email dal tuo account con due orari per martedì: le 5:00 o le 6:30 del pomeriggio. La mando?", respuesta: "Sì, mandala", hecho: "Mandata. Ha scelto le 5:00: appuntamento spostato e promemoria il giorno prima." },
+      victor: { aviso: "La settimana scorsa Paola ha chiesto della sessione di un'ora e non ha prenotato.", pregunta: "Vorrei scriverle su WhatsApp con due opzioni: venerdì alle 12:00 o sabato alle 10:30. Le scrivo?", respuesta: "Sì, scrivile", hecho: "Fatto. Ha scelto venerdì: è fissato e le ho mandato l'indirizzo." },
+      iris: { aviso: "Questa settimana tre clienti hanno chiesto se i tuoi prezzi sono aggiornati.", pregunta: "Ho controllato 4 attività vicine: tra $590 e $990. Tu sei a $750, a metà. Ti ho lasciato la tabella con le fonti in prezzi-vicini.xlsx. La approvi?", respuesta: "Sì, la approvo", hecho: "Perfetto, ora è nel tuo Ufficio." },
     },
   },
 
