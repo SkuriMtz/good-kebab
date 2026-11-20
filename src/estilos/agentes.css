@@ -1802,17 +1802,19 @@
   .recorrido__accion {
     display: none;
   }
+  /* Se achica la caja de afuera (no el teléfono): el temblor al picarlo anima el transform del
+     teléfono y, si la escala estuviera ahí, por un momento se veía en grande y cortado */
   .recorrido__celular {
     justify-content: center;
     align-self: start;
     height: calc(660px * var(--escala, 1));
+    transform: scale(var(--escala, 1));
+    transform-origin: top center;
   }
   .recorrido__celular .celular__cuerpo {
     flex: none;
     width: 340px;
     height: 660px;
-    transform: scale(var(--escala, 1));
-    transform-origin: top center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
