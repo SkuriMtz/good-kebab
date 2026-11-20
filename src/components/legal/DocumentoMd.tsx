@@ -6,7 +6,8 @@ import { Fragment, type ReactNode } from "react";
  * lectura y un índice de las secciones. Entiende solo lo que usa el texto:
  * # título, ## subtítulo, ### secciones, párrafos que son todo **negritas**
  * (subtítulos), listas con - y con 1., tablas con |, --- y *cursivas*.
- * Todo se pinta como texto (nada de HTML crudo); los correos se vuelven enlaces.
+ * Todo se pinta como texto (nada de HTML crudo); los correos y los
+ * [enlaces](https://…) se vuelven enlaces.
  */
 
 type Bloque =
@@ -82,9 +83,25 @@ export function leerMd(texto: string): Bloque[] {
 }
 
 const CORREO = /([\w.+-]+@[\w-]+\.[\w.]+[a-z])/i;
+/** [texto](https://…): solo enlaces https, que abren en otra pestaña. */
+const ENLACE = /\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/;
 
-/** **negritas**, *cursivas* y correos (como enlace). */
+/** [enlaces](https://…), **negritas**, *cursivas* y correos (como enlace). */
 function enLinea(texto: string): ReactNode[] {
+  const partes = texto.split(new RegExp(ENLACE.source, "g"));
+  if (partes.length > 1) {
+    const nodos: ReactNode[] = [];
+    for (let i = 0; i < partes.length; i += 3) {
+      if (partes[i]) nodos.push(<Fragment key={i}>{enLinea(partes[i])}</Fragment>);
+      if (i + 2 < partes.length)
+        nodos.push(
+          <a key={i + 1} href={partes[i + 2]} target="_blank" rel="noopener noreferrer">
+            {partes[i + 1]}
+          </a>,
+        );
+    }
+    return nodos;
+  }
   return texto.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((parte, i) => {
     if (parte.startsWith("**") && parte.endsWith("**"))
       return <strong key={i}>{correos(parte.slice(2, -2))}</strong>;

@@ -864,7 +864,7 @@ export const de: Diccionario = {
         nombre: "Zugriff auf deine Konten",
         resumen: "Wie Atendel auf deine E-Mails, deinen Kalender und deine Apps zugreift und alles privat hält.",
         etiqueta: "Rechtliches · Kontozugriff",
-        titulo: "Richtlinie zum Zugriff auf Konten und Daten",
+        titulo: "Richtlinie zum Zugriff auf Konten und Dienste Dritter",
         tipo: "Verbundene Konten und Datenschutz",
       },
       preguntas: {

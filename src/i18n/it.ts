@@ -860,7 +860,7 @@ export const it: Diccionario = {
         nombre: "Accesso ai tuoi account",
         resumen: "Come Atendel accede alla tua email, alla tua agenda e alle tue app, e mantiene tutto privato.",
         etiqueta: "Legale · Accesso agli account",
-        titulo: "Informativa sull'accesso ad account e dati",
+        titulo: "Informativa sull'accesso ad account e servizi di terzi",
         tipo: "Account collegati e privacy",
       },
       preguntas: {

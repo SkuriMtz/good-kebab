@@ -860,7 +860,7 @@ export const fr: Diccionario = {
         nombre: "Accès à vos comptes",
         resumen: "Comment Atendel accède à vos e-mails, votre agenda et vos applis, et garde tout privé.",
         etiqueta: "Juridique · Accès aux comptes",
-        titulo: "Politique d'accès aux comptes et aux données",
+        titulo: "Politique d'accès aux comptes et services tiers",
         tipo: "Comptes connectés et confidentialité",
       },
       preguntas: {

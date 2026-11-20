@@ -860,7 +860,7 @@ export const zh: Diccionario = {
         nombre: "访问你的账户",
         resumen: "Atendel 如何进入你的邮箱、日程和应用，以及如何保护隐私。",
         etiqueta: "法律 · 账户访问",
-        titulo: "账户与数据访问政策",
+        titulo: "第三方账户与服务访问政策",
         tipo: "已连接账户与隐私",
       },
       preguntas: {

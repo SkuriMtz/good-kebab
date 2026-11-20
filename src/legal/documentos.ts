@@ -102,10 +102,11 @@ const normal = (s: string) =>
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase();
 
-/** El texto de una línea de Markdown, sin marcas (negritas, cursivas, tablas, viñetas). */
+/** El texto de una línea de Markdown, sin marcas (negritas, cursivas, tablas, viñetas, enlaces). */
 const limpio = (l: string) =>
   l
     .replace(/^\s*(?:[-*]|\d+\.)\s+/, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/\*\*|\*|`/g, "")
     .replace(/\|/g, " ")
     .replace(/\s+/g, " ")

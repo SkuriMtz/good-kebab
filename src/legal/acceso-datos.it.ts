@@ -1,56 +1,128 @@
 /**
  * Traducción (it) de src/legal/acceso-datos.ts. Vale el español: si cambia, cambia esta también.
  */
-export const TEXTO = `# Informativa sull'accesso ad account e dati
+export const TEXTO = `# INFORMATIVA SULL'ACCESSO AD ACCOUNT E SERVIZI DI TERZI
 ## ATENDEL
 
-**Ultimo aggiornamento: 20 novembre 2026**
+**Ultimo aggiornamento: novembre 2026**
 
-### 1. A cosa serve questo documento
+### 1. Oggetto e ambito di applicazione
 
-Per lavorare per l'utente, Atendel ha bisogno di entrare in alcuni dei suoi account, come la sua email, la sua agenda, il suo WhatsApp Business o altre app. Questa Informativa spiega, in parole semplici, come viene dato questo accesso, cosa fa Atendel con le informazioni e come le mantiene private.
+La presente Informativa sull'accesso ad account e servizi di terzi (di seguito, l'«Informativa») ha lo scopo di informare gli utenti sulle condizioni alle quali Atendel accede, consulta, tratta e, ove previsto, esegue determinate azioni negli account e nelle piattaforme esterne che l'utente decide di collegare ai suoi servizi.
 
-Questa Informativa integra l'Informativa sulla privacy, i Termini e condizioni e la Politica sull'intelligenza artificiale di Atendel. In caso di differenze, prevale l'Informativa sulla privacy.
+Per fornire le sue funzionalità, Atendel può richiedere un accesso autorizzato a servizi di terzi, come account di posta elettronica, calendari digitali, WhatsApp Business e altre applicazioni compatibili.
 
-### 2. L'utente decide cosa collegare
+La presente Informativa descrive la portata di tali accessi, il trattamento delle informazioni ottenute, le misure di sicurezza adottate e i diritti spettanti all'utente.
 
-- Atendel entra solo negli account che l'utente collega di persona, accedendo a ciascun servizio (per esempio Google o Microsoft).
-- Atendel non chiede né conserva mai le password di questi account. Il servizio gli concede un permesso limitato a ciò che l'utente ha accettato.
-- Prima dell'accettazione, ogni servizio mostra quali permessi vengono richiesti. Atendel chiede solo quelli necessari alle funzioni che l'utente attiva.
-- L'utente può scollegare qualsiasi account in qualsiasi momento dal pannello o dalle impostazioni del servizio. Una volta scollegato, Atendel smette di accedervi, revoca il permesso presso il servizio quando questo lo consente e cancella il permesso conservato.
+La presente Informativa integra l'Informativa sulla privacy completa, i Termini e condizioni e la Politica sull'intelligenza artificiale di Atendel. In caso di contrasto tra questi documenti, prevarrà quanto stabilito nell'Informativa sulla privacy completa, fatte salve le disposizioni di legge applicabili.
 
-### 3. Cosa fa Atendel con ciò che vede
+### 2. Autorizzazione e collegamento degli account
 
-- Legge solo le informazioni necessarie per ciò che l'utente gli affida o ha attivato, per esempio: controllare le nuove email, vedere gli appuntamenti, preparare risposte o spostare un appuntamento.
-- Può agire in questi account, come inviare un'email o creare e spostare un appuntamento, solo con i permessi concessi e secondo ciò che l'utente ha impostato in «Cosa fa da solo».
-- Le azioni che riguardano denaro, e quelle che le Regole dell'utente non coprono, richiedono sempre l'approvazione dell'utente prima di essere eseguite.
-- Non usa le informazioni per la pubblicità, non le vende e non le condivide perché terzi contattino l'utente o i suoi clienti.
+L'accesso di Atendel ad account e servizi di terzi è subordinato all'autorizzazione espressa dell'utente ed è regolato dai seguenti principi:
 
-### 4. Come restano private
+- **Collegamento volontario:** Atendel accede soltanto agli account che l'utente stesso decide di collegare tramite i meccanismi ufficiali di autenticazione di ciascun fornitore, come Google o Microsoft.
+- **Protezione delle credenziali:** Atendel non richiede, raccoglie né conserva le password degli account esterni dell'utente. L'autenticazione avviene tramite i meccanismi di autorizzazione forniti dai rispettivi servizi.
+- **Autorizzazioni specifiche:** l'accesso è limitato alle autorizzazioni che l'utente concede durante il collegamento e a quelle strettamente necessarie per fornire le funzionalità che ha attivato.
+- **Trasparenza:** prima di concedere l'accesso, il fornitore interessato informa l'utente sulle autorizzazioni richieste, secondo le proprie condizioni e politiche.
+- **Revoca dell'accesso:** l'utente può scollegare i propri account in qualsiasi momento dal pannello di Atendel o dalle impostazioni del servizio interessato. Una volta effettuato lo scollegamento, Atendel smetterà di utilizzare le autorizzazioni associate e, ove il fornitore lo consenta, revocherà le autorizzazioni concesse ed eliminerà le credenziali di autorizzazione conservate.
 
-- **Le vede solo l'account dell'utente.** Le informazioni di ogni attività sono separate nel database con regole di accesso per account. Nessun altro utente può vederle.
-- **Permessi cifrati.** I permessi degli account collegati sono conservati cifrati con l'algoritmo AES-256-GCM e sono usati solo dai server di Atendel.
-- **Tutto viaggia cifrato.** Le informazioni viaggiano cifrate (HTTPS) tra il dispositivo dell'utente, Atendel e i servizi collegati.
-- **Nessuno le legge.** Nessuna persona del team di Atendel legge le email, i messaggi o i file dell'utente, salvo con il suo permesso per l'assistenza, per motivi di sicurezza o quando lo richiede la legge.
-- **Il minimo indispensabile.** Della connessione dell'utente si conserva solo un riepilogo cifrato dell'IP (un hash), mai l'IP stesso.
+La disponibilità e la portata dei meccanismi di autorizzazione e revoca possono dipendere dalle caratteristiche tecniche di ciascun fornitore esterno.
 
-### 5. Intelligenza artificiale
+### 3. Uso e trattamento delle informazioni
 
-Per capire e rispondere, Atendel invia al suo fornitore di intelligenza artificiale (Anthropic) solo il testo necessario per ogni compito. Secondo i suoi termini per le aziende, questo fornitore non usa tali dati per addestrare i suoi modelli. Nemmeno Atendel li usa per addestrare modelli generali di intelligenza artificiale.
+Le informazioni ottenute tramite gli account collegati saranno utilizzate esclusivamente per fornire le funzionalità richieste o configurate dall'utente.
 
-### 6. Dati di Google
+Tra le operazioni che Atendel può svolgere vi sono:
 
-L'uso da parte di Atendel delle informazioni ricevute dalle API di Google, e il loro trasferimento a qualsiasi altra app, rispettano le [Norme relative ai dati utente dei servizi API di Google](https://developers.google.com/terms/api-services-user-data-policy), inclusi i requisiti di utilizzo limitato (Limited Use).
+- Consultare e organizzare le e-mail relative alle funzioni attivate.
+- Consultare eventi, disponibilità e impegni registrati nei calendari.
+- Preparare risposte, comunicazioni e bozze.
+- Creare, modificare o riprogrammare eventi e appuntamenti.
+- Eseguire altre operazioni compatibili con le autorizzazioni concesse dall'utente.
 
-### 7. Per quanto tempo si conservano
+L'esecuzione di queste operazioni sarà soggetta alle autorizzazioni concesse, alle istruzioni dell'utente e alle regole di automazione che questi ha configurato nella sezione «Cosa fa da solo».
 
-Le informazioni degli account collegati si conservano secondo i termini dell'Informativa sulla privacy. Quando un account viene scollegato, il suo permesso conservato viene cancellato, e quando l'account Atendel viene eliminato, i dati vengono cancellati secondo tale Informativa.
+**Autorizzazione delle azioni:** Atendel rispetterà i livelli di autonomia stabiliti dall'utente. Le operazioni che comportano movimenti di denaro, impegni economici o qualsiasi azione non espressamente prevista dalle regole di automazione configurate richiederanno l'approvazione preventiva dell'utente.
 
-### 8. Diritti dell'utente
+Atendel non utilizzerà le informazioni ottenute tramite gli account collegati per finalità pubblicitarie, non le commercializzerà né le condividerà con terzi affinché questi svolgano attività di prospezione commerciale o contattino l'utente o i suoi clienti.
 
-L'utente può accedere ai propri dati, rettificarli, cancellarli o opporsi al loro uso, come spiegato nell'Informativa sulla privacy. Per qualsiasi domanda o richiesta: **infoatendel@gmail.com**.
+### 4. Sicurezza e riservatezza delle informazioni
 
-### 9. Modifiche a questa Informativa
+Atendel adotta misure tecniche e organizzative volte a proteggere la riservatezza, l'integrità e la disponibilità delle informazioni ottenute tramite gli account collegati.
 
-Se questa Informativa cambia, sarà pubblicata qui con la nuova data. Quando il cambiamento è sostanziale, Atendel avviserà gli utenti tramite il pannello o via email prima che si applichi.
+Tra le misure di sicurezza adottate vi sono le seguenti:
+
+**4.1. Separazione e isolamento dei dati**
+
+Le informazioni di ciascun utente e di ciascuna attività sono mantenute separate tramite meccanismi di controllo degli accessi a livello di database. Questi meccanismi sono progettati per impedire che utenti non autorizzati possano consultare o accedere a informazioni appartenenti ad altri account.
+
+**4.2. Cifratura delle credenziali di autorizzazione**
+
+I token e le credenziali di autorizzazione utilizzati per collegare servizi esterni sono conservati cifrati con l'algoritmo AES-256-GCM. Il loro utilizzo è riservato ai componenti autorizzati dell'infrastruttura di Atendel.
+
+**4.3. Protezione delle comunicazioni**
+
+Le comunicazioni tra il dispositivo dell'utente, i sistemi di Atendel e i fornitori esterni sono protette da protocolli di cifratura in transito, incluso HTTPS.
+
+**4.4. Accesso interno limitato**
+
+L'accesso del personale di Atendel alle informazioni degli account collegati è limitato. Tale accesso può avvenire solo quando necessario e debitamente giustificato, ad esempio:
+
+- Quando l'utente lo autorizza per ricevere assistenza tecnica.
+- Quando è necessario indagare o gestire incidenti di sicurezza.
+- Quando esiste un obbligo di legge o una richiesta valida di un'autorità competente.
+
+In ogni caso, l'accesso deve limitarsi alle informazioni strettamente necessarie per la finalità corrispondente.
+
+**4.5. Minimizzazione dei dati tecnici**
+
+Atendel applica criteri di minimizzazione nel trattamento dei dati tecnici. In relazione al collegamento degli account, conserva soltanto una rappresentazione hash dell'indirizzo IP, quando necessario per le proprie operazioni di sicurezza, senza conservare l'indirizzo IP originale come parte di tale registrazione.
+
+### 5. Trattamento tramite intelligenza artificiale
+
+Per fornire determinate funzionalità, Atendel utilizza servizi di intelligenza artificiale di terzi, inclusi quelli forniti da Anthropic.
+
+Quando un'attività richiede un trattamento tramite intelligenza artificiale, Atendel trasmette soltanto il contenuto e le informazioni necessari per eseguirla.
+
+Il trattamento di queste informazioni da parte del fornitore esterno è soggetto alle sue condizioni contrattuali e politiche sulla privacy applicabili. In particolare, Atendel utilizza le corrispondenti condizioni aziendali di Anthropic, in base alle quali i dati inviati tramite tali servizi non vengono utilizzati per addestrare i suoi modelli generali, secondo i termini applicabili.
+
+Inoltre, Atendel non utilizza il contenuto degli account collegati per addestrare propri modelli generali di intelligenza artificiale.
+
+### 6. Uso dei dati dei servizi Google
+
+Quando Atendel accede a informazioni tramite le API di Google, la loro raccolta, il loro uso, la loro conservazione e il loro trasferimento avvengono in conformità alle Norme sui dati utente dei servizi API di Google, compresi i requisiti di Uso limitato (Limited Use).
+
+Puoi consultare tali norme al seguente link: [Norme sui dati utente dei servizi API di Google](https://developers.google.com/terms/api-services-user-data-policy).
+
+Atendel limita l'uso dei dati ottenuti tramite le API di Google alle finalità necessarie per fornire e migliorare le funzionalità richieste dall'utente, in conformità alle autorizzazioni concesse e alle condizioni stabilite da Google.
+
+### 7. Conservazione ed eliminazione delle informazioni
+
+Le informazioni ottenute tramite gli account collegati saranno conservate per i periodi stabiliti nell'Informativa sulla privacy completa di Atendel e soltanto finché necessarie per le finalità per cui sono state raccolte, salvo che un obbligo di legge richieda un periodo di conservazione diverso.
+
+Se l'utente scollega un account:
+
+- Atendel smetterà di utilizzare le autorizzazioni associate a tale account.
+- I token e le credenziali di autorizzazione conservati saranno eliminati secondo la procedura tecnica corrispondente.
+- Le informazioni ottenute in precedenza saranno conservate o eliminate secondo i termini e i criteri stabiliti nell'Informativa sulla privacy completa.
+
+In caso di eliminazione dell'account dell'utente su Atendel, i dati personali e le altre informazioni associate saranno eliminati secondo le procedure e i termini previsti in tale Informativa, fatti salvi gli obblighi di conservazione previsti dalla legge.
+
+### 8. Diritti e richieste dell'utente
+
+L'utente può esercitare i diritti di accesso, rettifica, cancellazione e opposizione relativi ai propri dati personali, nonché gli altri diritti riconosciuti dalla legislazione applicabile, secondo la procedura stabilita nell'Informativa sulla privacy completa di Atendel.
+
+Può inoltre richiedere informazioni sugli account collegati, sulla portata delle autorizzazioni concesse e sulle procedure per revocare tali accessi.
+
+Per domande, richieste o chiarimenti relativi alla presente Informativa, l'utente può scrivere al seguente indirizzo e-mail: infoatendel@gmail.com
+
+### 9. Modifiche e aggiornamenti
+
+Atendel si riserva il diritto di modificare o aggiornare la presente Informativa quando necessario per riflettere cambiamenti nelle sue funzionalità, nei processi operativi, nelle misure di sicurezza, nei fornitori tecnologici o nelle disposizioni di legge applicabili.
+
+Qualsiasi modifica sarà pubblicata sul sito web o nel centro privacy di Atendel, con l'indicazione della data dell'ultimo aggiornamento.
+
+Quando le modifiche sono sostanziali e incidono in modo rilevante sulle condizioni di accesso o di trattamento delle informazioni, Atendel ne darà notizia agli utenti tramite i canali di comunicazione disponibili, inclusi il pannello utente o l'indirizzo e-mail registrato, prima della loro entrata in vigore ove previsto.
+
+L'uso continuato dei servizi di Atendel sarà soggetto alle condizioni dell'Informativa vigente, fatti salvi i diritti spettanti all'utente secondo la legislazione applicabile.
 `;

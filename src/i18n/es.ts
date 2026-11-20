@@ -612,7 +612,7 @@ export const es = {
         nombre: "Acceso a tus cuentas",
         resumen: "Cómo entra Atendel a tu correo, tu agenda y tus apps, y cómo lo mantiene privado.",
         etiqueta: "Legal · Acceso a tus datos",
-        titulo: "Política de Acceso a Cuentas y Datos",
+        titulo: "Política de Acceso a Cuentas y Servicios de Terceros",
         tipo: "Cuentas conectadas y privacidad",
       },
       preguntas: {
