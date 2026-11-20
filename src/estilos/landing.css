@@ -190,6 +190,14 @@
 .sitio--figuras .escena-fondo {
   opacity: 0.72;
 }
+/* El fondo de figuras (cerebro, foco, globo…) mide el alto GRANDE de la pantalla: en el celular,
+   al bajar se esconde la barra del navegador y con inset: 0 el fondo cambiaba de alto (el lienzo
+   se estiraba y se volvía a dibujar: un tirón al empezar a bajar). Con 100lvh no cambia. */
+.escena-fondo.fondo-figuras {
+  bottom: auto;
+  height: 100vh;
+  height: 100lvh;
+}
 :root[data-tema="claro"] .sitio--figuras .escena-fondo {
   opacity: 0.75;
 }

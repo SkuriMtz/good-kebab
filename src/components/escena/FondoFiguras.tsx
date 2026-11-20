@@ -66,25 +66,45 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     motorRef.current = motor;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // El tamaño del fondo: el de su caja, que mide el alto GRANDE de la pantalla (100lvh, ver
+    // globals.css). En el celular, al bajar se esconde la barra del navegador y cambia el alto de
+    // la ventana; si eso volviera a medir el lienzo (se borra y se redibuja), la figura daba un
+    // tirón justo al empezar a bajar. Solo se vuelve a medir si de verdad cambió el tamaño.
+    let medida = "";
     const medir = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      motor.medir(w, h, Math.min(window.devicePixelRatio || 1, w < 700 ? 1.5 : 2));
+      const w = caja.clientWidth || window.innerWidth;
+      const h = caja.clientHeight || window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, w < 700 ? 1.5 : 2);
+      const nueva = `${w}x${h}@${dpr}`;
+      if (nueva === medida) return;
+      medida = nueva;
+      motor.medir(w, h, dpr);
     };
     medir();
 
-    // Modo automático: posición en la historia según las secciones con data-escena
-    const posicionPorScroll = (): number | null => {
-      const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-escena]")).filter((el) => esEscenaFiguras(el.dataset.escena));
-      if (!secciones.length) return null;
+    // Dónde empieza cada escena: se mide una vez (y al cambiar el tamaño de la página), no en
+    // cada cuadro; en cada cuadro solo se lee el scroll
+    let anclas: { i: number; top: number }[] = [];
+    let alto = caja.clientHeight || window.innerHeight;
+    const medirAnclas = () => {
       const y = window.scrollY;
       // Ninguna escena puede reposar más abajo de donde llega el scroll (si no, la última nunca termina)
       const maximo = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-      const anclas = secciones
+      anclas = Array.from(document.querySelectorAll<HTMLElement>("[data-escena]"))
+        .filter((el) => esEscenaFiguras(el.dataset.escena))
         .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: Math.min(maximo, el.getBoundingClientRect().top + y) }))
         .sort((a, b) => a.top - b.top);
+      alto = caja.clientHeight || window.innerHeight;
+    };
+    medirAnclas();
+    const roPagina = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => medirAnclas());
+    roPagina?.observe(document.body);
+
+    // Modo automático: posición en la historia según las secciones con data-escena
+    const posicionPorScroll = (): number | null => {
+      if (!anclas.length) return null;
+      const y = window.scrollY;
       if (y <= anclas[0].top) return anclas[0].i;
-      const alto = window.innerHeight;
       for (let k = 0; k < anclas.length - 1; k++) {
         const a = anclas[k];
         const b = anclas[k + 1];
@@ -135,9 +155,11 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
           dibujoPendiente = 0;
           motor.dibujar();
         });
-      caja.dataset.posicion = motor.posicion.toFixed(3);
-      // ms de cálculo por cuadro (para medir; se anota cada medio segundo)
-      if (++cuadros % 30 === 0) caja.dataset.ms = motor.msCalculo.toFixed(2);
+      // Para el laboratorio y las pruebas: la posición (a mano, cada cuadro; sola, cada 6) y los ms
+      // de cálculo por cuadro (cada medio segundo). Escribir en la página cada cuadro cuesta.
+      ++cuadros;
+      if (reloj === "manual" || cuadros % 6 === 0) caja.dataset.posicion = motor.posicion.toFixed(3);
+      if (cuadros % 30 === 0) caja.dataset.ms = motor.msCalculo.toFixed(2);
     };
     let cuadros = 0;
     let dibujoPendiente = 0;
@@ -174,7 +196,11 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       cancelAnimationFrame(raf);
     };
     const alVisibilidad = () => (document.hidden ? detener() : iniciar());
-    window.addEventListener("resize", medir);
+    const alCambiarTamano = () => {
+      medir();
+      medirAnclas();
+    };
+    window.addEventListener("resize", alCambiarTamano);
     document.addEventListener("visibilitychange", alVisibilidad);
 
     // Las demás figuras se preparan cuando el navegador queda libre
@@ -199,7 +225,8 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       detener();
       cancelAnimationFrame(dibujoPendiente);
       moTema.disconnect();
-      window.removeEventListener("resize", medir);
+      roPagina?.disconnect();
+      window.removeEventListener("resize", alCambiarTamano);
       window.removeEventListener("pointermove", alCursor);
       document.removeEventListener("visibilitychange", alVisibilidad);
       motor.destruir();
