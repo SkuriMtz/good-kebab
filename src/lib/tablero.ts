@@ -145,12 +145,11 @@ function fila(id: string, titulo: string, tarjetas: (Tarjeta | null | false)[], 
   return { id, titulo, href, tarjetas: t, peso: t[0].peso };
 }
 
-export function armarTablero(e: EntradaTablero): DatosTablero {
+/** Lo importante: apps que dejaron de funcionar y lo que te necesita (máximo 4). Lo usa el banner del Tablero y el de Tu negocio. */
+export function destacadasDe(e: Pick<EntradaTablero, "base" | "apps" | "teNecesita">): Destacada[] {
   const b = e.base;
   const conProblema = e.apps.filter((a) => a.estado === "error");
-
-  /* Lo importante (la fila grande de arriba) */
-  const destacadas: Destacada[] = [
+  return [
     ...conProblema.map((a) => ({
       id: `app-${a.id}`,
       etiqueta: "Tus apps",
@@ -161,6 +160,14 @@ export function armarTablero(e: EntradaTablero): DatosTablero {
     })),
     ...e.teNecesita.slice(0, 4).map((t) => ({ id: `ok-${t.id}`, etiqueta: "Te necesita", titulo: t.titulo, detalle: t.detalle, href: t.href, tono: "alerta" as const })),
   ].slice(0, 4);
+}
+
+export function armarTablero(e: EntradaTablero): DatosTablero {
+  const b = e.base;
+  const conProblema = e.apps.filter((a) => a.estado === "error");
+
+  /* Lo importante (la fila grande de arriba) */
+  const destacadas = destacadasDe({ base: b, apps: e.apps, teNecesita: e.teNecesita });
 
   /* Accesos rápidos (solo los que aplican) */
   const accesos: Acceso[] = [

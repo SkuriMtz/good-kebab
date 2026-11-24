@@ -22,8 +22,6 @@ import { partirIntervenciones } from "@/lib/grupo";
 import { PLAN_POR_ID, planMinimo, type IdPlan } from "@/lib/planes";
 import { createClient } from "@/lib/supabase/client";
 import type { Bloqueo } from "@/lib/uso-estado";
-import { useModelo } from "@/components/panel/modelo";
-import { SelectorModelo } from "@/components/panel/SelectorModelo";
 import ModoPlatica, { prepararAudio, type AlTextoVoz } from "@/components/panel/ModoPlatica";
 import { PEDIDO_TABLERO } from "@/lib/tablero";
 
@@ -138,8 +136,6 @@ export function Chat({
   vozDisponible?: boolean;
 }) {
   const plan = PLAN_POR_ID[planId];
-  // Rápido o Avanzado (como el selector de Claude); se recuerda en este navegador
-  const selector = useModelo(plan.modelos);
   // Chat único: le escribes a Atendel y él reparte el trabajo a todo tu equipo
   // (las conversaciones viejas con un solo agente se siguen abriendo como estaban)
   const equipo: IdAgente[] | null = activos.length >= 2 ? activos : null;
@@ -374,7 +370,6 @@ export function Chat({
     const cuerpo = {
       ...(actual ? { conversacionId: actual } : {}),
       mensaje: limpio,
-      modelo: selector.modelo,
       estados: true,
       ...(voz ? { voz: true } : {}),
       // Solo hace más estricto el turno: el servidor lo trata como con datos de fuera
@@ -578,7 +573,6 @@ export function Chat({
         <Inicio
           saludo={saludo}
           caja={barra}
-          uso={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} />}
           selector={null}
           area={area}
           hrefArea={(a) => (a === "todo" ? "/panel?vista=chat" : `/panel?vista=chat&area=${a}`)}
@@ -614,7 +608,6 @@ export function Chat({
         }}
         caja={barra}
         legal="Atendel puede equivocarse. Revisa lo importante antes de enviarlo a un cliente."
-        modelo={<SelectorModelo modelo={selector.modelo} permitidos={plan.modelos} alElegir={selector.elegir} hacia="arriba" />}
       >
         {cargando ? (
           <p className="pc-cargando" role="status">

@@ -1211,3 +1211,12 @@
     color: var(--pc-texto-2);
   }
 }
+
+/* ---------- El banner suelto (arriba de Tu negocio): las medidas del tablero, sin el tablero ---------- */
+.tb-banner-suelto {
+  --tb-sale: cubic-bezier(0.23, 1, 0.32, 1);
+  --tb-radio-chico: 8px;
+  --tb-radio: 12px;
+  --tb-radio-grande: 16px;
+  margin: 4px 0 20px;
+}

@@ -10,7 +10,7 @@ import type { Cuenta } from "./cuenta";
 import { cargarNegocio } from "./estadisticas-negocio";
 import { cargarHoy } from "./hoy";
 import { negociosDe } from "./pendientes";
-import { armarTablero, type DatosTablero, type EntradaTablero, type Renglon } from "./tablero";
+import { armarTablero, destacadasDe, type DatosTablero, type Destacada, type EntradaTablero, type Renglon } from "./tablero";
 import { leerUso } from "./uso";
 
 /*
@@ -111,4 +111,21 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
     uso: { semanaPct: uso ? porcentaje(uso.semana.usado, uso.semana.limite) : null, trabajoPct: uso?.trabajo ? porcentaje(uso.trabajo.usado, uso.trabajo.limite) : null },
   };
   return armarTablero(entrada);
+}
+
+/** Solo lo del banner de lo importante (arriba de Tu negocio): lo que te necesita y las apps que fallan. */
+export async function cargarDestacadas(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGoogle: boolean }): Promise<Destacada[]> {
+  const [hoy, conexiones] = await Promise.all([cargarHoy(supabase, userId, o.cuenta, o.conGoogle, Date.now()), leerConexionesPublicas(supabase, userId).catch(() => [])]);
+  return destacadasDe({
+    base: "/panel",
+    teNecesita: hoy.teNecesita.map((t) => ({ id: t.id, titulo: t.titulo, detalle: t.detalle, href: t.href ?? "/panel?vista=pendientes" })),
+    apps: conexiones.map((c, i) => ({
+      id: `${c.proveedor}-${i}`,
+      nombre: NOMBRE_PROVEEDOR[c.proveedor] ?? c.proveedor,
+      cuenta: c.cuenta ? corto(c.cuenta, 60) : null,
+      logo: c.apps[0] ? (LOGO_APP[c.apps[0]] ?? null) : null,
+      apps: c.apps.map((a) => APP_POR_ID[a]?.nombre ?? a),
+      estado: c.estado,
+    })),
+  });
 }

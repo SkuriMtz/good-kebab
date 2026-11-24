@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN } from "@/lib/nucleo-tipos";
 import type { IdPlan } from "@/lib/planes";
 import { Pildoras, TituloSeccion } from "../Piezas";
@@ -23,7 +24,7 @@ const ETIQUETAS: Record<PestanaNegocio, string> = { perfil: "Perfil", reglas: "R
  * enlaces (la dirección cambia y atrás funciona). Los datos salen de la
  * fuente: la API real en /panel y el ejemplo de Estudio Luna en /pruebalo.
  */
-export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNegocio; plan: IdPlan; conectada?: string | null; error?: string | null; app?: string | null }) {
+export function TuNegocio({ tab, plan, conectada, error, app, arriba }: { tab: PestanaNegocio; plan: IdPlan; conectada?: string | null; error?: string | null; app?: string | null; /** Lo importante (el banner que antes iba en el Tablero), arriba de todo. */ arriba?: ReactNode }) {
   const fuente = useFuenteNegocio();
   const href = (t: PestanaNegocio) => `${fuente.base}?vista=negocio&tab=${t}`;
   return (
@@ -33,6 +34,7 @@ export function TuNegocio({ tab, plan, conectada, error, app }: { tab: PestanaNe
         texto="Lo que Atendel sabe de tu negocio. Mientras más le cuentes, mejor trabaja."
         acciones={fuente.demo ? <span className="pc-estado">Datos de ejemplo</span> : undefined}
       />
+      {arriba}
       <div className="pc-filtros">
         <Pildoras etiqueta="Partes de Tu negocio" activa={tab} opciones={PESTANAS_NEGOCIO.map((t) => ({ id: t, etiqueta: ETIQUETAS[t], href: href(t) }))} />
       </div>

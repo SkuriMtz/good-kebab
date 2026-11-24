@@ -31,9 +31,9 @@ export function pasosPanel(d: {
 }): PasoPanel[] {
   return [
     { id: "equipo", titulo: "Elige a tu equipo", detalle: nombres(d.activos), listo: d.activos.length > 0, href: "/panel/agentes" },
-    { id: "gmail", titulo: "Conecta tu Gmail", detalle: "Altair lo lee. Solo lectura.", listo: d.conGoogle, href: "/panel?vista=correo#gmail" },
+    { id: "gmail", titulo: "Conecta tu Gmail", detalle: "Altair lo lee y, con tu OK, contesta por ti.", listo: d.conGoogle, href: "/panel?vista=correo#gmail" },
     { id: "negocio", titulo: "Completa tu negocio", detalle: "Horarios, precios y políticas: tu equipo los usa al contestar.", listo: (d.camposPerfil ?? 0) >= MIN_CAMPOS_PERFIL, href: "/panel?vista=negocio&tab=perfil" },
-    { id: "app", titulo: "Conecta una app", detalle: "Tu correo, tu agenda o tus archivos. Solo lectura.", listo: Boolean(d.conApp), href: "/panel?vista=negocio&tab=apps" },
+    { id: "app", titulo: "Conecta una app", detalle: "Tu correo, tu agenda o tus archivos. La quitas cuando quieras.", listo: Boolean(d.conApp), href: "/panel?vista=negocio&tab=apps" },
     { id: "chat", titulo: "Tu primera conversación", detalle: "Pídele algo a un agente.", listo: d.conConversaciones, href: "/panel?vista=chat" },
     ...(d.conGrupos ? [{ id: "grupo" as const, titulo: "Tu primer grupo", detalle: "Junta a dos agentes en un chat.", listo: d.conGrupo, href: "/panel?vista=chat" }] : []),
   ];

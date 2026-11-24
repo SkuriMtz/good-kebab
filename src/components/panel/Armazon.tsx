@@ -48,7 +48,7 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { tablero?: string; inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string; oficina?: string; correo?: string; apps?: string };
+  hrefs: { inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string; oficina?: string; correo?: string; apps?: string };
   /** Lo que Atendel dejó en la Oficina para revisar (el número junto a «Oficina»). */
   porRevisar?: number | null;
   /** Lo que espera algo de ti (null: no se pudo leer). */
@@ -113,7 +113,7 @@ function enfocarCaja() {
  * tu cuenta y el engrane de Ajustes (una ventana). En celular, el menú es un cajón (foco adentro y Esc
  * lo cierra). ⌘K abre el buscador.
  */
-export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, porRevisar, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, flotantes, children }: Props) {
+export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, chats, organizacion, acciones, usuario, cuenta, indice, aviso, alCapturarClic, info, ajustes, flotantes, children }: Props) {
   const [cajon, setCajon] = useState(false);
   const [oculto, setOculto] = useState(false);
   const [infoAbierta, setInfoAbierta] = useState(false);
@@ -445,8 +445,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
   /* En celular (como WhatsApp): la barra de abajo con 5 pestañas (Inicio · Chat · Tu día · Negocio ·
      Ajustes) y, arriba, los botones del tema elegido (Tu día: Tu OK, Oficina, Citas y Tareas; Negocio:
      Correo, Estadísticas, Apps y Tu negocio). Ajustes abre su ventana. En compu no se ven (panel.css). */
-  const conTablero = Boolean(hrefs.tablero);
-  const tema: "inicio" | "chat" | "dia" | "negocio" = TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : conTablero && activa !== "tablero" ? "chat" : "inicio";
+  const tema: "chat" | "dia" | "negocio" = TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : "chat";
   const opcionesTema: { id: IdSeccion; etiqueta: string; href: string; cuenta?: number | null }[] =
     tema === "dia"
       ? [
@@ -527,7 +526,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
             >
               <Icono nombre={celular ? "cerrar" : "barra-lateral"} tam={20} />
             </button>
-            <Enlace href={hrefs.tablero ?? hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+            <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
               <Marca className="pc-logo__marca" />
               <span className="pc-logo__nombre">Atendel</span>
             </Enlace>
@@ -537,8 +536,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            {hrefs.tablero ? item("tablero", "Tablero", "inicio", hrefs.tablero) : item("inicio", "Oficina", "documento", hrefs.inicio)}
-            {hrefs.tablero ? item("inicio", "Chat", "conversaciones", hrefs.inicio) : null}
+            {item("inicio", "Chat", "conversaciones", hrefs.inicio)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -546,37 +544,17 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
                 ⌘K
               </kbd>
             </button>
-            {hrefs.tablero ? (
-              <>
-                {/* Como Supabase y ElevenLabs: las secciones en grupos */}
-                <p className="pc-menu__subtitulo">Tu día</p>
-                {item("pendientes", "Necesita tu OK", "check-circulo", hrefs.pendientes, pendientes ? <span className="pc-menu__cuenta" aria-label={`${pendientes} por ver`}>{pendientes}</span> : null)}
-                {item("citas", "Citas", "calendario", hrefs.citas)}
-                {item("tareas", "Tareas", "reloj", hrefs.tareas)}
-                {item("oficina", "Oficina", "documento", hrefs.oficina ?? hrefs.inicio, porRevisar ? <span className="pc-menu__cuenta" aria-label={`${porRevisar} por ver`}>{porRevisar}</span> : null)}
-                <p className="pc-menu__subtitulo">Tu negocio</p>
-                {hrefs.correo ? item("correo", "Correo", "correo", hrefs.correo) : null}
-                {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
-                {hrefs.apps ? item("apps", "Apps conectadas", "enlace", hrefs.apps) : null}
-                {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
-              </>
-            ) : (
-              <>
-                {item("citas", "Citas", "calendario", hrefs.citas)}
-                {item(
-                  "tareas",
-                  "Tareas",
-                  "reloj",
-                  hrefs.tareas,
-                  teNecesita ? (
-                    <span className="pc-menu__cuenta" aria-label={`${teNecesita} te necesitan`}>
-                      {teNecesita}
-                    </span>
-                  ) : null,
-                )}
-                {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
-              </>
-            )}
+            {/* Como Supabase y ElevenLabs: las secciones en grupos */}
+            <p className="pc-menu__subtitulo">Tu día</p>
+            {item("pendientes", "Necesita tu OK", "check-circulo", hrefs.pendientes, pendientes ? <span className="pc-menu__cuenta" aria-label={`${pendientes} por ver`}>{pendientes}</span> : null)}
+            {item("citas", "Citas", "calendario", hrefs.citas)}
+            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
+            {item("oficina", "Oficina", "documento", hrefs.oficina ?? hrefs.inicio, porRevisar ? <span className="pc-menu__cuenta" aria-label={`${porRevisar} por ver`}>{porRevisar}</span> : null)}
+            <p className="pc-menu__subtitulo">Tu negocio</p>
+            {hrefs.correo ? item("correo", "Correo", "correo", hrefs.correo) : null}
+            {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
+            {hrefs.apps ? item("apps", "Apps conectadas", "enlace", hrefs.apps) : null}
+            {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 
           <div className="pc-menu__listas">
@@ -611,7 +589,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
               <Icono nombre="menu" tam={20} />
             </button>
           ) : null}
-          <Enlace href={hrefs.tablero ?? hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
+          <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
             <Marca className="pc-logo__marca" />
             <span className="pc-logo__nombre">Atendel</span>
           </Enlace>
@@ -660,8 +638,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, teNecesita, por
       </div>
 
       <nav className="pc-abajo" aria-label="Menú">
-        {pestanaAbajo("inicio", "Inicio", hrefs.tablero ?? hrefs.inicio)}
-        {conTablero ? pestanaAbajo("chat", "Chat", hrefs.inicio) : null}
+        {pestanaAbajo("chat", "Chat", hrefs.inicio)}
         {pestanaAbajo("dia", "Tu día", hrefs.pendientes, cuentaDia)}
         {pestanaAbajo("negocio", "Negocio", hrefs.correo ?? hrefs.estadisticas)}
         <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined} title="Ajustes">

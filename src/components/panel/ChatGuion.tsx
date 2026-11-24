@@ -15,8 +15,6 @@ import { Inicio } from "./Inicio";
 import { DiaHilo, MensajeTuyo, RespuestaAtendel, TarjetaTrabajo, nombresDe } from "./Mensajes";
 import { claseBoton } from "./Piezas";
 import { PEDIDOS, pedidosDe, type IdArea } from "./pedidos";
-import { modeloElegido, useModelo } from "./modelo";
-import { SelectorModelo } from "./SelectorModelo";
 import { PLAN_POR_ID } from "@/lib/planes";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 
@@ -223,7 +221,7 @@ export function useGuion() {
       const r = await fetch("/api/demo/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null, idioma: idiomaElegido(), modelo: modeloElegido() }),
+        body: JSON.stringify({ agentes: c.agentes, historial, mensaje: texto, tema: c.agentes.length > 1 ? c.nombre : null, idioma: idiomaElegido() }),
         signal: control.signal,
       });
       if (!r.ok || !r.body) {
@@ -350,7 +348,6 @@ export function InicioDemo({
 }) {
   const subida = useSubirDesdeChat();
   // Rápido o Avanzado, como en tu cuenta (la demostración es Max: trae los dos)
-  const selector = useModelo(PLAN_DEMO.modelos);
   // Chat único: le escribes a Atendel y él reparte el trabajo a todo el equipo
   const agentes: IdAgente[] = [...IDS_AGENTES];
   // En vez de "Pregúntale a tu equipo…": algo que se le puede pedir, al azar
@@ -361,7 +358,6 @@ export function InicioDemo({
     <>
       <Inicio
         saludo={saludo}
-        uso={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} />}
         caja={
           <PromptBar
             key={`atendel-${pide ?? ""}-${agentePedido ?? ""}`}
@@ -406,7 +402,6 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
   const scrollRef = useRef<HTMLDivElement>(null);
   const pegado = useRef(true);
   const subida = useSubirDesdeChat();
-  const selector = useModelo(PLAN_DEMO.modelos);
   const ocupado = guion.pendiente?.conv === conv.id ? guion.pendiente : null;
   // Los puntitos solo mientras no llega texto; luego el mensaje se escribe solo
   const escribe = ocupado && ocupado.puntos !== false ? ocupado.agente : null;
@@ -490,7 +485,6 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
           dictarPronto
         />
       }
-      modelo={<SelectorModelo modelo={selector.modelo} permitidos={PLAN_DEMO.modelos} alElegir={selector.elegir} hacia="arriba" />}
       legal={`Atendel puede equivocarse. Revisa lo importante antes de enviarlo a un cliente.${guion.quedan !== null && guion.quedan <= 5 ? ` Te quedan ${guion.quedan} mensajes hoy.` : ""}`}
     >
       <div role="log" aria-live="polite" aria-label="Mensajes" className="pc-hilo">

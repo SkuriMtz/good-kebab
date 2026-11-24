@@ -54,14 +54,12 @@ export type DatosArmazonReal = {
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
 const VISTAS = ["chat", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
-/** ¿La dirección abre el chat? (/panel solo es el Tablero) */
-const esDelChat = (p: URLSearchParams) => p.get("vista") === "chat" || ["c", "pide", "agente", "area", "avisos"].some((k) => p.has(k));
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
 function claveDe(url: URL) {
   if (url.pathname !== "/panel") return url.pathname;
   const v = url.searchParams.get("vista");
-  return `/panel?${v && VISTAS.includes(v) ? v : esDelChat(url.searchParams) ? "chat" : "tablero"}`;
+  return `/panel?${v && VISTAS.includes(v) ? v : "chat"}`;
 }
 
 /**
@@ -84,7 +82,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   const c = params.get("c");
   const valida = vista && VISTAS.includes(vista) ? vista : null;
   // Actividad es un detalle de Estadísticas: se marca Estadísticas en el menú
-  const delChat = esDelChat(new URLSearchParams(params.toString()));
   const activa: IdSeccion = ruta.startsWith("/panel/agentes")
     ? "agentes"
     : valida === "actividad"
@@ -99,10 +96,8 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
               ? (valida as IdSeccion)
               : c
                 ? "chat"
-                : delChat
-                  ? "inicio"
-                  : "tablero";
-  const clave = ruta === "/panel" ? `/panel?${valida ?? (delChat ? "chat" : "tablero")}` : ruta;
+                : "inicio";
+  const clave = ruta === "/panel" ? `/panel?${valida ?? "chat"}` : ruta;
 
   // La vista nueva ya se pintó: la transición puede seguir
   useLayoutEffect(() => {
@@ -253,7 +248,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
   };
 
   const indice: ResultadoBusqueda[] = [
-    { id: "s-tablero", grupo: "Secciones", titulo: "Tablero", detalle: "El resumen de tu negocio", icono: "grafica", claves: "inicio tablero resumen negocio apps", href: "/panel" },
     { id: "s-inicio", grupo: "Secciones", titulo: "Chat con Atendel", detalle: "Platica con Atendel y pídele cosas", icono: "documento", claves: "chat nueva conversacion pedir escribir", href: "/panel?vista=chat" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
     { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
@@ -333,7 +327,6 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         activa={activa}
         chatActual={c}
         hrefs={{
-          tablero: "/panel",
           inicio: "/panel?vista=chat",
           oficina: "/panel?vista=oficina",
           correo: "/panel?vista=correo",

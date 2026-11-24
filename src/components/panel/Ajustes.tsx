@@ -14,8 +14,6 @@ import {
   MAX_FIRMA,
   MAX_VOZ,
   NOMBRE_FUENTE,
-  NOMBRE_RESPUESTAS,
-  RESPUESTAS,
   MAX_INSTRUCCIONES,
   MAX_REGLAS,
   REGIMENES_FISCALES,
@@ -28,7 +26,6 @@ import {
   rfcValido,
   type Acento,
   type Fuente,
-  type LetraRespuestas,
   type AjustesCuenta,
   aparienciaDe,
   type Apariencia,
@@ -140,23 +137,12 @@ const OPCIONES: Opcion[] = [
   { parte: "autonomia", titulo: "Tu visto bueno antes de enviar", claves: "aprobar aprobacion enviar revisar" },
   { parte: "apariencia", titulo: "Tema", claves: "oscuro claro sistema modo noche dia" },
   { parte: "apariencia", titulo: "Color", claves: "acento azul morado rosa rojo ambar verde turquesa grafito gris botones" },
-  { parte: "apariencia", titulo: "Letra de la interfaz", claves: `fuente tipografia tipo de letra panel ${FUENTES.map((f) => NOMBRE_FUENTE[f]).join(" ")}` },
-  { parte: "apariencia", titulo: "Letra de las respuestas", claves: `fuente tipografia serif respuestas ${RESPUESTAS.map((f) => NOMBRE_RESPUESTAS[f]).join(" ")}` },
-  { parte: "apariencia", titulo: "Tamaño del texto del chat", claves: "letra grande chica tamano texto" },
-  { parte: "apariencia", titulo: "Espacio entre renglones", claves: "interlineado renglones lineas amplio compacto" },
-  { parte: "apariencia", titulo: "Ancho de la conversación", claves: "angosto ancho columna chat" },
-  { parte: "apariencia", titulo: "Densidad", claves: "compacta espaciosa espacio juntas separadas menu mensajes" },
-  { parte: "apariencia", titulo: "Hora de cada mensaje", claves: "hora mensajes ocultar mostrar tiempo" },
-  { parte: "apariencia", titulo: "Movimiento", claves: "animaciones reducir movimiento accesibilidad" },
-  { parte: "apariencia", titulo: "Contraste alto", claves: "contraste leer vista accesibilidad bordes" },
-  { parte: "apariencia", titulo: "Subrayar enlaces", claves: "enlaces links subrayado accesibilidad" },
+  { parte: "apariencia", titulo: "Tipo de letra", claves: `fuente tipografia tipo de letra panel ${FUENTES.map((f) => NOMBRE_FUENTE[f]).join(" ")}` },
+  { parte: "apariencia", titulo: "Voz de Atendel", claves: "voz hablar platica voces escuchar" },
   { parte: "apariencia", titulo: "Idioma", claves: `idioma lenguaje traducir language respuestas panel ${IDIOMAS.map((i) => `${i.es} ${i.nombre}`).join(" ")}` },
-  { parte: "apariencia", titulo: "Menú lateral", claves: "compacto barra iconos" },
-  { parte: "apariencia", titulo: "Información a la derecha", claves: "panel resumen lateral" },
-  { parte: "apariencia", titulo: "Animación de entrada", claves: "fragmentos logo inicio" },
   { parte: "capacidades", titulo: "Que revisen todo solos", claves: "revision diaria hora automatico todos los dias" },
   { parte: "capacidades", titulo: "Que trabajen por su cuenta", claves: "trabajo autonomo solo aunque no estes correo whatsapp" },
-  { parte: "capacidades", titulo: "Modelo: Rápido o Avanzado", claves: "modelo rapido avanzado inteligencia" },
+  { parte: "capacidades", titulo: "Modelo: lo elige Atendel", claves: "modelo rapido avanzado inteligencia" },
   { parte: "capacidades", titulo: "Modo plática", claves: "voz hablar platica microfono escuchar" },
   { parte: "autonomia", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
   { parte: "conexiones", titulo: "Conectar una app", claves: "apps conectar gmail google calendar whatsapp outlook drive integraciones" },
@@ -224,17 +210,6 @@ const LETRA_FUENTE: Record<Fuente, string> = {
   atkinson: "var(--font-atkinson), sans-serif",
   sistema: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
 };
-const LETRA_RESPUESTAS: Record<LetraRespuestas, string> = {
-  sans: "var(--pc-sans)",
-  "source-serif": "var(--pc-serif)",
-  newsreader: "var(--font-newsreader), serif",
-  lora: "var(--font-lora), serif",
-  literata: "var(--font-literata), serif",
-  merriweather: "var(--font-merriweather), serif",
-  fraunces: "var(--font-fraunces), serif",
-  atkinson: "var(--font-atkinson), sans-serif",
-};
-
 const COLOR_ACENTO: Record<Acento, { nombre: string; color: string }> = {
   azul: { nombre: "Azul", color: "#3d7bff" },
   morado: { nombre: "Morado", color: "#8052ff" },
@@ -1291,7 +1266,7 @@ export function VentanaAjustes({
           </Fila>
         </Grupo>
         <Grupo titulo="En el chat">
-          <Fila titulo="Modelo: Rápido o Avanzado" texto="Lo eliges en la barra del chat. Rápido es para el día a día; Avanzado es para lo pesado (Excel, análisis) y gasta más de tu límite.">
+          <Fila titulo="Modelo: lo elige Atendel" texto="Para el día a día usa Rápido. Para lo pesado (analizar, comparar, Excel, reportes, contratos) usa Avanzado, si tu plan lo trae y te queda límite. En la plática con voz, siempre Rápido.">
             <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("uso")}>
               Ver mi uso
             </button>
@@ -1335,120 +1310,14 @@ export function VentanaAjustes({
           <ElegirVoz valor={ajustes.vozAtendel} idioma={ajustes.idioma} alElegir={(id) => cambiar("vozAtendel", id)} />
         </Grupo>
         <Grupo titulo="Letra">
-          <Fila titulo="Letra de la interfaz">
+          <Fila titulo="Tipo de letra">
             <Desplegable
-              etiqueta="Letra de la interfaz"
+              etiqueta="Tipo de letra"
               valor={ajustes.fuente}
               alCambiar={(v) => cambiar("fuente", v)}
               letra="var(--pc-sans)"
               opciones={FUENTES.map((f) => ({ id: f, nombre: NOMBRE_FUENTE[f], letra: LETRA_FUENTE[f] }))}
             />
-          </Fila>
-          <Fila titulo="Letra de las respuestas">
-            <Desplegable
-              etiqueta="Letra de las respuestas"
-              valor={ajustes.respuestas}
-              alCambiar={(v) => cambiar("respuestas", v)}
-              letra="var(--pc-respuestas, var(--pc-sans))"
-              opciones={RESPUESTAS.map((f) => ({ id: f, nombre: NOMBRE_RESPUESTAS[f], letra: LETRA_RESPUESTAS[f] }))}
-            />
-          </Fila>
-          <Fila titulo="Tamaño del texto del chat">
-            <Desplegable
-              etiqueta="Tamaño del texto del chat"
-              valor={ajustes.letra}
-              alCambiar={(v) => cambiar("letra", v)}
-              opciones={[
-                { id: "chica", nombre: "Chico" },
-                { id: "normal", nombre: "Mediano" },
-                { id: "grande", nombre: "Grande" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Espacio entre renglones">
-            <Desplegable
-              etiqueta="Espacio entre renglones"
-              valor={ajustes.interlineado}
-              alCambiar={(v) => cambiar("interlineado", v)}
-              opciones={[
-                { id: "compacto", nombre: "Compacto" },
-                { id: "normal", nombre: "Normal" },
-                { id: "amplio", nombre: "Amplio" },
-              ]}
-            />
-          </Fila>
-          <div className="pc-aj-muestra" aria-hidden="true">
-            <span className="pc-aj-muestra__quien">Así se ven las respuestas</span>
-            <p className="pc-msj__texto">Listo: confirmé las 6 citas de mañana. Dos pidieron cambiar de hora; te dejé las opciones para que elijas.</p>
-          </div>
-        </Grupo>
-        <Grupo titulo="Conversación">
-          <Fila titulo="Ancho de la conversación">
-            <Desplegable
-              etiqueta="Ancho de la conversación"
-              valor={ajustes.ancho}
-              alCambiar={(v) => cambiar("ancho", v)}
-              opciones={[
-                { id: "angosto", nombre: "Angosto" },
-                { id: "normal", nombre: "Normal" },
-                { id: "ancho", nombre: "Ancho" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Densidad" texto="Qué tan juntos van los renglones del menú y los mensajes.">
-            <Desplegable
-              etiqueta="Densidad"
-              valor={ajustes.densidad}
-              alCambiar={(v) => cambiar("densidad", v)}
-              opciones={[
-                { id: "compacta", nombre: "Compacta" },
-                { id: "normal", nombre: "Normal" },
-                { id: "espaciosa", nombre: "Espaciosa" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Hora de cada mensaje">
-            <Interruptor etiqueta="Hora de cada mensaje" activo={ajustes.horas === "mostrar"} alCambiar={(v) => cambiar("horas", v ? "mostrar" : "ocultar")} />
-          </Fila>
-        </Grupo>
-        <Grupo titulo="Accesibilidad">
-          <Fila titulo="Movimiento" texto="Reducido quita las animaciones del panel.">
-            <Desplegable
-              etiqueta="Movimiento"
-              valor={ajustes.movimiento}
-              alCambiar={(v) => cambiar("movimiento", v)}
-              opciones={[
-                { id: "sistema", nombre: "Sistema" },
-                { id: "reducido", nombre: "Reducido" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Contraste alto" texto="Textos y bordes más marcados.">
-            <Interruptor etiqueta="Contraste alto" activo={ajustes.contraste === "alto"} alCambiar={(v) => cambiar("contraste", v ? "alto" : "normal")} />
-          </Fila>
-          <Fila titulo="Subrayar enlaces" texto="Para distinguirlos sin depender del color.">
-            <Interruptor etiqueta="Subrayar enlaces" activo={ajustes.enlaces === "subrayados"} alCambiar={(v) => cambiar("enlaces", v ? "subrayados" : "normal")} />
-          </Fila>
-        </Grupo>
-        <Grupo titulo="Panel">
-          <Fila titulo="Menú lateral" texto="Compacto deja solo los íconos.">
-            <Segmentos
-              etiqueta="Menú lateral"
-              activa={preferencias.menuCompacto ? "compacto" : "completo"}
-              alElegir={(id) => preferencias.alCambiarMenu(id === "compacto")}
-              opciones={[
-                { id: "completo", etiqueta: "Completo" },
-                { id: "compacto", etiqueta: "Compacto" },
-              ]}
-            />
-          </Fila>
-          <Fila titulo="Información a la derecha" texto="Que el resumen de tu negocio se abra solo al entrar (en pantallas anchas).">
-            <Interruptor etiqueta="Información a la derecha" activo={preferencias.infoAlAbrir} alCambiar={preferencias.alCambiarInfo} />
-          </Fila>
-          <Fila titulo="Animación de entrada" texto="Los fragmentos que forman el logo al entrar. Sale una vez por pestaña.">
-            <button type="button" className={claseBoton("borde", true)} onClick={preferencias.verEntrada}>
-              Verla otra vez
-            </button>
           </Fila>
         </Grupo>
       </>
@@ -1691,7 +1560,7 @@ export function VentanaAjustes({
             titulo="No contamos mensajes"
             texto="Medimos cuánto trabaja tu equipo en cada respuesta. Un mensaje corto gasta poco; uno largo, una conversación larga, muchos documentos o las apps que consulta gastan más."
           />
-          <Fila titulo="Rápido o Avanzado" texto="En el chat eliges el modelo. Rápido es para el día a día y gasta muy poco; Avanzado es para lo pesado (Excel, análisis) y gasta unas 40 veces más por mensaje." />
+          <Fila titulo="Rápido o Avanzado" texto="Atendel elige el modelo según lo que le pides. Rápido es para el día a día y gasta muy poco; Avanzado es para lo pesado (Excel, análisis) y gasta unas 40 veces más por mensaje." />
           <Fila titulo="Sesión de 5 horas" texto="Empieza con tu primer mensaje y se reinicia 5 horas después. Además hay un límite por semana, que se reinicia el lunes." />
           <Fila titulo="Si llegas al límite" texto="Tu equipo deja de contestar en el chat hasta que se reinicie. Lo que ya leyó y tus datos se quedan.">
             <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("plan")}>

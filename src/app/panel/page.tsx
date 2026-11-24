@@ -20,9 +20,8 @@ import { esIdAgente } from "@/lib/agentes";
 import { cargarCuenta } from "@/lib/cuenta";
 import { vozDisponible } from "@/lib/elevenlabs";
 import { cargarHoy } from "@/lib/hoy";
-import { fraseDelDia } from "@/lib/tablero";
-import { cargarTablero } from "@/lib/tablero-datos";
-import { Tablero } from "@/components/panel/tablero/Tablero";
+import { cargarDestacadas } from "@/lib/tablero-datos";
+import { BannerImportante } from "@/components/panel/tablero/Tablero";
 import { leerUso } from "@/lib/uso";
 import { bloqueoConHora } from "@/lib/uso-estado";
 import { inicioDia, periodoDe, sumarDias } from "@/lib/estadisticas";
@@ -39,7 +38,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
 /**
  * /panel: el panel nuevo con los datos reales de la cuenta. Solo lee (RLS
  * deja ver a cada quien solo lo suyo); no cambia datos ni la API.
- * - /panel: el Tablero (el resumen del negocio, lo primero al entrar).
+ * - /panel: el chat con Atendel (lo primero al entrar; el Tablero se quitó para que sea simple).
  * - /panel?vista=chat (&pide=texto, &area=citas): la Oficina: el saludo y la caja (un chat nuevo).
  * - /panel?c=ID: esa conversación, en el mismo lugar.
  * - ?vista=pendientes (&tipo=correos|pasos, &de=remitente, &accion=…): el tablero.
@@ -225,7 +224,20 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
   const cuenta = await cargarCuenta(supabase, user.id);
   const bloqueo = bloqueoConHora(await leerUso(supabase, user.id, cuenta.plan));
 
-  if (searchParams.vista === "negocio") return <TuNegocio tab={pestanaDe(searchParams.tab)} plan={cuenta.plan.id} conectada={texto(searchParams.conectada, 40)} error={texto(searchParams.error, 40)} app={texto(searchParams.app, 40)} />;
+  if (searchParams.vista === "negocio") {
+    // Arriba, lo importante (el banner que antes iba en el Tablero)
+    const destacadas = await cargarDestacadas(supabase, user.id, { cuenta, conGoogle }).catch(() => []);
+    return (
+      <TuNegocio
+        tab={pestanaDe(searchParams.tab)}
+        plan={cuenta.plan.id}
+        conectada={texto(searchParams.conectada, 40)}
+        error={texto(searchParams.error, 40)}
+        app={texto(searchParams.app, 40)}
+        arriba={<BannerImportante destacadas={destacadas} />}
+      />
+    );
+  }
 
   if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;
 
@@ -249,20 +261,6 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
         accion={texto(searchParams.accion)}
       />
     );
-  }
-
-  // /panel solo: el TABLERO (lo primero al entrar). El chat: ?vista=chat, o cuando trae una
-  // conversación o algo que pedir (?c=, ?pide=, ?agente=, ?area=, ?avisos=1)
-  const alChat = searchParams.vista === "chat" || Boolean(searchParams.c || searchParams.pide || searchParams.agente || searchParams.area || searchParams.avisos);
-  if (!alChat) {
-    const { data: filaAjustes } = await supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle();
-    const zona = limpiarAjustes(filaAjustes?.datos).zonaHoraria;
-    const datos = await cargarTablero(supabase, user.id, { cuenta, conGoogle, zona });
-    const ahora = new Date();
-    const fecha = new Intl.DateTimeFormat("es-MX", { timeZone: zona, weekday: "long", day: "numeric", month: "long" }).format(ahora);
-    // Una frase corta al azar, fija todo el día (cambia al siguiente)
-    const dia = new Intl.DateTimeFormat("en-CA", { timeZone: zona }).format(ahora);
-    return <Tablero datos={datos} saludo={fraseDelDia(dia, user.id)} fecha={fecha} base="/panel" />;
   }
 
   // Las conversaciones: el chat (lo de «Hoy» vive en Tareas)

@@ -182,6 +182,15 @@ function PanelesHoy({ hoy, hrefTareas }: { hoy: Hoy; hrefTareas: string }) {
 
 /* ---------- El banner de lo importante ---------- */
 
+/** El banner de lo importante, suelto (arriba de Tu negocio): lo que te necesita, con sus flechas. */
+export function BannerImportante({ destacadas }: { destacadas: Destacada[] }) {
+  return (
+    <div className="tb-banner-suelto">
+      <Banner destacadas={destacadas} />
+    </div>
+  );
+}
+
 function Banner({ destacadas }: { destacadas: Destacada[] }) {
   const [i, setI] = useState(0);
   const total = destacadas.length;

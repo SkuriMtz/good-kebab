@@ -256,7 +256,10 @@ export type AjustesCuenta = {
 export const CLAVES_APARIENCIA = ["acento", "letra", "fuente", "respuestas", "ancho", "movimiento", "idioma", "interlineado", "densidad", "contraste", "enlaces", "horas"] as const;
 export type Apariencia = Pick<AjustesCuenta, (typeof CLAVES_APARIENCIA)[number]>;
 /** Solo lo de Apariencia, de unos ajustes. */
-export const aparienciaDe = (a: AjustesCuenta): Apariencia => Object.fromEntries(CLAVES_APARIENCIA.map((k) => [k, a[k]])) as Apariencia;
+/** Lo que se elige en Apariencia (tema aparte): lo demás se quitó para que sea simple y va como viene. */
+const APARIENCIA_ELEGIBLE: readonly (typeof CLAVES_APARIENCIA)[number][] = ["acento", "fuente", "idioma"];
+export const aparienciaDe = (a: AjustesCuenta): Apariencia =>
+  Object.fromEntries(CLAVES_APARIENCIA.map((k) => [k, APARIENCIA_ELEGIBLE.includes(k) ? a[k] : AJUSTES_INICIALES[k]])) as Apariencia;
 
 export const MAX_INSTRUCCIONES = 1500;
 export const MAX_FIRMA = 80;

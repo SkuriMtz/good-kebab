@@ -39,9 +39,8 @@ import { ContextoNegocio } from "./negocio/fuente";
 import { TuNegocio } from "./negocio/TuNegocio";
 import { pestanaDe } from "./negocio/pestanas";
 import { usoDeEjemplo } from "@/lib/uso-estado";
-import { fraseDelDia } from "@/lib/tablero";
 import { tableroDeEjemplo } from "@/lib/tablero-demo";
-import { Tablero } from "./tablero/Tablero";
+import { BannerImportante } from "./tablero/Tablero";
 
 /* =====================================================================
    /pruebalo: el mismo panel con DATOS DE EJEMPLO de un negocio inventado
@@ -52,7 +51,7 @@ import { Tablero } from "./tablero/Tablero";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["tablero", "agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 /** El uso de ejemplo de Estudio Luna (sesión al 18 %, semana al 43 %). */
 const USO_DEMO = usoDeEjemplo(PLAN.limite);
@@ -231,9 +230,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
       );
 
   let contenido;
-  if (valida === "tablero") {
-    contenido = <Tablero datos={tableroDeEjemplo()} saludo={fraseDelDia(new Date(ahora).toISOString().slice(0, 10), "demo")} fecha={new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" }).format(new Date(ahora))} base="/pruebalo" />;
-  } else if (valida === "agentes") {
+  if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
   } else if (valida === "tareas") {
@@ -302,7 +299,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   } else if (valida === "citas") {
     contenido = <CitasDemo estado={params.get("estado") ?? "todas"} de={texto("de")} dia={texto("dia", 10)} ahora={ahora} extra={citasExtra} alAgregar={(c) => setCitasExtra((l) => [...l, c])} />;
   } else if (valida === "negocio") {
-    contenido = <TuNegocio tab={pestanaDe(params.get("tab"))} plan={DEMO_NEGOCIO.plan} />;
+    contenido = <TuNegocio tab={pestanaDe(params.get("tab"))} plan={DEMO_NEGOCIO.plan} arriba={<BannerImportante destacadas={tableroDeEjemplo().destacadas} />} />;
   } else if (valida === "estadisticas") {
     const periodo = periodoDe(params.get("periodo"));
     contenido = (
@@ -359,7 +356,6 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         activa={activa}
         chatActual={conv?.id ?? null}
         hrefs={{
-          tablero: "/pruebalo?vista=tablero",
           inicio: "/pruebalo",
           oficina: "/pruebalo?vista=oficina",
           correo: "/pruebalo?vista=correo",

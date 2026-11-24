@@ -14,7 +14,8 @@ import { cargarCuenta } from "@/lib/cuenta";
 import { contextoCorreo } from "@/lib/contexto-correo";
 import { contextoPerfil } from "@/lib/contexto-negocio";
 import { bloqueDocumentos } from "@/lib/contexto-documentos";
-import { MODELOS, esIdModelo, planMinimo, type IdModelo } from "@/lib/planes";
+import { MODELOS, planMinimo } from "@/lib/planes";
+import { elegirModelo } from "@/lib/elegir-modelo";
 import { Gasto, leerUso, registrarUso } from "@/lib/uso";
 import { bloqueoConHora, pctDe } from "@/lib/uso-estado";
 import { aparatoDe } from "@/lib/aparato";
@@ -165,14 +166,10 @@ export async function POST(request: NextRequest) {
       403,
     );
   }
-  // El modelo que eligió en el chat (Rápido o Avanzado), si su plan lo trae
-  const idModelo: IdModelo = esIdModelo(body.modelo) ? body.modelo : cuenta.plan.modelos[0];
-  if (!cuenta.plan.modelos.includes(idModelo)) {
-    return error(`El modelo ${MODELOS[idModelo].nombre} viene con Atendel One y Max.`, 403);
-  }
-  const modelo = MODELOS[idModelo];
   // El límite de uso del plan (como Claude: sesión de 5 horas y semana)
   const uso = await leerUso(supabase, user.id, cuenta.plan);
+  // Atendel elige solo el modelo (Rápido o Avanzado) según lo que le piden, su plan y lo que queda del límite
+  const modelo = MODELOS[elegirModelo({ mensaje, plan: cuenta.plan, uso, voz: enVoz })];
   const limite = bloqueoConHora(uso);
   if (limite)
     return NextResponse.json(

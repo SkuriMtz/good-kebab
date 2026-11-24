@@ -8,7 +8,7 @@ import { IDIOMAS, limpiarAjustes } from "@/lib/ajustes";
 import { MAX_DIAPOSITIVAS, MAX_PUNTOS, nombreArchivo, validarPresentacion } from "@/lib/archivos/presentacion";
 import { DEMO_NEGOCIO } from "@/lib/demo-dashboard";
 import { usarMensajeDemo } from "@/lib/demo-ia";
-import { MODELOS, esIdModelo } from "@/lib/planes";
+import { MODELOS } from "@/lib/planes";
 import { marcoDato } from "@/lib/demo-marcas";
 import { EQUIPO_DEMO, correosDemoParaIA, datosDemoParaIA } from "@/lib/demo-negocio";
 import { elegirContactos } from "@/lib/equipo";
@@ -52,7 +52,7 @@ type Linea = { de: string; texto: string };
 
 export async function POST(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? "0") > 60_000) return error("El mensaje es demasiado largo.", 413);
-  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown; idioma?: unknown; modelo?: unknown };
+  let body: { agentes?: unknown; historial?: unknown; mensaje?: unknown; tema?: unknown; idioma?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
   const agentes = Array.from(new Set((Array.isArray(body.agentes) ? body.agentes : []).filter(esIdAgente))).slice(0, 4) as IdAgente[];
   if (!agentes.length) return error("¿Con quién hablas?", 400);
   const mensaje = typeof body.mensaje === "string" ? body.mensaje.trim().slice(0, 2000) : "";
-  // El modelo que eligió en el selector (Rápido si no dice)
-  const modelo = MODELOS[esIdModelo(body.modelo) ? body.modelo : "rapido"];
+  // La prueba pública siempre con Rápido (sin cuenta no hay límite que cuidar lo pesado)
+  const modelo = MODELOS.rapido;
   if (!mensaje) return error("Escribe un mensaje.", 400);
   const grupo = agentes.length > 1 ? agentes : null;
   // El idioma de Ajustes > Apariencia (solo uno de la lista)
