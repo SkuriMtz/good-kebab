@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { AGENTE_POR_ID, esIdAgente, type IdAgente } from "@/lib/agentes";
-import { instruccionesAtendel, instruccionesDe } from "@/lib/agentes-prompts";
-import { conMarca, partirIntervenciones } from "@/lib/grupo";
+import { instruccionesCoordinador, instruccionesDe, instruccionesEmpleado } from "@/lib/agentes-prompts";
 import { bloqueParaAgentes, limpiarAjustes } from "@/lib/ajustes";
 import { bloqueCerebro, cargarCerebro, herramientaGuardarRegla, herramientaRecordar } from "@/lib/cerebro";
 import { INSTRUCCIONES_TAREAS, herramientaProgramar } from "@/lib/tareas";
@@ -24,8 +23,11 @@ import { clienteServicio } from "@/lib/supabase/servicio";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
 import {
   responderConHerramientas,
+  type HerramientaChat,
   type PeticionRonda,
 } from "@/lib/herramientas/ciclo";
+import { herramientaEncargar } from "@/lib/herramientas/equipo";
+import { APP_POR_ID } from "@/lib/conexiones/catalogo";
 import {
   herramientasDelChat,
   instruccionesHerramientas,
@@ -34,7 +36,7 @@ import {
   accionesDelChat,
   instruccionesAcciones,
 } from "@/lib/herramientas/acciones";
-import { marcoEstado } from "@/lib/estado-chat";
+import { marcoEquipo, marcoEstado } from "@/lib/estado-chat";
 import { mensajeErrorIa } from "@/lib/herramientas/ciclo";
 import { datosDeFueraDelCuerpo, marcarAlTerminar, turnoDelChat } from "@/lib/datos-fuera";
 
@@ -44,8 +46,11 @@ import { datosDeFueraDelCuerpo, marcarAlTerminar, turnoDelChat } from "@/lib/dat
  * Recibe un mensaje para un agente (o para un grupo de agentes), revisa en
  * el servidor que la persona tenga sesión, que su plan incluya a esos
  * agentes y que no haya pasado su límite del mes, y responde en vivo.
- * En un grupo contesta un solo modelo por todos: cada intervención llega
- * marcada con "@@id" y se guarda como un mensaje de ese agente.
+ * Con tu equipo (el chat de Atendel): Atendel COORDINA. No entra a las
+ * apps: le encarga cada parte al empleado que le toca (herramienta encargar,
+ * src/lib/herramientas/equipo.ts), que trabaja aparte con solo sus
+ * herramientas; varios a la vez. Su respuesta es una sola (se guarda sin
+ * agente: es de Atendel) y los encargos quedan en `encargos` (tarjetitas).
  * Si Altair está (solo o en el grupo), el system lleva los resúmenes de
  * correo recientes de la persona (src/lib/contexto-correo.ts): solo
  * lectura, delimitados y marcados como datos, no instrucciones.
@@ -60,7 +65,8 @@ import { datosDeFueraDelCuerpo, marcarAlTerminar, turnoDelChat } from "@/lib/dat
  */
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// Con tu equipo, cada empleado puede tardar hasta 60 s (en paralelo) además de Atendel
+export const maxDuration = 120;
 
 const MAX_MENSAJE = 4000;
 const HISTORIAL = 30; // mensajes previos que se le mandan a la IA
@@ -104,6 +110,8 @@ export async function POST(request: NextRequest) {
   // ¿El cliente sabe mostrar las líneas de estado? (si no, el stream es solo texto)
   const conEstados =
     body.estados === true || request.headers.get("x-atendel-estados") === "1";
+  // ¿Y las tarjetitas de su equipo trabajando? (un cliente viejo las mostraría como texto raro)
+  const conEquipoEnVivo = conEstados && body.equipo === true;
   // ¿Viene del modo plática? (solo cambia cómo contesta: corto y para oírse)
   const enVoz = body.voz === true;
 
@@ -211,11 +219,8 @@ export async function POST(request: NextRequest) {
       .limit(HISTORIAL);
     for (const m of (previos ?? []).reverse()) {
       const rol = m.rol === "assistant" ? "assistant" : "user";
-      // En grupos cada respuesta lleva su marca; varias seguidas se juntan en un solo turno
-      const contenido =
-        grupo && rol === "assistant"
-          ? conMarca(esIdAgente(m.agente) ? m.agente : agente, m.contenido)
-          : m.contenido;
+      // Sin marcas (Atendel ya no las usa); varias respuestas seguidas se juntan en un solo turno
+      const contenido = m.contenido;
       const ultimo = historial[historial.length - 1];
       if (ultimo && ultimo.role === rol && typeof ultimo.content === "string")
         ultimo.content += `\n\n${contenido}`;
@@ -288,23 +293,17 @@ export async function POST(request: NextRequest) {
   const turno = turnoDelChat({ marcada, enAvisos, conCorreos: Boolean(correos), conDocumentos: Boolean(documentos), datosDeFuera: datosDeFueraDelCuerpo(body) });
   // Las que leen marcan el turno como "con datos de fuera"; las que HACEN algo (crear, mover,
   // mandar…) ya traen la regla de «Qué hace solo» y no regresan datos de fuera
-  const deApps = herramientasDelChat({
-    supabase,
-    userId: user.id,
-    participantes,
-    conexiones,
+  const opcionesAcciones = {
+    autonomia: ajustesCuenta.autonomia,
+    origen: "chat" as const,
+    // Con correos, documentos o datos de apps en la plática (en este mensaje o en los anteriores), nada se
+    // hace solo: queda con "Aprobar y hacer"
+    externo: () => turno.externo || turno.contexto,
     zona: ajustesCuenta.zonaHoraria,
-    acciones: {
-      autonomia: ajustesCuenta.autonomia,
-      origen: "chat",
-      // Con correos, documentos o datos de apps en la plática (en este mensaje o en los anteriores), nada se
-      // hace solo: queda con "Aprobar y hacer"
-      externo: () => turno.externo || turno.contexto,
-      zona: ajustesCuenta.zonaHoraria,
-      conversacionId: idConversacion,
-      reglas: datosCerebro.reglas,
-    },
-  }).map((h) =>
+    conversacionId: idConversacion,
+    reglas: datosCerebro.reglas,
+  };
+  const marcarExterno = (h: HerramientaChat): HerramientaChat =>
     h.hace
       ? h
       : {
@@ -313,8 +312,15 @@ export async function POST(request: NextRequest) {
             turno.externo = true;
             return h.ejecutar(args, senal);
           },
-        },
-  );
+        };
+  const deApps = herramientasDelChat({
+    supabase,
+    userId: user.id,
+    participantes,
+    conexiones,
+    zona: ajustesCuenta.zonaHoraria,
+    acciones: opcionesAcciones,
+  }).map(marcarExterno);
   // 6c. Ver todo lo de su cuenta (apps, lo que espera su OK, WhatsApp, tareas, Oficina…). Trae
   //     mensajes de clientes y correos: datos de fuera, igual que las apps
   const verAtendel = herramientaVerAtendel(supabase, user.id, { zona: ajustesCuenta.zonaHoraria, plan: cuenta.plan });
@@ -348,8 +354,37 @@ export async function POST(request: NextRequest) {
     instruccionesHerramientas(participantes, deApps, conexiones) +
     instruccionesAcciones(participantes);
 
-  // 7. Responder en vivo. La ruta vive 60 s: cada petición a la IA espera como mucho 45 s y se
-  //    reintenta una vez (sin esto, el SDK espera hasta 10 minutos y reintenta dos)
+  // 6e. Con tu equipo: Atendel coordina. Sus herramientas son las de la cuenta (ver, contar,
+  //     recordar, reglas, programar) más «encargar»; las de las apps son de cada empleado.
+  const conEquipo = Boolean(grupo);
+  const herramientasCoordinador = herramientas.filter((h) => !deApps.includes(h) && h.nombre !== "crear_presentacion" && h.nombre !== "proponer_envio_whatsapp");
+  /** Las herramientas de un empleado: las de sus apps y, Mira, las presentaciones; Aura, los envíos al equipo. */
+  const herramientasDe = (id: IdAgente): HerramientaChat[] => [
+    ...herramientasDelChat({ supabase, userId: user.id, participantes: [id], conexiones, zona: ajustesCuenta.zonaHoraria, acciones: opcionesAcciones }).map(marcarExterno),
+    ...accionesDelChat({ supabase, userId: user.id, participantes: [id], conversacionId: idConversacion, negocio: cuenta.negocio }).filter((h) =>
+      h.nombre === "crear_presentacion" ? id === "iris" : h.nombre === "proponer_envio_whatsapp" ? id === "lola" : true,
+    ),
+  ];
+  /** Las instrucciones de un empleado, con lo de sus herramientas (las que van en caché, igual que las de Atendel). */
+  const sistemaDe = (id: IdAgente, suyas: HerramientaChat[]) =>
+    instruccionesEmpleado(id, cuenta.negocio, id === "clara" ? correos : undefined, datosNegocio) +
+    bloqueParaAgentes(ajustesCuenta, [id]) +
+    cerebro +
+    instruccionesHerramientas(
+      [id],
+      suyas.filter((h) => h.nombre !== "crear_presentacion" && h.nombre !== "proponer_envio_whatsapp"),
+      conexiones,
+    ) +
+    (id === "iris" || id === "lola" ? instruccionesAcciones([id]) : "");
+  // Atendel sabe qué apps tiene conectadas su equipo (para encargar bien o sugerir conectar)
+  const nombresConectadas = Array.from(new Set(conexiones.filter((c) => c.estado === "activa").flatMap((c) => c.apps))).map((a) => APP_POR_ID[a]?.nombre ?? a);
+  const appsDelEquipo =
+    (nombresConectadas.length
+      ? `\n\nApps conectadas (las usan tus empleados): ${nombresConectadas.join(", ")}.`
+      : "\n\nTodavía no hay apps conectadas: tu equipo trabaja con lo que sabe del negocio.") + instruccionesHerramientas(participantes, [], conexiones);
+
+  // 7. Responder en vivo. Cada petición a la IA espera como mucho 45 s y se reintenta una vez
+  //    (sin esto, el SDK espera hasta 10 minutos y reintenta dos)
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 45_000, maxRetries: 1 });
   const codificar = new TextEncoder();
   const idFinal = idConversacion;
@@ -364,8 +399,10 @@ export async function POST(request: NextRequest) {
     },
     async start(controller) {
       let respuesta = "";
-      // Lo que de verdad cuesta esta respuesta (todas sus rondas): cuenta para el límite del plan
+      // Lo que de verdad cuesta esta respuesta (todas sus rondas, y los encargos de su equipo): cuenta para el límite del plan
       const gasto = new Gasto();
+      // Los encargos de este turno (para ligarlos al mensaje de Atendel al final)
+      const encargos: string[] = [];
       // Si la persona detiene la respuesta, el flujo se cierra: ya no se escribe en él
       const enviar = (texto: string) => {
         try {
@@ -383,47 +420,65 @@ export async function POST(request: NextRequest) {
             {
               type: "text" as const,
               cache_control: { type: "ephemeral" as const },
-              text:
-                // Con varios agentes: Atendel reparte el trabajo y contesta una sola vez
-                (grupo
-                  ? instruccionesAtendel(
-                      grupo,
-                      cuenta.negocio,
-                      correos,
-                      datosNegocio,
-                    )
-                  : instruccionesDe(
-                      agente,
-                      cuenta.negocio,
-                      correos,
-                      datosNegocio,
-                    )) +
-                preferencias +
-                cerebro +
-                INSTRUCCIONES_TAREAS +
-                INSTRUCCIONES_CUENTA +
-                conApps,
+              text: grupo
+                ? // Con tu equipo: Atendel coordina y encarga (las apps son de sus empleados)
+                  instruccionesCoordinador(grupo, cuenta.negocio, datosNegocio) +
+                  preferencias +
+                  cerebro +
+                  INSTRUCCIONES_TAREAS +
+                  INSTRUCCIONES_CUENTA +
+                  appsDelEquipo
+                : instruccionesDe(agente, cuenta.negocio, correos, datosNegocio) +
+                  preferencias +
+                  cerebro +
+                  INSTRUCCIONES_TAREAS +
+                  INSTRUCCIONES_CUENTA +
+                  conApps,
             },
           ],
         };
         // Rápido (Haiku 5.5) o Avanzado (Opus 5.5). Solo Opus tiene el respaldo del servidor:
         // si declina por un falso positivo de seguridad, la API reintenta sola con otro modelo
+        const modeloTurno = conEquipo ? MODELOS.rapido : modelo;
         const pedir = (p: PeticionRonda) =>
-          modelo.api === "claude-opus-5-5"
+          modeloTurno.api === "claude-opus-5-5"
             ? client.beta.messages.stream({
                 ...base,
                 ...p,
-                model: modelo.api,
-                output_config: { effort: modelo.esfuerzo },
+                model: modeloTurno.api,
+                output_config: { effort: modeloTurno.esfuerzo },
                 betas: ["server-side-fallback-2026-07-01"],
                 fallbacks: "default",
               })
             : client.beta.messages.stream({
                 ...base,
                 ...p,
-                model: modelo.api,
-                output_config: { effort: modelo.esfuerzo },
+                model: modeloTurno.api,
+                output_config: { effort: modeloTurno.esfuerzo },
               });
+        // Tu equipo: cada empleado trabaja aparte y su tarjetita va al stream (si el cliente la sabe pintar)
+        const herramientasTurno = conEquipo
+          ? [
+              ...herramientasCoordinador,
+              herramientaEncargar({
+                client,
+                ids: grupo!,
+                plan: cuenta.plan,
+                uso,
+                gasto,
+                senal: corte.signal,
+                herramientasDe,
+                sistemaDe,
+                documentos: documentos || undefined,
+                avisar: (e) => {
+                  if (conEquipoEnVivo) enviar(marcoEquipo(e));
+                },
+                posicion: () => respuesta.length,
+                guardar: { admin: clienteServicio(), owner: user.id, conversacion: idFinal },
+                hechos: encargos,
+              }),
+            ]
+          : herramientas;
         // Texto en vivo; si pide herramientas, se corren (solo lectura) y sigue (máximo 4 rondas)
         const { final } = await responderConHerramientas({
           pedir,
@@ -447,7 +502,7 @@ export async function POST(request: NextRequest) {
               ],
             },
           ],
-          herramientas,
+          herramientas: herramientasTurno,
           alTexto: (d) => {
             respuesta += d;
             enviar(d);
@@ -458,7 +513,7 @@ export async function POST(request: NextRequest) {
           alFlujo: (f) => {
             flujo = f;
           },
-          alUso: (m) => gasto.sumar(m, modelo.api),
+          alUso: (m) => gasto.sumar(m, modeloTurno.api),
           senal: corte.signal,
         });
         if (final?.stop_reason === "refusal" && !respuesta) {
@@ -484,20 +539,25 @@ export async function POST(request: NextRequest) {
             .eq("id", idFinal);
           if (errMarca) console.error("Chat: no se pudo marcar la conversación con datos de fuera:", errMarca.message);
         }
-        if (respuesta.trim()) {
-          // En grupo, cada intervención se guarda como mensaje de su agente
-          const piezas = grupo
-            ? partirIntervenciones(respuesta, grupo).filter((p) => p.texto)
-            : [{ agente, texto: respuesta }];
-          await supabase.from("mensajes").insert(
-            piezas.map((p) => ({
+        if (respuesta.trim() || encargos.length) {
+          // Con el equipo, la respuesta es de Atendel (sin agente); si no, del agente de la plática
+          const { data: guardado } = await supabase
+            .from("mensajes")
+            .insert({
               conversacion_id: idFinal,
               owner_id: user.id,
               rol: "assistant",
-              agente: p.agente,
-              contenido: p.texto.slice(0, 40000),
-            })),
-          );
+              agente: conEquipo ? null : agente,
+              contenido: (respuesta.trim() ? respuesta : "Tu equipo trabajó en esto.").slice(0, 40000),
+            })
+            .select("id")
+            .maybeSingle();
+          // Las tarjetitas de este turno, ligadas a la respuesta (para verlas al volver a la plática)
+          const admin = clienteServicio();
+          if (guardado?.id && encargos.length && admin) {
+            const { error: errLigar } = await admin.from("encargos").update({ mensaje_id: guardado.id }).in("id", encargos).eq("owner_id", user.id);
+            if (errLigar) console.error("Chat: no se pudieron ligar los encargos:", errLigar.message);
+          }
         }
         await supabase
           .from("conversaciones")

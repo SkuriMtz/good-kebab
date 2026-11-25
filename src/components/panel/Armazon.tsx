@@ -19,6 +19,7 @@ import { CLAVE_ENTRADA } from "@/lib/entrada";
 import { ContextoNavegar, EVENTO_BUSCAR, Enlace, Modal } from "./Piezas";
 import { ConectarApps, EVENTO_CONECTAR } from "./ConectarApps";
 import { AprobarAccion } from "./AprobarAccion";
+import { Novedad } from "./Novedad";
 import { SeccionesChats, type AccionesChats } from "./MenuChats";
 import type { OrganizacionChats } from "@/lib/organizacion-chats";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
@@ -26,7 +27,7 @@ import { queHaceAlEscribir } from "@/lib/conexiones/permisos-google";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
-export type IdSeccion = "tablero" | "apps" | "inicio" | "chat" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
+export type IdSeccion = "tablero" | "apps" | "inicio" | "chat" | "equipo" | "agentes" | "oficina" | "tareas" | "pendientes" | "citas" | "negocio" | "estadisticas" | "ajustes" | "correo";
 /** Una conversación del menú. `campo`: de dónde sale su nombre (el tema de un grupo o el título), para cambiarlo. */
 /** El id de algo que espera tu OK (?aprobar=<id>). */
 const ID_ACCION = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,7 +50,7 @@ type Props = {
   activa: IdSeccion;
   /** La conversación abierta (se marca en Fijados o Recientes). */
   chatActual?: string | null;
-  hrefs: { inicio: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string; oficina?: string; correo?: string; apps?: string };
+  hrefs: { inicio: string; equipo: string; tareas: string; pendientes: string; citas: string; negocio: string; estadisticas: string; ajustes: string; oficina?: string; correo?: string; apps?: string };
   /** Lo que Atendel dejó en la Oficina para revisar (el número junto a «Oficina»). */
   porRevisar?: number | null;
   /** Lo que espera algo de ti (null: no se pudo leer). */
@@ -448,10 +449,10 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
     </Enlace>
   );
 
-  /* En celular (como WhatsApp): la barra de abajo con 5 pestañas (Inicio · Chat · Tu día · Negocio ·
+  /* En celular (como WhatsApp): la barra de abajo con 5 pestañas (Chat · Tu equipo · Tu día · Negocio ·
      Ajustes) y, arriba, los botones del tema elegido (Tu día: Tu OK, Oficina, Citas y Tareas; Negocio:
      Correo, Estadísticas, Apps y Tu negocio). Ajustes abre su ventana. En compu no se ven (panel.css). */
-  const tema: "chat" | "dia" | "negocio" = TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : "chat";
+  const tema: "chat" | "equipo" | "dia" | "negocio" = activa === "equipo" ? "equipo" : TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : "chat";
   const opcionesTema: { id: IdSeccion; etiqueta: string; href: string; cuenta?: number | null }[] =
     tema === "dia"
       ? [
@@ -543,6 +544,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
 
           <nav className="pc-menu__nav" aria-label="Secciones">
             {item("inicio", "Chat", "conversaciones", hrefs.inicio)}
+            {item("equipo", "Tu equipo", "usuarios", hrefs.equipo)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -645,6 +647,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
 
       <nav className="pc-abajo" aria-label="Menú">
         {pestanaAbajo("chat", "Chat", hrefs.inicio)}
+        {pestanaAbajo("equipo", "Tu equipo", hrefs.equipo)}
         {pestanaAbajo("dia", "Tu día", hrefs.pendientes, cuentaDia)}
         {pestanaAbajo("negocio", "Negocio", hrefs.correo ?? hrefs.estadisticas)}
         <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined} title="Ajustes">
@@ -707,6 +710,16 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
       ) : null}
       <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
+      {/* Lo nuevo de esta versión: una sola vez, junto a «Tu equipo» (en compu, el menú; en celular, la barra de abajo) */}
+      <Novedad
+        clave="equipo"
+        anclas={['.pc-menu__nav a[href$="vista=equipo"]', '.pc-abajo a[href$="vista=equipo"]']}
+        titulo="Tu equipo ya trabaja para ti"
+        texto="Pídele lo que sea a Atendel: él se lo encarga a Aura, Altair, Rigel o Mira, y ves a cada uno trabajando."
+        accion={{ texto: "Conoce a tu equipo", href: hrefs.equipo }}
+        puede={listo && !entrada && !ajustesAbierto && buscar === null && !cajon && conectar === null && aprobar === null}
+        visto={activa === "equipo"}
+      />
       {flotantes}
     </div>
   );

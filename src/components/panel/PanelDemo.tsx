@@ -37,6 +37,7 @@ import { PEDIDOS, esArea } from "./pedidos";
 import { fuenteDemo } from "./negocio/demo";
 import { ContextoNegocio } from "./negocio/fuente";
 import { TuNegocio } from "./negocio/TuNegocio";
+import { TuEquipo, escritoriosDe, type FichaEmpleado } from "./TuEquipo";
 import { pestanaDe } from "./negocio/pestanas";
 import { usoDeEjemplo } from "@/lib/uso-estado";
 import { tableroDeEjemplo } from "@/lib/tablero-demo";
@@ -51,7 +52,7 @@ import { BannerImportante } from "./tablero/Tablero";
    no se llama a la IA.
    ===================================================================== */
 
-const VISTAS = ["agentes", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["agentes", "equipo", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 const PLAN = PLAN_POR_ID[DEMO_NEGOCIO.plan];
 /** El uso de ejemplo de Estudio Luna (sesión al 18 %, semana al 43 %). */
 const USO_DEMO = usoDeEjemplo(PLAN.limite);
@@ -60,6 +61,20 @@ function claveDe(url: URL) {
   const v = url.searchParams.get("vista");
   if (v && VISTAS.includes(v)) return `/pruebalo?${v}`;
   return url.searchParams.get("con") ? "/pruebalo?chat" : "/pruebalo?inicio";
+}
+
+/**
+ * «Tu equipo» de ejemplo: lo de hoy de Hecho, lo que espera tu OK en
+ * Pendientes y Rigel trabajando ahorita (para ver cómo se ve).
+ */
+function equipoDeEjemplo(ahora: number, espera: { id: string; agente?: IdAgente; titulo: string }[]): FichaEmpleado[] {
+  const hoy = hechoDeEjemplo(ahora).filter((h) => ahora - Date.parse(h.en) < 20 * 3_600_000);
+  const trabajando: Partial<Record<IdAgente, string>> = { victor: "Pidiendo reseñas a las clientas de hoy" };
+  return AGENTES_INFO.map(({ id }) => {
+    const listos = hoy.filter((h) => h.agente === id).map((h) => ({ id: h.id, titulo: h.titulo, hora: h.en, estado: "listo" as const, href: "/pruebalo?vista=hecho" }));
+    const esperan = espera.filter((e) => e.agente === id).map((e) => ({ id: `p-${e.id}`, titulo: e.titulo, hora: new Date(ahora).toISOString(), estado: "espera" as const, href: "/pruebalo?vista=pendientes" }));
+    return { agente: id, trabajando: trabajando[id] ?? null, hoy: listos.length, ultimos: [...esperan, ...listos].slice(0, 3) };
+  });
 }
 
 /** ¿Es un grupo con nombre? (empieza con "Creaste el grupo…"): va en Fijados. */
@@ -171,6 +186,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   const indice: ResultadoBusqueda[] = useMemo(
     () => [
       { id: "s-inicio", grupo: "Secciones", titulo: "Oficina", detalle: "Lo que te necesita y lo que ya hice", icono: "documento", claves: "inicio nueva conversacion pedir escribir", href: "/pruebalo" },
+      { id: "s-equipo", grupo: "Secciones", titulo: "Tu equipo", detalle: "Aura, Altair, Rigel y Mira: qué hace cada uno", icono: "usuarios", claves: "equipo empleados agentes aura altair rigel mira trabajando", href: "/pruebalo?vista=equipo" },
       { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/pruebalo?vista=oficina" },
       { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/pruebalo?vista=tareas" },
       { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/pruebalo?vista=pendientes" },
@@ -233,6 +249,15 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
   if (valida === "agentes") {
     const a = params.get("agente");
     contenido = <AgentesDemo enfocado={esIdAgente(a) ? a : undefined} />;
+  } else if (valida === "equipo") {
+    contenido = (
+      <TuEquipo
+        fichas={equipoDeEjemplo(ahora, tablero.filter((i) => i.columna === "revisar"))}
+        ahora={ahora}
+        escritorios={escritoriosDe("/pruebalo")}
+        hrefPedir={(t) => `/pruebalo?pide=${encodeURIComponent(t)}`}
+      />
+    );
   } else if (valida === "tareas") {
     contenido = (
       <TareasVista
@@ -357,6 +382,7 @@ export function PanelDemo({ saludo, ahora }: { saludo: string; /** La hora de la
         chatActual={conv?.id ?? null}
         hrefs={{
           inicio: "/pruebalo",
+          equipo: "/pruebalo?vista=equipo",
           oficina: "/pruebalo?vista=oficina",
           correo: "/pruebalo?vista=correo",
           apps: "/pruebalo?vista=negocio&tab=apps",

@@ -52,7 +52,7 @@ export type PeticionRonda = {
 };
 
 /** Quita caracteres de control que el cliente usa como marcas. */
-const sinMarcas = (t: string) => t.replace(/[\u0000-\u0002]/g, "");
+const sinMarcas = (t: string) => t.replace(/[\u0000-\u0004]/g, "");
 
 /** El resultado de una herramienta, marcado como datos y sin poder cerrar el marco. */
 export function envolverDatos(fuente: string, texto: string): string {

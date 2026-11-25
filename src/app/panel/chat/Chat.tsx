@@ -11,7 +11,7 @@ import { Conversacion as VistaConversacion } from "@/components/panel/Conversaci
 import { lanzarFragmentos } from "@/components/panel/FondoFragmentos";
 import { Inicio } from "@/components/panel/Inicio";
 import { AvisoHilo, DiaHilo, MensajeTuyo, RespuestaAtendel } from "@/components/panel/Mensajes";
-import { separarEstado } from "@/lib/estado-chat";
+import { separarEquipo, separarEstado, type Encargo } from "@/lib/estado-chat";
 import { useSubirDesdeChat } from "@/components/panel/negocio/SubirDesdeChat";
 import { ContextoNavegar, Enlace, Modal, claseBoton } from "@/components/panel/Piezas";
 import { useSugerencia } from "@/components/panel/sugerencias";
@@ -46,7 +46,13 @@ type Mensaje = {
   nuevo?: boolean;
   /** Lo que hace el agente con una app mientras contesta ("Altair está revisando tu correo…"). */
   estado?: string | null;
+  /** Tu equipo trabajando: lo que Atendel les encargó en esta respuesta (tarjetitas). */
+  encargos?: Encargo[];
 };
+
+/** Un encargo que se quedó «trabajando» más de esto (se cortó la conexión) ya no está trabajando. */
+const ENCARGO_VIEJO_MS = 5 * 60_000;
+type FilaEncargo = { id: string; agente: string; titulo: string; estado: string; resultado: string | null; posicion: number; mensaje_id: string | null; creado_en: string };
 
 const MARCA_ERROR = "\u0000ERROR:";
 const MAX_MENSAJE = 4000;
@@ -257,18 +263,33 @@ export function Chat({
     setGrupo(integrantes(c));
     setMensajes([]);
     setCargando(true);
-    const { data, error } = await createClient()
-      .from("mensajes")
-      .select("id, rol, contenido, agente, creado_en")
-      .eq("conversacion_id", c.id)
-      .order("creado_en", { ascending: true });
+    const supabase = createClient();
+    const [{ data, error }, { data: filasEncargos }] = await Promise.all([
+      supabase.from("mensajes").select("id, rol, contenido, agente, creado_en").eq("conversacion_id", c.id).order("creado_en", { ascending: true }),
+      // Las tarjetitas de tu equipo (si la tabla aún no existe, la plática se ve igual, sin ellas)
+      supabase.from("encargos").select("id, agente, titulo, estado, resultado, posicion, mensaje_id, creado_en").eq("conversacion_id", c.id).order("creado_en", { ascending: true }).limit(200),
+    ]);
     setCargando(false);
     if (error) {
       setAviso("No se pudo abrir la conversación.");
       return;
     }
+    const porMensaje = new Map<string, Encargo[]>();
+    for (const f of (filasEncargos ?? []) as FilaEncargo[]) {
+      if (!f.mensaje_id || !esIdAgente(f.agente)) continue;
+      const viejo = f.estado === "trabajando" && Date.now() - new Date(f.creado_en).getTime() > ENCARGO_VIEJO_MS;
+      const e: Encargo = {
+        id: f.id,
+        agente: f.agente,
+        titulo: f.titulo,
+        estado: viejo ? "error" : f.estado === "listo" || f.estado === "error" ? f.estado : "trabajando",
+        resultado: viejo ? "Se cortó antes de terminar." : (f.resultado ?? ""),
+        pos: f.posicion,
+      };
+      porMensaje.set(f.mensaje_id, [...(porMensaje.get(f.mensaje_id) ?? []), e]);
+    }
     pegado.current = true;
-    setMensajes((data ?? []) as Mensaje[]);
+    setMensajes(((data ?? []) as Mensaje[]).map((m) => (porMensaje.has(m.id) ? { ...m, encargos: porMensaje.get(m.id) } : m)));
   }, []);
 
   // La dirección manda: al entrar (?c=), al picar algo del menú o una tarjeta, y con atrás/adelante
@@ -371,6 +392,8 @@ export function Chat({
       ...(actual ? { conversacionId: actual } : {}),
       mensaje: limpio,
       estados: true,
+      // Las tarjetitas de tu equipo trabajando ("\u0003…\u0004")
+      equipo: true,
       ...(voz ? { voz: true } : {}),
       // Solo hace más estricto el turno: el servidor lo trata como con datos de fuera
       ...(deFuera.current ? { datosDeFuera: true } : {}),
@@ -426,13 +449,16 @@ export function Chat({
         // Primero el error de siempre; luego, lo que hace el agente con las apps (el estado) se separa del texto
         const corte = acumulado.indexOf(MARCA_ERROR);
         if (corte >= 0) {
-          ultimo = separarEstado(acumulado.slice(0, corte)).texto;
+          const { resto, encargos } = separarEquipo(acumulado.slice(0, corte));
+          ultimo = separarEstado(resto).texto;
           fallo = acumulado.slice(corte + MARCA_ERROR.length);
-          actualizar({ contenido: ultimo, error: fallo, estado: null });
+          actualizar({ contenido: ultimo, error: fallo, estado: null, ...(encargos.length ? { encargos } : {}) });
         } else {
-          const { texto, estado } = separarEstado(acumulado);
+          // Las tarjetitas de tu equipo van aparte del texto y del estado
+          const { resto, encargos } = separarEquipo(acumulado);
+          const { texto, estado } = separarEstado(resto);
           ultimo = texto;
-          actualizar({ contenido: texto, estado });
+          actualizar({ contenido: texto, estado, ...(encargos.length ? { encargos } : {}) });
           voz?.alTexto(texto, false, estado);
         }
       }
@@ -479,7 +505,7 @@ export function Chat({
   // (en la base cada parte es un mensaje de su agente: aquí se juntan)
   type Bloque =
     | { tipo: "tu"; key: string; texto: string; fecha: Date; nuevo?: boolean }
-    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; fecha: Date; hasta: number; nuevo?: boolean; enCurso?: boolean; error?: string; estado?: string | null };
+    | { tipo: "atendel"; key: string; piezas: { agente: IdAgente; texto: string }[]; fecha: Date; hasta: number; nuevo?: boolean; enCurso?: boolean; error?: string; estado?: string | null; encargos?: Encargo[] };
   const bloques: Bloque[] = [];
   // Las partes de una misma respuesta se guardan juntas (al mismo tiempo); lo que llega con más
   // de 2 minutos de diferencia (como los Avisos de Atendel) va aparte, con su propia hora
@@ -492,14 +518,15 @@ export function Chat({
     }
     const ultimo = bloques[bloques.length - 1];
     const piezasM = voces(m);
-    if (ultimo && ultimo.tipo === "atendel" && Math.abs(fecha.getTime() - ultimo.hasta) <= JUNTOS_MS) {
+    // Una respuesta con tu equipo va sola (sus tarjetitas tienen su lugar en ese texto)
+    if (ultimo && ultimo.tipo === "atendel" && !ultimo.encargos && !m.encargos && Math.abs(fecha.getTime() - ultimo.hasta) <= JUNTOS_MS) {
       ultimo.piezas.push(...piezasM);
       ultimo.hasta = fecha.getTime();
       ultimo.enCurso = m.enCurso;
       ultimo.error = m.error ?? ultimo.error;
       ultimo.estado = m.estado;
       ultimo.nuevo = ultimo.nuevo || m.nuevo;
-    } else bloques.push({ tipo: "atendel", key: m.id, piezas: [...piezasM], fecha, hasta: fecha.getTime(), nuevo: m.nuevo, enCurso: m.enCurso, error: m.error, estado: m.estado });
+    } else bloques.push({ tipo: "atendel", key: m.id, piezas: [...piezasM], fecha, hasta: fecha.getTime(), nuevo: m.nuevo, enCurso: m.enCurso, error: m.error, estado: m.estado, encargos: m.encargos });
   }
 
   const actualConv = actual ? todas.current.find((x) => x.id === actual) : undefined;
@@ -633,6 +660,7 @@ export function Chat({
                     hora={hora(b.fecha)}
                     estado={b.estado}
                     error={b.error}
+                    encargos={b.encargos}
                     copiar={i === bloques.length - 1}
                   />
                 );

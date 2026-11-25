@@ -7,6 +7,7 @@ import { useSubirDesdeChat } from "./negocio/SubirDesdeChat";
 import { AGENTE_POR_ID, IDS_AGENTES, esIdAgente, type IdAgente } from "@/lib/agentes";
 import { separarDatos } from "@/lib/demo-marcas";
 import { partirIntervenciones } from "@/lib/grupo";
+import type { Encargo } from "@/lib/estado-chat";
 import type { Tarjeta } from "@/components/chat/Piezas";
 import { Conversacion } from "./Conversacion";
 import { lanzarFragmentos } from "./FondoFragmentos";
@@ -499,6 +500,7 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
               ) : (
                 <RespuestaAtendel
                   piezas={b.piezas}
+                  encargos={encargosDemo(b.piezas, ultimo && ocupado !== null)}
                   enCurso={ultimo && ocupado !== null}
                   nuevo={b.nuevo}
                   hora={b.hora}
@@ -513,4 +515,35 @@ export function ConversacionDemo({ guion, conv }: { guion: Guion; conv: ConvGuio
       {subida.elementos}
     </Conversacion>
   );
+}
+
+/** El título de la tarjetita en la demostración: la primera frase de lo que hizo (corta), sin formato. */
+function tituloDemo(texto: string, agente: IdAgente): string {
+  const limpio = texto
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_#`>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const frase = limpio.split(/[.:!?¿¡\n]/)[0]?.trim() ?? "";
+  const palabras = frase.split(" ").filter(Boolean);
+  if (palabras.length < 2) return `Lo de ${AGENTE_POR_ID[agente].area.toLowerCase()}`;
+  return palabras.slice(0, 7).join(" ") + (palabras.length > 7 ? "…" : "");
+}
+
+/**
+ * En la demostración no hay encargos de verdad: cuando contestan dos o más
+ * empleados, cada uno sale con su tarjetita (el último, trabajando mientras
+ * llega). Con uno solo, es Atendel contestando (como en tu cuenta).
+ */
+function encargosDemo(piezas: readonly { agente: IdAgente; texto: string }[], enCurso: boolean): Encargo[] | undefined {
+  const quienes = Array.from(new Set(piezas.filter((p) => p.texto.trim()).map((p) => p.agente)));
+  if (quienes.length < 2) return undefined;
+  return quienes.map((agente, i) => ({
+    id: `demo-${agente}`,
+    agente,
+    titulo: tituloDemo(piezas.find((p) => p.agente === agente)?.texto ?? "", agente),
+    estado: enCurso && i === quienes.length - 1 ? ("trabajando" as const) : ("listo" as const),
+    resultado: "",
+    pos: 0,
+  }));
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { IdAgente } from "./agentes";
+import { AGENTE_POR_ID, type IdAgente } from "./agentes";
 import { limpiarAjustes, type Avisos, type ModoAviso } from "./ajustes";
 import { avisarEnChat, chatDeAvisos } from "./avisos";
 import { ENLACE_PANEL, mandarPush, type MensajePush, type NivelPush } from "./push";
@@ -21,6 +21,9 @@ import { destinoWhatsapp, mandarAvisoWhatsapp } from "./whatsapp/aviso-plantilla
  */
 
 export type NivelAviso = NivelPush;
+/** Los avisos de trabajo que hizo un empleado: van firmados con su nombre. */
+const FIRMADOS = new Set(["hizo_solo", "accion_espera_ok", "correo_respuesta_lista", "tarea_termino"]);
+
 type DefAviso = { nivel: NivelAviso; titulo: string; grupo?: string; siempre?: boolean };
 
 /** Los tipos de aviso (el número es el de la lista de 50 del plan). */
@@ -376,14 +379,16 @@ export async function notificar(
     const enlaceValido = a.enlace && ENLACE_PANEL.test(a.enlace) ? a.enlace : null;
     if (a.chat || !enlaceValido) idChat = await chatDeAvisos(admin, dueno, a.agente).catch(() => null);
     const enlace = enlaceValido ?? (idChat ? `/panel?c=${idChat}` : "/panel");
-    const texto = limpiarCorto(a.corto, 300) || def.titulo;
+    // Lo que hizo un empleado va firmado por él («Altair · Respuesta lista para tu OK»): tu equipo trabajando
+    const titulo = FIRMADOS.has(a.tipo) && AGENTE_POR_ID[a.agente] ? `${AGENTE_POR_ID[a.agente].nombre} · ${def.titulo}` : def.titulo;
+    const texto = limpiarCorto(a.corto, 300) || titulo;
     const { data: fila, error } = await admin
       .from("avisos_salida")
       .insert({
         owner_id: dueno,
         tipo: a.tipo,
         nivel: def.nivel,
-        titulo: def.titulo,
+        titulo,
         texto,
         enlace,
         clave: a.clave ? a.clave.slice(0, 200) : null,
@@ -415,7 +420,7 @@ export async function notificar(
       const { data: apartada } = await admin.from("avisos_salida").update({ app: "enviado", enviado_en: ahora.toISOString() }).eq("id", id).eq("app", "pendiente").select("id");
       enApp = "enviado";
       if (apartada?.length) {
-        const m = await mensajeDe(admin, dueno, aj.avisos, [{ id, tipo: a.tipo, nivel: def.nivel, titulo: def.titulo, texto, enlace, grupo: def.grupo ?? null, siempre: Boolean(def.siempre) }]);
+        const m = await mensajeDe(admin, dueno, aj.avisos, [{ id, tipo: a.tipo, nivel: def.nivel, titulo, texto, enlace, grupo: def.grupo ?? null, siempre: Boolean(def.siempre) }]);
         const r = await mandarPush(admin, dueno, m, a.excepto);
         if (!r.enviados) await admin.from("avisos_salida").update({ app: r.aparatos ? "fallo" : "omitido" }).eq("id", id);
         enApp = r.enviados ? "enviado" : r.aparatos ? "fallo" : "omitido";

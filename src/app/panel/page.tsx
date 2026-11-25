@@ -14,6 +14,8 @@ import { armarHecho } from "@/lib/hecho";
 import { Seccion } from "@/components/panel/Secciones";
 import { CitasReal, PendientesReal } from "@/components/panel/SeccionesReal";
 import { TuNegocio } from "@/components/panel/negocio/TuNegocio";
+import { TuEquipo, escritoriosDe } from "@/components/panel/TuEquipo";
+import { cargarEquipo } from "@/lib/tu-equipo";
 import { pestanaDe } from "@/components/panel/negocio/pestanas";
 import { saludoDeHora } from "@/components/panel/pedidos";
 import { esIdAgente } from "@/lib/agentes";
@@ -52,6 +54,7 @@ type Parametros = { vista?: string; tipo?: string; de?: string; accion?: string;
  * - ?vista=correo (&de=remitente): Correo con Altair (modo de prueba, Gmail e historial).
  * - ?vista=oficina: lo que Atendel te dejó (archivos e informes) para revisar, aprobar o pedir cambios.
  * - ?vista=tareas: Tareas: arriba Te necesita, Lo que viene y Lo que ya hizo; abajo lo que Atendel hace solo, a su hora.
+ * - ?vista=equipo: Tu equipo: los cuatro empleados, en qué está cada uno y qué hizo hoy.
  * - ?vista=ajustes: el Inicio con la ventana de Ajustes abierta (la abre el armazón).
  */
 export default async function PanelPage(props: { searchParams: Promise<Parametros> }) {
@@ -238,6 +241,12 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
         arriba={<BannerImportante destacadas={destacadas} />}
       />
     );
+  }
+
+  if (searchParams.vista === "equipo") {
+    const ahora = Date.now();
+    const fichas = await cargarEquipo(supabase, user.id, cuenta.activos, ahora);
+    return <TuEquipo fichas={fichas} ahora={ahora} escritorios={escritoriosDe("/panel")} hrefPedir={(t) => `/panel?vista=chat&pide=${encodeURIComponent(t)}`} />;
   }
 
   if (searchParams.vista === "citas") return <CitasReal conLola={cuenta.activos.includes("lola")} de={texto(searchParams.de)} dia={texto(searchParams.dia, 10)} />;

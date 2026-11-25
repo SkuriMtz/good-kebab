@@ -52,7 +52,7 @@ export type DatosArmazonReal = {
 };
 
 /** Las secciones de /panel que viven en ?vista= (todas son la misma página). */
-const VISTAS = ["chat", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
+const VISTAS = ["chat", "equipo", "oficina", "tareas", "pendientes", "hecho", "citas", "negocio", "estadisticas", "actividad", "correo", "ajustes"];
 
 
 /** La clave de una dirección del panel para la transición entre vistas ("/panel?pendientes"). */
@@ -249,6 +249,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
 
   const indice: ResultadoBusqueda[] = [
     { id: "s-inicio", grupo: "Secciones", titulo: "Chat con Atendel", detalle: "Platica con Atendel y pídele cosas", icono: "documento", claves: "chat nueva conversacion pedir escribir", href: "/panel?vista=chat" },
+    { id: "s-equipo", grupo: "Secciones", titulo: "Tu equipo", detalle: "Aura, Altair, Rigel y Mira: qué hace cada uno", icono: "usuarios", claves: "equipo empleados agentes aura altair rigel mira trabajando", href: "/panel?vista=equipo" },
     { id: "s-oficina", grupo: "Secciones", titulo: "Oficina", detalle: "Archivos e informes que te dejó Atendel", icono: "documento", claves: "archivos excel presentacion informe reporte aprobar revisar", href: "/panel?vista=oficina" },
     { id: "s-tareas", grupo: "Secciones", titulo: "Tareas", detalle: "Lo que Atendel hace solo, a su hora", icono: "reloj", claves: "tareas automatizaciones programar cada semana mes recordatorio", href: "/panel?vista=tareas" },
     { id: "s-pendientes", grupo: "Secciones", titulo: "Pendientes", detalle: "Lo que espera tu visto bueno", icono: "check-circulo", href: "/panel?vista=pendientes" },
@@ -328,6 +329,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
         chatActual={c}
         hrefs={{
           inicio: "/panel?vista=chat",
+          equipo: "/panel?vista=equipo",
           oficina: "/panel?vista=oficina",
           correo: "/panel?vista=correo",
           apps: "/panel?vista=negocio&tab=apps",

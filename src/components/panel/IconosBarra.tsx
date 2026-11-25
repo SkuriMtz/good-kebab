@@ -3,7 +3,7 @@
  * dibujado a mano (líneas un poco irregulares, puntas redondas). Dibujos
  * propios de Atendel. La pestaña elegida lleva el trazo un poco más grueso.
  */
-export type IconoBarraNombre = "inicio" | "chat" | "dia" | "negocio" | "ajustes";
+export type IconoBarraNombre = "inicio" | "chat" | "equipo" | "dia" | "negocio" | "ajustes";
 
 const TRAZOS: Record<IconoBarraNombre, React.ReactNode> = {
   // Una casita
@@ -19,6 +19,15 @@ const TRAZOS: Record<IconoBarraNombre, React.ReactNode> = {
     <>
       <path d="M5.1 15.8c-1.5-1.9-1.6-4.9-.5-7 1.5-2.9 4.8-4.2 8-4 4 .3 7.3 3 7.4 6.8.1 4-3.6 7-7.7 6.9-1.3 0-2.5-.3-3.6-.8-1.1.9-2.6 1.7-4.3 1.9.7-1.1 1-2.4.7-3.8Z" />
       <path d="M9 11.8h.1M12.2 11.7h.1M15.4 11.8h.1" strokeWidth="2.4" />
+    </>
+  ),
+  // Dos personas, una delante de la otra (tu equipo)
+  equipo: (
+    <>
+      <path d="M9.1 5.2c1.8-.1 3.1 1.3 3 3.1-.1 1.7-1.4 3-3.1 2.9-1.7 0-3-1.4-2.9-3.1.1-1.6 1.3-2.8 3-2.9Z" />
+      <path d="M3.6 19.3c.1-3.3 2.4-5.6 5.5-5.6 3.1-.1 5.4 2.3 5.6 5.5" />
+      <path d="M15.6 5.7c1.5.2 2.6 1.4 2.5 2.9-.1 1.4-1.1 2.4-2.4 2.6" />
+      <path d="M16.6 13.9c2.2.5 3.8 2.6 3.9 5.2" />
     </>
   ),
   // Un sol (tu día)

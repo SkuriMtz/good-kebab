@@ -8,6 +8,7 @@ import { Icono, type NombreIcono } from "@/components/base/Iconos";
 import type { Tarjeta } from "@/components/chat/Piezas";
 import type { DatosPresentacion } from "@/lib/archivos/presentacion";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import type { Encargo } from "@/lib/estado-chat";
 import { PERSONAJES } from "@/lib/personajes";
 
 /*
@@ -144,6 +145,7 @@ export function RespuestaAtendel({
   error,
   tarjetas,
   copiar = false,
+  encargos,
 }: {
   piezas: readonly { agente: IdAgente; texto: string }[];
   enCurso?: boolean;
@@ -154,9 +156,14 @@ export function RespuestaAtendel({
   /** Lo que dejaron listo (tarjetas de trabajo), después del texto. */
   tarjetas?: ReactNode;
   copiar?: boolean;
+  /** Tu equipo trabajando: las tarjetitas de cada empleado, en su lugar dentro del texto (pos). */
+  encargos?: readonly Encargo[];
 }) {
   const conTexto = piezas.filter((p) => p.texto.trim());
   const texto = conTexto.map((p) => p.texto.trim()).join("\n\n");
+  // Las posiciones vienen del texto sin recortar: se corrige lo que quitó el trim del principio
+  const desfase = conTexto.length === 1 ? conTexto[0].texto.length - conTexto[0].texto.trimStart().length : 0;
+  const trabajando = Boolean(encargos?.some((e) => e.estado === "trabajando"));
   const quienes = Array.from(new Set(conTexto.map((p) => p.agente)));
   // Si llegó en vivo, se va escribiendo con calma (no de golpe)
   const [enVivo] = useState(enCurso);
@@ -174,12 +181,24 @@ export function RespuestaAtendel({
     <div className={`pc-msj pc-msj--agente pc-msj--atendel${nuevo ? " pc-msj--nuevo" : ""}`} aria-busy={enCurso || visible.length < texto.length || undefined}>
       {/* Sin encabezado a la vista (el dueño lo pidió): solo los lectores de pantalla oyen quién habla */}
       <p className="sr-only">Atendel:</p>
-      {visible ? (
+      {encargos?.length ? (
+        segmentos(texto, encargos, desfase, conTexto.length === 1).map((s, i) =>
+          s.tipo === "texto" ? (
+            visible.length > s.desde ? (
+              <div key={`t${i}`} className="pc-msj__texto">
+                <Texto texto={visible.slice(s.desde, s.hasta).trim()} suave={enVivo} />
+              </div>
+            ) : null
+          ) : visible.length >= s.desde || enCurso ? (
+            <TarjetasEquipo key={`e${i}`} encargos={s.encargos} />
+          ) : null,
+        )
+      ) : visible ? (
         <div className="pc-msj__texto">
           <Texto texto={visible} suave={enVivo} />
         </div>
       ) : null}
-      {enCurso && (!texto || estado) ? <LineaEscribe texto={estado ?? undefined} agente={quienes[quienes.length - 1]} etiqueta="Atendel está trabajando" /> : null}
+      {enCurso && !trabajando && (!texto || estado) ? <LineaEscribe texto={estado ?? undefined} agente={quienes[quienes.length - 1]} etiqueta="Atendel está trabajando" /> : null}
       {error ? (
         <p role="alert" className="pc-msj__error">
           {error}
@@ -197,6 +216,82 @@ export function RespuestaAtendel({
         </>
       ) : null}
     </div>
+  );
+}
+
+type Segmento = { tipo: "texto"; desde: number; hasta: number } | { tipo: "equipo"; desde: number; encargos: Encargo[] };
+
+/**
+ * Parte la respuesta de Atendel en pedazos de texto y grupos de tarjetitas,
+ * cada grupo donde Atendel encargó el trabajo («Va, le paso esto a Altair…»
+ * arriba; lo que reportan, abajo). Si no se puede ubicar, van arriba.
+ */
+function segmentos(texto: string, encargos: readonly Encargo[], desfase: number, ubicables: boolean): Segmento[] {
+  const porPos = new Map<number, Encargo[]>();
+  for (const e of encargos) {
+    const p = ubicables ? Math.max(0, Math.min(texto.length, e.pos - desfase)) : 0;
+    porPos.set(p, [...(porPos.get(p) ?? []), e]);
+  }
+  const out: Segmento[] = [];
+  let desde = 0;
+  for (const p of Array.from(porPos.keys()).sort((a, b) => a - b)) {
+    if (texto.slice(desde, p).trim()) out.push({ tipo: "texto", desde, hasta: p });
+    out.push({ tipo: "equipo", desde: p, encargos: porPos.get(p)! });
+    desde = p;
+  }
+  if (texto.slice(desde).trim() || !out.length) out.push({ tipo: "texto", desde, hasta: texto.length });
+  return out;
+}
+
+/**
+ * TU EQUIPO TRABAJANDO: una tarjetita por empleado al que Atendel le encargó
+ * algo. Mientras trabaja: su cara con el punto verde, qué está haciendo
+ * («Revisando tu correo…») y un brillo que corre por el texto. Al terminar:
+ * «Listo» con su palomita y «Ver lo que hizo» (su reporte). Si no pudo, lo dice.
+ */
+export function TarjetasEquipo({ encargos }: { encargos: readonly Encargo[] }) {
+  return (
+    <ul className="pc-equipo" aria-label="Tu equipo en esto">
+      {encargos.map((e, i) => (
+        <TarjetaEncargo key={e.id} encargo={e} orden={i} />
+      ))}
+    </ul>
+  );
+}
+
+function TarjetaEncargo({ encargo: e, orden }: { encargo: Encargo; orden: number }) {
+  const [abierta, setAbierta] = useState(false);
+  const a = AGENTE_POR_ID[e.agente];
+  const idReporte = `encargo-${e.id}`;
+  const estado = e.estado === "trabajando" ? (e.ahora ?? "Trabajando…") : e.estado === "listo" ? "Listo" : "No se pudo";
+  return (
+    <li className="pc-encargo" data-estado={e.estado} style={{ "--orden": orden } as CSSProperties}>
+      <span className="pc-encargo__cara">
+        <AvatarAgente agente={e.agente} tam={32} />
+        <span className="pc-encargo__punto" aria-hidden="true" />
+      </span>
+      <span className="pc-encargo__textos">
+        <span className="pc-encargo__quien">
+          {a.nombre} <span>· {a.area}</span>
+        </span>
+        <span className="pc-encargo__titulo">{e.titulo}</span>
+        <span className="pc-encargo__estado" aria-live="polite">
+          {e.estado === "listo" ? <Icono nombre="check" tam={14} trazo={2} /> : e.estado === "error" ? <Icono nombre="alerta" tam={14} /> : null}
+          <span className={e.estado === "trabajando" ? "pc-encargo__brillo" : undefined}>{estado}</span>
+        </span>
+      </span>
+      {e.estado !== "trabajando" && e.resultado ? (
+        <button type="button" className="pc-encargo__ver" aria-expanded={abierta} aria-controls={idReporte} onClick={() => setAbierta((x) => !x)}>
+          {abierta ? "Ocultar" : "Ver lo que hizo"}
+          <Icono nombre="chevron" tam={14} />
+        </button>
+      ) : null}
+      {abierta && e.resultado ? (
+        <div id={idReporte} className="pc-encargo__reporte">
+          <Texto texto={e.resultado} />
+        </div>
+      ) : null}
+    </li>
   );
 }
 
