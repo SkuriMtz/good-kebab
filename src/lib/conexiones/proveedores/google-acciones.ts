@@ -1,6 +1,7 @@
 import type { ContextoHerramienta, Herramienta } from "@/lib/nucleo-tipos";
 import { argCorreos, argNumero, argTexto, enZona, ErrorArgs, ErrorPermiso, horaLocal, linea, pedirJson } from "../http";
-import { ErrorApi } from "../oauth";
+import { ErrorApi, scopesDeTexto } from "../oauth";
+import { enlaceDarPermiso, puedeEscribir } from "../permisos-google";
 
 /**
  * GOOGLE: lo que Atendel HACE (no solo lee) en Calendar, Gmail y Tareas.
@@ -11,8 +12,9 @@ import { ErrorApi } from "../oauth";
  *   falta leer la agenda antes, y al modelo solo le llegan horas, nunca
  *   títulos de eventos (pueden venir de invitaciones de fuera). Por eso lo
  *   que regresan no cuenta como "dato de fuera".
- * - Si Google no dio el permiso de escribir (quien conectó antes solo con
- *   lectura), se pide volver a conectar esa app.
+ * - Al conectar solo se da permiso de LEER: el de hacer cosas se pide la
+ *   primera vez que hace falta. Antes de llamar a Google se revisa si ya lo
+ *   dio; si no, sale el botón «Dar permiso» (y lo aprobado sigue esperando).
  * Las horas son locales de la cuenta (ctx.zona), en formato AAAA-MM-DDTHH:MM.
  */
 
@@ -25,10 +27,23 @@ const MIN = 60_000;
 const zonaDe = (ctx: ContextoHerramienta) => ctx.zona || ZONA;
 const pedido = async (ctx: ContextoHerramienta) => ({ token: (await ctx.token()).access_token, senal: ctx.senal, proveedor: "google" as const });
 
-/** Si Google dice que falta el permiso de escribir: se pide volver a conectar esa app. */
-function sinPermiso(e: unknown, app: "google_calendar" | "gmail" | "google_tasks", que: string): never {
-  if (e instanceof ErrorApi && (e.status === 403 || e.status === 401))
-    throw new ErrorPermiso(`Google no dio permiso para ${que}. Vuelve a conectar la app para darle ese permiso: [Volver a conectar](/panel?conectar=${app})`, app, que);
+type AppEscribe = "google_calendar" | "gmail" | "google_tasks";
+
+/** Falta el permiso de hacer cosas en esa app: el mensaje con el botón para darlo (se pide una sola vez). */
+function faltaPermiso(app: AppEscribe, que: string): ErrorPermiso {
+  const enlace = enlaceDarPermiso(app);
+  return new ErrorPermiso(`Para ${que}, Atendel necesita tu permiso en Google (se da una sola vez). Dáselo aquí: [Dar permiso](${enlace})`, app, que, enlace);
+}
+
+/** Antes de hacer algo: si se sabe que todavía no dio el permiso de escribir, ni se llama a Google. */
+async function exigirEscritura(ctx: ContextoHerramienta, app: AppEscribe, que: string) {
+  const scopes = scopesDeTexto((await ctx.token()).extra?.scopes);
+  if (scopes.length && !puedeEscribir(app, scopes)) throw faltaPermiso(app, que);
+}
+
+/** Si Google dice que falta el permiso de escribir: el botón para darlo. */
+function sinPermiso(e: unknown, app: AppEscribe, que: string): never {
+  if (e instanceof ErrorApi && (e.status === 403 || e.status === 401)) throw faltaPermiso(app, que);
   throw e;
 }
 
@@ -165,6 +180,7 @@ const crearCita: Herramienta = {
     const zona = zonaDe(ctx);
     const c = leerCita(args, zona);
     try {
+      await exigirEscritura(ctx, "google_calendar", "crear citas en tu calendario");
       if (!c.aunqueChoque) {
         const ya = await ocupado(ctx, c.inicio, c.fin);
         if (ya.length) throw new ErrorArgs(`No la creé: ${choque(ya, zona)}. Propón otra hora, o créala de todos modos con aunque_choque si el dueño lo pide.`);
@@ -218,6 +234,7 @@ const moverCita: Herramienta = {
     const nuevoInicio = horaLocal(argTexto(args, "nuevo_inicio", { requerido: true, max: 40 }), zona);
     if (nuevoInicio.getTime() < Date.now() - 60 * MIN) throw new ErrorArgs("La nueva hora ya pasó.");
     try {
+      await exigirEscritura(ctx, "google_calendar", "mover citas en tu calendario");
       const ev = await buscarCita(ctx, args, zona);
       const antes = new Date(ev.start!.dateTime!);
       const dura = new Date(ev.end?.dateTime ?? ev.start!.dateTime!).getTime() - antes.getTime();
@@ -256,6 +273,7 @@ const cancelarCita: Herramienta = {
   async ejecutar(args, ctx) {
     const zona = zonaDe(ctx);
     try {
+      await exigirEscritura(ctx, "google_calendar", "cancelar citas en tu calendario");
       const ev = await buscarCita(ctx, args, zona);
       await pedirJson(`${CAL}/events/${encodeURIComponent(ev.id)}?sendUpdates=${ev.attendees?.length ? "all" : "none"}`, { ...(await pedido(ctx)), metodo: "DELETE" });
       return `Listo: cancelé la cita del ${enZona(new Date(ev.start!.dateTime!), zona)}${ev.attendees?.length ? " (Google les avisó a los invitados)" : ""}.`;
@@ -307,6 +325,7 @@ const gmailEnviar: Herramienta = {
     let asunto = sinSaltos(argTexto(args, "asunto", { max: 200 }));
     const responde = argTexto(args, "responder_a", { max: 64, patron: ID_GMAIL });
     try {
+      await exigirEscritura(ctx, "gmail", "mandar correos desde tu Gmail");
       const p = await pedido(ctx);
       let hilo: string | undefined;
       const extra: string[] = [];
@@ -408,6 +427,7 @@ const tareasCrear: Herramienta = {
     const titulo = argTexto(args, "titulo", { requerido: true, max: 200 });
     const fecha = argTexto(args, "fecha", { max: 10, patron: /^\d{4}-\d{2}-\d{2}$/ });
     try {
+      await exigirEscritura(ctx, "google_tasks", "crear tareas");
       const l = await listaElegida(ctx, argTexto(args, "lista", { max: 80 }));
       await pedirJson(`${TASKS}/lists/${encodeURIComponent(l.id)}/tasks`, {
         ...(await pedido(ctx)),
@@ -440,6 +460,7 @@ const tareasCompletar: Herramienta = {
   async ejecutar(args, ctx) {
     const buscar = argTexto(args, "titulo", { requerido: true, max: 200 }).toLowerCase();
     try {
+      await exigirEscritura(ctx, "google_tasks", "cambiar tus tareas");
       const l = await listaElegida(ctx, argTexto(args, "lista", { max: 80 }));
       const p = await pedido(ctx);
       const d = await pedirJson<{ items?: TareaG[] }>(`${TASKS}/lists/${encodeURIComponent(l.id)}/tasks?showCompleted=false&maxResults=100`, p);

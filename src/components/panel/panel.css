@@ -10271,3 +10271,19 @@ a.pc-correo__accion:hover {
     display: none;
   }
 }
+
+/* ---------- 49. Permisos graduales: «Dar permiso» (para hacer cosas en una app, se pide una vez) ---------- */
+.pc .pc-conectar__permiso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 -10px 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-acento) 35%, var(--pc-division));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--pc-acento) 8%, transparent);
+}
+.pc .pc-aprobar__permiso {
+  align-self: flex-start;
+  margin-top: 10px;
+}

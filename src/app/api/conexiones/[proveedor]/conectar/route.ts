@@ -5,6 +5,7 @@ import { aleatorio, leerVolver, nombreCookie, origenPermitido, pkce, queryExtra,
 import { adaptador, configuradoApp } from "@/lib/conexiones/registro";
 import { errorJson, preparar, volverAApps } from "@/lib/conexiones/rutas";
 import { appsDeFila, leerFila } from "@/lib/conexiones/tokens";
+import { tieneEscritura } from "@/lib/conexiones/permisos-google";
 
 /**
  * GET /api/conexiones/[proveedor]/conectar?app=<IdApp>  → redirige al OAuth
@@ -17,6 +18,9 @@ import { appsDeFila, leerFila } from "@/lib/conexiones/tokens";
  *   un `state` aleatorio, la app, las apps pedidas y el verifier de PKCE.
  * - Pide los permisos de la app nueva más los de las que ya tenía conectadas
  *   con ese proveedor (así no se pierde ninguna).
+ * - Google: al conectar solo pide LEER. Con &permiso=escribir pide además el
+ *   permiso de hacer cosas en esa app (mandar correos, crear citas o tareas),
+ *   la primera vez que Atendel lo necesita.
  */
 
 export const dynamic = "force-dynamic";
@@ -45,7 +49,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ prove
   const state = aleatorio();
   const { verifier, challenge } = pkce();
   const redirectUri = uriCallback(origen, p);
-  const q = queryExtra(request.nextUrl.searchParams, ["app", "volver", "c"]);
+  const q = queryExtra(request.nextUrl.searchParams, ["app", "volver", "c", "permiso", "escribir"]);
+  if (request.nextUrl.searchParams.get("permiso") === "escribir" && tieneEscritura(app)) q.escribir = app;
   let url: string;
   try {
     url = a.urlAutorizacion({ state, redirectUri, apps, codeChallenge: challenge, query: q });

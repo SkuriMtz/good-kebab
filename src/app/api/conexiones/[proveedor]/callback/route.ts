@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { descifrar } from "@/lib/cifrado";
-import { iguales, leerEstadoOAuth, NOMBRE_PROVEEDOR, nombreCookie, type EstadoOAuth } from "@/lib/conexiones/oauth";
+import { iguales, leerEstadoOAuth, NOMBRE_PROVEEDOR, nombreCookie, scopesDeTexto, type EstadoOAuth } from "@/lib/conexiones/oauth";
+import { esIdApp } from "@/lib/conexiones/catalogo";
+import { puedeEscribir } from "@/lib/conexiones/permisos-google";
 import { adaptador, configurado } from "@/lib/conexiones/registro";
 import { preparar, volverAApps } from "@/lib/conexiones/rutas";
 import type { Tokens } from "@/lib/nucleo-tipos";
@@ -89,5 +91,10 @@ export async function GET(request: NextRequest, props: { params: Promise<{ prove
   }
   // WhatsApp Business: que los mensajes de tus clientes le lleguen a Aura
   if (p === "meta" && apps.includes("whatsapp_business")) await registrarNumeroWhatsapp(user.id, tokens).catch(() => false);
+  // Se pidió el permiso de hacer cosas (Dar permiso): se avisa si Google lo dio o si quitaron la palomita
+  if (estado.q?.escribir === app && esIdApp(app)) {
+    const dio = puedeEscribir(app, scopesDeTexto(tokens.extra?.scopes));
+    return volverAApps(request, p, dio ? { conectada: app, permiso: "escribir" } : { error: "permiso_escribir", app }, estado?.volver);
+  }
   return volverAApps(request, p, { conectada: app }, estado?.volver);
 }

@@ -30,6 +30,7 @@ import { cargarPendientes, correosFiltrados, negociosDe, opcionesPendientes } fr
 import { createClient } from "@/lib/supabase/server";
 import { Chat, type Conversacion } from "./chat/Chat";
 import { Panel } from "./Panel";
+import { gmailConectado } from "@/lib/conexiones/tokens";
 
 export const metadata: Metadata = { title: "Panel" };
 
@@ -63,11 +64,11 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
   // El middleware ya redirige a /entrar sin sesión; esto es una segunda barrera
   if (!user) redirect("/entrar");
 
-  const proveedores = (user.app_metadata?.providers as string[] | undefined) ?? [];
-  const conGoogle = proveedores.includes("google");
+  // Gmail conectado de verdad (Tu negocio → Apps): entrar con Google no da permiso de Gmail
+  const conGmail = await gmailConectado(supabase, user.id);
   const texto = (v: unknown, max = 200) => (typeof v === "string" && v ? v.slice(0, max) : undefined);
 
-  if (searchParams.vista === "correo") return <Panel conGoogle={conGoogle} de={texto(searchParams.de)} />;
+  if (searchParams.vista === "correo") return <Panel conGmail={conGmail} de={texto(searchParams.de)} />;
 
   if (searchParams.vista === "tareas") {
     const ahora = Date.now();
@@ -75,7 +76,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
       cargarCuenta(supabase, user.id),
     ]);
-    const hoy = await cargarHoy(supabase, user.id, cuentaTareas, conGoogle, ahora);
+    const hoy = await cargarHoy(supabase, user.id, cuentaTareas, conGmail, ahora);
     return (
       <TareasVista
         zona={limpiarAjustes(filaAjustes?.datos).zonaHoraria}
@@ -110,7 +111,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
     const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: aj.zonaHoraria }).format(new Date());
     // "Necesita tu OK": lo de Pendientes, arriba de la Oficina (todo lo que te espera en un solo lugar)
     const cuentaOficina = await cargarCuenta(supabase, user.id);
-    const pend = await cargarPendientes(user.id, opcionesPendientes(cuentaOficina.plan.id, conGoogle, cuentaOficina.activos), 5);
+    const pend = await cargarPendientes(user.id, opcionesPendientes(cuentaOficina.plan.id, conGmail, cuentaOficina.activos), 5);
     const quien = (d: { nombre: string }[]) => d.map((x) => x.nombre).join(", ");
     const itemsOk = [
       ...pend.acciones.map((a) => ({ id: `a-${a.id}`, titulo: a.resumen.slice(0, 140), detalle: a.motivo ? `Te pregunto porque ${a.motivo}.`.slice(0, 160) : undefined })),
@@ -226,7 +227,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
 
   if (searchParams.vista === "negocio") {
     // Arriba, lo importante (el banner que antes iba en el Tablero)
-    const destacadas = await cargarDestacadas(supabase, user.id, { cuenta, conGoogle }).catch(() => []);
+    const destacadas = await cargarDestacadas(supabase, user.id, { cuenta, conGmail }).catch(() => []);
     return (
       <TuNegocio
         tab={pestanaDe(searchParams.tab)}
@@ -243,7 +244,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
 
   if (searchParams.vista === "pendientes") {
     // Los pendientes se cuentan igual que en el menú (src/lib/pendientes.ts); en su vista se listan más
-    const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 100);
+    const pendientes = await cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGmail, cuenta.activos), 100);
     // Con ?de= o ?accion= (desde Estadísticas o Correo) se busca en la base, no solo en los 100 más recientes
     const de = texto(searchParams.de);
     const accion = texto(searchParams.accion);
@@ -289,7 +290,7 @@ export default async function PanelPage(props: { searchParams: Promise<Parametro
       textoInicial={texto(searchParams.pide, 2000)}
       textoDeFuera={searchParams.fuera === "1"}
       saludo={nombre ? `${saludoDeHora()}, ${nombre}` : saludoDeHora()}
-      conGoogle={conGoogle}
+      conGmail={conGmail}
       vozDisponible={vozDisponible()}
     />
   );

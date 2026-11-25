@@ -110,7 +110,7 @@ export function Chat({
   textoInicial,
   textoDeFuera,
   saludo,
-  conGoogle,
+  conGmail,
   hoy,
   vozDisponible = false,
 }: {
@@ -129,7 +129,7 @@ export function Chat({
   /** "Buenas noches, Ana" (con la hora de la Ciudad de México, igual en el servidor y aquí). */
   saludo: string;
   /** ¿Gmail conectado? (las tarjetas de Altair sin Gmail llevan a conectarlo). */
-  conGoogle: boolean;
+  conGmail: boolean;
   /** «Hoy»: lo que va debajo de la caja en el Inicio (Te necesita, Lo que viene, Lo que ya hice). */
   hoy?: ReactNode;
   /** ¿Está la voz natural (modo plática)? Solo si el servidor tiene la clave. */
@@ -552,7 +552,7 @@ export function Chat({
         const enEquipo = activos.includes(p.agente);
         const enPlan = plan.agentes.includes(p.agente);
         // Altair lee tu Gmail: sin Gmail, la tarjeta lleva a conectarlo. WhatsApp todavía no: Aura deja el mensaje listo
-        const sinGmail = p.requiere === "gmail" && !conGoogle;
+        const sinGmail = p.requiere === "gmail" && !conGmail;
         return {
           pedido: p,
           href: !enEquipo ? (enPlan ? "/panel/agentes" : "/precios") : sinGmail ? "/panel?vista=correo#gmail" : `/panel?pide=${encodeURIComponent(p.texto)}${conFiltro}`,

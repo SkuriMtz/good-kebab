@@ -117,12 +117,16 @@ async function avisarPermisos(dueno: string, e: ErrorPermiso, agente: "lola" | "
   if (!admin) return;
   const app = /^[a-z_]{2,40}$/.test(e.app) ? e.app : "";
   const nombre = (APP_POR_ID as Record<string, { nombre: string } | undefined>)[app]?.nombre ?? "Una de tus apps";
-  const conectar = app ? `/panel?conectar=${app}` : "/panel?vista=negocio&tab=apps";
+  // El permiso de hacer cosas se pide la primera vez que hace falta (e.enlace): «Dar permiso», no «volver a conectar»
+  const darPermiso = typeof e.enlace === "string" && e.enlace.startsWith("/panel?conectar=");
+  const conectar = darPermiso ? e.enlace! : app ? `/panel?conectar=${app}` : "/panel?vista=negocio&tab=apps";
   await notificar(admin, dueno, {
     tipo: "app_permisos",
     agente,
-    chat: `${nombre} no me dio permiso para ${citar(e.que, 80)}. Vuelve a conectarla para darle ese permiso: [Volver a conectar](${conectar})`,
-    corto: `${nombre} necesita un permiso nuevo (${limpiarCorto(e.que, 60)}). Vuelve a conectarla.`,
+    chat: darPermiso
+      ? `Para ${citar(e.que, 80)} necesito tu permiso en ${nombre} (se da una sola vez): [Dar permiso](${conectar})`
+      : `${nombre} no me dio permiso para ${citar(e.que, 80)}. Vuelve a conectarla para darle ese permiso: [Volver a conectar](${conectar})`,
+    corto: darPermiso ? `${nombre}: necesito tu permiso para ${limpiarCorto(e.que, 60)}.` : `${nombre} necesita un permiso nuevo (${limpiarCorto(e.que, 60)}). Vuelve a conectarla.`,
     enlace: conectar,
     clave: `permisos:${app || "app"}:${new Date().toISOString().slice(0, 10)}`,
   });

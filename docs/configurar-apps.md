@@ -125,7 +125,9 @@ muestra el bucket `documentos` marcado como privado.
 Para que el botón **Conectar** de una app funcione, hay que dar de alta a
 Atendel con cada proveedor (una sola vez) y poner en Vercel lo que te dan.
 Mientras falte algo, la tarjeta de la app dice exactamente qué variable
-falta. Las apps solo se **leen**: ningún agente escribe, manda ni borra.
+falta. Al conectar, las apps solo se **leen**; hacer cosas en ellas (mandar,
+agendar, crear) pasa por «Qué hace solo» y, en Google, pide su permiso aparte
+la primera vez.
 
 **Antes de empezar.** En los pasos dice `<dominio>`: es la dirección de tu
 sitio en producción, por ejemplo `atendel.mx` o `tu-proyecto.vercel.app`.
@@ -137,9 +139,13 @@ sitio en producción, por ejemplo `atendel.mx` o `tu-proyecto.vercel.app`.
 - Para probar en tu computadora, agrega también la versión con
   `http://localhost:3000` (solo funciona en modo desarrollo).
 
-### 4.1 Google (Gmail, Calendar, Drive, Sheets, Contactos y Perfil de Negocio)
+### 4.1 Google (Gmail, Calendar, Tareas, Drive, Sheets, Contactos, Forms y Perfil de Negocio)
 
-Un solo "cliente" de Google sirve para las seis apps.
+Un solo "cliente" de Google sirve para todas. **Los permisos se piden por
+partes** (como recomienda Google): al conectar una app solo se pide **leer**;
+el permiso de **hacer cosas** (mandar correos, crear o mover citas, crear
+tareas) se pide la primera vez que Atendel lo necesita, con el botón **Dar
+permiso**. Entrar a Atendel con Google solo pide el correo y el nombre.
 
 1. **Crea el proyecto.** Entra a https://console.cloud.google.com, arriba
    en el selector de proyectos elige **Proyecto nuevo** y ponle "Atendel".
@@ -147,32 +153,45 @@ Un solo "cliente" de Google sirve para las seis apps.
    activa (botón **Habilitar**) cada una:
    - Gmail API
    - Google Calendar API
+   - Google Tasks API
    - Google Drive API
    - Google Sheets API
+   - Google Forms API
    - Google Picker API (para elegir archivos de Drive)
    - People API (Contactos)
    - Solo si vas a usar reseñas: My Business Account Management API,
      My Business Business Information API y Google My Business API. Estas
      tres no se activan solas: Google pide llenar un **formulario de acceso
      a la API de Perfil de Negocio** y aprobarlo (tarda días).
-3. **Pantalla de consentimiento** (lo que ve la persona al conectar). Menú →
+3. **Google Auth Platform** (lo que ve la persona al conectar). Menú →
    **APIs y servicios → Pantalla de consentimiento de OAuth** (en la versión
-   nueva se llama **Google Auth Platform**):
-   - Tipo de usuario: **Externo**.
-   - Nombre de la app ("Atendel"), correo de soporte, logo opcional y, en
-     **Dominios autorizados**, tu `<dominio>`.
-   - En **Permisos** (o **Acceso a datos → Agregar o quitar permisos**)
-     agrega exactamente estos, todos de solo lectura:
+   nueva se llama **Google Auth Platform**, con las partes Marca, Público,
+   Clientes, Acceso a datos y Centro de verificación):
+   - **Público:** tipo de usuario **Externo**.
+   - **Marca:** nombre de la app ("Atendel"), correo de soporte, logo
+     (120×120 px), página de inicio, **aviso de privacidad**
+     (`https://<dominio>/privacidad`) y **términos** (`https://<dominio>/terminos`).
+     En **Dominios autorizados**, tu `<dominio>` (ver «Antes de verificar»).
+   - **Acceso a datos → Agregar o quitar permisos:** agrega exactamente estos.
+     Google los acomoda solo en *no sensibles*, *sensibles* y *restringidos*.
 
-     | Permiso | Para qué app |
-     |---|---|
-     | `openid` y `.../auth/userinfo.email` | saber qué cuenta se conectó |
-     | `https://www.googleapis.com/auth/gmail.readonly` | Gmail |
-     | `https://www.googleapis.com/auth/calendar.readonly` | Google Calendar |
-     | `https://www.googleapis.com/auth/drive.file` | Google Drive (solo los archivos que la persona elige) |
-     | `https://www.googleapis.com/auth/spreadsheets.readonly` | Google Sheets |
-     | `https://www.googleapis.com/auth/contacts.readonly` | Contactos |
-     | `https://www.googleapis.com/auth/business.manage` | Perfil de Negocio (solo si Google ya aprobó el acceso) |
+     | Permiso | App | Cuándo se pide | Tipo |
+     |---|---|---|---|
+     | `openid`, `.../auth/userinfo.email` | todas | al conectar | no sensible |
+     | `.../auth/gmail.readonly` | Gmail | al conectar | **restringido** |
+     | `.../auth/gmail.send` | Gmail | la primera vez que manda un correo | sensible |
+     | `.../auth/calendar.events.readonly` | Google Calendar | al conectar | sensible |
+     | `.../auth/calendar.events` | Google Calendar | la primera vez que crea, mueve o cancela una cita | sensible |
+     | `.../auth/tasks.readonly` | Tareas de Google | al conectar | sensible |
+     | `.../auth/tasks` | Tareas de Google | la primera vez que crea o completa una tarea | sensible |
+     | `.../auth/drive.file` | Google Drive | al conectar (solo los archivos que la persona elige) | no sensible |
+     | `.../auth/spreadsheets.readonly` | Google Sheets | al conectar | sensible |
+     | `.../auth/contacts.readonly` | Contactos | al conectar | sensible |
+     | `.../auth/forms.responses.readonly`, `.../auth/forms.body.readonly` | Google Forms | al conectar | sensible |
+     | `.../auth/business.manage` | Perfil de Negocio | al conectar (y solo si Google aprobó el acceso) | el que marque Google |
+
+     (`...` es `https://www.googleapis.com`.) Si Google marca alguno distinto
+     a esta tabla, manda lo que diga la consola.
 
 4. **Usuarios de prueba.** Mientras la app no esté verificada por Google,
    queda en modo **Prueba**: en **Público → Usuarios de prueba** agrega los
@@ -181,7 +200,8 @@ Un solo "cliente" de Google sirve para las seis apps.
    los **7 días**: la tarjeta lo marca con error y basta con volver a
    conectar.
 5. **El cliente OAuth.** Menú → **APIs y servicios → Credenciales → Crear
-   credenciales → ID de cliente de OAuth**:
+   credenciales → ID de cliente de OAuth** (o **Google Auth Platform →
+   Clientes**):
    - Tipo de aplicación: **Aplicación web**.
    - **Orígenes de JavaScript autorizados:** `https://<dominio>`
    - **URI de redireccionamiento autorizados:**
@@ -197,12 +217,6 @@ Un solo "cliente" de Google sirve para las seis apps.
    El **App ID** es el **número del proyecto**: menú → **Configuración de
    IAM y administración → Configuración** (o el panel del proyecto),
    "Número del proyecto" (solo dígitos).
-7. **Para abrirlo a todos** (más de 100 cuentas, sin "usuarios de prueba"):
-   en la pantalla de consentimiento toca **Publicar app** y pide la
-   verificación. Gmail es un permiso **restringido**: Google pide además una
-   revisión de seguridad hecha por un tercero, cada año. Calendar, Sheets,
-   Contactos y Perfil de Negocio son **sensibles** (piden verificación sin
-   esa revisión); `drive.file` no es sensible.
 
 **En Vercel:**
 
@@ -212,6 +226,66 @@ Un solo "cliente" de Google sirve para las seis apps.
 | `GOOGLE_CLIENT_SECRET` | el secreto del cliente (márcalo **Sensitive**) |
 | `NEXT_PUBLIC_GOOGLE_API_KEY` | la clave de API restringida del paso 6 |
 | `NEXT_PUBLIC_GOOGLE_APP_ID` | el número del proyecto |
+
+#### 4.1.1 Para abrirlo a todos: la verificación de Google
+
+Con modo Prueba basta para probar con tus primeras 100 cuentas. Para
+cualquier persona hay que **publicar la app** (Público → **Publicar app**) y
+pasar la verificación en el **Centro de verificación**.
+
+**Antes de verificar (lo más importante):**
+- **Un dominio propio.** Google pide verificar en Search Console **todos**
+  los dominios de la página de inicio, el aviso de privacidad, los términos
+  y las direcciones de regreso. Un `*.vercel.app` es compartido y lo más
+  probable es que lo rechacen: compra el dominio (por ejemplo `atendel.mx`),
+  conéctalo en Vercel, verifícalo en https://search.google.com/search-console
+  (propiedad de **Dominio**, con el registro DNS) y cámbialo en todos los
+  pasos de arriba.
+- **Entrar con Google (Supabase) usa otra dirección de regreso**
+  (`https://<proyecto>.supabase.co/auth/v1/callback`), que no es tuya. Para
+  que no frene la verificación, usa **otro proyecto de Google** solo para
+  entrar (pide solo correo y nombre, así que no necesita verificación de
+  permisos), o un dominio propio para Supabase (complemento de pago de
+  Supabase, *Custom Domain*).
+- La página de inicio tiene que explicar qué hace Atendel y enlazar el aviso
+  de privacidad. El aviso ya dice cómo se usan los datos de Google y el Uso
+  Limitado (Limited Use), y está la Política de Acceso a Cuentas
+  (`/acceso-a-tus-datos`).
+
+**Qué pide Google en la verificación:**
+1. **Verificación de marca** (nombre, logo y dominios): 2–3 días hábiles.
+2. **Permisos sensibles** (Calendar, Tareas, Sheets, Contactos, Forms,
+   `gmail.send`): una justificación por permiso (en inglés) y un **video en
+   YouTube** (puede ser "no listado") que muestre cómo se conecta la app,
+   la pantalla de permisos con el nombre de la app y para qué se usa cada
+   permiso dentro de Atendel. Suele tardar de días a unas semanas.
+3. **Permiso restringido** (`gmail.readonly`): todo lo anterior **más** una
+   **evaluación de seguridad CASA** hecha por un laboratorio autorizado por
+   Google, **cada 12 meses**. Cuesta aproximadamente de 500 a 4,500 USD al
+   año según el laboratorio y el nivel (el nivel 2 suele estar entre 540 y
+   700 USD) y tarda de 2 a 6 semanas. Google no fija el precio: se cotiza
+   con el laboratorio.
+
+**Recomendación de orden:** verifica primero la marca y los permisos
+**sensibles** (más rápido y sin costo) y abre así Calendar, Tareas, Sheets,
+Contactos, Forms, Drive y mandar correos. Gmail (leer) sigue con usuarios de
+prueba hasta pasar CASA.
+
+**Justificaciones listas para pegar (en inglés):**
+- `gmail.readonly`: "Atendel reads the user's recent emails to summarize them, flag urgent ones and draft replies that the user reviews in the Atendel dashboard."
+- `gmail.send`: "Requested only when the user approves sending an email from Atendel (for example, a reply drafted for a customer). It is never requested at sign-up."
+- `calendar.events.readonly`: "Atendel reads the user's appointments to check availability and avoid double-booking when it proposes times to customers."
+- `calendar.events`: "Requested only the first time the user lets Atendel create, move or cancel an appointment for them."
+- `tasks.readonly` / `tasks`: "Atendel shows the user's pending tasks; write access is requested only the first time the user asks it to create or complete a task."
+- `spreadsheets.readonly`: "Atendel reads the spreadsheets the user points to, to summarize them or compute totals the user asks for."
+- `contacts.readonly`: "Atendel looks up a customer's details in the user's contacts when replying to that customer."
+- `forms.responses.readonly` / `forms.body.readonly`: "Atendel reads responses (and question titles) of the forms the user points to, to summarize new customer requests."
+- `drive.file`: "Only files the user explicitly picks with the Google Picker."
+
+Fuentes: [verificación de permisos restringidos](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification),
+[evaluación de seguridad](https://support.google.com/cloud/answer/13465431),
+[permisos sensibles](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification),
+[verificación de marca](https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification).
 
 ### 4.2 Microsoft (Outlook, Calendario de Outlook, OneDrive, Excel y Contactos)
 

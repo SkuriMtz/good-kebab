@@ -272,3 +272,13 @@ export async function conexionesVigentes(supabase: SupabaseClient, userId: strin
   }
   return conexiones;
 }
+
+/**
+ * ¿Tiene Gmail conectado de verdad? (La conexión de Google con Gmail en Tu negocio → Apps;
+ * entrar con Google NO da permiso de Gmail.) Si no se puede leer, se toma como que no.
+ */
+export async function gmailConectado(supabase: SupabaseClient, userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from("conexiones").select("apps, estado").eq("owner_id", userId).eq("proveedor", "google").maybeSingle();
+  if (error || !data || data.estado !== "activa") return false;
+  return Array.isArray(data.apps) && (data.apps as unknown[]).includes("gmail");
+}

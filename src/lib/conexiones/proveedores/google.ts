@@ -3,39 +3,20 @@ import { argNumero, argTexto, ErrorArgs, fechaMx, linea, pedirBytes, pedirJson, 
 import { ErrorOAuth, postarTokens, scopesDeTexto, venceEn } from "../oauth";
 import { textoDeBytes } from "../extraer";
 import { ACCIONES_GOOGLE } from "./google-acciones";
+import { appsDeScopesGoogle, scopesParaConectar, SCOPE_DRIVE_FILE } from "../permisos-google";
 
 /**
- * GOOGLE: un solo cliente OAuth para Gmail, Calendar, Drive, Sheets,
- * Contactos y Perfil de Negocio. Los permisos se piden por partes
- * (include_granted_scopes) y SIEMPRE de solo lectura, salvo business.manage,
- * que Google solo ofrece así (aquí solo se usa para leer reseñas).
+ * GOOGLE: un solo cliente OAuth para Gmail, Calendar, Tareas, Drive, Sheets,
+ * Contactos, Forms y Perfil de Negocio. Los permisos se piden por partes
+ * (include_granted_scopes): al conectar, solo LEER; el de HACER cosas (mandar
+ * correos, crear o mover citas, crear tareas) la primera vez que hace falta
+ * (src/lib/conexiones/permisos-google.ts). business.manage es el único que
+ * Google ofrece para el Perfil de Negocio (aquí solo se usa para leer reseñas).
  * Tokens.extra: cuenta (correo), scopes (separados por espacio) y apps
  * (las que cubren esos scopes, separadas por coma).
  */
 
 const G = "https://www.googleapis.com/auth/";
-export const SCOPE_GOOGLE: Partial<Record<IdApp, string>> = {
-  gmail: `${G}gmail.readonly`,
-  google_calendar: `${G}calendar.readonly`,
-  google_tasks: `${G}tasks`,
-  google_drive: `${G}drive.file`,
-  google_sheets: `${G}spreadsheets.readonly`,
-  google_contacts: `${G}contacts.readonly`,
-  google_business: `${G}business.manage`,
-  google_forms: `${G}forms.responses.readonly`,
-};
-/**
- * Scopes que además pide una app (no cuentan para saber si se concedió). Forms: los títulos de las
- * preguntas. Gmail y Calendar: los de HACER cosas (mandar correos; crear, mover y cancelar citas);
- * quien conectó antes solo con lectura los da al volver a conectar.
- */
-const SCOPES_EXTRA_GOOGLE: Partial<Record<IdApp, string[]>> = {
-  google_forms: [`${G}forms.body.readonly`],
-  gmail: [`${G}gmail.send`],
-  google_calendar: [`${G}calendar.events`],
-};
-export const SCOPE_DRIVE_FILE = `${G}drive.file`;
-const IDENTIDAD = ["openid", "email"];
 
 const AUTORIZAR = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
@@ -47,12 +28,6 @@ function cred() {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
   if (!clientId || !clientSecret) throw new ErrorOAuth("rechazo", "Falta configurar Google en Vercel.");
   return { clientId, clientSecret };
-}
-
-/** Las apps que cubren estos scopes. */
-export function appsDeScopes(scopes: string[]): IdApp[] {
-  const dados = new Set(scopes);
-  return (Object.keys(SCOPE_GOOGLE) as IdApp[]).filter((a) => dados.has(SCOPE_GOOGLE[a] as string));
 }
 
 /** El correo del id_token (llega directo de Google por TLS en el intercambio). */
@@ -75,7 +50,7 @@ function aTokens(d: Record<string, unknown>, previo?: Tokens): Tokens {
     // Google no cambia el refresh token al renovar
     refresh_token: typeof d.refresh_token === "string" ? d.refresh_token : previo?.refresh_token,
     expira_en: venceEn(d.expires_in),
-    extra: { scopes: scopes.join(" "), apps: appsDeScopes(scopes).join(","), ...(cuenta ? { cuenta } : {}) },
+    extra: { scopes: scopes.join(" "), apps: appsDeScopesGoogle(scopes).join(","), ...(cuenta ? { cuenta } : {}) },
   };
 }
 
@@ -486,10 +461,10 @@ export const google: Adaptador = {
   variables: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
   requiereAprobacion:
     "Mientras Google no verifique la app, solo se conectan los usuarios de prueba que agregues (hasta 100). Gmail es un permiso restringido: abrirlo a todos pide verificación y una revisión de seguridad. Perfil de Negocio además pide que Google apruebe el acceso a su API.",
-  urlAutorizacion({ state, redirectUri, apps, codeChallenge }) {
-    const scopes = Array.from(
-      new Set([...IDENTIDAD, ...apps.flatMap((a) => [SCOPE_GOOGLE[a], ...(SCOPES_EXTRA_GOOGLE[a] ?? [])]).filter((x): x is string => Boolean(x))]),
-    );
+  urlAutorizacion({ state, redirectUri, apps, codeChallenge, query }) {
+    // Solo leer; el permiso de hacer cosas, solo para las apps que lo piden ahora (?permiso=escribir)
+    const escribir = (query?.escribir ?? "").split(",").filter((x): x is IdApp => apps.includes(x as IdApp));
+    const scopes = scopesParaConectar(apps, escribir);
     const q = new URLSearchParams({
       client_id: cred().clientId,
       redirect_uri: redirectUri,

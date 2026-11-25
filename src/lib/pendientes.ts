@@ -62,7 +62,7 @@ export type Pendientes = {
 
 export const cargarPendientes = cache(async function cargarPendientes(
   userId: string,
-  opciones: string, // "planId|conGoogle|lola,clara" (texto, para que `cache` lo reconozca)
+  opciones: string, // "planId|conGmail|lola,clara" (texto, para que `cache` lo reconozca)
   filas: number,
 ): Promise<Pendientes> {
   const [planId, google, lista] = opciones.split("|");
@@ -160,7 +160,7 @@ export const cargarPendientes = cache(async function cargarPendientes(
 
   const todosLosPasos = pasosPanel({
     activos,
-    conGoogle: google === "1",
+    conGmail: google === "1",
     conConversaciones: (conversaciones.count ?? 0) > 0,
     conGrupo: (grupos.count ?? 0) > 0,
     conGrupos: planId !== "free",
@@ -220,4 +220,4 @@ export async function correosFiltrados(userId: string, f: { de?: string; accion?
 }
 
 /** Las opciones de `cargarPendientes` en texto. */
-export const opcionesPendientes = (planId: string, conGoogle: boolean, activos: readonly string[]) => `${planId}|${conGoogle ? "1" : "0"}|${activos.join(",")}`;
+export const opcionesPendientes = (planId: string, conGmail: boolean, activos: readonly string[]) => `${planId}|${conGmail ? "1" : "0"}|${activos.join(",")}`;

@@ -36,12 +36,12 @@ export async function cargarHoy(
   supabase: SupabaseClient,
   userId: string,
   cuenta: { plan: { id: string }; activos: readonly string[] },
-  conGoogle: boolean,
+  conGmail: boolean,
   ahora: number,
 ): Promise<DatosHoy> {
   const ids = await negociosDe(supabase, userId);
   const [pend, archivos, trabajos, rev, tareas, msjs, convs, res, arch, envios] = await Promise.all([
-    cargarPendientes(userId, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 5),
+    cargarPendientes(userId, opcionesPendientes(cuenta.plan.id, conGmail, cuenta.activos), 5),
     supabase.from("archivos").select("id, nombre, agente, creado_en", { count: "exact" }).eq("owner_id", userId).eq("revision", "revisar").order("creado_en", { ascending: false }).limit(5),
     supabase.from("trabajos").select("id, agente, titulo, detalle, creado_en", { count: "exact" }).eq("owner_id", userId).eq("revision", "revisar").order("creado_en", { ascending: false }).limit(5),
     supabase.from("revisiones").select("id, faltan").eq("owner_id", userId).is("leido_en", null).gt("faltan", 0).order("fecha", { ascending: false }).limit(1).maybeSingle(),

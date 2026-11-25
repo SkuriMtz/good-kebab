@@ -22,6 +22,7 @@ import { AprobarAccion } from "./AprobarAccion";
 import { SeccionesChats, type AccionesChats } from "./MenuChats";
 import type { OrganizacionChats } from "@/lib/organizacion-chats";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { queHaceAlEscribir } from "@/lib/conexiones/permisos-google";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import "./panel.css";
 
@@ -133,7 +134,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
   const [ajustesAbierto, setAjustesAbierto] = useState(false);
   const [parteAjustes, setParteAjustes] = useState<IdAjuste>("atendel");
   /** "Conectar una app" desde el chat (null: cerrada) y el aviso al regresar del permiso. */
-  const [conectar, setConectar] = useState<{ app: IdApp | null } | null>(null);
+  // escribir: se abrió para dar el permiso de hacer cosas en esa app (?permiso=escribir)
+  const [conectar, setConectar] = useState<{ app: IdApp | null; escribir?: boolean } | null>(null);
   const [avisoApp, setAvisoApp] = useState<{ tono: "ok" | "error"; texto: string } | null>(null);
   /** El color y la letra que eligió en Ajustes > Apariencia. */
   const [apariencia, setApariencia] = useState<Apariencia>(() => aparienciaDe(ajustes.ajustes));
@@ -290,13 +292,13 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
     if (parametros.get("vista") === "ajustes") abrirAjustes(parametros.get("seccion"));
   }, [parametros, abrirAjustes]);
   // "Conectar una app": con un enlace ?conectar=<app> (lo pone el agente en su respuesta) o con el "+" de la caja
-  const abrirConectar = useCallback((app: string | null) => {
-    setConectar({ app: esIdApp(app) ? app : null });
+  const abrirConectar = useCallback((app: string | null, escribir = false) => {
+    setConectar({ app: esIdApp(app) ? app : null, escribir: escribir && esIdApp(app) });
     setCajon(false);
   }, []);
   useEffect(() => {
     const c = parametros.get("conectar");
-    if (c !== null) abrirConectar(c);
+    if (c !== null) abrirConectar(c, parametros.get("permiso") === "escribir");
   }, [parametros, abrirConectar]);
   // "¿Lo hago?": con un enlace ?aprobar=<id> (lo pone Atendel cuando algo espera tu OK)
   const [aprobar, setAprobar] = useState<string | null>(null);
@@ -318,10 +320,14 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
     const app = esIdApp(lista) ? APP_POR_ID[lista] : null;
     const fallo = parametros.get("app");
     const appFallo = esIdApp(fallo) ? APP_POR_ID[fallo] : null;
-    if (app) setAvisoApp({ tono: "ok", texto: `Listo: ${app.nombre} quedó conectada. Ya la puedes usar en el chat.` });
+    const hace = lista && esIdApp(lista) ? queHaceAlEscribir(lista) : null;
+    if (app && parametros.get("permiso") === "escribir" && hace) setAvisoApp({ tono: "ok", texto: `Listo: Atendel ya puede ${hace}. Vuelve a aprobar lo que estaba esperando.` });
+    else if (app) setAvisoApp({ tono: "ok", texto: `Listo: ${app.nombre} quedó conectada. Ya la puedes usar en el chat.` });
+    else if (error === "permiso_escribir")
+      setAvisoApp({ tono: "error", texto: `${appFallo ? `${appFallo.nombre}: ` : ""}no se dio el permiso para hacer cosas. Atendel te lo deja listo, pero no lo puede hacer por ti.` });
     else if (error) setAvisoApp({ tono: "error", texto: `${appFallo ? `${appFallo.nombre}: ` : ""}${error === "cancelado" ? "no se dio el permiso. Puedes intentarlo otra vez." : "no se pudo conectar. Vuelve a intentarlo."}` });
     const url = new URL(window.location.href);
-    for (const k of ["conectada", "error", "app"]) url.searchParams.delete(k);
+    for (const k of ["conectada", "error", "app", "permiso"]) url.searchParams.delete(k);
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
   }, [parametros]);
   useEffect(() => {
@@ -679,12 +685,14 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
       <ConectarApps
         abierta={conectar !== null}
         enfocar={conectar?.app ?? null}
+        escribir={conectar?.escribir ?? false}
         alCerrar={() => {
           setConectar(null);
           // Si se abrió con ?conectar=, se quita de la dirección (al recargar ya no sale)
           const url = new URL(window.location.href);
           if (!url.searchParams.has("conectar")) return;
           url.searchParams.delete("conectar");
+          url.searchParams.delete("permiso");
           window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
         }}
       />

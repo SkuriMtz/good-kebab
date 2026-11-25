@@ -10,6 +10,7 @@ import { cargarPendientes, opcionesPendientes } from "@/lib/pendientes";
 import { createClient } from "@/lib/supabase/server";
 import type { ChatMenu } from "@/components/panel/Armazon";
 import { TEMA_AVISOS } from "@/lib/avisos";
+import { gmailConectado } from "@/lib/conexiones/tokens";
 
 /**
  * El armazón del panel nuevo (menú de 288px con Fijados y Recientes, y el
@@ -28,8 +29,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   // El middleware ya redirige a /entrar sin sesión; esto es una segunda barrera
   if (!user) redirect("/entrar");
 
-  const proveedores = (user.app_metadata?.providers as string[] | undefined) ?? [];
-  const conGoogle = proveedores.includes("google");
+  // Gmail conectado de verdad (Tu negocio → Apps): entrar con Google no da permiso de Gmail
+  const conGmail = await gmailConectado(supabase, user.id);
   const cuenta = await cargarCuenta(supabase, user.id);
   // El uso del plan (sesión de 5 horas y semana), para Ajustes > Uso
   const uso = await leerUso(supabase, user.id, cuenta.plan);
@@ -42,7 +43,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
       .order("actualizado_en", { ascending: false })
       .limit(40),
     // Las mismas 5 filas que pide el Inicio: la lectura se comparte (cache)
-    cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGoogle, cuenta.activos), 5),
+    cargarPendientes(user.id, opcionesPendientes(cuenta.plan.id, conGmail, cuenta.activos), 5),
     // Ajustes > lo que eligió (si la tabla aún no existe, quedan los de fábrica)
     supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
     // Ajustes > Conexiones: qué apps están conectadas (sin tokens)
@@ -102,7 +103,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         correo: user.email ?? "",
         plan: cuenta.plan.nombre.replace(/^Atendel\s+/, ""),
         uso,
-        gmail: conGoogle,
+        gmail: conGmail,
         activos: cuenta.activos,
         pendientes: pendientes.total,
         oficina: (porRevisarOficina ?? 0) + (trabajosNuevos ?? 0) + Math.min(1, revisionNueva ?? 0) || null,

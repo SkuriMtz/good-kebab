@@ -105,6 +105,7 @@ const sinAcentos = (s: string) =>
 /** Lo que regresa el permiso cuando algo falla (&error=… del callback de D), en español sencillo. */
 const ERRORES_CONEXION: Record<string, string> = {
   cancelado: "Cancelaste el permiso. Cuando quieras, vuelve a intentarlo.",
+  permiso_escribir: "No se dio el permiso para hacer cosas en esa app. Atendel te deja todo listo, pero no lo puede mandar por ti.",
   estado: "El permiso tardó mucho o no coincide. Vuelve a conectar.",
   configuracion: "Falta configurar esta app en Vercel. Revisa «Cómo configurarlo» en su tarjeta.",
   intercambio: "La app no confirmó el permiso. Vuelve a intentarlo en un momento.",

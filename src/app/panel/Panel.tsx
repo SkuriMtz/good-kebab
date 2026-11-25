@@ -8,6 +8,7 @@ import { Enlace, Pildoras, Subtitulo, Tarjeta, TituloSeccion, Vacio, claseBoton 
 import { ListaCorreos, Seccion } from "@/components/panel/Secciones";
 import { partirRemitente } from "@/components/panel/remitente";
 import { createClient } from "@/lib/supabase/client";
+import { EVENTO_CONECTAR } from "@/components/panel/ConectarApps";
 
 type Resultado = { asunto: string; remitente: string; resumen: string; accion: string };
 
@@ -56,12 +57,12 @@ const conSugerencia = (accion: string | null) => Boolean(accion && accion.trim()
 
 /**
  * Correo con Altair, dentro del panel: lo primero es tu bandeja (lo que
- * Altair ya leyó de tu Gmail, solo lectura) con "Revisar Gmail ahora" o
- * "Conectar Gmail"; la prueba con un correo de ejemplo queda escondida en
+ * Altair ya leyó de tu Gmail) con "Revisar Gmail ahora" o "Conectar Gmail"
+ * (abre «Conectar una app»: el mismo camino que todas las apps); la prueba con un correo de ejemplo queda escondida en
  * "Probar con un ejemplo". La lógica es la de siempre; solo cambió la forma (la sección del
  * panel nuevo: columna de 768px, título en serif y tarjetas de borde fino).
  */
-export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el historial solo con lo de ese remitente (como en Pendientes y Estadísticas). */ de?: string }) {
+export function Panel({ conGmail, de }: { conGmail: boolean; /** ?de=: el historial solo con lo de ese remitente (como en Pendientes y Estadísticas). */ de?: string }) {
   const supabase = useMemo(() => createClient(), []);
   const googleDisponible = useGoogleDisponible();
 
@@ -170,15 +171,10 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
     }
   }
 
-  async function conectarGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        // Solo lectura de Gmail: nunca se pide permiso de enviar o borrar
-        scopes: "https://www.googleapis.com/auth/gmail.readonly",
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  // Un solo camino para conectar Gmail: la ventana «Conectar una app» (permiso de solo leer;
+  // el de mandar correos se pide aparte, la primera vez que Atendel lo necesita)
+  function conectarGmail() {
+    window.dispatchEvent(new CustomEvent(EVENTO_CONECTAR, { detail: { app: "gmail" } }));
   }
 
   const hayTexto = Boolean(remitente || asunto || contenido);
@@ -187,13 +183,13 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
 
   /** El botón de Gmail: revisar lo nuevo (conectado), conectar, o "Pronto" si no hay acceso con Google. */
   const botonGmail = (chico = false) =>
-    conGoogle && !faltaGmail ? (
+    conGmail && !faltaGmail ? (
       <button type="button" className={claseBoton("principal", chico)} disabled={gmailCargando} onClick={revisarGmail}>
         {gmailCargando ? <Giro /> : <Icono nombre="repetir" tam={16} />}
         {gmailCargando ? "Revisando tu Gmail" : "Revisar Gmail ahora"}
       </button>
     ) : googleDisponible ? (
-      <button type="button" className={claseBoton("principal", chico)} onClick={conectarGoogle}>
+      <button type="button" className={claseBoton("principal", chico)} onClick={conectarGmail}>
         Conectar Gmail
         <Icono nombre="flecha" tam={16} />
       </button>
@@ -205,10 +201,10 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
     <Seccion>
       <TituloSeccion
         titulo="Correo"
-        texto="Altair lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Solo lectura: nunca envía ni borra nada."
+        texto="Altair lee tu Gmail y te dice de qué trata cada correo, qué tan urgente es y qué conviene contestar. Para contestar por ti te pide permiso aparte, y lo que manda pasa por tu OK."
         acciones={
           <span id="gmail" className="pc-correo__acciones">
-            {conGoogle && !faltaGmail ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
+            {conGmail && !faltaGmail ? <span className="pc-estado pc-estado--exito">Gmail conectado</span> : null}
             {botonGmail()}
           </span>
         }
@@ -257,9 +253,9 @@ export function Panel({ conGoogle, de }: { conGoogle: boolean; /** ?de=: el hist
             titulo="Todavía no hay correos leídos"
             agente="clara"
             texto={
-              conGoogle
+              conGmail
                 ? "Toca «Revisar Gmail ahora» y Altair resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar."
-                : "Conecta tu Gmail y Altair resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar. Solo lectura."
+                : "Conecta tu Gmail y Altair resume tus correos sin leer: de qué tratan, qué tan urgentes son y qué conviene contestar."
             }
             accion={botonGmail(true)}
           />

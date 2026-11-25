@@ -6,6 +6,7 @@ import { nombresDe } from "./Mensajes";
 import { Enlace, Modal, claseBoton } from "./Piezas";
 import { mensajeDe, useFuenteNegocio } from "./negocio/fuente";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { queHaceAlEscribir, tieneEscritura } from "@/lib/conexiones/permisos-google";
 import { LOGO_APP } from "@/lib/conexiones/logos";
 import { RUTAS, type EstadoAppPersona, type IdApp } from "@/lib/nucleo-tipos";
 
@@ -30,7 +31,7 @@ const corto = (puede: string) => puede.replace(/\s*Solo lectura\.?$/, "").replac
  * que piden una llave (Stripe) se conectan en Tu negocio → Apps. En
  * /pruebalo no se abre ninguna cuenta: se explica qué pasaría.
  */
-export function ConectarApps({ abierta, enfocar, alCerrar }: { abierta: boolean; enfocar: IdApp | null; alCerrar: () => void }) {
+export function ConectarApps({ abierta, enfocar, escribir = false, alCerrar }: { abierta: boolean; enfocar: IdApp | null; /** Se abrió para dar el permiso de hacer cosas en `enfocar` (?permiso=escribir). */ escribir?: boolean; alCerrar: () => void }) {
   const fuente = useFuenteNegocio();
   const [estados, setEstados] = useState<EstadoAppPersona[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,13 +60,20 @@ export function ConectarApps({ abierta, enfocar, alCerrar }: { abierta: boolean;
     return `&volver=chat${c && /^[\w-]{1,100}$/.test(c) ? `&c=${encodeURIComponent(c)}` : ""}`;
   };
   const appEjemplo = ejemplo ? APP_POR_ID[ejemplo] : null;
+  // «Dar permiso»: la app ya está conectada para leer; falta el permiso de hacer cosas (se pide una vez)
+  const permisoDe = escribir && enfocar && tieneEscritura(enfocar) ? enfocar : null;
+  const queHace = permisoDe ? queHaceAlEscribir(permisoDe) : null;
 
   return (
     <Modal
       abierto={abierta}
       alCerrar={alCerrar}
       titulo="Conectar una app"
-      descripcion="Tu equipo la usa para leer lo que necesita. Solo lectura: nada se manda ni se borra sin ti."
+      descripcion={
+        permisoDe
+          ? `Para ${queHace}, Atendel necesita tu permiso en Google. Se da una sola vez y lo puedes quitar cuando quieras.`
+          : "Al conectar una app, Atendel solo la lee. Si un día necesita hacer algo, como mandar un correo o agendar, te pide permiso en ese momento."
+      }
       className="pc-conectar"
       pie={
         <Enlace href={hrefApps} className={claseBoton("fantasma")} onClick={alCerrar}>
@@ -78,8 +86,27 @@ export function ConectarApps({ abierta, enfocar, alCerrar }: { abierta: boolean;
           {error}
         </p>
       ) : null}
+      {permisoDe && APP_POR_ID[permisoDe].proveedor ? (
+        <div className="pc-conectar__permiso">
+          {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
+          <img src={LOGO_APP[permisoDe]} alt="" width={24} height={24} className="pc-conectar__logo" />
+          <span className="pc-conectar__textos">
+            <span className="pc-conectar__nombre">{APP_POR_ID[permisoDe].nombre}</span>
+            <span className="pc-conectar__detalle">Permiso para {queHace}</span>
+          </span>
+          {fuente.demo ? (
+            <button type="button" className={claseBoton("principal", true)} onClick={() => setEjemplo(permisoDe)}>
+              Dar permiso
+            </button>
+          ) : (
+            <a href={`${RUTAS.conectar(APP_POR_ID[permisoDe].proveedor!, permisoDe)}&permiso=escribir${volver()}`} className={claseBoton("principal", true)}>
+              Dar permiso
+            </a>
+          )}
+        </div>
+      ) : null}
       <ul className="pc-conectar__lista">
-        {ids.map((id) => {
+        {(permisoDe ? ids.filter((id) => id !== permisoDe) : ids).map((id) => {
           const app = APP_POR_ID[id];
           const estado = estadoDe(id);
           let accion;

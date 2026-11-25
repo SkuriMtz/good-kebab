@@ -3,6 +3,7 @@ import { limpiarAjustes } from "@/lib/ajustes";
 import { aparatoDe } from "@/lib/aparato";
 import { citar } from "@/lib/avisos";
 import { APP_POR_ID } from "@/lib/conexiones/catalogo";
+import { ErrorPermiso } from "@/lib/conexiones/http";
 import { limpiarCorto, notificar } from "@/lib/notificar";
 import { herramientaPorNombre } from "@/lib/conexiones/registro";
 import { conexionesVigentes } from "@/lib/conexiones/tokens";
@@ -94,6 +95,14 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     await admin.from("acciones").update({ estado: "hecha", resultado: resultado.slice(0, 2000), resuelto_en: ahora() }).eq("id", fila.id).eq("owner_id", user.id);
     return NextResponse.json({ estado: "hecha", mensaje: resultado.slice(0, 400) });
   } catch (e) {
+    // Falta el permiso de hacer cosas (se pide la primera vez): no es un fallo, sigue esperando tu OK
+    if (e instanceof ErrorPermiso && e.enlace) {
+      await admin.from("acciones").update({ estado: "esperando" }).eq("id", fila.id).eq("owner_id", user.id).eq("estado", "haciendo");
+      return NextResponse.json(
+        { error: `Para ${e.que}, Atendel necesita tu permiso en ${app?.nombre ?? "esa app"}. Se da una sola vez; luego vuelve a aprobarlo.`, permiso: { enlace: e.enlace } },
+        { status: 403 },
+      );
+    }
     return fallo(mensajeError(e, app?.nombre ?? "la app").replace(/^No se pudo usar la herramienta: /, "").replace(/ Díselo a la persona tal cual\.$/, ""), 502);
   }
 }

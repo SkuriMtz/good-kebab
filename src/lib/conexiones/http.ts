@@ -142,12 +142,13 @@ export class ErrorArgs extends Error {
   }
 }
 
-/** La app no dio permiso para hacer eso (hay que volver a conectarla): con qué app y para qué. */
+/** La app no dio permiso para hacer eso: con qué app, para qué y el enlace para darlo (o volver a conectarla). */
 export class ErrorPermiso extends ErrorArgs {
   constructor(
     mensaje: string,
     readonly app: string,
     readonly que: string,
+    readonly enlace?: string,
   ) {
     super(mensaje);
     this.name = "ErrorPermiso";

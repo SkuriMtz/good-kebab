@@ -23,7 +23,8 @@ export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: (
   const router = useRouter();
   const [datos, setDatos] = useState<Datos | null | "nada">(null);
   const [ocupado, setOcupado] = useState<"aprobar" | "descartar" | null>(null);
-  const [aviso, setAviso] = useState<{ texto: string; error?: boolean } | null>(null);
+  // enlace: falta el permiso de hacer cosas en esa app (se da una vez) y sigue esperando tu OK
+  const [aviso, setAviso] = useState<{ texto: string; error?: boolean; enlace?: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -54,12 +55,15 @@ export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: (
     setAviso(null);
     try {
       const r = await fetch(`/api/acciones/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion }) });
-      const j = (await r.json().catch(() => null)) as { mensaje?: string; error?: string } | null;
+      const j = (await r.json().catch(() => null)) as { mensaje?: string; error?: string; permiso?: { enlace?: string } } | null;
       if (r.ok) {
         setAviso({ texto: j?.mensaje ?? "Listo." });
         setDatos((d) => (d && d !== "nada" ? { ...d, estado: accion === "aprobar" ? "hecha" : "descartada" } : d));
         router.refresh();
-      } else setAviso({ texto: j?.error ?? "No se pudo. Intenta de nuevo.", error: true });
+      } else {
+        const enlace = j?.permiso?.enlace;
+        setAviso({ texto: j?.error ?? "No se pudo. Intenta de nuevo.", error: !enlace, ...(enlace && enlace.startsWith("/panel?conectar=") ? { enlace } : {}) });
+      }
     } catch {
       setAviso({ texto: "Sin conexión: no se hizo nada.", error: true });
     }
@@ -105,6 +109,12 @@ export function AprobarAccion({ id, alCerrar }: { id: string | null; alCerrar: (
         <p className={`pc-envio__aviso${aviso.error ? " pc-envio__aviso--error" : ""}`} role="status">
           {aviso.texto}
         </p>
+      ) : null}
+      {aviso?.enlace ? (
+        // Abre la ventana de conectar con «Dar permiso» (navegación del panel, sin salir)
+        <a href={aviso.enlace} className={`${claseBoton("principal", true)} pc-aprobar__permiso`}>
+          Dar permiso
+        </a>
       ) : null}
     </Modal>
   );

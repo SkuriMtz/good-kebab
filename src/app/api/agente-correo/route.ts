@@ -12,8 +12,9 @@ import { appsDeFila, leerFila, obtenerToken } from "@/lib/conexiones/tokens";
  *    nadie puede usar este endpoint sin haber iniciado sesión.
  * 2. Busca el negocio del usuario autenticado (nunca confía en un
  *    negocio_id que venga del cliente — eso sería una falla de seguridad).
- * 3. Lee los correos recientes de Gmail usando el token de Google guardado
- *    en la sesión de Supabase.
+ * 3. Lee los correos recientes de Gmail con el token de la conexión de Google
+ *    (Tu negocio → Apps, guardado cifrado). Ya no se usa el token de la sesión:
+ *    Gmail se conecta por un solo camino.
  * 4. Le pasa cada correo a Claude para generar un resumen + acción sugerida.
  * 5. Guarda el resultado en la base de datos (protegido por RLS).
  */
@@ -30,22 +31,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  // El token de Gmail: el de la conexión guardada (Tu negocio → Apps) o, si el dueño acaba de
-  // conectar Gmail desde Correo, el de su sesión. Entrar con Google ya no pide permiso de Gmail.
+  // El token de Gmail: el de la conexión guardada (Tu negocio → Apps). Entrar con Google no da permiso de Gmail.
   let providerToken: string | undefined;
   const fila = await leerFila(supabase, user.id, "google").catch(() => null);
   if (fila && fila.estado === "activa" && appsDeFila(fila).includes("gmail")) {
     providerToken = (await obtenerToken(supabase, user.id, "google").catch(() => null))?.access_token;
   }
-  if (!providerToken) {
-    const { data: sessionData } = await supabase.auth.getSession();
-    providerToken = sessionData.session?.provider_token ?? undefined;
-  }
 
   if (!providerToken) {
     return NextResponse.json(
       {
-        error: "Todavía no conectas Gmail. Toca «Conectar Gmail» para darle permiso de solo lectura.",
+        error: "Todavía no conectas Gmail. Toca «Conectar Gmail» para darle permiso de leer tus correos.",
         codigo: "conectar_gmail",
       },
       { status: 400 },

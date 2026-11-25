@@ -34,14 +34,14 @@ function semanas(zona: string, ahora: number) {
 
 const porcentaje = (usado: number, limite: number) => (limite > 0 ? Math.min(100, Math.round((usado / limite) * 100)) : null);
 
-export async function cargarTablero(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGoogle: boolean; zona: string }): Promise<DatosTablero> {
+export async function cargarTablero(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGmail: boolean; zona: string }): Promise<DatosTablero> {
   const ahora = Date.now();
   const { antes: diasAntes, estas: diasEstas } = semanas(o.zona, ahora);
   const desde = new Date(ahora - 14 * 86_400_000).toISOString();
   const ids = await negociosDe(supabase, userId);
 
   const [hoy, negocio, wa, numero, correos, conexiones, uso] = await Promise.all([
-    cargarHoy(supabase, userId, o.cuenta, o.conGoogle, ahora),
+    cargarHoy(supabase, userId, o.cuenta, o.conGmail, ahora),
     cargarNegocio(supabase, userId, "7d", o.cuenta).catch(() => null),
     supabase.from("whatsapp_mensajes").select("telefono, nombre, texto, estado, creado_en").eq("owner_id", userId).eq("direccion", "entrante").gte("creado_en", desde).order("creado_en", { ascending: false }).limit(1000),
     supabase.from("whatsapp_numeros").select("phone_number_id").eq("owner_id", userId).limit(1).maybeSingle(),
@@ -114,8 +114,8 @@ export async function cargarTablero(supabase: SupabaseClient, userId: string, o:
 }
 
 /** Solo lo del banner de lo importante (arriba de Tu negocio): lo que te necesita y las apps que fallan. */
-export async function cargarDestacadas(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGoogle: boolean }): Promise<Destacada[]> {
-  const [hoy, conexiones] = await Promise.all([cargarHoy(supabase, userId, o.cuenta, o.conGoogle, Date.now()), leerConexionesPublicas(supabase, userId).catch(() => [])]);
+export async function cargarDestacadas(supabase: SupabaseClient, userId: string, o: { cuenta: Cuenta; conGmail: boolean }): Promise<Destacada[]> {
+  const [hoy, conexiones] = await Promise.all([cargarHoy(supabase, userId, o.cuenta, o.conGmail, Date.now()), leerConexionesPublicas(supabase, userId).catch(() => [])]);
   return destacadasDe({
     base: "/panel",
     teNecesita: hoy.teNecesita.map((t) => ({ id: t.id, titulo: t.titulo, detalle: t.detalle, href: t.href ?? "/panel?vista=pendientes" })),
