@@ -36,7 +36,12 @@ export function TuNegocio({ tab, plan, conectada, error, app, arriba }: { tab: P
       />
       {arriba}
       <div className="pc-filtros">
-        <Pildoras etiqueta="Partes de Tu negocio" activa={tab} opciones={PESTANAS_NEGOCIO.map((t) => ({ id: t, etiqueta: ETIQUETAS[t], href: href(t) }))} />
+        {/* Estadísticas vive en su propia vista, pero es parte de Tu negocio */}
+        <Pildoras
+          etiqueta="Partes de Tu negocio"
+          activa={tab}
+          opciones={[...PESTANAS_NEGOCIO.map((t) => ({ id: t, etiqueta: ETIQUETAS[t], href: href(t) })), { id: "estadisticas", etiqueta: "Estadísticas", href: `${fuente.base}?vista=estadisticas` }]}
+        />
       </div>
       {/* Cada pestaña entra de nuevo (key): su entrada escalonada vuelve a correr */}
       <div key={tab} className="pc-negocio" id="pc-negocio-panel">

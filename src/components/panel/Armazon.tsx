@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icono, type NombreIcono } from "@/components/base/Iconos";
-import { IconoBarra } from "./IconosBarra";
-import type { IdAgente } from "@/lib/agentes";
+import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
+import { AvatarAgente } from "./Mensajes";
 import { clasesFuentesApariencia, serifPanel } from "./fuente";
 import { TraduccionPanel } from "./TraduccionPanel";
 
@@ -85,9 +85,23 @@ const CLAVE_OCULTO = "atendel-panel-menu-oculto";
 const CLAVE_INFO = "atendel-panel-info";
 const CLAVE_TAB = "atendel-panel-info-tab";
 const CELULAR = "(max-width: 859px)";
-/** Las secciones de cada tema de la barra de abajo del celular. */
-const TEMA_DIA: IdSeccion[] = ["pendientes", "oficina", "citas", "tareas"];
-const TEMA_NEGOCIO: IdSeccion[] = ["correo", "estadisticas", "apps", "negocio"];
+/** Los escritorios: la sección donde trabaja cada empleado (se llega desde «Tu equipo»). */
+const ESCRITORIO: Partial<Record<IdSeccion, IdAgente>> = { citas: "lola", correo: "clara", oficina: "iris", tareas: "iris" };
+/** Lo que vive dentro de «Tu negocio». */
+const DE_NEGOCIO: IdSeccion[] = ["negocio", "apps", "estadisticas"];
+
+/** Los numeritos del menú, para las vistas que los repiten (p. ej. la Oficina en «Tu equipo»). */
+export const ContextoCuentas = createContext<{ pendientes: number | null; porRevisar: number | null }>({ pendientes: null, porRevisar: null });
+
+/** Cuántas cosas dejó Mira en la Oficina por revisar (el mismo número del menú). */
+export function CuentaPorRevisar() {
+  const { porRevisar } = useContext(ContextoCuentas);
+  return porRevisar ? (
+    <span className="pc-empleado__cuenta" aria-label={`${porRevisar} por revisar`}>
+      {porRevisar > 99 ? "99+" : porRevisar}
+    </span>
+  ) : null;
+}
 /** Debajo de este ancho, la información flota encima del chat (no le quita espacio). */
 const ANGOSTO = "(max-width: 1359px)";
 
@@ -441,47 +455,14 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
     };
   }, [abiertoEnCelular]);
 
+  // El menú tiene 4 secciones: lo demás es el escritorio de un empleado (Tu equipo) o parte de Tu negocio
+  const deQuien = ESCRITORIO[activa];
+  const seccion: IdSeccion = deQuien ? "equipo" : DE_NEGOCIO.includes(activa) ? "negocio" : activa;
   const item = (id: IdSeccion, etiqueta: string, icono: NombreIcono, href: string, extra?: ReactNode) => (
-    <Enlace href={href} className="pc-menu__item" aria-current={activa === id ? "page" : undefined} title={oculto ? etiqueta : undefined}>
+    <Enlace href={href} className="pc-menu__item" aria-current={seccion === id ? "page" : undefined} title={oculto ? etiqueta : undefined}>
       <Icono nombre={icono} tam={20} />
       <span className="pc-menu__item-texto">{etiqueta}</span>
       {extra}
-    </Enlace>
-  );
-
-  /* En celular (como WhatsApp): la barra de abajo con 5 pestañas (Chat · Tu equipo · Tu día · Negocio ·
-     Ajustes) y, arriba, los botones del tema elegido (Tu día: Tu OK, Oficina, Citas y Tareas; Negocio:
-     Correo, Estadísticas, Apps y Tu negocio). Ajustes abre su ventana. En compu no se ven (panel.css). */
-  const tema: "chat" | "equipo" | "dia" | "negocio" = activa === "equipo" ? "equipo" : TEMA_DIA.includes(activa) ? "dia" : TEMA_NEGOCIO.includes(activa) ? "negocio" : "chat";
-  const opcionesTema: { id: IdSeccion; etiqueta: string; href: string; cuenta?: number | null }[] =
-    tema === "dia"
-      ? [
-          { id: "pendientes", etiqueta: "Tu OK", href: hrefs.pendientes, cuenta: pendientes },
-          ...(hrefs.oficina ? [{ id: "oficina" as const, etiqueta: "Oficina", href: hrefs.oficina, cuenta: porRevisar }] : []),
-          { id: "citas", etiqueta: "Citas", href: hrefs.citas },
-          { id: "tareas", etiqueta: "Tareas", href: hrefs.tareas },
-        ]
-      : tema === "negocio"
-        ? [
-            ...(hrefs.correo ? [{ id: "correo" as const, etiqueta: "Correo", href: hrefs.correo }] : []),
-            { id: "estadisticas", etiqueta: "Estadísticas", href: hrefs.estadisticas },
-            ...(hrefs.apps ? [{ id: "apps" as const, etiqueta: "Apps", href: hrefs.apps }] : []),
-            { id: "negocio", etiqueta: "Tu negocio", href: hrefs.negocio },
-          ]
-        : [];
-  const cuentaDia = (pendientes ?? 0) + (porRevisar ?? 0);
-  // Como la de Instagram: solo el ícono (dibujado); el nombre queda para los lectores de pantalla
-  const pestanaAbajo = (id: typeof tema, etiqueta: string, href: string, cuenta?: number) => (
-    <Enlace href={href} className="pc-abajo__item" aria-current={tema === id && !ajustesAbierto ? "page" : undefined} title={etiqueta}>
-      <span className="pc-abajo__icono">
-        <IconoBarra nombre={id} />
-        {cuenta ? (
-          <span className="pc-abajo__cuenta" aria-hidden="true">
-            {cuenta > 99 ? "99+" : cuenta}
-          </span>
-        ) : null}
-      </span>
-      <span className="pc-abajo__texto">{cuenta ? `${etiqueta}, ${cuenta} por ver` : etiqueta}</span>
     </Enlace>
   );
 
@@ -543,8 +524,12 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
           </div>
 
           <nav className="pc-menu__nav" aria-label="Secciones">
-            {item("inicio", "Chat", "conversaciones", hrefs.inicio)}
-            {item("equipo", "Tu equipo", "usuarios", hrefs.equipo)}
+            {/* Como ChatGPT: pocas secciones arriba y tus pláticas abajo. Citas, Correo, Oficina y Tareas son
+                el escritorio de cada empleado (en «Tu equipo»); Estadísticas y Apps, parte de «Tu negocio» */}
+            {item("inicio", "Atendel", "conversaciones", hrefs.inicio)}
+            {item("equipo", "Tu equipo", "usuarios", hrefs.equipo, porRevisar ? <span className="pc-menu__cuenta" aria-label={`${porRevisar} por revisar en la Oficina`}>{porRevisar}</span> : null)}
+            {item("pendientes", "Necesita tu OK", "check-circulo", hrefs.pendientes, pendientes ? <span className="pc-menu__cuenta" aria-label={`${pendientes} por ver`}>{pendientes}</span> : null)}
+            {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
             <button type="button" className="pc-menu__item pc-menu__buscar" onClick={() => setBuscar({ instantaneo: false })} aria-keyshortcuts="Meta+K Control+K" title={oculto ? "Buscar (⌘K)" : undefined}>
               <Icono nombre="buscar" tam={20} />
               <span className="pc-menu__item-texto">Buscar</span>
@@ -552,17 +537,6 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
                 ⌘K
               </kbd>
             </button>
-            {/* Como Supabase y ElevenLabs: las secciones en grupos */}
-            <p className="pc-menu__subtitulo">Tu día</p>
-            {item("pendientes", "Necesita tu OK", "check-circulo", hrefs.pendientes, pendientes ? <span className="pc-menu__cuenta" aria-label={`${pendientes} por ver`}>{pendientes}</span> : null)}
-            {item("citas", "Citas", "calendario", hrefs.citas)}
-            {item("tareas", "Tareas", "reloj", hrefs.tareas)}
-            {item("oficina", "Oficina", "documento", hrefs.oficina ?? hrefs.inicio, porRevisar ? <span className="pc-menu__cuenta" aria-label={`${porRevisar} por ver`}>{porRevisar}</span> : null)}
-            <p className="pc-menu__subtitulo">Tu negocio</p>
-            {hrefs.correo ? item("correo", "Correo", "correo", hrefs.correo) : null}
-            {item("estadisticas", "Estadísticas", "grafica", hrefs.estadisticas)}
-            {hrefs.apps ? item("apps", "Apps conectadas", "enlace", hrefs.apps) : null}
-            {item("negocio", "Tu negocio", "negocio", hrefs.negocio)}
           </nav>
 
           <div className="pc-menu__listas">
@@ -582,21 +556,19 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
 
       <div ref={principalRef} className="pc-principal">
         <div className="pc-barra-movil">
-          {/* Tus conversaciones (el cajón): solo en el Chat; lo demás está en la barra de abajo */}
-          {tema === "chat" ? (
-            <button
-              ref={hamburguesa}
-              type="button"
-              className="pc-icono"
-              onClick={() => setCajon(true)}
-              aria-label="Tus conversaciones"
-              title="Tus conversaciones"
-              aria-expanded={cajon}
-              aria-controls="pc-menu"
-            >
-              <Icono nombre="menu" tam={20} />
-            </button>
-          ) : null}
+          {/* Como ChatGPT: ☰ abre el menú (las secciones y tus pláticas) */}
+          <button
+            ref={hamburguesa}
+            type="button"
+            className="pc-icono"
+            onClick={() => setCajon(true)}
+            aria-label="Abrir el menú"
+            title="Menú"
+            aria-expanded={cajon}
+            aria-controls="pc-menu"
+          >
+            <Icono nombre="menu" tam={20} />
+          </button>
           <Enlace href={hrefs.inicio} className="pc-menu__logo" aria-label="Atendel, ir al inicio">
             <Marca className="pc-logo__marca" />
             <span className="pc-logo__nombre">Atendel</span>
@@ -609,20 +581,6 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
             <Icono nombre="mas" tam={20} />
           </Enlace>
         </div>
-        {opcionesTema.length ? (
-          <nav className="pc-subtemas" aria-label={tema === "dia" ? "Tu día" : "Tu negocio"}>
-            {opcionesTema.map((o) => (
-              <Enlace key={o.id} href={o.href} className="pc-subtemas__opcion" aria-current={activa === o.id ? "page" : undefined}>
-                {o.etiqueta}
-                {o.cuenta ? (
-                  <span className="pc-subtemas__cuenta" aria-label={`${o.cuenta} por ver`}>
-                    {o.cuenta > 99 ? "99+" : o.cuenta}
-                  </span>
-                ) : null}
-              </Enlace>
-            ))}
-          </nav>
-        ) : null}
         {info ? (
           <div className="pc-barra-info" role="toolbar" aria-label="Información de tu negocio">
             {/* Un solo botón con nombre (antes, cuatro iconos sin nombre): abre o cierra el resumen */}
@@ -641,22 +599,30 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
           </div>
         ) : null}
         <main id="pc-contenido" className="pc-contenido" tabIndex={-1}>
-          {children}
+          {/* En el escritorio de un empleado o en una parte de Tu negocio: de dónde vienes, para regresar */}
+          {deQuien ? (
+            <nav className="pc-migas" aria-label="Dónde estás">
+              <Enlace href={hrefs.equipo} className="pc-volver">
+                <Icono nombre="chevron-izquierda" tam={16} />
+                Tu equipo
+              </Enlace>
+              <span className="pc-migas__aqui">
+                <AvatarAgente agente={deQuien} tam={20} />
+                Escritorio de {AGENTE_POR_ID[deQuien].nombre}
+              </span>
+            </nav>
+          ) : activa === "estadisticas" ? (
+            <nav className="pc-migas" aria-label="Dónde estás">
+              <Enlace href={hrefs.negocio} className="pc-volver">
+                <Icono nombre="chevron-izquierda" tam={16} />
+                Tu negocio
+              </Enlace>
+            </nav>
+          ) : null}
+          <ContextoCuentas.Provider value={{ pendientes, porRevisar: porRevisar ?? null }}>{children}</ContextoCuentas.Provider>
         </main>
       </div>
 
-      <nav className="pc-abajo" aria-label="Menú">
-        {pestanaAbajo("chat", "Chat", hrefs.inicio)}
-        {pestanaAbajo("equipo", "Tu equipo", hrefs.equipo)}
-        {pestanaAbajo("dia", "Tu día", hrefs.pendientes, cuentaDia)}
-        {pestanaAbajo("negocio", "Negocio", hrefs.correo ?? hrefs.estadisticas)}
-        <button type="button" className="pc-abajo__item" onClick={() => abrirAjustes("atendel")} aria-haspopup="dialog" data-activo={ajustesAbierto ? "" : undefined} title="Ajustes">
-          <span className="pc-abajo__icono">
-            <IconoBarra nombre="ajustes" />
-          </span>
-          <span className="pc-abajo__texto">Ajustes</span>
-        </button>
-      </nav>
 
       {info ? (
         <>
@@ -713,7 +679,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
       {/* Lo nuevo de esta versión: una sola vez, junto a «Tu equipo» (en compu, el menú; en celular, la barra de abajo) */}
       <Novedad
         clave="equipo"
-        anclas={['.pc-menu__nav a[href$="vista=equipo"]', '.pc-abajo a[href$="vista=equipo"]']}
+        anclas={['.pc-menu__nav a[href$="vista=equipo"]', '.pc-barra-movil [aria-controls="pc-menu"]']}
         titulo="Tu equipo ya trabaja para ti"
         texto="Pídele lo que sea a Atendel: él se lo encarga a Aura, Altair, Rigel o Mira, y ves a cada uno trabajando."
         accion={{ texto: "Conoce a tu equipo", href: hrefs.equipo }}

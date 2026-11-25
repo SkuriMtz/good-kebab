@@ -11,8 +11,8 @@ import { Enlace } from "./Piezas";
  * ✕, al tocar su botón o al entrar a lo nuevo.
  *
  * Se pega al primer `ancla` que se vea: en compu, el elemento del menú (el
- * globo sale a su derecha); en celular, la pestaña de la barra de abajo (sale
- * encima). Si ninguna se ve, espera.
+ * globo sale a su derecha); en celular, el ☰ de arriba (sale debajo). Algo
+ * hasta abajo de la pantalla lo lleva encima. Si ninguna se ve, espera.
  */
 
 type Props = {
@@ -30,7 +30,7 @@ type Props = {
   visto?: boolean;
 };
 
-type Lugar = { lado: "derecha" | "arriba"; x: number; y: number; flecha: number };
+type Lugar = { lado: "derecha" | "arriba" | "abajo"; x: number; y: number; flecha: number };
 
 const ANCHO = 300;
 const MARGEN = 16;
@@ -83,11 +83,14 @@ export function Novedad({ clave, anclas, titulo, texto, etiqueta = "Beta", accio
       // Escondido o fuera de la pantalla (el menú cerrado en celular): el siguiente
       if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > window.innerHeight || r.right <= 0 || r.left >= window.innerWidth) continue;
       const ancho = Math.min(ANCHO, window.innerWidth - MARGEN * 2);
-      // En la barra de abajo (celular): encima de la pestaña
+      const centro = r.left + r.width / 2;
+      const x = Math.max(MARGEN, Math.min(centro - ancho / 2, window.innerWidth - MARGEN - ancho));
       if (r.top > window.innerHeight * 0.6) {
-        const centro = r.left + r.width / 2;
-        const x = Math.max(MARGEN, Math.min(centro - ancho / 2, window.innerWidth - MARGEN - ancho));
+        // Abajo de la pantalla: el globo sale encima
         setLugar({ lado: "arriba", x, y: window.innerHeight - r.top + 10, flecha: centro - x });
+      } else if (r.bottom < 80) {
+        // Hasta arriba (el ☰ del celular): el globo sale debajo
+        setLugar({ lado: "abajo", x, y: r.bottom + 10, flecha: centro - x });
       } else {
         setLugar({ lado: "derecha", x: r.right + 12, y: Math.max(MARGEN, r.top + r.height / 2 - 28), flecha: r.top + r.height / 2 - Math.max(MARGEN, r.top + r.height / 2 - 28) });
       }

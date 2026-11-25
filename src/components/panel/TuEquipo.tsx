@@ -3,6 +3,7 @@ import { Icono } from "@/components/base/Iconos";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { haceTexto } from "./Hoy";
 import { AvatarAgente } from "./Mensajes";
+import { CuentaPorRevisar } from "./Armazon";
 import { Enlace, TituloSeccion } from "./Piezas";
 
 /**
@@ -34,7 +35,8 @@ export type FichaEmpleado = {
   ultimos: HechoEquipo[];
 };
 
-type Escritorio = { etiqueta: string; href: string };
+/** oficina: lleva el número de lo que espera tu revisión (el mismo del menú). */
+type Escritorio = { etiqueta: string; href: string; oficina?: boolean };
 
 /** La sección donde trabaja cada uno (su escritorio). */
 export function escritoriosDe(base: "/panel" | "/pruebalo"): Record<IdAgente, Escritorio[]> {
@@ -47,7 +49,7 @@ export function escritoriosDe(base: "/panel" | "/pruebalo"): Record<IdAgente, Es
     clara: [{ etiqueta: "Correo", href: v("correo") }],
     victor: [{ etiqueta: "Cómo va tu negocio", href: v("estadisticas") }],
     iris: [
-      { etiqueta: "Oficina", href: v("oficina") },
+      { etiqueta: "Oficina", href: v("oficina"), oficina: true },
       { etiqueta: "Tareas", href: v("tareas") },
     ],
   };
@@ -153,6 +155,7 @@ export function TuEquipo({
                 {escritorios[f.agente].map((e) => (
                   <Enlace key={e.href} href={e.href} className="pc-empleado__escritorio">
                     {e.etiqueta}
+                    {e.oficina ? <CuentaPorRevisar /> : null}
                   </Enlace>
                 ))}
                 <Enlace href={hrefPedir(`Encárgale a ${a.nombre} que `)} className="pc-empleado__pedir">

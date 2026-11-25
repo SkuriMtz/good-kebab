@@ -7,7 +7,7 @@ import { AGENTE_POR_ID, AGENTES_INFO, type IdAgente } from "@/lib/agentes";
 import { DEMO_CORREOS, DEMO_ESTADOS, DEMO_SEMANA_AGENTE, type CorreoDemo } from "@/lib/demo-dashboard";
 import { diaLocal, sumarDias } from "@/lib/estadisticas";
 import { AREAS, AREA_DE_AGENTE, type IdArea } from "./pedidos";
-import { VolverOficina, Enlace, Modal, Odometro, Pildoras, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
+import { Enlace, Modal, Odometro, Pildoras, Tarjeta, TituloSeccion, Vacio, claseBoton, retrasoEscalon } from "./Piezas";
 import { PestanasPendientes } from "./Hecho";
 import { ListaCitas, ListaCorreos, Seccion, Tablero, TarjetaAgente, type ColumnaTablero, type FilaCitaDatos, type ItemTablero } from "./Secciones";
 
@@ -135,8 +135,7 @@ export function PendientesDemo({
   const cuenta = (a: IdArea) => items.filter((i) => i.columna === "revisar" && (a === "todo" || (i.agente && AREA_DE_AGENTE[i.agente] === a))).length;
   return (
     <Seccion ancha>
-      <VolverOficina href="/pruebalo" />
-      <TituloSeccion titulo="Por aprobar" texto="Lo que Atendel dejó listo y espera tu OK. Apruébalo con el botón o arrástralo a Aprobado." />
+      <TituloSeccion titulo="Necesita tu OK" texto="Lo que tu equipo dejó listo y espera tu OK. Apruébalo con el botón o arrástralo a Aprobado." />
       <PestanasPendientes base="/pruebalo?vista=pendientes" activa="revisar" porRevisar={items.filter((i) => i.columna === "revisar").length} />
       <div className="pc-filtros">
         <Pildoras

@@ -8,7 +8,7 @@ import { LOGO_APP } from "@/lib/conexiones/logos";
 import type { ItemHecho } from "@/lib/hecho";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import { AvatarAgente } from "./Mensajes";
-import { Enlace, Pildoras, TituloSeccion, Vacio, VolverOficina, retrasoEscalon } from "./Piezas";
+import { Enlace, Pildoras, TituloSeccion, Vacio, retrasoEscalon } from "./Piezas";
 import { Seccion } from "./Secciones";
 
 /* =====================================================================
@@ -64,7 +64,6 @@ export function Hecho({ items, ahora, base, porRevisar, demo = false }: { items:
 
   return (
     <Seccion>
-      <VolverOficina href={base.split("?")[0]} />
       <TituloSeccion
         titulo="Hecho"
         texto={`Lo que tu equipo ya terminó: lo que le pediste y lo que entregó.${items.length ? ` ${semana.toLocaleString("es-MX")} ${semana === 1 ? "cosa" : "cosas"} en los últimos 7 días.` : ""}${demo ? " (Datos de ejemplo.)" : ""}`}
