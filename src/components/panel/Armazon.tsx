@@ -148,6 +148,8 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
   /** La ventana de Ajustes: abierta o no, y en qué parte (la parte se queda al cerrar, para que salga animada). */
   const [ajustesAbierto, setAjustesAbierto] = useState(false);
   const [parteAjustes, setParteAjustes] = useState<IdAjuste>("atendel");
+  /** Se abrió en una parte concreta (un enlace): en celular va directo a esa pantalla, no a la lista. */
+  const [ajustesDirecto, setAjustesDirecto] = useState(false);
   /** "Conectar una app" desde el chat (null: cerrada) y el aviso al regresar del permiso. */
   // escribir: se abrió para dar el permiso de hacer cosas en esa app (?permiso=escribir)
   const [conectar, setConectar] = useState<{ app: IdApp | null; escribir?: boolean } | null>(null);
@@ -298,6 +300,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
         return;
       }
       setParteAjustes(esIdAjuste(parte) ? parte : "atendel");
+      setAjustesDirecto(esIdAjuste(parte));
       setAjustesAbierto(true);
       setCajon(false);
     },
@@ -546,7 +549,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
           {aviso ? <div className="pc-aviso-demo">{aviso}</div> : null}
           <div className="pc-menu__pie">
             <MenuCuenta usuario={usuario} elementos={cuenta} />
-            <button type="button" className="pc-icono" onClick={() => abrirAjustes("atendel")} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
+            <button type="button" className="pc-icono" onClick={() => abrirAjustes(null)} aria-label="Ajustes" title="Ajustes" aria-haspopup="dialog">
               <Icono nombre="ajustes" tam={20} />
             </button>
           </div>
@@ -674,7 +677,7 @@ export function Armazon({ activa, chatActual, hrefs, pendientes, porRevisar, cha
           </button>
         </div>
       ) : null}
-      <VentanaAjustes abierta={ajustesAbierto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
+      <VentanaAjustes abierta={ajustesAbierto} directo={ajustesDirecto} seccion={parteAjustes} alElegir={setParteAjustes} alCerrar={() => setAjustesAbierto(false)} datos={ajustes} preferencias={preferencias} />
       {entrada ? <EntradaPanel alCambiar={setEntrada} /> : null}
       {/* Lo nuevo de esta versión: una sola vez, junto a «Tu equipo» (en compu, el menú; en celular, la barra de abajo) */}
       <Novedad

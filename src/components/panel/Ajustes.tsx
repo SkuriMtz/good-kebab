@@ -42,6 +42,7 @@ import { MAX_DOCUMENTOS_POR_PLAN, MAX_MB_DOCUMENTOS_POR_PLAN, espacioDe, formato
 import { EVENTO_TEMA, ponerTema, preferenciaActual, type PreferenciaTema } from "@/lib/tema";
 import { AvatarAgente } from "./Mensajes";
 import { APP_POR_ID, esIdApp } from "@/lib/conexiones/catalogo";
+import { enlaceDarPermiso, queHaceAlEscribir, tieneEscritura } from "@/lib/conexiones/permisos-google";
 import { LOGO_APP } from "@/lib/conexiones/logos";
 import { nombresDeVoces, type GeneroVoz } from "@/lib/voces-atendel";
 import { Enlace, Modal, claseBoton } from "./Piezas";
@@ -61,7 +62,7 @@ import { cuandoReinicia, pctDe, type EstadoUso } from "@/lib/uso-estado";
  * WhatsApp) dice "Pronto". En /pruebalo nada se guarda.
  */
 
-export const IDS_AJUSTE = ["atendel", "autonomia", "capacidades", "apariencia", "negocio", "agentes", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
+export const IDS_AJUSTE = ["atendel", "autonomia", "capacidades", "apariencia", "negocio", "agentes", "permisos", "conexiones", "equipo", "notificaciones", "uso", "plan", "privacidad", "cuenta"] as const;
 export type IdAjuste = (typeof IDS_AJUSTE)[number];
 /** Secciones que ya no se muestran (lo suyo vive en Tu negocio o todavía no funciona): más simple. */
 const OCULTAS: readonly string[] = ["negocio", "agentes"];
@@ -88,6 +89,8 @@ export type DatosAjustes = {
   gmail: boolean;
   /** Las apps conectadas (IdApp). */
   conectadas: string[];
+  /** Las conectadas que solo pueden leer: falta el permiso de hacer cosas (Gmail, Calendar, Tareas). */
+  sinEscritura?: string[];
   ajustes: AjustesCuenta;
   /** En /pruebalo, el perfil de ejemplo (en la cuenta real se lee de /api/negocio/perfil). */
   perfil?: Partial<Record<CampoPerfil, string>>;
@@ -145,6 +148,9 @@ const OPCIONES: Opcion[] = [
   { parte: "capacidades", titulo: "Modelo: lo elige Atendel", claves: "modelo rapido avanzado inteligencia" },
   { parte: "capacidades", titulo: "Modo plática", claves: "voz hablar platica microfono escuchar" },
   { parte: "autonomia", titulo: "Qué hace solo", claves: "socio autonomia solo pregunta permiso aprobar visto bueno" },
+  { parte: "permisos", titulo: "En tus apps", claves: "permisos leer escribir mandar agendar dar permiso google gmail calendar acceso" },
+  { parte: "permisos", titulo: "Notificaciones de este aparato", claves: "permiso notificaciones bloqueadas navegador avisos" },
+  { parte: "permisos", titulo: "Micrófono", claves: "permiso microfono voz platica hablar" },
   { parte: "conexiones", titulo: "Conectar una app", claves: "apps conectar gmail google calendar whatsapp outlook drive integraciones" },
   { parte: "privacidad", titulo: "Política de acceso a tus cuentas", claves: "acceso cuentas conectadas tokens cifrado google" },
   { parte: "notificaciones", titulo: "Avisos en este aparato", claves: "activar notificaciones celular push prueba" },
@@ -194,6 +200,7 @@ const PARTES: Parte[] = [
   { id: "capacidades", etiqueta: "Capacidades", icono: "rayo", claves: "revision diaria hora revisar solos trabajo por su cuenta modelo rapido avanzado platica voz", grupo: 1, sub: "Lo que Atendel puede hacer por ti, y cuándo." },
   { id: "notificaciones", etiqueta: "Notificaciones", icono: "campana", claves: "avisos notificaciones celular telefono app instalar aparato whatsapp silencio noche prueba", grupo: 1, sub: "Avisos en tu celular o tu compu, aunque no tengas Atendel abierto." },
   { id: "privacidad", etiqueta: "Privacidad y seguridad", icono: "escudo", claves: "aviso borrar exportar datos seguridad privacidad acceso cuentas", grupo: 1, sub: "Tus datos, cómo los cuidamos y tu seguridad." },
+  { id: "permisos", etiqueta: "Permisos", icono: "candado", claves: "permisos acceso leer escribir dar permiso notificaciones microfono navegador", grupo: 2, sub: "Qué puede ver y hacer Atendel en tus apps y en este aparato." },
   { id: "conexiones", etiqueta: "Apps conectadas", icono: "enlace", claves: "apps conectar gmail google calendar whatsapp outlook drive integraciones", grupo: 2, sub: "Las apps con las que trabaja Atendel." },
   { id: "equipo", etiqueta: "Equipo", icono: "usuarios", claves: "invitar personas roles agendas whatsapp contactos telefono", grupo: 2, sub: "Las personas de tu negocio y su WhatsApp; invitar, roles y agendas." },
 ];
@@ -1037,6 +1044,78 @@ type EstadoGuardado = "listo" | "guardando" | "guardado" | { error: string };
 
 /* ---------- La ventana ---------- */
 
+type EstadoPermiso = "permitido" | "bloqueado" | "pendiente" | "sin";
+
+/** Lo que dice el navegador de un permiso (notificaciones o micrófono), y se actualiza si cambia. */
+function usePermiso(tipo: "notificaciones" | "microfono") {
+  const [estado, setEstado] = useState<EstadoPermiso | null>(null);
+  const leer = useCallback(async () => {
+    try {
+      if (tipo === "notificaciones") {
+        if (!("Notification" in window)) return setEstado("sin");
+        const p = Notification.permission;
+        return setEstado(p === "granted" ? "permitido" : p === "denied" ? "bloqueado" : "pendiente");
+      }
+      if (!navigator.mediaDevices?.getUserMedia) return setEstado("sin");
+      const p = await navigator.permissions?.query({ name: "microphone" as PermissionName });
+      setEstado(!p ? "pendiente" : p.state === "granted" ? "permitido" : p.state === "denied" ? "bloqueado" : "pendiente");
+      if (p) p.onchange = () => setEstado(p.state === "granted" ? "permitido" : p.state === "denied" ? "bloqueado" : "pendiente");
+    } catch {
+      setEstado("pendiente");
+    }
+  }, [tipo]);
+  useEffect(() => {
+    void leer();
+  }, [leer]);
+  return [estado, leer] as const;
+}
+
+/** Un permiso de este aparato: cómo está y qué hacer (permitirlo, o dónde cambiarlo si está bloqueado). */
+function PermisoAparato({ tipo, alIr }: { tipo: "notificaciones" | "microfono"; alIr: () => void }) {
+  const [estado, releer] = usePermiso(tipo);
+  const [pidiendo, setPidiendo] = useState(false);
+  const titulo = tipo === "notificaciones" ? "Notificaciones" : "Micrófono";
+  const para = tipo === "notificaciones" ? "Para avisarte aunque no tengas Atendel abierto." : "Para hablar con Atendel en el modo plática.";
+  async function pedirMicrofono() {
+    setPidiendo(true);
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      s.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* dijo que no: queda bloqueado */
+    }
+    setPidiendo(false);
+    void releer();
+  }
+  const texto =
+    estado === "bloqueado"
+      ? `${para} Está bloqueado: cámbialo en los permisos del sitio de tu navegador (el candadito junto a la dirección).`
+      : estado === "sin"
+        ? `${para} Este navegador no lo permite.`
+        : para;
+  return (
+    <Fila titulo={titulo} texto={texto}>
+      {estado === "permitido" ? (
+        <Estado tono="exito">Permitido</Estado>
+      ) : estado === "bloqueado" ? (
+        <span className="pc-estado pc-estado--error">Bloqueado</span>
+      ) : estado === "sin" ? (
+        <Estado tono="neutro">No disponible</Estado>
+      ) : estado === "pendiente" ? (
+        tipo === "notificaciones" ? (
+          <button type="button" className={claseBoton("borde", true)} onClick={alIr}>
+            Activar
+          </button>
+        ) : (
+          <button type="button" className={claseBoton("borde", true)} onClick={pedirMicrofono} disabled={pidiendo}>
+            {pidiendo ? "Pidiendo…" : "Permitir"}
+          </button>
+        )
+      ) : null}
+    </Fila>
+  );
+}
+
 export function VentanaAjustes({
   abierta,
   seccion,
@@ -1044,15 +1123,23 @@ export function VentanaAjustes({
   alCerrar,
   datos,
   preferencias,
+  directo = false,
 }: {
   abierta: boolean;
   seccion: IdAjuste;
+  /** Se abrió en una parte (un enlace a ?vista=ajustes&seccion=…): en celular, directo a esa pantalla. */
+  directo?: boolean;
   alElegir: (s: IdAjuste) => void;
   alCerrar: () => void;
   datos: DatosAjustes;
   preferencias: PreferenciasPanel;
 }) {
   const [busqueda, setBusqueda] = useState("");
+  /** En celular (como ChatGPT): la lista de Ajustes o la pantalla de una parte, con «‹» para regresar. */
+  const [pantalla, setPantalla] = useState<"lista" | "parte">("lista");
+  useEffect(() => {
+    if (abierta) setPantalla(directo ? "parte" : "lista");
+  }, [abierta, directo]);
   /** El renglón que se eligió en el buscador: se busca, se centra y se marca un momento. */
   const [resaltar, setResaltar] = useState<{ titulo: string; n: number } | null>(null);
   const [saliendo, setSaliendo] = useState(false);
@@ -1382,6 +1469,70 @@ export function VentanaAjustes({
             <Enlace href={datos.hrefs.agentes} className={claseBoton("borde", true)}>
               Ir a Agentes
             </Enlace>
+          </Fila>
+        </Grupo>
+      </>
+    );
+  } else if (seccion === "permisos") {
+    const tuyas = [...new Set([...(datos.gmail ? ["gmail"] : []), ...datos.conectadas])].filter((id): id is IdApp => esIdApp(id));
+    const solos = AUTONOMIA.filter((x) => ajustes.autonomia[x.id] === "solo").length;
+    contenido = (
+      <>
+        <Grupo titulo="En tus apps" texto="Atendel solo entra a las apps que tú conectas. Al conectarlas puede leer; para hacer cosas por ti (mandar, agendar) te pide permiso aparte, una sola vez.">
+          {tuyas.length ? (
+            tuyas.map((id) => {
+              const falta = datos.sinEscritura?.includes(id) ?? false;
+              const hace = queHaceAlEscribir(id);
+              return (
+                <Fila
+                  key={id}
+                  ancla={id === tuyas[0] ? "En tus apps" : undefined}
+                  titulo={
+                    <span className="pc-aj-app">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
+                      <img className="pc-aj-app__logo" src={LOGO_APP[id]} alt="" width={20} height={20} loading="lazy" decoding="async" />
+                      {APP_POR_ID[id].nombre}
+                    </span>
+                  }
+                  texto={falta && hace ? `Puede leer. Para ${hace}, falta tu permiso.` : tieneEscritura(id) && hace ? `Puede leer y ${hace}.` : "Puede leer y hacer lo que tú le permitas."}
+                >
+                  {falta && !datos.demo ? (
+                    <Enlace href={enlaceDarPermiso(id)} className={claseBoton("principal", true)}>
+                      Dar permiso
+                    </Enlace>
+                  ) : falta ? (
+                    <Estado tono="neutro">Solo leer</Estado>
+                  ) : (
+                    <Estado tono="exito">{tieneEscritura(id) ? "Leer y hacer" : "Conectada"}</Estado>
+                  )}
+                </Fila>
+              );
+            })
+          ) : (
+            <Fila ancla="En tus apps" titulo="Todavía no conectas ninguna app" texto="Cuando conectes una, aquí ves qué puede leer y qué puede hacer." />
+          )}
+          <Fila titulo="Quitar el acceso" texto="Desconecta una app cuando quieras: Atendel deja de entrar en ese momento.">
+            <Enlace href={datos.hrefs.apps} className={claseBoton("borde", true)}>
+              Ver apps
+            </Enlace>
+          </Fila>
+        </Grupo>
+        <Grupo titulo="Lo que hace sin preguntarte">
+          <Fila titulo="Autonomía" texto={`De ${AUTONOMIA.length} tipos de cosas, ${solos === 1 ? "1 la hace solo" : `${solos} las hace solo`} y ${AUTONOMIA.length - solos === 1 ? "1 te la pregunta" : `${AUTONOMIA.length - solos} te las pregunta`} antes.`}>
+            <button type="button" className={claseBoton("borde", true)} onClick={() => alElegir("autonomia")}>
+              Cambiar
+            </button>
+          </Fila>
+        </Grupo>
+        <Grupo titulo="En este aparato">
+          <PermisoAparato tipo="notificaciones" alIr={() => alElegir("notificaciones")} />
+          <PermisoAparato tipo="microfono" alIr={() => alElegir("capacidades")} />
+        </Grupo>
+        <Grupo>
+          <Fila titulo="Política de acceso a tus cuentas" texto="Qué ve Atendel en tus apps, cómo lo cuida y cómo lo quitas.">
+            <a href="/acceso-a-tus-datos" target="_blank" rel="noopener" className={claseBoton("borde", true)}>
+              Leer
+            </a>
           </Fila>
         </Grupo>
       </>
@@ -1790,7 +1941,12 @@ export function VentanaAjustes({
       alCerrar={alCerrar}
       titulo={
         <>
-          Ajustes
+          {/* Celular: en una parte, «‹» regresa a la lista y el título es el de la parte (como ChatGPT) */}
+          <button type="button" className="pc-icono pc-aj__atras" onClick={() => setPantalla("lista")} aria-label="Regresar a Ajustes">
+            <Icono nombre="chevron-izquierda" tam={20} />
+          </button>
+          <span className="pc-aj__nombre-ajustes">Ajustes</span>
+          <span className="pc-aj__nombre-parte">{parte.etiqueta}</span>
           {textoEstado ? (
             <span className="pc-aj__estado" data-error={typeof estado === "object" ? "" : undefined} aria-live="polite">
               {textoEstado}
@@ -1799,7 +1955,7 @@ export function VentanaAjustes({
         </>
       }
       ancho="ancho"
-      className="pc-ajustes"
+      className={`pc-ajustes pc-ajustes--${pantalla}`}
     >
       <div className="pc-aj">
         <nav className="pc-aj__nav" aria-label="Partes de Ajustes">
@@ -1809,10 +1965,24 @@ export function VentanaAjustes({
           </label>
           <ul className="pc-aj__lista">
             {partes.map((p, i) => (
-              <li key={p.id} data-corte={i > 0 && partes[i - 1].grupo !== p.grupo ? "" : undefined}>
-                <button type="button" className="pc-aj__parte" aria-current={p.id === seccion ? "page" : undefined} onClick={() => alElegir(p.id)}>
+              <li
+                key={p.id}
+                data-corte={i > 0 && partes[i - 1].grupo !== p.grupo ? "" : undefined}
+                data-inicio={i === 0 || partes[i - 1].grupo !== p.grupo ? "" : undefined}
+                data-fin={i === partes.length - 1 || partes[i + 1].grupo !== p.grupo ? "" : undefined}
+              >
+                <button
+                  type="button"
+                  className="pc-aj__parte"
+                  aria-current={p.id === seccion ? "page" : undefined}
+                  onClick={() => {
+                    alElegir(p.id);
+                    setPantalla("parte");
+                  }}
+                >
                   {p.icono === "marca" ? <Marca className="pc-aj__marca" /> : <Icono nombre={p.icono} tam={18} />}
                   {p.etiqueta}
+                  <Icono nombre="chevron-derecha" tam={16} className="pc-aj__flecha" />
                 </button>
               </li>
             ))}
@@ -1828,6 +1998,7 @@ export function VentanaAjustes({
                       className="pc-aj__parte pc-aj__opcion"
                       onClick={() => {
                         alElegir(o.parte);
+                        setPantalla("parte");
                         setResaltar({ titulo: o.titulo, n: Date.now() });
                       }}
                     >

@@ -5810,55 +5810,6 @@ a.pc-correo__accion:hover {
 .pc-ajustes .pc-plan {
   margin-top: 4px;
 }
-@media (max-width: 859px) {
-  .pc-modal.pc-ajustes {
-    width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
-  }
-  .pc-ajustes .pc-modal__caja {
-    border: 0;
-    border-radius: 0;
-  }
-  .pc-aj {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .pc-aj__nav {
-    padding: 12px 16px 10px;
-    border-right: 0;
-    border-bottom: 1px solid var(--pc-division);
-    overflow: visible;
-  }
-  .pc-aj__lista {
-    flex-direction: row;
-    gap: 4px;
-    margin: 10px -16px 0;
-    padding: 0 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .pc-aj__lista li[data-corte] {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
-  .pc-aj__parte {
-    height: 36px;
-    white-space: nowrap;
-  }
-  .pc-aj__contenido {
-    padding: 20px 20px 40px;
-  }
-  .pc-aj-fila {
-    flex-wrap: wrap;
-    gap: 10px 16px;
-  }
-  .pc-aj-valor {
-    min-width: 0;
-  }
-}
 
 /* =====================================================================
    28. Proporciones de un chat normal: cabecera de una línea (44px, sin
@@ -10718,5 +10669,174 @@ a.pc-correo__accion:hover {
   from {
     opacity: 0;
     transform: translateY(-6px);
+  }
+}
+
+/* ---------- 53. Fase 4: Ajustes en celular como ChatGPT (va al final: gana a los ajustes de antes) ---------- */
+/* Lo del celular (la «‹», el nombre de la parte y las flechitas) no sale en compu */
+.pc-aj__atras,
+.pc-aj__nombre-parte,
+.pc-aj__flecha {
+  display: none;
+}
+/* =====================================================================
+   CELULAR COMO CHATGPT: Ajustes es una lista de renglones grandes, en
+   grupos con esquinas redondas; al tocar uno entra su pantalla desde la
+   derecha, con «‹» y su nombre arriba. «‹» regresa a la lista.
+   ===================================================================== */
+@media (max-width: 859px) {
+  .pc-modal.pc-ajustes {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .pc-ajustes .pc-modal__caja {
+    border: 0;
+    border-radius: 0;
+  }
+  .pc-ajustes .pc-modal__cabeza {
+    padding: 8px 8px 8px 16px;
+  }
+  .pc-ajustes--parte .pc-modal__cabeza {
+    padding-left: 4px;
+  }
+  .pc-ajustes .pc-modal__titulo {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+  }
+  .pc-ajustes--parte .pc-aj__atras {
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+  }
+  .pc-ajustes--parte .pc-aj__nombre-ajustes {
+    display: none;
+  }
+  .pc-ajustes--parte .pc-aj__nombre-parte {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pc-aj {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  /* Una pantalla a la vez */
+  .pc-ajustes--lista .pc-aj__contenido,
+  .pc-ajustes--parte .pc-aj__nav {
+    display: none;
+  }
+  .pc-aj__nav {
+    padding: 12px 16px 32px;
+    border-right: 0;
+    overflow-y: auto;
+    animation: pc-aj-regresa 240ms var(--pc-sale) both;
+  }
+  .pc-aj__buscar {
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--pc-superficie);
+  }
+  .pc-aj__lista {
+    gap: 0;
+    margin: 16px 0 0;
+  }
+  /* Cada grupo, una tarjeta redonda (como los ajustes de un iPhone o de ChatGPT) */
+  .pc-aj__lista li {
+    position: relative;
+    background: var(--pc-superficie);
+  }
+  .pc-aj__lista li[data-corte] {
+    margin-top: 20px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .pc-aj__lista li.pc-aj__seccion-buscar {
+    margin-top: 20px;
+  }
+  .pc-aj__lista li[data-inicio] {
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+  .pc-aj__lista li[data-fin] {
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+  }
+  /* La rayita entre renglones de un mismo grupo (empieza después del ícono) */
+  .pc-aj__lista li:not([data-inicio])::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 48px;
+    height: 1px;
+    background: var(--pc-division);
+  }
+  .pc-aj__lista li.pc-aj__seccion-buscar,
+  .pc-aj__lista li.pc-aj__nada {
+    background: none;
+  }
+  .pc-aj__parte {
+    height: 52px;
+    padding: 0 14px;
+    border-radius: inherit;
+    font-size: 16px;
+  }
+  .pc-aj__parte[aria-current="page"] {
+    background: none;
+    font-weight: 400;
+  }
+  /* En pantallas táctiles el «hover» se queda pegado después de tocar: solo se marca al presionar */
+  .pc-aj__parte:hover {
+    background: none;
+  }
+  .pc-aj__parte:active {
+    background: var(--pc-hover);
+  }
+  .pc-aj__parte svg {
+    color: var(--pc-texto);
+  }
+  .pc-aj__flecha {
+    display: block;
+    margin-left: auto;
+    color: var(--pc-texto-2) !important;
+  }
+  /* El título ya va arriba, en la cabeza */
+  .pc-aj__titulo {
+    display: none;
+  }
+  .pc-aj__contenido {
+    padding: 8px 20px 40px;
+    animation: pc-aj-avanza 240ms var(--pc-sale) both;
+  }
+  .pc-aj-fila {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+  .pc-aj-valor {
+    min-width: 0;
+  }
+}
+@keyframes pc-aj-avanza {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+@keyframes pc-aj-regresa {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+@media (max-width: 859px) and (prefers-reduced-motion: reduce) {
+  .pc-aj__nav,
+  .pc-aj__contenido {
+    animation: none;
   }
 }

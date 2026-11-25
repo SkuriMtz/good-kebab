@@ -32,6 +32,8 @@ export type DatosArmazonReal = {
   planAgentes: IdAgente[];
   /** Las apps conectadas (IdApp). */
   conectadas: string[];
+  /** Las conectadas que solo pueden leer (Ajustes > Permisos). */
+  sinEscritura?: string[];
   /** Ajustes > Equipo. */
   contactos: ContactoEquipo[];
   ajustes: AjustesCuenta;
@@ -218,6 +220,7 @@ export function ArmazonReal({ datos, children }: { datos: DatosArmazonReal; chil
     plan: { id: datos.planId, nombre: `Atendel ${datos.plan}`, uso: datos.uso, agentes: datos.planAgentes },
     gmail: datos.gmail,
     conectadas: datos.conectadas,
+    sinEscritura: datos.sinEscritura,
     contactos: datos.contactos,
     ajustes: datos.ajustes,
     hrefs: { agentes: "/panel?vista=negocio&tab=reglas", apps: "/panel?vista=negocio&tab=apps", documentos: "/panel?vista=negocio&tab=documentos", negocio: "/panel?vista=negocio" },

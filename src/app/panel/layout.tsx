@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { ChatMenu } from "@/components/panel/Armazon";
 import { TEMA_AVISOS } from "@/lib/avisos";
 import { gmailConectado } from "@/lib/conexiones/tokens";
+import { esIdApp } from "@/lib/conexiones/catalogo";
+import { puedeEscribir, tieneEscritura } from "@/lib/conexiones/permisos-google";
 
 /**
  * El armazón del panel nuevo (menú de 288px con Fijados y Recientes, y el
@@ -47,7 +49,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     // Ajustes > lo que eligió (si la tabla aún no existe, quedan los de fábrica)
     supabase.from("ajustes_cuenta").select("datos").eq("owner_id", user.id).maybeSingle(),
     // Ajustes > Conexiones: qué apps están conectadas (sin tokens)
-    supabase.from("conexiones").select("apps, estado").eq("owner_id", user.id),
+    supabase.from("conexiones").select("apps, estado, scopes").eq("owner_id", user.id),
     // Ajustes > Equipo: las personas del negocio y su WhatsApp (migración 0009)
     supabase.from("equipo_contactos").select("id, nombre, rol, whatsapp").eq("owner_id", user.id).order("creado_en"),
     // La Oficina: los archivos que tu equipo te dejó y siguen por revisar (migración 0014)
@@ -57,7 +59,12 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     // Lo que hicieron por su cuenta y espera revisión (migración 0016)
     supabase.from("trabajos").select("id", { count: "exact", head: true }).eq("owner_id", user.id).eq("revision", "revisar"),
   ]);
-  const conectadas = (conexiones ?? []).filter((c) => c.estado === "activa").flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
+  const activas = (conexiones ?? []).filter((c) => c.estado === "activa");
+  const conectadas = activas.flatMap((c) => (Array.isArray(c.apps) ? (c.apps as string[]) : []));
+  // Ajustes > Permisos: las que solo pueden leer (falta el permiso de hacer cosas, que se da aparte)
+  const sinEscritura = activas.flatMap((c) =>
+    (Array.isArray(c.apps) ? (c.apps as string[]) : []).filter((a) => esIdApp(a) && tieneEscritura(a) && !puedeEscribir(a, Array.isArray(c.scopes) ? (c.scopes as string[]) : [])),
+  );
 
   // Las conversaciones y cómo las acomodó (fijadas, archivadas, grupos). Si nunca ha
   // acomodado nada, los grupos con nombre empiezan fijados (como antes)
@@ -98,6 +105,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         planId: cuenta.plan.id,
         planAgentes: [...cuenta.plan.agentes],
         conectadas,
+        sinEscritura,
         contactos: (contactos ?? []).map((c) => ({ id: String(c.id), nombre: String(c.nombre), rol: String(c.rol ?? ""), whatsapp: String(c.whatsapp) })),
         ajustes: limpiarAjustes(filaAjustes?.datos),
         correo: user.email ?? "",
