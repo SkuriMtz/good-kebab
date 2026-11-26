@@ -176,3 +176,17 @@
     animation: none;
   }
 }
+
+/* Celular: el chat va arriba de la portada, recortado (se ve hasta la tercera tarea y se
+   desvanece hacia abajo); el texto de la portada empieza debajo de él. */
+@media (max-width: 899px) {
+  .chat-portada {
+    height: 400px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 98%);
+    mask-image: linear-gradient(to bottom, #000 72%, transparent 98%);
+  }
+  html[data-portada-chat] .ini-portada {
+    padding-top: calc(72px + var(--portada-chat-alto, 320px) + 28px);
+  }
+}

@@ -23,6 +23,14 @@ export function FondoInicio() {
   useEffect(() => {
     setIdioma(document.documentElement.lang);
   }, []);
+  // En celular, la portada deja lugar arriba para el chat (chat-portada.css)
+  useEffect(() => {
+    if (!conChat) return;
+    document.documentElement.dataset.portadaChat = "";
+    return () => {
+      delete document.documentElement.dataset.portadaChat;
+    };
+  }, [conChat]);
   useEffect(() => {
     const html = document.documentElement;
     let tops: Partial<Record<EscenaInicio, number>> = {};

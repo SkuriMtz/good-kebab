@@ -79,10 +79,12 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /**
-     * El chat (variante "chat"): donde estaba el cerebro. En la portada, a la derecha; en
-     * decisiones, a la izquierda y un poco más grande; de decisiones al caos se desvanece mientras
-     * sus piezas se vuelven triangulitos (el motor sigue sus rectángulos, que se miden aquí).
+     * El chat (variante "chat"), donde estaba el cerebro. En compu se queda quieto a la derecha y,
+     * al bajar hacia decisiones, se encoge un poco y se desvanece en su lugar (sin cruzar la
+     * pantalla). En celular va arriba de la portada como parte de la página (se va al bajar, sin
+     * quedar detrás del texto); su alto se le pasa al CSS (--portada-chat-alto) para dejarle lugar.
      */
+    let altoChat = "";
     const colocarChat = (P: number) => {
       const el = refChat.current;
       if (!el) return;
@@ -90,32 +92,30 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       const H = caja.clientHeight || window.innerHeight;
       const cw = el.offsetWidth;
       const ch = el.offsetHeight;
-      const t = enS(Math.min(1, Math.max(0, P)));
-      const celular = W < 900;
       let cx: number;
       let cy: number;
       let esc: number;
-      if (celular) {
-        // En celular el texto ocupa todo el ancho: el chat va detrás, tenue (como iba el cerebro)
+      let ver = 1;
+      if (W < 900) {
+        esc = Math.min((W - 40) / cw, 0.8);
         cx = W / 2;
-        cy = H * (0.36 + 0.06 * t);
-        esc = Math.min((W - 32) / cw, (H * 0.6) / ch);
+        cy = 72 + (ch * esc) / 2 - window.scrollY;
+        ver = cy + (ch * esc) / 2 < 0 ? 0 : 1;
+        const alto = `${Math.round(ch * esc)}px`;
+        if (altoChat !== alto) {
+          altoChat = alto;
+          document.documentElement.style.setProperty("--portada-chat-alto", alto);
+        }
       } else {
-        cx = W * (0.765 - 0.47 * t);
-        cy = H * (0.54 - 0.03 * t);
-        esc = Math.min(1.05 + 0.1 * t, (H * (0.74 + 0.08 * t)) / ch);
+        const sale = suave(0.3, 0.85, P);
+        cx = W * 0.765;
+        cy = H * 0.54;
+        esc = Math.min(1.05, (H * 0.74) / ch) * (1 - 0.12 * sale);
+        ver = 1 - sale;
       }
-      const ver = (P <= 1 ? 1 : 1 - suave(0.12, 0.42, P - 1)) * (celular ? 0.26 : 1);
       el.style.transform = `translate(${(cx - cw / 2).toFixed(1)}px, ${(cy - ch / 2).toFixed(1)}px) scale(${esc.toFixed(3)})`;
       el.style.opacity = ver.toFixed(3);
       el.style.visibility = ver < 0.01 ? "hidden" : "";
-      if (P < 2.05) {
-        const marco = caja.getBoundingClientRect();
-        motor.siluetaChat = [el, ...Array.from(el.querySelectorAll<HTMLElement>("[data-pieza]"))].map((x) => {
-          const r = x.getBoundingClientRect();
-          return { x: r.left - marco.left, y: r.top - marco.top, w: r.width, h: r.height };
-        });
-      }
     };
 
     // El tamaño del fondo: el de su caja, que mide el alto GRANDE de la pantalla (100lvh, ver
@@ -274,6 +274,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
 
     return () => {
       vivo = false;
+      if (conChat) document.documentElement.style.removeProperty("--portada-chat-alto");
       if (libre) window.cancelIdleCallback(idle);
       else window.clearTimeout(idle);
       detener();
