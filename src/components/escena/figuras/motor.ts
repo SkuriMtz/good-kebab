@@ -617,6 +617,14 @@ export class MotorFiguras {
 
   /** ¿Ya está el cerebro de la malla real? Mientras no, la portada muestra polvo (nunca el de respaldo a medias). */
   cerebroListo = false;
+  /**
+   * Variante «chat» de la portada (prueba, /vista-chat): en lugar del cerebro se ve un chat con
+   * Atendel (HTML, sin triangulitos). Al bajar hacia el caos, el chat se deshace en triangulitos
+   * que después forman el foco. `siluetaChat`: los rectángulos del chat en pantalla (px), que la
+   * página mide en cada cuadro; las partículas del chat los siguen invisibles hasta deshacerse.
+   */
+  modoChat = false;
+  siluetaChat: { x: number; y: number; w: number; h: number }[] | null = null;
   /** Normal "de bulto" del cerebro (como si fuera un huevo liso): da un borde ámbar ancho y parejo, sin delinear cada pliegue. */
   private bulto: Float32Array | null = null;
   private bultoDe: Float32Array | null = null;
@@ -1159,6 +1167,22 @@ export class MotorFiguras {
     const o1 = this.o1;
     const o2 = this.o2;
 
+    if (this.modoChat && seg <= 1) {
+      // Portada y decisiones con el chat: las partículas del chat lo siguen sin verse; de
+      // decisiones al caos se encienden donde está el chat (que se desvanece) y se deshacen de
+      // abajo hacia arriba en el polvo del caos, igual que el cerebro.
+      this.siluetaDeChat(o1, seg === 0 ? 0 : suave(0.08, 0.34, p));
+      if (seg === 0) return;
+      this.todoPolvo(o2, "caos");
+      for (let i = 0; i < N; i++) {
+        const y = o1.y[i] / h;
+        const umbral = 0.34 + 0.4 * clamp01(1.05 - y) + 0.12 * this.azarDes[i];
+        const k = suave(umbral, umbral + 0.24, p);
+        if (k > 0) this.mezclar(i, k);
+      }
+      return;
+    }
+
     if (seg <= 1 && !this.cerebroListo) {
       this.todoPolvo(o1, seg === 0 ? "suelto" : "caos");
       return;
@@ -1290,6 +1314,72 @@ export class MotorFiguras {
     for (let i = 0; i < N; i++) {
       const umbral = clamp01(M.clave[i]) * 0.12 + this.azarDes[i] * 0.08;
       this.mezclar(i, suave(umbral, umbral + 0.8, q2));
+    }
+  }
+
+  /**
+   * El chat hecho de triangulitos: una parte de las partículas (las de `vis` entre 0.1 y 0.38)
+   * se reparte en los rectángulos del chat: la mitad por la orilla de la ventana y lo demás
+   * dentro de cada mensaje. Las otras quedan como polvo suelto. `ver`: qué tanto se ven (0-1).
+   */
+  private siluetaDeChat(O: Objetivo, ver: number) {
+    const R = this.siluetaChat;
+    if (!R || !R.length) {
+      this.todoPolvo(O, "suelto");
+      return;
+    }
+    const marco = R[0];
+    const piezas = R.slice(1);
+    const areas = piezas.map((r) => Math.max(1, r.w * r.h));
+    const total = areas.reduce((a, b) => a + b, 0);
+    const PC = PALETA_CEREBRO;
+    const s = this.s;
+    for (let i = 0; i < this.N; i++) {
+      const v = this.vis[i];
+      if (v < 0.1 || v >= 0.38) {
+        this.polvo(O, i, "suelto");
+        continue;
+      }
+      const u = this.hx[i];
+      const w = this.hy[i];
+      let x: number;
+      let y: number;
+      const enOrilla = (v - 0.1) / 0.28 < 0.18 || !piezas.length;
+      if (enOrilla) {
+        // La orilla de la ventana del chat (sus cuatro lados, según su largo)
+        const per = 2 * (marco.w + marco.h);
+        const d = u * per;
+        if (d < marco.w) [x, y] = [marco.x + d, marco.y];
+        else if (d < marco.w + marco.h) [x, y] = [marco.x + marco.w, marco.y + d - marco.w];
+        else if (d < 2 * marco.w + marco.h) [x, y] = [marco.x + marco.w - (d - marco.w - marco.h), marco.y + marco.h];
+        else [x, y] = [marco.x, marco.y + marco.h - (d - 2 * marco.w - marco.h)];
+        x += (w - 0.5) * 6;
+        y += (w - 0.5) * 6;
+      } else {
+        // Dentro de un mensaje (los grandes llevan más)
+        let k = ((v * 7919) % 1) * total;
+        let r = piezas[0];
+        for (let j = 0; j < piezas.length; j++) {
+          k -= areas[j];
+          if (k <= 0) {
+            r = piezas[j];
+            break;
+          }
+        }
+        x = r.x + u * r.w;
+        y = r.y + w * r.h;
+      }
+      O.x[i] = x;
+      O.y[i] = y;
+      const q = (v * 3571) % 1;
+      const col = q < 0.62 ? PC.blanco : q < 0.78 ? PC.lavanda : q < 0.88 ? PC.ambar : q < 0.95 ? PC.violeta : PC.turquesa;
+      O.r[i] = col[0];
+      O.g[i] = col[1];
+      O.b[i] = col[2];
+      O.a[i] = ver * (enOrilla ? 0.35 + 0.25 * ((v * 977) % 1) : 0.5 + 0.4 * ((v * 977) % 1));
+      O.t[i] = (enOrilla ? 6 + 3 * ((v * 131) % 1) : 7 + 5 * ((v * 131) % 1)) * s;
+      O.m[i] = 1;
+      O.d[i] = 0;
     }
   }
 

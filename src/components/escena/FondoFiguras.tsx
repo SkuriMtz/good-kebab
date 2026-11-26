@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { ESCENAS_FIGURAS, esEscenaFiguras, REPOSO_VIDEO, type EscenaFiguras } from "./figuras/escenas";
 import { MotorFiguras } from "./figuras/motor";
+import { suave } from "./figuras/formas";
+import { ChatPortada } from "./ChatPortada";
 
 export { ESCENAS_FIGURAS, type EscenaFiguras } from "./figuras/escenas";
 
@@ -27,6 +29,13 @@ type Props = {
    * `escena` la figura hace el cambio sola en ~1.6 s.
    */
   progreso?: number;
+  /**
+   * "chat" (prueba, /vista-chat): en la portada y en decisiones, en lugar del cerebro, un chat con
+   * Atendel; al bajar hacia el caos se deshace en triangulitos. Por defecto, el cerebro.
+   */
+  variante?: "cerebro" | "chat";
+  /** El idioma de los textos del chat ("es" o "en"). */
+  idioma?: string;
   /** "manual": no corre sola; la mueve quien tenga el control (laboratorio). */
   reloj?: "auto" | "manual";
   alListo?: (c: ControlFiguras) => void;
@@ -41,8 +50,10 @@ const enS = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * t * (t * (t * 6 - 
  * triangulitos, con los mismos cambios que los videos de referencia.
  * Uso: <FondoFiguras escena="globo" /> o <FondoFiguras escena="foco" progreso={0.3} />.
  */
-export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "" }: Props) {
+export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "", variante = "cerebro", idioma }: Props) {
   const refCaja = useRef<HTMLDivElement>(null);
+  const refChat = useRef<HTMLDivElement>(null);
+  const conChat = variante === "chat";
   const refGl = useRef<HTMLCanvasElement>(null);
   const refLineas = useRef<HTMLCanvasElement>(null);
   const motorRef = useRef<MotorFiguras | null>(null);
@@ -64,7 +75,48 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       return; // sin WebGL: no hay fondo
     }
     motorRef.current = motor;
+    motor.modoChat = conChat;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /**
+     * El chat (variante "chat"): donde estaba el cerebro. En la portada, a la derecha; en
+     * decisiones, a la izquierda y un poco más grande; de decisiones al caos se desvanece mientras
+     * sus piezas se vuelven triangulitos (el motor sigue sus rectángulos, que se miden aquí).
+     */
+    const colocarChat = (P: number) => {
+      const el = refChat.current;
+      if (!el) return;
+      const W = caja.clientWidth || window.innerWidth;
+      const H = caja.clientHeight || window.innerHeight;
+      const cw = el.offsetWidth;
+      const ch = el.offsetHeight;
+      const t = enS(Math.min(1, Math.max(0, P)));
+      const celular = W < 900;
+      let cx: number;
+      let cy: number;
+      let esc: number;
+      if (celular) {
+        // En celular el texto ocupa todo el ancho: el chat va detrás, tenue (como iba el cerebro)
+        cx = W / 2;
+        cy = H * (0.36 + 0.06 * t);
+        esc = Math.min((W - 32) / cw, (H * 0.6) / ch);
+      } else {
+        cx = W * (0.765 - 0.47 * t);
+        cy = H * (0.54 - 0.03 * t);
+        esc = Math.min(1.05 + 0.1 * t, (H * (0.74 + 0.08 * t)) / ch);
+      }
+      const ver = (P <= 1 ? 1 : 1 - suave(0.12, 0.42, P - 1)) * (celular ? 0.26 : 1);
+      el.style.transform = `translate(${(cx - cw / 2).toFixed(1)}px, ${(cy - ch / 2).toFixed(1)}px) scale(${esc.toFixed(3)})`;
+      el.style.opacity = ver.toFixed(3);
+      el.style.visibility = ver < 0.01 ? "hidden" : "";
+      if (P < 2.05) {
+        const marco = caja.getBoundingClientRect();
+        motor.siluetaChat = [el, ...Array.from(el.querySelectorAll<HTMLElement>("[data-pieza]"))].map((x) => {
+          const r = x.getBoundingClientRect();
+          return { x: r.left - marco.left, y: r.top - marco.top, w: r.width, h: r.height };
+        });
+      }
+    };
 
     // El tamaño del fondo: el de su caja, que mide el alto GRANDE de la pantalla (100lvh, ver
     // globals.css). En el celular, al bajar se esconde la barra del navegador y cambia el alto de
@@ -147,6 +199,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       ahora += dt;
       motor.objetivo = objetivo ?? objetivoActual();
       motor.paso(dt, quieto);
+      if (conChat) colocarChat(motor.posicion);
       // A mano (laboratorio) se dibuja una sola vez por cuadro del navegador, aunque se avance
       // muchas veces seguidas (si no, las capturas esperan cientos de dibujos atrasados)
       if (reloj !== "manual") motor.dibujar();
@@ -209,7 +262,8 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
 
     // El cerebro de malla real llega aparte (archivo de ~150 KB; ~65 KB en celular); mientras, hay polvo
     let vivo = true;
-    motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin").then(() => {
+    // (con el chat no hace falta: no se descarga)
+    (conChat ? Promise.resolve() : motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin")).then(() => {
       if (!vivo) return;
       alListoRef.current?.({ motor, avanzar });
       caja.dataset.cerebro = "true";
@@ -232,12 +286,13 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       motor.destruir();
       motorRef.current = null;
     };
-  }, [reloj]);
+  }, [reloj, conChat]);
 
   return (
     <div ref={refCaja} className={`escena-fondo fondo-figuras ${className}`} aria-hidden="true">
       <canvas ref={refGl} />
       <canvas ref={refLineas} />
+      {conChat ? <ChatPortada ref={refChat} idioma={idioma} /> : null}
     </div>
   );
 }

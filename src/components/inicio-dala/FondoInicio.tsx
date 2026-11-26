@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FondoFiguras } from "@/components/escena/FondoFiguras";
 import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@/lib/inicio";
 
@@ -16,6 +17,12 @@ import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@
  * - Mide las secciones al cargar, al cambiar de tamaño y cuando cargan las letras.
  */
 export function FondoInicio() {
+  // Prueba (/vista-chat): el inicio con un chat de Atendel en lugar del cerebro
+  const conChat = usePathname() === "/vista-chat";
+  const [idioma, setIdioma] = useState<string>();
+  useEffect(() => {
+    setIdioma(document.documentElement.lang);
+  }, []);
   useEffect(() => {
     const html = document.documentElement;
     let tops: Partial<Record<EscenaInicio, number>> = {};
@@ -63,5 +70,5 @@ export function FondoInicio() {
     };
   }, []);
 
-  return <FondoFiguras />;
+  return conChat ? <FondoFiguras variante="chat" idioma={idioma} /> : <FondoFiguras />;
 }
