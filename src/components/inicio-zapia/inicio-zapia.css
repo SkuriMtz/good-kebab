@@ -1,0 +1,1590 @@
+/*
+ * La landing de prueba (/vista-zapia): el cuerpo de Zapia con la cabeza de Atendel.
+ * - Cuerpo (Zapia): hojas de esquinas redondas que suben sobre lo de antes, etiquetas en
+ *   globito, tarjetas de colores con dibujos a mano, botones que se llenan, casos que pasan
+ *   solos, interruptores, preguntas que se deslizan e ideas que se reparten.
+ * - Cabeza (Atendel): su barra, su letra (Geist), los colores de su equipo, sus personajes y
+ *   sus fragmentos: donde Zapia pone una foto a pantalla completa, aquí se ven los fragmentos
+ *   (cada «ventana» lleva su escena: cerebro, polvo, foco, globo, equipo, planes y la marca).
+ * - Solo se animan transform y opacity. Con «reducir movimiento», todo quieto y a la vista.
+ */
+
+/* =====================================================================
+   0. Tokens
+   ===================================================================== */
+.z {
+  --z-coral: #ff8a6b;
+  --z-azul: #7fb2ff;
+  --z-verde: #5fd09f;
+  --z-amarillo: #f6c64a;
+  --z-tinta: #0b0b0c;
+  --z-hoja: #0e0e10;
+  --z-hoja-2: #18181b;
+  --z-vidrio: rgb(255 255 255 / 0.07);
+  --z-vidrio-borde: rgb(255 255 255 / 0.12);
+  --z-aviso: rgb(26 26 29 / 0.78);
+  --z-linea: rgb(255 255 255 / 0.1);
+  --z-apagado: rgb(255 255 255 / 0.16);
+  --z-radio: clamp(28px, 4vw, 56px);
+  --z-orilla: clamp(20px, 7.5vw, 112px);
+  --z-salida: cubic-bezier(0.23, 1, 0.32, 1);
+  --z-rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --z-c: var(--z-coral);
+}
+:root[data-tema="claro"] .z {
+  --z-hoja: #fff;
+  --z-hoja-2: #f3f2ef;
+  --z-vidrio: rgb(0 0 0 / 0.04);
+  --z-vidrio-borde: rgb(0 0 0 / 0.08);
+  --z-aviso: rgb(255 255 255 / 0.82);
+  --z-linea: rgb(0 0 0 / 0.08);
+  --z-apagado: rgb(0 0 0 / 0.16);
+}
+.z [data-color="coral"] {
+  --z-c: var(--z-coral);
+}
+.z [data-color="azul"] {
+  --z-c: var(--z-azul);
+}
+.z [data-color="verde"] {
+  --z-c: var(--z-verde);
+}
+.z [data-color="amarillo"] {
+  --z-c: var(--z-amarillo);
+}
+.z [data-color="blanco"] {
+  --z-c: var(--ini-texto);
+}
+
+/* =====================================================================
+   1. Letra y piezas comunes
+   ===================================================================== */
+.z-display {
+  max-width: 11em;
+  font-size: clamp(44px, 5.6vw, 88px);
+  font-weight: 450;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.z-titulo {
+  max-width: 16em;
+  font-size: clamp(34px, 4.2vw, 64px);
+  font-weight: 450;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.z-titulo--centro {
+  margin-inline: auto;
+  text-align: center;
+}
+.z-sub {
+  max-width: 34rem;
+  color: var(--ini-gris);
+  font-size: clamp(16px, 1.3vw, 19px);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.z-sub--centro {
+  margin-inline: auto;
+  text-align: center;
+}
+.z-cont {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+}
+.z-cabeza {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: clamp(36px, 5vw, 64px);
+}
+.z-cabeza--centro {
+  align-items: center;
+  text-align: center;
+}
+
+/* La etiqueta: un globito de color con su colita; salta al aparecer */
+.z-etiqueta {
+  position: relative;
+  display: inline-block;
+  padding: 7px 14px 8px;
+  border-radius: 14px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  transform-origin: 12px 110%;
+  transition:
+    transform 560ms var(--z-rebote),
+    opacity 240ms ease;
+}
+.z-etiqueta::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 12px;
+  width: 13px;
+  height: 9px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.z [data-color="blanco"].z-etiqueta {
+  color: var(--ini-fondo);
+}
+
+/* Entrar subiendo, uno tras otro */
+.z-revela > * {
+  transition:
+    opacity 700ms ease,
+    transform 900ms var(--z-salida);
+}
+.z-revela > :nth-child(2) {
+  transition-delay: 80ms;
+}
+.z-revela > :nth-child(3) {
+  transition-delay: 160ms;
+}
+.z-revela > :nth-child(4) {
+  transition-delay: 240ms;
+}
+.z-revela > :nth-child(n + 5) {
+  transition-delay: 320ms;
+}
+@media (scripting: enabled) {
+  .z-etiqueta:not([data-visto]) {
+    opacity: 0;
+    transform: scale(0.55) rotate(-8deg);
+  }
+  .z-revela:not([data-visto]) > * {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* Botones: píldoras que se llenan de izquierda a derecha al pasar encima */
+.z-boton {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  overflow: hidden;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 300ms ease,
+    transform 160ms ease;
+}
+.z-boton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--z-relleno, #fff);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 450ms var(--z-salida);
+}
+.z-boton:active {
+  transform: scale(0.97);
+}
+.z-boton--negro {
+  --z-relleno: #fff;
+  background: var(--z-tinta);
+  color: #fff;
+}
+.z-boton--blanco {
+  --z-relleno: var(--z-c);
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
+}
+.z-boton--gris {
+  --z-relleno: var(--ini-texto);
+  border: 1px solid var(--z-vidrio-borde);
+  background: var(--z-vidrio);
+  color: var(--ini-texto);
+}
+@media (hover: hover) {
+  .z-boton:hover::before {
+    transform: scaleX(1);
+  }
+  .z-boton--negro:hover,
+  .z-boton--blanco:hover {
+    color: var(--z-tinta);
+  }
+  .z-boton--gris:hover {
+    color: var(--ini-fondo);
+  }
+}
+.z-boton:focus-visible,
+.z-caja:focus-visible,
+.z-chip:focus-visible,
+.z-chip-app:focus-visible,
+.z-carta:focus-visible,
+.z-casos__opcion:focus-visible,
+.z-pregunta button:focus-visible,
+.z-interruptor:focus-visible {
+  outline: 2px solid var(--ini-texto);
+  outline-offset: 3px;
+}
+
+/* =====================================================================
+   2. Hojas (las secciones de Zapia) y ventanas (los fragmentos de Atendel)
+   ===================================================================== */
+.z-hoja {
+  position: relative;
+  z-index: 1;
+  padding: clamp(72px, 9vw, 136px) var(--z-orilla);
+  border-radius: var(--z-radio);
+  background: var(--z-hoja);
+  box-shadow:
+    inset 0 1px 0 var(--z-linea),
+    0 -30px 80px rgb(0 0 0 / 0.35);
+}
+.z-hoja + .z-hoja {
+  margin-top: 12px;
+}
+.z-hoja__parte + .z-hoja__parte {
+  margin-top: clamp(96px, 12vw, 180px);
+}
+.z-ventana {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  padding: clamp(96px, 12vh, 140px) var(--z-orilla);
+}
+/* La columna de texto va donde la ponía la landing de siempre, para no tapar la figura */
+.z-ventana__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  width: max(340px, 27vw);
+}
+.z-ventana--der .z-ventana__texto {
+  margin-left: max(0px, calc(66.42vw - var(--z-orilla)));
+}
+.z-ventana--foco .z-ventana__texto {
+  width: min(460px, 36vw);
+  margin-left: auto;
+}
+.z-ventana .z-titulo {
+  font-size: clamp(32px, 3.3vw, 52px);
+}
+:root:not([data-tema="claro"]) .z-ventana .z-titulo,
+:root:not([data-tema="claro"]) .z-cierre .z-titulo {
+  text-shadow: 0 2px 28px rgb(0 0 0 / 0.65);
+}
+.z-ventana .ini-cuerpo {
+  margin: 0;
+  color: var(--ini-gris);
+  font-size: clamp(16px, 1.25vw, 18px);
+  font-weight: 300;
+}
+
+/* =====================================================================
+   3. Portada
+   ===================================================================== */
+.z-portada {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  padding: clamp(96px, 14vh, 150px) var(--z-orilla) clamp(56px, 10vh, 110px);
+}
+.z-portada__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: min(640px, 50vw);
+}
+.z-portada .z-etiqueta {
+  margin-bottom: 22px;
+}
+.z-portada__cuerpo {
+  margin-top: 22px;
+  max-width: 31rem;
+  color: var(--ini-gris);
+  font-size: clamp(16px, 1.25vw, 18px);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.z-portada .z-caja {
+  margin-top: 30px;
+}
+.z-botones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.z-botones .boton-lista {
+  margin: 0;
+}
+
+/* La caja que escribe sola */
+.z-caja {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 540px);
+  min-height: 60px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--z-vidrio-borde);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--z-hoja-2) 86%, transparent);
+  color: var(--ini-texto);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.28);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  transition:
+    border-color 200ms ease,
+    transform 200ms var(--z-salida);
+}
+@media (hover: hover) {
+  .z-caja:hover {
+    border-color: var(--z-apagado);
+    transform: translateY(-2px);
+  }
+}
+.z-caja__mas {
+  display: grid;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--z-vidrio-borde);
+  border-radius: 50%;
+  color: var(--ini-gris);
+  font-size: 20px;
+  font-weight: 300;
+}
+.z-caja__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.z-caja__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.15em;
+  margin-left: 2px;
+  vertical-align: -0.2em;
+  background: currentColor;
+  animation: z-cursor 1s steps(1) infinite;
+}
+.z-caja__mic {
+  flex: none;
+  color: var(--ini-gris);
+}
+.z-caja__enviar {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
+}
+@keyframes z-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Los globos de pedidos: el de en medio encendido, los demás de vidrio */
+.z-globos {
+  position: absolute;
+  top: 50%;
+  right: var(--z-orilla);
+  width: min(330px, 26vw);
+  height: 0;
+}
+.z-globo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--z-vidrio-borde);
+  border-radius: 22px 22px 22px 6px;
+  background: var(--z-vidrio);
+  color: var(--ini-texto);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  transform: translateY(calc(-50% + var(--lugar, 0) * 104px)) scale(0.9);
+  opacity: 0.5;
+  transition:
+    transform 700ms var(--z-salida),
+    opacity 500ms ease,
+    background-color 400ms ease,
+    color 400ms ease;
+}
+.z-globo[data-lugar="0"] {
+  z-index: 2;
+  border-color: transparent;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  transform: translateY(-50%) scale(1);
+  opacity: 1;
+}
+.z-globo[data-lugar="-1"] {
+  opacity: 0;
+  transform: translateY(calc(-50% - 120px)) scale(0.85);
+}
+.z-globo[data-lugar="2"] {
+  opacity: 0.22;
+  transform: translateY(calc(-50% + 196px)) scale(0.82);
+  transition: opacity 500ms ease;
+}
+.z-globo__quien {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.z-globo__texto {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+.z-globo__boton {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--z-tinta);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 550;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.z-globo[data-lugar="0"] .z-globo__boton {
+  opacity: 1;
+  transition-delay: 250ms;
+}
+
+/* =====================================================================
+   4. Tres formas de empezar
+   ===================================================================== */
+.z-formas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+}
+.z-forma {
+  position: relative;
+  display: flex;
+  min-height: 430px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(24px, 2.4vw, 34px);
+  border-radius: 34px 34px 34px 10px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  transition: transform 500ms var(--z-rebote);
+}
+.z-forma::after {
+  content: "";
+  position: absolute;
+  bottom: -14px;
+  left: 0;
+  width: 26px;
+  height: 18px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+@media (hover: hover) {
+  .z-forma:hover {
+    transform: translateY(-6px) rotate(-1.2deg);
+  }
+  .z-forma:nth-child(2):hover {
+    transform: translateY(-6px) rotate(1.2deg);
+  }
+}
+.z-forma__arriba {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.65;
+}
+.z-forma__dibujo {
+  width: clamp(84px, 8vw, 112px);
+  height: auto;
+  margin: 26px 0 auto;
+}
+.z-forma__titulo {
+  margin-top: 28px;
+  font-size: clamp(26px, 2.3vw, 34px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+.z-forma__texto {
+  margin: 10px 0 22px;
+  font-size: 16px;
+  line-height: 1.45;
+  opacity: 0.82;
+}
+
+/* Los dibujos a mano (negros, trazo grueso) */
+.zp-dibujo {
+  display: block;
+  color: var(--z-tinta);
+}
+
+/* =====================================================================
+   5. Tu equipo en acción (casos que pasan solos)
+   ===================================================================== */
+.z-casos {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.75fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 3.6vw, 56px);
+}
+.z-casos__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.z-casos__opcion {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 0 12px 22px;
+  color: var(--ini-gris);
+  font-size: clamp(17px, 1.45vw, 21px);
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  text-align: left;
+  cursor: pointer;
+  transition: color 250ms ease;
+}
+.z-casos__opcion[aria-selected="true"],
+.z-casos__opcion:hover {
+  color: var(--ini-texto);
+}
+.z-casos__barra {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--z-linea);
+}
+.z-casos__barra::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--z-c);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 300ms ease;
+}
+.z-casos__opcion[aria-selected="true"] .z-casos__barra::after {
+  transform: scaleY(1);
+}
+.z-casos__opcion[data-corre] .z-casos__barra::after {
+  animation: z-corre 5.2s linear both;
+}
+@keyframes z-corre {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.z-casos__visual {
+  position: relative;
+  display: flex;
+  aspect-ratio: 4 / 5;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: clamp(18px, 2vw, 28px);
+  overflow: hidden;
+  border-radius: 34px;
+  background:
+    radial-gradient(120% 70% at 50% 18%, color-mix(in srgb, var(--z-c) 42%, transparent), transparent 70%),
+    var(--z-hoja-2);
+  animation: z-aparece 500ms var(--z-salida) both;
+}
+.z-casos__personaje {
+  position: absolute;
+  top: 9%;
+  left: 50%;
+  width: 46%;
+  height: auto;
+  transform: translateX(-50%);
+  animation: z-salta 700ms var(--z-rebote) both;
+}
+.z-burbuja {
+  position: relative;
+  z-index: 1;
+  max-width: 86%;
+  margin: 0;
+  padding: 11px 15px;
+  font-size: 15px;
+  line-height: 1.4;
+  animation: z-burbuja 460ms var(--z-rebote) both;
+}
+.z-burbuja--tu {
+  align-self: flex-end;
+  border-radius: 20px 20px 6px 20px;
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
+  transform-origin: 100% 100%;
+  animation-delay: 250ms;
+}
+.z-burbuja--atendel {
+  display: grid;
+  align-self: flex-start;
+  border-radius: 20px 20px 20px 6px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  transform-origin: 0 100%;
+  animation-delay: 750ms;
+}
+.z-burbuja--atendel > * {
+  grid-area: 1 / 1;
+}
+.z-burbuja__escribe {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: z-se-va 1ms 1.7s both;
+}
+.z-burbuja__escribe i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: z-puntos 900ms ease-in-out infinite;
+}
+.z-burbuja__escribe i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.z-burbuja__escribe i:nth-child(3) {
+  animation-delay: 300ms;
+}
+.z-burbuja__texto {
+  animation: z-llega 300ms 1.7s ease both;
+}
+.z-casos__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  animation: z-sube 600ms var(--z-salida) both;
+}
+.z-casos__titulo {
+  font-size: clamp(26px, 2.5vw, 38px);
+  font-weight: 450;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+.z-casos__texto p {
+  margin: 0 0 8px;
+  color: var(--ini-gris);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* =====================================================================
+   6. Cómo funciona: conecta lo que ya usas
+   ===================================================================== */
+.z-conecta {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 64px);
+}
+.z-conecta__tarjeta {
+  display: flex;
+  min-height: 460px;
+  flex-direction: column;
+  padding: clamp(26px, 3.2vw, 46px);
+  border-radius: 36px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  animation: z-aparece 450ms var(--z-salida) both;
+}
+.z-conecta__titulo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  font-size: clamp(24px, 2.3vw, 34px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+.z-conecta__titulo img {
+  flex: none;
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 14px;
+  background: #fff;
+}
+.z-conecta__cosas {
+  margin: 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.z-conecta__cosas li {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 15px 0;
+  border-top: 1px solid rgb(0 0 0 / 0.14);
+  font-size: clamp(16px, 1.35vw, 19px);
+  animation: z-sube 500ms var(--z-salida) both;
+  animation-delay: calc(80ms + var(--k, 0) * 60ms);
+}
+.z-conecta__num {
+  font-family: var(--fuente-mono, ui-monospace, monospace);
+  font-size: 12px;
+  opacity: 0.55;
+}
+.z-conecta__nota {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.1);
+  font-size: 14px;
+  line-height: 1.3;
+}
+.z-conecta__nota span {
+  font-size: 8px;
+}
+.z-conecta__texto {
+  margin: 0 0 22px;
+  color: var(--ini-gris);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+.z-conecta__apps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.z-chip-app {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--z-linea);
+  border-radius: 16px;
+  background: var(--z-hoja-2);
+  color: var(--ini-texto);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 200ms ease,
+    transform 200ms var(--z-salida);
+}
+.z-chip-app img {
+  flex: none;
+}
+.z-chip-app[aria-pressed="true"] {
+  border-color: var(--ini-texto);
+  transform: translateX(4px);
+}
+.z-chip-app--mas {
+  border-style: dashed;
+  background: transparent;
+  color: var(--ini-gris);
+}
+.z-chip-app--mas span {
+  display: grid;
+  width: 20px;
+  place-items: center;
+  font-size: 18px;
+}
+
+/* =====================================================================
+   7. Te avisa primero (sobre el foco)
+   ===================================================================== */
+.z-avisos {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.z-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--z-vidrio-borde);
+  border-radius: 22px;
+  background: var(--z-aviso);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  transition:
+    opacity 500ms ease,
+    transform 650ms var(--z-rebote);
+  transition-delay: calc(var(--k, 0) * 380ms);
+}
+@media (scripting: enabled) {
+  .z-avisos:not([data-visto]) .z-aviso {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.94);
+  }
+}
+.z-aviso__cara {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--z-c) 30%, var(--z-hoja-2));
+}
+.z-aviso__cara svg {
+  width: 32px;
+  height: 32px;
+}
+.z-aviso__cuerpo {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+.z-aviso__quien {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.z-aviso__cuando {
+  color: var(--ini-gris);
+  font-weight: 400;
+}
+.z-aviso__texto {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   8. Privacidad: tus datos son tuyos
+   ===================================================================== */
+.z-privacidad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 80px);
+}
+.z-puntos {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.z-punto {
+  display: flex;
+  gap: 14px;
+}
+.z-punto__icono {
+  display: grid;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+}
+.z-punto b {
+  display: block;
+  font-size: 17px;
+  font-weight: 550;
+}
+.z-punto span {
+  color: var(--ini-gris);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+.z-permisos__panel {
+  padding: clamp(18px, 2vw, 28px);
+  border: 1px solid var(--z-linea);
+  border-radius: 30px;
+  background: var(--z-hoja-2);
+}
+.z-permisos__titulo {
+  margin: 0 0 6px;
+  color: var(--ini-gris);
+  font-size: 14px;
+}
+.z-permiso {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--z-linea);
+}
+.z-permiso img {
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 12px;
+  background: #fff;
+}
+.z-permiso__textos {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.z-permiso__textos b {
+  font-size: 15px;
+  font-weight: 550;
+}
+.z-permiso__textos span {
+  color: var(--ini-gris);
+  font-size: 14px;
+}
+.z-interruptor {
+  position: relative;
+  width: 48px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--z-apagado);
+  cursor: pointer;
+  transition: background-color 300ms ease;
+}
+.z-interruptor span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  transition: transform 420ms var(--z-rebote);
+}
+.z-interruptor[aria-checked="true"] {
+  background: var(--z-verde);
+}
+.z-interruptor[aria-checked="true"] span {
+  transform: translateX(18px);
+}
+.z-permisos__globo {
+  position: relative;
+  max-width: 400px;
+  margin: 22px 0 0 28px;
+  padding: 16px 18px;
+  border-radius: 22px 22px 22px 6px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+/* =====================================================================
+   9. Ideas: «Voy a tener suerte», categorías y tarjetas que se reparten
+   ===================================================================== */
+.z-ideas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.z-ideas__suerte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: clamp(48px, 6vw, 80px);
+  perspective: 900px;
+}
+.z-ideas .z-titulo {
+  margin-bottom: 16px;
+}
+.z-ideas__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 32px 0 clamp(32px, 4vw, 48px);
+}
+.z-chip {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--z-linea);
+  border-radius: 999px;
+  color: var(--ini-texto);
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 250ms ease,
+    color 250ms ease;
+}
+.z-chip[aria-selected="true"] {
+  border-color: transparent;
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
+}
+.z-ideas__cartas {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 22px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.z-ideas[data-visto] .z-ideas__cartas li {
+  animation: z-reparte 650ms var(--z-salida) both;
+  animation-delay: calc(var(--k, 0) * 80ms);
+}
+@media (scripting: enabled) {
+  .z-ideas:not([data-visto]) .z-ideas__cartas li {
+    opacity: 0;
+  }
+}
+.z-carta {
+  display: flex;
+  aspect-ratio: 3 / 3.7;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  border-radius: 26px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  transform: rotate(var(--giro, 0deg));
+  transition: transform 450ms var(--z-rebote);
+}
+@media (hover: hover) {
+  .z-carta:hover {
+    transform: translateY(-6px) rotate(0deg) scale(1.02);
+  }
+}
+.z-carta__texto {
+  font-size: clamp(17px, 1.45vw, 21px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.z-carta__dibujo {
+  width: 64px;
+  height: auto;
+  margin: auto 0 14px auto;
+}
+.z-carta__boton {
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--z-tinta);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 550;
+}
+.z-carta--suerte {
+  width: min(270px, 70vw);
+  --giro: -3deg;
+}
+.z-carta--suerte[data-volteando] {
+  animation: z-voltea 420ms ease-in-out;
+}
+@keyframes z-reparte {
+  from {
+    opacity: 0;
+    transform: translateY(70px) rotate(calc(var(--giro, 0deg) * -4));
+  }
+}
+@keyframes z-voltea {
+  50% {
+    transform: rotateY(90deg) scale(0.96);
+  }
+}
+
+/* =====================================================================
+   10. Preguntas
+   ===================================================================== */
+.z-preguntas-bloque {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: clamp(28px, 5vw, 80px);
+}
+.z-preguntas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.z-pregunta {
+  border-radius: 22px;
+  transition: background-color 300ms ease;
+}
+.z-pregunta[data-abierta] {
+  background: var(--z-hoja-2);
+}
+.z-pregunta h3 {
+  margin: 0;
+}
+.z-pregunta button {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  border-radius: 22px;
+  font-size: clamp(16px, 1.3vw, 19px);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-align: left;
+  cursor: pointer;
+}
+.z-pregunta__signo {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.z-pregunta__signo::before,
+.z-pregunta__signo::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 350ms var(--z-salida);
+}
+.z-pregunta__signo::after {
+  transform: rotate(90deg);
+}
+.z-pregunta[data-abierta] .z-pregunta__signo::after {
+  transform: rotate(0deg);
+}
+.z-pregunta__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 400ms var(--z-salida);
+}
+.z-pregunta[data-abierta] .z-pregunta__panel {
+  grid-template-rows: 1fr;
+}
+.z-pregunta__panel > div {
+  overflow: hidden;
+}
+.z-pregunta__panel p {
+  margin: 0;
+  padding: 0 22px 20px;
+  color: var(--ini-gris);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.55;
+}
+
+/* =====================================================================
+   11. Atendel va más allá (y el personaje sentado en la orilla)
+   ===================================================================== */
+.z-mas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  margin-top: clamp(80px, 8vw, 120px);
+}
+.z-mas__tarjeta {
+  position: relative;
+  display: flex;
+  min-height: 380px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(26px, 3.2vw, 46px);
+  border-radius: 40px 40px 40px 12px;
+  background: var(--z-c);
+  color: var(--z-tinta);
+  transition: transform 500ms var(--z-rebote);
+}
+@media (hover: hover) {
+  .z-mas__tarjeta:hover {
+    transform: rotate(-1.2deg) translateY(-4px);
+  }
+  .z-mas__tarjeta + .z-mas__tarjeta:hover {
+    transform: rotate(1.2deg) translateY(-4px);
+  }
+}
+.z-mas__dibujo {
+  width: clamp(80px, 8vw, 110px);
+  height: auto;
+  margin-bottom: auto;
+}
+.z-mas__titulo {
+  margin-top: 28px;
+  font-size: clamp(30px, 3vw, 46px);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+.z-mas__tarjeta p {
+  max-width: 30rem;
+  margin: 12px 0 22px;
+  font-size: 16px;
+  line-height: 1.5;
+  opacity: 0.82;
+}
+/* Sentado en la orilla de la primera tarjeta: las piernas cuelgan sobre el color */
+.z-mas__personaje {
+  position: absolute;
+  top: calc(clamp(110px, 10vw, 150px) * -0.66);
+  right: clamp(24px, 4vw, 60px);
+  width: clamp(110px, 10vw, 150px);
+  pointer-events: none;
+}
+.zp-echado__mano {
+  transform-box: view-box;
+  transform-origin: 131px 52px;
+  animation: z-saluda 2.8s ease-in-out infinite;
+}
+.zp-echado__ojos {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: z-parpadea 4.2s infinite;
+}
+@keyframes z-saluda {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  68% {
+    transform: rotate(-18deg);
+  }
+  76% {
+    transform: rotate(10deg);
+  }
+  84% {
+    transform: rotate(-12deg);
+  }
+}
+@keyframes z-parpadea {
+  0%,
+  93%,
+  100% {
+    transform: none;
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+
+/* =====================================================================
+   12. Ventanas de Atendel: caos, equipo, planes y cierre
+   ===================================================================== */
+.z-caos {
+  position: relative;
+  padding: 0 var(--z-orilla);
+}
+.z-caos__grupo {
+  display: flex;
+  min-height: 85vh;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.z-caos__grupo .ini-caos__texto {
+  max-width: 24em;
+  font-size: clamp(22px, 2.5vw, 36px);
+  font-weight: 350;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+.z-caos__grupo:first-child {
+  flex-direction: column;
+  gap: 24px;
+}
+.z-equipo {
+  position: relative;
+  padding: clamp(96px, 14vh, 150px) 0 clamp(60px, 8vh, 96px);
+}
+.z-equipo .z-cabeza {
+  padding-inline: var(--z-orilla);
+}
+.z-equipo .ini-cuerpo {
+  margin: 0;
+  color: var(--ini-gris);
+}
+.z .ini-planes.ini-planes--tarjetas {
+  min-height: 100vh;
+  padding-inline: var(--z-orilla);
+}
+.z-cierre {
+  position: relative;
+  display: flex;
+  min-height: calc(100vh - var(--pie-alto, 62px));
+  align-items: center;
+  justify-content: center;
+  padding: clamp(96px, 14vh, 150px) var(--z-orilla) clamp(48px, 8vh, 80px);
+  text-align: center;
+}
+.z-cierre__centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: min(100%, 640px);
+}
+.z-cierre .z-caja {
+  margin-top: 10px;
+}
+.z-cierre .z-botones {
+  justify-content: center;
+  margin-top: 0;
+}
+
+/* =====================================================================
+   Animaciones comunes
+   ===================================================================== */
+@keyframes z-aparece {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes z-sube {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes z-salta {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(24px) scale(0.85);
+  }
+}
+@keyframes z-burbuja {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes z-puntos {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: none;
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@keyframes z-se-va {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes z-llega {
+  from {
+    opacity: 0;
+  }
+}
+
+/* =====================================================================
+   Celular y tablet (< 900 px): todo en una columna; los fragmentos detrás, tenues
+   ===================================================================== */
+@media (max-width: 899px) {
+  .z-portada {
+    min-height: 100svh;
+    align-items: flex-start;
+    padding: 104px 20px 38svh;
+  }
+  .z-portada__texto,
+  .z-ventana__texto,
+  .z-ventana--der .z-ventana__texto,
+  .z-ventana--foco .z-ventana__texto {
+    width: 100%;
+    margin-left: 0;
+  }
+  .z-globos {
+    display: none;
+  }
+  .z-hoja {
+    padding: 64px 20px;
+    border-radius: 28px;
+  }
+  .z-ventana {
+    min-height: auto;
+    align-items: flex-start;
+    padding: 96px 20px 40svh;
+  }
+  .z-ventana--foco {
+    padding-bottom: 96px;
+  }
+  .z-formas,
+  .z-casos,
+  .z-conecta,
+  .z-privacidad,
+  .z-preguntas-bloque,
+  .z-mas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .z-forma {
+    min-height: 0;
+  }
+  .z-forma + .z-forma {
+    margin-top: 10px;
+  }
+  .z-forma__dibujo {
+    width: 72px;
+    margin: 18px 0 0;
+  }
+  .z-casos__lista {
+    flex-direction: row;
+    gap: 8px;
+    margin-inline: -20px;
+    padding: 0 20px 4px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .z-casos__lista li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+  .z-casos__opcion {
+    padding: 10px 16px;
+    border: 1px solid var(--z-linea);
+    border-radius: 999px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .z-casos__opcion[aria-selected="true"] {
+    border-color: var(--z-c);
+  }
+  .z-casos__barra {
+    display: none;
+  }
+  .z-casos__visual {
+    aspect-ratio: 1 / 1.05;
+  }
+  .z-conecta__tarjeta {
+    min-height: 0;
+  }
+  .z-conecta__apps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .z-chip-app {
+    font-size: 14px;
+  }
+  .z-chip-app[aria-pressed="true"] {
+    transform: none;
+  }
+  .z-permisos__globo {
+    margin-left: 12px;
+  }
+  .z-ideas__cartas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .z-carta {
+    padding: 16px;
+    border-radius: 22px;
+  }
+  .z-carta__dibujo {
+    width: 48px;
+  }
+  .z-carta__boton {
+    font-size: 12px;
+  }
+  .z-mas__tarjeta {
+    min-height: 0;
+  }
+  .z-mas__dibujo {
+    margin-bottom: 0;
+  }
+  .z-caos {
+    padding: 0 20px;
+  }
+  .z-caos__grupo {
+    min-height: 70svh;
+  }
+  .z-equipo {
+    padding: 96px 0 64px;
+  }
+  .z-equipo .z-cabeza {
+    padding-inline: 20px;
+  }
+  .z .ini-planes.ini-planes--tarjetas {
+    padding-inline: 20px;
+  }
+  .z-cierre {
+    min-height: 100svh;
+    padding: 96px 20px 80px;
+  }
+}
+
+/* Con «reducir movimiento»: todo quieto y a la vista */
+@media (prefers-reduced-motion: reduce) {
+  .z *,
+  .z *::before,
+  .z *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+  .z-burbuja__escribe {
+    display: none;
+  }
+}

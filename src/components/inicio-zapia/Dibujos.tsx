@@ -1,5 +1,5 @@
 /**
- * DIBUJOS A MANO (mezcla con el estilo de Zapia, /vista-zapia): íconos de
+ * DIBUJOS A MANO (la landing de prueba, /vista-zapia): íconos de
  * línea negra gruesa, un poco irregulares, con alguna parte rellena, para
  * las tarjetas de colores. Y el personaje de Atendel: un cuadrito con ojos de
  * punto y los cuatro puntos de la marca, echado de panza arriba, que se
@@ -22,7 +22,10 @@ export type NombreDibujo =
   | "grafica"
   | "lupa"
   | "pizarron"
-  | "lista";
+  | "lista"
+  | "compu"
+  | "celular"
+  | "telefono";
 
 const TRAZOS: Record<NombreDibujo, React.ReactNode> = {
   calendario: (
@@ -133,6 +136,31 @@ const TRAZOS: Record<NombreDibujo, React.ReactNode> = {
       <path d="M7.6 9.8c11-.5 22-.4 33 .2.5 6.9.4 13.8-.2 20.7-10.9.6-21.8.5-32.7-.2-.5-6.9-.6-13.8-.1-20.7Z" />
       <path d="M13.8 24.8c3.1-2.8 5.6-5.8 8.4-8.6l4.2 4.3 7.2-7" strokeWidth="2.8" />
       <path d="M24.2 30.8l-6.4 9.4M24.3 30.8l6.5 9.3M24.2 30.8v6.4" />
+    </>
+  ),
+  compu: (
+    <>
+      <path d="M7.6 10.2c11-.6 22-.5 33 .1.6 6.9.5 13.9-.1 20.8-11 .6-21.9.5-32.8-.1-.6-6.9-.6-13.9-.1-20.8Z" />
+      <path d="M7.8 15.4c11-.4 21.9-.3 32.9.2" />
+      <circle cx="11.6" cy="12.8" r=".9" fill="currentColor" />
+      <circle cx="14.6" cy="12.8" r=".9" fill="currentColor" />
+      <path d="M13.6 20.6c3.4-.1 6.8-.1 10.2 0M13.6 25.4c6.4-.2 12.8-.2 19.2.1" />
+      <path d="M27.4 19.4c2.4-.1 4.8-.1 7.2 0 .1 1.3.1 2.6 0 3.9-2.4.1-4.8.1-7.2 0-.1-1.3-.1-2.6 0-3.9Z" fill="currentColor" />
+      <path d="M17.6 31.6l-1.8 7.2M30.6 31.5l1.9 7.3M12.4 39.2c7.8-.4 15.6-.4 23.4.1" />
+    </>
+  ),
+  celular: (
+    <>
+      <path d="M15.2 6.4c6-.4 12-.3 18 .1.7 11.6.6 23.4-.1 35-6 .4-12 .3-17.9-.1-.7-11.6-.7-23.3 0-35Z" />
+      <path d="M21.6 9.8c1.6-.1 3.2-.1 4.8 0" strokeWidth="3" />
+      <path d="M18.6 16.2c3.8-.2 7.6-.2 11.4 0 .1 2.5.1 5 0 7.5-1.9.1-3.8.1-5.7 0l-3 2.4.3-2.4c-1-.1-2-.1-3 0-.1-2.5-.1-5 0-7.5Z" fill="currentColor" />
+      <path d="M19.4 30.6c3.4-.1 6.8-.1 10.2 0M19.4 34.6c2.2-.1 4.4-.1 6.6 0" />
+    </>
+  ),
+  telefono: (
+    <>
+      <path d="M24.2 6.8c9.6-.1 17.2 7.6 17.1 17.2-.1 9.5-7.8 17.1-17.3 17-3 0-5.8-.8-8.3-2.2L7.4 41l2.3-8.2c-1.6-2.6-2.5-5.7-2.5-8.9.1-9.5 7.5-17 17-17.1Z" />
+      <path d="M17.6 15.6c1.4-.9 2.6-.7 3.3.6l1.4 2.7c.5 1 .2 1.9-.7 2.6l-1 .7c.9 2.6 2.8 4.6 5.4 5.6l.8-1c.7-.9 1.7-1.1 2.6-.6l2.6 1.5c1.2.7 1.4 1.9.5 3.2-1.5 2-3.8 2.5-6.4 1.4-4.6-2-8.2-5.6-10-10.3-.9-2.4-.5-4.9 1.5-6.4Z" fill="currentColor" />
     </>
   ),
   lista: (
