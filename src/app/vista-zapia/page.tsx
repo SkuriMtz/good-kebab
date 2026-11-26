@@ -5,9 +5,14 @@ import { AppsMarquesina, APPS_CONECTABLES } from "@/components/inicio-dala/AppsM
 import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
 import { CajaPide } from "@/components/inicio-mezcla/CajaPide";
+import { Dibujo } from "@/components/inicio-mezcla/Dibujos";
+import { AppsQueHace, Avisos, Casos, Encargos, Etiqueta, Ideas, Permisos, Preguntas } from "@/components/inicio-mezcla/Piezas";
+import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
+import { CENTRO_PRIVACIDAD } from "@/legal/politicas";
+import Link from "next/link";
 import "@/components/inicio-mezcla/mezcla.css";
 
 export { viewport } from "../page";
@@ -21,10 +26,22 @@ export const metadata: Metadata = { title: "Vista previa: landing combinada", ro
  * estilo de Atendel. Los fragmentos siguen de fondo en todo. No aparece en buscadores.
  * Aprobado hasta ahora:
  * A · la caja que escribe sola en la portada (CajaPide), debajo del botón de la lista.
+ * B · avisos que llegan, en «Trabaja aunque no estés».
+ * C · cómo reparte el trabajo, en «Un solo chat, todo un equipo».
+ * D · casos del día a día que avanzan solos (sección nueva, entre el foco y el globo).
+ * E · úsalo donde estés (computadora, celular y WhatsApp), en «Que tu negocio crezca».
+ * F · qué hace en cada app, debajo de la fila de apps.
+ * G · ideas para pedirle, con «Sorpréndeme» (sección nueva), y J · el personaje en la orilla.
+ * H · cada negocio ve solo lo suyo: garantías y permisos (sección nueva, antes de Planes).
+ * I · preguntas en acordeón (sección nueva, antes del cierre).
+ * K · detalles: botones que se llenan, etiquetas que brincan y tarjetas que se inclinan.
  */
 export default async function VistaCombinada() {
   const idioma = await idiomaServidor();
-  const d = t(idioma).inicio;
+  const textos = t(idioma);
+  const d = textos.inicio;
+  const m = contenidoMezcla(idioma);
+  const preguntas = [...textos.preguntas.grupos.empezar.preguntas, ...textos.preguntas.grupos.planes.preguntas.slice(0, 2)];
   return (
     <Sitio fondo="inicio">
       {/* 1. Portada */}
@@ -53,6 +70,8 @@ export default async function VistaCombinada() {
           <TextoDala className="ini-cuerpo" retraso={0.35}>
             {d.decisiones.texto}
           </TextoDala>
+          {/* B */}
+          <Avisos idioma={idioma} />
         </div>
       </section>
 
@@ -76,7 +95,21 @@ export default async function VistaCombinada() {
               {texto}
             </TextoDala>
           ))}
+          {/* C */}
+          <Encargos idioma={idioma} />
         </div>
+      </section>
+
+      {/* D · En el día a día: casos que avanzan solos */}
+      <section className="mz-bloque" aria-labelledby="casos-titulo">
+        <div className="mz-cabeza">
+          <Etiqueta>{m.casos.etiqueta}</Etiqueta>
+          <h2 id="casos-titulo" className="ini-titulo">
+            {m.casos.titulo}
+          </h2>
+          <p className="ini-cuerpo">{m.casos.texto}</p>
+        </div>
+        <Casos idioma={idioma} />
       </section>
 
       {/* 5. Globo: que tu negocio crezca */}
@@ -96,6 +129,28 @@ export default async function VistaCombinada() {
           <TextoDala className="ini-cuerpo" retraso={0.55}>
             {d.globo.texto3}
           </TextoDala>
+          {/* E · Úsalo donde estés */}
+          <div className="mz-formas">
+            <Etiqueta>{m.formas.etiqueta}</Etiqueta>
+            <ul className="mz-formas__lista">
+              {m.formas.lista.map((f) => (
+                <li key={f.titulo} className="mz-forma mz-tarjeta">
+                  <Dibujo nombre={f.dibujo} className="mz-forma__dibujo" />
+                  <span className="mz-forma__textos">
+                    <b>{f.titulo}</b>
+                    <span>{f.texto}</span>
+                    {f.href ? (
+                      <Link href={f.href} className="mz-forma__accion">
+                        {f.boton} →
+                      </Link>
+                    ) : (
+                      <BotonLista className="mz-forma__accion">{f.boton} →</BotonLista>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -120,6 +175,52 @@ export default async function VistaCombinada() {
       {/* 6b. Las apps con las que se conecta (una sola fila que se desliza) */}
       <AppsMarquesina titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
 
+      {/* F · Qué hace en cada app */}
+      <section className="mz-bloque mz-apps-bloque" aria-label={m.apps.etiqueta}>
+        <AppsQueHace idioma={idioma} />
+      </section>
+
+      {/* G · Ideas para pedirle (con J, el personaje en la orilla) */}
+      <section className="mz-bloque" aria-labelledby="ideas-titulo">
+        <div className="mz-cabeza">
+          <Etiqueta>{m.ideas.etiqueta}</Etiqueta>
+          <h2 id="ideas-titulo" className="ini-titulo">
+            {m.ideas.titulo}
+          </h2>
+          <p className="ini-cuerpo">{m.ideas.texto}</p>
+        </div>
+        <Ideas idioma={idioma} />
+      </section>
+
+      {/* H · Cada negocio ve solo lo suyo */}
+      <section className="mz-bloque mz-privacidad" aria-labelledby="datos-titulo">
+        <div>
+          <div className="mz-cabeza">
+            <Etiqueta>{textos.preguntas.seguridadEtiqueta}</Etiqueta>
+            <h2 id="datos-titulo" className="ini-titulo">
+              {textos.preguntas.seguridadTitulo}
+            </h2>
+          </div>
+          <ul className="mz-garantias">
+            {textos.preguntas.garantias.map((g) => (
+              <li key={g.titulo} className="mz-garantia">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12.5 10 17l9-10" />
+                </svg>
+                <span>
+                  <b>{g.titulo}</b>
+                  <span>{g.texto}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Link href={CENTRO_PRIVACIDAD} className="mz-boton mz-boton--contorno">
+            {m.privacidad.mas}
+          </Link>
+        </div>
+        <Permisos idioma={idioma} />
+      </section>
+
       {/* 7. Planes: las tarjetas de siempre (Free, One y Max) y cuándo sale */}
       <section id="precios" className="ini-bloque ini-planes ini-planes--tarjetas" data-escena="planes" aria-labelledby="planes-titulo">
         <span id="cuando-sale" className="ini-ancla" aria-hidden="true" />
@@ -136,6 +237,21 @@ export default async function VistaCombinada() {
           <span className="ini-cuando__titulo">{d.planes.cuandoTitulo}</span>
           <span>{d.planes.cuandoTexto}</span>
         </p>
+      </section>
+
+      {/* I · Preguntas */}
+      <section className="mz-bloque mz-preguntas-bloque" aria-labelledby="preguntas-titulo">
+        <div className="mz-cabeza">
+          <Etiqueta>{textos.preguntas.etiqueta}</Etiqueta>
+          <h2 id="preguntas-titulo" className="ini-titulo">
+            {textos.preguntas.titulo}
+          </h2>
+          <p className="ini-cuerpo">{textos.preguntas.texto}</p>
+          <Link href="/preguntas" className="mz-boton mz-boton--contorno">
+            {textos.preguntas.titulo} →
+          </Link>
+        </div>
+        <Preguntas items={preguntas} />
       </section>
 
       {/* 8. Cierre */}

@@ -1,9 +1,8 @@
 /**
- * DIBUJOS A MANO (la landing de prueba, /vista-zapia): íconos de
- * línea negra gruesa, un poco irregulares, con alguna parte rellena, para
- * las tarjetas de colores. Y el personaje de Atendel: un cuadrito con ojos de
- * punto y los cuatro puntos de la marca, echado de panza arriba, que se
- * asoma en la orilla de una sección (parpadea solo). Dibujos propios.
+ * DIBUJOS A MANO de Atendel (landing combinada, vista previa en /vista-zapia): íconos de
+ * línea gruesa, un poco irregulares, del color del texto (blanco en oscuro, negro en claro).
+ * Y el personaje de Atendel: un cuadrito con ojos de punto y los cuatro puntos de la marca,
+ * sentado en la orilla de una tarjeta (saluda y parpadea solo). Dibujos propios.
  */
 
 export type NombreDibujo =
@@ -97,9 +96,9 @@ const TRAZOS: Record<NombreDibujo, React.ReactNode> = {
   puntos: (
     <>
       <path d="M38.8 11.2c-9.6-1.3-19.3-1.2-29 .1-1 5.9-.9 11.8.2 17.6 2.6.3 5.2.5 7.8.6l-.9 7.4 7.9-7.2c4.6.1 9.2-.1 13.7-.6 1-5.9 1.1-11.9.3-17.9Z" fill="currentColor" />
-      <circle cx="17" cy="20.4" r="2.2" fill="#fff" stroke="none" />
-      <circle cx="24.2" cy="20.4" r="2.2" fill="#fff" stroke="none" />
-      <circle cx="31.3" cy="20.3" r="2.2" fill="#fff" stroke="none" />
+      <circle cx="17" cy="20.4" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="24.2" cy="20.4" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="31.3" cy="20.3" r="2.2" fill="currentColor" stroke="none" />
     </>
   ),
   iman: (
@@ -189,17 +188,17 @@ export function Dibujo({ nombre, className = "" }: { nombre: NombreDibujo; class
 export function PersonajeEchado({ className = "" }: { className?: string }) {
   return (
     <svg className={`zp-echado ${className}`} viewBox="0 0 170 160" fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <g stroke="#0b0b0c" strokeWidth="4.4">
+      <g stroke="currentColor" strokeWidth="4.4">
         {/* las piernas colgando (por encima de la orilla) */}
         <path d="M68 100c-1 12 0 24 2 36M98 100c2 12 4 22 8 32" />
-        <path d="M60 138c4-3 11-4 16 0-4 4-11 5-16 0Z" fill="#0b0b0c" />
-        <path d="M100 135c5-4 12-3 16 1-5 4-12 4-16-1Z" fill="#0b0b0c" />
+        <path d="M60 138c4-3 11-4 16 0-4 4-11 5-16 0Z" fill="currentColor" />
+        <path d="M100 135c5-4 12-3 16 1-5 4-12 4-16-1Z" fill="currentColor" />
         {/* el cuerpo: el cuadrito redondo de Atendel */}
-        <path d="M42 26c22-6 56-6 78 0 8 2 12 8 12 18 1 18 1 36-1 52-1 8-6 12-14 13-22 3-48 3-70-1-8-1-12-6-13-14-1-16-1-32 0-48 0-12 2-18 8-20Z" fill="#fff" />
+        <path d="M42 26c22-6 56-6 78 0 8 2 12 8 12 18 1 18 1 36-1 52-1 8-6 12-14 13-22 3-48 3-70-1-8-1-12-6-13-14-1-16-1-32 0-48 0-12 2-18 8-20Z" fill="var(--echado-cuerpo, #fff)" />
         {/* la mano que saluda */}
         <g className="zp-echado__mano">
           <path d="M131 52c8-8 14-18 16-30" />
-          <path d="M141 14c4-2 9 0 10 4 1 5-2 9-7 9" fill="#fff" />
+          <path d="M141 14c4-2 9 0 10 4 1 5-2 9-7 9" fill="var(--echado-cuerpo, #fff)" />
         </g>
         {/* la otra mano, apoyada */}
         <path d="M38 64c-8 8-12 18-12 30" />
@@ -207,7 +206,7 @@ export function PersonajeEchado({ className = "" }: { className?: string }) {
         <path d="M74 60c4 4 10 4 14 0" strokeWidth="3.4" />
       </g>
       {/* los ojos (parpadean) */}
-      <g className="zp-echado__ojos" fill="#0b0b0c">
+      <g className="zp-echado__ojos" fill="currentColor">
         <ellipse cx="70" cy="46" rx="4.4" ry="5.6" />
         <ellipse cx="94" cy="46" rx="4.4" ry="5.6" />
       </g>
