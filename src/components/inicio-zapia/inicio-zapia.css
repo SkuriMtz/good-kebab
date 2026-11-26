@@ -5,7 +5,8 @@
  *   solos, interruptores, preguntas que se deslizan e ideas que se reparten.
  * - Cabeza (Atendel): su barra, su letra (Geist), los colores de su equipo, sus personajes y
  *   sus fragmentos: donde Zapia pone una foto a pantalla completa, aquí se ven los fragmentos
- *   (cada «ventana» lleva su escena: cerebro, polvo, foco, globo, equipo, planes y la marca).
+ *   (cada «ventana» lleva su escena: polvo, foco, globo, equipo, planes y la marca; el
+ *   cerebro no va: la portada es lisa, como la de Zapia sin foto).
  * - Solo se animan transform y opacity. Con «reducir movimiento», todo quieto y a la vista.
  */
 
@@ -298,88 +299,131 @@
 }
 
 /* =====================================================================
-   3. Portada
+   3. Portada, igual a la de Zapia: sin foto y sin cerebro (fondo liso que tapa los
+   fragmentos); a la izquierda el título enorme, el texto, la caja y dos botones; a la
+   derecha, la columna de globos que va subiendo.
    ===================================================================== */
 .z-portada {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   min-height: 100vh;
-  padding: clamp(96px, 14vh, 150px) var(--z-orilla) clamp(56px, 10vh, 110px);
+  padding: clamp(96px, 13vh, 140px) var(--z-orilla) clamp(56px, 9vh, 100px);
+  overflow: hidden;
+  background: var(--ini-fondo);
 }
 .z-portada__texto {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: min(640px, 50vw);
+  width: min(620px, 50vw);
 }
-.z-portada .z-etiqueta {
-  margin-bottom: 22px;
+.z-portada .z-display {
+  max-width: 7em;
+  font-size: clamp(60px, 8.4vw, 136px);
+  line-height: 0.92;
+  letter-spacing: -0.055em;
 }
 .z-portada__cuerpo {
-  margin-top: 22px;
-  max-width: 31rem;
-  color: var(--ini-gris);
-  font-size: clamp(16px, 1.25vw, 18px);
-  font-weight: 300;
-  line-height: 1.5;
+  margin-top: clamp(18px, 2vw, 28px);
+  max-width: 29rem;
+  color: var(--ini-texto);
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 350;
+  line-height: 1.45;
 }
 .z-portada .z-caja {
-  margin-top: 30px;
+  margin-top: clamp(26px, 3vw, 40px);
 }
 .z-botones {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 .z-botones .boton-lista {
   margin: 0;
 }
+.z-boton svg {
+  flex: none;
+}
+.z-portada .z-boton,
+.z-cierre .z-boton {
+  min-height: 48px;
+  padding: 0 22px;
+}
+.z-boton--claro {
+  --z-relleno: var(--z-coral);
+  background: #fff;
+  color: #0b0b0c;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+.z .boton-lista.z-boton--oscuro {
+  --z-relleno: #fff;
+  height: auto;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  background: #1b1b1e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1;
+  text-transform: none;
+}
+.boton-lista.z-boton--oscuro .boton-lista__texto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (hover: hover) {
+  .z .boton-lista.z-boton--oscuro:hover {
+    color: #0b0b0c;
+  }
+}
 
-/* La caja que escribe sola */
+/* La caja que escribe sola: blanca, con «+», micrófono y el avión de enviar */
 .z-caja {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: min(100%, 540px);
-  min-height: 60px;
-  padding: 8px 8px 8px 12px;
-  border: 1px solid var(--z-vidrio-borde);
+  gap: 12px;
+  width: min(100%, 580px);
+  min-height: 66px;
+  padding: 9px 9px 9px 12px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--z-hoja-2) 86%, transparent);
-  color: var(--ini-texto);
-  box-shadow: 0 18px 50px rgb(0 0 0 / 0.28);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  transition:
-    border-color 200ms ease,
-    transform 200ms var(--z-salida);
+  background: #fff;
+  color: #0b0b0c;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.06),
+    0 18px 50px rgb(0 0 0 / 0.28);
+  transition: transform 200ms var(--z-salida);
 }
 @media (hover: hover) {
   .z-caja:hover {
-    border-color: var(--z-apagado);
     transform: translateY(-2px);
   }
 }
 .z-caja__mas {
   display: grid;
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border: 1px solid var(--z-vidrio-borde);
   border-radius: 50%;
-  color: var(--ini-gris);
-  font-size: 20px;
+  background: #f1f1f2;
+  color: #0b0b0c;
+  font-size: 22px;
   font-weight: 300;
+  line-height: 1;
 }
 .z-caja__texto {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: 16px;
+  color: #55555b;
+  font-size: 17px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -389,22 +433,22 @@
   height: 1.15em;
   margin-left: 2px;
   vertical-align: -0.2em;
-  background: currentColor;
+  background: #0b0b0c;
   animation: z-cursor 1s steps(1) infinite;
 }
 .z-caja__mic {
   flex: none;
-  color: var(--ini-gris);
+  color: #6b6b72;
 }
 .z-caja__enviar {
   display: grid;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   place-items: center;
   border-radius: 50%;
-  background: var(--ini-texto);
-  color: var(--ini-fondo);
+  background: #ff5a3c;
+  color: #fff;
 }
 @keyframes z-cursor {
   50% {
@@ -412,12 +456,15 @@
   }
 }
 
-/* Los globos de pedidos: el de en medio encendido, los demás de vidrio */
+/* Los globos de pedidos: una columna que sube; el de en medio encendido, los demás de vidrio */
 .z-globos {
+  --g-ancho: min(390px, 27vw);
+  --g-alto: clamp(136px, 11.6vw, 172px);
+  --g-paso: calc(var(--g-alto) + clamp(14px, 1.4vw, 22px));
   position: absolute;
-  top: 50%;
-  right: var(--z-orilla);
-  width: min(330px, 26vw);
+  top: 54%;
+  left: 62.5%;
+  width: var(--g-ancho);
   height: 0;
 }
 .z-globo {
@@ -426,68 +473,83 @@
   left: 0;
   display: flex;
   width: 100%;
+  height: var(--g-alto);
   flex-direction: column;
+  justify-content: space-between;
   align-items: flex-start;
-  gap: 4px;
-  padding: 14px 16px;
-  border: 1px solid var(--z-vidrio-borde);
-  border-radius: 22px 22px 22px 6px;
-  background: var(--z-vidrio);
-  color: var(--ini-texto);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  transform: translateY(calc(-50% + var(--lugar, 0) * 104px)) scale(0.9);
-  opacity: 0.5;
+  padding: clamp(16px, 1.5vw, 22px);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--z-c) 26%, transparent);
+  color: color-mix(in srgb, var(--z-c) 55%, var(--ini-texto));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transform: translateY(calc(-50% + var(--lugar, 0) * var(--g-paso)));
+  opacity: 0.6;
   transition:
-    transform 700ms var(--z-salida),
-    opacity 500ms ease,
-    background-color 400ms ease,
-    color 400ms ease;
+    transform 900ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 700ms ease,
+    background-color 700ms ease,
+    color 700ms ease;
+}
+.z-globo::after {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  left: 22px;
+  width: 22px;
+  height: 14px;
+  background: var(--z-c);
+  clip-path: polygon(0 0, 100% 0, 18% 100%);
+  opacity: 0;
+  transition: opacity 400ms ease;
 }
 .z-globo[data-lugar="0"] {
   z-index: 2;
-  border-color: transparent;
   background: var(--z-c);
   color: var(--z-tinta);
-  transform: translateY(-50%) scale(1);
   opacity: 1;
 }
-.z-globo[data-lugar="-1"] {
-  opacity: 0;
-  transform: translateY(calc(-50% - 120px)) scale(0.85);
+.z-globo[data-lugar="0"]::after {
+  opacity: 1;
+  transition-delay: 450ms;
 }
 .z-globo[data-lugar="2"] {
-  opacity: 0.22;
-  transform: translateY(calc(-50% + 196px)) scale(0.82);
-  transition: opacity 500ms ease;
+  opacity: 0.32;
 }
-.z-globo__quien {
-  font-size: 12px;
-  font-weight: 600;
-  opacity: 0.7;
+.z-globo[data-lugar="-2"],
+.z-globo[data-lugar="3"] {
+  opacity: 0;
+  pointer-events: none;
 }
 .z-globo__texto {
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: clamp(22px, 2.15vw, 33px);
+  font-weight: 450;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .z-globo__boton {
   display: inline-flex;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 7px 13px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
   border-radius: 999px;
-  background: var(--z-tinta);
-  color: #fff;
-  font-size: 13px;
+  background: color-mix(in srgb, var(--z-c) 72%, #000);
+  color: var(--z-tinta);
+  font-size: 14px;
   font-weight: 550;
-  opacity: 0;
-  transition: opacity 300ms ease;
+  transition: background-color 700ms ease;
 }
-.z-globo[data-lugar="0"] .z-globo__boton {
-  opacity: 1;
-  transition-delay: 250ms;
+.z-globo:not([data-lugar="0"]) .z-globo__boton {
+  background: color-mix(in srgb, var(--z-c) 18%, transparent);
+  color: inherit;
+}
+:root[data-tema="claro"] .z-globo:not([data-lugar="0"]) {
+  background: color-mix(in srgb, var(--z-c) 30%, #fff);
+  color: rgb(0 0 0 / 0.45);
 }
 
 /* =====================================================================
@@ -1446,8 +1508,32 @@
 @media (max-width: 899px) {
   .z-portada {
     min-height: 100svh;
-    align-items: flex-start;
-    padding: 104px 20px 38svh;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 104px 20px 48px;
+  }
+  .z-portada .z-display {
+    font-size: clamp(52px, 15vw, 76px);
+  }
+  .z-globos {
+    --g-ancho: 100%;
+    --g-alto: 128px;
+    --g-paso: 140px;
+    position: relative;
+    top: auto;
+    left: auto;
+    height: 300px;
+    margin-top: 40px;
+    /* el globo encendido arriba y el que sigue abajo; lo demás se recorta */
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  }
+  .z-globos .z-globo {
+    top: 64px;
+  }
+  .z-globo__texto {
+    font-size: 24px;
   }
   .z-portada__texto,
   .z-ventana__texto,
@@ -1455,9 +1541,6 @@
   .z-ventana--foco .z-ventana__texto {
     width: 100%;
     margin-left: 0;
-  }
-  .z-globos {
-    display: none;
   }
   .z-hoja {
     padding: 64px 20px;

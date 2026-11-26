@@ -19,7 +19,7 @@ export type AppConecta = { id: IdApp; titulo: string; agente: IdAgente; cosas: s
 export const COLOR_DE: Record<IdAgente, Color> = { lola: "coral", clara: "azul", victor: "verde", iris: "amarillo" };
 
 type Textos = {
-  hero: { texto: string; probar: string };
+  hero: { titulo: string; texto: string; probar: string; web: string; lista: string };
   escribe: string[];
   enviar: string;
   pidesela: string;
@@ -39,8 +39,11 @@ type Textos = {
 
 const ES: Textos = {
   hero: {
+    titulo: "Pídele a Atendel",
     texto: "Atendel y su equipo atienden tu WhatsApp, tu correo y tus citas, y te avisan de lo importante. Tú solo le dices qué necesitas.",
     probar: "Pruébalo",
+    web: "Úsalo en la web",
+    lista: "Únete a la lista",
   },
   escribe: ["Confirma las citas de mañana", "Dime qué es urgente en mi correo", "Pide reseñas a las clientas de hoy", "Hazme el reporte de ventas del mes"],
   enviar: "Pídeselo a Atendel",
@@ -50,6 +53,8 @@ const ES: Textos = {
     { quien: "Altair", texto: "Contesta lo urgente del correo", color: "azul" },
     { quien: "Rigel", texto: "Pide reseñas a las clientas de hoy", color: "verde" },
     { quien: "Mira", texto: "Hazme el reporte del mes", color: "amarillo" },
+    { quien: "Altair", texto: "Avísame de facturas por pagar", color: "azul" },
+    { quien: "Rigel", texto: "Escríbele a quien no ha vuelto", color: "verde" },
   ],
   formas: {
     etiqueta: "Tres formas de empezar",
@@ -194,8 +199,11 @@ const ES: Textos = {
 
 const EN: Textos = {
   hero: {
+    titulo: "Just ask Atendel",
     texto: "Atendel and its team take care of your WhatsApp, your email and your appointments, and tell you what matters. You just say what you need.",
     probar: "Try it",
+    web: "Use it on the web",
+    lista: "Join the waitlist",
   },
   escribe: ["Confirm tomorrow's appointments", "Tell me what's urgent in my email", "Ask today's clients for reviews", "Make this month's sales report"],
   enviar: "Ask Atendel",
@@ -205,6 +213,8 @@ const EN: Textos = {
     { quien: "Altair", texto: "Answer the urgent emails", color: "azul" },
     { quien: "Rigel", texto: "Ask today's clients for reviews", color: "verde" },
     { quien: "Mira", texto: "Make this month's report", color: "amarillo" },
+    { quien: "Altair", texto: "Warn me about bills to pay", color: "azul" },
+    { quien: "Rigel", texto: "Write to who hasn't come back", color: "verde" },
   ],
   formas: {
     etiqueta: "Three ways to start",

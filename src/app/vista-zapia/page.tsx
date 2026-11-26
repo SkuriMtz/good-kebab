@@ -36,20 +36,30 @@ export default async function VistaZapia() {
   return (
     <Sitio fondo="inicio">
       <div className="z">
-        {/* 1. Portada: el cerebro a la derecha (como la foto de Zapia) */}
-        <section className="z-portada" data-escena="portada" aria-labelledby="portada-titulo">
+        {/* 1. Portada, igual a la de Zapia (sin la foto y sin el cerebro): el título, la caja que
+            escribe sola, dos botones y, a la derecha, los globos de pedidos que van subiendo */}
+        <section className="z-portada" aria-labelledby="portada-titulo">
           <Revela className="z-portada__texto">
-            <Etiqueta color="amarillo">{d.portada.etiqueta}</Etiqueta>
             <h1 id="portada-titulo" className="z-display">
-              {d.portada.titulo}
+              {z.hero.titulo}
             </h1>
             <p className="z-portada__cuerpo">{z.hero.texto}</p>
             <CajaEscribe idioma={idioma} />
             <div className="z-botones">
-              <BotonLista />
-              <Link href="/pruebalo" className="z-boton z-boton--gris">
-                {z.hero.probar}
+              <Link href="/pruebalo" className="z-boton z-boton--claro">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="12.5" rx="2" />
+                  <path d="M9 20.5h6M12 16.5v4" />
+                </svg>
+                {z.hero.web}
               </Link>
+              <BotonLista className="z-boton z-boton--oscuro">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" />
+                  <path d="M11 18.5h2" />
+                </svg>
+                {z.hero.lista}
+              </BotonLista>
             </div>
           </Revela>
           <GlobosHabilidades idioma={idioma} />
@@ -92,20 +102,7 @@ export default async function VistaZapia() {
           </section>
         </div>
 
-        {/* 3. Ventana: trabaja aunque no estés (el cerebro, a la izquierda) */}
-        <section className="z-ventana z-ventana--der" data-escena="decisiones" aria-labelledby="decisiones-titulo">
-          <div className="z-ventana__texto">
-            <Etiqueta color="verde">{z.formas.tarjetas[2].arriba}</Etiqueta>
-            <TextoDala como="h2" tipo="titulo" id="decisiones-titulo" className="z-titulo">
-              {d.decisiones.titulo}
-            </TextoDala>
-            <TextoDala className="ini-cuerpo" retraso={0.3}>
-              {d.decisiones.texto}
-            </TextoDala>
-          </div>
-        </section>
-
-        {/* 4. Ventana: así es tu día hoy (el polvo) */}
+        {/* 3. Ventana: así es tu día hoy (el polvo) */}
         <section className="z-caos" data-escena="caos" aria-label={d.caos.aria}>
           {d.caos.textos.map((texto) => (
             <div key={texto} className="z-caos__grupo">

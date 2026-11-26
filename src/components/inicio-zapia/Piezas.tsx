@@ -123,38 +123,52 @@ export function CajaEscribe({ idioma }: { idioma: string }) {
         <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" />
       </svg>
       <span className="z-caja__enviar" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" />
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.5 3.5 10.6 13.4M20.5 3.5l-6.3 17-3.6-7.1-7.1-3.6 17-6.3Z" />
         </svg>
       </span>
     </Link>
   );
 }
 
-/** Los globos de pedidos que suben uno tras otro (el de en medio encendido, los demás de vidrio). */
+/**
+ * Los globos de pedidos de la portada, como los de Zapia: una columna que sube un globo cada
+ * 2.6 s; el de en medio, encendido (con su colita y «Pídeselo →»), y los de arriba y abajo,
+ * de vidrio. Al pasar el mouse se detiene. Tocar el encendido lo abre en el chat de ejemplo.
+ */
 export function GlobosHabilidades({ idioma }: { idioma: string }) {
   const t = textosZapia(idioma);
   const total = t.globos.length;
   const [activo, setActivo] = useState(0);
+  const [pausa, setPausa] = useState(false);
   useEffect(() => {
-    if (quieto()) return;
+    if (pausa || quieto()) return;
     const r = window.setInterval(() => setActivo((a) => (a + 1) % total), 2600);
     return () => window.clearInterval(r);
-  }, [total]);
+  }, [total, pausa]);
   return (
-    <div className="z-globos" aria-hidden="true">
+    <div className="z-globos" onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
       {t.globos.map((g, k) => {
         let lugar = (k - activo + total) % total;
         if (lugar > total / 2) lugar -= total;
+        const encendido = lugar === 0;
         return (
-          <div key={g.texto} className="z-globo" data-color={g.color} data-lugar={lugar} style={{ "--lugar": lugar } as CSSProperties}>
-            <span className="z-globo__quien">{g.quien}</span>
+          <Link
+            key={g.texto}
+            href={pedir(g.texto)}
+            className="z-globo"
+            data-color={g.color}
+            data-lugar={lugar}
+            style={{ "--lugar": lugar } as CSSProperties}
+            tabIndex={encendido ? 0 : -1}
+            aria-hidden={encendido ? undefined : true}
+          >
             <span className="z-globo__texto">{g.texto}</span>
             <span className="z-globo__boton">
               {t.pidesela}
               <span aria-hidden="true">→</span>
             </span>
-          </div>
+          </Link>
         );
       })}
     </div>
