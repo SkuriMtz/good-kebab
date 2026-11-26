@@ -221,6 +221,21 @@ export const CEREBRO_A: Llave[] = [
   [1.0, C(312.8, 392, 439, 37.5, 8.8, -6, 6.4)],
 ];
 /**
+ * Las mismas poses de CEREBRO_A, repartidas según cuánto cambia la figura de una a otra (lugar,
+ * tamaño y giro): así va a velocidad pareja, sin el giro brusco del principio ni cambios de
+ * ritmo entre una pose y la siguiente. Solo con `suave` (vista previa /vista-zapia).
+ */
+const CEREBRO_A_PAREJO: Llave[] = (() => {
+  const d = (a: Colocacion, b: Colocacion) =>
+    Math.hypot((b.cx - a.cx) / 500, (b.cy - a.cy) / 500, (b.escala - a.escala) / 150, (b.yaw - a.yaw) / 120, (b.pitch - a.pitch) / 120, (b.roll - a.roll) / 120);
+  const acum = [0];
+  for (let i = 1; i < CEREBRO_A.length; i++) acum.push(acum[i - 1] + d(CEREBRO_A[i - 1][1], CEREBRO_A[i][1]));
+  const total = acum[acum.length - 1] || 1;
+  return CEREBRO_A.map(([, c], i): Llave => [acum[i] / total, c]);
+})();
+/** Entra y sale despacio (para el paso de la portada a decisiones con `suave`). */
+const enSeno = (t: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(t));
+/**
  * Cerebro de decisiones → se deshace en el caos (p del tramo 1 → 2). Medido en el video:
  * a los 8.2 s (p 0.22) sigue a la izquierda (centro x ≈ 400) y apenas crece; a los 8.6 s
  * (p 0.7) es una cúpula al centro (x ≈ 545) que se deshace de abajo hacia arriba.
@@ -623,6 +638,11 @@ export class MotorFiguras {
    * al bajar hacia el caos, se reparte poco a poco y después forma el foco como siempre.
    */
   modoChat = false;
+  /**
+   * Prueba (/vista-zapia): el cerebro pasa de la derecha a la izquierda a velocidad pareja
+   * (CEREBRO_A_PAREJO, que entra y sale despacio) y sigue al scroll con más suavidad.
+   */
+  suave = false;
   /** Normal "de bulto" del cerebro (como si fuera un huevo liso): da un borde ámbar ancho y parejo, sin delinear cada pliegue. */
   private bulto: Float32Array | null = null;
   private bultoDe: Float32Array | null = null;
@@ -1148,7 +1168,8 @@ export class MotorFiguras {
 
   /** Lugar del cerebro para una posición de la historia (0 a 2), continuo entre los dos tramos. */
   private cerebroEn(P: number): Colocacion {
-    return P < 1 ? entre(CEREBRO_A, clamp01(P)) : entre(CEREBRO_B, clamp01(P - 1));
+    if (P < 1) return this.suave ? entre(CEREBRO_A_PAREJO, enSeno(P)) : entre(CEREBRO_A, clamp01(P));
+    return entre(CEREBRO_B, clamp01(P - 1));
   }
 
   /** Llena o1 (el objetivo de cada partícula) para la posición P (0 a 7). */
@@ -1348,7 +1369,8 @@ export class MotorFiguras {
     // la mueve "de poquito a poquito". Del caos en adelante sigue pegada al scroll, como antes.
     const pedido = Number.isFinite(this.objetivo) ? this.objetivo : this.posicion;
     if (this.posicion !== this.posPropia) this.velPos = 0; // la movieron desde afuera (laboratorio)
-    const tau = this.primera || quieto ? 0 : CEREBRO.scrub * (1 - suave(1.7, 2.3, this.posicion));
+    const scrub = this.suave ? 0.42 : CEREBRO.scrub;
+    const tau = this.primera || quieto ? 0 : scrub * (1 - suave(1.7, 2.3, this.posicion));
     if (tau < 0.004 || Math.abs(pedido - this.posicion) < 1e-5) {
       this.posicion = pedido;
       this.velPos = 0;

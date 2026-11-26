@@ -25,7 +25,7 @@ const PRIMERO: IdApp[] = [
 ];
 
 /** Las apps que ya se conectan (sin las que están en camino), una por logo. */
-function appsConLogo() {
+export function appsConLogo() {
   const listas = CATALOGO.filter((a) => a.fase === 1);
   const orden = [...PRIMERO.flatMap((id) => listas.filter((a) => a.id === id)), ...listas.filter((a) => !PRIMERO.includes(a.id))];
   const vistos = new Set<string>();

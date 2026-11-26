@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
-import { AppsMarquesina, APPS_CONECTABLES } from "@/components/inicio-dala/AppsMarquesina";
+import { APPS_CONECTABLES, appsConLogo } from "@/components/inicio-dala/AppsMarquesina";
 import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
-import { AppsQueHace, Avisos, Etiqueta, Ideas, Permisos, Preguntas } from "@/components/inicio-mezcla/Piezas";
+import { AppsBarra, Casos, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
 import { CENTRO_PRIVACIDAD } from "@/legal/politicas";
-import Link from "next/link";
 import "@/components/inicio-mezcla/mezcla.css";
 
 export { viewport } from "../page";
@@ -18,30 +18,32 @@ export { viewport } from "../page";
 export const metadata: Metadata = { title: "Vista previa: landing combinada", robots: { index: false, follow: false } };
 
 /*
- * VISTA PREVIA de la landing combinada: es una copia exacta de la landing de siempre
- * (src/app/page.tsx, que no cambia) más lo nuevo que se va aprobando, una parte a la vez.
- * Lo nuevo vive en src/components/inicio-mezcla y toma ideas de otra landing, hechas con el
- * estilo de Atendel. Los fragmentos siguen de fondo en todo. No aparece en buscadores.
- * Lo que tiene (sin repetir lo que la página ya dice en otro lado):
- * - Portada: en lugar del cerebro, un resumen del chat de Atendel con el aspecto del panel
- *   (ChatPortada, lo pone FondoInicio en esta ruta); el texto de la izquierda, más chico y corto.
- * - B · avisos que llegan, en «Trabaja aunque no estés».
- * - F · qué hace en cada app, debajo de la fila de apps.
- * - G · ideas para pedirle, con «Sorpréndeme», y J · el personaje sentado en la orilla.
- * - H · cada negocio ve solo lo suyo: garantías y permisos (antes de Planes).
- * - I · preguntas que no se contestan arriba, en acordeón (antes del cierre).
- * - K · detalles: botones que se llenan, etiquetas que brincan y tarjetas que se inclinan.
- * Se quitaron A, C, D y E: repetían el chat de la portada, el texto del foco o el del globo.
+ * VISTA PREVIA de la landing combinada: la landing de siempre (src/app/page.tsx, que no
+ * cambia) con solo esto nuevo:
+ * - la portada, más chica y con el texto corto;
+ * - el cerebro pasa de derecha a izquierda más parejo y suave (FondoInicio → motor.suave);
+ * - «En el día a día»: casos que avanzan solos (entre el foco y el globo);
+ * - las apps: una barra a la izquierda, de arriba abajo, que sube sola; la que toques dice a la
+ *   derecha qué hace Atendel en ella (en lugar de la fila que se desliza);
+ * - «Cada negocio ve solo lo suyo»: garantías y permisos (antes de Planes).
+ * Lo nuevo vive en src/components/inicio-mezcla. No aparece en buscadores.
  */
 export default async function VistaCombinada() {
   const idioma = await idiomaServidor();
   const textos = t(idioma);
   const d = textos.inicio;
   const m = contenidoMezcla(idioma);
-  // Solo las que no se contestan en otra parte de la página (difícil, sirve, clientes, errores)
-  const preguntas = [...textos.preguntas.grupos.empezar.preguntas.slice(0, 2), ...textos.preguntas.grupos.clientes.preguntas];
-  // La portada, más corta: el equipo ya se presenta en el carrusel y lo demás en sus escenas
+  // La portada, más corta (el equipo ya se presenta en el carrusel)
   const portadaTexto = idioma === "es" || idioma === "en" ? m.portada : d.portada.texto;
+  // Las apps de la barra, con sus textos: en español, lo que hace Atendel en cada una (catálogo);
+  // en otros idiomas, lo que hace en esa categoría de apps
+  const pa = textos.paginaApps;
+  const apps: AppBarra[] = appsConLogo().map((a) => ({
+    id: a.id,
+    nombre: pa.nombres[a.id] ?? a.nombre,
+    categoria: pa.categorias[a.categoria].nombre,
+    puede: idioma === "es" ? a.puede : pa.categorias[a.categoria].texto,
+  }));
   return (
     <Sitio fondo="inicio">
       {/* 1. Portada */}
@@ -69,8 +71,6 @@ export default async function VistaCombinada() {
           <TextoDala className="ini-cuerpo" retraso={0.35}>
             {d.decisiones.texto}
           </TextoDala>
-          {/* B */}
-          <Avisos idioma={idioma} />
         </div>
       </section>
 
@@ -95,6 +95,17 @@ export default async function VistaCombinada() {
             </TextoDala>
           ))}
         </div>
+      </section>
+
+      {/* En el día a día: casos que avanzan solos */}
+      <section className="mz-bloque" aria-labelledby="casos-titulo">
+        <div className="mz-cabeza">
+          <Etiqueta>{m.casos.etiqueta}</Etiqueta>
+          <h2 id="casos-titulo" className="ini-titulo">
+            {m.casos.titulo}
+          </h2>
+        </div>
+        <Casos idioma={idioma} />
       </section>
 
       {/* 5. Globo: que tu negocio crezca */}
@@ -135,27 +146,12 @@ export default async function VistaCombinada() {
         </div>
       </section>
 
-      {/* 6b. Las apps con las que se conecta (una sola fila que se desliza) */}
-      <AppsMarquesina titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
-
-      {/* F · Qué hace en cada app */}
-      <section className="mz-bloque mz-apps-bloque" aria-label={m.apps.etiqueta}>
-        <AppsQueHace idioma={idioma} />
+      {/* 6b. Las apps: una barra a la izquierda que sube sola; la que toques dice qué hace Atendel ahí */}
+      <section className="mz-bloque mz-apps-bloque" aria-labelledby="apps-titulo">
+        <AppsBarra apps={apps} titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
       </section>
 
-      {/* G · Ideas para pedirle (con J, el personaje en la orilla) */}
-      <section className="mz-bloque" aria-labelledby="ideas-titulo">
-        <div className="mz-cabeza">
-          <Etiqueta>{m.ideas.etiqueta}</Etiqueta>
-          <h2 id="ideas-titulo" className="ini-titulo">
-            {m.ideas.titulo}
-          </h2>
-          <p className="ini-cuerpo">{m.ideas.texto}</p>
-        </div>
-        <Ideas idioma={idioma} />
-      </section>
-
-      {/* H · Cada negocio ve solo lo suyo */}
+      {/* Cada negocio ve solo lo suyo */}
       <section className="mz-bloque mz-privacidad" aria-labelledby="datos-titulo">
         <div>
           <div className="mz-cabeza">
@@ -200,21 +196,6 @@ export default async function VistaCombinada() {
           <span className="ini-cuando__titulo">{d.planes.cuandoTitulo}</span>
           <span>{d.planes.cuandoTexto}</span>
         </p>
-      </section>
-
-      {/* I · Preguntas */}
-      <section className="mz-bloque mz-preguntas-bloque" aria-labelledby="preguntas-titulo">
-        <div className="mz-cabeza">
-          <Etiqueta>{textos.preguntas.etiqueta}</Etiqueta>
-          <h2 id="preguntas-titulo" className="ini-titulo">
-            {textos.preguntas.titulo}
-          </h2>
-          <p className="ini-cuerpo">{textos.preguntas.texto}</p>
-          <Link href="/preguntas" className="mz-boton mz-boton--contorno">
-            {textos.preguntas.titulo} →
-          </Link>
-        </div>
-        <Preguntas items={preguntas} />
       </section>
 
       {/* 8. Cierre */}

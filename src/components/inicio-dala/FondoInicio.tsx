@@ -17,9 +17,11 @@ import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@
  * - Mide las secciones al cargar, al cambiar de tamaño y cuando cargan las letras.
  */
 export function FondoInicio() {
-  // Pruebas (/vista-chat y la landing combinada, /vista-zapia): un chat de Atendel en lugar del cerebro
+  // Pruebas: /vista-chat, con un chat de Atendel en lugar del cerebro; /vista-zapia (la landing
+  // combinada), con el cerebro que pasa de derecha a izquierda más suave
   const ruta = usePathname();
-  const conChat = ruta === "/vista-chat" || ruta === "/vista-zapia";
+  const conChat = ruta === "/vista-chat";
+  const parejo = ruta === "/vista-zapia";
   const [idioma, setIdioma] = useState<string>();
   useEffect(() => {
     setIdioma(document.documentElement.lang);
@@ -79,5 +81,5 @@ export function FondoInicio() {
     };
   }, []);
 
-  return conChat ? <FondoFiguras variante="chat" idioma={idioma} /> : <FondoFiguras />;
+  return conChat ? <FondoFiguras variante="chat" idioma={idioma} /> : <FondoFiguras parejo={parejo} />;
 }

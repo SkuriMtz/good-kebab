@@ -36,6 +36,8 @@ type Props = {
   variante?: "cerebro" | "chat";
   /** El idioma de los textos del chat ("es" o "en"). */
   idioma?: string;
+  /** Prueba (/vista-zapia): el cerebro pasa de derecha a izquierda más parejo y suave. */
+  parejo?: boolean;
   /** "manual": no corre sola; la mueve quien tenga el control (laboratorio). */
   reloj?: "auto" | "manual";
   alListo?: (c: ControlFiguras) => void;
@@ -50,7 +52,7 @@ const enS = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * t * (t * (t * 6 - 
  * triangulitos, con los mismos cambios que los videos de referencia.
  * Uso: <FondoFiguras escena="globo" /> o <FondoFiguras escena="foco" progreso={0.3} />.
  */
-export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "", variante = "cerebro", idioma }: Props) {
+export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "", variante = "cerebro", idioma, parejo = false }: Props) {
   const refCaja = useRef<HTMLDivElement>(null);
   const refChat = useRef<HTMLDivElement>(null);
   const conChat = variante === "chat";
@@ -76,6 +78,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     }
     motorRef.current = motor;
     motor.modoChat = conChat;
+    motor.suave = parejo;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /**
@@ -287,7 +290,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       motor.destruir();
       motorRef.current = null;
     };
-  }, [reloj, conChat]);
+  }, [reloj, conChat, parejo]);
 
   return (
     <div ref={refCaja} className={`escena-fondo fondo-figuras ${className}`} aria-hidden="true">
