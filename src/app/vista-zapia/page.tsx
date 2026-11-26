@@ -23,8 +23,10 @@ export const metadata: Metadata = { title: "Vista previa: landing combinada", ro
  * - la portada, más chica y con el texto corto;
  * - el cerebro pasa de derecha a izquierda más parejo y suave (FondoInicio → motor.suave);
  * - «En el día a día»: casos que avanzan solos (entre el foco y el globo);
- * - las apps: una barra a la izquierda, de arriba abajo, que sube sola; la que toques dice a la
- *   derecha qué hace Atendel en ella (en lugar de la fila que se desliza);
+ * - las apps: una barra a la izquierda, de arriba abajo, que sube sola y no se detiene; la que
+ *   toques dice qué hace Atendel en ella, quién la usa y un pedido de ejemplo (en lugar de la
+ *   fila que se desliza);
+ * - textos más cortos en decisiones, foco y equipo: cada idea en su sección, sin repetirse;
  * - «Cada negocio ve solo lo suyo»: garantías y permisos (antes de Planes).
  * Lo nuevo vive en src/components/inicio-mezcla. No aparece en buscadores.
  */
@@ -34,7 +36,13 @@ export default async function VistaCombinada() {
   const d = textos.inicio;
   const m = contenidoMezcla(idioma);
   // La portada, más corta (el equipo ya se presenta en el carrusel)
-  const portadaTexto = idioma === "es" || idioma === "en" ? m.portada : d.portada.texto;
+  // Español e inglés: los textos cortos, cada idea en su sección y sin repetirse (los demás
+  // idiomas, los de siempre hasta que se traduzcan)
+  const corto = idioma === "es" || idioma === "en";
+  const portadaTexto = corto ? m.portada : d.portada.texto;
+  const decisionesTexto = corto ? m.decisionesTexto : d.decisiones.texto;
+  const focoTextos = corto ? m.focoTextos : d.foco.textos;
+  const equipoSub = corto ? m.equipoSub : d.equipo.sub;
   // Las apps de la barra, con sus textos: en español, lo que hace Atendel en cada una (catálogo);
   // en otros idiomas, lo que hace en esa categoría de apps
   const pa = textos.paginaApps;
@@ -43,6 +51,8 @@ export default async function VistaCombinada() {
     nombre: pa.nombres[a.id] ?? a.nombre,
     categoria: pa.categorias[a.categoria].nombre,
     puede: idioma === "es" ? a.puede : pa.categorias[a.categoria].texto,
+    agentes: a.agentes,
+    pide: m.apps.ejemplos[a.categoria],
   }));
   return (
     <Sitio fondo="inicio">
@@ -69,7 +79,7 @@ export default async function VistaCombinada() {
             {d.decisiones.titulo}
           </TextoDala>
           <TextoDala className="ini-cuerpo" retraso={0.35}>
-            {d.decisiones.texto}
+            {decisionesTexto}
           </TextoDala>
         </div>
       </section>
@@ -89,7 +99,7 @@ export default async function VistaCombinada() {
           <TextoDala como="h2" tipo="titulo" id="foco-titulo" className="ini-titulo">
             {d.foco.titulo}
           </TextoDala>
-          {d.foco.textos.map((texto, i) => (
+          {focoTextos.map((texto, i) => (
             <TextoDala key={texto} className="ini-cuerpo" retraso={0.35 + i * 0.1}>
               {texto}
             </TextoDala>
@@ -135,7 +145,7 @@ export default async function VistaCombinada() {
             {d.equipo.titulo}
           </TextoDala>
           <TextoDala className="ini-sub" retraso={0.2}>
-            {d.equipo.sub}
+            {equipoSub}
           </TextoDala>
           <TextoDala className="ini-cuerpo ini-cuerpo--chico" retraso={0.35}>
             {d.equipo.texto}
@@ -148,7 +158,14 @@ export default async function VistaCombinada() {
 
       {/* 6b. Las apps: una barra a la izquierda que sube sola; la que toques dice qué hace Atendel ahí */}
       <section className="mz-bloque mz-apps-bloque" aria-labelledby="apps-titulo">
-        <AppsBarra apps={apps} titulo={d.apps.titulo} nota={d.apps.nota(APPS_CONECTABLES)} />
+        <AppsBarra
+          apps={apps}
+          etiqueta={m.apps.etiqueta}
+          titulo={corto ? m.apps.titulo : d.apps.titulo}
+          texto={corto ? m.apps.texto(APPS_CONECTABLES) : d.apps.nota(APPS_CONECTABLES)}
+          usa={m.apps.usa}
+          pide={m.apps.pide}
+        />
       </section>
 
       {/* Cada negocio ve solo lo suyo */}
@@ -188,7 +205,7 @@ export default async function VistaCombinada() {
             {d.planes.titulo}
           </TextoDala>
           <TextoDala className="ini-cuerpo" retraso={0.25}>
-            {d.planes.texto}
+            {corto ? m.planesTexto : d.planes.texto}
           </TextoDala>
         </div>
         <Planes idioma={idioma} variante="inicio" nivelTitulo={3} />

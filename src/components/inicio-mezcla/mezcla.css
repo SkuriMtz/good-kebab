@@ -455,10 +455,6 @@
   flex-direction: column;
   animation: mz-sube-barra 70s linear infinite;
 }
-.mz-barra__ventana:hover .mz-barra__pista,
-.mz-barra__ventana:focus-within .mz-barra__pista {
-  animation-play-state: paused;
-}
 .mz-barra__lista {
   display: flex;
   flex-direction: column;
@@ -541,6 +537,57 @@
   font-size: clamp(14px, 1.1vw, 16px);
   font-weight: 300;
   line-height: 1.5;
+}
+.mz-barra__usa {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--ini-gris);
+  font-size: 13px;
+}
+.mz-barra__agente {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 4px;
+  border: 1px solid color-mix(in srgb, var(--mz-c) 40%, transparent);
+  border-radius: 999px;
+  color: var(--ini-texto);
+}
+.mz-barra__cara {
+  width: 20px;
+  height: 20px;
+}
+.mz-barra__pide {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  justify-self: start;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--ini-linea);
+  border-radius: 14px;
+  color: var(--ini-texto);
+  font-size: 14px;
+  transition: border-color 250ms ease;
+}
+.mz-barra__pide span:first-child {
+  color: var(--ini-acento);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.mz-barra__pide:hover {
+  border-color: color-mix(in srgb, var(--ini-texto) 40%, transparent);
+}
+.mz-barra__pide:focus-visible {
+  outline: 2px solid var(--c-foco, var(--ini-texto));
+  outline-offset: 3px;
 }
 @keyframes mz-sube-barra {
   to {

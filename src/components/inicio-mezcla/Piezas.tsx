@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Personaje } from "@/components/agentes/Personaje";
-import type { IdAgente } from "@/lib/agentes";
+import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { LOGO_APP } from "@/lib/conexiones/logos";
 import type { IdApp } from "@/lib/nucleo-tipos";
 import { PERSONAJES } from "@/lib/personajes";
@@ -21,7 +21,7 @@ const pedir = (texto: string) => `/pruebalo?pide=${encodeURIComponent(texto)}`;
 const colorDe = (agente: IdAgente) => ({ "--mz-c": PERSONAJES[agente].color }) as CSSProperties;
 
 /** Una app de la barra, ya con sus textos en el idioma de la página. */
-export type AppBarra = { id: IdApp; nombre: string; categoria: string; puede: string };
+export type AppBarra = { id: IdApp; nombre: string; categoria: string; puede: string; agentes: IdAgente[]; pide: string };
 
 /** true cuando el elemento entra en pantalla (una vez, o cada vez con `siempre`). */
 function useAparece<T extends HTMLElement>(margen = "-12%", siempre = false) {
@@ -116,10 +116,25 @@ export function Casos({ idioma }: { idioma: string }) {
 
 /**
  * Las apps: una barra a la izquierda, de arriba abajo, con todas las apps que se conectan, que
- * sube sola despacio (se detiene con el cursor encima). La que toques muestra a la derecha qué
- * hace Atendel en ella. Las marcas son de sus dueños: solo dicen con qué se conecta.
+ * sube sola despacio y nunca se detiene. La que toques muestra a la derecha qué hace Atendel en
+ * ella, quién de su equipo la usa y un pedido de ejemplo (abre el chat de prueba). Las marcas
+ * son de sus dueños: solo dicen con qué se conecta.
  */
-export function AppsBarra({ apps, titulo, nota }: { apps: AppBarra[]; titulo: string; nota: string }) {
+export function AppsBarra({
+  apps,
+  etiqueta,
+  titulo,
+  texto,
+  usa,
+  pide,
+}: {
+  apps: AppBarra[];
+  etiqueta: string;
+  titulo: string;
+  texto: string;
+  usa: string;
+  pide: string;
+}) {
   const [activa, setActiva] = useState(0);
   const app = apps[activa];
   const lista = (copia: boolean) => (
@@ -150,10 +165,11 @@ export function AppsBarra({ apps, titulo, nota }: { apps: AppBarra[]; titulo: st
         </div>
       </div>
       <div className="mz-cabeza">
-        <h2 id="apps-titulo" className="ini-etiqueta">
+        <Etiqueta>{etiqueta}</Etiqueta>
+        <h2 id="apps-titulo" className="ini-titulo">
           {titulo}
         </h2>
-        <p className="ini-cuerpo">{nota}</p>
+        <p className="ini-cuerpo">{texto}</p>
       </div>
       <div className="mz-barra__info" key={app.id} aria-live="polite">
         {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
@@ -161,6 +177,18 @@ export function AppsBarra({ apps, titulo, nota }: { apps: AppBarra[]; titulo: st
         <p className="mz-barra__nombre">{app.nombre}</p>
         <p className="mz-barra__categoria">{app.categoria}</p>
         <p className="mz-barra__puede">{app.puede}</p>
+        <p className="mz-barra__usa">
+          <span>{usa}</span>
+          {app.agentes.map((ag) => (
+            <span key={ag} className="mz-barra__agente" style={colorDe(ag)}>
+              <Personaje agente={ag} avatar className="mz-barra__cara" />
+              {AGENTE_POR_ID[ag].nombre}
+            </span>
+          ))}
+        </p>
+        <Link href={pedir(app.pide)} className="mz-barra__pide">
+          <span>{pide}</span>«{app.pide}»<span aria-hidden="true">→</span>
+        </Link>
       </div>
     </div>
   );

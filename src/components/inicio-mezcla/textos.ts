@@ -1,9 +1,10 @@
 import type { IdAgente } from "@/lib/agentes";
-import type { IdApp } from "@/lib/nucleo-tipos";
+import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
 
 /**
- * Los textos de lo nuevo de la landing combinada (vista previa en /vista-zapia): el texto corto
- * de la portada, los casos del día a día y los permisos. Son de Atendel: ejemplos de cosas que
+ * Los textos de lo nuevo de la landing combinada (vista previa en /vista-zapia): los textos
+ * cortos de las escenas de siempre (sin repetir lo que dice otra sección), los casos del día a
+ * día, las apps y los permisos. Son de Atendel: ejemplos de cosas que
  * sí hace (como los de /pruebalo), sin clientes, cifras ni opiniones inventadas. En español e
  * inglés (los otros idiomas usan el inglés) hasta que pase a «/», donde se mudan a src/i18n.
  */
@@ -15,9 +16,42 @@ type Contenido = {
   portada: string;
   casos: { etiqueta: string; titulo: string; probar: string; lista: Caso[] };
   privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
+  /** Escenas de siempre, más cortas y sin repetir lo que ya dice otra sección. */
+  decisionesTexto: string;
+  focoTextos: string[];
+  equipoSub: string;
+  planesTexto: string;
+  /** Las apps: qué es, cómo trabaja en ellas y un pedido de ejemplo por tipo de app. */
+  apps: { etiqueta: string; titulo: string; texto: (n: number) => string; usa: string; pide: string; ejemplos: Record<CategoriaApp, string> };
 };
 
 const ES: Contenido = {
+  decisionesTexto: "Vigila tu WhatsApp, tu correo y tu agenda todo el día. Lo importante te lo avisa por WhatsApp o con una notificación en tu celular.",
+  focoTextos: [
+    "Le pides todo en un solo chat. Atendel decide a quién de su equipo le toca, lo hace en tus propias apps y te cuenta una sola vez qué hizo.",
+    "Aprende tu negocio con tus Reglas, tus Procesos y su Memoria, para resolver como lo harías tú.",
+  ],
+  equipoSub: "Cuatro agentes, cada uno en lo suyo.",
+  planesTexto: "Empieza gratis con todo el equipo.",
+  apps: {
+    etiqueta: "Tus apps",
+    titulo: "Se conecta con las apps que ya usas",
+    texto: (n) => `Hoy son ${n}. Conectas tu cuenta de cada una y Atendel trabaja ahí mismo: lee lo que necesita y, si tú lo permites, agenda, contesta y manda.`,
+    usa: "Lo usa",
+    pide: "Pídele",
+    ejemplos: {
+      correo: "¿Qué correos necesitan respuesta hoy?",
+      mensajes: "¿Quién me escribió y no le he contestado?",
+      agenda: "¿Qué tengo mañana?",
+      reservas: "¿Quién tiene cita hoy?",
+      documentos: "Resume el archivo de precios",
+      clientes: "¿Quién no ha vuelto en 3 meses?",
+      resenas: "¿Qué reseñas nuevas tengo?",
+      pagos: "¿Cuánto vendí esta semana?",
+      contabilidad: "¿Qué facturas tengo por cobrar?",
+      facturacion: "¿Qué facturas recibí este mes?",
+    },
+  },
   portada: "Atendel ve lo que pasa en tu negocio y lo resuelve como un socio, con su equipo.",
   casos: {
     etiqueta: "En el día a día",
@@ -44,6 +78,32 @@ const ES: Contenido = {
 };
 
 const EN: Contenido = {
+  decisionesTexto: "It watches your WhatsApp, email and calendar all day. It tells you what matters on WhatsApp or with a notification on your phone.",
+  focoTextos: [
+    "You ask for everything in one chat. Atendel decides who on its team takes it, does it in your own apps and tells you once what it did.",
+    "It learns your business through your Rules, your Processes and its Memory, so it handles things the way you would.",
+  ],
+  equipoSub: "Four agents, each with their own job.",
+  planesTexto: "Start free with the whole team.",
+  apps: {
+    etiqueta: "Your apps",
+    titulo: "It connects to the apps you already use",
+    texto: (n) => `${n} today. You connect your account for each one and Atendel works right there: it reads what it needs and, if you allow it, books, replies and sends.`,
+    usa: "Used by",
+    pide: "Ask",
+    ejemplos: {
+      correo: "Which emails need a reply today?",
+      mensajes: "Who wrote to me and hasn't had an answer?",
+      agenda: "What do I have tomorrow?",
+      reservas: "Who has an appointment today?",
+      documentos: "Sum up the price list file",
+      clientes: "Who hasn't come back in 3 months?",
+      resenas: "What new reviews do I have?",
+      pagos: "How much did I sell this week?",
+      contabilidad: "Which invoices are still unpaid?",
+      facturacion: "Which invoices did I get this month?",
+    },
+  },
   portada: "Atendel sees what's happening in your business and sorts it out like a partner, with its team.",
   casos: {
     etiqueta: "Day to day",
