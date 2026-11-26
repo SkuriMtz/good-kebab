@@ -1,0 +1,137 @@
+/*
+ * Lo nuevo de la landing combinada (vista previa en /vista-zapia), con el estilo de la
+ * landing de siempre: los tokens --ini-* (negro o #fafafa, tarjeta translúcida, línea fina,
+ * acento ámbar), la letra Geist y medidas en vw como src/estilos/inicio.css. Los fragmentos
+ * siguen siendo el fondo de todo: nada de esto los tapa. Solo se animan transform y opacity.
+ */
+
+/* =====================================================================
+   A · La caja que escribe sola (portada, debajo del botón de la lista)
+   ===================================================================== */
+.caja-pide {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 0.9vw, 14px);
+  width: 100%;
+  max-width: 27.4vw; /* el mismo ancho que el texto de la portada */
+  min-height: clamp(46px, 3.8vw, 58px);
+  padding: 0 clamp(6px, 0.5vw, 8px) 0 clamp(14px, 1.2vw, 18px);
+  border: 1px solid var(--ini-linea);
+  border-radius: 999px;
+  background: var(--ini-tarjeta);
+  color: var(--ini-texto);
+  font-size: clamp(13px, 1.07vw, 16px);
+  font-weight: 300;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition:
+    border-color 300ms ease,
+    transform 300ms var(--ini-salida);
+  animation: caja-pide-entra 900ms var(--ini-salida) 700ms both;
+}
+@media (hover: hover) and (pointer: fine) {
+  .caja-pide:hover {
+    border-color: color-mix(in srgb, var(--ini-texto) 38%, transparent);
+  }
+  .caja-pide:hover .caja-pide__enviar svg {
+    transform: translateY(-2px);
+  }
+}
+.caja-pide:active {
+  transform: scale(0.985);
+}
+.caja-pide:focus-visible {
+  outline: 2px solid var(--c-foco, var(--ini-texto));
+  outline-offset: 3px;
+}
+/* Los cuatro puntos de la marca, chiquitos, donde iría el «+» */
+.caja-pide__marca {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(2, 5px);
+  gap: 2px;
+}
+.caja-pide__marca i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ff7a59;
+}
+.caja-pide__marca i:nth-child(2) {
+  background: #6ea8ff;
+}
+.caja-pide__marca i:nth-child(3) {
+  background: #3ccf91;
+}
+.caja-pide__marca i:nth-child(4) {
+  background: #ffc83d;
+}
+.caja-pide__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.caja-pide__cursor {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.15em;
+  margin-left: 2px;
+  vertical-align: -0.2em;
+  background: var(--ini-acento);
+  animation: caja-pide-cursor 1s steps(1) infinite;
+}
+.caja-pide__enviar {
+  display: grid;
+  flex: none;
+  width: clamp(32px, 2.7vw, 42px);
+  height: clamp(32px, 2.7vw, 42px);
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
+}
+.caja-pide__enviar svg {
+  transition: transform 300ms var(--ini-salida);
+}
+.ini-portada__caja {
+  margin-top: 1.24vw;
+}
+@keyframes caja-pide-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes caja-pide-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* =====================================================================
+   Celular y tablet (< 900 px)
+   ===================================================================== */
+@media (max-width: 899px) {
+  .caja-pide {
+    max-width: none;
+    min-height: 52px;
+    font-size: 16px;
+  }
+  .caja-pide__enviar {
+    width: 38px;
+    height: 38px;
+  }
+  .ini-portada__caja {
+    margin-top: 16px;
+  }
+}
+
+/* Con «reducir movimiento»: quieta y a la vista */
+@media (prefers-reduced-motion: reduce) {
+  .caja-pide,
+  .caja-pide__cursor {
+    animation: none;
+  }
+}
