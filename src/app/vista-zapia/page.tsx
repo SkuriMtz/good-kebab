@@ -4,9 +4,7 @@ import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { AppsMarquesina, APPS_CONECTABLES } from "@/components/inicio-dala/AppsMarquesina";
 import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
-import { CajaPide } from "@/components/inicio-mezcla/CajaPide";
-import { Dibujo } from "@/components/inicio-mezcla/Dibujos";
-import { AppsQueHace, Avisos, Casos, Encargos, Etiqueta, Ideas, Permisos, Preguntas } from "@/components/inicio-mezcla/Piezas";
+import { AppsQueHace, Avisos, Etiqueta, Ideas, Permisos, Preguntas } from "@/components/inicio-mezcla/Piezas";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
@@ -24,28 +22,30 @@ export const metadata: Metadata = { title: "Vista previa: landing combinada", ro
  * (src/app/page.tsx, que no cambia) más lo nuevo que se va aprobando, una parte a la vez.
  * Lo nuevo vive en src/components/inicio-mezcla y toma ideas de otra landing, hechas con el
  * estilo de Atendel. Los fragmentos siguen de fondo en todo. No aparece en buscadores.
- * Aprobado hasta ahora:
- * A · la caja que escribe sola en la portada (CajaPide), debajo del botón de la lista.
- * B · avisos que llegan, en «Trabaja aunque no estés».
- * C · cómo reparte el trabajo, en «Un solo chat, todo un equipo».
- * D · casos del día a día que avanzan solos (sección nueva, entre el foco y el globo).
- * E · úsalo donde estés (computadora, celular y WhatsApp), en «Que tu negocio crezca».
- * F · qué hace en cada app, debajo de la fila de apps.
- * G · ideas para pedirle, con «Sorpréndeme» (sección nueva), y J · el personaje en la orilla.
- * H · cada negocio ve solo lo suyo: garantías y permisos (sección nueva, antes de Planes).
- * I · preguntas en acordeón (sección nueva, antes del cierre).
- * K · detalles: botones que se llenan, etiquetas que brincan y tarjetas que se inclinan.
+ * Lo que tiene (sin repetir lo que la página ya dice en otro lado):
+ * - Portada: en lugar del cerebro, un resumen del chat de Atendel con el aspecto del panel
+ *   (ChatPortada, lo pone FondoInicio en esta ruta); el texto de la izquierda, más chico y corto.
+ * - B · avisos que llegan, en «Trabaja aunque no estés».
+ * - F · qué hace en cada app, debajo de la fila de apps.
+ * - G · ideas para pedirle, con «Sorpréndeme», y J · el personaje sentado en la orilla.
+ * - H · cada negocio ve solo lo suyo: garantías y permisos (antes de Planes).
+ * - I · preguntas que no se contestan arriba, en acordeón (antes del cierre).
+ * - K · detalles: botones que se llenan, etiquetas que brincan y tarjetas que se inclinan.
+ * Se quitaron A, C, D y E: repetían el chat de la portada, el texto del foco o el del globo.
  */
 export default async function VistaCombinada() {
   const idioma = await idiomaServidor();
   const textos = t(idioma);
   const d = textos.inicio;
   const m = contenidoMezcla(idioma);
-  const preguntas = [...textos.preguntas.grupos.empezar.preguntas, ...textos.preguntas.grupos.planes.preguntas.slice(0, 2)];
+  // Solo las que no se contestan en otra parte de la página (difícil, sirve, clientes, errores)
+  const preguntas = [...textos.preguntas.grupos.empezar.preguntas.slice(0, 2), ...textos.preguntas.grupos.clientes.preguntas];
+  // La portada, más corta: el equipo ya se presenta en el carrusel y lo demás en sus escenas
+  const portadaTexto = idioma === "es" || idioma === "en" ? m.portada : d.portada.texto;
   return (
     <Sitio fondo="inicio">
       {/* 1. Portada */}
-      <section className="ini-bloque ini-portada" data-escena="portada" aria-labelledby="portada-titulo">
+      <section className="ini-bloque ini-portada mz-portada" data-escena="portada" aria-labelledby="portada-titulo">
         <div className="ini-col ini-col--izq ini-portada__texto">
           <TextoDala como="h1" tipo="titulo" id="portada-titulo" className="ini-display">
             {d.portada.titulo}
@@ -54,10 +54,9 @@ export default async function VistaCombinada() {
             {d.portada.etiqueta}
           </TextoDala>
           <TextoDala className="ini-cuerpo" inicio="top 95%" retraso={0.15}>
-            {d.portada.texto}
+            {portadaTexto}
           </TextoDala>
           <BotonLista className="ini-portada__boton" />
-          <CajaPide idioma={idioma} className="ini-portada__caja" />
         </div>
       </section>
 
@@ -95,21 +94,7 @@ export default async function VistaCombinada() {
               {texto}
             </TextoDala>
           ))}
-          {/* C */}
-          <Encargos idioma={idioma} />
         </div>
-      </section>
-
-      {/* D · En el día a día: casos que avanzan solos */}
-      <section className="mz-bloque" aria-labelledby="casos-titulo">
-        <div className="mz-cabeza">
-          <Etiqueta>{m.casos.etiqueta}</Etiqueta>
-          <h2 id="casos-titulo" className="ini-titulo">
-            {m.casos.titulo}
-          </h2>
-          <p className="ini-cuerpo">{m.casos.texto}</p>
-        </div>
-        <Casos idioma={idioma} />
       </section>
 
       {/* 5. Globo: que tu negocio crezca */}
@@ -129,28 +114,6 @@ export default async function VistaCombinada() {
           <TextoDala className="ini-cuerpo" retraso={0.55}>
             {d.globo.texto3}
           </TextoDala>
-          {/* E · Úsalo donde estés */}
-          <div className="mz-formas">
-            <Etiqueta>{m.formas.etiqueta}</Etiqueta>
-            <ul className="mz-formas__lista">
-              {m.formas.lista.map((f) => (
-                <li key={f.titulo} className="mz-forma mz-tarjeta">
-                  <Dibujo nombre={f.dibujo} className="mz-forma__dibujo" />
-                  <span className="mz-forma__textos">
-                    <b>{f.titulo}</b>
-                    <span>{f.texto}</span>
-                    {f.href ? (
-                      <Link href={f.href} className="mz-forma__accion">
-                        {f.boton} →
-                      </Link>
-                    ) : (
-                      <BotonLista className="mz-forma__accion">{f.boton} →</BotonLista>
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       </section>
 

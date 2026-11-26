@@ -17,8 +17,9 @@ import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@
  * - Mide las secciones al cargar, al cambiar de tamaño y cuando cargan las letras.
  */
 export function FondoInicio() {
-  // Prueba (/vista-chat): el inicio con un chat de Atendel en lugar del cerebro
-  const conChat = usePathname() === "/vista-chat";
+  // Pruebas (/vista-chat y la landing combinada, /vista-zapia): un chat de Atendel en lugar del cerebro
+  const ruta = usePathname();
+  const conChat = ruta === "/vista-chat" || ruta === "/vista-zapia";
   const [idioma, setIdioma] = useState<string>();
   useEffect(() => {
     setIdioma(document.documentElement.lang);

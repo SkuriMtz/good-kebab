@@ -1,169 +1,202 @@
-/* El chat de la portada (ChatPortada.tsx): como el panel, limpio, sin triangulitos.
+/* El chat de la portada (ChatPortada.tsx): un resumen del chat del panel, con sus colores
+   (fondo #171717, tu burbuja gris, tarjetas con borde fino, la caja de abajo).
    FondoFiguras lo coloca con transform y opacidad en cada cuadro. */
 .chat-portada {
+  --cp-fondo: #171717;
+  --cp-tarjeta: #1d1d1d;
+  --cp-superficie: #262626;
+  --cp-borde: #2e2e2e;
+  --cp-texto: #ececec;
+  --cp-gris: #9a9a9a;
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
-  width: 420px;
+  width: 440px;
   flex-direction: column;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 24px;
-  background: rgb(14 14 16 / 0.92);
-  box-shadow:
-    0 30px 80px rgb(0 0 0 / 0.55),
-    inset 0 1px 0 rgb(255 255 255 / 0.05);
-  color: #f2f2f4;
+  overflow: hidden;
+  border: 1px solid var(--cp-borde);
+  border-radius: 20px;
+  background: var(--cp-fondo);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.55);
+  color: var(--cp-texto);
   font-family: var(--fuente-sans, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif);
+  font-size: 14px;
   transform-origin: center;
   will-change: transform, opacity;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+}
+:root[data-tema="claro"] .chat-portada {
+  --cp-fondo: #ffffff;
+  --cp-tarjeta: #fafafa;
+  --cp-superficie: #f1f1f1;
+  --cp-borde: #e5e5e5;
+  --cp-texto: #171717;
+  --cp-gris: #6b6b6b;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.12);
 }
 .chat-portada__cabeza {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 16px 20px 14px;
-  border-bottom: 1px solid rgb(255 255 255 / 0.07);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--cp-borde);
+  font-size: 13.5px;
+  font-weight: 500;
 }
 .chat-portada__marca {
   display: grid;
-  grid-template-columns: repeat(2, 7px);
+  grid-template-columns: repeat(2, 6px);
   gap: 2px;
 }
 .chat-portada__marca i {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
+}
+.chat-portada__flecha {
+  color: var(--cp-gris);
 }
 .chat-portada__cuerpo {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px 20px 6px;
+  padding: 18px 16px 6px;
 }
-/* Los mensajes llegan uno tras otro al cargar */
+/* Las piezas llegan una tras otra al cargar */
 .chat-portada [data-pieza] {
   animation: chat-portada-llega 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(0.5s + var(--n, 6) * 0.32s);
+  animation-delay: calc(0.5s + var(--n, 5) * 0.35s);
 }
 .chat-portada__tu {
   align-self: flex-end;
   max-width: 80%;
-  padding: 9px 14px;
-  border-radius: 18px 18px 6px 18px;
-  background: #0a84ff;
-  color: #fff;
-  font-size: 15px;
-}
-.chat-portada__atendel {
-  color: #e6e6ea;
-  font-size: 15px;
-}
-.chat-portada__tareas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   margin: 0;
-  padding: 0;
-  list-style: none;
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: var(--cp-superficie);
 }
-.chat-portada__tarea {
+.chat-portada__equipo {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 0.03);
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--cp-borde);
+  border-radius: 12px;
+  background: var(--cp-tarjeta);
 }
 .chat-portada__cara {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.25);
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
 }
 .chat-portada__textos {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.3;
 }
-.chat-portada__textos b {
-  font-size: 12.5px;
-  font-weight: 600;
+.chat-portada__textos > span:first-child {
+  color: var(--cp-gris);
+  font-size: 11.5px;
 }
-.chat-portada__textos span {
-  overflow: hidden;
-  color: #c8c8cf;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.chat-portada__textos b {
+  color: var(--cp-texto);
+  font-weight: 600;
 }
 .chat-portada__listo {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgb(60 207 145 / 0.14);
   color: #3ccf91;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
 }
-.chat-portada__ok {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 2px 12px;
-  padding: 12px 14px;
-  border: 1px solid rgb(255 200 61 / 0.3);
-  border-radius: 14px;
-  background: rgb(255 200 61 / 0.06);
+.chat-portada__atendel {
+  margin: 0;
+  line-height: 1.5;
 }
-.chat-portada__ok-h {
-  grid-column: 1;
-  color: #ffc83d;
+.chat-portada__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cp-borde);
+  border-radius: 12px;
+  background: var(--cp-tarjeta);
+}
+.chat-portada__tarjeta-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cp-gris);
   font-size: 12px;
+}
+.chat-portada__tarjeta-cabeza > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chat-portada__chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(255 200 61 / 0.14);
+  color: #a36f00;
+  font-size: 11px;
+  font-weight: 500;
+}
+:root:not([data-tema="claro"]) .chat-portada__chip {
+  color: #ffc83d;
+}
+.chat-portada__nombre {
+  font-size: 14.5px;
   font-weight: 600;
 }
-.chat-portada__ok-texto {
-  grid-column: 1;
-  color: #e6e6ea;
-  font-size: 13.5px;
-  line-height: 1.35;
+.chat-portada__filas {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 24px;
+  margin: 0;
+  font-size: 13px;
+}
+.chat-portada__filas dt {
+  color: var(--cp-gris);
+}
+.chat-portada__filas dd {
+  margin: 0;
 }
 .chat-portada__aprobar {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  padding: 7px 14px;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: #f2f2f4;
-  color: #000;
-  font-size: 13px;
+  background: var(--cp-texto);
+  color: var(--cp-fondo);
+  font-size: 12.5px;
   font-weight: 600;
 }
 .chat-portada__caja {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin: 12px 14px 14px;
-  padding: 10px 10px 10px 16px;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 999px;
-  color: #8e8e96;
-  font-size: 14px;
+  gap: 10px;
+  margin: 10px 12px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--cp-borde);
+  border-radius: 14px;
+  background: var(--cp-superficie);
+  color: var(--cp-gris);
+  font-size: 13.5px;
 }
-.chat-portada__enviar {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 50%;
-  background: #f2f2f4;
-  color: #000;
+.chat-portada__mas {
+  font-size: 18px;
+  line-height: 1;
+}
+.chat-portada__placeholder {
+  flex: 1;
 }
 @keyframes chat-portada-llega {
   from {
@@ -177,12 +210,11 @@
   }
 }
 
-/* Celular: el chat va arriba de la portada, recortado (se ve hasta la tercera tarea y se
-   desvanece hacia abajo); el texto de la portada empieza debajo de él. */
+/* Celular: el chat va arriba de la portada, recortado (se desvanece hacia abajo); el texto de
+   la portada empieza debajo de él. */
 @media (max-width: 899px) {
   .chat-portada {
     height: 400px;
-    overflow: hidden;
     -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 98%);
     mask-image: linear-gradient(to bottom, #000 72%, transparent 98%);
   }

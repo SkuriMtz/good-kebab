@@ -11,7 +11,7 @@ import { contenidoMezcla } from "./textos";
 
 /**
  * Las piezas con movimiento de la landing combinada (vista previa en /vista-zapia), con el
- * estilo de la landing de siempre. Cada una lleva la letra de su parte aprobada (B a K).
+ * estilo de la landing de siempre. Cada una lleva la letra de su parte aprobada (B, F a K).
  * Todo lo que se toca abre el chat de ejemplo (/pruebalo) o una página que ya existe. Solo se
  * mueven cuando se ven; con «reducir movimiento», quietas y a la vista.
  */
@@ -79,136 +79,6 @@ export function Avisos({ idioma }: { idioma: string }) {
   );
 }
 
-/** C · Cómo reparte el trabajo: tu pedido, y Atendel se lo encarga a quien le toca. Rota solo. */
-export function Encargos({ idioma }: { idioma: string }) {
-  const t = contenidoMezcla(idioma).encargos;
-  const [ref, visto] = useAparece<HTMLDivElement>("-10%", true);
-  const [escena, setEscena] = useState(0);
-  const [paso, setPaso] = useState(0);
-  useEffect(() => {
-    if (quieto()) {
-      setPaso(3);
-      return;
-    }
-    if (!visto) return;
-    const tiempos = [900, 1900, 2900, 5600];
-    const relojes = tiempos.map((ms, k) =>
-      window.setTimeout(() => {
-        if (k < 3) setPaso(k + 1);
-        else {
-          setPaso(0);
-          setEscena((e) => (e + 1) % t.escenas.length);
-        }
-      }, ms),
-    );
-    return () => relojes.forEach((r) => window.clearTimeout(r));
-  }, [escena, visto, t.escenas.length]);
-  const actual = t.escenas[escena];
-  return (
-    <div ref={ref} className="mz-encargos">
-      <p className="ini-etiqueta">{t.etiqueta}</p>
-      <div className="mz-encargos__tarjeta" key={escena}>
-        <p className="mz-encargos__tu">
-          <span>{t.tu}</span>
-          {actual.pide}
-        </p>
-        <ul className="mz-encargos__lista">
-          {actual.tareas.map((ta, k) => {
-            const estado = paso < k + 1 ? "espera" : paso === k + 1 ? "trabajando" : "listo";
-            return (
-              <li key={ta.que} className="mz-encargo" data-estado={estado} style={colorDe(ta.agente)}>
-                <span className="mz-encargo__cara" aria-hidden="true">
-                  <Personaje agente={ta.agente} avatar />
-                </span>
-                <span className="mz-encargo__textos">
-                  <span className="mz-encargo__quien">
-                    {t.encarga} <b>{AGENTE_POR_ID[ta.agente].nombre}</b>
-                  </span>
-                  <span>{ta.que}</span>
-                </span>
-                <span className="mz-encargo__estado">
-                  {estado === "listo" ? (
-                    <>
-                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="m3.5 8.5 3 3 6-7" />
-                      </svg>
-                      {t.listo}
-                    </>
-                  ) : (
-                    <>
-                      {t.trabajando}
-                      <i aria-hidden="true" />
-                    </>
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-/** D · Casos del día a día: la lista avanza sola (con su barrita), y al lado la plática de ejemplo. */
-export function Casos({ idioma }: { idioma: string }) {
-  const t = contenidoMezcla(idioma).casos;
-  const [ref, visto] = useAparece<HTMLDivElement>("-15%", true);
-  const [activo, setActivo] = useState(0);
-  const [solo, setSolo] = useState(true);
-  const [pausa, setPausa] = useState(false);
-  const corre = solo && !pausa && visto;
-  useEffect(() => {
-    if (!corre || quieto()) return;
-    const r = window.setTimeout(() => setActivo((a) => (a + 1) % t.lista.length), 5200);
-    return () => window.clearTimeout(r);
-  }, [activo, corre, t.lista.length]);
-  const caso = t.lista[activo];
-  return (
-    <div ref={ref} className="mz-casos" style={colorDe(caso.agente)} onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
-      <ul className="mz-casos__lista" role="tablist" aria-label={t.titulo}>
-        {t.lista.map((c, k) => (
-          <li key={c.corto} style={colorDe(c.agente)}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={k === activo}
-              className="mz-casos__opcion"
-              data-corre={k === activo && corre ? "" : undefined}
-              onClick={() => {
-                setActivo(k);
-                setSolo(false);
-              }}
-            >
-              <span className="mz-casos__barra" aria-hidden="true" />
-              {c.corto}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="mz-casos__platica" key={`p-${activo}`} role="tabpanel" aria-label={caso.titulo}>
-        <Personaje agente={caso.agente} className="mz-casos__personaje" />
-        <p className="mz-burbuja mz-burbuja--tu">{caso.pide}</p>
-        <p className="mz-burbuja mz-burbuja--agente">
-          <span className="mz-burbuja__escribe" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="mz-burbuja__texto">{caso.responde}</span>
-        </p>
-      </div>
-      <div className="mz-casos__texto" key={`t-${activo}`}>
-        <h3 className="ini-titulo">{caso.titulo}</h3>
-        <p className="ini-cuerpo">{caso.texto}</p>
-        <Link href={pedir(caso.pide)} className="mz-boton">
-          {t.probar}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 /** F · Qué hace en cada app: tocas una (o le pasas encima) y la tarjeta cambia. */
 export function AppsQueHace({ idioma }: { idioma: string }) {
   const t = contenidoMezcla(idioma).apps;
@@ -232,13 +102,7 @@ export function AppsQueHace({ idioma }: { idioma: string }) {
         <p className="mz-apps__titulo">
           {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
           <img src={LOGO_APP[app.id]} alt="" width={26} height={26} />
-          <span>
-            {app.titulo}
-            <span className="mz-apps__quien">
-              <Personaje agente={app.agente} avatar className="mz-apps__cara" />
-              {AGENTE_POR_ID[app.agente].nombre}
-            </span>
-          </span>
+          {app.titulo}
         </p>
         <ul className="mz-apps__cosas">
           {app.cosas.map((c, k) => (
@@ -297,7 +161,6 @@ export function Ideas({ idioma }: { idioma: string }) {
                 setVolteada(null);
               }}
             >
-              <Personaje agente={c.agente} avatar className="mz-categoria__cara" />
               {c.nombre}
             </button>
           ))}
@@ -376,7 +239,6 @@ export function Permisos({ idioma }: { idioma: string }) {
           </div>
         ))}
       </div>
-      <p className="mz-permisos__globo">{t.globo}</p>
     </div>
   );
 }
