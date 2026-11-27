@@ -180,7 +180,7 @@ export default async function VistaCombinada() {
       </section>
 
       {/* 7. Planes: las tarjetas de siempre (Free, One y Max) y cuándo sale */}
-      <section id="precios" className="ini-bloque ini-planes ini-planes--tarjetas" data-escena="planes" aria-labelledby="planes-titulo">
+      <section id="precios" className="ini-bloque ini-planes ini-planes--tarjetas mz-planes" data-escena="planes" aria-labelledby="planes-titulo">
         <span id="cuando-sale" className="ini-ancla" aria-hidden="true" />
         <div className="ini-planes__cabeza">
           <TextoDala como="h2" tipo="titulo" id="planes-titulo" className="ini-grande">

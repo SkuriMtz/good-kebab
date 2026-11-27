@@ -751,3 +751,66 @@
     display: none;
   }
 }
+
+/* =====================================================================
+   Planes, más compactos: el título, las tres tarjetas y «Cuándo sale» caben en una pantalla
+   (en compu). Las mismas tarjetas de siempre, solo más chicas; sin el «Los cuatro agentes»
+   debajo de las caras (lo dice la primera línea de cada plan).
+   ===================================================================== */
+@media (min-width: 1024px) {
+  .ini-planes.mz-planes {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: clamp(72px, 10vh, 104px);
+    padding-bottom: clamp(28px, 5vh, 56px);
+  }
+  .mz-planes .ini-planes__cabeza {
+    margin-bottom: clamp(14px, 2.4vh, 24px);
+  }
+  .mz-planes .ini-planes__cabeza .ini-grande {
+    font-size: clamp(32px, min(3.4vw, 6vh), 52px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio {
+    row-gap: clamp(10px, 1.6vh, 16px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan {
+    padding: clamp(16px, 2.6vh, 26px) clamp(18px, 1.7vw, 26px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__nombre {
+    font-size: clamp(16px, 1.25vw, 19px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__monto {
+    font-size: clamp(24px, min(2.2vw, 4vh), 34px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__precio .t-cuerpo {
+    font-size: 13.5px;
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__equipo {
+    padding-top: clamp(10px, 1.6vh, 16px);
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__equipo .t-chico {
+    display: none;
+  }
+  .sitio--inicio .mz-planes .planes--inicio .marca-agente--chica {
+    width: 28px;
+    height: 28px;
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__incluye {
+    gap: 6px;
+  }
+  .sitio--inicio .mz-planes .planes--inicio .plan__incluye li {
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .mz-planes .planes--inicio .plan__boton {
+    height: 38px;
+  }
+  .mz-planes .planes--inicio .plan__accion .t-caption {
+    font-size: 12px;
+  }
+  .mz-planes .ini-cuando {
+    margin-top: clamp(10px, 2vh, 18px);
+  }
+}
