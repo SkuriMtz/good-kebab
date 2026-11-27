@@ -320,11 +320,14 @@ const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 /* Polvo (en fracciones de la pantalla)                                    */
 /* ---------------------------------------------------------------------- */
 
-type Campo = "suelto" | "aura" | "caos" | "junto" | "equipo" | "planes" | "centro";
+type Campo = "suelto" | "aura" | "caos" | "junto" | "equipo" | "planes" | "centro" | "repartido";
 
 /** Dónde cae el polvo de cada partícula y si se ve, según el reparto. */
 function campo(c: Campo, hx: number, hy: number, vis: number): [number, number, number] {
   switch (c) {
+    case "repartido":
+      // Ralo y parejo en toda la pantalla, sin juntarse en ningún lado (Tu equipo, en el inicio)
+      return [hx, hy, vis < 0.026 ? 1 : 0];
     case "suelto":
       return [hx, hy, vis < 0.018 ? 1 : 0];
     case "aura":
@@ -759,7 +762,8 @@ export class MotorFiguras {
 
   /** La partícula i como polvo del reparto c, en el objetivo O. */
   private polvo(O: Objetivo, i: number, c: Campo) {
-    const [fx, fy, v] = campo(c, this.hx[i], this.hy[i], this.vis[i]);
+    // En el inicio, el polvo de Tu equipo no se amontona arriba: se reparte en toda la pantalla
+    const [fx, fy, v] = campo(this.suave && c === "equipo" ? "repartido" : c, this.hx[i], this.hy[i], this.vis[i]);
     const t = this.reloj;
     const ph = this.fase[i];
     // En el inicio («/», con `suave`), el polvo de Tu equipo y de Planes flota a la vista, cada
