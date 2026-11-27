@@ -235,6 +235,10 @@
   background: #16161a;
   color: #f4f4f6;
 }
+:root[data-tema="claro"] .boton-idioma__select option {
+  background: #fff;
+  color: #171717;
+}
 .boton-idioma__flecha {
   pointer-events: none;
   opacity: 0.7;
@@ -243,13 +247,17 @@
   opacity: 0.6;
 }
 
-/* El menú (todas las páginas públicas): cubre la pantalla y siempre es oscuro.
-   Izquierda, la tarjeta del equipo con la constelación; derecha, los lugares
-   grandes, las filas que se abren y los botones de cuenta. */
+/* El menú (todas las páginas públicas): cubre la pantalla y sigue el tema (oscuro o claro,
+   con las mismas formas). Izquierda, la tarjeta del equipo con la constelación; derecha, los
+   lugares grandes, las filas que se abren y los botones de cuenta. */
 .menu-sitio {
   --m-fondo: #0b0b0d;
   --m-gris: #8d8d96;
   --m-gris-2: #a6a6ae;
+  --m-control: #16161a;
+  --m-control-hover: #222228;
+  --m-cerrar: #1c1c20;
+  --m-cerrar-hover: #26262b;
   --c-texto: #f4f4f6;
   --c-texto-2: #a6a6ae;
   --c-tenue: #85858e;
@@ -273,6 +281,20 @@
   opacity: 1;
   visibility: visible;
   transition: opacity 260ms ease;
+}
+:root[data-tema="claro"] .menu-sitio {
+  --m-fondo: #fafafa;
+  --m-gris: #6e6e76;
+  --m-gris-2: #55555c;
+  --m-control: #fff;
+  --m-control-hover: #f0f0f2;
+  --m-cerrar: #fff;
+  --m-cerrar-hover: #f0f0f2;
+  --c-texto: #171717;
+  --c-texto-2: #55555c;
+  --c-tenue: #77777f;
+  --c-borde: rgb(0 0 0 / 0.1);
+  --c-borde-fuerte: rgb(0 0 0 / 0.16);
 }
 .menu-sitio__arriba {
   position: sticky;
@@ -303,13 +325,13 @@
   margin-right: -2px;
   border: 1px solid var(--c-borde-fuerte);
   border-radius: 12px;
-  background: #1c1c20;
+  background: var(--m-cerrar);
   color: var(--c-texto);
   transition: background-color 200ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .menu-sitio__cerrar:hover {
-    background: #26262b;
+    background: var(--m-cerrar-hover);
   }
 }
 .menu-sitio a:focus-visible,
@@ -363,7 +385,7 @@
   display: block;
   max-width: 24ch;
   margin-top: 18px;
-  color: #fff;
+  color: var(--c-texto);
   font-size: clamp(17px, 1.35vw, 21px);
   font-weight: 600;
   line-height: 1.3;
@@ -512,7 +534,7 @@
   padding-inline: 18px;
   border: 1px solid var(--c-borde-fuerte);
   border-radius: 10px;
-  background: #16161a;
+  background: var(--m-control);
   color: var(--c-texto);
   font-size: 15px;
   font-weight: 500;
@@ -527,7 +549,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .menu-sitio__boton:hover {
-    background: #222228;
+    background: var(--m-control-hover);
   }
   .menu-sitio__boton--lleno:hover {
     background: var(--c-accion-hover);

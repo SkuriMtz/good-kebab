@@ -135,26 +135,28 @@
   --halo-opacidad: 0;
   --escena-opacidad: 0.7;
 
-  --t-display: clamp(2.5rem, 1.9rem + 2.3vw, 4rem); /* 40 → 64 */
-  --t-grande: clamp(2.25rem, 1.8rem + 1.8vw, 3.5rem); /* 36 → 56 */
-  --t-seccion: clamp(2rem, 1.6rem + 1.4vw, 2.75rem); /* 32 → 44 */
-  --peso-display: 450;
-  --peso-grande: 450;
-  --peso-seccion: 450;
-  --peso-sub: 450;
-  --tracking-display: -0.06em;
-  --tracking-grande: -0.05em;
-  --tracking-seccion: -0.045em;
+  /* Las mismas formas que en oscuro (letras, pesos y esquinas): al cambiar de tema solo cambian
+     los colores. Solo el texto corrido va un poco más grueso, para leerse bien sobre claro. */
+  --t-display: clamp(2.75rem, 1.6rem + 4.6vw, 6rem); /* 44 → 96 */
+  --t-grande: clamp(2.5rem, 1.4rem + 3.6vw, 4.875rem); /* 40 → 78 */
+  --t-seccion: clamp(2.25rem, 1.4rem + 2.6vw, 3.5rem); /* 36 → 56 */
+  --peso-display: 400;
+  --peso-grande: 400;
+  --peso-seccion: 400;
+  --peso-sub: 400;
+  --tracking-display: -0.04em;
+  --tracking-grande: -0.04em;
+  --tracking-seccion: -0.035em;
   --peso-cuerpo: 400;
   --tracking-intro: 0;
-  --tracking-etiqueta: 0.071em;
-  --radio-boton: 6px;
-  --radio-campo: 6px;
-  --radio-tarjeta: 6px;
-  --radio-imagen: 6px;
-  --radio-panel: 6px;
-  --radio-marco: 8px;
-  --espacio-seccion: clamp(6rem, 4rem + 4vw, 8rem);
+  --tracking-etiqueta: 0.06em;
+  --radio-boton: 24px;
+  --radio-campo: 24px;
+  --radio-tarjeta: 24px;
+  --radio-imagen: 24px;
+  --radio-panel: 16px;
+  --radio-marco: 16px;
+  --espacio-seccion: clamp(6rem, 4rem + 4vw, 8rem); /* 96 → 128 */
 }
 /* Títulos de una sola familia: renglón cerrado, como Dala y Vercel */
 .sitio .t-display,
@@ -168,10 +170,6 @@
 .sitio .t-etiqueta,
 .sitio .etiqueta {
   color: var(--c-tenue);
-}
-:root[data-tema="claro"] .sitio .t-etiqueta,
-:root[data-tema="claro"] .sitio .etiqueta {
-  font-size: 11px;
 }
 /* Las tarjetas en claro llevan el anillo doble de Vercel */
 :root[data-tema="claro"] .sitio .vidrio {
