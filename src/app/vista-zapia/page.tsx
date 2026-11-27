@@ -90,7 +90,7 @@ export default async function VistaCombinada() {
 
       {/* 3. El caos: así es tu día hoy */}
       <section className="ini-bloque ini-caos" data-escena="caos" aria-label={d.caos.aria}>
-        {d.caos.textos.map((texto) => (
+        {(corto ? m.caosTextos : d.caos.textos).map((texto) => (
           <div key={texto} className="ini-caos__grupo">
             <TextoDala className="ini-caos__texto">{texto}</TextoDala>
           </div>
@@ -168,7 +168,7 @@ export default async function VistaCombinada() {
             </h2>
           </div>
           <ul className="mz-garantias">
-            {textos.preguntas.garantias.map((g) => (
+            {(corto ? m.garantias : textos.preguntas.garantias).map((g) => (
               <li key={g.titulo} className="mz-garantia">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12.5 10 17l9-10" />
@@ -201,7 +201,7 @@ export default async function VistaCombinada() {
         <Planes idioma={idioma} variante="inicio" nivelTitulo={3} />
         <p className="ini-cuando">
           <span className="ini-cuando__titulo">{d.planes.cuandoTitulo}</span>
-          <span>{d.planes.cuandoTexto}</span>
+          <span>{corto ? m.cuandoTexto : d.planes.cuandoTexto}</span>
         </p>
       </section>
 

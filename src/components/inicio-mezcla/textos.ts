@@ -2,50 +2,79 @@ import type { IdAgente } from "@/lib/agentes";
 import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
 
 /**
- * Los textos de lo nuevo de la landing combinada (vista previa en /vista-zapia): los textos
- * cortos de las escenas de siempre (sin repetir lo que dice otra sección), los casos del día a
- * día, las apps y los permisos. Son de Atendel: ejemplos de cosas que
- * sí hace (como los de /pruebalo), sin clientes, cifras ni opiniones inventadas. En español e
- * inglés (los otros idiomas usan el inglés) hasta que pase a «/», donde se mudan a src/i18n.
+ * Los textos de la landing combinada (vista previa en /vista-zapia). Tono: formal pero cercano,
+ * corto y fácil para cualquiera (una idea por frase; nadie lee párrafos largos). Cada idea va
+ * en una sola sección. Son de Atendel: ejemplos de cosas que sí hace (como los de /pruebalo),
+ * sin clientes, cifras ni opiniones inventadas. En español e inglés (los otros idiomas usan los
+ * textos de siempre) hasta que pase a «/», donde se mudan a src/i18n.
  */
 
 export type Caso = { agente: IdAgente; corto: string; titulo: string; texto: string; pide: string; responde: string };
 
 type Contenido = {
-  /** La portada, al grano: qué es Atendel (etiqueta) y qué hace (texto). */
+  /** La portada: qué es Atendel (etiqueta) y qué hace (texto). */
   portadaEtiqueta: string;
   portada: string;
-  /** Cómo entras (el globo), sin la frase de relleno de antes. */
-  globoTexto: string;
-  casos: { probar: string; lista: Caso[] };
-  privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
-  /** Escenas de siempre, más cortas y sin repetir lo que ya dice otra sección. */
+  /** Las escenas de siempre, en corto. */
   decisionesTexto: string;
+  caosTextos: string[];
   focoTextos: string[];
+  globoTexto: string;
   equipoSub: string;
   planesTexto: string;
+  cuandoTexto: string;
+  garantias: { titulo: string; texto: string }[];
+  casos: { probar: string; lista: Caso[] };
+  privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
   /** Las apps: qué es, cómo trabaja en ellas y un pedido de ejemplo por tipo de app. */
   apps: { etiqueta: string; titulo: string; texto: (n: number) => string; que: string; usa: string; pide: string; ejemplos: Record<CategoriaApp, string> };
 };
 
 const ES: Contenido = {
-  decisionesTexto: "Vigila tu WhatsApp, tu correo y tu agenda todo el día. Lo importante te lo avisa por WhatsApp o con una notificación en tu celular.",
-  focoTextos: [
-    "Le pides todo en un solo chat. Atendel decide a quién de su equipo le toca, lo hace en tus propias apps y te cuenta una sola vez qué hizo.",
-    "Aprende tu negocio con tus Reglas, tus Procesos y su Memoria, para resolver como lo harías tú.",
-  ],
-  equipoSub: "Cuatro agentes, cada uno en lo suyo.",
+  portadaEtiqueta: "Asistente de IA para tu negocio",
+  portada: "Atendel atiende tu WhatsApp, tu correo y tu agenda. Tú solo le dices qué necesitas.",
+  decisionesTexto: "Está pendiente de tu negocio todo el día y te avisa cuando algo requiere tu atención.",
+  caosTextos: ["Así es tu día hoy: mensajes, correos, citas y pendientes por todos lados.", "Respondes tarde, se pasa una cita y un cliente ya no regresa.", "Y el papeleo se acumula para la noche."],
+  focoTextos: ["Pides todo en un mismo chat. Atendel reparte el trabajo entre su equipo y te confirma cuando está listo.", "Aprende cómo trabajas para resolver como tú lo harías."],
+  globoTexto: "Entra con tu correo, sin contraseña, desde tu celular o computadora.",
+  equipoSub: "Cuatro agentes, cada uno con su especialidad.",
   planesTexto: "Empieza gratis con todo el equipo.",
+  cuandoTexto: "Free ya está disponible. One y Max se abrirán por etapas.",
+  garantias: [
+    { titulo: "Solo tu cuenta", texto: "Tu información solo la ve tu negocio." },
+    { titulo: "Con tu permiso", texto: "Tú decides qué hace solo y qué te consulta antes. Los pagos siempre esperan tu aprobación." },
+    { titulo: "Cifrado", texto: "Toda tu información viaja cifrada." },
+  ],
+  casos: {
+    probar: "Pruébalo",
+    lista: [
+      { agente: "lola", corto: "Atención de noche", titulo: "Atiende aunque no estés", texto: "Aura responde tu WhatsApp con tus precios y agenda las citas.", pide: "Hola, ¿cuánto cuesta la limpieza facial? ¿Tienen lugar el jueves?", responde: "¡Hola! Cuesta $650. El jueves hay lugar a las 11:00 o a las 17:00. ¿Cuál prefieres?" },
+      { agente: "clara", corto: "Correo urgente", titulo: "Lo urgente, primero", texto: "Altair revisa tu correo y te prepara las respuestas.", pide: "¿Qué es urgente en mi correo?", responde: "Dos cosas: una factura vence mañana y Andrea quiere cambiar su cita. Las respuestas están listas." },
+      { agente: "victor", corto: "Reseñas", titulo: "Más recomendaciones", texto: "Rigel pide una reseña a tus clientes después de su visita.", pide: "Pide reseña a los clientes de hoy", responde: "Preparé un mensaje para cada uno. ¿Los envío?" },
+      { agente: "iris", corto: "Reporte del mes", titulo: "Tus números, claros", texto: "Mira prepara tus reportes y documentos para que los revises.", pide: "Prepara el reporte de ventas del mes", responde: "Listo: ventas por semana y por servicio, comparadas con el mes pasado." },
+      { agente: "lola", corto: "Citas encimadas", titulo: "Sin citas encimadas", texto: "Revisa tu agenda antes de agendar y propone otro horario si hace falta.", pide: "Tengo dos citas al mismo tiempo el viernes", responde: "Le propuse a Luis el viernes a las 18:00. Te aviso cuando confirme." },
+      { agente: "victor", corto: "Recuperar clientes", titulo: "Que regresen", texto: "Encuentra a quien no ha vuelto y le escribe, con tu aprobación.", pide: "¿Quién no ha vuelto en 3 meses?", responde: "Encontré a quienes no han vuelto y preparé un mensaje para cada uno. ¿Los revisamos?" },
+    ],
+  },
+  privacidad: {
+    permisosTitulo: "Tus permisos",
+    permisos: [
+      { id: "whatsapp_business", que: "Responder a tus clientes", activo: true },
+      { id: "gmail", que: "Leer y resumir correos", activo: true },
+      { id: "google_calendar", que: "Crear y mover citas", activo: false },
+    ],
+    mas: "Cómo cuidamos tus datos",
+  },
   apps: {
     etiqueta: "Tus apps",
-    titulo: "Se conecta con las apps que ya usas",
-    texto: (n) => `Hoy son ${n}. Conectas tu cuenta de cada una y Atendel trabaja ahí mismo: lee lo que necesita y, si tú lo permites, agenda, contesta y manda.`,
-    que: "Qué hace ahí",
+    titulo: "Funciona con las apps que ya usas",
+    texto: (n) => `${n} apps disponibles. Conecta tu cuenta y Atendel trabaja en ellas, siempre con tu permiso.`,
+    que: "Qué hace",
     usa: "Quién la usa",
-    pide: "Pídele, por ejemplo",
+    pide: "Ejemplo",
     ejemplos: {
       correo: "¿Qué correos necesitan respuesta hoy?",
-      mensajes: "¿Quién me escribió y no le he contestado?",
+      mensajes: "¿Qué mensajes tengo sin responder?",
       agenda: "¿Qué tengo mañana?",
       reservas: "¿Quién tiene cita hoy?",
       documentos: "Resume el archivo de precios",
@@ -56,81 +85,62 @@ const ES: Contenido = {
       facturacion: "¿Qué facturas recibí este mes?",
     },
   },
-  portadaEtiqueta: "Asistente de IA para tu negocio",
-  portada: "Contesta tu WhatsApp, ordena tu correo y lleva tu agenda. Tú le pides las cosas en un chat y su equipo las hace.",
-  globoTexto: "Entras con tu correo, sin contraseña, desde el celular o la computadora, y también le puedes hablar.",
-  casos: {
-    probar: "Pruébalo",
-    lista: [
-      { agente: "lola", corto: "Contesta de noche", titulo: "Contesta aunque estés dormido", texto: "Aura contesta tu WhatsApp con tus precios y tus reglas, ofrece un horario y deja la cita en tu agenda.", pide: "Hola, ¿cuánto cuesta la limpieza facial? ¿Tienen lugar el jueves?", responde: "¡Hola! Cuesta $650. El jueves tengo a las 11:00 o a las 17:00, ¿cuál te queda?" },
-      { agente: "clara", corto: "Lo urgente del correo", titulo: "Lo urgente, primero", texto: "Altair lee tu bandeja, te dice qué necesita algo de ti y te deja la respuesta lista.", pide: "¿Qué es urgente en mi correo?", responde: "Dos cosas: una factura vence mañana y Andrea pide cambiar su cita. Te dejé las respuestas listas." },
-      { agente: "victor", corto: "Pide reseñas", titulo: "Que te recomienden", texto: "Rigel les escribe a tus clientes después de su cita y les pide una reseña sin sonar insistente.", pide: "Pídeles reseña a los clientes de hoy", responde: "Les dejé un mensaje a cada uno para después de su cita. ¿Los mando?" },
-      { agente: "iris", corto: "Tu reporte del mes", titulo: "Tus números, en limpio", texto: "Mira arma tus reportes y documentos y te los deja en la Oficina para revisar.", pide: "Hazme el reporte de ventas del mes", responde: "Listo: ventas por semana y por servicio, y qué subió contra el mes pasado. Está en tu Oficina." },
-      { agente: "lola", corto: "Citas que chocan", titulo: "Ninguna cita encimada", texto: "Antes de agendar revisa tu agenda. Si algo choca, propone otro horario.", pide: "Se me cruzaron dos citas el viernes", responde: "Le propuse a Luis el viernes a las 18:00. Te aviso cuando conteste." },
-      { agente: "victor", corto: "Recupera clientes", titulo: "Que regresen", texto: "Encuentra a quien no ha vuelto y le escribe un mensaje a su medida, con tu visto bueno.", pide: "¿Quién no ha vuelto en 3 meses?", responde: "Encontré a quienes no han vuelto y te dejé un mensaje para cada uno. ¿Los revisamos?" },
-    ],
-  },
-  privacidad: {
-    permisosTitulo: "Tus permisos",
-    permisos: [
-      { id: "whatsapp_business", que: "Contestar a tus clientes", activo: true },
-      { id: "gmail", que: "Leer y resumir correos", activo: true },
-      { id: "google_calendar", que: "Crear y mover citas", activo: false },
-    ],
-    mas: "Cómo cuidamos tus datos",
-  },
 };
 
 const EN: Contenido = {
-  decisionesTexto: "It watches your WhatsApp, email and calendar all day. It tells you what matters on WhatsApp or with a notification on your phone.",
-  focoTextos: [
-    "You ask for everything in one chat. Atendel decides who on its team takes it, does it in your own apps and tells you once what it did.",
-    "It learns your business through your Rules, your Processes and its Memory, so it handles things the way you would.",
-  ],
-  equipoSub: "Four agents, each with their own job.",
+  portadaEtiqueta: "AI assistant for your business",
+  portada: "Atendel handles your WhatsApp, email and calendar. You just tell it what you need.",
+  decisionesTexto: "It keeps an eye on your business all day and lets you know when something needs your attention.",
+  caosTextos: ["This is your day today: messages, emails, appointments and to-dos everywhere.", "You reply late, an appointment slips and a client doesn't come back.", "And the paperwork piles up for the evening."],
+  focoTextos: ["Ask for everything in one chat. Atendel splits the work among its team and confirms when it's done.", "It learns how you work, so it handles things the way you would."],
+  globoTexto: "Sign in with your email, no password, from your phone or computer.",
+  equipoSub: "Four agents, each with their own specialty.",
   planesTexto: "Start free with the whole team.",
+  cuandoTexto: "Free is available now. One and Max will open in stages.",
+  garantias: [
+    { titulo: "Only your account", texto: "Only your business can see your information." },
+    { titulo: "With your permission", texto: "You decide what it does on its own and what it checks with you first. Payments always wait for your approval." },
+    { titulo: "Encrypted", texto: "All your information travels encrypted." },
+  ],
+  casos: {
+    probar: "Try it",
+    lista: [
+      { agente: "lola", corto: "After hours", titulo: "Covers for you after hours", texto: "Aura answers your WhatsApp with your prices and books appointments.", pide: "Hi, how much is a facial? Do you have room on Thursday?", responde: "Hi! It's $650. On Thursday there's room at 11:00 or 17:00. Which do you prefer?" },
+      { agente: "clara", corto: "Urgent email", titulo: "Urgent things first", texto: "Altair reviews your email and drafts the replies.", pide: "What's urgent in my email?", responde: "Two things: an invoice is due tomorrow and Andrea wants to move her appointment. Replies are ready." },
+      { agente: "victor", corto: "Reviews", titulo: "More recommendations", texto: "Rigel asks your clients for a review after their visit.", pide: "Ask today's clients for a review", responde: "I drafted a message for each of them. Shall I send them?" },
+      { agente: "iris", corto: "Monthly report", titulo: "Your numbers, clear", texto: "Mira prepares your reports and documents for you to review.", pide: "Prepare this month's sales report", responde: "Done: sales by week and by service, compared with last month." },
+      { agente: "lola", corto: "Double bookings", titulo: "No double bookings", texto: "It checks your calendar before booking and suggests another time if needed.", pide: "I have two appointments at the same time on Friday", responde: "I offered Luis Friday at 18:00. I'll let you know when he confirms." },
+      { agente: "victor", corto: "Win clients back", titulo: "Bring them back", texto: "It finds who hasn't come back and writes to them, with your approval.", pide: "Who hasn't come back in 3 months?", responde: "I found who hasn't come back and drafted a message for each one. Shall we review them?" },
+    ],
+  },
+  privacidad: {
+    permisosTitulo: "Your permissions",
+    permisos: [
+      { id: "whatsapp_business", que: "Reply to your clients", activo: true },
+      { id: "gmail", que: "Read and summarize email", activo: true },
+      { id: "google_calendar", que: "Create and move appointments", activo: false },
+    ],
+    mas: "How we protect your data",
+  },
   apps: {
     etiqueta: "Your apps",
-    titulo: "It connects to the apps you already use",
-    texto: (n) => `${n} today. You connect your account for each one and Atendel works right there: it reads what it needs and, if you allow it, books, replies and sends.`,
-    que: "What it does there",
+    titulo: "Works with the apps you already use",
+    texto: (n) => `${n} apps available. Connect your account and Atendel works in them, always with your permission.`,
+    que: "What it does",
     usa: "Who uses it",
-    pide: "Ask it, for example",
+    pide: "Example",
     ejemplos: {
       correo: "Which emails need a reply today?",
-      mensajes: "Who wrote to me and hasn't had an answer?",
+      mensajes: "Which messages haven't I answered?",
       agenda: "What do I have tomorrow?",
       reservas: "Who has an appointment today?",
-      documentos: "Sum up the price list file",
+      documentos: "Summarize the price list file",
       clientes: "Who hasn't come back in 3 months?",
       resenas: "What new reviews do I have?",
       pagos: "How much did I sell this week?",
       contabilidad: "Which invoices are still unpaid?",
       facturacion: "Which invoices did I get this month?",
     },
-  },
-  portadaEtiqueta: "AI assistant for your business",
-  portada: "It answers your WhatsApp, sorts your email and runs your calendar. You ask for things in a chat and its team gets them done.",
-  globoTexto: "You sign in with your email, no password, from your phone or computer, and you can also talk to it.",
-  casos: {
-    probar: "Try it",
-    lista: [
-      { agente: "lola", corto: "Answers at night", titulo: "Answers while you sleep", texto: "Aura answers your WhatsApp with your prices and rules, offers a time and puts the appointment in your calendar.", pide: "Hi, how much is a facial? Do you have room on Thursday?", responde: "Hi! It's $650. On Thursday I have 11:00 or 17:00, which works for you?" },
-      { agente: "clara", corto: "Urgent email", titulo: "Urgent things first", texto: "Altair reads your inbox, tells you what needs you and leaves the reply ready.", pide: "What's urgent in my email?", responde: "Two things: an invoice is due tomorrow and Andrea wants to move her appointment. Replies are ready." },
-      { agente: "victor", corto: "Ask for reviews", titulo: "Get recommended", texto: "Rigel writes to your clients after their visit and asks for a review without being pushy.", pide: "Ask today's clients for a review", responde: "I left a message for each of them for after their visit. Shall I send them?" },
-      { agente: "iris", corto: "Monthly report", titulo: "Your numbers, clean", texto: "Mira builds your reports and documents and leaves them in your Office to review.", pide: "Make this month's sales report", responde: "Done: sales by week and by service, and what grew vs last month. It's in your Office." },
-      { agente: "lola", corto: "Clashing bookings", titulo: "No double bookings", texto: "Before booking it checks your calendar. If something clashes, it suggests another time.", pide: "Two appointments clash on Friday", responde: "I offered Luis Friday at 18:00. I'll tell you when he replies." },
-      { agente: "victor", corto: "Win clients back", titulo: "Bring them back", texto: "It finds who hasn't come back and writes them a tailored message, with your OK.", pide: "Who hasn't come back in 3 months?", responde: "I found who hasn't come back and left a message for each one. Want to review them?" },
-    ],
-  },
-  privacidad: {
-    permisosTitulo: "Your permissions",
-    permisos: [
-      { id: "whatsapp_business", que: "Answer your clients", activo: true },
-      { id: "gmail", que: "Read and sum up email", activo: true },
-      { id: "google_calendar", que: "Create and move appointments", activo: false },
-    ],
-    mas: "How we look after your data",
   },
 };
 

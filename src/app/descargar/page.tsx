@@ -22,29 +22,29 @@ export const metadata: Metadata = {
 const TEXTOS = {
   es: {
     nuevo: "Nuevo",
-    aviso: "Los avisos de tu equipo llegan al momento a tu celular",
+    aviso: "Avisos al instante en tu celular",
     titulo: "Lleva a Atendel en tu celular",
-    texto: "Se instala gratis desde el navegador, sin tiendas de apps. Tu equipo y sus avisos, siempre a la mano.",
+    texto: "Instálalo gratis desde tu navegador, sin pasar por una tienda de apps.",
     qr: "Escanéalo con la cámara de tu celular",
-    botones: { en: "Instálalo en", iphone: "iPhone", android: "Android", compu: "¿En tu compu? Úsalo desde el navegador.", entrar: "Entrar", instalada: "Ya tienes Atendel instalado en este aparato." },
+    botones: { en: "Instálalo en", iphone: "iPhone", android: "Android", compu: "¿En computadora? Úsalo desde tu navegador.", entrar: "Entrar", instalada: "Ya tienes Atendel instalado en este aparato." },
     pasosTitulo: "Cómo se instala",
     pasos: [
-      { id: "iphone", titulo: "iPhone", nota: "En Safari", lista: ["Abre esta página en Safari.", "Toca Compartir.", "Toca «Agregar a inicio» y listo: Atendel queda con su ícono."] },
+      { id: "iphone", titulo: "iPhone", nota: "En Safari", lista: ["Abre esta página en Safari.", "Toca Compartir.", "Elige «Agregar a inicio»."] },
       { id: "android", titulo: "Android", nota: "En Chrome", lista: ["Abre esta página en Chrome.", "Toca «Instalar app» (o el menú ⋮ → Instalar app).", "Ábrelo desde tu pantalla de inicio."] },
-      { id: "compu", titulo: "Computadora", nota: "En Chrome o Edge", lista: ["Abre Atendel en el navegador.", "Haz clic en el ícono de instalar de la barra de direcciones.", "Atendel se abre en su propia ventana."] },
+      { id: "compu", titulo: "Computadora", nota: "En Chrome o Edge", lista: ["Abre Atendel en tu navegador.", "Haz clic en el ícono de instalar, en la barra de direcciones.", "Atendel se abre en su propia ventana."] },
     ],
     cel: { saludo: "Buenas tardes, Ana", aviso: "Aura confirmó las 6 citas de mañana", sugerencias: ["¿Qué es urgente en mi correo?", "Pide reseña a los clientes de hoy", "Hazme el reporte del mes"], caja: "Pídele algo a Atendel…" },
   },
   en: {
     nuevo: "New",
-    aviso: "Your team's alerts reach your phone right away",
+    aviso: "Instant alerts on your phone",
     titulo: "Take Atendel on your phone",
-    texto: "Install it free from your browser, no app store needed. Your team and its alerts, always at hand.",
+    texto: "Install it free from your browser, no app store needed.",
     qr: "Scan it with your phone's camera",
-    botones: { en: "Install it on", iphone: "iPhone", android: "Android", compu: "On your computer? Use it from the browser.", entrar: "Sign in", instalada: "Atendel is already installed on this device." },
+    botones: { en: "Install it on", iphone: "iPhone", android: "Android", compu: "On a computer? Use it from your browser.", entrar: "Sign in", instalada: "Atendel is already installed on this device." },
     pasosTitulo: "How to install it",
     pasos: [
-      { id: "iphone", titulo: "iPhone", nota: "In Safari", lista: ["Open this page in Safari.", "Tap Share.", "Tap “Add to Home Screen” and you're done: Atendel gets its own icon."] },
+      { id: "iphone", titulo: "iPhone", nota: "In Safari", lista: ["Open this page in Safari.", "Tap Share.", "Choose “Add to Home Screen”."] },
       { id: "android", titulo: "Android", nota: "In Chrome", lista: ["Open this page in Chrome.", "Tap “Install app” (or the ⋮ menu → Install app).", "Open it from your home screen."] },
       { id: "compu", titulo: "Computer", nota: "In Chrome or Edge", lista: ["Open Atendel in your browser.", "Click the install icon in the address bar.", "Atendel opens in its own window."] },
     ],
@@ -58,7 +58,7 @@ export default async function Descargar() {
   // El QR abre esta misma página en el celular (lo genera el servidor; es un dibujo SVG fijo)
   const qr = await QRCode.toString(`${SITIO}/descargar`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#0b0b0c", light: "#ffffff" } });
   return (
-    <Sitio cierre>
+    <Sitio pieDelgado>
       <section className="dl-portada" aria-labelledby="dl-titulo">
         <div className="dl-texto">
           <p className="dl-pastilla">

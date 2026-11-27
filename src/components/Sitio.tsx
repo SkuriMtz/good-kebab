@@ -26,6 +26,7 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
  *   video (Lenis lerp 0.08), la barra encima del contenido y el pie delgado.
  * - `cierre`: al final, el cierre del inicio (la marca de fragmentos, «Deja que Atendel lo
  *   haga» y el botón de la lista) y el pie delgado del inicio, en lugar del pie grande.
+ * - `pieDelgado`: solo el pie delgado del inicio, sin el cierre (p. ej., Descargar).
  * El pie siempre llega abajo, aunque la página sea corta. La barra es la
  * misma en todas las páginas públicas y "Únete a la lista" abre la lista de
  * espera ahí mismo (DialogoLista).
@@ -34,14 +35,16 @@ export function Sitio({
   children,
   fondo = "particulas",
   cierre = false,
+  pieDelgado = false,
 }: {
   children: ReactNode;
   fondo?: "particulas" | "3d" | "ninguno" | "figuras" | "inicio";
   cierre?: boolean;
+  pieDelgado?: boolean;
 }) {
   const inicio = fondo === "inicio";
   return (
-    <div className={`sitio sitio--${fondo}${cierre ? " sitio--con-cierre" : ""}`}>
+    <div className={`sitio sitio--${fondo}${cierre || pieDelgado ? " sitio--con-cierre" : ""}`}>
       {fondo === "3d" ? <Escena3D /> : inicio ? <FondoInicio /> : fondo === "particulas" || fondo === "figuras" ? <Escena sobrio /> : null}
       <ScrollSuave lerp={inicio ? 0.08 : undefined} />
       <Barra inicio={inicio} />
@@ -49,7 +52,7 @@ export function Sitio({
         {children}
         {cierre ? <CierreMarca /> : null}
       </main>
-      <div className="sobre-escena">{inicio || cierre ? <PieDelgado /> : <Footer />}</div>
+      <div className="sobre-escena">{inicio || cierre || pieDelgado ? <PieDelgado /> : <Footer />}</div>
       <FichasAgentes />
       <DialogoLista />
     </div>
