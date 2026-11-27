@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { EnlaceFicha } from "@/components/agentes/BotonFicha";
 import { Personaje } from "@/components/agentes/Personaje";
 import { AGENTE_POR_ID, type IdAgente } from "@/lib/agentes";
 import { LOGO_APP } from "@/lib/conexiones/logos";
@@ -11,7 +12,8 @@ import { contenidoMezcla } from "./textos";
 
 /**
  * Las piezas con movimiento de la landing combinada (vista previa en /vista-zapia), con el
- * estilo de la landing de siempre: los casos del día a día, la barra de apps y los permisos.
+ * estilo de la landing de siempre: tu equipo con sus casos del día a día, la barra de apps y
+ * los permisos.
  * Solo se mueven cuando se ven; con «reducir movimiento», quietas y a la vista.
  */
 
@@ -55,9 +57,17 @@ export function Etiqueta({ children }: { children: ReactNode }) {
   );
 }
 
-/** Casos del día a día: la lista avanza sola (con su barrita), y al lado la plática de ejemplo. */
-export function Casos({ idioma }: { idioma: string }) {
+const ORDEN: IdAgente[] = ["lola", "clara", "victor", "iris"];
+
+/**
+ * Tu equipo y lo que resuelve, en un mismo lugar: a la izquierda los cuatro agentes (con su
+ * barrita que avanza sola); en medio, el agente con una plática de ejemplo; a la derecha, qué
+ * resolvió, «Pruébalo» (abre el chat de prueba con ese pedido) y «Ver su ficha». Si un agente
+ * tiene dos casos, pasan los dos antes de seguir con el siguiente.
+ */
+export function Equipo({ idioma, cargos, verFicha }: { idioma: string; cargos: Record<IdAgente, string>; verFicha: string }) {
   const t = contenidoMezcla(idioma).casos;
+  const lista = ORDEN.flatMap((a) => t.lista.filter((c) => c.agente === a));
   const [ref, visto] = useAparece<HTMLDivElement>("-15%", true);
   const [activo, setActivo] = useState(0);
   const [solo, setSolo] = useState(true);
@@ -65,33 +75,37 @@ export function Casos({ idioma }: { idioma: string }) {
   const corre = solo && !pausa && visto;
   useEffect(() => {
     if (!corre || quieto()) return;
-    const r = window.setTimeout(() => setActivo((a) => (a + 1) % t.lista.length), 5200);
+    const r = window.setTimeout(() => setActivo((a) => (a + 1) % lista.length), 5200);
     return () => window.clearTimeout(r);
-  }, [activo, corre, t.lista.length]);
-  const caso = t.lista[activo];
+  }, [activo, corre, lista.length]);
+  const caso = lista[activo];
   return (
     <div ref={ref} className="mz-casos" style={colorDe(caso.agente)} onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}>
-      <ul className="mz-casos__lista" role="tablist" aria-label={t.titulo}>
-        {t.lista.map((c, k) => (
-          <li key={c.corto} style={colorDe(c.agente)}>
+      <ul className="mz-casos__lista" role="tablist">
+        {ORDEN.map((ag) => (
+          <li key={ag} style={colorDe(ag)}>
             <button
               type="button"
               role="tab"
-              aria-selected={k === activo}
+              aria-selected={caso.agente === ag}
               className="mz-casos__opcion"
-              data-corre={k === activo && corre ? "" : undefined}
+              data-corre={caso.agente === ag && corre ? "" : undefined}
               onClick={() => {
-                setActivo(k);
+                setActivo(lista.findIndex((c) => c.agente === ag));
                 setSolo(false);
               }}
             >
-              <span className="mz-casos__barra" aria-hidden="true" />
-              {c.corto}
+              <span className="mz-casos__barra" aria-hidden="true" key={activo} />
+              <Personaje agente={ag} avatar className="mz-casos__cara" />
+              <span className="mz-casos__quien">
+                <b>{AGENTE_POR_ID[ag].nombre}</b>
+                <span>{cargos[ag]}</span>
+              </span>
             </button>
           </li>
         ))}
       </ul>
-      <div className="mz-casos__platica" key={`p-${activo}`} role="tabpanel" aria-label={caso.titulo}>
+      <div className="mz-casos__platica" key={`p-${activo}`} role="tabpanel" aria-label={`${AGENTE_POR_ID[caso.agente].nombre}: ${caso.titulo}`}>
         <Personaje agente={caso.agente} className="mz-casos__personaje" />
         <p className="mz-burbuja mz-burbuja--tu">{caso.pide}</p>
         <p className="mz-burbuja mz-burbuja--agente">
@@ -106,9 +120,14 @@ export function Casos({ idioma }: { idioma: string }) {
       <div className="mz-casos__texto" key={`t-${activo}`}>
         <h3 className="ini-titulo">{caso.titulo}</h3>
         <p className="ini-cuerpo">{caso.texto}</p>
-        <Link href={pedir(caso.pide)} className="mz-boton">
-          {t.probar}
-        </Link>
+        <span className="mz-casos__botones">
+          <Link href={pedir(caso.pide)} className="mz-boton">
+            {t.probar}
+          </Link>
+          <EnlaceFicha agente={caso.agente} className="mz-boton mz-boton--contorno">
+            {verFicha}
+          </EnlaceFicha>
+        </span>
       </div>
     </div>
   );

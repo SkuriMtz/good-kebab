@@ -14,7 +14,7 @@ export type Caso = { agente: IdAgente; corto: string; titulo: string; texto: str
 type Contenido = {
   /** El texto de la portada, corto (el equipo ya se presenta en el carrusel). */
   portada: string;
-  casos: { etiqueta: string; titulo: string; probar: string; lista: Caso[] };
+  casos: { probar: string; lista: Caso[] };
   privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
   /** Escenas de siempre, más cortas y sin repetir lo que ya dice otra sección. */
   decisionesTexto: string;
@@ -54,8 +54,6 @@ const ES: Contenido = {
   },
   portada: "Atendel ve lo que pasa en tu negocio y lo resuelve como un socio, con su equipo.",
   casos: {
-    etiqueta: "En el día a día",
-    titulo: "Lo que tu equipo resuelve por ti",
     probar: "Pruébalo",
     lista: [
       { agente: "lola", corto: "Contesta de noche", titulo: "Contesta aunque estés dormido", texto: "Aura contesta tu WhatsApp con tus precios y tus reglas, ofrece un horario y deja la cita en tu agenda.", pide: "Hola, ¿cuánto cuesta la limpieza facial? ¿Tienen lugar el jueves?", responde: "¡Hola! Cuesta $650. El jueves tengo a las 11:00 o a las 17:00, ¿cuál te queda?" },
@@ -106,8 +104,6 @@ const EN: Contenido = {
   },
   portada: "Atendel sees what's happening in your business and sorts it out like a partner, with its team.",
   casos: {
-    etiqueta: "Day to day",
-    titulo: "What your team handles for you",
     probar: "Try it",
     lista: [
       { agente: "lola", corto: "Answers at night", titulo: "Answers while you sleep", texto: "Aura answers your WhatsApp with your prices and rules, offers a time and puts the appointment in your calendar.", pide: "Hi, how much is a facial? Do you have room on Thursday?", responde: "Hi! It's $650. On Thursday I have 11:00 or 17:00, which works for you?" },

@@ -3,9 +3,8 @@ import Link from "next/link";
 import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { APPS_CONECTABLES, appsConLogo } from "@/components/inicio-dala/AppsMarquesina";
-import { CarruselAgentes } from "@/components/inicio-dala/CarruselAgentes";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
-import { AppsBarra, Casos, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
+import { AppsBarra, Equipo, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
@@ -22,7 +21,8 @@ export const metadata: Metadata = { title: "Vista previa: landing combinada", ro
  * cambia) con solo esto nuevo:
  * - la portada, más chica y con el texto corto;
  * - el cerebro pasa de derecha a izquierda más parejo y suave (FondoInicio → motor.suave);
- * - «En el día a día»: casos que avanzan solos (entre el foco y el globo);
+ * - «Tu equipo»: los cuatro agentes y sus casos del día a día en un mismo panel (en lugar del
+ *   carrusel), con «Pruébalo» y «Ver su ficha»;
  * - las apps: una barra a la izquierda, de arriba abajo, que sube sola y no se detiene; la que
  *   toques dice qué hace Atendel en ella, quién la usa y un pedido de ejemplo (en lugar de la
  *   fila que se desliza);
@@ -107,17 +107,6 @@ export default async function VistaCombinada() {
         </div>
       </section>
 
-      {/* En el día a día: casos que avanzan solos */}
-      <section className="mz-bloque" aria-labelledby="casos-titulo">
-        <div className="mz-cabeza">
-          <Etiqueta>{m.casos.etiqueta}</Etiqueta>
-          <h2 id="casos-titulo" className="ini-titulo">
-            {m.casos.titulo}
-          </h2>
-        </div>
-        <Casos idioma={idioma} />
-      </section>
-
       {/* 5. Globo: que tu negocio crezca */}
       <section className="ini-bloque ini-globo" data-escena="globo" aria-labelledby="globo-titulo">
         <div className="ini-col ini-col--izq ini-escena__texto">
@@ -138,22 +127,15 @@ export default async function VistaCombinada() {
         </div>
       </section>
 
-      {/* 6. Tu equipo (carrusel de los agentes) */}
-      <section id="agentes" className="ini-bloque ini-equipo" data-escena="equipo" aria-labelledby="equipo-titulo">
-        <div className="ini-col ini-col--izq ini-equipo__texto">
-          <TextoDala como="h2" tipo="titulo" id="equipo-titulo" className="ini-grande">
-            {d.equipo.titulo}
-          </TextoDala>
-          <TextoDala className="ini-sub" retraso={0.2}>
+      {/* 6. Tu equipo y lo que resuelve, en un mismo lugar (en lugar del carrusel y de los casos) */}
+      <section id="agentes" className="mz-bloque mz-equipo" data-escena="equipo" aria-labelledby="equipo-titulo">
+        <div className="mz-cabeza">
+          <Etiqueta>{d.equipo.titulo}</Etiqueta>
+          <h2 id="equipo-titulo" className="ini-titulo">
             {equipoSub}
-          </TextoDala>
-          <TextoDala className="ini-cuerpo ini-cuerpo--chico" retraso={0.35}>
-            {d.equipo.texto}
-          </TextoDala>
+          </h2>
         </div>
-        <div className="ini-equipo__carrusel">
-          <CarruselAgentes />
-        </div>
+        <Equipo idioma={idioma} cargos={textos.carrusel.cargo} verFicha={textos.carrusel.verFicha} />
       </section>
 
       {/* 6b. Las apps: una barra a la izquierda que sube sola; la que toques dice qué hace Atendel ahí */}

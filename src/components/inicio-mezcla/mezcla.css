@@ -135,10 +135,12 @@
 }
 .mz-casos__opcion {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   min-height: 44px;
-  padding: 10px 0 10px 18px;
+  padding: 12px 0 12px 18px;
   color: var(--ini-gris);
   font-size: clamp(15px, 1.4vw, 20px);
   font-weight: 350;
@@ -150,6 +152,36 @@
 .mz-casos__opcion[aria-selected="true"],
 .mz-casos__opcion:hover {
   color: var(--ini-texto);
+}
+.mz-casos__cara {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  opacity: 0.55;
+  transition: opacity 250ms ease;
+}
+.mz-casos__opcion[aria-selected="true"] .mz-casos__cara,
+.mz-casos__opcion:hover .mz-casos__cara {
+  opacity: 1;
+}
+.mz-casos__quien {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.mz-casos__quien b {
+  font-weight: 450;
+}
+.mz-casos__quien span {
+  color: var(--ini-gris);
+  font-size: clamp(12px, 0.9vw, 13.5px);
+  letter-spacing: 0;
+}
+.mz-casos__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .mz-casos__barra {
   position: absolute;
@@ -639,11 +671,19 @@
     scroll-snap-align: start;
   }
   .mz-casos__opcion {
-    padding: 10px 16px;
+    gap: 8px;
+    padding: 6px 16px 6px 6px;
     border: 1px solid var(--ini-linea);
     border-radius: 999px;
     font-size: 15px;
     white-space: nowrap;
+  }
+  .mz-casos__cara {
+    width: 30px;
+    height: 30px;
+  }
+  .mz-casos__quien span {
+    display: none;
   }
   .mz-casos__opcion[aria-selected="true"] {
     border-color: var(--mz-c);
