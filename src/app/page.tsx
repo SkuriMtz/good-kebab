@@ -140,7 +140,6 @@ export default async function Inicio() {
           texto={m.apps.texto(APPS_CONECTABLES)}
           que={m.apps.que}
           usa={m.apps.usa}
-          pide={m.apps.pide}
         />
       </section>
 

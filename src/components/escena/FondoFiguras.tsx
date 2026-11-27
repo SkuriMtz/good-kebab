@@ -166,12 +166,15 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         if (y > b.top) continue;
         const tramo = Math.max(1, b.top - a.top);
         let f = (y - a.top) / tramo;
-        // Si la sección es más alta que su tramo en el video (p. ej., Planes con tarjetas), el
-        // cambio se hace en el último pedazo, del largo del video: mientras se lee, la figura
-        // espera, y llega igual que en el video cuando aparece la siguiente escena.
+        // Si la sección es un poco más alta que su tramo en el video (p. ej., Planes con
+        // tarjetas), el cambio se hace en el último pedazo, del largo del video: mientras se lee,
+        // la figura espera, y llega igual que en el video cuando aparece la siguiente escena.
+        // Si el tramo es mucho más largo (varias secciones sin escena propia, como Tu equipo,
+        // las apps y la privacidad antes de Planes), el cambio se reparte en todo el tramo: la
+        // figura sigue moviéndose con el scroll en lugar de quedarse quieta varias pantallas.
         if (b.i === a.i + 1) {
           const tramoVideo = ((REPOSO_VIDEO[b.i] - REPOSO_VIDEO[a.i]) / 750) * alto;
-          if (tramo > tramoVideo * 1.1) f = 1 - (b.top - y) / tramoVideo;
+          if (tramo > tramoVideo * 1.1 && tramo <= tramoVideo * 2) f = 1 - (b.top - y) / tramoVideo;
         }
         return a.i + Math.min(1, Math.max(0, f)) * (b.i - a.i);
       }

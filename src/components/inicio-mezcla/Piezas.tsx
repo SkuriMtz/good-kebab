@@ -136,9 +136,9 @@ export function Equipo({ idioma, cargos, verFicha }: { idioma: string; cargos: R
 /**
  * Las apps: arriba qué es; abajo, en un panel, una barra a la izquierda (de arriba abajo, que sube
  * sola y nunca se detiene) con todas las apps agrupadas por tipo, y a la derecha la tarjeta de la
- * app que toques, del color del agente que la usa: 01 qué hace Atendel en ella, 02 quién del
- * equipo la usa y 03 un pedido de ejemplo (abre el chat de prueba). Las marcas son de sus dueños:
- * solo dicen con qué se conecta.
+ * app que toques, del color del agente que la usa: qué hace Atendel en ella, quién del equipo la
+ * usa y un pedido que abre el chat de prueba. Las marcas son de sus dueños: solo dicen con qué se
+ * conecta.
  */
 export function AppsBarra({
   apps,
@@ -147,7 +147,6 @@ export function AppsBarra({
   texto,
   que,
   usa,
-  pide,
 }: {
   apps: AppBarra[];
   etiqueta: string;
@@ -155,7 +154,6 @@ export function AppsBarra({
   texto: string;
   que: string;
   usa: string;
-  pide: string;
 }) {
   const [activa, setActiva] = useState(0);
   const app = apps[activa];
@@ -209,16 +207,14 @@ export function AppsBarra({
             <p className="mz-barra__nombre">{app.nombre}</p>
             <span className="mz-barra__categoria">{app.categoria}</span>
           </div>
-          <ol className="mz-barra__puntos">
+          <ul className="mz-barra__puntos">
             <li style={{ "--k": 0 } as CSSProperties}>
-              <span className="mz-barra__num">01</span>
               <span className="mz-barra__dato">
                 <b>{que}</b>
                 {app.puede}
               </span>
             </li>
             <li style={{ "--k": 1 } as CSSProperties}>
-              <span className="mz-barra__num">02</span>
               <span className="mz-barra__dato">
                 <b>{usa}</b>
                 <span className="mz-barra__agentes">
@@ -232,15 +228,11 @@ export function AppsBarra({
               </span>
             </li>
             <li style={{ "--k": 2 } as CSSProperties}>
-              <span className="mz-barra__num">03</span>
-              <span className="mz-barra__dato">
-                <b>{pide}</b>
-                <Link href={pedir(app.pide)} className="mz-barra__pide">
-                  «{app.pide}» <span aria-hidden="true">→</span>
-                </Link>
-              </span>
+              <Link href={pedir(app.pide)} className="mz-barra__pide">
+                «{app.pide}» <span aria-hidden="true">→</span>
+              </Link>
             </li>
-          </ol>
+          </ul>
         </div>
       </div>
     </div>

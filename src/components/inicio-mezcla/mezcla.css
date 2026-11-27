@@ -596,19 +596,13 @@
   list-style: none;
 }
 .mz-barra__puntos > li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   padding: clamp(12px, 1.4vw, 18px) 0;
   border-top: 1px solid var(--ini-linea);
   animation: mz-sube 450ms var(--ini-salida) both;
   animation-delay: calc(80ms + var(--k, 0) * 70ms);
-}
-.mz-barra__num {
-  color: var(--mz-c);
-  font-family: var(--fuente-mono, ui-monospace, monospace);
-  font-size: 12px;
-  line-height: 1.9;
 }
 .mz-barra__dato {
   display: flex;
@@ -770,7 +764,6 @@
     padding: 16px;
   }
   .mz-barra__puntos > li {
-    grid-template-columns: minmax(0, 1fr);
     gap: 4px;
   }
 }

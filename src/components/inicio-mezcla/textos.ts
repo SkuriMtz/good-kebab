@@ -26,7 +26,7 @@ type Contenido = {
   casos: { probar: string; lista: Caso[] };
   privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
   /** Las apps: qué es, cómo trabaja en ellas y un pedido de ejemplo por tipo de app. */
-  apps: { etiqueta: string; titulo: string; texto: (n: number) => string; que: string; usa: string; pide: string; ejemplos: Record<CategoriaApp, string> };
+  apps: { etiqueta: string; titulo: string; texto: (n: number) => string; que: string; usa: string; ejemplos: Record<CategoriaApp, string> };
 };
 
 const ES: Contenido = {
@@ -70,7 +70,6 @@ const ES: Contenido = {
     texto: (n) => `${n} apps disponibles. Conecta tu cuenta y Atendel trabaja en ellas, siempre con tu permiso.`,
     que: "Qué hace",
     usa: "Quién la usa",
-    pide: "Ejemplo",
     ejemplos: {
       correo: "¿Qué correos necesitan respuesta hoy?",
       mensajes: "¿Qué mensajes tengo sin responder?",
@@ -127,7 +126,6 @@ const EN: Contenido = {
     texto: (n) => `${n} apps available. Connect your account and Atendel works in them, always with your permission.`,
     que: "What it does",
     usa: "Who uses it",
-    pide: "Example",
     ejemplos: {
       correo: "Which emails need a reply today?",
       mensajes: "Which messages haven't I answered?",
@@ -184,7 +182,6 @@ const PT: Contenido = {
     texto: (n) => `${n} apps disponíveis. Conecte sua conta e o Atendel trabalha neles, sempre com a sua permissão.`,
     que: "O que faz",
     usa: "Quem usa",
-    pide: "Exemplo",
     ejemplos: {
       correo: "Quais e-mails precisam de resposta hoje?",
       mensajes: "Quais mensagens estão sem resposta?",
@@ -241,7 +238,6 @@ const FR: Contenido = {
     texto: (n) => `${n} apps disponibles. Connectez votre compte et Atendel y travaille, toujours avec votre accord.`,
     que: "Ce qu'il fait",
     usa: "Qui l'utilise",
-    pide: "Exemple",
     ejemplos: {
       correo: "Quels e-mails attendent une réponse aujourd'hui ?",
       mensajes: "Quels messages sont restés sans réponse ?",
@@ -298,7 +294,6 @@ const DE: Contenido = {
     texto: (n) => `${n} Apps verfügbar. Verbinde dein Konto und Atendel arbeitet darin, immer mit deiner Erlaubnis.`,
     que: "Was es macht",
     usa: "Wer sie nutzt",
-    pide: "Beispiel",
     ejemplos: {
       correo: "Welche E-Mails brauchen heute eine Antwort?",
       mensajes: "Welche Nachrichten habe ich nicht beantwortet?",
@@ -355,7 +350,6 @@ const IT: Contenido = {
     texto: (n) => `${n} app disponibili. Collega il tuo account e Atendel ci lavora, sempre con il tuo permesso.`,
     que: "Cosa fa",
     usa: "Chi la usa",
-    pide: "Esempio",
     ejemplos: {
       correo: "Quali email richiedono una risposta oggi?",
       mensajes: "A quali messaggi non ho ancora risposto?",
@@ -412,7 +406,6 @@ const ZH: Contenido = {
     texto: (n) => `目前支持 ${n} 个应用。连接你的账户后，Atendel 就能在其中工作，始终需要你的许可。`,
     que: "它做什么",
     usa: "谁在用",
-    pide: "示例",
     ejemplos: {
       correo: "今天哪些邮件需要回复？",
       mensajes: "哪些消息我还没回复？",
