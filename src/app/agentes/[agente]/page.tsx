@@ -47,7 +47,6 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
   const a = agenteDe(idioma, id);
   const detalle = d.detalle[id];
   const minimo = planMinimoDe(idioma, id);
-  const enFree = minimo.id === "free";
   const otros = agentesDe(idioma).filter((o) => o.id !== id);
 
   return (
@@ -106,41 +105,24 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
       {/* Todo lo que hace */}
       <Seccion etiquetadaPor="agente-funciones">
         <div className="columnas-asimetricas">
-          <EncabezadoSeccion
-            id="agente-funciones"
-            alineacion="izquierda"
-            etiqueta={P.queHace}
-            titulo={P.todoLoQueHace(a.nombre)}
-            texto={detalle.descripcion}
-            className="agente-funciones__encabezado"
-          />
-          <ol className="funciones funciones--numeradas">
-            {detalle.funciones.map((f, i) => (
+          <EncabezadoSeccion id="agente-funciones" alineacion="izquierda" titulo={P.todoLoQueHace(a.nombre)} className="agente-funciones__encabezado" />
+          <ul className="funciones">
+            {detalle.funciones.map((f) => (
               <li key={f.titulo} className="funciones__fila">
-                <span className="funciones__numero" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
                 <div>
                   <p className="funciones__titulo">{f.titulo}</p>
                   <p className="t-cuerpo">{f.detalle}</p>
                 </div>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </Seccion>
 
       {/* Ideas para empezar (las mismas del chat) */}
       <Seccion etiquetadaPor="agente-ideas" fondo="fondo-2">
         <div className="agente-ideas">
-          <EncabezadoSeccion
-            id="agente-ideas"
-            alineacion="izquierda"
-            etiqueta={P.paraEmpezar}
-            titulo={P.pidele(a.nombre)}
-            texto={P.ideas}
-            className="agente-ideas__encabezado"
-          />
+          <EncabezadoSeccion id="agente-ideas" alineacion="izquierda" titulo={P.pidele(a.nombre)} className="agente-ideas__encabezado" />
           <ul className="ideas">
             {a.sugerencias.map((s) => (
               <li key={s}>
@@ -157,12 +139,7 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
 
       {/* En qué plan viene */}
       <Seccion etiquetadaPor="agente-planes">
-        <EncabezadoSeccion
-          id="agente-planes"
-          etiqueta={P.planes}
-          titulo={P.enQuePlan(a.nombre)}
-          texto={enFree ? P.enLosTres(a.nombre) : P.llegaCon(a.nombre, minimo.nombre)}
-        />
+        <EncabezadoSeccion id="agente-planes" titulo={P.enQuePlan(a.nombre)} />
         <TarjetaVidrio relleno="ninguno" className="planes-fila">
           <ul className="planes-fila__lista">
             {planesDe(idioma).map((p) => {
@@ -192,7 +169,7 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
 
       {/* El resto del equipo */}
       <Seccion etiquetadaPor="agente-equipo" className="agente-equipo">
-        <EncabezadoSeccion id="agente-equipo" etiqueta={P.tuEquipo} titulo={P.otrosTres} />
+        <EncabezadoSeccion id="agente-equipo" titulo={P.otrosTres} />
         <ul className="equipo-enlaces">
           {otros.map((o) => (
             <li key={o.id}>

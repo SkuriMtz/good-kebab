@@ -29,13 +29,8 @@ export default async function Agentes() {
       <section className="seccion con-halo agentes-portada" aria-labelledby="agentes-titulo">
         <Halo y="38%" ancho="min(1100px, 150vw)" proporcion="16 / 9" />
         <div className="contenedor">
-          <EncabezadoSeccion
-            id="agentes-titulo"
-            nivel={1}
-            etiqueta={P.etiqueta}
-            titulo={P.titulo}
-            texto={P.texto}
-          />
+          {/* Solo el título: las tarjetas de abajo ya dicen quién es quién */}
+          <EncabezadoSeccion id="agentes-titulo" nivel={1} titulo={P.titulo} />
           <TarjetasAgentes idioma={idioma} />
           <div className="agentes-portada__acciones">
             <Boton href="/pruebalo">{P.hablar}</Boton>

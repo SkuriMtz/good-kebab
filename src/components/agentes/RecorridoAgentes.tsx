@@ -47,7 +47,10 @@ const appsDe = (agente: IdAgente) => {
   return [...suyas].sort((x, z) => pos(x.id) - pos(z.id)).slice(0, orden.length || 4);
 };
 
-/** Lo de cada agente: su globo, su lema, qué hace y con qué apps trabaja (igual en compu y en celular). */
+/**
+ * Lo de cada agente: su globo, su lema y con qué apps trabaja (igual en compu y en celular). Sin
+ * el párrafo largo: el lema ya dice qué hace.
+ */
 function TextoAgente({ a, idioma }: { a: ReturnType<typeof agentesDe>[number]; idioma: Idioma }) {
   const d = t(idioma);
   const apps = appsDe(a.id);
@@ -58,7 +61,6 @@ function TextoAgente({ a, idioma }: { a: ReturnType<typeof agentesDe>[number]; i
         {a.nombre} · {a.area}
       </span>
       <h2 className="recorrido__titulo">{a.lema}</h2>
-      <p className="recorrido__parrafo">{d.detalle[a.id].descripcion}</p>
       {apps.length ? (
         <div className="recorrido__apps">
           <span className="recorrido__trabaja">{d.conversacion.trabajaCon}</span>
