@@ -12,8 +12,11 @@ import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
 export type Caso = { agente: IdAgente; corto: string; titulo: string; texto: string; pide: string; responde: string };
 
 type Contenido = {
-  /** El texto de la portada, corto (el equipo ya se presenta en el carrusel). */
+  /** La portada, al grano: qué es Atendel (etiqueta) y qué hace (texto). */
+  portadaEtiqueta: string;
   portada: string;
+  /** Cómo entras (el globo), sin la frase de relleno de antes. */
+  globoTexto: string;
   casos: { probar: string; lista: Caso[] };
   privacidad: { permisosTitulo: string; permisos: { id: IdApp; que: string; activo: boolean }[]; mas: string };
   /** Escenas de siempre, más cortas y sin repetir lo que ya dice otra sección. */
@@ -22,7 +25,7 @@ type Contenido = {
   equipoSub: string;
   planesTexto: string;
   /** Las apps: qué es, cómo trabaja en ellas y un pedido de ejemplo por tipo de app. */
-  apps: { etiqueta: string; titulo: string; texto: (n: number) => string; usa: string; pide: string; ejemplos: Record<CategoriaApp, string> };
+  apps: { etiqueta: string; titulo: string; texto: (n: number) => string; que: string; usa: string; pide: string; ejemplos: Record<CategoriaApp, string> };
 };
 
 const ES: Contenido = {
@@ -37,8 +40,9 @@ const ES: Contenido = {
     etiqueta: "Tus apps",
     titulo: "Se conecta con las apps que ya usas",
     texto: (n) => `Hoy son ${n}. Conectas tu cuenta de cada una y Atendel trabaja ahí mismo: lee lo que necesita y, si tú lo permites, agenda, contesta y manda.`,
-    usa: "Lo usa",
-    pide: "Pídele",
+    que: "Qué hace ahí",
+    usa: "Quién la usa",
+    pide: "Pídele, por ejemplo",
     ejemplos: {
       correo: "¿Qué correos necesitan respuesta hoy?",
       mensajes: "¿Quién me escribió y no le he contestado?",
@@ -52,7 +56,9 @@ const ES: Contenido = {
       facturacion: "¿Qué facturas recibí este mes?",
     },
   },
-  portada: "Atendel ve lo que pasa en tu negocio y lo resuelve como un socio, con su equipo.",
+  portadaEtiqueta: "Asistente de IA para tu negocio",
+  portada: "Contesta tu WhatsApp, ordena tu correo y lleva tu agenda. Tú le pides las cosas en un chat y su equipo las hace.",
+  globoTexto: "Entras con tu correo, sin contraseña, desde el celular o la computadora, y también le puedes hablar.",
   casos: {
     probar: "Pruébalo",
     lista: [
@@ -87,8 +93,9 @@ const EN: Contenido = {
     etiqueta: "Your apps",
     titulo: "It connects to the apps you already use",
     texto: (n) => `${n} today. You connect your account for each one and Atendel works right there: it reads what it needs and, if you allow it, books, replies and sends.`,
-    usa: "Used by",
-    pide: "Ask",
+    que: "What it does there",
+    usa: "Who uses it",
+    pide: "Ask it, for example",
     ejemplos: {
       correo: "Which emails need a reply today?",
       mensajes: "Who wrote to me and hasn't had an answer?",
@@ -102,7 +109,9 @@ const EN: Contenido = {
       facturacion: "Which invoices did I get this month?",
     },
   },
-  portada: "Atendel sees what's happening in your business and sorts it out like a partner, with its team.",
+  portadaEtiqueta: "AI assistant for your business",
+  portada: "It answers your WhatsApp, sorts your email and runs your calendar. You ask for things in a chat and its team gets them done.",
+  globoTexto: "You sign in with your email, no password, from your phone or computer, and you can also talk to it.",
   casos: {
     probar: "Try it",
     lista: [

@@ -5,6 +5,7 @@ import { FichasAgentes } from "./agentes/FichasAgentes";
 import { Escena } from "./escena/Escena";
 import { ScrollSuave } from "./escena/ScrollSuave";
 import { Escena3D } from "./escena3d/Escena3D";
+import { CierreMarca } from "./inicio-dala/CierreMarca";
 import { DialogoLista } from "./inicio-dala/DialogoLista";
 import { FondoInicio } from "./inicio-dala/FondoInicio";
 import { PieDelgado } from "./inicio-dala/PieDelgado";
@@ -23,6 +24,8 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
  * - `fondo="inicio"`: el inicio igual a los videos de referencia: el fondo
  *   de figuras que sigue las 8 escenas (FondoInicio), el scroll suave del
  *   video (Lenis lerp 0.08), la barra encima del contenido y el pie delgado.
+ * - `cierre`: al final, el cierre del inicio (la marca de fragmentos, «Deja que Atendel lo
+ *   haga» y el botón de la lista) y el pie delgado del inicio, en lugar del pie grande.
  * El pie siempre llega abajo, aunque la página sea corta. La barra es la
  * misma en todas las páginas públicas y "Únete a la lista" abre la lista de
  * espera ahí mismo (DialogoLista).
@@ -30,20 +33,23 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
 export function Sitio({
   children,
   fondo = "particulas",
+  cierre = false,
 }: {
   children: ReactNode;
   fondo?: "particulas" | "3d" | "ninguno" | "figuras" | "inicio";
+  cierre?: boolean;
 }) {
   const inicio = fondo === "inicio";
   return (
-    <div className={`sitio sitio--${fondo}`}>
+    <div className={`sitio sitio--${fondo}${cierre ? " sitio--con-cierre" : ""}`}>
       {fondo === "3d" ? <Escena3D /> : inicio ? <FondoInicio /> : fondo === "particulas" || fondo === "figuras" ? <Escena sobrio /> : null}
       <ScrollSuave lerp={inicio ? 0.08 : undefined} />
       <Barra inicio={inicio} />
       <main id="contenido" tabIndex={-1} className="sitio__contenido sobre-escena">
         {children}
+        {cierre ? <CierreMarca /> : null}
       </main>
-      <div className="sobre-escena">{inicio ? <PieDelgado /> : <Footer />}</div>
+      <div className="sobre-escena">{inicio || cierre ? <PieDelgado /> : <Footer />}</div>
       <FichasAgentes />
       <DialogoLista />
     </div>

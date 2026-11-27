@@ -35,7 +35,7 @@ export default async function PreguntasFrecuentes() {
     { id: "seguridad", nombre: P.cuidamos },
   ];
   return (
-    <Sitio>
+    <Sitio cierre>
       <div className="contenedor faq-pagina">
         <aside className="faq-pagina__lado">
           <Etiqueta tono="cielo">{P.etiqueta}</Etiqueta>

@@ -51,7 +51,7 @@ export default async function PaginaAgente(props: { params: Promise<{ agente: st
   const otros = agentesDe(idioma).filter((o) => o.id !== id);
 
   return (
-    <Sitio>
+    <Sitio cierre>
       {/* Encabezado: el personaje es el protagonista */}
       <section className="seccion con-halo agente-heroe" aria-labelledby="agente-titulo">
         <div className="contenedor">

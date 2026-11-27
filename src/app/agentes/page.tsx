@@ -27,7 +27,7 @@ export default async function Agentes() {
   const P = t(idioma).paginaAgentes;
   const agentes = agentesDe(idioma);
   return (
-    <Sitio>
+    <Sitio cierre>
       <section className="seccion con-halo agentes-portada" aria-labelledby="agentes-titulo">
         <Halo y="38%" ancho="min(1100px, 150vw)" proporcion="16 / 9" />
         <div className="contenedor">

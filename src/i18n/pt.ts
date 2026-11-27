@@ -129,6 +129,8 @@ export const pt: Diccionario = {
     privacy: "Privacidade",
     apps: "Apps",
     todasPoliticas: "Todos os documentos",
+    producto: "Produto",
+    descargar: "Baixar",
   },
 
   tema: {

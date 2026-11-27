@@ -26,7 +26,7 @@ export default async function Precios() {
   const d = t(idioma);
   const P = d.paginaPrecios;
   return (
-    <Sitio>
+    <Sitio cierre>
       <header className="pagina-cabeza pagina-cabeza--escena contenedor" data-escena="globoDerecha">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{P.etiqueta}</Etiqueta>

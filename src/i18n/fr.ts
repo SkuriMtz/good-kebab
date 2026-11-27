@@ -125,6 +125,8 @@ export const fr: Diccionario = {
     privacy: "Confidentialité",
     apps: "Applications",
     todasPoliticas: "Tous les documents",
+    producto: "Produit",
+    descargar: "Télécharger",
   },
 
   tema: {

@@ -125,6 +125,8 @@ export const it: Diccionario = {
     privacy: "Privacy",
     apps: "App",
     todasPoliticas: "Tutti i documenti",
+    producto: "Prodotto",
+    descargar: "Scarica",
   },
 
   tema: {

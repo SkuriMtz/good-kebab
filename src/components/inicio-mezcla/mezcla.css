@@ -461,163 +461,207 @@
 }
 
 /* =====================================================================
-   Las apps: una barra a la izquierda, de arriba abajo, que sube sola;
-   la que toques dice a la derecha qué hace Atendel en ella
+   Las apps: arriba qué es; abajo, un panel con la barra de apps (agrupadas por tipo, sube sola
+   y nunca se detiene) y la tarjeta de la app que toques, con tres puntos numerados
    ===================================================================== */
-.mz-apps-bloque {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 6vw;
-  min-height: 100vh;
+.mz-apps-bloque .mz-cabeza {
+  max-width: 44vw;
 }
-.mz-barra {
-  display: contents;
+.mz-barra__panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1.4fr);
+  align-items: stretch;
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(14px, 1.6vw, 22px);
+  border: 1px solid var(--ini-linea);
+  border-radius: 28px;
+  background: var(--ini-tarjeta);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 .mz-barra__ventana {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  height: min(78vh, 720px);
+  height: clamp(380px, 56vh, 520px);
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
 }
 .mz-barra__pista {
   display: flex;
   flex-direction: column;
-  animation: mz-sube-barra 70s linear infinite;
+  animation: mz-sube-barra 80s linear infinite;
 }
-.mz-barra__lista {
+.mz-barra__lista,
+.mz-barra__grupo ul {
   display: flex;
   flex-direction: column;
-  gap: 14px;
   margin: 0;
-  padding: 7px 10px;
+  padding: 0;
   list-style: none;
 }
+.mz-barra__lista {
+  gap: 18px;
+  padding: 9px 4px;
+}
+.mz-barra__grupo ul {
+  gap: 6px;
+}
+.mz-barra__tipo {
+  display: block;
+  margin: 0 0 8px 6px;
+  color: var(--ini-acento);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .mz-barra__app {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border-radius: 13px;
-  background: #fff;
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.06),
-    0 8px 20px -10px rgb(0 0 0 / 0.6);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--ini-texto);
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
   transition:
-    transform 400ms var(--mz-salto),
-    box-shadow 250ms ease;
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+.mz-barra__app img {
+  flex: none;
+  box-sizing: content-box;
+  padding: 6px;
+  border-radius: 9px;
+  background: #fff;
+}
+.mz-barra__app span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .mz-barra__app:hover {
-  transform: scale(1.08);
+  background: color-mix(in srgb, var(--ini-texto) 6%, transparent);
 }
 .mz-barra__app[aria-pressed="true"] {
-  box-shadow:
-    0 0 0 2px var(--ini-acento),
-    0 8px 20px -10px rgb(0 0 0 / 0.6);
+  border-color: var(--ini-acento);
+  background: color-mix(in srgb, var(--ini-acento) 10%, transparent);
 }
-.mz-apps-bloque .mz-cabeza {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: end;
-  margin-bottom: 0;
-}
-.mz-apps-bloque .mz-cabeza .ini-cuerpo {
-  max-width: 34rem;
-}
+/* La tarjeta de la app: del color del agente que la usa, con sus tres puntos numerados */
 .mz-barra__info {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: start;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 2.4vw, 36px);
+  border: 1px solid color-mix(in srgb, var(--mz-c) 40%, transparent);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--mz-c) 22%, transparent), transparent 70%),
+    color-mix(in srgb, var(--mz-c) 8%, transparent);
+  animation: mz-aparece 400ms var(--ini-salida) both;
+}
+.mz-barra__cabeza {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 4px 16px;
-  max-width: 34rem;
-  padding: clamp(18px, 2vw, 26px);
-  border: 1px solid var(--ini-linea);
-  border-radius: 18px;
-  background: var(--ini-tarjeta);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  animation: mz-aparece 400ms var(--ini-salida) both;
+  gap: 2px 16px;
+  margin-bottom: clamp(16px, 2vw, 26px);
 }
-.mz-barra__info img {
+.mz-barra__cabeza img {
   grid-row: 1 / span 2;
   box-sizing: content-box;
-  padding: 8px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 14px;
   background: #fff;
 }
 .mz-barra__nombre {
   margin: 0;
-  font-size: clamp(18px, 1.6vw, 24px);
-  letter-spacing: -0.02em;
+  color: var(--ini-texto);
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 450;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
 }
 .mz-barra__categoria {
-  margin: 0;
   color: var(--ini-gris);
   font-size: 13px;
 }
-.mz-barra__puede {
-  grid-column: 1 / -1;
-  margin: 12px 0 0;
-  padding-top: 12px;
+.mz-barra__puntos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mz-barra__puntos > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: clamp(12px, 1.4vw, 18px) 0;
   border-top: 1px solid var(--ini-linea);
+  animation: mz-sube 450ms var(--ini-salida) both;
+  animation-delay: calc(80ms + var(--k, 0) * 70ms);
+}
+.mz-barra__num {
+  color: var(--mz-c);
+  font-family: var(--fuente-mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.mz-barra__dato {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--ini-texto);
   font-size: clamp(14px, 1.1vw, 16px);
   font-weight: 300;
   line-height: 1.5;
 }
-.mz-barra__usa {
-  grid-column: 1 / -1;
+.mz-barra__dato b {
+  color: var(--ini-gris);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.mz-barra__agentes {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: 8px;
-  margin: 12px 0 0;
-  color: var(--ini-gris);
-  font-size: 13px;
 }
 .mz-barra__agente {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px 3px 4px;
-  border: 1px solid color-mix(in srgb, var(--mz-c) 40%, transparent);
+  padding: 3px 12px 3px 4px;
+  border: 1px solid color-mix(in srgb, var(--mz-c) 45%, transparent);
   border-radius: 999px;
   color: var(--ini-texto);
+  font-size: 14px;
+  font-weight: 400;
 }
 .mz-barra__cara {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 .mz-barra__pide {
-  grid-column: 1 / -1;
   display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
   gap: 6px;
-  justify-self: start;
-  margin-top: 14px;
-  padding: 10px 14px;
-  border: 1px solid var(--ini-linea);
+  padding: 9px 14px;
   border-radius: 14px;
-  color: var(--ini-texto);
+  background: var(--ini-texto);
+  color: var(--ini-fondo);
   font-size: 14px;
-  transition: border-color 250ms ease;
-}
-.mz-barra__pide span:first-child {
-  color: var(--ini-acento);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-weight: 450;
+  transition: transform 160ms ease;
 }
 .mz-barra__pide:hover {
-  border-color: color-mix(in srgb, var(--ini-texto) 40%, transparent);
+  transform: translateX(3px);
 }
-.mz-barra__pide:focus-visible {
+.mz-barra__pide:focus-visible,
+.mz-barra__app:focus-visible {
   outline: 2px solid var(--c-foco, var(--ini-texto));
   outline-offset: 3px;
 }
@@ -697,35 +741,37 @@
   .mz-casos__texto {
     gap: 12px;
   }
-  /* Las apps: la barra sigue a la izquierda, más angosta; la cabeza arriba */
-  .mz-apps-bloque {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 16px;
-    min-height: 0;
-  }
+  /* Las apps: la barra (solo logos) a la izquierda y la tarjeta a la derecha */
   .mz-apps-bloque .mz-cabeza {
-    grid-column: 1 / -1;
-    grid-row: 1;
+    max-width: none;
+  }
+  .mz-barra__panel {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border-radius: 22px;
   }
   .mz-barra__ventana {
-    grid-row: 2;
-    height: 64svh;
+    height: 62svh;
+  }
+  .mz-barra__tipo,
+  .mz-barra__app span {
+    display: none;
   }
   .mz-barra__lista {
     gap: 10px;
-    padding: 5px 4px;
+    padding: 6px 0;
   }
   .mz-barra__app {
-    width: 46px;
-    height: 46px;
+    justify-content: center;
+    padding: 4px;
   }
   .mz-barra__info {
-    grid-row: 2;
-    align-self: center;
-    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
   }
-  .mz-barra__info img {
-    grid-row: auto;
+  .mz-barra__puntos > li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 }
 
@@ -753,9 +799,8 @@
 }
 
 /* =====================================================================
-   Planes, más compactos: el título, las tres tarjetas y «Cuándo sale» caben en una pantalla
-   (en compu). Las mismas tarjetas de siempre, solo más chicas; sin el «Los cuatro agentes»
-   debajo de las caras (lo dice la primera línea de cada plan).
+   Planes, medianos: más chicos que los de siempre, sin «Los cuatro agentes» debajo de las
+   caras (lo dice la primera línea de cada plan). En compu, casi todo cabe en una pantalla.
    ===================================================================== */
 @media (min-width: 1024px) {
   .ini-planes.mz-planes {
@@ -763,54 +808,54 @@
     min-height: 100vh;
     flex-direction: column;
     justify-content: center;
-    padding-top: clamp(72px, 10vh, 104px);
-    padding-bottom: clamp(28px, 5vh, 56px);
+    padding-top: clamp(80px, 11vh, 120px);
+    padding-bottom: clamp(32px, 6vh, 64px);
   }
   .mz-planes .ini-planes__cabeza {
-    margin-bottom: clamp(14px, 2.4vh, 24px);
+    margin-bottom: clamp(18px, 3vh, 32px);
   }
   .mz-planes .ini-planes__cabeza .ini-grande {
-    font-size: clamp(32px, min(3.4vw, 6vh), 52px);
+    font-size: clamp(40px, min(4.2vw, 7vh), 64px);
   }
   .sitio--inicio .mz-planes .planes--inicio {
-    row-gap: clamp(10px, 1.6vh, 16px);
+    row-gap: clamp(14px, 2.2vh, 22px);
   }
   .sitio--inicio .mz-planes .planes--inicio .plan {
-    padding: clamp(16px, 2.6vh, 26px) clamp(18px, 1.7vw, 26px);
+    padding: clamp(22px, 3.4vh, 36px) clamp(22px, 2vw, 32px);
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__nombre {
-    font-size: clamp(16px, 1.25vw, 19px);
+    font-size: clamp(18px, 1.45vw, 22px);
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__monto {
-    font-size: clamp(24px, min(2.2vw, 4vh), 34px);
+    font-size: clamp(30px, min(2.7vw, 5vh), 42px);
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__precio .t-cuerpo {
-    font-size: 13.5px;
+    font-size: 15px;
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__equipo {
-    padding-top: clamp(10px, 1.6vh, 16px);
+    padding-top: clamp(14px, 2.2vh, 22px);
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__equipo .t-chico {
     display: none;
   }
   .sitio--inicio .mz-planes .planes--inicio .marca-agente--chica {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__incluye {
-    gap: 6px;
+    gap: 10px;
   }
   .sitio--inicio .mz-planes .planes--inicio .plan__incluye li {
-    font-size: 13.5px;
-    line-height: 1.4;
+    font-size: 15px;
+    line-height: 1.45;
   }
   .mz-planes .planes--inicio .plan__boton {
-    height: 38px;
+    height: 42px;
   }
   .mz-planes .planes--inicio .plan__accion .t-caption {
-    font-size: 12px;
+    font-size: 12.5px;
   }
   .mz-planes .ini-cuando {
-    margin-top: clamp(10px, 2vh, 18px);
+    margin-top: clamp(12px, 2.4vh, 22px);
   }
 }

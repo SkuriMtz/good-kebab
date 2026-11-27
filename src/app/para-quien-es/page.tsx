@@ -37,7 +37,7 @@ export default async function ParaQuienEs() {
   const P = t(idioma).paraQuien;
   const SEGMENTOS = P.segmentos;
   return (
-    <Sitio>
+    <Sitio cierre>
       <EncabezadoPagina
         escena="burbujaDerecha"
         etiqueta={P.etiqueta}

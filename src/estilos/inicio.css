@@ -1520,3 +1520,179 @@
   }
 }
 
+
+/* =====================================================================
+   El cierre del inicio en las demás páginas (<Sitio cierre>, CierreMarca.tsx):
+   la marca de fragmentos, «Deja que Atendel lo haga» y el pie delgado
+   ===================================================================== */
+:root:not([data-tema="claro"]) .sitio--con-cierre {
+  --ini-fondo: #000;
+  --ini-texto: #fff;
+  --ini-gris: #9a9a9a;
+  --ini-linea: rgb(255 255 255 / 0.14);
+  --ini-linea-pie: rgb(255 255 255 / 0.06);
+}
+:root[data-tema="claro"] .sitio--con-cierre {
+  --ini-fondo: #fafafa;
+  --ini-texto: #171717;
+  --ini-gris: #666;
+  --ini-linea: rgb(0 0 0 / 0.12);
+  --ini-linea-pie: rgb(0 0 0 / 0.08);
+}
+.cierre-marca {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 96px 20px;
+  text-align: center;
+}
+.cierre-marca .escena-fondo.fondo-figuras.cierre-marca__fondo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  /* Sin la máscara ni la opacidad baja del fondo sobrio de estas páginas: la marca se ve entera */
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.cierre-marca__centro {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 1.7vw, 28px);
+}
+.cierre-marca__texto {
+  color: var(--ini-texto);
+  font-size: clamp(28px, 3.18vw, 48px);
+  font-weight: 400;
+  line-height: 1.17;
+  letter-spacing: -0.02em;
+}
+:root:not([data-tema="claro"]) .cierre-marca__texto {
+  text-shadow: 0 2px 28px rgb(0 0 0 / 0.6);
+}
+
+/* =====================================================================
+   Las opciones de la barra (computadora; todas las páginas menos «/»): «Producto» con su
+   lista que se despliega al pasar el cursor, Para quién es, Precios, Preguntas y Entrar
+   ===================================================================== */
+.barra__nav,
+.barra__entrar {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .barra__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(2px, 0.4vw, 8px);
+    margin-left: clamp(20px, 2.6vw, 44px);
+  }
+  .barra__enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    color: var(--c-texto);
+    font-size: clamp(13px, 1vw, 15px);
+    font-weight: 450;
+    opacity: 0.82;
+    white-space: nowrap;
+    transition:
+      opacity 200ms ease,
+      background-color 200ms ease;
+  }
+  .barra__enlace:hover,
+  .barra__enlace[aria-current="page"],
+  .barra__grupo[data-abierto="true"] .barra__enlace--abre {
+    background: color-mix(in srgb, var(--c-texto) 8%, transparent);
+    opacity: 1;
+  }
+  .barra__enlace:focus-visible,
+  .barra__opcion:focus-visible {
+    outline: 2px solid var(--c-foco);
+    outline-offset: 2px;
+  }
+  .barra__chevron {
+    --icono-tam: 14px;
+    transition: transform 250ms ease;
+  }
+  .barra__grupo[data-abierto="true"] .barra__chevron {
+    transform: rotate(180deg);
+  }
+  .barra__grupo {
+    position: relative;
+  }
+  .barra__desplegable {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 220px;
+    margin: 0;
+    padding: 8px;
+    list-style: none;
+    border: 1px solid var(--c-borde);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--c-fondo) 92%, transparent);
+    box-shadow: 0 20px 50px rgb(0 0 0 / 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    transition:
+      opacity 200ms ease,
+      transform 250ms ease,
+      visibility 0s linear 250ms;
+  }
+  /* Un puente invisible entre el botón y la lista, para que no se cierre al bajar el cursor */
+  .barra__desplegable::before {
+    content: "";
+    position: absolute;
+    inset: -12px 0 100%;
+  }
+  .barra__grupo[data-abierto="true"] .barra__desplegable {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  .barra__opcion {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: var(--c-texto);
+    font-size: 15px;
+    opacity: 0.85;
+    transition:
+      background-color 150ms ease,
+      opacity 150ms ease;
+  }
+  .barra__opcion:hover,
+  .barra__opcion[aria-current="page"] {
+    background: color-mix(in srgb, var(--c-texto) 8%, transparent);
+    opacity: 1;
+  }
+  .barra__entrar {
+    display: inline-flex;
+    margin-left: auto;
+    margin-right: 10px;
+  }
+  .barra__entrar ~ .barra__menu {
+    margin-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .barra__desplegable,
+  .barra__chevron {
+    transition: none;
+  }
+}

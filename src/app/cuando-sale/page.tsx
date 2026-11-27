@@ -22,7 +22,7 @@ export default async function CuandoSale() {
   const idioma = await idiomaServidor();
   const T = t(idioma).paginaCuando;
   return (
-    <Sitio>
+    <Sitio cierre>
       <header className="pagina-cabeza contenedor">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{T.etiqueta}</Etiqueta>

@@ -134,16 +134,18 @@ export function Equipo({ idioma, cargos, verFicha }: { idioma: string; cargos: R
 }
 
 /**
- * Las apps: una barra a la izquierda, de arriba abajo, con todas las apps que se conectan, que
- * sube sola despacio y nunca se detiene. La que toques muestra a la derecha qué hace Atendel en
- * ella, quién de su equipo la usa y un pedido de ejemplo (abre el chat de prueba). Las marcas
- * son de sus dueños: solo dicen con qué se conecta.
+ * Las apps: arriba qué es; abajo, en un panel, una barra a la izquierda (de arriba abajo, que sube
+ * sola y nunca se detiene) con todas las apps agrupadas por tipo, y a la derecha la tarjeta de la
+ * app que toques, del color del agente que la usa: 01 qué hace Atendel en ella, 02 quién del
+ * equipo la usa y 03 un pedido de ejemplo (abre el chat de prueba). Las marcas son de sus dueños:
+ * solo dicen con qué se conecta.
  */
 export function AppsBarra({
   apps,
   etiqueta,
   titulo,
   texto,
+  que,
   usa,
   pide,
 }: {
@@ -151,38 +153,41 @@ export function AppsBarra({
   etiqueta: string;
   titulo: string;
   texto: string;
+  que: string;
   usa: string;
   pide: string;
 }) {
   const [activa, setActiva] = useState(0);
   const app = apps[activa];
+  // Las apps vienen ordenadas por tipo: se agrupan para la barra
+  const grupos: { categoria: string; apps: { a: AppBarra; k: number }[] }[] = [];
+  apps.forEach((a, k) => {
+    const ultimo = grupos[grupos.length - 1];
+    if (ultimo && ultimo.categoria === a.categoria) ultimo.apps.push({ a, k });
+    else grupos.push({ categoria: a.categoria, apps: [{ a, k }] });
+  });
   const lista = (copia: boolean) => (
     <ul className="mz-barra__lista" aria-hidden={copia || undefined}>
-      {apps.map((a, k) => (
-        <li key={a.id}>
-          <button
-            type="button"
-            className="mz-barra__app"
-            aria-pressed={copia ? undefined : k === activa}
-            aria-label={copia ? undefined : a.nombre}
-            tabIndex={copia ? -1 : undefined}
-            onClick={() => setActiva(k)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
-            <img src={LOGO_APP[a.id]} alt="" width={26} height={26} loading="lazy" decoding="async" />
-          </button>
+      {grupos.map((g) => (
+        <li key={g.categoria} className="mz-barra__grupo">
+          <span className="mz-barra__tipo">{g.categoria}</span>
+          <ul>
+            {g.apps.map(({ a, k }) => (
+              <li key={a.id}>
+                <button type="button" className="mz-barra__app" aria-pressed={copia ? undefined : k === activa} tabIndex={copia ? -1 : undefined} onClick={() => setActiva(k)}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
+                  <img src={LOGO_APP[a.id]} alt="" width={22} height={22} loading="lazy" decoding="async" />
+                  <span>{a.nombre}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </li>
       ))}
     </ul>
   );
   return (
     <div className="mz-barra">
-      <div className="mz-barra__ventana" aria-label={titulo} role="group">
-        <div className="mz-barra__pista">
-          {lista(false)}
-          {lista(true)}
-        </div>
-      </div>
       <div className="mz-cabeza">
         <Etiqueta>{etiqueta}</Etiqueta>
         <h2 id="apps-titulo" className="ini-titulo">
@@ -190,24 +195,53 @@ export function AppsBarra({
         </h2>
         <p className="ini-cuerpo">{texto}</p>
       </div>
-      <div className="mz-barra__info" key={app.id} aria-live="polite">
-        {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
-        <img src={LOGO_APP[app.id]} alt="" width={40} height={40} />
-        <p className="mz-barra__nombre">{app.nombre}</p>
-        <p className="mz-barra__categoria">{app.categoria}</p>
-        <p className="mz-barra__puede">{app.puede}</p>
-        <p className="mz-barra__usa">
-          <span>{usa}</span>
-          {app.agentes.map((ag) => (
-            <span key={ag} className="mz-barra__agente" style={colorDe(ag)}>
-              <Personaje agente={ag} avatar className="mz-barra__cara" />
-              {AGENTE_POR_ID[ag].nombre}
-            </span>
-          ))}
-        </p>
-        <Link href={pedir(app.pide)} className="mz-barra__pide">
-          <span>{pide}</span>«{app.pide}»<span aria-hidden="true">→</span>
-        </Link>
+      <div className="mz-barra__panel">
+        <div className="mz-barra__ventana" role="group" aria-label={titulo}>
+          <div className="mz-barra__pista">
+            {lista(false)}
+            {lista(true)}
+          </div>
+        </div>
+        <div className="mz-barra__info" key={app.id} style={colorDe(app.agentes[0] ?? "lola")} aria-live="polite">
+          <div className="mz-barra__cabeza">
+            {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
+            <img src={LOGO_APP[app.id]} alt="" width={36} height={36} />
+            <p className="mz-barra__nombre">{app.nombre}</p>
+            <span className="mz-barra__categoria">{app.categoria}</span>
+          </div>
+          <ol className="mz-barra__puntos">
+            <li style={{ "--k": 0 } as CSSProperties}>
+              <span className="mz-barra__num">01</span>
+              <span className="mz-barra__dato">
+                <b>{que}</b>
+                {app.puede}
+              </span>
+            </li>
+            <li style={{ "--k": 1 } as CSSProperties}>
+              <span className="mz-barra__num">02</span>
+              <span className="mz-barra__dato">
+                <b>{usa}</b>
+                <span className="mz-barra__agentes">
+                  {app.agentes.map((ag) => (
+                    <span key={ag} className="mz-barra__agente" style={colorDe(ag)}>
+                      <Personaje agente={ag} avatar className="mz-barra__cara" />
+                      {AGENTE_POR_ID[ag].nombre}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </li>
+            <li style={{ "--k": 2 } as CSSProperties}>
+              <span className="mz-barra__num">03</span>
+              <span className="mz-barra__dato">
+                <b>{pide}</b>
+                <Link href={pedir(app.pide)} className="mz-barra__pide">
+                  «{app.pide}» <span aria-hidden="true">→</span>
+                </Link>
+              </span>
+            </li>
+          </ol>
+        </div>
       </div>
     </div>
   );

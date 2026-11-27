@@ -46,7 +46,11 @@ export default async function VistaCombinada() {
   // Las apps de la barra, con sus textos: en español, lo que hace Atendel en cada una (catálogo);
   // en otros idiomas, lo que hace en esa categoría de apps
   const pa = textos.paginaApps;
-  const apps: AppBarra[] = appsConLogo().map((a) => ({
+  // Ordenadas por tipo (como en la página de apps), para agruparlas en la barra
+  const TIPOS = Object.keys(pa.categorias) as (keyof typeof pa.categorias)[];
+  const apps: AppBarra[] = [...appsConLogo()]
+    .sort((x, y) => TIPOS.indexOf(x.categoria) - TIPOS.indexOf(y.categoria))
+    .map((a) => ({
     id: a.id,
     nombre: pa.nombres[a.id] ?? a.nombre,
     categoria: pa.categorias[a.categoria].nombre,
@@ -63,7 +67,7 @@ export default async function VistaCombinada() {
             {d.portada.titulo}
           </TextoDala>
           <TextoDala className="ini-etiqueta" inicio="top 95%">
-            {d.portada.etiqueta}
+            {corto ? m.portadaEtiqueta : d.portada.etiqueta}
           </TextoDala>
           <TextoDala className="ini-cuerpo" inicio="top 95%" retraso={0.15}>
             {portadaTexto}
@@ -113,16 +117,19 @@ export default async function VistaCombinada() {
           <TextoDala como="h2" tipo="titulo" id="globo-titulo" className="ini-titulo">
             {d.globo.titulo}
           </TextoDala>
-          <TextoDala className="ini-cuerpo" retraso={0.35}>
-            {d.globo.texto1}
-          </TextoDala>
+          {/* La frase de relleno («Queremos que…») solo en los idiomas sin texto corto */}
+          {corto ? null : (
+            <TextoDala className="ini-cuerpo" retraso={0.35}>
+              {d.globo.texto1}
+            </TextoDala>
+          )}
           <TextoDala className="ini-cuerpo" retraso={0.45}>
             {d.globo.texto2a}
             <em className="ini-resalta">{d.globo.texto2b}</em>
             {d.globo.texto2c}
           </TextoDala>
           <TextoDala className="ini-cuerpo" retraso={0.55}>
-            {d.globo.texto3}
+            {corto ? m.globoTexto : d.globo.texto3}
           </TextoDala>
         </div>
       </section>
@@ -145,6 +152,7 @@ export default async function VistaCombinada() {
           etiqueta={m.apps.etiqueta}
           titulo={corto ? m.apps.titulo : d.apps.titulo}
           texto={corto ? m.apps.texto(APPS_CONECTABLES) : d.apps.nota(APPS_CONECTABLES)}
+          que={m.apps.que}
           usa={m.apps.usa}
           pide={m.apps.pide}
         />

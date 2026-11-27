@@ -28,7 +28,25 @@ import { BotonIdioma, useIdioma } from "@/i18n/Idioma";
  *   el tema. Nada lleva a la demo.
  * - Escape o la X lo cierran y el foco no se sale de él mientras está abierto.
  * Cada lugar va a su página (Agents, Apps, Pricing, Launch, Questions y Privacy).
+ *
+ * En computadora (y en todas las páginas menos «/», que se queda como estaba hasta aprobar la
+ * landing nueva), la barra lleva además sus opciones: «Producto», que al pasar el cursor (o al
+ * tocarlo) despliega Agentes, Apps, Descargar, Pruébalo y Cuándo sale; Para quién es, Precios
+ * y Preguntas; y a la derecha Entrar, junto al botón del menú, que sigue igual.
  */
+
+const PRODUCTO: { id: "agentes" | "apps" | "descargar" | "pruebalo" | "cuando"; href: string }[] = [
+  { id: "agentes", href: "/agentes" },
+  { id: "apps", href: "/apps" },
+  { id: "descargar", href: "/descargar" },
+  { id: "pruebalo", href: "/pruebalo" },
+  { id: "cuando", href: "/cuando-sale" },
+];
+const OPCIONES: { id: "paraQuien" | "precios" | "preguntas"; href: string }[] = [
+  { id: "paraQuien", href: "/para-quien-es" },
+  { id: "precios", href: "/precios" },
+  { id: "preguntas", href: "/preguntas" },
+];
 
 type Lugar = { id: "apps" | "precios" | "cuando" | "preguntas" | "privacy"; href: string };
 
@@ -72,6 +90,8 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
   const b = d.barra;
   const [bajando, setBajando] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [producto, setProducto] = useState(false);
+  const conOpciones = pathname !== "/";
   const [abierta, setAbierta] = useState<"agentes" | "ayuda" | "legal" | null>(null);
   const boton = useRef<HTMLButtonElement>(null);
   const cerrarRef = useRef<HTMLButtonElement>(null);
@@ -85,7 +105,10 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
     return () => window.removeEventListener("scroll", revisar);
   }, []);
 
-  useEffect(() => setMenu(false), [pathname]);
+  useEffect(() => {
+    setMenu(false);
+    setProducto(false);
+  }, [pathname]);
 
   // Menú abierto: sin scroll atrás, Escape lo cierra y el foco no se sale de él
   useEffect(() => {
@@ -148,6 +171,47 @@ export function Barra({ inicio = false }: { inicio?: boolean }) {
               Atendel
             </span>
           </Link>
+          {conOpciones ? (
+            <nav className="barra__nav" aria-label={b.principal}>
+              <div
+                className="barra__grupo"
+                data-abierto={producto ? "true" : "false"}
+                onMouseEnter={() => setProducto(true)}
+                onMouseLeave={() => setProducto(false)}
+                onFocus={() => setProducto(true)}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setProducto(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setProducto(false);
+                }}
+              >
+                <button type="button" className="barra__enlace barra__enlace--abre" aria-expanded={producto} aria-controls="barra-producto" onClick={() => setProducto(true)}>
+                  {b.producto}
+                  <Icono nombre="chevron" className="barra__chevron" />
+                </button>
+                <ul id="barra-producto" className="barra__desplegable">
+                  {PRODUCTO.map((o) => (
+                    <li key={o.id}>
+                      <Link href={o.href} className="barra__opcion" aria-current={pathname === o.href ? "page" : undefined} onClick={() => setProducto(false)}>
+                        {b[o.id]}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {OPCIONES.map((o) => (
+                <Link key={o.id} href={o.href} className="barra__enlace" aria-current={pathname === o.href ? "page" : undefined}>
+                  {b[o.id]}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+          {conOpciones ? (
+            <Link href="/entrar" className="barra__enlace barra__entrar">
+              {b.entrar}
+            </Link>
+          ) : null}
           <button
             ref={boton}
             type="button"

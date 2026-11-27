@@ -125,6 +125,8 @@ export const zh: Diccionario = {
     privacy: "隐私",
     apps: "应用",
     todasPoliticas: "全部文件",
+    producto: "产品",
+    descargar: "下载",
   },
 
   tema: {

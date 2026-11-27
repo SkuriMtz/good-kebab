@@ -101,6 +101,8 @@ export const es = {
     privacy: "Privacidad",
     apps: "Apps",
     todasPoliticas: "Todos los documentos",
+    producto: "Producto",
+    descargar: "Descargar",
   },
 
   tema: {

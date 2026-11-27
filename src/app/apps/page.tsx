@@ -27,7 +27,7 @@ export default async function Apps() {
   const T = t(idioma).paginaApps;
   const conectables = CATALOGO.filter((a) => a.fase === 1).length;
   return (
-    <Sitio>
+    <Sitio cierre>
       <header className="pagina-cabeza contenedor">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{T.etiqueta}</Etiqueta>
