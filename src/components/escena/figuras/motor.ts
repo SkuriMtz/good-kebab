@@ -316,6 +316,31 @@ const salida = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t);
 /** El vidrio del foco es transparente: lo de atrás se ve más que en el cerebro. */
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
+/**
+ * El inicio («/», con `suave`) se ve suave, sin fragmentos tan contrastados ni amarillos: el
+ * borde del cerebro va en arena (el ámbar llevado a lavanda), las manchas de color y el polvo
+ * se apagan un poco hacia lavanda, todo brilla menos y los tetraedros grandes quedan tenues.
+ */
+const SUAVE = {
+  borde: mezcla(PALETA_CEREBRO.ambar, PALETA_CEREBRO.lavanda, 0.7),
+  /** Cuánto se llevan hacia lavanda las manchas del cerebro, el polvo de alrededor y el demás polvo. */
+  manchas: 0.35,
+  aura: 0.5,
+  polvo: 0.4,
+  /** Brillo general del cerebro (en lugar de CEREBRO.brillo) y del polvo. */
+  brillo: 0.7,
+  brilloPolvo: 0.8,
+  /** Tetraedros grandes: colores, cuánto se ven y su resplandor. */
+  tetras: { "#ffb829": "#d6c5b0", "#8052ff": "#ab9fd6" } as Record<string, string>,
+  tetrasAlfa: 0.55,
+  tetrasResplandor: 2,
+};
+/** El color c (en c[o..o+2]) llevado hacia lavanda en k (0 a 1). */
+const haciaLavanda = (c: ArrayLike<number>, o: number, k: number): Color => {
+  const L = PALETA_CEREBRO.lavanda;
+  return [c[o] + (L[0] - c[o]) * k, c[o + 1] + (L[1] - c[o + 1]) * k, c[o + 2] + (L[2] - c[o + 2]) * k];
+};
+
 /* ---------------------------------------------------------------------- */
 /* Polvo (en fracciones de la pantalla)                                    */
 /* ---------------------------------------------------------------------- */
@@ -803,6 +828,14 @@ export class MotorFiguras {
         O.a[i] = v * (px > 30 ? 0.26 : 0.4);
       } else O.a[i] *= 0.8;
     }
+    // En el inicio, el polvo más suave: colores hacia lavanda y un poco menos de brillo
+    if (this.suave) {
+      const [r, g, b] = haciaLavanda([O.r[i], O.g[i], O.b[i]], 0, c === "aura" ? SUAVE.aura : SUAVE.polvo);
+      O.r[i] = r;
+      O.g[i] = g;
+      O.b[i] = b;
+      O.a[i] *= SUAVE.brilloPolvo;
+    }
   }
 
   /** Todas las partículas como polvo del reparto c. */
@@ -914,8 +947,10 @@ export class MotorFiguras {
     const luz = LUZ.cerebro * (this.vertical ? 0.8 : 1);
     const B = c.tam * s * K.tam;
     const temblor = K.temblor * s;
-    const A = PALETA_CEREBRO.ambar;
+    // En el inicio, el borde en arena suave en lugar de ámbar (SUAVE)
+    const A = this.suave ? SUAVE.borde : PALETA_CEREBRO.ambar;
     const T = PALETA_CEREBRO.tronco;
+    const suaveCerebro = this.suave;
     const P = F.pos;
     const Nn = F.nor;
     const alfa0 = F.alfa;
@@ -1040,9 +1075,11 @@ export class MotorFiguras {
         let wF = k * k * (3 - 2 * k) * (1 - mancha[i]);
         if (wF > 1 - wA) wF = 1 - wA;
         const wM = 1 - wA - wF;
-        r = cf[o] * wF + cm[o] * wM + A[0] * wA;
-        g = cf[o + 1] * wF + cm[o + 1] * wM + A[1] * wA;
-        b = cf[o + 2] * wF + cm[o + 2] * wM + A[2] * wA;
+        // Las manchas de color (violeta, turquesa, azul…), en el inicio un poco hacia lavanda
+        const M = suaveCerebro ? haciaLavanda(cm, o, SUAVE.manchas) : null;
+        r = cf[o] * wF + (M ? M[0] : cm[o]) * wM + A[0] * wA;
+        g = cf[o + 1] * wF + (M ? M[1] : cm[o + 1]) * wM + A[1] * wA;
+        b = cf[o + 2] * wF + (M ? M[2] : cm[o + 2]) * wM + A[2] * wA;
         // Surcos: de frente se ven oscuros; en el borde, completos (así el contorno no se corta)
         const sc = surco[i];
         if (sc > 0) {
@@ -1062,10 +1099,13 @@ export class MotorFiguras {
         k = k < 0 ? 0 : k > 1 ? 1 : k;
         al *= 0.06 + 0.94 * k * k * (3 - 2 * k);
         // La banda de abajo, la más brillante; en el borde se enciman muchas y cada una brilla un poco menos
-        al *= (1 + 0.3 * abajo * wA) * (1 - K.borde * wA);
+        // (en el inicio, sin el brillo de más en la banda de abajo)
+        al *= (1 + (suaveCerebro ? 0 : 0.3) * abajo * wA) * (1 - K.borde * wA);
         // Donde se enciman (de canto), un ámbar más hondo: así al sumarse queda dorado y no amarillo-blanco
-        g *= 1 - 0.1 * wA;
-        b *= 1 - 0.3 * wA;
+        if (!suaveCerebro) {
+          g *= 1 - 0.1 * wA;
+          b *= 1 - 0.3 * wA;
+        }
         // Fuera de foco: lo más cercano de la cara de adelante
         if (nz2 > 0 && q > f0) {
           k = (q - f0) / (f1 - f0);
@@ -1077,7 +1117,7 @@ export class MotorFiguras {
       O.g[i] = g;
       O.b[i] = b;
       // Lo de cerca y borroso, más tenue; y todo con el brillo general
-      O.a[i] = al * K.brillo * (1 - 0.35 * desen);
+      O.a[i] = al * (suaveCerebro ? SUAVE.brillo : K.brillo) * (1 - 0.35 * desen);
       O.t[i] = B * tm[i] * f * tam * (1 + 0.45 * desen);
       O.m[i] = 0;
       O.d[i] = desen;
@@ -1612,11 +1652,13 @@ export class MotorFiguras {
         const y2 = Math.sin(az) * x1 + Math.cos(az) * y1;
         return [x + x2 * te.tam * s, y - y2 * te.tam * s];
       });
-      ctx.globalAlpha = te.alfa * (this.claro ? 0.7 : 1);
-      ctx.strokeStyle = this.claro && te.color === "#d9d4e8" ? "#8a83a3" : te.color;
+      // En el inicio, tenues, sin amarillo y casi sin resplandor (SUAVE)
+      const color = this.suave && !this.claro ? (SUAVE.tetras[te.color] ?? te.color) : te.color;
+      ctx.globalAlpha = te.alfa * (this.claro ? 0.7 : 1) * (this.suave ? SUAVE.tetrasAlfa : 1);
+      ctx.strokeStyle = this.claro && te.color === "#d9d4e8" ? "#8a83a3" : color;
       ctx.lineWidth = 2 * Math.max(0.8, s);
-      ctx.shadowColor = this.claro ? "transparent" : te.color;
-      ctx.shadowBlur = this.claro ? 0 : 6;
+      ctx.shadowColor = this.claro ? "transparent" : color;
+      ctx.shadowBlur = this.claro ? 0 : this.suave ? SUAVE.tetrasResplandor : 6;
       ctx.beginPath();
       for (const [a, b] of [
         [0, 1],
