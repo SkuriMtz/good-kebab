@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Planes } from "@/components/Planes";
 import { NoEstaTuPregunta, Preguntas } from "@/components/Preguntas";
 import { Sitio } from "@/components/Sitio";
-import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { EncabezadoSeccion, Seccion } from "@/components/base/Seccion";
 import { Comparacion } from "./Comparacion";
@@ -26,7 +25,7 @@ export default async function Precios() {
   const d = t(idioma);
   const P = d.paginaPrecios;
   return (
-    <Sitio cierre>
+    <Sitio cierre="precios">
       <header className="pagina-cabeza pagina-cabeza--escena contenedor" data-escena="globoDerecha">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{P.etiqueta}</Etiqueta>
@@ -67,23 +66,6 @@ export default async function Precios() {
           </div>
           <div className="faq-doble__preguntas">
             <Preguntas preguntas={d.preguntas.grupos.planes.preguntas} />
-          </div>
-        </div>
-      </Seccion>
-
-      <Seccion etiquetadaPor="precios-cierre-titulo" ancho="angosto">
-        <div className="cierre">
-          <h2 id="precios-cierre-titulo" className="t-seccion">
-            {P.cierreTitulo}
-          </h2>
-          <p className="t-intro">{P.cierreTexto}</p>
-          <div className="cierre__acciones">
-            <Boton href="/pruebalo" variante="sutil" tam="grande">
-              {P.pruebaAgentes}
-            </Boton>
-            <Boton href="/lista" variante="fantasma" tam="grande" flecha>
-              {P.listaEspera}
-            </Boton>
           </div>
         </div>
       </Seccion>

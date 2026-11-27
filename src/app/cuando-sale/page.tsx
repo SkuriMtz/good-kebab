@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Sitio } from "@/components/Sitio";
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { Seccion } from "@/components/base/Seccion";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
@@ -22,7 +21,7 @@ export default async function CuandoSale() {
   const idioma = await idiomaServidor();
   const T = t(idioma).paginaCuando;
   return (
-    <Sitio cierre>
+    <Sitio cierre="cuando">
       <header className="pagina-cabeza contenedor">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{T.etiqueta}</Etiqueta>
@@ -52,18 +51,6 @@ export default async function CuandoSale() {
         </ol>
         <p className="cuando-pagina__nota">{T.nota}</p>
       </div>
-
-      <Seccion etiquetadaPor="cuando-cierre-titulo" ancho="angosto">
-        <div className="cierre">
-          <h2 id="cuando-cierre-titulo" className="t-seccion">
-            {T.cierreTitulo}
-          </h2>
-          <p className="t-intro">{T.cierreTexto}</p>
-          <div className="cierre__acciones">
-            <BotonLista />
-          </div>
-        </div>
-      </Seccion>
     </Sitio>
   );
 }

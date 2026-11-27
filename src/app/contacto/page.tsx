@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Contacto() {
   const P = t(await idiomaServidor()).contacto;
   return (
-    <Sitio cierre>
+    <Sitio cierre="contacto">
       <section className="pagina-sobria con-halo" aria-labelledby="contacto-titulo">
         <Halo y="22%" ancho="min(760px, 120vw)" suave />
         <div className="pagina-sobria__centro">

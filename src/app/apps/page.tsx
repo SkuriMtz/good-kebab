@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Sitio } from "@/components/Sitio";
-import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
-import { Seccion } from "@/components/base/Seccion";
 import { CarruselTipos, type TipoApps } from "@/components/apps/CarruselTipos";
 import { textosApps } from "@/components/apps/textos";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
@@ -56,7 +54,7 @@ export default async function Apps() {
   });
 
   return (
-    <Sitio cierre>
+    <Sitio cierre="apps">
       <header className="pagina-cabeza contenedor">
         <div className="pagina-cabeza__texto">
           <Etiqueta tono="cielo">{T.etiqueta}</Etiqueta>
@@ -69,20 +67,6 @@ export default async function Apps() {
         <CarruselTipos tipos={tipos} t={{ anterior: A.anterior, siguiente: A.siguiente, probar: A.probar, pidele: A.pidele, pronto: T.pronto }} />
         <p className="apps-pagina__nota">{T.marcas}</p>
       </div>
-
-      <Seccion etiquetadaPor="apps-cierre-titulo" ancho="angosto">
-        <div className="cierre">
-          <h2 id="apps-cierre-titulo" className="t-seccion">
-            {T.cierreTitulo}
-          </h2>
-          <p className="t-intro">{T.cierreTexto}</p>
-          <div className="cierre__acciones">
-            <Boton href="/crear-cuenta" tam="grande" flecha>
-              {T.crear}
-            </Boton>
-          </div>
-        </div>
-      </Seccion>
     </Sitio>
   );
 }

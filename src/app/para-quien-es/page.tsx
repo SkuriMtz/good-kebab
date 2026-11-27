@@ -37,7 +37,7 @@ export default async function ParaQuienEs() {
   const P = t(idioma).paraQuien;
   const SEGMENTOS = P.segmentos;
   return (
-    <Sitio cierre>
+    <Sitio cierre="paraQuien">
       <EncabezadoPagina
         escena="burbujaDerecha"
         etiqueta={P.etiqueta}
@@ -128,33 +128,6 @@ export default async function ParaQuienEs() {
             })}
           </div>
         </div>
-
-        <section
-          className="seccion pqe-cierre-negocios"
-          aria-labelledby="cierre-titulo"
-        >
-          <div className="contenedor">
-            <div className="pqe-cierre-negocios__fila">
-              <div>
-                <Etiqueta>{P.cierreEtiqueta}</Etiqueta>
-                <h2
-                  id="cierre-titulo"
-                  className="t-grande pqe-cierre-negocios__titulo"
-                >
-                  {P.cierreTitulo}
-                </h2>
-              </div>
-              <div className="pqe-cierre-negocios__acciones">
-                <Boton href="/pruebalo" variante="principal">
-                  {P.hablar}
-                </Boton>
-                <Boton href="/precios" variante="fantasma" flecha>
-                  {P.verPrecios}
-                </Boton>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
     </Sitio>
   );

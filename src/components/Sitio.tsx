@@ -8,6 +8,7 @@ import { Escena3D } from "./escena3d/Escena3D";
 import { CierreMarca } from "./inicio-dala/CierreMarca";
 import { DialogoLista } from "./inicio-dala/DialogoLista";
 import { FondoInicio } from "./inicio-dala/FondoInicio";
+import type { PaginaCierre } from "./inicio-dala/frasesCierre";
 import { PieDelgado } from "./inicio-dala/PieDelgado";
 
 /**
@@ -26,6 +27,7 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
  *   video (Lenis lerp 0.08), la barra encima del contenido y el pie delgado.
  * - `cierre`: al final, el cierre del inicio («Deja que Atendel lo haga» y el botón de la
  *   lista, sin la marca de fragmentos) y el pie delgado del inicio, en lugar del pie grande.
+ *   Con el nombre de la página (p. ej., `cierre="precios"`), la primera frase es la suya.
  * - `pieDelgado`: solo el pie delgado del inicio, sin el cierre (p. ej., Descargar).
  * El pie siempre llega abajo, aunque la página sea corta. La barra es la
  * misma en todas las páginas públicas y "Únete a la lista" abre la lista de
@@ -39,7 +41,7 @@ export function Sitio({
 }: {
   children: ReactNode;
   fondo?: "particulas" | "3d" | "ninguno" | "figuras" | "inicio";
-  cierre?: boolean;
+  cierre?: boolean | PaginaCierre;
   pieDelgado?: boolean;
 }) {
   const inicio = fondo === "inicio";
@@ -50,7 +52,7 @@ export function Sitio({
       <Barra inicio={inicio} />
       <main id="contenido" tabIndex={-1} className="sitio__contenido sobre-escena">
         {children}
-        {cierre ? <CierreMarca /> : null}
+        {cierre ? <CierreMarca pagina={cierre === true ? undefined : cierre} /> : null}
       </main>
       <div className="sobre-escena">{inicio || cierre || pieDelgado ? <PieDelgado /> : <Footer />}</div>
       <FichasAgentes />
