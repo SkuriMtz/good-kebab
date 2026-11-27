@@ -2,7 +2,7 @@ import { forwardRef, type CSSProperties } from "react";
 import "./chat-portada.css";
 
 /**
- * EL CHAT DE LA PORTADA (vistas previas /vista-chat y /vista-zapia): en lugar del cerebro, un
+ * EL CHAT DE LA PORTADA (vista previa /vista-chat): en lugar del cerebro, un
  * resumen del chat de Atendel con el aspecto del panel de verdad (su barra, tu burbuja gris, la
  * tarjeta del equipo, la tarjeta de la cita que espera tu OK y la caja de abajo), sin ser una
  * copia: una sola plática corta. Es solo un dibujo (no se escribe en él): va dentro del fondo,

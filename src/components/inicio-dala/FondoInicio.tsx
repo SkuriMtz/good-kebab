@@ -17,11 +17,11 @@ import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@
  * - Mide las secciones al cargar, al cambiar de tamaño y cuando cargan las letras.
  */
 export function FondoInicio() {
-  // Pruebas: /vista-chat, con un chat de Atendel en lugar del cerebro; /vista-zapia (la landing
-  // combinada), con el cerebro que pasa de derecha a izquierda más suave
+  // El inicio: el cerebro pasa de derecha a izquierda parejo y suave. Prueba: /vista-chat, con
+  // un chat de Atendel en lugar del cerebro
   const ruta = usePathname();
   const conChat = ruta === "/vista-chat";
-  const parejo = ruta === "/vista-zapia";
+  const parejo = ruta === "/";
   const [idioma, setIdioma] = useState<string>();
   useEffect(() => {
     setIdioma(document.documentElement.lang);

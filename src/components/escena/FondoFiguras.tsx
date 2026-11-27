@@ -36,7 +36,7 @@ type Props = {
   variante?: "cerebro" | "chat";
   /** El idioma de los textos del chat ("es" o "en"). */
   idioma?: string;
-  /** Prueba (/vista-zapia): el cerebro pasa de derecha a izquierda más parejo y suave. */
+  /** El inicio («/»): el cerebro pasa de derecha a izquierda más parejo y suave. */
   parejo?: boolean;
   /** "manual": no corre sola; la mueve quien tenga el control (laboratorio). */
   reloj?: "auto" | "manual";

@@ -223,7 +223,7 @@ export const CEREBRO_A: Llave[] = [
 /**
  * Las mismas poses de CEREBRO_A, repartidas según cuánto cambia la figura de una a otra (lugar,
  * tamaño y giro): así va a velocidad pareja, sin el giro brusco del principio ni cambios de
- * ritmo entre una pose y la siguiente. Solo con `suave` (vista previa /vista-zapia).
+ * ritmo entre una pose y la siguiente. Solo con `suave` (el inicio, «/»).
  */
 const CEREBRO_A_PAREJO: Llave[] = (() => {
   const d = (a: Colocacion, b: Colocacion) =>
@@ -639,7 +639,7 @@ export class MotorFiguras {
    */
   modoChat = false;
   /**
-   * Prueba (/vista-zapia): el cerebro pasa de la derecha a la izquierda a velocidad pareja
+   * El inicio («/»): el cerebro pasa de la derecha a la izquierda a velocidad pareja
    * (CEREBRO_A_PAREJO, que entra y sale despacio) y sigue al scroll con más suavidad.
    */
   suave = false;

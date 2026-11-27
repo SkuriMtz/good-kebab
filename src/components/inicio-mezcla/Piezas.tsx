@@ -11,7 +11,7 @@ import { PERSONAJES } from "@/lib/personajes";
 import { contenidoMezcla } from "./textos";
 
 /**
- * Las piezas con movimiento de la landing combinada (vista previa en /vista-zapia), con el
+ * Las piezas con movimiento de la landing combinada (el inicio, «/»), con el
  * estilo de la landing de siempre: tu equipo con sus casos del día a día, la barra de apps y
  * los permisos.
  * Solo se mueven cuando se ven; con «reducir movimiento», quietas y a la vista.

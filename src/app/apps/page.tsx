@@ -34,7 +34,6 @@ export default async function Apps() {
   const ejemplos = contenidoMezcla(idioma).apps.ejemplos;
   const nombres = T.nombres as Partial<Record<IdApp, string>>;
   const conectables = CATALOGO.filter((a) => a.fase === 1).length;
-  const corto = idioma === "es" || idioma === "en";
 
   const tipos: TipoApps[] = ORDEN.flatMap((id, k) => {
     const apps = CATALOGO.filter((a) => a.categoria === id).sort((a, b) => a.fase - b.fase);
@@ -44,7 +43,7 @@ export default async function Apps() {
       {
         id,
         nombre: T.categorias[id].nombre,
-        texto: corto ? A.tipos[id] : T.categorias[id].texto,
+        texto: A.tipos[id],
         color: COLORES[k % COLORES.length],
         agentes: IDS_AGENTES.filter((ag) => usan.has(ag)),
         apps: apps.map((a) => ({ id: a.id, nombre: nombres[a.id] ?? a.nombre, pronto: a.fase !== 1 })),
