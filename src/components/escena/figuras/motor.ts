@@ -762,8 +762,17 @@ export class MotorFiguras {
     const [fx, fy, v] = campo(c, this.hx[i], this.hy[i], this.vis[i]);
     const t = this.reloj;
     const ph = this.fase[i];
-    O.x[i] = (fx + Math.sin(t * 0.13 + ph) * 0.006) * this.w;
-    O.y[i] = (fy + Math.cos(t * 0.11 + ph * 1.3) * 0.006) * this.h;
+    // En el inicio («/», con `suave`), el polvo de Tu equipo y de Planes flota a la vista, cada
+    // partícula a su ritmo: esas secciones son largas y, casi quieto, parecía que esperaba algo.
+    // En lo demás, apenas se mece.
+    if (this.suave && (c === "equipo" || c === "planes")) {
+      const vel = 0.28 + 0.3 * ((this.vis[i] * 431) % 1);
+      O.x[i] = (fx + Math.sin(t * vel + ph) * 0.02) * this.w;
+      O.y[i] = (fy + Math.cos(t * vel * 0.85 + ph * 1.3) * 0.028) * this.h;
+    } else {
+      O.x[i] = (fx + Math.sin(t * 0.13 + ph) * 0.006) * this.w;
+      O.y[i] = (fy + Math.cos(t * 0.11 + ph * 1.3) * 0.006) * this.h;
+    }
     const cc = this.colPolvo;
     O.r[i] = cc[i * 3];
     O.g[i] = cc[i * 3 + 1];
