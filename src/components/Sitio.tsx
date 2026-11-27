@@ -24,8 +24,8 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
  * - `fondo="inicio"`: el inicio igual a los videos de referencia: el fondo
  *   de figuras que sigue las 8 escenas (FondoInicio), el scroll suave del
  *   video (Lenis lerp 0.08), la barra encima del contenido y el pie delgado.
- * - `cierre`: al final, el cierre del inicio (la marca de fragmentos, «Deja que Atendel lo
- *   haga» y el botón de la lista) y el pie delgado del inicio, en lugar del pie grande.
+ * - `cierre`: al final, el cierre del inicio («Deja que Atendel lo haga» y el botón de la
+ *   lista, sin la marca de fragmentos) y el pie delgado del inicio, en lugar del pie grande.
  * - `pieDelgado`: solo el pie delgado del inicio, sin el cierre (p. ej., Descargar).
  * El pie siempre llega abajo, aunque la página sea corta. La barra es la
  * misma en todas las páginas públicas y "Únete a la lista" abre la lista de

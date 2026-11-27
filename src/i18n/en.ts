@@ -942,7 +942,7 @@ export const en: Diccionario = {
     meta: ["Connected apps", "The apps that connect with Atendel and what Atendel does with each one."],
     etiqueta: "Apps",
     titulo: "Atendel works with the apps you already use.",
-    intro: (n: number) => `Connect yours and the team works with what you already have. ${n} apps connect today; anything involving money always waits for your OK.`,
+    intro: (n: number) => `${n} apps available. Connect your account and Atendel works in them, always with your permission.`,
     pronto: "Coming soon",
     marcas:
       "Brands and logos belong to their owners; here they only show what Atendel connects with. Some apps need to approve Atendel before it works with any account.",

@@ -1523,7 +1523,7 @@
 
 /* =====================================================================
    El cierre del inicio en las demás páginas (<Sitio cierre>, CierreMarca.tsx):
-   la marca de fragmentos, «Deja que Atendel lo haga» y el pie delgado
+   «Deja que Atendel lo haga», el botón de la lista y el pie delgado (sin la marca de fragmentos)
    ===================================================================== */
 :root:not([data-tema="claro"]) .sitio--con-cierre {
   --ini-fondo: #000;
@@ -1542,23 +1542,10 @@
 .cierre-marca {
   position: relative;
   display: flex;
-  min-height: 100vh;
-  min-height: 100svh;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  padding: 96px 20px;
+  padding: clamp(96px, 16vh, 180px) 20px;
   text-align: center;
-}
-.cierre-marca .escena-fondo.fondo-figuras.cierre-marca__fondo {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  height: 100%;
-  /* Sin la máscara ni la opacidad baja del fondo sobrio de estas páginas: la marca se ve entera */
-  opacity: 1;
-  -webkit-mask-image: none;
-  mask-image: none;
 }
 .cierre-marca__centro {
   position: relative;

@@ -3,14 +3,20 @@ import { Sitio } from "@/components/Sitio";
 import { Boton } from "@/components/base/Boton";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { Seccion } from "@/components/base/Seccion";
+import { CarruselTipos, type TipoApps } from "@/components/apps/CarruselTipos";
+import { textosApps } from "@/components/apps/textos";
+import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { t } from "@/i18n";
 import { idiomaServidor } from "@/i18n/servidor";
+import { IDS_AGENTES } from "@/lib/agentes";
 import { CATALOGO } from "@/lib/conexiones/catalogo";
-import { LOGO_APP } from "@/lib/conexiones/logos";
 import type { CategoriaApp, IdApp } from "@/lib/nucleo-tipos";
 import { metadatosDe } from "@/lib/seo";
+import "./apps.css";
 
 const ORDEN: CategoriaApp[] = ["correo", "mensajes", "agenda", "reservas", "documentos", "clientes", "resenas", "pagos", "contabilidad", "facturacion"];
+/** Los colores del equipo, uno tras otro, para que dos tarjetas juntas no se repitan. */
+const COLORES = ["#7fb2ff", "#ff8a6b", "#f6c64a", "#5fd09f"];
 
 export async function generateMetadata(): Promise<Metadata> {
   const idioma = await idiomaServidor();
@@ -18,14 +24,37 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * /apps: las apps que se conectan con Atendel, por tipo (correo, mensajes,
- * agenda…), cada tipo con una línea de qué hace el equipo con ellas. Las que
- * todavía no tienen conexión pública dicen «En camino».
+ * /apps: las apps que se conectan con Atendel, en una tarjeta de color por tipo (correo,
+ * mensajes, agenda…), un poco ladeadas, que se recorren con las flechas; arriba, los tipos como
+ * botones. Cada tarjeta dice qué hace Atendel en ese tipo, sus apps con su logo (las que todavía
+ * no tienen conexión pública, «En camino»), quién del equipo las usa y un pedido de ejemplo.
  */
 export default async function Apps() {
   const idioma = await idiomaServidor();
   const T = t(idioma).paginaApps;
+  const A = textosApps(idioma);
+  const ejemplos = contenidoMezcla(idioma).apps.ejemplos;
+  const nombres = T.nombres as Partial<Record<IdApp, string>>;
   const conectables = CATALOGO.filter((a) => a.fase === 1).length;
+  const corto = idioma === "es" || idioma === "en";
+
+  const tipos: TipoApps[] = ORDEN.flatMap((id, k) => {
+    const apps = CATALOGO.filter((a) => a.categoria === id).sort((a, b) => a.fase - b.fase);
+    if (!apps.length) return [];
+    const usan = new Set(apps.flatMap((a) => a.agentes));
+    return [
+      {
+        id,
+        nombre: T.categorias[id].nombre,
+        texto: corto ? A.tipos[id] : T.categorias[id].texto,
+        color: COLORES[k % COLORES.length],
+        agentes: IDS_AGENTES.filter((ag) => usan.has(ag)),
+        apps: apps.map((a) => ({ id: a.id, nombre: nombres[a.id] ?? a.nombre, pronto: a.fase !== 1 })),
+        pide: ejemplos[id],
+      },
+    ];
+  });
+
   return (
     <Sitio cierre>
       <header className="pagina-cabeza contenedor">
@@ -37,29 +66,7 @@ export default async function Apps() {
       </header>
 
       <div className="contenedor apps-pagina">
-        {ORDEN.map((id) => {
-          const c = { id, ...T.categorias[id] };
-          const apps = CATALOGO.filter((a) => a.categoria === id).sort((a, b) => a.fase - b.fase);
-          if (!apps.length) return null;
-          return (
-            <section key={c.id} className="apps-cat" aria-labelledby={`apps-${c.id}`}>
-              <div className="apps-cat__texto">
-                <h2 id={`apps-${c.id}`}>{c.nombre}</h2>
-                <p>{c.texto}</p>
-              </div>
-              <ul className="apps-cat__lista">
-                {apps.map((a) => (
-                  <li key={a.id} className="apps-chip" data-pronto={a.fase !== 1 ? "" : undefined}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- logo chico y fijo */}
-                    <img src={LOGO_APP[a.id]} alt="" width={24} height={24} loading="lazy" decoding="async" />
-                    <span>{(T.nombres as Partial<Record<IdApp, string>>)[a.id] ?? a.nombre}</span>
-                    {a.fase !== 1 ? <span className="apps-chip__pronto">{T.pronto}</span> : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        <CarruselTipos tipos={tipos} t={{ anterior: A.anterior, siguiente: A.siguiente, probar: A.probar, pidele: A.pidele, pronto: T.pronto }} />
         <p className="apps-pagina__nota">{T.marcas}</p>
       </div>
 

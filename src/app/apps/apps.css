@@ -1,0 +1,213 @@
+/*
+ * /apps (CarruselTipos.tsx): los tipos como botones arriba y una fila de tarjetas de color, un
+ * poco ladeadas, que se recorre con las flechas. Cada tarjeta lleva el color de su lugar
+ * (--c); el texto va oscuro sobre el color. Solo se animan transform y opacity.
+ */
+
+.tipos {
+  padding-top: clamp(8px, 2vw, 24px);
+}
+.tipos__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: clamp(24px, 3vw, 40px);
+}
+.tipos__chip {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--c-borde);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-texto) 4%, transparent);
+  color: var(--c-texto-2);
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.tipos__chip:hover {
+  color: var(--c-texto);
+}
+.tipos__chip[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--c-texto);
+  color: var(--c-fondo);
+}
+.tipos__pista {
+  display: flex;
+  gap: clamp(14px, 1.6vw, 24px);
+  margin: 0 calc(var(--contenedor-margen, 24px) * -1);
+  padding: 24px var(--contenedor-margen, 24px) 32px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+.tipos__pista::-webkit-scrollbar {
+  display: none;
+}
+.tipo-carta {
+  display: flex;
+  flex: none;
+  width: clamp(270px, 25vw, 340px);
+  min-height: clamp(400px, 34vw, 460px);
+  flex-direction: column;
+  padding: clamp(22px, 2vw, 28px);
+  border-radius: 26px;
+  background: var(--c);
+  color: #0b0b0c;
+  scroll-snap-align: start;
+  transform: rotate(var(--giro, 0deg));
+  transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tipo-carta:hover {
+    transform: translateY(-6px) rotate(0deg);
+  }
+}
+.tipo-carta__nombre {
+  margin: 0;
+  font-size: clamp(26px, 2.3vw, 34px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+.tipo-carta__texto {
+  margin: 10px 0 18px;
+  font-size: 15.5px;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+.tipo-carta__apps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.tipo-carta__apps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+  font-size: 13px;
+}
+.tipo-carta__apps li[data-pronto] {
+  opacity: 0.55;
+}
+.tipo-carta__apps img {
+  box-sizing: content-box;
+  padding: 3px;
+  border-radius: 50%;
+  background: #fff;
+}
+.tipo-carta__pie {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+.tipo-carta__equipo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tipo-carta__agente {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.tipo-carta__agente svg {
+  width: 22px;
+  height: 22px;
+}
+.tipo-carta__boton {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: rgb(0 0 0 / 0.1);
+  transition: background-color 200ms ease;
+}
+.tipo-carta__boton:hover {
+  background: rgb(0 0 0 / 0.16);
+}
+.tipo-carta__boton:focus-visible,
+.tipos__chip:focus-visible,
+.tipos__flecha:focus-visible {
+  outline: 2px solid var(--c-foco);
+  outline-offset: 3px;
+}
+.tipo-carta__pide {
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+.tipo-carta__probar {
+  font-size: 15px;
+  font-weight: 600;
+}
+.tipos__flechas {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.tipos__flecha {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid var(--c-borde);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-texto) 5%, transparent);
+  color: var(--c-texto);
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    opacity 200ms ease,
+    transform 160ms ease;
+}
+.tipos__flecha:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--c-texto) 12%, transparent);
+}
+.tipos__flecha:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.tipos__flecha:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+@media (max-width: 639px) {
+  .tipos__chips {
+    flex-wrap: nowrap;
+    margin-inline: calc(var(--contenedor-margen, 20px) * -1);
+    padding: 0 var(--contenedor-margen, 20px) 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tipos__chip {
+    flex: none;
+  }
+  .tipo-carta {
+    width: 80vw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tipo-carta,
+  .tipos__chip,
+  .tipos__flecha {
+    transition: none;
+  }
+  .tipos__pista {
+    scroll-behavior: auto;
+  }
+}

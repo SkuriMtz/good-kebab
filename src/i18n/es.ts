@@ -690,7 +690,7 @@ export const es = {
     meta: ["Apps que se conectan", "Las apps que se conectan con Atendel y qué hace Atendel con cada una."],
     etiqueta: "Apps",
     titulo: "Atendel trabaja con las apps que ya usas.",
-    intro: (n: number) => `Conecta las tuyas y el equipo trabaja con lo que ya tienes. Hoy se conectan ${n} apps; lo de dinero siempre espera tu OK.`,
+    intro: (n: number) => `${n} apps disponibles. Conecta tu cuenta y Atendel trabaja en ellas, siempre con tu permiso.`,
     pronto: "En camino",
     marcas:
       "Las marcas y logos son de sus dueños; aquí solo dicen con qué se conecta Atendel. Algunas apps piden aprobar a Atendel antes de funcionar con cualquier cuenta.",
