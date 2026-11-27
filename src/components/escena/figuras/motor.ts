@@ -317,23 +317,26 @@ const salida = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t);
 const VOL_FOCO: Volumen = { atras: 0.5, prof: 0.8, radio: 1 };
 
 /**
- * El inicio («/», con `suave`) se ve suave, sin fragmentos tan contrastados ni amarillos: el
- * borde del cerebro va en arena (el ámbar llevado a lavanda), las manchas de color y el polvo
- * se apagan un poco hacia lavanda, todo brilla menos y los tetraedros grandes quedan tenues.
+ * El inicio («/», con `suave`): los colores de siempre (dorado, violeta, turquesa), solo un poco
+ * más suaves. El ámbar del borde se lleva apenas hacia lavanda, las manchas y el polvo un poco
+ * menos saturados, un poco menos de brillo y los tetraedros grandes con menos resplandor.
+ * (Una prueba más apagada, en arena y lavanda, se veía triste.)
  */
 const SUAVE = {
-  borde: mezcla(PALETA_CEREBRO.ambar, PALETA_CEREBRO.lavanda, 0.7),
+  borde: mezcla(PALETA_CEREBRO.ambar, PALETA_CEREBRO.lavanda, 0.22),
   /** Cuánto se llevan hacia lavanda las manchas del cerebro, el polvo de alrededor y el demás polvo. */
-  manchas: 0.35,
-  aura: 0.5,
-  polvo: 0.4,
-  /** Brillo general del cerebro (en lugar de CEREBRO.brillo) y del polvo. */
-  brillo: 0.7,
-  brilloPolvo: 0.8,
+  manchas: 0.12,
+  aura: 0.2,
+  polvo: 0.15,
+  /** Brillo general del cerebro (en lugar de CEREBRO.brillo, 0.86) y del polvo. */
+  brillo: 0.78,
+  brilloPolvo: 0.9,
+  /** Brillo de más en la banda de abajo del cerebro (0.3 normalmente). */
+  banda: 0.15,
   /** Tetraedros grandes: colores, cuánto se ven y su resplandor. */
-  tetras: { "#ffb829": "#d6c5b0", "#8052ff": "#ab9fd6" } as Record<string, string>,
-  tetrasAlfa: 0.55,
-  tetrasResplandor: 2,
+  tetras: { "#ffb829": "#f1bc5b", "#8052ff": "#916ef8" } as Record<string, string>,
+  tetrasAlfa: 0.8,
+  tetrasResplandor: 4,
 };
 /** El color c (en c[o..o+2]) llevado hacia lavanda en k (0 a 1). */
 const haciaLavanda = (c: ArrayLike<number>, o: number, k: number): Color => {
@@ -947,7 +950,7 @@ export class MotorFiguras {
     const luz = LUZ.cerebro * (this.vertical ? 0.8 : 1);
     const B = c.tam * s * K.tam;
     const temblor = K.temblor * s;
-    // En el inicio, el borde en arena suave en lugar de ámbar (SUAVE)
+    // En el inicio, el ámbar del borde un poco más suave (SUAVE)
     const A = this.suave ? SUAVE.borde : PALETA_CEREBRO.ambar;
     const T = PALETA_CEREBRO.tronco;
     const suaveCerebro = this.suave;
@@ -1100,12 +1103,10 @@ export class MotorFiguras {
         al *= 0.06 + 0.94 * k * k * (3 - 2 * k);
         // La banda de abajo, la más brillante; en el borde se enciman muchas y cada una brilla un poco menos
         // (en el inicio, sin el brillo de más en la banda de abajo)
-        al *= (1 + (suaveCerebro ? 0 : 0.3) * abajo * wA) * (1 - K.borde * wA);
+        al *= (1 + (suaveCerebro ? SUAVE.banda : 0.3) * abajo * wA) * (1 - K.borde * wA);
         // Donde se enciman (de canto), un ámbar más hondo: así al sumarse queda dorado y no amarillo-blanco
-        if (!suaveCerebro) {
-          g *= 1 - 0.1 * wA;
-          b *= 1 - 0.3 * wA;
-        }
+        g *= 1 - 0.1 * wA;
+        b *= 1 - 0.3 * wA;
         // Fuera de foco: lo más cercano de la cara de adelante
         if (nz2 > 0 && q > f0) {
           k = (q - f0) / (f1 - f0);
@@ -1652,7 +1653,7 @@ export class MotorFiguras {
         const y2 = Math.sin(az) * x1 + Math.cos(az) * y1;
         return [x + x2 * te.tam * s, y - y2 * te.tam * s];
       });
-      // En el inicio, tenues, sin amarillo y casi sin resplandor (SUAVE)
+      // En el inicio, un poco más suaves y con menos resplandor (SUAVE)
       const color = this.suave && !this.claro ? (SUAVE.tetras[te.color] ?? te.color) : te.color;
       ctx.globalAlpha = te.alfa * (this.claro ? 0.7 : 1) * (this.suave ? SUAVE.tetrasAlfa : 1);
       ctx.strokeStyle = this.claro && te.color === "#d9d4e8" ? "#8a83a3" : color;
