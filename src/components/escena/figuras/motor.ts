@@ -1,4 +1,3 @@
-import { crearAstilla, dibujarAstilla, type Astilla } from "./astilla";
 import { REPOSO_VIDEO } from "./escenas";
 import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla, PALETA, PALETA_CEREBRO, rellenarForma, suave, type Color, type Forma } from "./formas";
 
@@ -21,7 +20,7 @@ import { azar, cerebro, cerebroDeMalla, foco, globo, leerCerebro, marca, mezcla,
 const VERT = `
 attribute vec2 aPos; attribute float aTam; attribute vec4 aCol; attribute vec3 aRot; attribute vec3 aExtra; attribute float aSem;
 uniform vec2 uRes; uniform float uDpr; uniform float uMargen;
-varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra; varying float vRoto;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra; varying float vRoto; varying float vArena;
 float azar(float k) { return fract(sin(aSem * 91.7 + k * 17.31) * 43758.5453); }
 void main() {
   gl_Position = vec4(aPos.x / uRes.x * 2.0 - 1.0, 1.0 - aPos.y / uRes.y * 2.0, 0.0, 1.0);
@@ -36,6 +35,16 @@ void main() {
   // aplanado, como vidrio roto); en la figura casi regular, para que la forma se lea
   float roto = smoothstep(0.3, 0.8, aExtra.z);
   vRoto = roto;
+  // Arena: en el polvo, los rombos y un tercio de los triangulitos son granitos (un punto chico)
+  vArena = (aExtra.y > 0.5 || azar(12.0) < 0.35) ? step(0.5, roto) : 0.0;
+  if (vArena > 0.5) {
+    // (granitos finos: nunca más de ~3.5 px)
+    gl_PointSize = clamp(aTam * uDpr * 0.45, 1.5, 3.5 * uDpr);
+    vZ = vec4(0.0);
+    vA = vec4(0.0);
+    vB = vec4(0.0);
+    return;
+  }
   vec4 kv = (1.0 + roto * (vec4(azar(1.0), azar(2.0), azar(3.0), azar(4.0)) - 0.5) * 0.6) * (1.0 - 0.08 * roto);
   if (aExtra.y > 0.5) {
     // Rombo: un cuadrado girado, apenas aplastado por la perspectiva (en el polvo, un cuarteado irregular)
@@ -75,7 +84,7 @@ void main() {
  */
 const FRAG = `
 precision mediump float;
-varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra; varying float vRoto;
+varying vec4 vCol; varying vec4 vA; varying vec4 vB; varying vec4 vZ; varying float vTam; varying float vEsc; varying vec3 vExtra; varying float vRoto; varying float vArena;
 uniform float uTrazo; uniform float uClaro; uniform float uHalo; uniform float uHaloFig; uniform float uRelleno;
 float seg(vec2 p, vec2 a, vec2 b) {
   vec2 pa = p - a, ba = b - a;
@@ -91,23 +100,9 @@ float dentro(vec2 p, vec2 a, vec2 b, vec2 c) {
   float mx = max(max(d1, d2), d3);
   return (mn >= 0.0 || mx <= 0.0) ? 1.0 : 0.0;
 }
-// La luz de una cara según hacia dónde mira (luz de arriba a la izquierda y de frente)
-float luzCara(vec3 a, vec3 b, vec3 c) {
-  vec3 n = cross(b - a, c - a);
-  float l = length(n);
-  if (l < 0.00001) return 0.0;
-  return 0.2 + 0.8 * abs(dot(n / l, vec3(-0.36, -0.57, 0.74)));
-}
-// Las caras de la astilla, rellenas (como vidrio): cada una con su propia luz
+// En el polvo, el triangulito relleno (plano, como una astilla chiquita)
 float relleno(vec2 p) {
-  vec2 a0 = vA.xy, a1 = vA.zw, a2 = vB.xy, a3 = vB.zw;
-  if (vExtra.y > 0.5) return 0.5 * max(dentro(p, a0, a1, a2), dentro(p, a0, a2, a3));
-  vec3 A0 = vec3(a0, vZ.x), A1 = vec3(a1, vZ.y), A2 = vec3(a2, vZ.z), A3 = vec3(a3, vZ.w);
-  float f = dentro(p, a0, a1, a2) * luzCara(A0, A1, A2);
-  f = max(f, dentro(p, a0, a2, a3) * luzCara(A0, A2, A3));
-  f = max(f, dentro(p, a0, a3, a1) * luzCara(A0, A3, A1));
-  f = max(f, dentro(p, a1, a2, a3) * luzCara(A1, A2, A3));
-  return f;
+  return 0.6 * dentro(p, vA.zw, vB.xy, vB.zw);
 }
 // x: cobertura de las líneas, y: distancia a la línea más cercana
 vec2 forma(vec2 p, float w, float suav) {
@@ -120,10 +115,23 @@ vec2 forma(vec2 p, float w, float suav) {
   float dI = min(min(seg(p, a0, a1), seg(p, a0, a2)), seg(p, a0, a3));
   float luzB = mix(0.45, 1.0, clamp((vZ.y + vZ.z + vZ.w) * 0.17 + 0.5, 0.0, 1.0));
   float cB = (1.0 - smoothstep(w - suav, w + suav, dB)) * luzB;
-  float cI = (1.0 - smoothstep(w - suav, w + suav, dI)) * vExtra.z;
-  return vec2(max(cB, cI), min(dB, mix(9.0, dI, step(0.05, vExtra.z))));
+  // Aristas que van a la punta: en la figura según «interior»; en el polvo, nada (triangulito plano)
+  float interior = vExtra.z * (1.0 - vRoto);
+  float cI = (1.0 - smoothstep(w - suav, w + suav, dI)) * interior;
+  return vec2(max(cB, cI), min(dB, mix(9.0, dI, step(0.05, interior))));
 }
 void main() {
+  vec3 col = vCol.rgb;
+  float blanco = smoothstep(0.62, 0.9, min(min(col.r, col.g), col.b));
+  col = mix(col, mix(col * 0.72, vec3(0.36, 0.30, 0.52), blanco), uClaro);
+  // Arena: un granito redondo, con un poco de brillo
+  if (vArena > 0.5) {
+    float d = length(gl_PointCoord - 0.5) * 2.0;
+    float g = (1.0 - smoothstep(0.45, 0.95, d)) * vCol.a * 0.9;
+    if (g < 0.004) discard;
+    gl_FragColor = vec4(col * g, g);
+    return;
+  }
   float blur = vExtra.x;
   vec2 p = (gl_PointCoord * 2.0 - 1.0) * vEsc / 0.94;
   float px = 2.0 / (vTam * 0.94);
@@ -142,14 +150,11 @@ void main() {
   float enFig = 1.0 - smoothstep(0.3, 0.6, vExtra.z);
   float halo = uHalo * mix(1.0, uHaloFig, enFig) * exp(-(f.y * f.y) / (r * r));
   a = a + halo * (1.0 - a);
-  // Las caras de la astilla (solo en el polvo; en la figura queda el contorno nítido)
+  // El triangulito relleno (solo en el polvo; en la figura queda el contorno nítido)
   if (vRoto > 0.01) a = a + uRelleno * vRoto * relleno(p) * (1.0 - a);
   a *= vCol.a / (1.0 + 0.45 * blur);
   if (a < 0.004) discard;
-  vec3 col = vCol.rgb;
-  // Modo claro: colores más hondos y lo blanco pasa a gris violáceo (si no, no se vería)
-  float blanco = smoothstep(0.62, 0.9, min(min(col.r, col.g), col.b));
-  col = mix(col, mix(col * 0.72, vec3(0.36, 0.30, 0.52), blanco), uClaro);
+  // (modo claro: arriba, los colores más hondos y lo blanco en gris violáceo)
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -531,8 +536,8 @@ export class MotorFiguras {
   msCalculo = 0;
 
   private tetras: TetraGrande[];
-  /** La forma de astilla de cada fragmento grande (fija). */
-  private formasTetras: Astilla[] = [];
+  /** La forma de cada fragmento suelto: un triangulito de lados desiguales (fija). */
+  private formasTetras: number[][][] = [];
   /** La colocación con la que se está dibujando la figura (ya adaptada a la pantalla). */
   private actual: Colocacion = GLOBO;
 
@@ -1641,7 +1646,7 @@ export class MotorFiguras {
     gl.uniform1f(this.U.uHalo, this.claro ? 0 : HALO);
     gl.uniform1f(this.U.uHaloFig, 1 - 0.8 * this.enCerebro);
     gl.uniform1f(this.U.uMargen, 1.45);
-    // Qué tanto se rellenan las caras de las astillas del polvo
+    // Qué tanto se rellenan los triangulitos del polvo
     gl.uniform1f(this.U.uRelleno, this.claro ? 0.16 : 0.24);
     gl.drawArrays(gl.POINTS, 0, N);
     for (const l of [A.pos, A.tam, A.col, A.rot, A.extra]) gl.disableVertexAttribArray(l);
@@ -1673,7 +1678,7 @@ export class MotorFiguras {
     return Math.min(1, Math.max(0, this.o1.m[i]));
   }
 
-  /** Los tetraedros grandes de contorno que flotan (lienzo 2D), con paralaje según el scroll del video. */
+  /** Los fragmentos sueltos que flotan (lienzo 2D): triangulitos chiquitos, con paralaje según el scroll del video. */
   private dibujarTetras() {
     const ctx = this.ctx2;
     const dpr = this.dpr;
@@ -1691,15 +1696,45 @@ export class MotorFiguras {
       const ay = te.g0[0] + t * te.gv[0];
       const ax = te.g0[1] + t * te.gv[1];
       const az = te.g0[2] + t * te.gv[2];
-      // Cada uno es una astilla (forma irregular fija, caras rellenas con su luz y aristas)
+      // Cada uno es un triangulito chiquito de lados desiguales, relleno y con borde, que gira y se
+      // voltea (se aplana) despacio
       const i = this.tetras.indexOf(te);
-      if (!this.formasTetras[i]) this.formasTetras[i] = crearAstilla(azar(1009 + i * 97));
+      if (!this.formasTetras[i]) {
+        const r = azar(1009 + i * 97);
+        this.formasTetras[i] = [0, 2.094, 4.189].map((g) => {
+          const a = g + (r() - 0.5) * 0.7;
+          const k = 0.72 + r() * 0.45;
+          return [Math.cos(a) * k, Math.sin(a) * k];
+        });
+      }
       // En el inicio, un poco más suaves y con menos resplandor (SUAVE)
       const color = this.suave && !this.claro ? (SUAVE.tetras[te.color] ?? te.color) : te.color;
       ctx.globalAlpha = te.alfa * (this.claro ? 0.7 : 1) * (this.suave ? SUAVE.tetrasAlfa : 1);
       const trazo = this.claro && te.color === "#d9d4e8" ? "#8a83a3" : color;
-      const resplandor = this.claro ? 0 : this.suave ? SUAVE.tetrasResplandor : 6;
-      dibujarAstilla(ctx, this.formasTetras[i], x, y, te.tam * s * 1.1, ay, ax, az, trazo, this.claro ? 0.14 : 0.2, 1, 1.6 * Math.max(0.8, s), resplandor);
+      const tam = te.tam * s * 0.36;
+      const c = Math.cos(az + ay * 0.3);
+      const sn = Math.sin(az + ay * 0.3);
+      const k = 0.35 + 0.65 * Math.abs(Math.cos(ax));
+      ctx.beginPath();
+      this.formasTetras[i].forEach(([vx, vy], n) => {
+        const yy = vy * k;
+        const px = x + (vx * c - yy * sn) * tam;
+        const py = y + (vx * sn + yy * c) * tam;
+        if (n) ctx.lineTo(px, py);
+        else ctx.moveTo(px, py);
+      });
+      ctx.closePath();
+      ctx.fillStyle = trazo;
+      const base = ctx.globalAlpha;
+      ctx.globalAlpha = base * (this.claro ? 0.22 : 0.3);
+      ctx.shadowBlur = 0;
+      ctx.fill();
+      ctx.globalAlpha = base;
+      ctx.strokeStyle = trazo;
+      ctx.lineWidth = 1.3 * Math.max(0.8, s);
+      ctx.shadowColor = this.claro ? "transparent" : trazo;
+      ctx.shadowBlur = this.claro ? 0 : this.suave ? SUAVE.tetrasResplandor : 6;
+      ctx.stroke();
     }
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
