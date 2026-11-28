@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 /**
  * "Polvo de estrellas": la escena 3D de partículas como fondo de la portada.
- * Es la misma familia de la escena de /vista-3d (sus tetraedros de alambre),
+ * Es la misma familia de la escena 3D (sus tetraedros de alambre),
  * pero quieta y casi imperceptible: el protagonista es el título.
  *
  * - Pocas partículas (lección 11), repartidas en profundidad: la mayoría son

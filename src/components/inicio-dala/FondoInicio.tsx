@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FondoFiguras } from "@/components/escena/FondoFiguras";
+import { FlujoInfo } from "./FlujoInfo";
 import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@/lib/inicio";
 
 /**
@@ -17,23 +18,10 @@ import { ENLACES, esEscenaInicio, type EnlaceActivo, type EscenaInicio } from "@
  * - Mide las secciones al cargar, al cambiar de tamaño y cuando cargan las letras.
  */
 export function FondoInicio() {
-  // El inicio: el cerebro pasa de derecha a izquierda parejo y suave. Prueba: /vista-chat, con
-  // un chat de Atendel en lugar del cerebro
+  // El inicio: en lugar del cerebro, el flujo de información (FlujoInfo) sobre polvo suelto; de
+  // decisiones en adelante, las figuras de siempre
   const ruta = usePathname();
-  const conChat = ruta === "/vista-chat";
-  const parejo = ruta === "/";
-  const [idioma, setIdioma] = useState<string>();
-  useEffect(() => {
-    setIdioma(document.documentElement.lang);
-  }, []);
-  // En celular, la portada deja lugar arriba para el chat (chat-portada.css)
-  useEffect(() => {
-    if (!conChat) return;
-    document.documentElement.dataset.portadaChat = "";
-    return () => {
-      delete document.documentElement.dataset.portadaChat;
-    };
-  }, [conChat]);
+  const inicio = ruta === "/";
   useEffect(() => {
     const html = document.documentElement;
     let tops: Partial<Record<EscenaInicio, number>> = {};
@@ -81,5 +69,12 @@ export function FondoInicio() {
     };
   }, []);
 
-  return conChat ? <FondoFiguras variante="chat" idioma={idioma} /> : <FondoFiguras parejo={parejo} />;
+  return inicio ? (
+    <>
+      <FondoFiguras variante="flujo" parejo />
+      <FlujoInfo />
+    </>
+  ) : (
+    <FondoFiguras />
+  );
 }

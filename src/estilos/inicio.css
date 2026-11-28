@@ -247,6 +247,17 @@
   opacity: 0.6;
 }
 
+/* El flujo de información del inicio (FlujoInfo.tsx): encima del fondo de figuras y debajo del
+   contenido, del tamaño de la pantalla */
+.flujo-info {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 /* El menú (todas las páginas públicas): cubre la pantalla y sigue el tema (oscuro o claro,
    con las mismas formas). Izquierda, la tarjeta del equipo con la constelación; derecha, los
    lugares grandes, las filas que se abren y los botones de cuenta. */

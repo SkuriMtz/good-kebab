@@ -664,7 +664,7 @@ export class MotorFiguras {
   /** ¿Ya está el cerebro de la malla real? Mientras no, la portada muestra polvo (nunca el de respaldo a medias). */
   cerebroListo = false;
   /**
-   * Variante «chat» de la portada (prueba, /vista-chat): en lugar del cerebro se ve un chat con
+   * Variante «chat» de la portada (era una prueba): en lugar del cerebro se ve un chat con
    * Atendel (HTML, sin triangulitos; lo mueve FondoFiguras). El fondo es solo polvo suelto que,
    * al bajar hacia el caos, se reparte poco a poco y después forma el foco como siempre.
    */

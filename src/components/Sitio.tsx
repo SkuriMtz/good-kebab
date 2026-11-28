@@ -17,7 +17,7 @@ import { PieDelgado } from "./inicio-dala/PieDelgado";
  * agentes, que se pueden abrir desde cualquier página.
  * - `fondo="particulas"` (por defecto): la escena de triangulitos, sobria y
  *   discreta (opacidad baja y casi invisible detrás del texto, lecciones 7, 11 y 13).
- * - `fondo="3d"`: la escena 3D completa (la historia de /vista-3d).
+ * - `fondo="3d"`: la escena 3D completa (hoy ninguna página la usa).
  * - `fondo="ninguno"`: la página pone su propia escena.
  * - `fondo="figuras"`: el inicio por escenas (como la versión 7): la figura
  *   de triangulitos cambia de forma según la sección (data-escena), en su

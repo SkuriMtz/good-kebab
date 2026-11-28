@@ -9,7 +9,7 @@ import { EVENTO_TEMA } from "@/lib/tema";
  * Si el navegador no tiene WebGL, queda el fondo de la portada (el sitio funciona igual).
  *
  * Modos:
- * - "historia" (por defecto): la escena completa ligada al scroll (/vista-3d).
+ * - "historia" (por defecto): la escena completa ligada al scroll.
  * - "polvo": el fondo de la portada del inicio. Polvo de estrellas casi
  *   imperceptible, con profundidad y parallax con el mouse; funciona en
  *   oscuro y en claro (lee los colores de los tokens). Con movimiento

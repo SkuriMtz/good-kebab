@@ -3,7 +3,7 @@ import { SITIO } from "@/lib/sitio";
 
 /**
  * /robots.txt: los buscadores ven el sitio público; nunca el panel, la API ni
- * las páginas de trabajo (laboratorios y vistas previas).
+ * las páginas internas.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/panel", "/api/", "/auth/", "/opciones", "/base", "/laboratorio-figuras", "/vista-3d"],
+        disallow: ["/panel", "/api/", "/auth/", "/opciones", "/base"],
       },
     ],
     sitemap: `${SITIO}/sitemap.xml`,

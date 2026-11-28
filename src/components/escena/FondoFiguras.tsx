@@ -30,10 +30,12 @@ type Props = {
    */
   progreso?: number;
   /**
-   * "chat" (prueba, /vista-chat): en la portada y en decisiones, en lugar del cerebro, un chat con
-   * Atendel; al bajar hacia el caos se deshace en triangulitos. Por defecto, el cerebro.
+   * "chat" (prueba): en la portada y en decisiones, en lugar del cerebro, un chat con Atendel; al
+   * bajar hacia el caos se deshace en triangulitos. "flujo" (el inicio): sin cerebro, solo polvo
+   * suelto en la portada y en decisiones (el flujo de información lo dibuja FlujoInfo encima).
+   * Por defecto, el cerebro.
    */
-  variante?: "cerebro" | "chat";
+  variante?: "cerebro" | "chat" | "flujo";
   /** El idioma de los textos del chat ("es" o "en"). */
   idioma?: string;
   /** El inicio («/»): el cerebro pasa de derecha a izquierda más parejo y suave. */
@@ -56,6 +58,8 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
   const refCaja = useRef<HTMLDivElement>(null);
   const refChat = useRef<HTMLDivElement>(null);
   const conChat = variante === "chat";
+  /** Sin cerebro: el chat de prueba o el flujo de información del inicio. */
+  const sinCerebro = conChat || variante === "flujo";
   const refGl = useRef<HTMLCanvasElement>(null);
   const refLineas = useRef<HTMLCanvasElement>(null);
   const motorRef = useRef<MotorFiguras | null>(null);
@@ -77,7 +81,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       return; // sin WebGL: no hay fondo
     }
     motorRef.current = motor;
-    motor.modoChat = conChat;
+    motor.modoChat = sinCerebro;
     motor.suave = parejo;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -268,8 +272,8 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
 
     // El cerebro de malla real llega aparte (archivo de ~150 KB; ~65 KB en celular); mientras, hay polvo
     let vivo = true;
-    // (con el chat no hace falta: no se descarga)
-    (conChat ? Promise.resolve() : motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin")).then(() => {
+    // (sin cerebro no hace falta: no se descarga)
+    (sinCerebro ? Promise.resolve() : motor.cargarCerebro(motor.N < 8000 ? "/figuras/cerebro-chico.bin" : "/figuras/cerebro.bin")).then(() => {
       if (!vivo) return;
       alListoRef.current?.({ motor, avanzar });
       caja.dataset.cerebro = "true";
@@ -293,7 +297,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       motor.destruir();
       motorRef.current = null;
     };
-  }, [reloj, conChat, parejo]);
+  }, [reloj, conChat, sinCerebro, parejo]);
 
   return (
     <div ref={refCaja} className={`escena-fondo fondo-figuras ${className}`} aria-hidden="true">

@@ -4,7 +4,8 @@ import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { APPS_CONECTABLES, appsConLogo } from "@/components/inicio-dala/AppsMarquesina";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
-import { AppsBarra, Equipo, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
+import { Asistentes } from "@/components/inicio-mezcla/Asistentes";
+import { AppsBarra, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
@@ -15,9 +16,9 @@ import "@/components/inicio-mezcla/mezcla.css";
 /*
  * El inicio: escenas a pantalla completa sobre el fondo de figuras (cada bloque dice qué escena
  * es con data-escena: el fondo la lee para saber qué figura toca y FondoInicio, qué enlace de la
- * barra se enciende; src/lib/inicio.ts). El cerebro pasa de derecha a izquierda parejo y suave.
- * 1. portada · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. tu equipo y sus casos del día a
- * día en un mismo panel · las apps (una barra que sube sola; la que toques dice qué hace Atendel
+ * barra se enciende; src/lib/inicio.ts). De la portada a decisiones corre el río de información.
+ * 1. portada · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. tus asistentes de IA (quiénes
+ * son y cómo trabajan) · las apps (una barra que sube sola; la que toques dice qué hace Atendel
  * ahí) · cada negocio ve solo lo suyo (garantías y permisos) · 7. planes · 8. cierre.
  * Los textos cortos salen de src/components/inicio-mezcla/textos.ts (los 7 idiomas); los
  * títulos, de src/i18n. El chat de demostración vive en /pruebalo.
@@ -120,15 +121,9 @@ export default async function Inicio() {
         </div>
       </section>
 
-      {/* 6. Tu equipo y lo que resuelve, en un mismo lugar */}
-      <section id="agentes" className="mz-bloque mz-equipo" data-escena="equipo" aria-labelledby="equipo-titulo">
-        <div className="mz-cabeza">
-          <Etiqueta>{d.equipo.titulo}</Etiqueta>
-          <h2 id="equipo-titulo" className="ini-titulo">
-            {m.equipoSub}
-          </h2>
-        </div>
-        <Equipo idioma={idioma} cargos={textos.carrusel.cargo} verFicha={textos.carrusel.verFicha} />
+      {/* 6. Tus asistentes de IA: quiénes son y cómo trabajan, sin párrafos */}
+      <section id="agentes" className="mz-bloque mz-asistentes" data-escena="equipo" aria-labelledby="equipo-titulo">
+        <Asistentes idioma={idioma} etiqueta={d.equipo.titulo} />
       </section>
 
       {/* Las apps: una barra a la izquierda que sube sola; la que toques dice qué hace Atendel ahí */}
