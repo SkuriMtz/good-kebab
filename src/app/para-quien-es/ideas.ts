@@ -43,7 +43,7 @@ type Ui = { subtitulo: string; todas: string; ver: string; ejemplo: string; fict
 type Textos = { ui: Ui; ideas: [string, string][] };
 
 const ES: Textos = {
-  ui: { subtitulo: "Toca una idea y mira cómo la resuelve Atendel.", todas: "Todas", ver: "Ver ejemplo", ejemplo: "Conversación de ejemplo", ficticio: "Nombres y datos de ejemplo.", cerrar: "Cerrar", tu: "Tú" },
+  ui: { subtitulo: "Toca una idea y mira cómo la resuelve Atendel.", todas: "Todas", ver: "Ver", ejemplo: "Conversación de ejemplo", ficticio: "Nombres y datos de ejemplo.", cerrar: "Cerrar", tu: "Tú" },
   ideas: [
     ["Confirma las citas de mañana", "Listo: les escribí a las 6 personas con cita mañana. Ya confirmaron 4; te aviso cuando contesten las otras 2."],
     ["¿Qué horarios tengo libres el viernes?", "El viernes tienes libre de 10:00 a 12:00 y de 16:00 a 18:00. ¿Se los ofrezco a quien pregunte?"],
@@ -77,7 +77,7 @@ const ES: Textos = {
 };
 
 const EN: Textos = {
-  ui: { subtitulo: "Tap an idea to see how Atendel handles it.", todas: "All", ver: "See example", ejemplo: "Example conversation", ficticio: "Sample names and data.", cerrar: "Close", tu: "You" },
+  ui: { subtitulo: "Tap an idea to see how Atendel handles it.", todas: "All", ver: "View", ejemplo: "Example conversation", ficticio: "Sample names and data.", cerrar: "Close", tu: "You" },
   ideas: [
     ["Confirm tomorrow's appointments", "Done: I messaged the 6 people booked for tomorrow. 4 have confirmed; I'll let you know when the other 2 reply."],
     ["What times are free on Friday?", "On Friday you're free from 10:00 to 12:00 and from 16:00 to 18:00. Shall I offer them to whoever asks?"],
@@ -111,7 +111,7 @@ const EN: Textos = {
 };
 
 const PT: Textos = {
-  ui: { subtitulo: "Toque em uma ideia e veja como o Atendel resolve.", todas: "Todas", ver: "Ver exemplo", ejemplo: "Conversa de exemplo", ficticio: "Nomes e dados de exemplo.", cerrar: "Fechar", tu: "Você" },
+  ui: { subtitulo: "Toque em uma ideia e veja como o Atendel resolve.", todas: "Todas", ver: "Ver", ejemplo: "Conversa de exemplo", ficticio: "Nomes e dados de exemplo.", cerrar: "Fechar", tu: "Você" },
   ideas: [
     ["Confirme os horários de amanhã", "Pronto: escrevi para as 6 pessoas com horário amanhã. 4 já confirmaram; aviso quando as outras 2 responderem."],
     ["Quais horários tenho livres na sexta?", "Na sexta você tem livre das 10:00 às 12:00 e das 16:00 às 18:00. Ofereço para quem perguntar?"],
@@ -145,7 +145,7 @@ const PT: Textos = {
 };
 
 const FR: Textos = {
-  ui: { subtitulo: "Touchez une idée pour voir comment Atendel s'en occupe.", todas: "Toutes", ver: "Voir l'exemple", ejemplo: "Conversation d'exemple", ficticio: "Noms et données d'exemple.", cerrar: "Fermer", tu: "Vous" },
+  ui: { subtitulo: "Touchez une idée pour voir comment Atendel s'en occupe.", todas: "Toutes", ver: "Voir", ejemplo: "Conversation d'exemple", ficticio: "Noms et données d'exemple.", cerrar: "Fermer", tu: "Vous" },
   ideas: [
     ["Confirme les rendez-vous de demain", "C'est fait : j'ai écrit aux 6 personnes qui ont rendez-vous demain. 4 ont confirmé ; je vous préviens dès que les 2 autres répondent."],
     ["Quels créneaux ai-je de libres vendredi ?", "Vendredi, vous êtes libre de 10:00 à 12:00 et de 16:00 à 18:00. Je les propose à ceux qui demandent ?"],
@@ -179,7 +179,7 @@ const FR: Textos = {
 };
 
 const DE: Textos = {
-  ui: { subtitulo: "Tippe auf eine Idee und sieh, wie Atendel sie erledigt.", todas: "Alle", ver: "Beispiel ansehen", ejemplo: "Beispielgespräch", ficticio: "Beispielnamen und -daten.", cerrar: "Schließen", tu: "Du" },
+  ui: { subtitulo: "Tippe auf eine Idee und sieh, wie Atendel sie erledigt.", todas: "Alle", ver: "Ansehen", ejemplo: "Beispielgespräch", ficticio: "Beispielnamen und -daten.", cerrar: "Schließen", tu: "Du" },
   ideas: [
     ["Bestätige die Termine für morgen", "Erledigt: Ich habe den 6 Personen mit Termin morgen geschrieben. 4 haben bestätigt; ich sage dir Bescheid, wenn die anderen 2 antworten."],
     ["Welche Zeiten sind am Freitag frei?", "Am Freitag bist du von 10:00 bis 12:00 und von 16:00 bis 18:00 frei. Soll ich sie Anfragenden anbieten?"],
@@ -213,7 +213,7 @@ const DE: Textos = {
 };
 
 const IT: Textos = {
-  ui: { subtitulo: "Tocca un'idea e guarda come la risolve Atendel.", todas: "Tutte", ver: "Vedi esempio", ejemplo: "Conversazione di esempio", ficticio: "Nomi e dati di esempio.", cerrar: "Chiudi", tu: "Tu" },
+  ui: { subtitulo: "Tocca un'idea e guarda come la risolve Atendel.", todas: "Tutte", ver: "Vedi", ejemplo: "Conversazione di esempio", ficticio: "Nomi e dati di esempio.", cerrar: "Chiudi", tu: "Tu" },
   ideas: [
     ["Conferma gli appuntamenti di domani", "Fatto: ho scritto alle 6 persone con appuntamento domani. 4 hanno confermato; ti avviso quando rispondono le altre 2."],
     ["Che orari ho liberi venerdì?", "Venerdì sei libero dalle 10:00 alle 12:00 e dalle 16:00 alle 18:00. Li propongo a chi chiede?"],
@@ -247,7 +247,7 @@ const IT: Textos = {
 };
 
 const ZH: Textos = {
-  ui: { subtitulo: "点一个想法，看看 Atendel 怎么处理。", todas: "全部", ver: "查看示例", ejemplo: "示例对话", ficticio: "名字和数据均为示例。", cerrar: "关闭", tu: "你" },
+  ui: { subtitulo: "点一个想法，看看 Atendel 怎么处理。", todas: "全部", ver: "查看", ejemplo: "示例对话", ficticio: "名字和数据均为示例。", cerrar: "关闭", tu: "你" },
   ideas: [
     ["确认明天的预约", "好了：我给明天有预约的 6 位客人发了消息。已有 4 位确认，另外 2 位回复后我会告诉你。"],
     ["周五我哪些时间有空？", "周五你在 10:00–12:00 和 16:00–18:00 有空。要我把这些时间提供给来问的客人吗？"],

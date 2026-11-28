@@ -529,9 +529,6 @@
   .idea-pq__pide {
     font-size: 15px;
   }
-  .idea-pq__ver {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ideas-pq__rejilla > li,
