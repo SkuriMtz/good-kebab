@@ -142,7 +142,7 @@ export const es = {
   inicio: {
     portada: {
       etiqueta: "Tu socio de IA",
-      titulo: "Que ningún cliente se quede sin respuesta.",
+      titulo: "La IA que se encarga de tu negocio",
       texto:
         "Atendel ve lo que pasa en tu negocio y lo resuelve como un socio, con su equipo; de lo importante te avisa por WhatsApp: Aura atiende tu WhatsApp y tus citas, Altair tu correo, Rigel a tus clientes y Mira la oficina. Trabaja aunque no estés, y lo de dinero no sale sin tu OK.",
     },

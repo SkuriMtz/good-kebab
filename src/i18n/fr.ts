@@ -166,7 +166,7 @@ export const fr: Diccionario = {
   inicio: {
     portada: {
       etiqueta: "Votre partenaire IA",
-      titulo: "Aucun client sans réponse.",
+      titulo: "L'IA qui s'occupe de votre activité",
       texto:
         "Atendel voit ce qui se passe dans votre commerce et s'en occupe comme un associé, avec son équipe ; l'important, il vous le signale sur WhatsApp : Aura s'occupe de votre WhatsApp et de vos rendez-vous, Altair de vos e-mails, Rigel de vos clients et Mira du bureau. Il travaille même quand vous n'êtes pas là, et rien qui touche à l'argent ne part sans votre accord.",
     },

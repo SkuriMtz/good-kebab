@@ -170,7 +170,7 @@ export const de: Diccionario = {
   inicio: {
     portada: {
       etiqueta: "Dein KI-Partner",
-      titulo: "Kein Kunde ohne Antwort.",
+      titulo: "Die KI, die sich um dein Geschäft kümmert",
       texto:
         "Atendel sieht, was in deinem Geschäft passiert, und erledigt es wie ein Geschäftspartner mit seinem Team; was wichtig ist, sagt es dir auf WhatsApp: Aura übernimmt dein WhatsApp und deine Termine, Altair deine E-Mails, Rigel deine Kunden und Mira das Büro. Es arbeitet auch, wenn du nicht da bist, und nichts, was mit Geld zu tun hat, geht ohne dein OK raus.",
     },

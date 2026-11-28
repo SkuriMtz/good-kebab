@@ -170,7 +170,7 @@ export const en: Diccionario = {
   inicio: {
     portada: {
       etiqueta: "Your AI partner",
-      titulo: "No client left without an answer.",
+      titulo: "The AI that takes care of your business",
       texto:
         "Atendel sees what's happening in your business and sorts it out like a partner, with its team; it tells you what matters on WhatsApp: Aura takes your WhatsApp and appointments, Altair your email, Rigel your clients and Mira the office. It works even when you're away, and nothing involving money goes out without your OK.",
     },

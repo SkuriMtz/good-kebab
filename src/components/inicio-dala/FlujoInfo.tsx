@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * EL RÍO DE INFORMACIÓN (el inicio, en lugar del cerebro): un río de partículas que corre de la
- * portada («Que ningún cliente se quede sin respuesta», entra por la derecha) a decisiones
+ * portada («La IA que se encarga de tu negocio», entra por la derecha) a decisiones
  * («Trabaja aunque no estés», sale por la izquierda), por fuera de los textos.
  * - Grueso: unos 40 % del alto de la pantalla (35 % en el celular, que es angosto).
  * - El cauce hace una S suave (suma de 3 senoides de distinta frecuencia) y ondula muy lento con
@@ -380,7 +380,7 @@ export function FlujoInfo() {
       }
       arriba -= medio * 3 + alto * 0.2;
       abajo += medio * 3 + alto * 0.2;
-      textos = [...document.querySelectorAll<HTMLElement>('[data-escena="portada"] .ini-col, [data-escena="decisiones"] .ini-col')].map((el) => {
+      textos = [...document.querySelectorAll<HTMLElement>('.mz-hero__a, .mz-hero__b, .mz-hero__c, [data-escena="decisiones"] .ini-col')].map((el) => {
         const r = el.getBoundingClientRect();
         return { x0: r.left - 14, y0: r.top + sy - 14, x1: r.right + 14, y1: r.bottom + sy + 14 };
       });

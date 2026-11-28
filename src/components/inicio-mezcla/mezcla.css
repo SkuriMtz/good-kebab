@@ -449,15 +449,89 @@
 }
 
 /* =====================================================================
-   La portada, más chica: el título y el texto ocupan menos
+   La portada: solo el título (TituloPortada), un poco más al centro y a media altura de la
+   pantalla. Renglón 1 en Geist; renglón 2 en serif itálica (Instrument Serif, fuenteAcento.ts)
+   con una parte chica y gris y la última muy grande, con el degradado ámbar → lavanda del río.
    ===================================================================== */
-.ini-portada.mz-portada .ini-display {
-  max-width: 6.4em;
-  font-size: 4.3vw;
-  line-height: 1;
+.ini-portada.mz-portada .ini-portada__texto {
+  top: 47vh;
+  left: 12vw;
+  width: auto;
+  max-width: 64vw;
+  transform: translateY(-50%);
 }
-.ini-portada.mz-portada .ini-cuerpo {
-  max-width: 24vw;
+.mz-hero {
+  --hero-1: #f1bc5b;
+  --hero-2: #916ef8;
+  margin: 0;
+  color: var(--ini-texto);
+  font-weight: 400;
+}
+:root[data-tema="claro"] .mz-hero {
+  --hero-1: #a8740a;
+  --hero-2: #6b48e0;
+}
+.mz-hero__a {
+  display: block;
+  width: fit-content;
+  font-size: 6.4vw;
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+}
+.mz-hero__bc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.34em;
+  width: fit-content;
+  margin-top: 0.12em;
+  padding-left: 1.6em;
+  font-family: var(--font-acento), ui-serif, Georgia, serif;
+  font-size: 3vw;
+  font-style: italic;
+  font-weight: 400;
+}
+.mz-hero__b {
+  color: var(--ini-gris);
+  letter-spacing: -0.01em;
+}
+.mz-hero__c {
+  /* el remate de la itálica no se corta con el degradado */
+  padding-right: 0.12em;
+  background: linear-gradient(100deg, var(--hero-1) 12%, var(--hero-2) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 2.55em;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+}
+@media (forced-colors: active) {
+  .mz-hero__c {
+    background: none;
+    color: CanvasText;
+  }
+}
+/* Entra subiendo, renglón por renglón (solo transform y opacidad) */
+@media (prefers-reduced-motion: no-preference) {
+  .mz-hero__a,
+  .mz-hero__b,
+  .mz-hero__c {
+    animation: mz-hero-entra 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .mz-hero__b {
+    animation-delay: 0.14s;
+  }
+  .mz-hero__c {
+    animation-delay: 0.24s;
+  }
+}
+@keyframes mz-hero-entra {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
 }
 
 /* =====================================================================
@@ -679,12 +753,17 @@
   .mz-cabeza .ini-cuerpo {
     margin-top: 12px;
   }
-  .ini-portada.mz-portada .ini-display {
+  .ini-portada.mz-portada .ini-portada__texto {
     max-width: none;
-    font-size: clamp(34px, 9.6vw, 48px);
+    padding-top: 14svh;
+    transform: none;
   }
-  .ini-portada.mz-portada .ini-cuerpo {
-    max-width: none;
+  .mz-hero__a {
+    font-size: clamp(42px, 12.5vw, 72px);
+  }
+  .mz-hero__bc {
+    padding-left: 0.5em;
+    font-size: clamp(22px, 6.6vw, 36px);
   }
   .mz-casos,
   .mz-privacidad {

@@ -4,7 +4,9 @@ import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { APPS_CONECTABLES, appsConLogo } from "@/components/inicio-dala/AppsMarquesina";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
+import { acento } from "@/components/inicio-mezcla/fuenteAcento";
 import { AppsBarra, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
+import { TituloPortada } from "@/components/inicio-mezcla/TituloPortada";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
 import { Planes } from "@/components/Planes";
 import { t } from "@/i18n";
@@ -16,7 +18,7 @@ import "@/components/inicio-mezcla/mezcla.css";
  * El inicio: escenas a pantalla completa sobre el fondo de figuras (cada bloque dice qué escena
  * es con data-escena: el fondo la lee para saber qué figura toca y FondoInicio, qué enlace de la
  * barra se enciende; src/lib/inicio.ts). De la portada a decisiones corre el río de información.
- * 1. portada · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
+ * 1. portada (solo el título, en dos letras y tamaños: TituloPortada) · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
  * sola; la que toques dice qué hace Atendel ahí; lleva la escena «equipo» del fondo) · cada
  * negocio ve solo lo suyo (garantías y permisos) · 7. planes · 8. cierre. Qué son los agentes y
  * cómo funcionan se explica en /preguntas y en /agentes.
@@ -54,18 +56,9 @@ export default async function Inicio() {
   return (
     <Sitio fondo="inicio">
       {/* 1. Portada */}
-      <section className="ini-bloque ini-portada mz-portada" data-escena="portada" aria-labelledby="portada-titulo">
+      <section className={`ini-bloque ini-portada mz-portada ${acento.variable}`} data-escena="portada" aria-labelledby="portada-titulo">
         <div className="ini-col ini-col--izq ini-portada__texto">
-          <TextoDala como="h1" tipo="titulo" id="portada-titulo" className="ini-display">
-            {d.portada.titulo}
-          </TextoDala>
-          <TextoDala className="ini-etiqueta" inicio="top 95%">
-            {m.portadaEtiqueta}
-          </TextoDala>
-          <TextoDala className="ini-cuerpo" inicio="top 95%" retraso={0.15}>
-            {m.portada}
-          </TextoDala>
-          <BotonLista className="ini-portada__boton" />
+          <TituloPortada partes={m.portadaPartes} separador={idioma === "zh" ? "" : " "} />
         </div>
       </section>
 
