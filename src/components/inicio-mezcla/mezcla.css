@@ -449,11 +449,11 @@
 }
 
 /* =====================================================================
-   La portada: solo el título, grande, en el margen izquierdo de todas las secciones y un poco
-   arriba de la mitad de la pantalla (el centro óptico). Renglones parejos.
+   La portada: el título, grande, en el margen izquierdo de todas las secciones, y debajo las
+   caras del equipo (EquipoPortada). El conjunto, arriba de la mitad de la pantalla.
    ===================================================================== */
 .ini-portada.mz-portada .ini-portada__texto {
-  top: 46vh;
+  top: 41vh;
   width: auto;
   transform: translateY(-50%);
 }
@@ -463,6 +463,116 @@
   line-height: 0.94;
   letter-spacing: -0.045em;
   text-wrap: balance;
+}
+
+/* Las caras del equipo: encimadas, con un aro del color del fondo; la que tocas sube */
+.mz-equipo-portada {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: clamp(24px, 2.6vw, 40px);
+}
+.mz-equipo-portada__caras {
+  display: flex;
+  margin: 0;
+  padding: 0 0 0 8px;
+  list-style: none;
+}
+.mz-equipo-portada__caras > li {
+  margin-left: -10px;
+}
+.mz-equipo-portada__cara {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 2px solid var(--ini-fondo);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 32%, var(--ini-fondo));
+  cursor: pointer;
+  transition:
+    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 200ms ease;
+}
+.mz-equipo-portada__cara svg {
+  width: 48px;
+  height: 48px;
+}
+.mz-equipo-portada__cara[data-activo] {
+  position: relative;
+  z-index: 1;
+  background: color-mix(in srgb, var(--c) 55%, var(--ini-fondo));
+  transform: translateY(-6px) scale(1.08);
+}
+.mz-equipo-portada__cara:focus-visible {
+  outline: 2px solid var(--ini-acento);
+  outline-offset: 2px;
+}
+.mz-equipo-portada__texto {
+  min-width: 0;
+  margin: 0;
+  color: var(--ini-gris);
+  font-size: 16px;
+  line-height: 1.35;
+}
+.mz-equipo-portada__texto b {
+  color: var(--c, var(--ini-texto));
+  font-weight: 500;
+}
+.mz-equipo-portada__rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  animation: mz-rol-entra 220ms ease-out both;
+}
+.mz-equipo-portada__punto {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: #3fd6b8;
+  box-shadow: 0 0 0 0 rgb(63 214 184 / 0.5);
+  animation: mz-en-linea 2.4s ease-out infinite;
+}
+@keyframes mz-rol-entra {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes mz-en-linea {
+  0% {
+    box-shadow: 0 0 0 0 rgb(63 214 184 / 0.5);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px rgb(63 214 184 / 0);
+  }
+}
+/* Entran después del título, una tras otra */
+@media (prefers-reduced-motion: no-preference) {
+  .mz-equipo-portada__caras > li {
+    animation: mz-cara-entra 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(0.9s + var(--i) * 0.08s);
+  }
+  .mz-equipo-portada__texto {
+    animation: mz-cara-entra 700ms cubic-bezier(0.22, 1, 0.36, 1) 1.25s both;
+  }
+}
+@keyframes mz-cara-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mz-equipo-portada__punto,
+  .mz-equipo-portada__rol {
+    animation: none;
+  }
+  .mz-equipo-portada__cara {
+    transition: none;
+  }
 }
 
 /* =====================================================================
@@ -685,8 +795,20 @@
     margin-top: 12px;
   }
   .ini-portada.mz-portada .ini-portada__texto {
-    padding-top: 13svh;
+    padding-top: 10svh;
     transform: none;
+  }
+  .mz-equipo-portada {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .mz-equipo-portada__cara {
+    width: 46px;
+    height: 46px;
+  }
+  .mz-equipo-portada__cara svg {
+    width: 44px;
+    height: 44px;
   }
   .ini-portada.mz-portada .ini-display {
     max-width: none;

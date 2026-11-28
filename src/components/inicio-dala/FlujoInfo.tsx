@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { crearAstilla, dibujarAstilla, type Astilla } from "@/components/escena/figuras/astilla";
 
 /**
  * EL RÍO DE INFORMACIÓN (el inicio, en lugar del cerebro): un río de partículas que corre de la
@@ -14,8 +15,8 @@ import { useEffect, useRef } from "react";
  * - La base es polvo: a lo ancho de cada hebra, reparto gaussiano (centro denso y orillas que se
  *   deshilachan, con algunas partículas que se escapan del cauce).
  * - Encima, para que llame la atención: líneas hechas de fragmentos en fila (hilos que se cruzan,
- *   con pulsos de luz que corren por ellos), asteroides (fragmentos grandes de alambre que giran y
- *   van más despacio) y destellos que se prenden y se apagan.
+ *   con pulsos de luz que corren por ellos), asteroides (astillas grandes e irregulares, con caras
+ *   de vidrio, que giran y van más despacio; astilla.ts) y destellos que se prenden y se apagan.
  * - Avanzan más rápido al centro del río y más lento en las orillas, con un remolino ligero de
  *   ruido (curl de ruido simplex) para que no parezcan rieles.
  * - Donde hay texto, las partículas pasan por detrás casi transparentes (no compite con él).
@@ -39,24 +40,8 @@ type P = { x: number; y: number };
 /** Una línea hecha de fragmentos: su ondulación a lo ancho del río, su velocidad y su color. */
 type Linea = { f: number; p: number; w: number; a: number; vel: number; color: number; pulso: number; o: Float32Array };
 type PuntoLinea = { l: number; s: number; j: number; tam: number };
-type Asteroide = { s: number; lat: number; v: number; tam: number; color: number; a: number; b: number; va: number; vb: number };
+type Asteroide = { s: number; lat: number; v: number; tam: number; color: number; a: number; b: number; va: number; vb: number; forma: Astilla };
 type Destello = { k: number; s: number; u: number; v: number; fase: number; vel: number; color: number; tam: number };
-
-// Tetraedro regular (para los asteroides) y sus 6 aristas
-const TV = [
-  [1, 1, 1],
-  [1, -1, -1],
-  [-1, 1, -1],
-  [-1, -1, 1],
-].map(([x, y, z]) => [x / Math.SQRT2, y / Math.SQRT2, z / Math.SQRT2]);
-const ARISTAS = [
-  [0, 1],
-  [0, 2],
-  [0, 3],
-  [1, 2],
-  [1, 3],
-  [2, 3],
-];
 
 /** Un puntito con halo, pintado una vez por color (para los destellos). */
 function brillo(color: string) {
@@ -290,6 +275,7 @@ export function FlujoInfo() {
           b: r() * Math.PI * 2,
           va: (r() - 0.5) * 1.2,
           vb: (r() - 0.5) * 0.9,
+          forma: crearAstilla(r),
         };
       });
 
@@ -561,9 +547,10 @@ export function FlujoInfo() {
         ctx.fillRect(px - t / 2, py - t / 2, t, t);
       }
 
-      // Los asteroides: fragmentos grandes de alambre que giran (con un brillo alrededor)
+      // Los asteroides: astillas grandes (pedazos irregulares, con caras de vidrio) que giran
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
+      ctx.globalAlpha = T.fuerza;
       for (const a of asteroides) {
         a.s += (a.v * dt) / largo;
         if (a.s >= 1) a.s -= 1;
@@ -575,32 +562,9 @@ export function FlujoInfo() {
         if (py < tope - 40 || py > piso + 40 || px < -40 || px > W + 40) continue;
         remolino(1);
         if (tapa(px, py)) continue;
-        const r = a.tam / 2;
-        const ca = Math.cos(a.a);
-        const sa = Math.sin(a.a);
-        const cb = Math.cos(a.b);
-        const sb = Math.sin(a.b);
-        ctx.beginPath();
-        const vx: number[] = [];
-        const vy: number[] = [];
-        for (const [x, y, z] of TV) {
-          const x1 = x * ca + z * sa;
-          const z1 = -x * sa + z * ca;
-          vx.push(px + x1 * r);
-          vy.push(py + (y * cb - z1 * sb) * r);
-        }
-        for (const [m, n] of ARISTAS) {
-          ctx.moveTo(vx[m], vy[m]);
-          ctx.lineTo(vx[n], vy[n]);
-        }
-        ctx.strokeStyle = T.colores[a.color];
-        ctx.globalAlpha = (claro ? 0.1 : 0.16) * T.fuerza;
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        ctx.globalAlpha = 0.9 * T.fuerza;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
+        dibujarAstilla(ctx, a.forma, px, py, a.tam * 0.6, a.a, a.b, a.a * 0.4, T.colores[a.color], claro ? 0.16 : 0.24, 0.9, 1.1);
       }
+      ctx.globalAlpha = 1;
 
       // Los destellos: se prenden y se apagan
       const tema = claro ? "claro" : "oscuro";
