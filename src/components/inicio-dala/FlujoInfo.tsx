@@ -380,7 +380,7 @@ export function FlujoInfo() {
       }
       arriba -= medio * 3 + alto * 0.2;
       abajo += medio * 3 + alto * 0.2;
-      textos = [...document.querySelectorAll<HTMLElement>('.mz-hero__a, .mz-hero__b, .mz-hero__c, [data-escena="decisiones"] .ini-col')].map((el) => {
+      textos = [...document.querySelectorAll<HTMLElement>('[data-escena="portada"] .ini-col, [data-escena="decisiones"] .ini-col')].map((el) => {
         const r = el.getBoundingClientRect();
         return { x0: r.left - 14, y0: r.top + sy - 14, x1: r.right + 14, y1: r.bottom + sy + 14 };
       });
