@@ -31,7 +31,7 @@ type Contenido = {
 
 const ES: Contenido = {
   portadaEtiqueta: "Inteligencia artificial para negocios",
-  portada: "Atendel es un asistente que responde WhatsApp, contesta correos y agenda citas.",
+  portada: "Atendel es tu asistente: se encarga de lo que no alcanzas a hacer, para que tengas más tiempo.",
   decisionesTexto: "Está pendiente de tu negocio todo el día y te avisa cuando algo requiere tu atención.",
   caosTextos: ["Así es tu día hoy: mensajes, correos, citas y pendientes por todos lados.", "Respondes tarde, se pasa una cita y un cliente ya no regresa.", "Y el papeleo se acumula para la noche."],
   focoTextos: ["Pides todo en un mismo chat. Atendel reparte el trabajo entre su equipo y te confirma cuando está listo.", "Aprende cómo trabajas para resolver como tú lo harías."],
@@ -87,7 +87,7 @@ const ES: Contenido = {
 
 const EN: Contenido = {
   portadaEtiqueta: "Artificial intelligence for businesses",
-  portada: "Atendel is an assistant that answers WhatsApp, replies to emails and books appointments.",
+  portada: "Atendel is your assistant: it handles what you can't get to, so you have more time.",
   decisionesTexto: "It keeps an eye on your business all day and lets you know when something needs your attention.",
   caosTextos: ["This is your day today: messages, emails, appointments and to-dos everywhere.", "You reply late, an appointment slips and a client doesn't come back.", "And the paperwork piles up for the evening."],
   focoTextos: ["Ask for everything in one chat. Atendel splits the work among its team and confirms when it's done.", "It learns how you work, so it handles things the way you would."],
@@ -143,7 +143,7 @@ const EN: Contenido = {
 
 const PT: Contenido = {
   portadaEtiqueta: "Inteligência artificial para negócios",
-  portada: "O Atendel é um assistente que responde no WhatsApp e por e-mail, e marca horários.",
+  portada: "O Atendel é o seu assistente: cuida do que você não consegue fazer, para você ter mais tempo.",
   decisionesTexto: "Fica de olho no seu negócio o dia todo e avisa quando algo precisa da sua atenção.",
   caosTextos: ["Assim é o seu dia hoje: mensagens, e-mails, horários e pendências por todo lado.", "Você responde tarde, um horário escapa e um cliente não volta.", "E a papelada se acumula para a noite."],
   focoTextos: ["Peça tudo em um só chat. O Atendel divide o trabalho com a equipe e confirma quando está pronto.", "Aprende como você trabalha para resolver do jeito que você faria."],
@@ -199,7 +199,7 @@ const PT: Contenido = {
 
 const FR: Contenido = {
   portadaEtiqueta: "Intelligence artificielle pour les entreprises",
-  portada: "Atendel est un assistant qui répond sur WhatsApp et aux e-mails, et prend les rendez-vous.",
+  portada: "Atendel est votre assistant : il s'occupe de ce que vous n'avez pas le temps de faire, pour vous laisser plus de temps.",
   decisionesTexto: "Il garde un œil sur votre activité toute la journée et vous prévient quand quelque chose demande votre attention.",
   caosTextos: ["Voici votre journée aujourd'hui : messages, e-mails, rendez-vous et tâches de tous les côtés.", "Vous répondez tard, un rendez-vous vous échappe et un client ne revient pas.", "Et la paperasse s'accumule pour le soir."],
   focoTextos: ["Demandez tout dans un seul chat. Atendel répartit le travail dans son équipe et vous confirme quand c'est prêt.", "Il apprend votre façon de travailler pour faire les choses comme vous."],
@@ -255,7 +255,7 @@ const FR: Contenido = {
 
 const DE: Contenido = {
   portadaEtiqueta: "Künstliche Intelligenz für Unternehmen",
-  portada: "Atendel ist ein Assistent, der auf WhatsApp antwortet, E-Mails beantwortet und Termine vereinbart.",
+  portada: "Atendel ist dein Assistent: Er erledigt, wofür dir die Zeit fehlt, damit du mehr Zeit hast.",
   decisionesTexto: "Es behält dein Geschäft den ganzen Tag im Blick und meldet sich, wenn etwas deine Aufmerksamkeit braucht.",
   caosTextos: ["So sieht dein Tag heute aus: Nachrichten, E-Mails, Termine und Aufgaben überall.", "Du antwortest spät, ein Termin geht unter und ein Kunde kommt nicht wieder.", "Und der Papierkram stapelt sich bis zum Abend."],
   focoTextos: ["Bitte um alles in einem Chat. Atendel verteilt die Arbeit in seinem Team und bestätigt dir, wenn sie erledigt ist.", "Es lernt, wie du arbeitest, und erledigt Dinge so, wie du es tun würdest."],
@@ -311,7 +311,7 @@ const DE: Contenido = {
 
 const IT: Contenido = {
   portadaEtiqueta: "Intelligenza artificiale per le attività",
-  portada: "Atendel è un assistente che risponde su WhatsApp e alle email, e fissa gli appuntamenti.",
+  portada: "Atendel è il tuo assistente: si occupa di quello che non riesci a fare, così hai più tempo.",
   decisionesTexto: "Tiene d'occhio la tua attività tutto il giorno e ti avvisa quando qualcosa richiede la tua attenzione.",
   caosTextos: ["Ecco la tua giornata oggi: messaggi, email, appuntamenti e cose da fare ovunque.", "Rispondi tardi, salta un appuntamento e un cliente non torna più.", "E le scartoffie si accumulano per la sera."],
   focoTextos: ["Chiedi tutto in un'unica chat. Atendel divide il lavoro con il suo team e ti conferma quando è pronto.", "Impara come lavori per risolvere le cose come faresti tu."],
@@ -367,7 +367,7 @@ const IT: Contenido = {
 
 const ZH: Contenido = {
   portadaEtiqueta: "面向商家的人工智能",
-  portada: "Atendel 是一个助手，负责回复 WhatsApp 和邮件，并安排预约。",
+  portada: "Atendel 是你的助手：替你处理忙不过来的事，让你有更多时间。",
   decisionesTexto: "它整天关注你的生意，有需要你处理的事就会提醒你。",
   caosTextos: ["这就是你今天的一天：消息、邮件、预约和待办事项到处都是。", "回复晚了，错过一个预约，一位客人就不再回来。", "文书工作还要堆到晚上处理。"],
   focoTextos: ["所有事情都在同一个聊天里提出。Atendel 会把工作分给团队，完成后向你确认。", "它会学习你的工作方式，像你一样处理事情。"],

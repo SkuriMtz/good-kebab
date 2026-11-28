@@ -336,6 +336,7 @@ export const es = {
 
   planes: porPlan,
   tarjetasPlanes: {
+    incluyeCuatro: "Incluye los 4 agentes",
     aria: "Planes de Atendel",
     disponibleHoy: "Disponible hoy",
     nivel: (nivel: string) => `Atendel · ${nivel}`,
@@ -357,7 +358,7 @@ export const es = {
       "Free para conocer a Atendel y a todo su equipo. One y Max, para el día a día: Max, con 5 veces el uso de One.",
     planes: "Planes",
     compararEtiqueta: "Comparación",
-    compararTitulo: "Quién trabaja contigo en cada plan",
+    compararTitulo: "Qué trae cada plan",
     compararTexto: "Los tres planes traen a Atendel y a sus cuatro agentes. Cambian los modelos, el uso y cuánto trabaja por su cuenta: Max tiene 5 veces el uso de One.",
     antes: "Antes de decidir",
     preguntasTitulo: "Preguntas sobre los planes",
@@ -375,7 +376,10 @@ export const es = {
     agentes: "Agentes",
     enElChat: "En el chat",
     uso: "Uso del chat",
-    funciones: ["Trabaja por su cuenta: revisión diaria y tareas", "Modelos Rápido y Avanzado"],
+    cuatro: "Los 4 agentes",
+    trabajo: "Trabaja por su cuenta: revisión diaria y tareas",
+    avanzada: "IA avanzada para lo más pesado",
+    internet: "Tareas que investigan en internet",
   },
 
   preguntas: {

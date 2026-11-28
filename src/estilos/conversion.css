@@ -169,6 +169,13 @@
   flex-wrap: wrap;
   gap: var(--spacing-8);
 }
+/* «Incluye los 4 agentes»: en una línea, más marcada que el resto de la lista */
+.plan__cuatro {
+  color: var(--c-texto);
+  font-size: var(--t-cuerpo);
+  font-weight: 600;
+  line-height: 1.4;
+}
 .plan__incluye {
   display: flex;
   flex-direction: column;

@@ -42,13 +42,7 @@ export default async function Precios() {
       </Seccion>
 
       <Seccion id="comparar" etiquetadaPor="comparar-titulo">
-        <EncabezadoSeccion
-          id="comparar-titulo"
-          alineacion="izquierda"
-          etiqueta={P.compararEtiqueta}
-          titulo={P.compararTitulo}
-          texto={P.compararTexto}
-        />
+        <EncabezadoSeccion id="comparar-titulo" alineacion="izquierda" titulo={P.compararTitulo} />
         <Comparacion idioma={idioma} />
       </Seccion>
 
