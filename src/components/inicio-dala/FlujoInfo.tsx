@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * EL RÍO DE INFORMACIÓN (el inicio, en lugar del cerebro): un río de partículas que corre de la
- * portada («La IA que se encarga de tu negocio», entra por la derecha) a decisiones
+ * portada («Que ningún cliente se quede sin respuesta», entra por la derecha) a decisiones
  * («Trabaja aunque no estés», sale por la izquierda), por fuera de los textos.
  * - Grueso: unos 40 % del alto de la pantalla (35 % en el celular, que es angosto).
  * - El cauce hace una S suave (suma de 3 senoides de distinta frecuencia) y ondula muy lento con

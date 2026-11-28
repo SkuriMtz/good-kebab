@@ -170,7 +170,7 @@ export const pt: Diccionario = {
   inicio: {
     portada: {
       etiqueta: "Seu sócio de IA",
-      titulo: "A IA que cuida do seu negócio",
+      titulo: "Nenhum cliente sem resposta.",
       texto:
         "O Atendel vê o que acontece no seu negócio e resolve como um sócio, com a equipe; o que importa, ele te avisa pelo WhatsApp: Aura cuida do seu WhatsApp e dos agendamentos, Altair do seu e-mail, Rigel dos seus clientes e Mira do escritório. Funciona mesmo quando você não está, e nada que envolva dinheiro sai sem o seu OK.",
     },

@@ -449,17 +449,20 @@
 }
 
 /* =====================================================================
-   La portada: solo el título, con la letra y el tamaño de siempre, un poco más al centro
+   La portada: solo el título, grande, en el margen izquierdo de todas las secciones y un poco
+   arriba de la mitad de la pantalla (el centro óptico). Renglones parejos.
    ===================================================================== */
 .ini-portada.mz-portada .ini-portada__texto {
-  top: 44vh;
-  left: 12vw;
+  top: 46vh;
+  width: auto;
   transform: translateY(-50%);
 }
 .ini-portada.mz-portada .ini-display {
-  max-width: 6.4em;
-  font-size: 4.3vw;
-  line-height: 1;
+  max-width: 10.5em;
+  font-size: clamp(56px, 6.2vw, 124px);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
 /* =====================================================================
@@ -682,12 +685,13 @@
     margin-top: 12px;
   }
   .ini-portada.mz-portada .ini-portada__texto {
-    padding-top: 12svh;
+    padding-top: 13svh;
     transform: none;
   }
   .ini-portada.mz-portada .ini-display {
     max-width: none;
-    font-size: clamp(34px, 9.6vw, 48px);
+    font-size: clamp(42px, 12vw, 64px);
+    line-height: 0.98;
   }
   .mz-casos,
   .mz-privacidad {

@@ -16,7 +16,7 @@ import "@/components/inicio-mezcla/mezcla.css";
  * El inicio: escenas a pantalla completa sobre el fondo de figuras (cada bloque dice qué escena
  * es con data-escena: el fondo la lee para saber qué figura toca y FondoInicio, qué enlace de la
  * barra se enciende; src/lib/inicio.ts). De la portada a decisiones corre el río de información.
- * 1. portada (solo el título, un poco más al centro) · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
+ * 1. portada (solo el título, grande) · 2. decisiones · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
  * sola; la que toques dice qué hace Atendel ahí; lleva la escena «equipo» del fondo) · cada
  * negocio ve solo lo suyo (garantías y permisos) · 7. planes · 8. cierre. Qué son los agentes y
  * cómo funcionan se explica en /preguntas y en /agentes.

@@ -166,7 +166,7 @@ export const zh: Diccionario = {
   inicio: {
     portada: {
       etiqueta: "你的 AI 伙伴",
-      titulo: "帮你打理生意的 AI",
+      titulo: "不让任何一位客人没有回音。",
       texto:
         "Atendel 像合伙人一样，看到你生意里发生的事就和团队一起处理好；重要的事会通过 WhatsApp 告诉你：Aura 负责你的 WhatsApp 和预约，Altair 负责邮件，Rigel 负责客户，Mira 负责办公室的事。你不在的时候它也在工作，凡是涉及钱的事，没有你的同意都不会发出去。",
     },
