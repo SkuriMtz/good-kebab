@@ -4,7 +4,6 @@ import { Sitio } from "@/components/Sitio";
 import { BotonLista } from "@/components/inicio-dala/BotonLista";
 import { APPS_CONECTABLES, appsConLogo } from "@/components/inicio-dala/AppsMarquesina";
 import { TextoDala } from "@/components/inicio-dala/TextoDala";
-import { Capacidades } from "@/components/inicio-mezcla/Capacidades";
 import { EquipoPortada } from "@/components/inicio-mezcla/EquipoPortada";
 import { AppsBarra, Etiqueta, Permisos, type AppBarra } from "@/components/inicio-mezcla/Piezas";
 import { contenidoMezcla } from "@/components/inicio-mezcla/textos";
@@ -19,7 +18,7 @@ import "@/components/inicio-mezcla/mezcla.css";
  * es con data-escena: el fondo la lee para saber qué figura toca y FondoInicio, qué enlace de la
  * barra se enciende; src/lib/inicio.ts). De la portada a decisiones corre el río de información.
  * 1. portada (el título y, abajo, las caras del equipo: EquipoPortada) · 2. decisiones (qué es Atendel
- * en una frase) · las cuatro cosas que hace, como un solo asistente (Capacidades) · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
+ * en una frase: las cuatro cosas que hace) · 3. caos · 4. foco · 5. globo · 6. las apps (una barra que sube
  * sola; la que toques dice qué hace Atendel ahí; lleva la escena «equipo» del fondo) · cada
  * negocio ve solo lo suyo (garantías y permisos) · 7. planes · 8. cierre. Qué son los agentes y
  * cómo funcionan se explica en /preguntas y en /agentes.
@@ -76,11 +75,6 @@ export default async function Inicio() {
             {m.decisionesTexto}
           </TextoDala>
         </div>
-      </section>
-
-      {/* Las cuatro cosas que hace Atendel, como un solo asistente */}
-      <section className="mz-bloque mz-capacidades" data-fondo-quieto aria-labelledby="capacidades-titulo">
-        <Capacidades idioma={idioma} />
       </section>
 
       {/* 3. El caos: así es tu día hoy */}

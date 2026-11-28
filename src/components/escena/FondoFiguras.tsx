@@ -147,9 +147,6 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     // Dónde empieza cada escena: se mide una vez (y al cambiar el tamaño de la página), no en
     // cada cuadro; en cada cuadro solo se lee el scroll
     let anclas: { i: number; top: number }[] = [];
-    // Secciones donde el fondo se queda tranquilo (data-fondo-quieto): el cambio a la escena
-    // siguiente espera al final del tramo, aunque el tramo sea largo (p. ej., las capacidades)
-    let quietos: number[] = [];
     let alto = caja.clientHeight || window.innerHeight;
     const medirAnclas = () => {
       const y = window.scrollY;
@@ -159,7 +156,6 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         .filter((el) => esEscenaFiguras(el.dataset.escena))
         .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: Math.min(maximo, el.getBoundingClientRect().top + y) }))
         .sort((a, b) => a.top - b.top);
-      quietos = Array.from(document.querySelectorAll<HTMLElement>("[data-fondo-quieto]")).map((el) => el.getBoundingClientRect().top + y);
       alto = caja.clientHeight || window.innerHeight;
     };
     medirAnclas();
@@ -185,8 +181,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         // figura sigue moviéndose con el scroll en lugar de quedarse quieta varias pantallas.
         if (b.i === a.i + 1) {
           const tramoVideo = ((REPOSO_VIDEO[b.i] - REPOSO_VIDEO[a.i]) / 750) * alto;
-          const quieto = quietos.some((q) => q > a.top && q < b.top);
-          if (tramo > tramoVideo * 1.1 && (tramo <= tramoVideo * 2 || quieto)) f = 1 - (b.top - y) / tramoVideo;
+          if (tramo > tramoVideo * 1.1 && tramo <= tramoVideo * 2) f = 1 - (b.top - y) / tramoVideo;
         }
         return a.i + Math.min(1, Math.max(0, f)) * (b.i - a.i);
       }
