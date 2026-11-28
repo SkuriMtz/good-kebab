@@ -95,6 +95,7 @@ export const TEMAS_TODAS: Tema[] = [
 export function temasDe(idioma: Idioma): Tema[] {
   const g = t(idioma).preguntas.grupos;
   return [
+    { id: "agentes", ...g.agentes },
     { id: "empezar", ...g.empezar },
     { id: "planes", ...g.planes },
     { id: "clientes", ...g.clientes },

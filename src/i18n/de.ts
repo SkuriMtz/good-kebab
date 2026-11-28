@@ -609,6 +609,17 @@ export const de: Diccionario = {
     pregunta: "Frage",
     preguntasPalabra: "Fragen",
     grupos: {
+      agentes: {
+        nombre: "Die Agenten",
+        preguntas: [
+          { p: "Was sind die Agenten?", r: "Sie sind deine KI-Assistenten. Jeder hat seine Aufgabe: Aura kümmert sich um dein WhatsApp und deine Termine, Altair um deine E-Mails, Rigel holt deine Kunden zurück und Mira erledigt die Büroarbeit." },
+          { p: "Wie funktionieren sie?", r: "Eine Nachricht kommt an oder du bittest Atendel um etwas. Atendel gibt es dem passenden Agenten, der es erledigt und dir Bescheid gibt. Was du ihm nicht erlaubt hast, allein zu tun, fragt er dich vorher." },
+          {
+            p: "Muss ich sagen, welcher Agent es machen soll?",
+            r: "Nein. Atendel entscheidet selbst, wer zuständig ist, egal ob es etwas bemerkt hat oder du um etwas bittest: Aura, Altair, Rigel oder Mira. Du bekommst eine Antwort und siehst darunter, wer es gemacht hat.",
+          },
+        ],
+      },
       empezar: {
         nombre: "Erste Schritte",
         preguntas: [
@@ -645,10 +656,6 @@ export const de: Diccionario = {
           {
             p: "Wie wechsle ich den Plan?",
             r: "Vorerst kannst du ihn nicht über dein Konto ändern: One und Max öffnen nach und nach. Trag dich in die Warteliste ein und wir schreiben dir, wenn dein Platz frei wird.",
-          },
-          {
-            p: "Muss ich sagen, welcher Agent es machen soll?",
-            r: "Nein. Atendel entscheidet selbst, wer zuständig ist, egal ob es etwas bemerkt hat oder du um etwas bittest: Aura, Altair, Rigel oder Mira. Du bekommst eine Antwort und siehst darunter, wer es gemacht hat.",
           },
         ],
       },

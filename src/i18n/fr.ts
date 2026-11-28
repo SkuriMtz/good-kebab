@@ -605,6 +605,17 @@ export const fr: Diccionario = {
     pregunta: "question",
     preguntasPalabra: "questions",
     grupos: {
+      agentes: {
+        nombre: "Les agents",
+        preguntas: [
+          { p: "Que sont les agents ?", r: "Ce sont vos assistants IA. Chacun a son travail : Aura gère votre WhatsApp et vos rendez-vous, Altair vos e-mails, Rigel fait revenir vos clients et Mira s'occupe du bureau." },
+          { p: "Comment fonctionnent-ils ?", r: "Un message arrive ou vous demandez quelque chose à Atendel. Atendel le confie au bon agent, qui s'en occupe et vous prévient. Ce que vous ne l'avez pas autorisé à faire seul, il vous le demande avant." },
+          {
+            p: "Dois-je dire quel agent doit s'en occuper ?",
+            r: "Non. Atendel décide seul à qui revient la tâche, que ce soit quelque chose qu'il a vu ou que vous lui demandez : Aura, Altair, Rigel ou Mira. Vous recevez une seule réponse, et en dessous, vous voyez qui l'a faite.",
+          },
+        ],
+      },
       empezar: {
         nombre: "Pour commencer",
         preguntas: [
@@ -641,10 +652,6 @@ export const fr: Diccionario = {
           {
             p: "Comment changer de formule ?",
             r: "Pour l'instant, vous ne pouvez pas le faire depuis votre compte : One et Max ouvrent par étapes. Rejoignez la liste d'attente et nous vous écrirons quand votre place s'ouvrira.",
-          },
-          {
-            p: "Dois-je dire quel agent doit s'en occuper ?",
-            r: "Non. Atendel décide seul à qui revient la tâche, que ce soit quelque chose qu'il a vu ou que vous lui demandez : Aura, Altair, Rigel ou Mira. Vous recevez une seule réponse, et en dessous, vous voyez qui l'a faite.",
           },
         ],
       },

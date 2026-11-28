@@ -398,6 +398,17 @@ export const es = {
     pregunta: "pregunta",
     preguntasPalabra: "preguntas",
     grupos: {
+      agentes: {
+        nombre: "Los agentes",
+        preguntas: [
+          { p: "¿Qué son los agentes?", r: "Son tus asistentes de IA. Cada uno tiene su trabajo: Aura atiende tu WhatsApp y tus citas, Altair lleva tu correo, Rigel trae de vuelta a tus clientes y Mira se encarga de la oficina." },
+          { p: "¿Cómo funcionan?", r: "Llega un mensaje o tú le pides algo a Atendel. Atendel se lo pasa al agente indicado, que lo resuelve y te avisa. Lo que no le hayas dejado hacer solo, te lo pregunta antes." },
+          {
+            p: "¿Tengo que decirle a qué agente le toca?",
+            r: "No. Atendel decide solo a quién le toca, sea algo que vio o algo que le pidas: Aura, Altair, Rigel o Mira. Te contesta una sola vez y abajo ves quién lo hizo.",
+          },
+        ],
+      },
       empezar: { nombre: "Para empezar", preguntas: [...pregunta("¿Es difícil"), ...pregunta("¿Sirve para mi negocio"), ...pregunta("¿Atendel trabaja"), ...pregunta("¿Qué puedo usar")] },
       planes: {
         nombre: "Planes y precios",
@@ -412,15 +423,11 @@ export const es = {
             p: "¿Cómo cambio de plan?",
             r: "Por ahora no se cambia desde tu cuenta: One y Max abren por etapas. Anótate en la lista de espera y te escribimos cuando abramos tu lugar.",
           },
-          {
-            p: "¿Tengo que decirle a qué agente le toca?",
-            r: "No. Atendel decide solo a quién le toca, sea algo que vio o algo que le pidas: Aura, Altair, Rigel o Mira. Te contesta una sola vez y abajo ves quién lo hizo.",
-          },
         ],
       },
       clientes: { nombre: "Con tus clientes", preguntas: [...pregunta("¿Mis clientes"), ...pregunta("¿Qué pasa si un agente")] },
       datos: { nombre: "Tus datos", preguntas: pregunta("¿Qué pasa con mis datos") },
-    } as Record<"empezar" | "planes" | "clientes" | "datos", { nombre: string; preguntas: Pregunta[] }>,
+    } as Record<"agentes" | "empezar" | "planes" | "clientes" | "datos", { nombre: string; preguntas: Pregunta[] }>,
     garantias: GARANTIAS.map(([titulo, texto]) => ({ titulo, texto })),
   },
 

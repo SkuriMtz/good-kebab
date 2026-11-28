@@ -609,6 +609,17 @@ export const pt: Diccionario = {
     pregunta: "pergunta",
     preguntasPalabra: "perguntas",
     grupos: {
+      agentes: {
+        nombre: "Os agentes",
+        preguntas: [
+          { p: "O que são os agentes?", r: "São seus assistentes de IA. Cada um tem seu trabalho: Aura cuida do seu WhatsApp e dos horários, Altair cuida do seu e-mail, Rigel traz seus clientes de volta e Mira cuida do escritório." },
+          { p: "Como eles funcionam?", r: "Chega uma mensagem ou você pede algo ao Atendel. O Atendel passa para o agente certo, que resolve e te avisa. O que você não deixou ele fazer sozinho, ele pergunta antes." },
+          {
+            p: "Preciso dizer qual agente deve fazer a tarefa?",
+            r: "Não. O Atendel decide sozinho de quem é a tarefa, seja algo que ele viu ou algo que você pediu: Aura, Altair, Rigel ou Mira. Você recebe uma resposta, e abaixo dela vê quem fez.",
+          },
+        ],
+      },
       empezar: {
         nombre: "Primeiros passos",
         preguntas: [
@@ -645,10 +656,6 @@ export const pt: Diccionario = {
           {
             p: "Como mudo de plano?",
             r: "Por enquanto não dá para mudar pela sua conta: One e Max estão abrindo por etapas. Entre na lista de espera e escreveremos quando sua vaga abrir.",
-          },
-          {
-            p: "Preciso dizer qual agente deve fazer a tarefa?",
-            r: "Não. O Atendel decide sozinho de quem é a tarefa, seja algo que ele viu ou algo que você pediu: Aura, Altair, Rigel ou Mira. Você recebe uma resposta, e abaixo dela vê quem fez.",
           },
         ],
       },

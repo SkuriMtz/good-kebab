@@ -605,6 +605,17 @@ export const zh: Diccionario = {
     pregunta: "个问题",
     preguntasPalabra: "个问题",
     grupos: {
+      agentes: {
+        nombre: "智能体",
+        preguntas: [
+          { p: "智能体是什么？", r: "它们是你的 AI 助手，每个都有自己的工作：Aura 负责 WhatsApp 和预约，Altair 负责邮件，Rigel 让老客人回来，Mira 负责办公室的事务。" },
+          { p: "它们怎么工作？", r: "收到一条消息，或者你向 Atendel 提出需求。Atendel 把它交给合适的智能体，处理好后通知你。你没有允许它自己做的事，它都会先问你。" },
+          {
+            p: "我需要指定由哪位智能体来做吗？",
+            r: "不需要。不管是它自己发现的事还是你交代的事，Atendel 都会自己判断该由谁负责：Aura、Altair、Rigel 还是 Mira。你只会得到一个答复，下面会看到是谁做的。",
+          },
+        ],
+      },
       empezar: {
         nombre: "开始使用",
         preguntas: [
@@ -641,10 +652,6 @@ export const zh: Diccionario = {
           {
             p: "怎么更换套餐？",
             r: "目前还不能在你的账户里更换：One 和 Max 正在分阶段开放。加入等候名单，你的名额开放时我们会写信给你。",
-          },
-          {
-            p: "我需要指定由哪位智能体来做吗？",
-            r: "不需要。不管是它自己发现的事还是你交代的事，Atendel 都会自己判断该由谁负责：Aura、Altair、Rigel 还是 Mira。你只会得到一个答复，下面会看到是谁做的。",
           },
         ],
       },
