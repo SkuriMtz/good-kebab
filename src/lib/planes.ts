@@ -104,7 +104,7 @@ export const PLANES: Plan[] = [
     resumen: "Todo el equipo, para tu día a día.",
     incluye: [
       "Todo lo de Free",
-      "Trabaja por su cuenta: revisión diaria y tareas",
+      "Revisión diaria y tareas automáticas",
       "IA avanzada para lo más pesado",
       "Uso para el día a día",
     ],
@@ -123,7 +123,7 @@ export const PLANES: Plan[] = [
     incluye: [
       "Todo lo de One",
       "5 veces el uso de One",
-      "5 veces más trabajo por su cuenta",
+      "5 veces más tareas automáticas",
       "Tareas que investigan en internet",
     ],
     limite: { sesion: ONE.sesion * VECES_MAX, semana: ONE.semana * VECES_MAX },

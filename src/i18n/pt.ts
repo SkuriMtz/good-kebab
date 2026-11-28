@@ -528,7 +528,7 @@ export const pt: Diccionario = {
       resumen: "A equipe inteira, para o seu dia a dia.",
       incluye: [
         "Tudo do Free",
-        "Trabalha sozinho: revisão diária e tarefas",
+        "Revisão diária e tarefas automáticas",
         "IA avançada para o mais pesado",
         "Uso para o dia a dia",
       ],
@@ -541,7 +541,7 @@ export const pt: Diccionario = {
       incluye: [
         "Tudo do One",
         "5 vezes o uso do One",
-        "5 vezes mais trabalho sozinho",
+        "5 vezes mais tarefas automáticas",
         "Tarefas que pesquisam na internet",
       ],
       uso: "5 vezes o uso do One",
@@ -588,7 +588,7 @@ export const pt: Diccionario = {
     enElChat: "No chat",
     uso: "Uso do chat",
     cuatro: "Os 4 agentes",
-    trabajo: "Trabalha sozinho: revisão diária e tarefas",
+    trabajo: "Revisão diária e tarefas automáticas",
     avanzada: "IA avançada para o mais pesado",
     internet: "Tarefas que pesquisam na internet",
   },

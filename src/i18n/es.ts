@@ -377,7 +377,7 @@ export const es = {
     enElChat: "En el chat",
     uso: "Uso del chat",
     cuatro: "Los 4 agentes",
-    trabajo: "Trabaja por su cuenta: revisión diaria y tareas",
+    trabajo: "Revisión diaria y tareas automáticas",
     avanzada: "IA avanzada para lo más pesado",
     internet: "Tareas que investigan en internet",
   },

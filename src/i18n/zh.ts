@@ -524,7 +524,7 @@ export const zh: Diccionario = {
       resumen: "整个团队，适合你的日常使用。",
       incluye: [
         "包含 Free 的全部内容",
-        "自动工作：每日查看和任务",
+        "每日查看和自动任务",
         "处理繁重工作的高级 AI",
         "日常使用额度",
       ],
@@ -537,7 +537,7 @@ export const zh: Diccionario = {
       incluye: [
         "包含 One 的全部内容",
         "One 的 5 倍使用量",
-        "5 倍的自动工作量",
+        "5 倍的自动任务",
         "可联网调研的任务",
       ],
       uso: "One 的 5 倍用量",
@@ -584,7 +584,7 @@ export const zh: Diccionario = {
     enElChat: "在聊天里",
     uso: "聊天用量",
     cuatro: "全部 4 位智能体",
-    trabajo: "自动工作：每日查看和任务",
+    trabajo: "每日查看和自动任务",
     avanzada: "处理繁重工作的高级 AI",
     internet: "可联网调研的任务",
   },

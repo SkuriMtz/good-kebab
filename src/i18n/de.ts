@@ -528,7 +528,7 @@ export const de: Diccionario = {
       resumen: "Das ganze Team, für deinen Alltag.",
       incluye: [
         "Alles aus Free",
-        "Arbeitet von allein: tägliche Durchsicht und Aufgaben",
+        "Tägliche Durchsicht und automatische Aufgaben",
         "Erweiterte KI für das Aufwendigste",
         "Nutzung für jeden Tag",
       ],
@@ -541,7 +541,7 @@ export const de: Diccionario = {
       incluye: [
         "Alles aus One",
         "5-fache Nutzung von One",
-        "5-mal mehr Arbeit von allein",
+        "5-mal mehr automatische Aufgaben",
         "Aufgaben, die im Internet recherchieren",
       ],
       uso: "5-fache Nutzung von One",
@@ -588,7 +588,7 @@ export const de: Diccionario = {
     enElChat: "Im Chat",
     uso: "Chat-Nutzung",
     cuatro: "Alle 4 Agenten",
-    trabajo: "Arbeitet von allein: tägliche Durchsicht und Aufgaben",
+    trabajo: "Tägliche Durchsicht und automatische Aufgaben",
     avanzada: "Erweiterte KI für das Aufwendigste",
     internet: "Aufgaben, die im Internet recherchieren",
   },
