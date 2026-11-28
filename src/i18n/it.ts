@@ -631,7 +631,7 @@ export const it: Diccionario = {
         preguntas: [
           {
             p: "Cosa include ogni piano?",
-            r: "Tutti e tre includono Atendel e i suoi quattro agenti. Free serve per provarlo, con il modello Rapido. One e Max sono per il tuo lavoro di ogni giorno: entrambi i modelli (Rapido per il lavoro quotidiano e Avanzato per i compiti impegnativi) e più lavoro svolto da solo. Max ha 5 volte l'uso di One.",
+            r: "Tutti e tre includono Atendel e i suoi quattro agenti. Free serve per provarlo. One aggiunge la revisione quotidiana, le attività automatiche e l'IA avanzata per il lavoro più pesante. Max ha tutto di One con 5 volte l'uso.",
           },
           {
             p: "Quanto costa?",
@@ -1007,7 +1007,7 @@ export const it: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Apertura per fasi",
-        texto: "Per il tuo lavoro di ogni giorno: modalità Rapido e Avanzato, e più lavoro svolto da solo. Prezzo da annunciare.",
+        texto: "Per il tuo lavoro di ogni giorno: revisione quotidiana, attività automatiche e IA avanzata per il lavoro più pesante. Prezzo da annunciare.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Apertura per fasi", texto: "Tutto quello che c'è in One, con 5 volte l'uso. Prezzo da annunciare." },
     ],

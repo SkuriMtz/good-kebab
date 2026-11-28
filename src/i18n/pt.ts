@@ -635,7 +635,7 @@ export const pt: Diccionario = {
         preguntas: [
           {
             p: "O que cada plano inclui?",
-            r: "Os três trazem o Atendel e seus quatro agentes. O Free é para experimentar, com o modelo Rápido. One e Max são para o seu dia a dia: os dois modelos (Rápido para o trabalho comum e Avançado para tarefas pesadas) e mais trabalho feito sozinho. O Max tem 5 vezes o uso do One.",
+            r: "Os três trazem o Atendel e seus quatro agentes. O Free é para experimentar. O One soma a revisão diária, as tarefas automáticas e a IA avançada para o mais pesado. O Max traz tudo do One com 5 vezes o uso.",
           },
           {
             p: "Quanto custa?",
@@ -1011,7 +1011,7 @@ export const pt: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Abrindo por etapas",
-        texto: "Para o seu dia a dia: modos Rápido e Avançado, e mais trabalho feito sozinho. Preço a anunciar.",
+        texto: "Para o seu dia a dia: revisão diária, tarefas automáticas e IA avançada para o mais pesado. Preço a anunciar.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Abrindo por etapas", texto: "Tudo o que há no One, com 5 vezes o uso. Preço a anunciar." },
     ],

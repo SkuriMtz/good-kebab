@@ -748,7 +748,7 @@ export const es = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Abre por etapas",
-        texto: "Para el día a día: los modos Rápido y Avanzado, y más trabajo por su cuenta. Precio por anunciar.",
+        texto: "Para el día a día: revisión diaria, tareas automáticas e IA avanzada para lo pesado. Precio por anunciar.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Abre por etapas", texto: "Todo lo de One, con 5 veces su uso. Precio por anunciar." },
     ] as { plan: string; estado: "abierto" | "pronto"; estadoTexto: string; texto: string }[],

@@ -635,7 +635,7 @@ export const en: Diccionario = {
         preguntas: [
           {
             p: "What does each plan include?",
-            r: "All three come with Atendel and its four agents. Free is for trying it out, with the Fast model. One and Max are for your day to day: both models (Fast for everyday work and Advanced for heavy tasks) and more work on its own. Max has 5 times the usage of One.",
+            r: "All three come with Atendel and its four agents. Free is for trying it out. One adds the daily review, automated tasks and advanced AI for heavy work. Max has everything in One with 5 times the usage.",
           },
           {
             p: "How much does it cost?",
@@ -1011,7 +1011,7 @@ export const en: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Opening in stages",
-        texto: "For your day to day: Fast and Advanced modes, and more work done on its own. Price to be announced.",
+        texto: "For your day to day: daily review, automated tasks and advanced AI for heavy work. Price to be announced.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Opening in stages", texto: "Everything in One, with 5 times the usage. Price to be announced." },
     ],

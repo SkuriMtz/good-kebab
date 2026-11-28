@@ -631,7 +631,7 @@ export const fr: Diccionario = {
         preguntas: [
           {
             p: "Que comprend chaque formule ?",
-            r: "Les trois incluent Atendel et ses quatre agents. Free sert à essayer, avec le mode Rapide. One et Max sont pour votre quotidien : les deux modes (Rapide pour le travail courant et Avancé pour les tâches lourdes) et plus d'autonomie. Max a 5 fois l'utilisation de One.",
+            r: "Les trois incluent Atendel et ses quatre agents. Free sert à essayer. One ajoute le bilan quotidien, les tâches automatiques et l'IA avancée pour le plus lourd. Max offre tout ce qu'offre One avec 5 fois l'utilisation.",
           },
           {
             p: "Combien ça coûte ?",
@@ -1007,7 +1007,7 @@ export const fr: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Ouverture par étapes",
-        texto: "Pour votre quotidien : modes Rapide et Avancé, et plus de travail fait de façon autonome. Prix à annoncer.",
+        texto: "Pour votre quotidien : bilan quotidien, tâches automatiques et IA avancée pour le plus lourd. Prix à annoncer.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Ouverture par étapes", texto: "Tout ce qu'il y a dans One, avec 5 fois l'utilisation. Prix à annoncer." },
     ],

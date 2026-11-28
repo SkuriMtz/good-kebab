@@ -42,7 +42,7 @@ export const PREGUNTAS = [
   },
   {
     p: "¿Qué incluye cada plan?",
-    r: "Los tres traen a Atendel y a sus cuatro agentes. Free es para probarlo, con el modelo Rápido. One y Max son para el día a día: los dos modelos (Rápido para el día a día y Avanzado para lo pesado) y más trabajo por su cuenta. Max tiene 5 veces el uso de One.",
+    r: "Los tres traen a Atendel y a sus cuatro agentes. Free es para probarlo. One suma la revisión diaria, las tareas automáticas y la IA avanzada para lo pesado. Max trae todo lo de One con 5 veces el uso.",
   },
   {
     p: "¿Qué puedo usar desde hoy?",

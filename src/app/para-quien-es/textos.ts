@@ -325,3 +325,272 @@ const ZH: TextosParaQuien = {
 const POR_IDIOMA: Record<string, TextosParaQuien> = { es: ES, en: EN, pt: PT, fr: FR, de: DE, it: IT, zh: ZH };
 
 export const textosParaQuien = (idioma: string): TextosParaQuien => POR_IDIOMA[idioma] ?? EN;
+
+/**
+ * Más casos (además de los cuatro de src/lib/contenido.ts): ventas en línea, facturas y cobros,
+ * y proveedores. Solo lo que el equipo de verdad hace con las apps del catálogo (Shopify, Mercado
+ * Libre y Stripe los ven Rigel y Mira; las facturas electrónicas, Mira; el correo, Altair). Quién
+ * va al frente y en qué orden van los demás es igual en todos los idiomas.
+ */
+type IdExtra = "ventas" | "cobros" | "proveedores";
+const ORDEN_EXTRA: { id: IdExtra; frente: IdAgente; resto: IdAgente[] }[] = [
+  { id: "ventas", frente: "victor", resto: ["lola", "clara", "iris"] },
+  { id: "cobros", frente: "clara", resto: ["iris", "lola", "victor"] },
+  { id: "proveedores", frente: "iris", resto: ["clara", "victor", "lola"] },
+];
+type TextoExtra = { corto: string; nombre: string; intro: string; agentes: Record<IdAgente, string> };
+
+const EXTRA: Record<string, Record<IdExtra, TextoExtra>> = {
+  es: {
+    ventas: {
+      corto: "Ventas en línea",
+      nombre: "Vendes en línea",
+      intro: "Preguntas, pedidos y pagos llegan a toda hora.",
+      agentes: {
+        victor: "Da seguimiento a quien preguntó y no compró, y pide reseñas.",
+        lola: "Responde por WhatsApp e Instagram dudas de precios y pedidos.",
+        clara: "Te avisa de los pedidos y pagos que llegan a tu correo.",
+        iris: "Arma tu reporte semanal de ventas.",
+      },
+    },
+    cobros: {
+      corto: "Facturas y cobros",
+      nombre: "Cobras y facturas",
+      intro: "Facturas, pagos y comprobantes se pierden entre correos.",
+      agentes: {
+        clara: "Encuentra tus facturas y te avisa antes de que venzan.",
+        iris: "Resume tus facturas electrónicas (CFDI) del mes.",
+        lola: "Responde por WhatsApp dudas de pagos y formas de pago.",
+        victor: "Da seguimiento a tus clientes y pide reseñas.",
+      },
+    },
+    proveedores: {
+      corto: "Proveedores",
+      nombre: "Compras a proveedores",
+      intro: "Cotizar y comparar proveedores te quita horas.",
+      agentes: {
+        iris: "Investiga proveedores y precios, y te deja una tabla para comparar.",
+        clara: "Escribe a tus proveedores desde tu correo, con tu aprobación.",
+        victor: "Avisa a tus clientes de lo nuevo, con tu aprobación.",
+        lola: "Atiende tu WhatsApp mientras tú cotizas.",
+      },
+    },
+  },
+  en: {
+    ventas: {
+      corto: "Online sales",
+      nombre: "You sell online",
+      intro: "Questions, orders and payments come in at all hours.",
+      agentes: {
+        victor: "Follows up with whoever asked and didn't buy, and asks for reviews.",
+        lola: "Answers questions about prices and orders on WhatsApp and Instagram.",
+        clara: "Lets you know about orders and payments that reach your email.",
+        iris: "Puts together your weekly sales report.",
+      },
+    },
+    cobros: {
+      corto: "Invoices and payments",
+      nombre: "You invoice and collect",
+      intro: "Invoices, payments and receipts get lost in your email.",
+      agentes: {
+        clara: "Finds your invoices and warns you before they're due.",
+        iris: "Summarizes your e-invoices (CFDI) for the month.",
+        lola: "Answers questions about payments and payment options on WhatsApp.",
+        victor: "Follows up with your clients and asks for reviews.",
+      },
+    },
+    proveedores: {
+      corto: "Suppliers",
+      nombre: "You buy from suppliers",
+      intro: "Getting quotes and comparing suppliers takes hours.",
+      agentes: {
+        iris: "Researches suppliers and prices, and leaves you a table to compare.",
+        clara: "Writes to your suppliers from your email, with your approval.",
+        victor: "Tells your clients about what's new, with your approval.",
+        lola: "Handles your WhatsApp while you get quotes.",
+      },
+    },
+  },
+  pt: {
+    ventas: {
+      corto: "Vendas online",
+      nombre: "Você vende online",
+      intro: "Perguntas, pedidos e pagamentos chegam a qualquer hora.",
+      agentes: {
+        victor: "Acompanha quem perguntou e não comprou, e pede avaliações.",
+        lola: "Responde no WhatsApp e no Instagram dúvidas de preços e pedidos.",
+        clara: "Avisa dos pedidos e pagamentos que chegam ao seu e-mail.",
+        iris: "Monta o seu relatório semanal de vendas.",
+      },
+    },
+    cobros: {
+      corto: "Faturas e cobranças",
+      nombre: "Você fatura e cobra",
+      intro: "Faturas, pagamentos e comprovantes se perdem entre os e-mails.",
+      agentes: {
+        clara: "Encontra as suas faturas e avisa antes do vencimento.",
+        iris: "Resume as suas faturas eletrônicas (CFDI) do mês.",
+        lola: "Responde no WhatsApp dúvidas de pagamentos e formas de pagamento.",
+        victor: "Acompanha os seus clientes e pede avaliações.",
+      },
+    },
+    proveedores: {
+      corto: "Fornecedores",
+      nombre: "Você compra de fornecedores",
+      intro: "Cotar e comparar fornecedores toma horas.",
+      agentes: {
+        iris: "Pesquisa fornecedores e preços, e deixa uma tabela para comparar.",
+        clara: "Escreve aos seus fornecedores pelo seu e-mail, com a sua aprovação.",
+        victor: "Avisa os seus clientes das novidades, com a sua aprovação.",
+        lola: "Cuida do seu WhatsApp enquanto você faz cotações.",
+      },
+    },
+  },
+  fr: {
+    ventas: {
+      corto: "Ventes en ligne",
+      nombre: "Vous vendez en ligne",
+      intro: "Questions, commandes et paiements arrivent à toute heure.",
+      agentes: {
+        victor: "Relance ceux qui ont demandé sans acheter, et demande des avis.",
+        lola: "Répond sur WhatsApp et Instagram aux questions sur les prix et les commandes.",
+        clara: "Vous signale les commandes et paiements qui arrivent dans vos e-mails.",
+        iris: "Prépare votre rapport hebdomadaire des ventes.",
+      },
+    },
+    cobros: {
+      corto: "Factures et encaissements",
+      nombre: "Vous facturez et encaissez",
+      intro: "Factures, paiements et reçus se perdent dans vos e-mails.",
+      agentes: {
+        clara: "Retrouve vos factures et vous prévient avant l'échéance.",
+        iris: "Résume vos factures électroniques (CFDI) du mois.",
+        lola: "Répond sur WhatsApp aux questions sur les paiements et les moyens de paiement.",
+        victor: "Relance vos clients et demande des avis.",
+      },
+    },
+    proveedores: {
+      corto: "Fournisseurs",
+      nombre: "Vous achetez à des fournisseurs",
+      intro: "Demander des devis et comparer les fournisseurs prend des heures.",
+      agentes: {
+        iris: "Recherche fournisseurs et prix, et vous laisse un tableau pour comparer.",
+        clara: "Écrit à vos fournisseurs depuis votre e-mail, avec votre accord.",
+        victor: "Informe vos clients des nouveautés, avec votre accord.",
+        lola: "S'occupe de votre WhatsApp pendant que vous demandez des devis.",
+      },
+    },
+  },
+  de: {
+    ventas: {
+      corto: "Onlineverkauf",
+      nombre: "Du verkaufst online",
+      intro: "Fragen, Bestellungen und Zahlungen kommen zu jeder Uhrzeit.",
+      agentes: {
+        victor: "Fasst bei allen nach, die gefragt und nicht gekauft haben, und bittet um Bewertungen.",
+        lola: "Beantwortet auf WhatsApp und Instagram Fragen zu Preisen und Bestellungen.",
+        clara: "Meldet Bestellungen und Zahlungen, die per E-Mail kommen.",
+        iris: "Erstellt deinen wöchentlichen Verkaufsbericht.",
+      },
+    },
+    cobros: {
+      corto: "Rechnungen und Zahlungen",
+      nombre: "Du stellst Rechnungen und kassierst",
+      intro: "Rechnungen, Zahlungen und Belege gehen zwischen E-Mails verloren.",
+      agentes: {
+        clara: "Findet deine Rechnungen und erinnert dich vor der Fälligkeit.",
+        iris: "Fasst deine E-Rechnungen (CFDI) des Monats zusammen.",
+        lola: "Beantwortet auf WhatsApp Fragen zu Zahlungen und Zahlungsarten.",
+        victor: "Fasst bei deinen Kunden nach und bittet um Bewertungen.",
+      },
+    },
+    proveedores: {
+      corto: "Lieferanten",
+      nombre: "Du kaufst bei Lieferanten",
+      intro: "Angebote einholen und Lieferanten vergleichen kostet Stunden.",
+      agentes: {
+        iris: "Recherchiert Lieferanten und Preise und legt dir eine Vergleichstabelle hin.",
+        clara: "Schreibt deinen Lieferanten von deiner E-Mail aus, mit deiner Freigabe.",
+        victor: "Informiert deine Kunden über Neues, mit deiner Freigabe.",
+        lola: "Kümmert sich um dein WhatsApp, während du Angebote einholst.",
+      },
+    },
+  },
+  it: {
+    ventas: {
+      corto: "Vendite online",
+      nombre: "Vendi online",
+      intro: "Domande, ordini e pagamenti arrivano a ogni ora.",
+      agentes: {
+        victor: "Ricontatta chi ha chiesto senza comprare, e chiede recensioni.",
+        lola: "Risponde su WhatsApp e Instagram a domande su prezzi e ordini.",
+        clara: "Ti avvisa degli ordini e dei pagamenti che arrivano nella tua email.",
+        iris: "Prepara il tuo report settimanale delle vendite.",
+      },
+    },
+    cobros: {
+      corto: "Fatture e incassi",
+      nombre: "Fatturi e incassi",
+      intro: "Fatture, pagamenti e ricevute si perdono tra le email.",
+      agentes: {
+        clara: "Trova le tue fatture e ti avvisa prima della scadenza.",
+        iris: "Riassume le tue fatture elettroniche (CFDI) del mese.",
+        lola: "Risponde su WhatsApp a domande su pagamenti e metodi di pagamento.",
+        victor: "Ricontatta i tuoi clienti e chiede recensioni.",
+      },
+    },
+    proveedores: {
+      corto: "Fornitori",
+      nombre: "Compri dai fornitori",
+      intro: "Chiedere preventivi e confrontare fornitori richiede ore.",
+      agentes: {
+        iris: "Cerca fornitori e prezzi, e ti lascia una tabella per confrontarli.",
+        clara: "Scrive ai tuoi fornitori dalla tua email, con la tua approvazione.",
+        victor: "Avvisa i tuoi clienti delle novità, con la tua approvazione.",
+        lola: "Gestisce il tuo WhatsApp mentre chiedi preventivi.",
+      },
+    },
+  },
+  zh: {
+    ventas: {
+      corto: "网上销售",
+      nombre: "你在网上卖东西",
+      intro: "咨询、订单和付款随时都会进来。",
+      agentes: {
+        victor: "跟进咨询后没下单的客人，并请他们留评价。",
+        lola: "在 WhatsApp 和 Instagram 上回答价格和订单问题。",
+        clara: "提醒你邮箱里收到的订单和付款。",
+        iris: "整理你的每周销售报告。",
+      },
+    },
+    cobros: {
+      corto: "发票和收款",
+      nombre: "你要开票和收款",
+      intro: "发票、付款和凭证淹没在邮件里。",
+      agentes: {
+        clara: "找出你的发票，并在到期前提醒你。",
+        iris: "汇总你本月的电子发票（CFDI）。",
+        lola: "在 WhatsApp 上回答付款和付款方式的问题。",
+        victor: "跟进你的客人并请他们留评价。",
+      },
+    },
+    proveedores: {
+      corto: "供应商",
+      nombre: "你要向供应商采购",
+      intro: "询价和比较供应商要花好几个小时。",
+      agentes: {
+        iris: "调研供应商和价格，给你一张对比表。",
+        clara: "经你批准后，用你的邮箱给供应商写信。",
+        victor: "经你批准后，告诉客人有什么新东西。",
+        lola: "你询价的时候，帮你处理 WhatsApp。",
+      },
+    },
+  },
+};
+
+export type CasoExtra = { id: IdExtra; corto: string; nombre: string; intro: string; frente: IdAgente; resto: IdAgente[]; agentes: Record<IdAgente, string> };
+
+export const casosExtra = (idioma: string): CasoExtra[] => {
+  const T = EXTRA[idioma] ?? EXTRA.en;
+  return ORDEN_EXTRA.map((o) => ({ ...o, ...T[o.id] }));
+};

@@ -635,7 +635,7 @@ export const de: Diccionario = {
         preguntas: [
           {
             p: "Was enthält jeder Plan?",
-            r: "Alle drei enthalten Atendel und seine vier Agenten. Free ist zum Ausprobieren, mit dem Schnell-Modell. One und Max sind für deinen Alltag: beide Modelle (Schnell für die tägliche Arbeit und Erweitert für anspruchsvolle Aufgaben) und mehr Arbeit von allein. Max hat die 5-fache Nutzung von One.",
+            r: "Alle drei enthalten Atendel und seine vier Agenten. Free ist zum Ausprobieren. One bringt die tägliche Durchsicht, automatische Aufgaben und erweiterte KI für das Aufwendigste. Max hat alles aus One mit der 5-fachen Nutzung.",
           },
           {
             p: "Was kostet es?",
@@ -1011,7 +1011,7 @@ export const de: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "Öffnet nach und nach",
-        texto: "Für deinen Alltag: die Modi Schnell und Erweitert und mehr Arbeit von allein. Preis wird noch bekannt gegeben.",
+        texto: "Für deinen Alltag: tägliche Durchsicht, automatische Aufgaben und erweiterte KI für das Aufwendigste. Preis wird noch bekannt gegeben.",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "Öffnet nach und nach", texto: "Alles aus One, mit der 5-fachen Nutzung. Preis wird noch bekannt gegeben." },
     ],

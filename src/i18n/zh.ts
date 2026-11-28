@@ -631,7 +631,7 @@ export const zh: Diccionario = {
         preguntas: [
           {
             p: "每个套餐包含什么？",
-            r: "三个套餐都包含 Atendel 和它的四位智能体。Free 用来试用，使用快速模型。One 和 Max 适合日常使用：两种模型都有（快速用于日常工作，高级用于繁重的任务），自动完成的工作也更多。Max 的用量是 One 的 5 倍。",
+            r: "三个方案都包含 Atendel 和它的四位智能体。Free 用来试用。One 增加了每日查看、自动任务和处理繁重工作的高级 AI。Max 包含 One 的全部内容，用量是 One 的 5 倍。",
           },
           {
             p: "要花多少钱？",
@@ -1007,7 +1007,7 @@ export const zh: Diccionario = {
         plan: "One",
         estado: "pronto",
         estadoTexto: "分阶段开放",
-        texto: "适合日常使用：快速和高级两种模式，自动完成的工作也更多。价格待公布。",
+        texto: "适合日常使用：每日查看、自动任务，以及处理繁重工作的高级 AI。价格待公布。",
       },
       { plan: "Max", estado: "pronto", estadoTexto: "分阶段开放", texto: "包含 One 的全部内容，用量是它的 5 倍。价格待公布。" },
     ],
