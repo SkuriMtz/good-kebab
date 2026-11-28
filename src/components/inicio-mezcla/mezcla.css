@@ -981,3 +981,476 @@
     margin-top: clamp(12px, 2.4vh, 22px);
   }
 }
+
+/* =====================================================================
+   «Cuatro trabajos. Un solo asistente.» (Capacidades.tsx): cuatro puntos unidos por una línea
+   por la que corre una luz (es el mismo asistente) y, abajo, el trabajo elegido: texto con
+   ejemplos a la izquierda y una animación chiquita a la derecha. Nada de cuadrícula de tarjetas.
+   Solo se animan transform y opacidad.
+   ===================================================================== */
+.mz-capacidades .mz-cabeza {
+  max-width: 48vw;
+}
+.mz-cap__riel {
+  --gap: clamp(16px, 2vw, 32px);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+  margin-top: clamp(8px, 1vw, 16px);
+}
+/* La línea que une los cuatro puntos, y la luz que corre por ella */
+.mz-cap__riel::before,
+.mz-cap__riel::after {
+  content: "";
+  position: absolute;
+  top: 25px;
+  right: calc((100% - 3 * var(--gap)) / 4 - 25px);
+  left: 25px;
+  height: 1px;
+  pointer-events: none;
+}
+.mz-cap__riel::before {
+  background: var(--ini-linea);
+}
+.mz-cap__riel::after {
+  background: linear-gradient(90deg, transparent, #f1bc5b, #3fd6b8, #916ef8, #7fb2ff, transparent) no-repeat;
+  background-size: 30% 100%;
+  opacity: 0.9;
+  animation: mz-cap-luz 5.5s linear infinite;
+}
+@keyframes mz-cap-luz {
+  from {
+    background-position: -45% 0;
+  }
+  to {
+    background-position: 145% 0;
+  }
+}
+.mz-cap__nodo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ini-texto);
+  text-align: left;
+  cursor: pointer;
+}
+.mz-cap__punto {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border: 1px solid var(--ini-linea);
+  border-radius: 50%;
+  background: var(--ini-fondo);
+  color: var(--ini-gris);
+  transition:
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 200ms ease,
+    color 200ms ease,
+    box-shadow 300ms ease;
+}
+.mz-cap__nodo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mz-cap__nodo-texto b {
+  font-size: clamp(17px, 1.35vw, 21px);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  transition: color 200ms ease;
+}
+.mz-cap__nodo-texto span {
+  color: var(--ini-gris);
+  font-size: 15px;
+  line-height: 1.4;
+}
+.mz-cap__nodo:not([aria-selected="true"]) .mz-cap__nodo-texto b {
+  color: color-mix(in srgb, var(--ini-texto) 72%, transparent);
+}
+.mz-cap__nodo[aria-selected="true"] .mz-cap__punto {
+  border-color: var(--k);
+  color: var(--k);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--k) 14%, transparent),
+    0 0 28px color-mix(in srgb, var(--k) 45%, transparent);
+  transform: scale(1.06);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mz-cap__nodo:hover .mz-cap__punto {
+    border-color: var(--k);
+    color: var(--k);
+  }
+}
+.mz-cap__nodo:focus-visible {
+  outline: none;
+}
+.mz-cap__nodo:focus-visible .mz-cap__punto {
+  outline: 2px solid var(--ini-acento);
+  outline-offset: 3px;
+}
+
+/* El trabajo elegido */
+.mz-cap__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: center;
+  margin-top: clamp(40px, 5vw, 72px);
+  animation: mz-cap-entra 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes mz-cap-entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.mz-cap__texto h3 {
+  margin: 0;
+  color: var(--ini-texto);
+  font-size: clamp(30px, 3.1vw, 52px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+.mz-cap__texto > p {
+  margin: 12px 0 0;
+  color: var(--k);
+  font-size: clamp(17px, 1.3vw, 20px);
+}
+.mz-cap__texto ul {
+  display: grid;
+  gap: 14px;
+  margin: clamp(22px, 2.4vw, 32px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mz-cap__texto li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: color-mix(in srgb, var(--ini-texto) 86%, transparent);
+  font-size: 16px;
+  line-height: 1.45;
+  animation: mz-cap-entra 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(120ms + var(--i) * 70ms);
+}
+.mz-cap__texto li svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--k);
+}
+/* --k: el color con el que se pinta (en claro, el más hondo, para que se lea) */
+.mz-cap__nodo,
+.mz-cap__panel {
+  --k: var(--c);
+}
+:root[data-tema="claro"] .mz-cap__nodo,
+:root[data-tema="claro"] .mz-cap__panel {
+  --k: var(--cc);
+}
+.mz-cap__visual {
+  position: relative;
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(22px, 2.2vw, 32px) clamp(22px, 2.2vw, 32px) 44px;
+  border: 1px solid var(--ini-linea);
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--k) 16%, transparent), transparent 60%),
+    color-mix(in srgb, var(--ini-texto) 3%, var(--ini-fondo));
+}
+.mz-cap__ejemplo {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  color: var(--ini-gris);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mz-cap__confianza {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: clamp(32px, 3.6vw, 52px) 0 0;
+  color: var(--ini-gris);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.mz-cap__confianza svg {
+  flex: none;
+  color: var(--ini-texto);
+}
+
+/* Las animaciones chiquitas de cada trabajo (de ejemplo) */
+.mz-cap-vis {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ini-texto);
+  font-size: 15px;
+}
+.mz-cap-vis__canal {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--ini-gris);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* Consigue clientes: cada interesado pasa de «sin seguimiento» a «mensaje listo» */
+.mz-cap-vis--clientes {
+  display: grid;
+  gap: 12px;
+}
+.mz-cap-vis--clientes li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--ini-linea);
+  border-radius: 16px;
+  background: var(--ini-fondo);
+  animation: mz-cap-entra 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 120ms);
+}
+.mz-cap-vis__inicial {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--k) 22%, transparent);
+  color: var(--k);
+  font-weight: 500;
+}
+.mz-cap-vis__quien {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.mz-cap-vis__quien span {
+  overflow: hidden;
+  color: var(--ini-gris);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mz-cap-vis__estado {
+  position: relative;
+  display: grid;
+  flex: none;
+  font-size: 12px;
+}
+.mz-cap-vis__estado > span {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.mz-cap-vis__antes {
+  background: color-mix(in srgb, var(--ini-texto) 7%, transparent);
+  color: var(--ini-gris);
+  animation: mz-cap-sale 300ms ease both;
+  animation-delay: calc(900ms + var(--i) * 450ms);
+}
+.mz-cap-vis__despues {
+  background: color-mix(in srgb, var(--k) 18%, transparent);
+  color: var(--k);
+  animation: mz-cap-aparece 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(1050ms + var(--i) * 450ms);
+}
+@keyframes mz-cap-sale {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@keyframes mz-cap-aparece {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+/* Responde: la conversación aparece mensaje por mensaje */
+.mz-cap-vis--responde {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.mz-cap-vis__burbuja {
+  max-width: 82%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 6px;
+  background: color-mix(in srgb, var(--ini-texto) 8%, transparent);
+  line-height: 1.4;
+  animation: mz-cap-entra 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 650ms);
+}
+.mz-cap-vis__burbuja--atendel {
+  align-self: flex-end;
+  border-radius: 18px 18px 6px 18px;
+  background: color-mix(in srgb, var(--k) 22%, transparent);
+}
+/* Costos: las barras crecen y luego salen los avisos */
+.mz-cap-vis__barras {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  height: 150px;
+  align-items: end;
+}
+.mz-cap-vis__barra {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  text-align: center;
+}
+.mz-cap-vis__barra i {
+  display: block;
+  height: calc(var(--alto) * 100% - 24px);
+  border-radius: 8px 8px 3px 3px;
+  background: color-mix(in srgb, var(--ini-texto) 14%, transparent);
+  transform-origin: bottom;
+  animation: mz-cap-crece 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 110ms);
+}
+.mz-cap-vis__barra--sube i {
+  background: linear-gradient(180deg, var(--k), color-mix(in srgb, var(--k) 45%, transparent));
+}
+.mz-cap-vis__barra small {
+  overflow: hidden;
+  color: var(--ini-gris);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes mz-cap-crece {
+  from {
+    transform: scaleY(0);
+  }
+}
+.mz-cap-vis__alertas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.mz-cap-vis__alertas span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--k) 40%, transparent);
+  border-radius: 999px;
+  color: var(--ini-texto);
+  font-size: 13px;
+  animation: mz-cap-entra 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(900ms + var(--i) * 300ms);
+}
+.mz-cap-vis__alertas svg {
+  color: var(--k);
+}
+/* Automatiza: las tareas se palomean una tras otra */
+.mz-cap-vis--procesos {
+  display: grid;
+  gap: 14px;
+}
+.mz-cap-vis--procesos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: mz-cap-entra 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 380ms);
+}
+.mz-cap-vis__check {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--ini-linea);
+  border-radius: 50%;
+  color: transparent;
+  animation: mz-cap-palomea 360ms ease both;
+  animation-delay: calc(300ms + var(--i) * 380ms);
+}
+@keyframes mz-cap-palomea {
+  to {
+    border-color: var(--k);
+    background: color-mix(in srgb, var(--k) 22%, transparent);
+    color: var(--k);
+  }
+}
+
+@media (max-width: 899px) {
+  .mz-capacidades .mz-cabeza {
+    max-width: none;
+  }
+  .mz-cap__riel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 22px;
+  }
+  .mz-cap__riel::before,
+  .mz-cap__riel::after {
+    display: none;
+  }
+  .mz-cap__punto {
+    width: 44px;
+    height: 44px;
+  }
+  .mz-cap__nodo-texto span {
+    font-size: 14px;
+  }
+  .mz-cap__panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mz-cap__visual {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mz-cap__riel::after {
+    animation: none;
+    background-position: 50% 0;
+  }
+  .mz-cap__panel,
+  .mz-cap__texto li,
+  .mz-cap-vis--clientes li,
+  .mz-cap-vis__burbuja,
+  .mz-cap-vis__barra i,
+  .mz-cap-vis__alertas span,
+  .mz-cap-vis--procesos li,
+  .mz-cap-vis__check {
+    animation-duration: 1ms;
+    animation-delay: 0s;
+  }
+  .mz-cap-vis__antes,
+  .mz-cap-vis__despues {
+    animation-duration: 1ms;
+    animation-delay: 0s;
+  }
+  .mz-cap__punto {
+    transition: none;
+  }
+}

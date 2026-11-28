@@ -250,7 +250,7 @@ export function FlujoInfo() {
         p: r() * Math.PI * 2,
         w: (r() - 0.5) * 0.3,
         a: 0.3 + r() * 0.55,
-        vel: (movil ? 80 : 100) + r() * 55,
+        vel: (movil ? 40 : 50) + r() * 28,
         color: [0, 1, 2, 0, 1, 3, 0][l % 7],
         pulso: 1.7 + r() * 0.6,
         o: new Float32Array(M),
@@ -268,7 +268,7 @@ export function FlujoInfo() {
         return {
           s: r(),
           lat: Math.max(-1.3, Math.min(1.3, gauss(r) * 0.6)),
-          v: 26 + r() * 34,
+          v: 13 + r() * 17,
           tam: (movil ? 7 : 8) + z * z * (movil ? 14 : 24),
           color: otro(),
           a: r() * Math.PI * 2,
@@ -284,7 +284,7 @@ export function FlujoInfo() {
         k: Math.floor(r() * K),
         s: r(),
         u: gauss(r) * 0.9,
-        v: 40 + r() * 40,
+        v: 20 + r() * 20,
         fase: r() * Math.PI * 2,
         vel: 0.8 + r() * 1.6,
         color: otro(),
@@ -470,7 +470,7 @@ export function FlujoInfo() {
       ctx.globalCompositeOperation = T.luz;
       const tope = sy - 10;
       const piso = sy + H + 10;
-      const vmax = movil ? 52 : 72;
+      const vmax = movil ? 26 : 36;
       // El remolino: un campo de ruido que cambia despacio; las partículas se desvían según su
       // curl (gira sin juntarlas ni separarlas). Se calcula en una cuadrícula y se interpola.
       const fr = 1 / (movil ? 120 : 170);

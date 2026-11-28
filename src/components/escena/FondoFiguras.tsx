@@ -40,6 +40,8 @@ type Props = {
   idioma?: string;
   /** El inicio («/»): el cerebro pasa de derecha a izquierda más parejo y suave. */
   parejo?: boolean;
+  /** Solo la figura, sin polvo suelto ni fragmentos que floten (el cierre de las demás páginas). */
+  soloFigura?: boolean;
   /** "manual": no corre sola; la mueve quien tenga el control (laboratorio). */
   reloj?: "auto" | "manual";
   alListo?: (c: ControlFiguras) => void;
@@ -54,7 +56,7 @@ const enS = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * t * (t * (t * 6 - 
  * triangulitos, con los mismos cambios que los videos de referencia.
  * Uso: <FondoFiguras escena="globo" /> o <FondoFiguras escena="foco" progreso={0.3} />.
  */
-export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "", variante = "cerebro", idioma, parejo = false }: Props) {
+export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, className = "", variante = "cerebro", idioma, parejo = false, soloFigura = false }: Props) {
   const refCaja = useRef<HTMLDivElement>(null);
   const refChat = useRef<HTMLDivElement>(null);
   const conChat = variante === "chat";
@@ -83,6 +85,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     motorRef.current = motor;
     motor.modoChat = sinCerebro;
     motor.suave = parejo;
+    motor.soloFigura = soloFigura;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /**
@@ -144,6 +147,9 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
     // Dónde empieza cada escena: se mide una vez (y al cambiar el tamaño de la página), no en
     // cada cuadro; en cada cuadro solo se lee el scroll
     let anclas: { i: number; top: number }[] = [];
+    // Secciones donde el fondo se queda tranquilo (data-fondo-quieto): el cambio a la escena
+    // siguiente espera al final del tramo, aunque el tramo sea largo (p. ej., las capacidades)
+    let quietos: number[] = [];
     let alto = caja.clientHeight || window.innerHeight;
     const medirAnclas = () => {
       const y = window.scrollY;
@@ -153,6 +159,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         .filter((el) => esEscenaFiguras(el.dataset.escena))
         .map((el) => ({ i: ESCENAS_FIGURAS.indexOf(el.dataset.escena as EscenaFiguras), top: Math.min(maximo, el.getBoundingClientRect().top + y) }))
         .sort((a, b) => a.top - b.top);
+      quietos = Array.from(document.querySelectorAll<HTMLElement>("[data-fondo-quieto]")).map((el) => el.getBoundingClientRect().top + y);
       alto = caja.clientHeight || window.innerHeight;
     };
     medirAnclas();
@@ -178,7 +185,8 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
         // figura sigue moviéndose con el scroll en lugar de quedarse quieta varias pantallas.
         if (b.i === a.i + 1) {
           const tramoVideo = ((REPOSO_VIDEO[b.i] - REPOSO_VIDEO[a.i]) / 750) * alto;
-          if (tramo > tramoVideo * 1.1 && tramo <= tramoVideo * 2) f = 1 - (b.top - y) / tramoVideo;
+          const quieto = quietos.some((q) => q > a.top && q < b.top);
+          if (tramo > tramoVideo * 1.1 && (tramo <= tramoVideo * 2 || quieto)) f = 1 - (b.top - y) / tramoVideo;
         }
         return a.i + Math.min(1, Math.max(0, f)) * (b.i - a.i);
       }
@@ -297,7 +305,7 @@ export function FondoFiguras({ escena, progreso, reloj = "auto", alListo, classN
       motor.destruir();
       motorRef.current = null;
     };
-  }, [reloj, conChat, sinCerebro, parejo]);
+  }, [reloj, conChat, sinCerebro, parejo, soloFigura]);
 
   return (
     <div ref={refCaja} className={`escena-fondo fondo-figuras ${className}`} aria-hidden="true">

@@ -721,6 +721,8 @@ export class MotorFiguras {
    * (CEREBRO_A_PAREJO, que entra y sale despacio) y sigue al scroll con más suavidad.
    */
   suave = false;
+  /** Solo la figura (el cierre de las demás páginas): sin polvo suelto ni fragmentos que floten. */
+  soloFigura = false;
   /** Normal "de bulto" del cerebro (como si fuera un huevo liso): da un borde ámbar ancho y parejo, sin delinear cada pliegue. */
   private bulto: Float32Array | null = null;
   private bultoDe: Float32Array | null = null;
@@ -1600,7 +1602,8 @@ export class MotorFiguras {
       d[o + 3] = this.col[i * 3];
       d[o + 4] = this.col[i * 3 + 1];
       d[o + 5] = this.col[i * 3 + 2];
-      d[o + 6] = this.alfa[i];
+      // (solo la figura: las partículas sueltas no se ven)
+      d[o + 6] = this.soloFigura ? this.alfa[i] * (1 - suave(0.3, 0.8, this.mOrilla(i))) : this.alfa[i];
       d[o + 7] = this.rot[i * 3];
       d[o + 8] = this.rot[i * 3 + 1];
       d[o + 9] = this.rot[i * 3 + 2];
@@ -1684,6 +1687,7 @@ export class MotorFiguras {
     const dpr = this.dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, this.w, this.h);
+    if (this.soloFigura) return;
     ctx.lineJoin = "round";
     const t = this.reloj;
     const s = this.s;

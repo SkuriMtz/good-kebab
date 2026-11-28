@@ -8,7 +8,7 @@ import { fraseCierre, type PaginaCierre } from "./frasesCierre";
 
 /**
  * El cierre del inicio al final de las demás páginas (apps, agentes, precios…): la marca de
- * Atendel hecha de fragmentos detrás, igual que al final del inicio; una frase que cambia según
+ * Atendel hecha de fragmentos detrás (solo la marca, sin fragmentos sueltos alrededor); una frase que cambia según
  * la página (frasesCierre.ts; sin página, la del inicio: «Tu negocio ya tiene quién atienda.»),
  * «Deja que Atendel lo haga.» (en inglés, «Let Atendel handle it.») y el botón de la lista. La
  * marca se arma solo cuando el cierre se acerca a la pantalla, para no cargarla antes de tiempo.
@@ -35,7 +35,7 @@ export function CierreMarca({ pagina }: { pagina?: PaginaCierre }) {
   }, []);
   return (
     <section ref={ref} className="cierre-marca" aria-labelledby="cierre-marca-titulo">
-      {cerca ? <FondoFiguras escena="cierre" className="cierre-marca__fondo" /> : null}
+      {cerca ? <FondoFiguras escena="cierre" className="cierre-marca__fondo" soloFigura /> : null}
       <div className="cierre-marca__centro">
         <h2 id="cierre-marca-titulo" className="cierre-marca__texto">
           {linea1}
